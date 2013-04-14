@@ -1,0 +1,60 @@
+
+
+
+<model
+  name="agora"
+  format="IMAGE"
+  type="FLAT"
+  path="media/Buildings/"
+  file="Agora.gif"
+  xoff="78"
+  yoff="36"
+  scale="1.0"
+  bound="2.5"
+  height="2"
+/>
+
+
+<model
+  name="house1"
+  base="agora"
+  file="house_1.gif"
+  scale="0.9"
+  bound="3"
+/>
+
+<model
+  name="house2"
+  base="agora"
+  xoff="60"
+  yoff="30"
+  file="house_2.gif"
+  bound="3"
+/>
+
+<model
+  name="house3"
+  base="agora"
+  file="house_3.gif"
+  scale="0.9"
+  bound="3"
+/>
+
+<model
+  name="field depot"
+  base="agora"
+  file="field_depot.gif"
+  bound="2"
+/>
+
+<model
+  name="crops"
+  format="MS3D"
+  type="MODEL"
+  path="media/Buildings/"
+  file="crops.ms3d"
+  groupID="0"
+  scale="0.1"
+  bound="1"
+  height="0.5"
+/>

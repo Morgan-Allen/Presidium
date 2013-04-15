@@ -47,8 +47,8 @@ public class TestGame extends PlayLoop {
     */
   protected World createWorld() {
     Terrain terrain = new Terrain(
-      16, 0.5f, 0.75f,  //map size, relative elevation, and amount of land
-      7, 6, 5  //insolation, moisture and radiation
+      32, 0.5f, 0.75f,  //map size, relative elevation, and amount of land
+      7, 6, 2  //insolation, moisture and radiation
     ) ;
     World world = new World(terrain) ;
     return world ;

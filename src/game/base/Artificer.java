@@ -50,7 +50,7 @@ public class Artificer extends Venue implements VenueConstants {
     //
     //  TODO:  This is a temporary measure.  Remove later.
     //orders.updateDemand(PARTS, 10) ;
-    orders.receiveDemand(PARTS, 10) ;
+    //orders.receiveDemand(PARTS, 10) ;
     
     orders.translateDemands(conversions()) ;
   }

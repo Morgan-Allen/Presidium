@@ -133,6 +133,9 @@ public abstract class Venue extends Fixture implements
   public void exitWorld() {
     if (base != null) base.toggleBelongs(this, false) ;
     world.schedule.unschedule(this) ;
+    //  Consider moving this to the personnel class?
+    for (Citizen c : personnel.workers()  ) c.setWorkVenue(null) ;
+    for (Citizen c : personnel.residents()) c.setHomeVenue(null) ;
     super.exitWorld() ;
   }
   
@@ -274,9 +277,11 @@ public abstract class Venue extends Fixture implements
       d.append(a) ;
     }
     
-
-    d.append("\n\nCURRENT STOCKS:") ;
+    if (! stocks.empty()) d.append("\n\nCURRENT STOCKS:") ;
     stocks.writeInformation(d) ;
+    
+    d.append("\n\nCURRENT ORDERS:") ;
+    orders.writeInformation(d) ;
   }
   
   

@@ -184,6 +184,10 @@ public class Action implements Behaviour, Model.AnimNames {
   
   
   protected void updateAction() {
+    if (complete()) {
+      oldProgress = progress ;
+      return ;
+    }
     adjustMotion() ;
     //
     //  Iterate over progress made-

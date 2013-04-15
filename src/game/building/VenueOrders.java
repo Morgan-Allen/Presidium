@@ -8,6 +8,7 @@
 package src.game.building ;
 import src.game.common.* ;
 import src.game.actors.* ;
+import src.user.Description ;
 import src.util.* ;
 
 
@@ -49,6 +50,7 @@ public class VenueOrders {
       d.required = s.loadFloat() ;
       d.received = s.loadFloat() ;
       d.balance  = s.loadFloat() ;
+      demands.put(d.type, d) ;
     }
   }
   
@@ -237,6 +239,22 @@ public class VenueOrders {
       if (supplies == null) continue ;
       supplies.orders.receiveDemand(d.type, d.required) ;
       d.received *= 1 - POTENTIAL_INC ;
+    }
+  }
+  
+  
+  /**  Rendering and interface methods-
+    */
+  void writeInformation(Description d) {
+    if (demands.size() == 0) {
+      d.append("\n\n  No current demands.") ;
+      return ;
+    }
+    for (Demand demand : demands.values()) {
+      d.append("\n  Demand for: "+demand.type.name) ;
+      d.append("\n    ("+(int) demand.required+" required)") ;
+      d.append("\n    ("+(int) demand.received+" received)") ;
+      d.append("\n    ("+(int) demand.balance +" balance)" ) ;
     }
   }
 }

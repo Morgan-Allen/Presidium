@@ -22,7 +22,7 @@ public class Holding extends Venue implements VenueConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static int
-    MAX_SIZE = 2,
+    MAX_SIZE   = 2,
     MAX_HEIGHT = 4,
     NUM_LEVELS = 4,
     NUM_VARS   = 3 ;
@@ -63,12 +63,14 @@ public class Holding extends Venue implements VenueConstants {
     attachSprite(MODELS[varID][upgradeLevel].makeSprite()) ;
   }
   
+  
   public Holding(Session s) throws Exception {
     super(s) ;
     shelter = (TownVault) s.loadObject() ;
     upgradeLevel = s.loadInt() ;
     varID = s.loadInt() ;
   }
+  
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
@@ -77,6 +79,10 @@ public class Holding extends Venue implements VenueConstants {
     s.saveInt(varID) ;
   }
   
+  
+  public int owningType() {
+    return Element.FIXTURE_OWNS ;
+  }
   
   
   /**  Moderating upgrades-
@@ -105,11 +111,11 @@ public class Holding extends Venue implements VenueConstants {
     //  Life Support and Water requirements stay constant.
     
     final int oldLevel = upgradeLevel ;
-    boolean downgrade = false, upgrade = true ;
+    boolean devolve = false, upgrade = true ;
     
-    for (Item i : goodsNeeded().raw) if (! stocks.hasItem(i)) downgrade = true ;
+    for (Item i : goodsNeeded().raw) if (! stocks.hasItem(i)) devolve = true  ;
     for (Item i : goodsWanted().raw) if (! stocks.hasItem(i)) upgrade = false ;
-    if (downgrade) upgradeLevel-- ;
+    if (devolve) upgradeLevel-- ;
     if (upgrade  ) upgradeLevel++ ;
     upgradeLevel = Visit.clamp(upgradeLevel, NUM_LEVELS) ;
     

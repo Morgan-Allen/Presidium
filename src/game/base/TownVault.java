@@ -26,7 +26,7 @@ public class TownVault extends Venue implements VenueConstants {
   ) ;
   
   List <Holding> holdings = new List <Holding> () ;
-  List <Citizen> toHouse = new List <Citizen> () ;
+  List <Citizen> toHouse  = new List <Citizen> () ;
   
   
   
@@ -37,10 +37,14 @@ public class TownVault extends Venue implements VenueConstants {
   
   public TownVault(Session s) throws Exception {
     super(s) ;
+    s.loadObjects(holdings) ;
+    s.loadObjects(toHouse ) ;
   }
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveObjects(holdings) ;
+    s.saveObjects(toHouse ) ;
   }
   
   
@@ -59,6 +63,7 @@ public class TownVault extends Venue implements VenueConstants {
   public void updateAsScheduled() {
     super.updateAsScheduled() ;
     
+    ///I.say("Updating demands...") ;
     orders.clearDemands() ;
     for (Holding holding : holdings) {
       for (Item i : holding.goodsWanted().raw) {
@@ -67,6 +72,7 @@ public class TownVault extends Venue implements VenueConstants {
       orders.incRequired(STARCHES, 10) ;
       orders.incRequired(GREENS  , 10) ;
       orders.incRequired(PROTEIN , 10) ;
+      ///I.say("Adding demand for: "+holding.fullName()) ;
     }
     
     for (Object o : base().servicesNear(base(), this, 32)) {
@@ -136,14 +142,15 @@ public class TownVault extends Venue implements VenueConstants {
     return midPos ;
   }
   
-  
+  /*
   private float rateHolding(Holding holding, Citizen citizen) {
     Vec3D midPos = idealSite(citizen) ;
     float rating = 0 - midPos.distance(holding.position()) ;
     return rating ;
   }
+  //*/
   
-  
+  //  TODO- debug this.
   
   /**  Implementing construction, upgrades, downgrades and salvage-
     */
@@ -159,9 +166,10 @@ public class TownVault extends Venue implements VenueConstants {
     return null ;
   }
   
+  
   private Delivery deliveryFor(Item i, Holding h) {
     float needed = i.amount - h.stocks.amountOf(i) ;
-    if (needed < 0) return null ;
+    if (needed <= 0) return null ;
     needed = (float) Math.ceil(needed / 5) * 5 ;
     final Delivery d = new Delivery(new Item(i, needed), this, h) ;
     if (d.valid()) return d ;

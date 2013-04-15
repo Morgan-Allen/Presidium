@@ -10,4 +10,7 @@ package src.game.social ;
 
 public class Dialogue {
   
+  
+  
+  
 }

@@ -44,6 +44,7 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
     health.loadState(s) ;
     training.loadState(s) ;
     pathing.loadState(s) ;
+    equipment.loadState(s) ;
     
     action = (Action) s.loadObject() ;
     s.loadObjects(behaviourStack) ;
@@ -60,6 +61,7 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
     health.saveState(s) ;
     training.saveState(s) ;
     pathing.saveState(s) ;
+    equipment.saveState(s) ;
     
     s.saveObject(action) ;
     s.saveObjects(behaviourStack) ;
@@ -149,15 +151,15 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   protected void updateAsMobile() {
     super.updateAsMobile() ;
     //  You'll have to skip this if you're KO or dead.
-    if (action == null || action.complete()) {
-      assignAction(getNextAction()) ;
-    }
     if (action != null) action.updateAction() ;
   }
   
   public void updateAsScheduled() {
     super.updateAsScheduled() ;
     //  You'll have to skip this if you're KO or dead.
+    if (action == null || action.complete()) {
+      assignAction(getNextAction()) ;
+    }
     for (Behaviour b : behaviourStack) if (b.monitor(this)) break ;
   }
   

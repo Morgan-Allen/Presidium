@@ -28,7 +28,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     MAX_INSOLATION  = 10,
     MAX_MOISTURE    = 10,
     MAX_RADIATION   = 10,
-    GROWTH_INTERVAL = Planet.DAY_LENGTH / 5 ;
+    GROWTH_INTERVAL = Planet.DAY_LENGTH ;
   
   final public int
     mapSize ;

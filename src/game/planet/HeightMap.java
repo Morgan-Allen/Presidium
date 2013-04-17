@@ -176,7 +176,7 @@ public class HeightMap {
   public byte[][] asScaledBytes(float scaleHigh) {
     byte result[][] = new byte[size][size] ;
     for (int x = size ; x-- > 0 ;) for (int y = size ; y-- > 0 ;) {
-      result[x][y] = (byte) (mapHigh[x][y] * scaleHigh / this.maxHigh) ;
+      result[x][y] = (byte) ((mapHigh[x][y] * scaleHigh) / this.maxHigh) ;
     }
     return result ;
   }
@@ -187,6 +187,7 @@ public class HeightMap {
   public int span() {
     return size - 1 ;
   }
+  
   
   
   /**  These methods, which exist to convert from areas to height thresholds
@@ -214,7 +215,6 @@ public class HeightMap {
     *  Bear in mind that these results apply to statistical averages only-
     *  individual maps can and will vary significantly.  Caveat Emptor.
     */
-  
   public static float areaUnderHeight(float height) {
     height = Visit.clamp(height, 0, 1) ;
     final boolean subHalf = height < 0.5f ;
@@ -224,6 +224,7 @@ public class HeightMap {
     float areaOver = (float) (1 / (2 * (Math.pow(4, N)))) ;
     return subHalf ? areaOver : (1 - areaOver) ;
   }
+  
   
   public static float heightCoveringArea(float areaUnder) {
     areaUnder = Visit.clamp(areaUnder, 0, 1) ;
@@ -238,6 +239,19 @@ public class HeightMap {
   //
   //  TODO:  Try to work out some statistical methods for getting height/area
   //  thresholds from specific height maps?
+  
+  
+  public static float sampleAt(int mapSize, byte vals[][], float mX, float mY) {
+    mX *= (vals.length - 1) * 1f / mapSize ;
+    mY *= (vals.length - 1) * 1f / mapSize ;
+    final int vX = (int) mX, vY = (int) mY ;
+    final float rX = mX % 1, rY = mY % 1 ;
+    return
+      (vals[vX    ][vY    ] * (1 - rX) * (1 - rY)) +
+      (vals[vX + 1][vY    ] * rX       * (1 - rY)) +
+      (vals[vX    ][vY + 1] * (1 - rX) * rY      ) +
+      (vals[vX + 1][vY + 1] * rX       * rY      ) ;
+  }
   
   
   /**  Prints out the height values of the terrain generated.

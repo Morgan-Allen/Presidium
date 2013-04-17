@@ -30,15 +30,9 @@ public class Terrain implements TileConstants, Session.Saveable {
     MAX_RADIATION   = 10,
     GROWTH_INTERVAL = Planet.DAY_LENGTH ;
   
+  
   final public int
     mapSize ;
-  private float
-    maxElevation,
-    seaLevel ;
-  private float
-    insolation,
-    moisture,
-    radiation ;
   private byte
     heightVals[][],
     typeIndex[][],
@@ -48,9 +42,8 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   
   private static class MeshPatch {
-    //  TODO:  You may also want specialised meshes for water and roads.
-    TerrainMesh meshes[], roadsMesh, fogMesh ;
-    boolean needsUpdate ;
+    TerrainMesh meshes[], roadsMesh, earthMesh, fogMesh ;
+    boolean updateMesh, updateRoads ;
   }
   
   private int patchGridSize, patchSize ;
@@ -59,70 +52,27 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   
   
-  //  TODO:  You must implement save/load functions!
-  /**  Default constructor.
-    */
-  public Terrain(
-    int minSize,
-    float relativeElevation,
-    float landAmount,
-    float insolation,
-    float moisture,
-    float radiation
+  Terrain(
+    Habitat[] gradient,
+    byte typeIndex[][],
+    byte varsIndex[][],
+    byte heightVals[][]
   ) {
-    this.mapSize = checkMapSize(minSize) ;
+    this.mapSize = typeIndex.length ;
+    this.typeIndex = typeIndex ;
+    this.varsIndex = varsIndex ;
+    this.heightVals = heightVals ;
     this.habitats = new Habitat[mapSize][mapSize] ;
-    this.maxElevation = relativeElevation * mapSize ;
-    this.seaLevel = HeightMap.heightCoveringArea(1 - landAmount) ;
-    I.say("SEA LEVEL IS: "+seaLevel+" MAX ELEVATION: "+maxElevation) ;
-    final HeightMap elevationMap = new HeightMap(mapSize) ;
-    this.heightVals = elevationMap.asScaledBytes(maxElevation) ;
-    this.moisture = moisture ;
-    this.insolation = insolation ;
-    this.radiation = radiation ;
-    //
-    //  TODO:  Create a small height map for radiation.
-    //
-    //  With that done, you simply(tm) visit every tile on the map, and
-    //  determine the terrain type appropriate.
-    this.typeIndex = new byte[mapSize][mapSize] ;
-    this.varsIndex = new byte[mapSize][mapSize] ;
     for (Coord c : Visit.grid(0, 0, mapSize, mapSize, 1)) {
-      final Habitat habitat = genHabitat(c.x, c.y) ;
-      habitats[c.x][c.y] = habitat ;
-      typeIndex[c.x][c.y] = (byte) habitat.ID ;
-      varsIndex[c.x][c.y] = terrainVarsAt(c.x, c.y) ;
+      habitats[c.x][c.y] = Habitat.ALL_HABITATS[typeIndex[c.x][c.y]] ;
     }
-    //
-    //  Flatten the whole thing.
-    //  TODO:  You'll need to store these values separately, in that case.
-    for (Coord c : Visit.grid(0, 0, mapSize + 1, mapSize + 1, 1)) {
-      heightVals[c.x][c.y] = 0 ;
-      /*
-      final Habitat h = habitats[c.x][c.y] ;
-      byte height = 0 ;
-      if (h.ID <= Habitat.SHORELINE.ID) height = -1 ;
-      else if (h.ID >= Habitat.BARRENS.ID) height = 1 ;
-      else if (h.ID >= Habitat.DESERT.ID) height = 2 ;
-      sinkHeight(c.x, c.y, height) ;
-      sinkHeight(c.x + 1, c.y, height) ;
-      sinkHeight(c.x, c.y + 1, height) ;
-      sinkHeight(c.x + 1, c.y + 1, height) ;
-      //*/
-    }
-    paintEdge(Habitat.OCEAN, Habitat.SHORELINE) ;
-    paintEdge(Habitat.OCEAN, Habitat.SHALLOWS) ;
   }
+  
   
   
   public Terrain(Session s) throws Exception {
     s.cacheInstance(this) ;
     mapSize = s.loadInt() ;
-    maxElevation = s.loadFloat() ;
-    seaLevel = s.loadFloat() ;
-    moisture = s.loadFloat() ;
-    insolation = s.loadFloat() ;
-    radiation = s.loadFloat() ;
     
     heightVals = new byte[mapSize + 1][mapSize + 1] ;
     typeIndex = new byte[mapSize][mapSize] ;
@@ -131,8 +81,6 @@ public class Terrain implements TileConstants, Session.Saveable {
     s.loadByteArray(typeIndex) ;
     s.loadByteArray(varsIndex) ;
     
-    //
-    //  TODO:  True habitats may have to be stored differently.
     habitats = new Habitat[mapSize][mapSize] ;
     for (Coord c : Visit.grid(0, 0, mapSize, mapSize, 1)) {
       habitats[c.x][c.y] = Habitat.ALL_HABITATS[typeIndex[c.x][c.y]] ;
@@ -142,130 +90,11 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   public void saveState(Session s) throws Exception {
     s.saveInt(mapSize) ;
-    s.saveFloat(maxElevation) ;
-    s.saveFloat(seaLevel) ;
-    s.saveFloat(moisture) ;
-    s.saveFloat(insolation) ;
-    s.saveFloat(radiation) ;
     s.saveByteArray(heightVals) ;
     s.saveByteArray(typeIndex) ;
     s.saveByteArray(varsIndex) ;
   }
   
-  
-  
-  
-  
-  
-  /**  Various helper methods invoked during setup-
-    */
-  private int checkMapSize(int minSize) {
-    int mapSize = SECTOR_SIZE ;
-    while (mapSize < minSize) mapSize *= 2 ;
-    if (mapSize == minSize) return mapSize ;
-    I.complain("MAP SIZE MUST BE A POWER OF 2 MULTIPLE OF SECTOR SIZE.") ;
-    return -1  ;
-  }
-  
-  
-  private void sinkHeight(int x, int y, int val) {
-    heightVals[x][y] = (byte) Math.min(heightVals[x][y], val) ;
-  }
-  
-  
-  private void paintEdge(Habitat edge, Habitat replace) {
-    final Batch <Coord> toPaint = new Batch <Coord> () ;
-    for (Coord c : Visit.grid(0, 0, mapSize, mapSize, 1)) {
-      final Habitat h = habitats[c.x][c.y] ;
-      if (h != edge) continue ;
-      boolean inside = true ;
-      for (int i : N_INDEX) {
-        final Habitat n = habitatAt(c.x + N_X[i], c.y + N_Y[i]) ;
-        if (n != null && n != edge) { inside = false ; break ; }
-      }
-      if (! inside) toPaint.add(new Coord(c)) ;
-    }
-    for (Coord c : toPaint) {
-      habitats[c.x][c.y] = replace ;
-      typeIndex[c.x][c.y] = (byte) replace.ID ;
-    }
-  }
-  
-  
-  private float sampleAt(byte vals[][], float mX, float mY) {
-    mX *= (vals.length - 1) * 1f / mapSize ;
-    mY *= (vals.length - 1) * 1f / mapSize ;
-    final int vX = (int) mX, vY = (int) mY ;
-    final float rX = mX % 1, rY = mY % 1 ;
-    return
-      (vals[vX    ][vY    ] * (1 - rX) * (1 - rY)) +
-      (vals[vX + 1][vY    ] * rX       * (1 - rY)) +
-      (vals[vX    ][vY + 1] * (1 - rX) * rY      ) +
-      (vals[vX + 1][vY + 1] * rX       * rY      ) ;
-  }
-  
-  
-  
-  /**  Here are methods related to populating and updating the world-
-    */
-  
-  final private static float RELIEF_HEIGHTS[] = new float[100] ;
-  static { for (int i = 100 ; i-- > 0 ;) {
-    RELIEF_HEIGHTS[i] = HeightMap.areaUnderHeight(i / 100f) ;
-  }}
-  
-  final Habitat GRADIENT[] = {
-    Habitat.MEADOW,
-    Habitat.BARRENS,
-    Habitat.DESERT
-  } ;
-  
-  
-  private Habitat genHabitat(int x, int y) {
-    float high = sampleAt(heightVals, x, y) / maxElevation ;
-    if (high < seaLevel) {
-      return Habitat.OCEAN ;
-    }
-    high = RELIEF_HEIGHTS[(int) (high * 99.99f)] ;
-    final float seaRelief = RELIEF_HEIGHTS[(int) (seaLevel * 99.99f)] ;
-    high = (high - seaRelief) / (1 - seaRelief) ;
-    high += 0.5f - (moisture / 10) ;
-    high = Visit.clamp(high, 0, 0.99f) ;
-    int index = (int) (high * GRADIENT.length) ;
-    return GRADIENT[Visit.clamp(index, GRADIENT.length)] ;
-  }
-  
-  
-  private byte terrainVarsAt(int x, int y) {
-    final int dir = Rand.index(N_INDEX.length) ;
-    byte sampleVar ;
-    try { sampleVar = varsIndex[x + N_X[dir]][y + N_Y[dir]] ; }
-    catch (ArrayIndexOutOfBoundsException e) { sampleVar = 0 ; }
-    if (sampleVar == 0) sampleVar = (byte) (Rand.index(5) + 1) ;
-    varsIndex[x][y] = sampleVar ;
-    return sampleVar ;
-  }
-  
-  
-  
-  /**  Returns the average height of the given area of terrain-
-    */
-  public byte heightAverage(int x, int y, int xD, int yD) {
-    float sum = 0, numTiles = 0 ;
-    for (Coord c : Visit.grid(x, y, xD, yD, 1)) {
-      sum += heightVals[c.x][c.y] ;
-      numTiles++ ;
-    }
-    return (byte) ((sum / numTiles) + 0.5f) ;
-  }
-  
-  public float insolation() {
-    return insolation ;
-  }
-  
-  public float moisture() {
-    return moisture ;
-  }
   
   public Habitat habitatAt(int x, int y) {
     try { return habitats[x][y] ; }
@@ -273,23 +102,12 @@ public class Terrain implements TileConstants, Session.Saveable {
   }
   
   public float trueHeight(int x, int y) {
-    return sampleAt(heightVals, x, y) / 4 ;
-  }
-  
-  public float trueMaxHeight() {
-    return maxElevation / 4 ;
-  }
-  
-  public float seaLevel() {
-    return seaLevel ;
+    return HeightMap.sampleAt(mapSize, heightVals, x, y) / 4 ;
   }
   
   
   
-  
-  
-  
-  /**  Here are methods related to rendering-
+  /**  Rendering and interface methods-
     */
   public void initPatchGrid(int patchSize) {
     this.patchSize = patchSize ;

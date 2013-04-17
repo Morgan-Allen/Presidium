@@ -27,11 +27,12 @@ public class TestPlanet extends ViewLoop {
   
   public void setup() {
     final int size = 64 ;
-    terrain = new Terrain(
-      size, 0.5f, 0.75f,  //map size, relative elevation, and amount of land
-      7, 6, 5  //insolation, moisture and radiation
+    final TerrainGen TG = new TerrainGen(64,
+      Habitat.OCEAN, Habitat.RAIN_FOREST,
+      Habitat.MEADOW, Habitat.BARRENS, Habitat.DESERT, Habitat.MESA
     ) ;
     
+    terrain = TG.generateTerrain() ;
     terrain.initPatchGrid(16) ;
     rendering.port.cameraPosition.set(size / 2, size / 2, 0) ;
     
@@ -40,6 +41,9 @@ public class TestPlanet extends ViewLoop {
         return r.depth ;
       }
     } ;
+    
+    //rendering.lighting.direct(new Vec3D(-1, -1, 1)) ;
+    /*
     for (Coord c : Visit.grid(0, 0, size, size, 1)) {
       final Habitat h = terrain.habitatAt(c.x, c.y) ;
       if (h.floraModels == null) continue ;
@@ -52,6 +56,7 @@ public class TestPlanet extends ViewLoop {
         sprites.add(sprite) ;
       }
     }
+    //*/
   }
   
   

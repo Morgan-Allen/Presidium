@@ -27,18 +27,18 @@ public class Habitat {
   final static ImageModel
     DESERT_FLORA_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
-      Texture.loadTexture(TERRAIN_PATH+"desert_flora.png"),
-      4, 4, 1.5f
+      Texture.loadTexture(TERRAIN_PATH+"old_flora_resize.png"),
+      4, 4, 1.9f
     ),
     FOREST_FLORA_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
-      Texture.loadTexture(TERRAIN_PATH+"forest_flora.png"),
-      4, 4, 1.5f
+      Texture.loadTexture(TERRAIN_PATH+"old_flora_resize.png"),
+      4, 4, 1.9f
     ),
     WASTES_FLORA_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
       Texture.loadTexture(TERRAIN_PATH+"wastes_flora.png"),
-      4, 4, 1.5f
+      4, 4, 2.0f
     ),
     PLANKTON_MODELS[][] = null,
     //ANNUALS_MODELS[][] = null,

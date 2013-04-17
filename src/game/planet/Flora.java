@@ -100,7 +100,8 @@ public class Flora extends Element implements TileConstants {
         final Flora f = new Flora(h) ;
         f.enterWorldAt(t.x, t.y, world) ;
         if (init) {
-          f.incGrowth(Rand.range(0, MAX_GROWTH)) ;
+          if (Rand.num() < growChance * 4) f.incGrowth(MAX_GROWTH - 1) ;
+          else f.incGrowth(1) ;
           f.inceptTime = -10 ;
         }
         else f.incGrowth(0.5f) ;

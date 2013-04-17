@@ -75,22 +75,24 @@ public class Habitat {
       "shoreline.png", NO_FLORA,
       0, true, IS_OCEAN
     ),
-    OCEAN_HABITATS[] = { SHORELINE, SHALLOWS, OCEAN },
     //
     //  Forest habitats, which occur in equatorial regions with adequate rain-
     SWAMPLANDS = new Habitat("Swamplands",
       "swamplands_ground.gif", FOREST_FLORA_MODELS,
       2, true, MOISTURE, 9, INSOLATION, 6, MINERALS, 0
     ),
-    RAIN_FOREST = new Habitat("Rain Forest",
-      "rain_forest_ground.gif", FOREST_FLORA_MODELS,
+    ESTUARY = new Habitat("Rain Forest",
+      "estuary_ground.png", FOREST_FLORA_MODELS,
       1, true, MOISTURE, 7, INSOLATION, 7, MINERALS, 2
     ),
+
     MEADOW = new Habitat("Meadow",
       "meadows_ground.gif", FOREST_FLORA_MODELS,
       0, true, MOISTURE, 6, INSOLATION, 5, MINERALS, 3
     ),
-    FOREST_HABITATS[] = { MEADOW, RAIN_FOREST, SWAMPLANDS },
+    
+    OCEAN_HABITATS[] = { SHORELINE, SHALLOWS, OCEAN },
+    FOREST_HABITATS[] = { MEADOW, ESTUARY, SWAMPLANDS },
     //
     //  Desert habitats, which occur under hotter conditions-
     SAVANNAH = new Habitat("Savannah",
@@ -128,7 +130,7 @@ public class Habitat {
     //  This is the gradient of habitats going from most to least insolation-
     INSOLATION_GRADIENT[] = {
       SWAMPLANDS,
-      RAIN_FOREST,
+      ESTUARY,
       MEADOW,
       SAVANNAH,
       BARRENS,

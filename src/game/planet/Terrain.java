@@ -18,6 +18,8 @@ import src.util.* ;
 
 //  I want an underground level, storing mineral deposits.
 
+//  TODO:  You'll also need to overlay the road network.
+
 
 public class Terrain implements TileConstants, Session.Saveable {
   
@@ -37,18 +39,26 @@ public class Terrain implements TileConstants, Session.Saveable {
     heightVals[][],
     typeIndex[][],
     varsIndex[][] ;
+  private byte
+    roadMask[][] ;
   final Habitat
     habitats[][] ;
+
   
+  final TerrainMesh.Mask meshMask = new TerrainMesh.Mask() {
+    protected boolean maskAt(int x, int y) {
+      return roadMask[x][y] > 0 ;
+    }
+  } ;
   
   private static class MeshPatch {
+    int x, y ;
     TerrainMesh meshes[], roadsMesh, earthMesh, fogMesh ;
     boolean updateMesh, updateRoads ;
   }
   
   private int patchGridSize, patchSize ;
   private MeshPatch patches[][] ;
-  private Batch <MeshPatch> needUpdates = new Batch <MeshPatch> () ;
   
   
   
@@ -62,6 +72,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     this.typeIndex = typeIndex ;
     this.varsIndex = varsIndex ;
     this.heightVals = heightVals ;
+    this.roadMask = new byte[mapSize][mapSize] ;
     this.habitats = new Habitat[mapSize][mapSize] ;
     for (Coord c : Visit.grid(0, 0, mapSize, mapSize, 1)) {
       habitats[c.x][c.y] = Habitat.ALL_HABITATS[typeIndex[c.x][c.y]] ;
@@ -81,6 +92,8 @@ public class Terrain implements TileConstants, Session.Saveable {
     s.loadByteArray(typeIndex) ;
     s.loadByteArray(varsIndex) ;
     
+    roadMask = new byte[mapSize][mapSize] ;
+    s.loadByteArray(roadMask) ;
     habitats = new Habitat[mapSize][mapSize] ;
     for (Coord c : Visit.grid(0, 0, mapSize, mapSize, 1)) {
       habitats[c.x][c.y] = Habitat.ALL_HABITATS[typeIndex[c.x][c.y]] ;
@@ -93,6 +106,43 @@ public class Terrain implements TileConstants, Session.Saveable {
     s.saveByteArray(heightVals) ;
     s.saveByteArray(typeIndex) ;
     s.saveByteArray(varsIndex) ;
+    
+    s.saveByteArray(roadMask) ;
+  }
+  
+  
+  /**  Modifying and querying terrain contents from within the world-
+    */
+  public void maskAsPaved(Tile tiles[], boolean is) {
+    if (tiles == null) return ;
+    final Tile o = tiles[0] ;
+    final Box2D bounds = new Box2D().set(o.x, o.y, 0, 0) ;
+    for (Tile t : tiles) {
+      roadMask[t.x][t.y] += is ? 1 : -1 ;
+      bounds.include(t.x, t.y, 0.5f) ;
+    }
+    bounds.expandBy(1) ;
+    final int
+      minX = (int) (bounds.xpos() / patchSize),
+      minY = (int) (bounds.ypos() / patchSize),
+      dimX = 1 + (int) (bounds.xmax() / patchSize) - minX,
+      dimY = 1 + (int) (bounds.ymax() / patchSize) - minY ;
+    for (Coord c : Visit.grid(minX, minY, dimX, dimY, 1)) {
+      patches[c.x][c.y].updateRoads = true ;
+    }
+  }
+  
+  
+  public void setHabitat(Tile t, Habitat h) {
+    habitats[t.x][t.y] = h ;
+    typeIndex[t.x][t.y] = (byte) h.ID ;
+    final MeshPatch patch = patches[t.x / patchSize][t.y / patchSize] ;
+    patch.updateMesh = true ;
+  }
+  
+  
+  public boolean isRoad(Tile t) {
+    return roadMask[t.x][t.y] > 0 ;
   }
   
   
@@ -101,10 +151,10 @@ public class Terrain implements TileConstants, Session.Saveable {
     catch (ArrayIndexOutOfBoundsException e) { return null ; }
   }
   
+  
   public float trueHeight(int x, int y) {
     return HeightMap.sampleAt(mapSize, heightVals, x, y) / 4 ;
   }
-  
   
   
   /**  Rendering and interface methods-
@@ -114,14 +164,17 @@ public class Terrain implements TileConstants, Session.Saveable {
     this.patchGridSize = mapSize / patchSize ;
     patches = new MeshPatch[patchGridSize][patchGridSize] ;
     for (Coord c : Visit.grid(0, 0, patchGridSize, patchGridSize, 1)) {
-      patches[c.x][c.y] = new MeshPatch() ;
-      updatePatchAt(c.x * patchSize, c.y * patchSize) ;
+      final MeshPatch p = patches[c.x][c.y] = new MeshPatch() ;
+      p.x = c.x * patchSize ;
+      p.y = c.y * patchSize ;
+      updatePatchMesh(p) ;
+      updatePatchRoads(p) ;
     }
   }
   
   
-  private void updatePatchAt(int x, int y) {
-    final MeshPatch patch = patches[x / patchSize][y / patchSize] ;
+  private void updatePatchMesh(MeshPatch patch) {
+    final int x = patch.x, y = patch.y ;
     patch.meshes = TerrainMesh.genMeshes(
       x, y, x + patchSize, y + patchSize,
       Habitat.BASE_TEXTURES,
@@ -135,15 +188,17 @@ public class Terrain implements TileConstants, Session.Saveable {
       x, y, x + patchSize, y + patchSize,
       heightVals, mapSize
     ) ;
+    patch.updateMesh = false ;
   }
   
   
-  public void updatePatchRoads(int x, int y, TerrainMesh.Mask mask) {
-    final MeshPatch patch = patches[x / patchSize][y / patchSize] ;
+  private void updatePatchRoads(MeshPatch patch) {
+    final int x = patch.x, y = patch.y ;
     patch.roadsMesh = TerrainMesh.genMesh(
       x, y, x + patchSize, y + patchSize,
-      Habitat.ROAD_TEXTURE, heightVals, mask
+      Habitat.ROAD_TEXTURE, heightVals, meshMask
     ) ;
+    patch.updateRoads = false ;
   }
   
   
@@ -151,25 +206,13 @@ public class Terrain implements TileConstants, Session.Saveable {
     meshes[h.ID].assignTexture(h.animTex) ;
   }
   
-  /*
-  public void setTerrainAt(int x, int y, int type) {
-  }
-  
-  public void setTerrainHeight(int x, int y, byte level) {
-  }
-  
-  private void flagUpdateAt(int x, int y) {
-    final MeshPatch patch = patches[x / patchSize][x / patchSize] ;
-    if (patch.needsUpdate) return ;
-    patch.needsUpdate = true ;
-    needUpdates.add(patch) ;
-  }
-  //*/
-  
   
   public void renderFor(int x, int y, Rendering rendering, float time) {
     if (patches == null) I.complain("PATCHES MUST BE INITIALISED FIRST!") ;
     final MeshPatch patch = patches[x / patchSize][y / patchSize] ;
+    if (patch.updateMesh ) updatePatchMesh (patch) ;
+    if (patch.updateRoads) updatePatchRoads(patch) ;
+    
     //
     //  TODO:  You also need to render the roads.
     for (TerrainMesh mesh : patch.meshes) {

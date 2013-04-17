@@ -63,6 +63,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
   
   public void renderTo(Rendering rendering) {
     if (textures == null) I.complain("TEXTURE NOT ASSIGNED") ;
+    if (numFacets == 0) return ;
     final Texture tex = textures[(int) animFrame] ;
     if (tex == null) return ;
     textures[(int) animFrame].bindTex() ;

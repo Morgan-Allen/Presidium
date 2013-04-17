@@ -51,11 +51,11 @@ public class Bastion extends Venue {
   
   
   protected Vocation[] careers() {
-    return null ;
+    return new Vocation[] {} ;
   }
   
   protected Item.Type[] itemsMade() {
-    return null ;
+    return new Item.Type[] {} ;
   }
 
 

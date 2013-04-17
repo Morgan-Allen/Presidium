@@ -60,8 +60,8 @@ public class TownVault extends Venue implements VenueConstants {
   //  So what do the citizens do?  They pick up food and other essentials.
   
   
-  public void updateAsScheduled() {
-    super.updateAsScheduled() ;
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
     
     ///I.say("Updating demands...") ;
     orders.clearDemands() ;

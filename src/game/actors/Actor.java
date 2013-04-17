@@ -154,8 +154,8 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
     if (action != null) action.updateAction() ;
   }
   
-  public void updateAsScheduled() {
-    super.updateAsScheduled() ;
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
     //  You'll have to skip this if you're KO or dead.
     if (action == null || action.complete()) {
       assignAction(getNextAction()) ;

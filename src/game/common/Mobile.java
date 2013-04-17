@@ -179,7 +179,7 @@ public abstract class Mobile extends Element
   protected void onTileChange(Tile oldTile, Tile newTile) {}
   
   public float scheduledInterval() { return 1.0f ; }
-  public void updateAsScheduled() {}
+  public void updateAsScheduled(int numUpdates) {}
   
   
   

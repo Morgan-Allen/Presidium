@@ -96,8 +96,8 @@ public class Holding extends Venue implements VenueConstants {
   }
   
   
-  public void updateAsScheduled() {
-    super.updateAsScheduled() ;
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
     
     //  You'll need to have a dedicated class for handling construction
     //  materials.

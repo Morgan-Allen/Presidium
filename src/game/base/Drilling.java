@@ -104,8 +104,8 @@ public class Drilling extends Venue implements VenueConstants {
   
   /**  Behaviour implementation.
     */
-  public void updateAsScheduled() {
-    super.updateAsScheduled() ;
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
     for (Mold m : molds) {
       if (m.coolTime < 0) continue ;
       m.coolTime = Math.min(m.coolTime + 1, MOLD_COOL_TIME) ;

@@ -116,8 +116,8 @@ public class Nursery extends Venue implements VenueConstants {
   
   /**  Behaviour implementation-
     */
-  public void updateAsScheduled() {
-    super.updateAsScheduled() ;
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
   }
   
   

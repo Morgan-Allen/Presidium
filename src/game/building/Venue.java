@@ -35,7 +35,7 @@ public abstract class Venue extends Fixture implements
   
   Base base ;
   List <Mobile> inside = new List <Mobile> () ;
-  List <RoadNetwork.Route> routes = new List <RoadNetwork.Route> () ;
+  final public Paving paving = new Paving(this) ;
   
   final public Inventory stocks = new Inventory(this) ;
   final public VenuePersonnel personnel = new VenuePersonnel(this) ;
@@ -51,31 +51,31 @@ public abstract class Venue extends Fixture implements
   
   public Venue(Session s) throws Exception {
     super(s) ;
-    //*
+    
     entranceFace = s.loadInt() ;
     entrance = (Tile) s.loadTarget() ;
     base = (Base) s.loadObject() ;
     s.loadObjects(inside) ;
+    paving.loadState(s) ;
     
     stocks.loadState(s) ;
     personnel.loadState(s) ;
     orders.loadState(s) ;
-    //*/
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    //*
+    
     s.saveInt(entranceFace) ;
     s.saveTarget(entrance) ;
     s.saveObject(base) ;
     s.saveObjects(inside) ;
+    paving.saveState(s) ;
     
     stocks.saveState(s) ;
     personnel.saveState(s) ;
     orders.saveState(s) ;
-    //*/
   }
   
   
@@ -121,21 +121,31 @@ public abstract class Venue extends Fixture implements
   }
   
   
+  public Tile[] surrounds() {
+    final Box2D around = new Box2D().setTo(area()).expandBy(1) ;
+    final World world = origin().world ;
+    final Tile result[] = new Tile[(int) (around.xdim() * around.ydim())] ;
+    int i = 0 ; for (Tile t : world.tilesIn(around, false)) {
+      result[i++] = t ;
+    }
+    return result ;
+  }
+  
+  
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
-    world.schedule.scheduleForUpdates(this) ;
     if (base != null) base.toggleBelongs(this, true) ;
-    //  TODO:  This is a temporary measure.  Abolish later.
-    for (Vocation v : careers()) personnel.recruitWorker(v) ;
+    world.schedule.scheduleForUpdates(this) ;
+    personnel.onWorldEntry() ;
+    if (usesRoads()) paving.onWorldEntry() ;
   }
   
   
   public void exitWorld() {
     if (base != null) base.toggleBelongs(this, false) ;
     world.schedule.unschedule(this) ;
-    //  Consider moving this to the personnel class?
-    for (Citizen c : personnel.workers()  ) c.setWorkVenue(null) ;
-    for (Citizen c : personnel.residents()) c.setHomeVenue(null) ;
+    personnel.onWorldExit() ;
+    if (usesRoads()) paving.onWorldExit() ;
     super.exitWorld() ;
   }
   
@@ -158,8 +168,9 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  public void updateAsScheduled() {
+  public void updateAsScheduled(int numUpdates) {
     orders.updateOrders() ;
+    if (usesRoads() && numUpdates % 10 == 0) paving.updateRoutes() ;
   }
 
   
@@ -199,11 +210,6 @@ public abstract class Venue extends Fixture implements
   
   public boolean usesRoads() {
     return true ;
-  }
-  
-  
-  protected List <RoadNetwork.Route> routes() {
-    return routes ;
   }
   
   

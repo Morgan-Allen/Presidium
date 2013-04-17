@@ -44,8 +44,8 @@ public class CultureVats extends Venue implements VenueConstants {
   
   /**  Implementation of employee behaviour-
     */
-  public void updateAsScheduled() {
-    super.updateAsScheduled() ;
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
     orders.translateDemands(conversions()) ;
   }
   

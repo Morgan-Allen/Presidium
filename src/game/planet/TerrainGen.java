@@ -48,7 +48,6 @@ public class TerrainGen implements TileConstants {
   
 
   /**  Generating the overall region layout:
-    *  TODO:  You must eliminate 'island' effects(?)
     */
   private int checkMapSize(int minSize) {
     int mapSize = Planet.SECTOR_SIZE ;
@@ -59,6 +58,10 @@ public class TerrainGen implements TileConstants {
   }
   
   
+  //
+  //  TODO:  This will have to be a little more sophisticated.  Ensure a
+  //  certain proportion of land, sea, and various terrain types?  Avoid
+  //  creating islands?
   private void setupRegions() {
     final int GS = sectorGridSize ;
     sectors = new Sector[GS][GS] ;
@@ -104,19 +107,8 @@ public class TerrainGen implements TileConstants {
     heightMap = new byte[mapSize + 1][mapSize + 1] ;
     
     for (Coord c : Visit.grid(0, 0, mapSize, mapSize, 1)) {
+      varsIndex[c.x][c.y] = terrainVarsAt(c.x, c.y) ;
       
-      /*
-      float sum = 0 ;
-      sum += HeightMap.sampleAt(mapSize, sectorVal, c.x, c.y) ;
-      
-      float detail = HeightMap.sampleAt(mapSize, detailGrid, c.x, c.y) ;
-      detail /= 10f ;
-      
-      sum += detail * detail * 2 ;
-      //sum /= 2 ;
-      int gradID ;
-      //*/
-      //*
       final int
         XBI = (int) ((c.x * 1f / mapSize) * blendsX.length),
         YBI = (int) ((c.y * 1f / mapSize) * blendsY.length) ;
@@ -124,7 +116,6 @@ public class TerrainGen implements TileConstants {
         sampleX = Visit.clamp(c.x + blendsX[XBI][c.y], 0, mapSize - 1),
         sampleY = Visit.clamp(c.y + blendsY[YBI][c.x], 0, mapSize - 1) ;
       float sum = HeightMap.sampleAt(mapSize, sectorVal, sampleX, sampleY) ;
-      //sum += 0.25f ;
       
       int gradID = Visit.clamp((int) sum, gradient.length) ;
       if (! gradient[gradID].isOcean) {
@@ -132,7 +123,10 @@ public class TerrainGen implements TileConstants {
         sum += detail * detail * 2 ;
         gradID = Visit.clamp((int) sum, gradient.length) ;
         typeIndex[c.x][c.y] = (byte) gradient[gradID].ID ;
-        varsIndex[c.x][c.y] = terrainVarsAt(c.x, c.y) ;
+      }
+      
+      if (gradient[gradID] == Habitat.ESTUARY && Rand.index(4) == 0) {
+        typeIndex[c.x][c.y] = (byte) Habitat.MEADOW.ID ;
       }
     }
     //
@@ -230,6 +224,18 @@ for (float f : transposed) I.add(" "+((int) (f * 10))) ;
 return transposed ;
 //*/
 
+/*
+float sum = 0 ;
+sum += HeightMap.sampleAt(mapSize, sectorVal, c.x, c.y) ;
+
+float detail = HeightMap.sampleAt(mapSize, detailGrid, c.x, c.y) ;
+detail /= 10f ;
+
+sum += detail * detail * 2 ;
+//sum /= 2 ;
+int gradID ;
+//*/
+//*
 
 /*
 

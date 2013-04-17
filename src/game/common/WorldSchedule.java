@@ -20,7 +20,22 @@ public class WorldSchedule {
   
   
   final static int MAX_UPDATE_INTERVAL = 5 ;
+
+
+  public static interface Updates extends Session.Saveable {
+    float scheduledInterval() ;
+    void updateAsScheduled(int numUpdates) ;
+  }
   
+  private static class Event {
+    private float time ;
+    private int numUpdates ;
+    private Updates updates ;
+    
+    public String toString() {
+      return updates+" Update for: "+time ;
+    }
+  }
   
   final SortTree <Event> events = new SortTree <Event> () {
     protected boolean greater(Event a, Event b) {
@@ -30,6 +45,7 @@ public class WorldSchedule {
       return a.updates == b.updates ;
     }
   } ;
+  
   final Table <Updates, Object>
     allUpdates = new Table <Updates, Object> (1000) ;
   
@@ -42,6 +58,7 @@ public class WorldSchedule {
     for (Object node : allUpdates.values()) {
       final Event event = events.valueFor(node) ;
       s.saveFloat(event.time) ;
+      s.saveInt(event.numUpdates) ;
       s.saveObject(event.updates) ;
     }
   }
@@ -51,26 +68,9 @@ public class WorldSchedule {
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Event event = new Event() ;
       event.time = s.loadFloat() ;
+      event.numUpdates = s.loadInt() ;
       event.updates = (Updates) s.loadObject() ;
       allUpdates.put(event.updates, events.insert(event)) ;
-    }
-  }
-  
-  
-  
-  public static interface Updates extends Session.Saveable {
-    float scheduledInterval() ;
-    void updateAsScheduled() ;
-  }
-  
-  /**  The event class.
-    */
-  private static class Event {
-    private float time ;
-    private Updates updates ;
-    
-    public String toString() {
-      return updates+" Update for: "+time ;
     }
   }
   
@@ -136,7 +136,7 @@ public class WorldSchedule {
       events.delete(node) ;
       event.time += event.updates.scheduledInterval() ;
       allUpdates.put(event.updates, events.insert(event)) ;
-      event.updates.updateAsScheduled() ;
+      event.updates.updateAsScheduled(event.numUpdates++) ;
     }
   }
 }

@@ -51,9 +51,20 @@ public class VenuePersonnel {
   }
   
   
-  
-  /**  Toggling membership-
+  /**  Life cycle, recruitment and updates-
     */
+  protected void onWorldEntry() {
+    //  TODO:  This is a temporary measure.  Abolish later.
+    for (Vocation v : venue.careers()) recruitWorker(v) ;
+  }
+  
+  
+  protected void onWorldExit() {
+    for (Citizen c : workers  ()) c.setWorkVenue(null) ;
+    for (Citizen c : residents()) c.setHomeVenue(null) ;
+  }
+  
+  
   protected void setWorker(Citizen c, boolean is) {
     if (is) workers.include(c) ;
     else workers.remove(c) ;

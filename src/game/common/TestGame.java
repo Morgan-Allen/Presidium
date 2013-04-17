@@ -47,9 +47,9 @@ public class TestGame extends PlayLoop {
     */
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(64,
-      Habitat.OCEAN, Habitat.RAIN_FOREST,
-      Habitat.MEADOW, Habitat.BARRENS, Habitat.DESERT,
-      Habitat.MESA
+      Habitat.OCEAN, Habitat.ESTUARY,
+      Habitat.MEADOW, Habitat.BARRENS,
+      Habitat.DESERT, Habitat.MESA
     ) ;
     /*
     Terrain terrain = new Terrain(

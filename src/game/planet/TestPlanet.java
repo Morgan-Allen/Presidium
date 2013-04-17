@@ -28,7 +28,7 @@ public class TestPlanet extends ViewLoop {
   public void setup() {
     final int size = 64 ;
     final TerrainGen TG = new TerrainGen(64,
-      Habitat.OCEAN, Habitat.RAIN_FOREST,
+      Habitat.OCEAN, Habitat.ESTUARY,
       Habitat.MEADOW, Habitat.BARRENS, Habitat.DESERT, Habitat.MESA
     ) ;
     

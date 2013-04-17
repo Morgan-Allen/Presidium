@@ -6,11 +6,43 @@
 
 
 package src.game.social ;
+import src.game.actors.* ;
+import src.game.building.* ;
+
 
 
 public class Dialogue {
   
   
+  //
+  //  There should be a few basic 'moves' here-
+  //    First Impressions/Attraction
+  //    Small Talk/Introduction
+  //    Anecdotes/Gossip
+  //    Advice/Assistance
+  //    Goodbyes/Fight Escalation
   
   
+  
+  
+  float calcImpressions(Citizen a, Citizen b) {
+    
+    return -1 ;
+  }
+  
+  
+  float calcAttraction(Citizen a, Citizen b) {
+    return -1 ;
+  }
+  
+  
+  //  Conversational 'satisfaction' should be based on common interests-
+  //  traits and skills.
+  
+  float calcAffinity(Citizen a, Citizen b) {
+    float affinity = 0 ;
+    
+    return affinity ;
+  }
 }
+

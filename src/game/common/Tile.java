@@ -117,6 +117,7 @@ public class Tile implements Target, TileConstants, Boardable {
   
   public int pathType() {
     if (owner != null) return owner.pathType() ;
+    if (world.terrain().isRoad(this)) return PATH_ROAD ;
     return habitat().pathClear ? PATH_CLEAR : PATH_BLOCKS ;
   }
   
@@ -160,22 +161,33 @@ public class Tile implements Target, TileConstants, Boardable {
     */
   public Boardable[] canBoard(Boardable batch[]) {
     if (batch == null) batch = new Boardable[8] ;
+    
+    if (owner() instanceof Venue) {
+      final Tile e = ((Venue) owner()).entrance() ;
+      for (int n : N_INDEX) {
+        batch[n] = null ;
+        final Tile t = world.tileAt(x + N_X[n], y + N_Y[n]) ;
+        if (t.owner() != this.owner && t != e) continue ;
+        batch[n] = t ;
+      }
+      return batch ;
+    }
+    
     for (int n : N_INDEX) {
       batch[n] = null ;
       final Tile t = world.tileAt(x + N_X[n], y + N_Y[n]) ;
-      if (t == null) continue ;
-      if (t.blocked()) {
-        if (
-          t.owner() instanceof Venue &&
-          ((Venue) t.owner()).entrance() == this
-        ) batch[n] = (Venue) t.owner() ;
-        continue ;
-      }
+      if (t == null || t.blocked()) continue ;
       batch[n] = t ;
     }
     for (int i : Tile.N_DIAGONAL) if (batch[i] != null) {
       if (batch[(i + 7) % 8] == null) batch[i] = null ;
       if (batch[(i + 1) % 8] == null) batch[i] = null ;
+    }
+    for (int n : N_ADJACENT) {
+      final Tile t = world.tileAt(x + N_X[n], y + N_Y[n]) ;
+      if (t == null || ! (t.owner() instanceof Venue)) continue ;
+      final Venue v = (Venue) t.owner() ;
+      if (v.entrance() == this) batch[n] = v ;
     }
     return batch ;
   }

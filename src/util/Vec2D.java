@@ -175,7 +175,7 @@ public class Vec2D {
     *  this vector.  This value is always positive, and not scaled by vector
     *  length.
     */
-  public float dist(Vec2D vector) {
+  public float lineDist(Vec2D vector) {
     return Math.abs(side(vector) / length()) ;
   }
   

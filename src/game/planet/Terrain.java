@@ -4,6 +4,7 @@
   *  for now, feel free to poke around for non-commercial purposes.
   */
 
+
 package src.game.planet ;
 import src.game.common.* ;
 import src.graphics.common.* ;
@@ -12,15 +13,7 @@ import src.util.* ;
 
 
 
-//
-//  TODO:  You'll have to replace this with a different system.  More similar
-//  to the old one, based on dither values and pre-gen regions.
-
-//  I want an underground level, storing mineral deposits.
-
-//  TODO:  You'll also need to overlay the road network.
-
-
+//  TODO:  An underground level, showing mineral deposits?
 public class Terrain implements TileConstants, Session.Saveable {
   
   
@@ -51,15 +44,16 @@ public class Terrain implements TileConstants, Session.Saveable {
     }
   } ;
   
+  
   private static class MeshPatch {
     int x, y ;
     TerrainMesh meshes[], roadsMesh, earthMesh, fogMesh ;
     boolean updateMesh, updateRoads ;
   }
   
+  
   private int patchGridSize, patchSize ;
   private MeshPatch patches[][] ;
-  
   
   
   Terrain(
@@ -78,7 +72,6 @@ public class Terrain implements TileConstants, Session.Saveable {
       habitats[c.x][c.y] = Habitat.ALL_HABITATS[typeIndex[c.x][c.y]] ;
     }
   }
-  
   
   
   public Terrain(Session s) throws Exception {
@@ -111,6 +104,23 @@ public class Terrain implements TileConstants, Session.Saveable {
   }
   
   
+  
+  /**  Helper methods
+    */
+  private MeshPatch[] patchesUnder(Box2D area) {
+    final int
+      minX = (int) (area.xpos() / patchSize),
+      minY = (int) (area.ypos() / patchSize),
+      dimX = 1 + (int) (area.xmax() / patchSize) - minX,
+      dimY = 1 + (int) (area.ymax() / patchSize) - minY ;
+    final MeshPatch under[] = new MeshPatch[dimX * dimY] ;
+    int i = 0 ; for (Coord c : Visit.grid(minX, minY, dimX, dimY, 1)) {
+      under[i++] = patches[c.x][c.y] ;
+    }
+    return under ;
+  }
+  
+  
   /**  Modifying and querying terrain contents from within the world-
     */
   public void maskAsPaved(Tile tiles[], boolean is) {
@@ -122,14 +132,7 @@ public class Terrain implements TileConstants, Session.Saveable {
       bounds.include(t.x, t.y, 0.5f) ;
     }
     bounds.expandBy(1) ;
-    final int
-      minX = (int) (bounds.xpos() / patchSize),
-      minY = (int) (bounds.ypos() / patchSize),
-      dimX = 1 + (int) (bounds.xmax() / patchSize) - minX,
-      dimY = 1 + (int) (bounds.ymax() / patchSize) - minY ;
-    for (Coord c : Visit.grid(minX, minY, dimX, dimY, 1)) {
-      patches[c.x][c.y].updateRoads = true ;
-    }
+    for (MeshPatch patch : patchesUnder(bounds)) patch.updateRoads = true ;
   }
   
   
@@ -182,8 +185,6 @@ public class Terrain implements TileConstants, Session.Saveable {
     ) ;
     animate(patch.meshes, Habitat.SHALLOWS) ;
     animate(patch.meshes, Habitat.OCEAN   ) ;
-    //
-    //
     patch.fogMesh = TerrainMesh.getTexUVMesh(
       x, y, x + patchSize, y + patchSize,
       heightVals, mapSize
@@ -207,28 +208,27 @@ public class Terrain implements TileConstants, Session.Saveable {
   }
   
   
-  public void renderFor(int x, int y, Rendering rendering, float time) {
+  public void renderFor(Box2D area, Rendering rendering, float time) {
     if (patches == null) I.complain("PATCHES MUST BE INITIALISED FIRST!") ;
-    final MeshPatch patch = patches[x / patchSize][y / patchSize] ;
-    if (patch.updateMesh ) updatePatchMesh (patch) ;
-    if (patch.updateRoads) updatePatchRoads(patch) ;
-    
-    //
-    //  TODO:  You also need to render the roads.
-    for (TerrainMesh mesh : patch.meshes) {
-      mesh.setAnimTime(time) ;
-      rendering.addClient(mesh) ;
+    for (MeshPatch patch : patchesUnder(area)) {
+      if (patch.updateMesh ) updatePatchMesh (patch) ;
+      if (patch.updateRoads) updatePatchRoads(patch) ;
+      for (TerrainMesh mesh : patch.meshes) {
+        mesh.setAnimTime(time) ;
+        rendering.addClient(mesh) ;
+      }
+      if (patch.roadsMesh != null) rendering.addClient(patch.roadsMesh) ;
     }
-    if (patch.roadsMesh != null) rendering.addClient(patch.roadsMesh) ;
   }
   
   
-  public void renderFogFor(int x, int y, Texture fog, Rendering rendering) {
+  public void renderFogFor(Box2D area, Texture fog, Rendering rendering) {
     if (fog == null )I.say("FOG IS NULL!") ;
     if (patches == null) I.complain("PATCHES MUST BE INITIALISED FIRST!") ;
-    final MeshPatch patch = patches[x / patchSize][y / patchSize] ;
-    patch.fogMesh.assignTexture(fog) ;
-    rendering.addClient(patch.fogMesh) ;
+    for (MeshPatch patch : patchesUnder(area)) {
+      patch.fogMesh.assignTexture(fog) ;
+      rendering.addClient(patch.fogMesh) ;
+    }
   }
 }
 

@@ -29,7 +29,7 @@ public abstract class Spread extends AgendaSearch <Tile> {
   protected boolean canEnter(Tile spot) {
     return canAccess(spot) ;
   }
-
+  
   protected Tile[] adjacent(Tile spot) {
     return spot.edgeAdjacent(batch) ;
   }

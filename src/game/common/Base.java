@@ -32,12 +32,14 @@ public class Base implements Session.Saveable {
   Table <Object, Flagging> services = new Table() ;
   
   Texture fogMap ;
+  final public PathingCache pathingCache ;
   
   
   
   public Base(World world) {
     this.world = world ;
     initFog() ;
+    pathingCache = new PathingCache(world, this) ;
   }
   
   
@@ -45,6 +47,7 @@ public class Base implements Session.Saveable {
     s.cacheInstance(this) ;
     this.world = s.world() ;
     initFog() ;
+    pathingCache = new PathingCache(world, this) ;
     
     ruler = (Actor) s.loadObject() ;
     s.loadObjects(personnel) ;

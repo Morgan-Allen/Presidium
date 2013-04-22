@@ -21,6 +21,7 @@ public class Dialogue {
   //    Anecdotes/Gossip
   //    Advice/Assistance
   //    Goodbyes/Fight Escalation
+  //    Kinship Modifiers/Exceptions
   
   
   

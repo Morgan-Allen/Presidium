@@ -10,7 +10,7 @@ import src.graphics.common.* ;
 
 
 
-public class WorldSections {
+public class WorldSections implements TileConstants {
   
   
   /**  Common fields, constructors and utility methods.
@@ -20,14 +20,22 @@ public class WorldSections {
   final Section hierarchy[][][], root ;
   
   
+  //  NOTE:  x and y coordinates are relative to position in hierarchy, not to
+  //  tile coordinates.
   static class Section {
     
-    boolean updateBounds = true ;
+    private boolean updateBounds = true ;
     
     final Box3D bounds = new Box3D() ;
     final Box2D area = new Box2D() ;
-    int x, y, depth ;
-    Section kids[], parent ;
+    final public int x, y, depth ;
+    protected Section kids[], parent ;
+    
+    Section(int x, int y, int d) {
+      this.x = x ;
+      this.y = y ;
+      this.depth = d ;
+    }
   }
   
   
@@ -38,8 +46,6 @@ public class WorldSections {
   }
   
   
-  /**  Setup constructor.
-    */
   protected WorldSections(World world, int resolution) {
     this.world = world ;
     this.resolution = resolution ;
@@ -51,11 +57,14 @@ public class WorldSections {
     while (deep < depth) {
       hierarchy[deep] = new Section[gridSize][gridSize] ;
       for (Coord c : Visit.grid(0, 0, gridSize, gridSize, 1)) {
-        final Section n = hierarchy[deep][c.x][c.y] = new Section() ;
-        n.x = c.x * nodeSize ;
-        n.y = c.y * nodeSize ;
-        n.depth = deep ;
-        n.area.set(n.x - 0.5f, n.y - 0.5f, nodeSize, nodeSize) ;
+        final Section n = new Section(c.x, c.y, deep) ;
+        hierarchy[deep][c.x][c.y] = n ;
+        n.area.set(
+          (c.x * nodeSize) - 0.5f,
+          (c.y * nodeSize) - 0.5f,
+          nodeSize,
+          nodeSize
+        ) ;
         //I.say("INIT AREA: "+n.area) ;
         //
         //  Along with references to child nodes-
@@ -75,6 +84,26 @@ public class WorldSections {
     }
     this.root = hierarchy[deep - 1][0][0] ;
   }
+  
+  
+  public Section sectionAt(int x, int y) {
+    return hierarchy[0][x / resolution][y / resolution] ;
+  }
+  
+  
+  public Section[] neighbours(Section section, Section[] batch) {
+    if (batch == null) batch = new Section[4] ;
+    int i = 0 ; for (int n : N_ADJACENT) {
+      try {
+        final int x = section.x + N_X[n], y = section.y + N_Y[n] ;
+        final Section s = hierarchy[section.depth][x][y] ;
+        batch[i++] = s ;
+      }
+      catch (ArrayIndexOutOfBoundsException e) { batch [i++] = null ; }
+    }
+    return batch ;
+  }
+  
   
   
   /**  A simple interface for performing recursive descents into the hierarchy

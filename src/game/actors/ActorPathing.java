@@ -56,13 +56,6 @@ public class ActorPathing {
   /**  Updating current heading-
     */
   private Boardable location(Target t) {
-    /*
-    if (t instanceof Tile) {
-      if (((Tile) t).owner() instanceof Boardable) {
-        return (Boardable) ((Tile) t).owner() ;
-      }
-    }
-    //*/
     if (t instanceof Boardable) return (Boardable) t ;
     if (t instanceof Actor) {
       final Actor a = (Actor) t ;
@@ -76,12 +69,20 @@ public class ActorPathing {
   
   
   private void refreshPath() {
-    final PathingSearch search = new PathingSearch(
-      location(actor), location(target)
-    ) ;
-    search.doSearch() ;
-    path = search.getPath(Boardable.class) ;
-    stepIndex = 0 ;
+    if (actor.assignedBase() == null || GameSettings.freePath) {
+      final PathingSearch search = new PathingSearch(
+        location(actor), location(target)
+      ) ;
+      search.doSearch() ;
+      path = search.getPath(Boardable.class) ;
+      stepIndex = 0 ;
+    }
+    else {
+      path = actor.assignedBase().pathingCache.getLocalPath(
+        location(actor), location(target)
+      ) ;
+      stepIndex = 0 ;
+    }
   }
   
   
@@ -98,16 +99,27 @@ public class ActorPathing {
     else closeEnough = false ;
     //
     //  Check to ensure that subsequent steps along this path are not blocked-
-    boolean blocked = false ;
+    boolean blocked = false, nearTarget = false, doRefresh = false ;
     if (nextStep() != null) for (int i = 0 ; i < MAX_PATH_SCAN ; i++) {
       final int index = stepIndex + i ;
       if (index >= path.length) break ;
       final Target t = path[index] ;
       if ((t instanceof Tile) && ((Tile) t).blocked()) blocked = true ;
+      if (t == dest) nearTarget = true ;
+    }
+    doRefresh = blocked || path == null || pathTarget != dest ;
+    //
+    //  In the case that the path we're following is only partial, update once
+    //  we're approaching the terminus-
+    if (path != null && ! nearTarget) {
+      final Target last = path[path.length - 1] ;
+      final float dist = Spacing.distance(location, last) ;
+      //  TODO:  Consider checking if you're in the same Region instead...
+      if (dist < World.SECTION_RESOLUTION / 2) doRefresh = true ;
     }
     //
     //  If the path needs refreshment, do so-
-    if (blocked || path == null || pathTarget != dest) {
+    if (doRefresh) {
       pathTarget = dest ;
       refreshPath() ;
       if (path == null) {

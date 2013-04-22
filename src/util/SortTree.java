@@ -179,6 +179,7 @@ public abstract class SortTree <K> {
     //  the tree from which rebalancing should be propagated.
     if (ref == null) return ;
     final Node node = (Node) ref, from ;
+    //I.say("Deleting node...") ;
     size-- ;
     //
     //  If the node is already a leaf, replacement is trivial.

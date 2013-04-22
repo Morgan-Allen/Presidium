@@ -164,12 +164,12 @@ public class Intersection {
     //  coordinates of the  corner vertex on that basis?  We'll be comparing
     //  the mouse coordinates to this.
     out.set(corn.x - orig.x, corn.y - orig.y) ;
-    outU = line.dist(out) ;
+    outU = line.lineDist(out) ;
     outV = line.dot(out) ;
     if (outU <= 0) return false ;
     //  So, acquire those mouse coordinates:
     midP.set(mx - orig.x, my - orig.y) ;
-    midU = line.dist(midP) ;
+    midU = line.lineDist(midP) ;
     midV = line.dot(midP) ;
     //
     //  Now, we'll need to scale and adjust those relative to the coordinates

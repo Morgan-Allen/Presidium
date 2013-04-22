@@ -13,7 +13,8 @@ public class GameSettings {
   
   public static boolean
     buildFree = false,
-    noFog     = false ;
+    noFog     = false,
+    freePath  = false ;
   
   
   public static void loadSettings(Session s) throws Exception {

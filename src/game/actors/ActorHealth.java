@@ -30,7 +30,7 @@ public class ActorHealth {
   //*/
   
   private int moveType = MOVE_WALK ;
-  private float baseSpeed = 1, moveRate = 1 ;
+  private float baseSpeed = 1 ;//, moveRate = 1 ;
   
   
   
@@ -47,7 +47,23 @@ public class ActorHealth {
   }
   
   
-  public float moveRate() { return baseSpeed * moveRate ; }
+  public float moveRate() {
+    float rate = baseSpeed ;
+    //  You also have to account for the effects of fatigue and encumbrance...
+    switch (moveType) {
+      case (MOVE_SNEAK) : rate *= 0.50f ; break ;
+      case (MOVE_WALK ) : rate *= 1.25f ; break ;
+      case (MOVE_RUN  ) : rate *= 2.00f ; break ;
+    }
+    final int pathType = actor.origin().pathType() ;
+    switch (pathType) {
+      case (Tile.PATH_HINDERS) : rate *= 0.8f ; break ;
+      case (Tile.PATH_CLEAR  ) : rate *= 1.0f ; break ;
+      case (Tile.PATH_ROAD   ) : rate *= 1.2f ; break ;
+    }
+    return rate ;
+  }
+  
   public int moveType() { return moveType ; }
   
   

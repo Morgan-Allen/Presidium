@@ -64,9 +64,7 @@ public class TestPlanet extends ViewLoop {
   protected void update() {
     final int size = terrain.mapSize ;
     final float time = System.currentTimeMillis() / 1000f ;
-    for (Coord c : Visit.grid(0, 0, size, size, 16)) {
-      terrain.renderFor(c.x, c.y, rendering, time) ;
-    }
+    terrain.renderFor(new Box2D().set(0, 0, size, size), rendering, time) ;
     Vec3D deep = new Vec3D() ;
     for (Sprite sprite : sprites) {
       Viewport.DEFAULT_VIEW.viewMatrix(deep.setTo(sprite.position)) ;

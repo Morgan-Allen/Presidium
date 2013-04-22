@@ -50,7 +50,7 @@ public class TerrainGen implements TileConstants {
   /**  Generating the overall region layout:
     */
   private int checkMapSize(int minSize) {
-    int mapSize = Planet.SECTOR_SIZE ;
+    int mapSize = Planet.SECTOR_SIZE * 2 ;
     while (mapSize < minSize) mapSize *= 2 ;
     if (mapSize == minSize) return mapSize ;
     I.complain("MAP SIZE MUST BE A POWER OF 2 MULTIPLE OF SECTOR SIZE.") ;
@@ -90,6 +90,10 @@ public class TerrainGen implements TileConstants {
       blendsY[n] = staggeredLine(mapSize + 1, DR, SS / 2, true) ;
     }
   }
+  
+  
+  
+  
   
   
   /**  Generating fine-scale details.
@@ -138,6 +142,7 @@ public class TerrainGen implements TileConstants {
       //if (! Habitat.ALL_HABITATS[type].isOcean) continue ;
       if (type >= Habitat.SHALLOWS.ID) continue ;
       float detail = HeightMap.sampleAt(mapSize, detailGrid, c.x, c.y) / 10f ;
+      detail *= detail * 1.5f ;
       typeIndex[c.x][c.y] = (byte) (((detail * detail) > 0.25f) ?
         Habitat.SHALLOWS.ID : Habitat.OCEAN.ID
       ) ;

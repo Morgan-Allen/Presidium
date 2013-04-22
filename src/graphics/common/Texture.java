@@ -139,14 +139,12 @@ final public class Texture {
   public final static Texture
     CLEAR_TEX = new Texture(),
     GRAYS_TEX = new Texture(),
-    WHITE_TEX = new Texture() ;
+    WHITE_TEX = Texture.loadTexture("media/Terrain/blank_white.png") ;
   static {
     CLEAR_TEX.setup(1, 1) ;
     CLEAR_TEX.buffer.putInt(0x00000000) ;
     GRAYS_TEX.setup(1, 1) ;
     GRAYS_TEX.buffer.putInt(0x99999999) ;
-    WHITE_TEX.setup(1, 1) ;
-    WHITE_TEX.buffer.putInt(0xffffffff) ;
   }
   
   public static Texture createTexture(int w, int h) {

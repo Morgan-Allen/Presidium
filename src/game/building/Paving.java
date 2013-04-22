@@ -13,6 +13,8 @@ import src.util.* ;
 
 
 
+//  TODO:  Some of the methods employed here might be usefully extended to the
+//  PathingCache class?
 public class Paving implements TileConstants {
   
   
@@ -125,7 +127,7 @@ public class Paving implements TileConstants {
       if (newRoute.path != null) {
         terrain.maskAsPaved(newRoute.path, true) ;
         a.paving.routes.add(newRoute) ;
-        clearRoute(newRoute) ;
+        clearRoute(newRoute.path) ;
         newRoute.fresh = true ;
       }
     }
@@ -135,8 +137,8 @@ public class Paving implements TileConstants {
   
   //  You'll eventually want to replace this with explicit construction of
   //  roads...
-  private void clearRoute(Route r) {
-    for (Tile t : r.path) if (t.owner() != null) t.owner().exitWorld() ;
+  public static void clearRoute(Tile path[]) {
+    for (Tile t : path) if (t.owner() != null) t.owner().exitWorld() ;
   }
   
   
@@ -178,57 +180,6 @@ public class Paving implements TileConstants {
     if (flip) { route.start = b ; route.end = b ; }
     else      { route.start = a ; route.end = b ; }
     return route ;
-  }
-  
-  
-  
-  /**  A specialised search algorithm used especially for road connections.
-    */
-  static class RouteSearch extends AgendaSearch <Tile> {
-    
-    
-    final Paving paving ;
-    final Terrain terrain  ;
-    final Tile destination ;
-    final private Tile edges[] = new Tile[4] ;
-    
-    
-    public RouteSearch(Paving paving, Route route) {
-      super(route.start) ;
-      this.terrain = paving.venue.world().terrain() ;
-      this.paving = paving ;
-      this.destination = route.end ;
-    }
-    
-    
-    protected boolean endSearch(Tile t) {
-      return t == destination ;
-    }
-    
-
-    protected float estimate(Tile spot) {
-      final float xd = spot.x - destination.x, yd = spot.y - destination.y ;
-      return ((xd > 0 ? xd : -xd) + (yd > 0 ? yd : -yd)) * 2 ;
-    }
-    
-    
-    protected float cost(Tile prior, Tile spot) {
-      if (terrain.isRoad(spot)) return 1 ;
-      return 2 ;
-    }
-    
-    
-    protected Tile[] adjacent(Tile t) {
-      return t.edgeAdjacent(edges) ;
-    }
-    
-    
-    protected boolean canEnter(Tile t) {
-      return t.habitat().pathClear && (
-        t.owner() == null ||
-        t.owner().owningType() <= Element.ENVIRONMENT_OWNS
-      ) ;
-    }
   }
 }
 

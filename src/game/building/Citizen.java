@@ -45,10 +45,11 @@ public class Citizen extends Actor implements Behaviour {
   private Venue home, work ;
   
   
-  public Citizen(Vocation vocation) {
+  public Citizen(Vocation vocation, Base base) {
     this.vocation = vocation ;
     vocation.configTraits(this) ;
     initSprite() ;
+    assignBase(base) ;
   }
   
   

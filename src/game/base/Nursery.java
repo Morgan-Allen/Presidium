@@ -63,6 +63,10 @@ public class Nursery extends Venue implements VenueConstants {
   }
   
   
+  public boolean usesRoads() {
+    return false ;
+  }
+  
   
   
   /**  Grabbing areas suitable for plantation-

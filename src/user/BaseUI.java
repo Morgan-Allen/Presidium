@@ -227,9 +227,9 @@ public class BaseUI extends HUD {
     */
   public Selectable playerHovered() { return hovered  ; }
   public Selectable playerSelection() { return selected ; }
-  Tile    pickedTile   () { return pickTile    ; }
-  Fixture pickedFixture() { return pickFixture ; }
-  Mobile  pickedMobile () { return pickMobile  ; }
+  public Tile    pickedTile   () { return pickTile    ; }
+  public Fixture pickedFixture() { return pickFixture ; }
+  public Mobile  pickedMobile () { return pickMobile  ; }
   
   
   /**  Updates the current selection of items in the world-

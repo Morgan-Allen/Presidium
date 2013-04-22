@@ -4,12 +4,16 @@
   *  for now, feel free to poke around for non-commercial purposes.
   */
 
-package src.game.actors ;
+package src.game.common ;
 import src.game.common.* ;
 import src.util.* ;
 import java.lang.reflect.Array ;
+import java.util.* ;
 
 
+
+//
+//  TODO:  Don't rely on targets.  All you really need here is flagging.
 
 /**  Provides an A* search implementation for pathfinding.
   */
@@ -18,6 +22,19 @@ public abstract class AgendaSearch <T extends Target> {
   
   /**  Fields and constructors-
     */
+  final Comparator <T> compares = new Comparator <T> () {
+    public int compare(T a, T b) {
+      if (a == b) return 0 ;
+      final float aT = entryFor(a).total, bT = entryFor(b).total ;
+      return aT > bT ? 1 : -1 ;
+      //return aT > bT ? -1 : 1 ;//  This causes a near-instant crash...
+    }
+  } ;
+  final TreeSet <T> agenda = new TreeSet <T> (compares) ;
+  
+  //  TODO:  Consider re-instating SortTree?  None of the recent malfunctions
+  //  were specifically it's fault.
+  /*
   final SortTree <T> agenda = new SortTree <T> () {
     protected boolean greater(T a, T b) {
       final float aT = entryFor(a).total, bT = entryFor(b).total ;
@@ -25,43 +42,51 @@ public abstract class AgendaSearch <T extends Target> {
     }
     protected boolean match(T a, T b) { return a == b ; }
   } ;
+  //*/
+  
   
   protected class Entry {
     protected float cost, estimate, total ;
-    protected T prior ;
-    private Object agendaNode ;
+    protected T refers, prior ;
+    //private Object agendaNode ;
+    //private AgendaSearch search ;
   }
   
   
   Batch <T> flagged = new Batch <T> () ;
   final T init ;
   private float totalCost = -1 ;
-  private T last ;//, path[] ;
+  private T last ;
   private Batch <T> pathTiles ;
   
 
   public AgendaSearch(T init) {
     this.init = init ;
+    if (init == null) I.complain("INITIAL AGENDA ENTRY CANNOT BE NULL!") ;
   }
   
   
   /**  Performs the actual search algorithm.
     */
   public AgendaSearch <T> doSearch() {
-    doEntry(init, null, 0) ;
+    //I.say("   ...searching from: "+init) ;
+    I.say("   ...searching ") ;
+    tryEntry(init, null, 0) ;
     //
     //  Begin the search proper-
     while (agenda.size() > 0) {
-      final Object bestNode = agenda.least() ;
-      final T best = agenda.valueFor(bestNode) ;
+      final T best = agenda.first() ;
+      //final Object bestNode = agenda.least() ;
+      //final T best = agenda.valueFor(bestNode) ;
       ///I.say("Best is: "+best) ;
-      agenda.delete(bestNode) ;
+      agenda.remove(best) ;
+      //agenda.delete(bestNode) ;
       if (endSearch(best)) {
         last = best ;
         totalCost = entryFor(best).total ;
         break ;
       }
-      putAdjacentEntriesFor(best) ;
+      tryEntriesFor(best) ;
     }
     //
     //  Now, we generate the path toward the best entry found.
@@ -75,12 +100,6 @@ public abstract class AgendaSearch <T extends Target> {
         if (entry.prior == null) break ;
         next = entry.prior ;
       }
-      //int len = pathTiles.size() ;
-      //
-      //  Allocate an array and fill it in backwards (i.e, from source to
-      //  target.)
-      //path = (T[]) Array.newInstance(last.getClass(), len) ;
-      //for (T t : pathTiles) path[--len] = t ;
     }
     else {
       //I.say("Unable to find path!") ;
@@ -88,13 +107,6 @@ public abstract class AgendaSearch <T extends Target> {
     }
     //
     //  Cleanup and report-
-    /*
-    if (last instanceof Tile) {
-      final int dist = (int) Spacing.distance((Tile) init, (Tile) last) + 1 ;
-      I.say("DISTANCE WAS "+dist+" SEARCH RATIO: "+(flagged.size() / dist)) ;
-      I.say(" PATH- ") ; for (T t : path) I.add(t+" ") ;
-    }
-    //*/
     for (T t : flagged) setEntry(t, null) ;
     return this ;
   }
@@ -102,23 +114,26 @@ public abstract class AgendaSearch <T extends Target> {
   
   /**  Inserts entries appropriate to nodes adjacent to the argument.
     */
-  protected void putAdjacentEntriesFor(T spot) {
+  protected void tryEntriesFor(T spot) {
     for (T near : adjacent(spot)) {
-      if (near == null || (! canEnter(near)) || entryFor(near) != null)
-        continue ;
-      doEntry(near, spot, cost(spot, near)) ;
+      if (near == null || ! canEnter(near)) continue ;
+      tryEntry(near, spot, cost(spot, near)) ;
     }
   }
   
   
   /**  Places a new Entry on the agenda.
     */
-  protected void doEntry(T spot, T prior, float cost) {
+  protected void tryEntry(T spot, T prior, float cost) {
+    if (cost < 0) return ;
     final Entry oldEntry = entryFor(spot) ;
     cost += (prior == null) ? 0 : entryFor(prior).cost ;
+    //I.say("Agenda size: "+agenda.size()) ;
     if (oldEntry != null) {
+      //if (oldEntry.search != this) I.complain("CONFLICT BETWEEN SEARCHES!") ;
       if (oldEntry.cost <= cost) return ;
-      else agenda.delete(oldEntry.agendaNode) ;
+      else agenda.remove(oldEntry.refers) ;
+      //else agenda.delete(oldEntry.agendaNode) ;
     }
     //
     //  Firstly, we estimate the cost of reaching our destination.  (We
@@ -128,12 +143,19 @@ public abstract class AgendaSearch <T extends Target> {
     entry.cost = cost ;
     entry.estimate = estimate(spot) ;
     entry.total = entry.cost + entry.estimate ;
+    entry.refers = spot ;
+    //entry.search = this ;
     //
     //  Finally, flag the tile as assessed-
     entry.prior = prior ;
     setEntry(spot, entry) ;
     flagged.add(spot) ;
-    entry.agendaNode = agenda.insert(spot) ;
+    
+    I.add("|") ;
+    final int oldSize = agenda.size() ;
+    agenda.add(spot) ;
+    if (agenda.size() - oldSize != 1) I.complain("Inconsistent comparator?") ;
+    //entry.agendaNode = agenda.insert(spot) ;
   }
   
   
@@ -164,9 +186,23 @@ public abstract class AgendaSearch <T extends Target> {
     return path ;
   }
   
+  
+  public T[] allSearched(Class pathClass) {
+    int len = flagged.size() ;
+    T searched[] = (T[]) Array.newInstance(pathClass, len) ;
+    for (T t : flagged) searched[--len] = t ;
+    return searched ;
+  }
+  
+  
   public float totalCost() {
     return totalCost ;
   }
 }
+
+
+
+
+
 
 

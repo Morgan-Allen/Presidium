@@ -13,5 +13,5 @@ public class Planet {
   
   final public static int
     DAY_LENGTH = 300,
-    SECTOR_SIZE = 32 ;
+    SECTOR_SIZE = 16 ;
 }

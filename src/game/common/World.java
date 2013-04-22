@@ -24,7 +24,7 @@ public class World {
   /**  Common fields, default constructors, and save/load methods-
     */
   final public static int
-    SECTION_RESOLUTION = 4 ;
+    SECTION_RESOLUTION = 8 ;
   
   
   final public int size ;
@@ -39,13 +39,14 @@ public class World {
   private float currentTime ;
   final public Activities activities ;
   
-
+  
   
   public World(Terrain terrain) {
     this(terrain.mapSize) ;
     this.terrain = terrain ;
     terrain.initPatchGrid(SECTION_RESOLUTION) ;
   }
+  
   
   public World(int size) {
     this.size = size ;
@@ -211,10 +212,9 @@ public class World {
     //  Then we register their associated media for rendering, in the correctly
     //  sorted order.
     for (Section section : visibleSections) {
-      terrain.renderFor(section.x, section.y, rendering, currentTime) ;
+      terrain.renderFor(section.area, rendering, currentTime) ;
       if (! GameSettings.noFog) {
-        //I.say("Rendering fog") ;
-        terrain.renderFogFor(section.x, section.y, base.fogMap(), rendering) ;
+        terrain.renderFogFor(section.area, base.fogMap(), rendering) ;
       }
     }
     rendering.clearDepth() ;

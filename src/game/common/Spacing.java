@@ -79,6 +79,28 @@ public final class Spacing implements TileConstants {
   }
   
   
+  /*
+  public static Tile[] traceSurrounding(Element element, int maxLen) {
+    final Tile perim[] = perimeter(element.area(), element.world()) ;
+    Tile temp[] = new Tile[8] ;
+    Tile lastClear = null, lastBlock = null ;
+    
+    for (Tile t : perim) if (! t.blocked()) { lastClear = t ; break ; }
+    if (lastClear != null) for (Tile t : lastClear.edgeAdjacent(temp)) {
+      if (t.blocked()) { lastBlock = t ; break ; }
+    }
+    if (lastClear == null || lastBlock == null) return new Tile[0] ;
+    
+    
+    final Batch <Tile> clear = new Batch <Tile> () ;
+    Tile nextClear, nextBlock ;
+    
+    //  TODO:  Figure out how this works.
+    
+    return (Tile[]) clear.toArray(Tile.class) ;
+  }
+  //*/
+  
 
   public static int[] entranceCoords(int xdim, int ydim, float face) {
     if (face == Venue.ENTRANCE_NONE) return new int[] { 0, 0 } ;
@@ -108,75 +130,23 @@ public final class Spacing implements TileConstants {
     return new int[] { enterX, enterY } ;
   }
   
-
-  //
-  //  This checks whether the placement of a given fixture is legal.
-  //  TODO:  Use this to replace the canPlace method of the Fixture/Venue
-  //  classes?
-  //  TODO:  Instead of just giving a true/false value, return a batch of all
-  //  elements that clash with the placement of this fixture.  Then you can
-  //  remove them!
-  public static boolean canPlace(Element fixture, World world) {
-    //
-    //  Firstly, we obtain the basic measure of the areas to check-
-    final Box2D
-      area = fixture.area(),
-      outerArea = new Box2D().setTo(area).expandBy(1) ;
-    final Tile
-      perim[] = perimeter(area, world),
-      outerPerim[] = perimeter(outerArea, world) ;
-    //
-    //  Check that all underlying tiles are clear, and that you're not on the
-    //  edge of the map.
-    for (Coord c : Visit.grid(area)) {
-      final Tile t = world.tileAt(c.x, c.y) ;
-      if (t == null) return false ;
-      if (! t.habitat().pathClear) return false ;
-      if (t.owner() == null) continue ;
-      if (t.owner().owningType() >= fixture.owningType()) return false ;
-    }
-    for (Tile t : perim) if (t == null) return false ;
-    /*
-    if (fixture instanceof Venue) {
-      final Tile entrance = ((Venue) fixture).entrance() ;
-      if (blockedAt(entrance)) return false ;
-    }
-    //*/
-    //
-    //  Check that placement won't cause pathing problems-
-    if (! perimeterFits(fixture)) return false ;
-    //
-    //  Then, ensure no element belonging to a different cluster is within two
-    //  tiles of this fixture-
-    for (Tile t : perim) {
-      if (! checkClustering(fixture, t, true)) return false ;
-    }
-    for (Tile t : outerPerim) if (t != null) {
-      if (! checkClustering(fixture, t, true)) return false ;
-    }
-    return true ;
-  }
-  
-  private static boolean checkClustering(Element a, Tile t, boolean checkType) {
-    final Element b = t.owner() ;
-    if (checkType && (b == null || b.owningType() < a.owningType()))
-      return true ;
-    final Tile oA = a.origin(), oB = b.origin() ;
-    return
-      ((oA.x / CLUSTER_SIZE) != (oB.x / CLUSTER_SIZE)) ||
-      ((oA.y / CLUSTER_SIZE) != (oB.y / CLUSTER_SIZE)) ;
-  }
   
   
   
   
-  //  TODO:  I want an automatic method of 'grabbing' an area, and possibly
-  //  areas within it.
+  
+  
+  
   
   
   
   //  TODO:  You'll need to replace this with a general 'pickBest' method,
   //  possibly from the Visit class.
+  
+  /**  Promity methods-
+    */
+  private final static Vec3D pA = new Vec3D(), pB = new Vec3D() ;
+  private final static Box2D tB = new Box2D() ;
   
   public static Target nearest(
     Series <? extends Target> targets, Target client
@@ -200,13 +170,14 @@ public final class Spacing implements TileConstants {
   
 
   public static Tile nearestOpenTile(Box2D area, Target client, World world) {
-    final Vec3D p = client.position(null) ;
+    final Vec3D p = client.position(pA) ;
     final Tile o = world.tileAt(p.x, p.y) ;
     float minDist = Float.POSITIVE_INFINITY ;
     Tile nearest = null ;
     int numTries = 0 ;
     while (nearest == null && numTries++ < (CLUSTER_SIZE / 2)) {
       for (Tile t : perimeter(area, world)) {
+        //I.say("  Trying tile: "+t) ;
         if (t == null || t.blocked()) continue ;
         final float dist = distance(o, t) ;
         if (dist < minDist) { minDist = dist ; nearest = t ; }
@@ -220,7 +191,8 @@ public final class Spacing implements TileConstants {
   public static Tile nearestOpenTile(Tile tile, Target client) {
     if (tile == null) return null ;
     if (! tile.blocked()) return tile ;
-    return nearestOpenTile(tile.area(null), client, tile.world) ;
+    //I.say("Looking for open tile around "+tile) ;
+    return nearestOpenTile(tile.area(tB), client, tile.world) ;
   }
   
   
@@ -235,8 +207,12 @@ public final class Spacing implements TileConstants {
   }
   
   
+  /**  Distance calculation methods-
+    */
+  
+  
   public static float distance(Target a, Target b) {
-    float dist = a.position(null).distance(b.position(null)) ;
+    float dist = a.position(pA).distance(b.position(pB)) ;
     dist -= a.radius() + b.radius() ;
     return (dist < 0) ? 0 : dist ;
   }
@@ -257,3 +233,61 @@ public final class Spacing implements TileConstants {
 
 
 
+
+
+
+//
+//  This checks whether the placement of a given fixture is legal.
+//  TODO:  Use this to replace the canPlace method of the Fixture/Venue
+//  classes?
+//  TODO:  Instead of just giving a true/false value, return a batch of all
+//  elements that clash with the placement of this fixture.  Then you can
+//  remove them!
+/*
+public static boolean canPlace(Element fixture, World world) {
+  //
+  //  Firstly, we obtain the basic measure of the areas to check-
+  final Box2D
+    area = fixture.area(),
+    outerArea = new Box2D().setTo(area).expandBy(1) ;
+  final Tile
+    perim[] = perimeter(area, world),
+    outerPerim[] = perimeter(outerArea, world) ;
+  //
+  //  Check that all underlying tiles are clear, and that you're not on the
+  //  edge of the map.
+  for (Coord c : Visit.grid(area)) {
+    final Tile t = world.tileAt(c.x, c.y) ;
+    if (t == null) return false ;
+    if (! t.habitat().pathClear) return false ;
+    if (t.owner() == null) continue ;
+    if (t.owner().owningType() >= fixture.owningType()) return false ;
+  }
+  for (Tile t : perim) if (t == null) return false ;
+  //
+  //  Check that placement won't cause pathing problems-
+  if (! perimeterFits(fixture)) return false ;
+  //
+  //  Then, ensure no element belonging to a different cluster is within two
+  //  tiles of this fixture-
+  for (Tile t : perim) {
+    if (! checkClustering(fixture, t, true)) return false ;
+  }
+  for (Tile t : outerPerim) if (t != null) {
+    if (! checkClustering(fixture, t, true)) return false ;
+  }
+  return true ;
+}
+//*/
+
+/*
+private static boolean checkClustering(Element a, Tile t, boolean checkType) {
+  final Element b = t.owner() ;
+  if (checkType && (b == null || b.owningType() < a.owningType()))
+    return true ;
+  final Tile oA = a.origin(), oB = b.origin() ;
+  return
+    ((oA.x / CLUSTER_SIZE) != (oB.x / CLUSTER_SIZE)) ||
+    ((oA.y / CLUSTER_SIZE) != (oB.y / CLUSTER_SIZE)) ;
+}
+//*/

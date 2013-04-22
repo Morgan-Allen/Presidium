@@ -79,7 +79,7 @@ public class VenuePersonnel {
   public void recruitWorker(Vocation v) {
     //  You also need to determine the worker's home planet environment, full
     //  name, and maybe links to family or one or two past career events.
-    final Citizen citizen = new Citizen(v) ;
+    final Citizen citizen = new Citizen(v, venue.base()) ;
     citizen.setWorkVenue(venue) ;
     final Tile t = venue.entrance() ;
     citizen.enterWorldAt(t.x, t.y, venue.world()) ;

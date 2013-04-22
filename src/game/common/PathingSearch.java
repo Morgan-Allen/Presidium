@@ -5,8 +5,8 @@
   */
 
 
-package src.game.actors ;
-import src.game.common.* ;
+package src.game.common ;
+import src.game.common.WorldSections.Section ;
 import src.game.building.* ;
 import src.util.* ;
 
@@ -20,8 +20,10 @@ public class PathingSearch extends AgendaSearch <Boardable> {
   /**  Field definitions and constructors-
     */
   final protected Boardable destination ;
+  
   private Vec3D posA = new Vec3D(), posB = new Vec3D() ;
   private Boardable batch[] = new Boardable[8] ;
+  private Box2D box = new Box2D() ;
   
   
   public PathingSearch(Boardable init, Boardable dest) {
@@ -30,6 +32,7 @@ public class PathingSearch extends AgendaSearch <Boardable> {
       I.complain("NO DESTINATION!") ;
     }
     this.destination = dest ;
+    I.say("Searching for path between "+init+" and "+dest) ;
   }
   
   
@@ -37,12 +40,15 @@ public class PathingSearch extends AgendaSearch <Boardable> {
   /**  Actual search-execution methods-
     */
   protected Boardable[] adjacent(Boardable spot) {
+    //  TODO:  If this spot is fogged, return all adjacent.
     return spot.canBoard(batch) ;
   }
   
   
   protected float cost(Boardable prior, Boardable spot) {
     if (spot == null) return -1 ;
+    //  TODO:  If this spot is fogged, return a low nonzero value.
+    //  TODO:  Incorporate sector-based danger values.
     switch(spot.pathType()) {
       case (Tile.PATH_CLEAR  ) : return 1.0f ;
       case (Tile.PATH_ROAD   ) : return 0.5f ;

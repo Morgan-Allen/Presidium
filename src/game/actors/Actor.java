@@ -27,6 +27,7 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   
   private Action action ;
   private Stack <Behaviour> behaviourStack = new Stack <Behaviour> () ;
+  private Base base ;
   
   Table <Element, Element> seen = new Table <Element, Element> () ;
   
@@ -48,6 +49,7 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
     
     action = (Action) s.loadObject() ;
     s.loadObjects(behaviourStack) ;
+    base = (Base) s.loadObject() ;
     
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Element e = (Element) s.loadObject() ;
@@ -65,6 +67,7 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
     
     s.saveObject(action) ;
     s.saveObjects(behaviourStack) ;
+    s.saveObject(base) ;
     
     s.saveInt(seen.size()) ;
     for (Element e : seen.keySet()) s.saveObject(e) ;
@@ -131,6 +134,16 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   
   public Stack <Behaviour> currentBehaviours() {
     return behaviourStack ;
+  }
+  
+  
+  public void assignBase(Base base) {
+    this.base = base ;
+  }
+  
+  
+  public Base assignedBase() {
+    return base ;
   }
   
   

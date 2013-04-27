@@ -44,7 +44,9 @@ public class Batch <K> implements Series <K> {
     int i = 0 ; for (K t : this) array[i++] = t ;
     return array ;
   }
+  
   final public Object[] toArray() { return toArray(Object.class) ; }
+  
   
   public K atIndex(int i) {
     if (i < 0 || i >= size) return null ;

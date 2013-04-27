@@ -94,6 +94,14 @@ public abstract class Element implements Target, Session.Saveable {
   }
   
   public void flagWith(Object f) {
+    /*
+    if (f != null && flagged != null) {
+      I.complain("PREVIOUS FLAGGING WAS NOT CLEARED- "+f+" "+flagged) ;
+    }
+    if (f == null && flagged == null) {
+      I.complain("PREVIOUS FLAGGING ALREADY CLEARED!") ;
+    }
+    //*/
     flagged = f ;
   }
   
@@ -126,10 +134,6 @@ public abstract class Element implements Target, Session.Saveable {
     return location.position(v) ;
   }
   
-  public Vec3D position() {
-    return position(null) ;
-  }
-  
   public float radius() {
     return 0.5f ;
   }
@@ -141,6 +145,12 @@ public abstract class Element implements Target, Session.Saveable {
   
   /**  Rendering and interface methods-
     */
+  public Vec3D viewPosition(Vec3D v) {
+    v = position(v) ;
+    v.z += height() / 2 ;
+    return v ;
+  }
+  
   protected boolean visibleTo(Base base) {
     return true ;
   }

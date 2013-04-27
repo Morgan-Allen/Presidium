@@ -9,38 +9,40 @@ import src.game.planet.* ;
 import src.game.tactical.Patrolling ;
 import src.game.actors.* ;
 import src.game.base.* ;
-import src.game.building.Citizen ;
+import src.game.building.* ;
 import src.graphics.widgets.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.terrain.* ;
 import src.user.* ;
 import src.util.* ;
-import src.game.common.PathingCache.Region ;
+import src.game.common.PathingCache.Place ;
 
 
 
 
 
-public class TestGame extends PlayLoop {
+public class WorldDebug extends PlayLoop {
   
   
   /**  Startup and save/load methods-
     */
   public static void main(String args[]) {
-    TestGame test = new TestGame() ;
+    WorldDebug test = new WorldDebug() ;
     test.runLoop() ;
   }
   
 
   Citizen citizen ;
   Action lastAction = null ;
+  Tile picked = null ;
   
-  protected TestGame() {
+  
+  protected WorldDebug() {
     super(true) ;
   }
   
-  public TestGame(Session s) throws Exception {
+  public WorldDebug(Session s) throws Exception {
     super(s) ;
     citizen = (Citizen) s.loadObject() ;
     lastAction = (Action) s.loadObject() ;
@@ -58,8 +60,8 @@ public class TestGame extends PlayLoop {
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(32,
       Habitat.OCEAN, Habitat.ESTUARY,
-      Habitat.MEADOW, Habitat.BARRENS
-      //Habitat.DESERT, Habitat.MESA
+      Habitat.MEADOW, Habitat.BARRENS,
+      Habitat.DESERT//, Habitat.MESA
     ) ;
     World world = new World(TG.generateTerrain()) ;
     return world ;
@@ -93,9 +95,11 @@ public class TestGame extends PlayLoop {
     
     GameSettings.freePath = true ;
     /*
-    citizen = new Citizen(Vocation.ARTIFICER, base) ;
-    citizen.enterWorldAt(free.x, free.y, world) ;
-    ((BaseUI) HUD).setSelection(citizen) ;
+    if (free != null) {
+      citizen = new Citizen(Vocation.ARTIFICER, base) ;
+      citizen.enterWorldAt(free.x, free.y, world) ;
+      ((BaseUI) HUD).setSelection(citizen) ;
+    }
     //*/
   }
   
@@ -128,27 +132,6 @@ public class TestGame extends PlayLoop {
   
   protected void renderGameGraphics() {
     super.renderGameGraphics() ;
-
-    final Tile t = ((BaseUI) currentUI()).pickedTile() ;
-    if (t == null) return ;
-    final Region r = played().pathingCache.tileRegions[t.x][t.y] ;
-    if (r == null) return ;
-    //I.say("Generating preview...") ;
-    final TerrainMesh.Mask previewMask = new TerrainMesh.Mask() {
-      protected boolean maskAt(int x, int y) {
-        return played().pathingCache.tileRegions[x][y] == r ;
-      }
-    } ;
-    final WorldSections.Section s = r.section ;
-    final int SR = World.SECTION_RESOLUTION ;
-    final int size = world().size ;
-    final TerrainMesh previewMesh = TerrainMesh.genMesh(
-      //s.x * SR, s.y * SR, (s.x * SR) + SR, (s.y * SR) + SR,
-      0, 0, size, size,
-      Texture.WHITE_TEX, new byte[size + 1][size + 1], previewMask
-    ) ;
-    //previewMesh.colour = Colour.GREEN ;
-    rendering().addClient(previewMesh) ;
   }
   
 
@@ -172,11 +155,42 @@ public class TestGame extends PlayLoop {
 }
 
 
+//
+//  TODO:  Create internal options for the following.
 
+//
+//  This enabled highlighting of paths between different tiles-
+/*
+    final BaseUI UI = (BaseUI) currentUI() ;
+    if (UI.mouseClicked()) {
+      if (picked != null) picked = null ;
+      else {
+        picked = UI.pickedTile() ;
+        if (picked != null && picked.owner() instanceof Venue) {
+          picked = ((Venue) picked.owner()).entrance() ;
+        }
+      }
+    }
+    Tile hovered = UI.pickedTile() ;
+    if (hovered != null && hovered.owner() instanceof Venue) {
+      hovered = ((Venue) hovered.owner()).entrance() ;
+    }
+    
+    if (picked != null && hovered != null) {
+      final PathingSearch search = new PathingSearch(picked, hovered) ;
+      search.doSearch() ;
+      final Tile path[] = (Tile[]) search.fullPath(Tile.class) ;
+      if (path != null && path.length > 0) {
+        final TerrainMesh overlay = world().terrain().createOverlay(
+          path, Texture.WHITE_TEX
+        ) ;
+        rendering().addClient(overlay) ;
+      }
+    }
+//*/
 
 //
 //  This enabled highlighting of regions associated with particular tiles-
-//  TODO:  Create a separate debugging class for this purpose?
 /*
 final Tile t = ((BaseUI) currentUI()).pickedTile() ;
 if (t == null) return ;

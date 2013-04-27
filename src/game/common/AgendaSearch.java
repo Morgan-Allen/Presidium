@@ -5,157 +5,117 @@
   */
 
 package src.game.common ;
-import src.game.common.* ;
 import src.util.* ;
 import java.lang.reflect.Array ;
-import java.util.* ;
 
 
 
 //
-//  TODO:  Don't rely on targets.  All you really need here is flagging.
+//  TODO:  Don't rely on targets.  All you really need here is flagging.  Maybe
+//  move to the .util package?
 
-/**  Provides an A* search implementation for pathfinding.
-  */
+//  PROBLEM:  You were trying to remove insertion references that had already
+//  been deleted!  Ha!  Gotcha now, sucker!
+
+
 public abstract class AgendaSearch <T extends Target> {
   
   
   /**  Fields and constructors-
     */
-  final Comparator <T> compares = new Comparator <T> () {
+  final SortTree <T> agenda = new SortTree <T> () {
     public int compare(T a, T b) {
       if (a == b) return 0 ;
       final float aT = entryFor(a).total, bT = entryFor(b).total ;
       return aT > bT ? 1 : -1 ;
-      //return aT > bT ? -1 : 1 ;//  This causes a near-instant crash...
     }
   } ;
-  final TreeSet <T> agenda = new TreeSet <T> (compares) ;
-  
-  //  TODO:  Consider re-instating SortTree?  None of the recent malfunctions
-  //  were specifically it's fault.
-  /*
-  final SortTree <T> agenda = new SortTree <T> () {
-    protected boolean greater(T a, T b) {
-      final float aT = entryFor(a).total, bT = entryFor(b).total ;
-      return aT > bT ;
-    }
-    protected boolean match(T a, T b) { return a == b ; }
-  } ;
-  //*/
   
   
-  protected class Entry {
-    protected float cost, estimate, total ;
-    protected T refers, prior ;
-    //private Object agendaNode ;
-    //private AgendaSearch search ;
+  private class Entry {
+    float priorCost, futureEstimate, total ;
+    T refers ;
+    Entry prior ;
+    private Object agendaRef ;
   }
   
-  
-  Batch <T> flagged = new Batch <T> () ;
+
   final T init ;
+  Batch <T> flagged = new Batch <T> () ;
+  
   private float totalCost = -1 ;
-  private T last ;
-  private Batch <T> pathTiles ;
+  private boolean success = false ;
+  private Entry bestEntry = null ;
+  
+  public boolean verbose = false ;
   
 
   public AgendaSearch(T init) {
-    this.init = init ;
     if (init == null) I.complain("INITIAL AGENDA ENTRY CANNOT BE NULL!") ;
+    this.init = init ;
   }
   
   
   /**  Performs the actual search algorithm.
     */
   public AgendaSearch <T> doSearch() {
-    //I.say("   ...searching from: "+init) ;
-    I.say("   ...searching ") ;
+    if (verbose) I.say("   ...searching ") ;
+    if (! canEnter(init)) return this ;
     tryEntry(init, null, 0) ;
-    //
-    //  Begin the search proper-
+    
     while (agenda.size() > 0) {
-      final T best = agenda.first() ;
-      //final Object bestNode = agenda.least() ;
-      //final T best = agenda.valueFor(bestNode) ;
-      ///I.say("Best is: "+best) ;
-      agenda.remove(best) ;
-      //agenda.delete(bestNode) ;
-      if (endSearch(best)) {
-        last = best ;
-        totalCost = entryFor(best).total ;
+      final Object nextRef = agenda.leastRef() ;
+      final T next = agenda.refValue(nextRef) ;
+      agenda.deleteRef(nextRef) ;
+      if (endSearch(next)) {
+        success = true ;
+        totalCost = bestEntry.total ;
+        if (verbose) I.say("  ...search complete, total cost: "+totalCost) ;
         break ;
       }
-      tryEntriesFor(best) ;
-    }
-    //
-    //  Now, we generate the path toward the best entry found.
-    if (last != null) {
-      //
-      //  Follow the chain of entries back to their source.
-      pathTiles = new Batch <T> () ;
-      T next = last ; while (true) {
-        pathTiles.add(next) ;
-        final Entry entry = entryFor(next) ;
-        if (entry.prior == null) break ;
-        next = entry.prior ;
+      for (T near : adjacent(next)) if (near != null) {
+        //if (near == null || ! canEnter(near)) continue ;
+        tryEntry(near, next, cost(next, near)) ;
       }
     }
-    else {
-      //I.say("Unable to find path!") ;
-      pathTiles = null ;
-    }
-    //
-    //  Cleanup and report-
+    
     for (T t : flagged) setEntry(t, null) ;
     return this ;
   }
   
   
-  /**  Inserts entries appropriate to nodes adjacent to the argument.
-    */
-  protected void tryEntriesFor(T spot) {
-    for (T near : adjacent(spot)) {
-      if (near == null || ! canEnter(near)) continue ;
-      tryEntry(near, spot, cost(spot, near)) ;
-    }
-  }
-  
-  
-  /**  Places a new Entry on the agenda.
-    */
   protected void tryEntry(T spot, T prior, float cost) {
     if (cost < 0) return ;
-    final Entry oldEntry = entryFor(spot) ;
-    cost += (prior == null) ? 0 : entryFor(prior).cost ;
-    //I.say("Agenda size: "+agenda.size()) ;
-    if (oldEntry != null) {
-      //if (oldEntry.search != this) I.complain("CONFLICT BETWEEN SEARCHES!") ;
-      if (oldEntry.cost <= cost) return ;
-      else agenda.remove(oldEntry.refers) ;
-      //else agenda.delete(oldEntry.agendaNode) ;
-    }
+    final Entry
+      oldEntry = entryFor(spot),
+      priorEntry = (prior == null) ? null : entryFor(prior) ;
     //
-    //  Firstly, we estimate the cost of reaching our destination.  (We
-    //  increase the estimate slightly as this increases overall performance
-    //  at a slight cost to accuracy.)
-    final Entry entry = new Entry() ;
-    entry.cost = cost ;
-    entry.estimate = estimate(spot) ;
-    entry.total = entry.cost + entry.estimate ;
-    entry.refers = spot ;
-    //entry.search = this ;
+    //  If a pre-existing entry for this spot already exists and is at least as
+    //  efficient, ignore it.  Otherwise replace it.
+    final float priorCost = cost + (prior == null ? 0 : priorEntry.priorCost) ;
+    if (oldEntry != null) {
+      if (oldEntry.priorCost <= priorCost) return ;
+      final Object oldRef = oldEntry.agendaRef ;
+      if (agenda.containsRef(oldRef)) agenda.deleteRef(oldRef) ;
+    }
+    else if (! canEnter(spot)) return ;
+    //
+    //  Create the new entry-
+    final Entry newEntry = new Entry() ;
+    newEntry.priorCost = priorCost ;
+    newEntry.futureEstimate = estimate(spot) ;
+    newEntry.total = newEntry.priorCost + newEntry.futureEstimate ;
+    newEntry.refers = spot ;
+    newEntry.prior = priorEntry ;
     //
     //  Finally, flag the tile as assessed-
-    entry.prior = prior ;
-    setEntry(spot, entry) ;
-    flagged.add(spot) ;
-    
-    I.add("|") ;
-    final int oldSize = agenda.size() ;
-    agenda.add(spot) ;
-    if (agenda.size() - oldSize != 1) I.complain("Inconsistent comparator?") ;
-    //entry.agendaNode = agenda.insert(spot) ;
+    setEntry(spot, newEntry) ;
+    newEntry.agendaRef = agenda.insert(spot) ;
+    if (oldEntry == null) flagged.add(spot) ;
+    if (bestEntry == null || bestEntry.futureEstimate > newEntry.futureEstimate) {
+      bestEntry = newEntry ;
+    }
+    if (verbose) I.add("|") ;
   }
   
   
@@ -165,6 +125,7 @@ public abstract class AgendaSearch <T extends Target> {
   
   protected abstract float cost(T prior, T spot) ;
   protected abstract float estimate(T spot) ;
+  
   
   protected void setEntry(T spot, Entry flag) {
     spot.flagWith(flag) ;
@@ -178,12 +139,23 @@ public abstract class AgendaSearch <T extends Target> {
   /**  Returns a list of all the nodes along the path back from the last node
     *  searched (which is presumed to be the 'best' result found.)
     */
-  public T[] getPath(Class pathClass) {
-    if (pathTiles == null) return null ;
+  public T[] bestPath(Class pathClass) {
+    if (bestEntry == null) return null ;
+    final Batch <T> pathTiles = new Batch <T> () ;
+    for (Entry next = bestEntry ; next != null ; next = next.prior) {
+      pathTiles.add(next.refers) ;
+    }
+    if (verbose) I.say("Path size: "+pathTiles.size()) ;
     int len = pathTiles.size() ;
     T path[] = (T[]) Array.newInstance(pathClass, len) ;
     for (T t : pathTiles) path[--len] = t ;
     return path ;
+  }
+  
+  
+  public T[] fullPath(Class pathClass) {
+    if (! success) return null ;
+    return bestPath(pathClass) ;
   }
   
   

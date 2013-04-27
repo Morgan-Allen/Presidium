@@ -4,22 +4,29 @@
 package src.game.base ;
 import src.game.common.* ;
 import src.game.building.* ;
-import src.graphics.cutout.ImageModel ;
+import src.graphics.common.* ;
 import src.util.* ;
 
 
 
-public class MagLine implements Placement {
+public class MagLine extends Installation.Line {
   
   
+  final Base base ;
+  private Tile path[] ;
+  final private Tile tempB[] = new Tile[8] ;
+  
+  
+  public MagLine(Base base) {
+    super(base.world) ;
+    this.base = base ;
+  }
   
   
   /**  Searching for a suitable path between tiles or venues-
     */
-  final private Tile tempB[] = new Tile[8] ;
-  
-  
   private Tile offsetFor(Tile t) {
+    if (t == null) return null ;
     if (! (t.owner() instanceof Venue)) return t ;
     final Venue v = (Venue) t.owner() ;
     v.entrance().edgeAdjacent(tempB) ;
@@ -31,133 +38,79 @@ public class MagLine implements Placement {
     return null ;
   }
   
-  private Tile[] linePath(Tile start, Tile end) {
+  
+  private Tile[] linePath(Tile from, Tile to, boolean full) {
+    final Tile start = offsetFor(from), end = offsetFor(to) ;
+    if (start == null || end == null) return null ;
     final RouteSearch search = new RouteSearch(start, end, Element.VENUE_OWNS) {
       protected boolean canEnter(Tile t) {
         for (Tile n : t.allAdjacent(tempB)) {
-          if (t == null || ! super.canEnter(n)) return false ;
+          if (n == null) return false ;
+          if (n.owner() instanceof MagLineNode || super.canEnter(n)) continue ;
+          return false ;
         }
-        return super.canEnter(t) ;
+        return t.owner() instanceof MagLineNode || super.canEnter(t) ;
       }
     } ;
     search.doSearch() ;
-    return search.getPath(Tile.class) ;
+    if (full) return search.fullPath(Tile.class) ;
+    else return search.bestPath(Tile.class) ;
   }
   
   
-  
-  /**  Actual placement of the line-
-    */
-  final static ImageModel
-    NODE_MODEL = ImageModel.asIsometricModel(
-      MagLine.class, "media/Buildings/vendor aura/mag_node_left.png", 1, 0.5f
-    ) ;
-  
-  //  TODO:  You may actually want this to extend the Venue class, and behave
-  //  similarly to a service hatch.  That way, you can maintain it, get
-  //  automatic paving connections, and possibly link to an underground or 
-  //  interior level like with excavations.  In theory.
-  
-  //  Or maybe mag nodes and service hatches need to be separate?
-  static class MagNode extends Element {
-    
-    
-    //final Paving paving = new Paving(this) ;
-    
-    MagNode() {
-      super() ;
-      this.attachSprite(NODE_MODEL.makeSprite()) ;
-    }
-    
-    public MagNode(Session s) throws Exception {
-      super(s) ;
-    }
-    
-    public void saveState(Session s) throws Exception {
-      super.saveState(s) ;
-    }
-    
-    
-    public int pathType() {
-      return Tile.PATH_ROAD ;
-    }
-    
-    
-    public int owningType() {
-      return Element.VENUE_OWNS ;
-    }
-    
-    
-    private Tile[] tilesAround() {
-      final Tile around[] = new Tile[9] ;
-      origin().allAdjacent(around) ;
-      around[8] = this.origin() ;
-      return around ;
-    }
-    
-    
-    public void enterWorldAt(int x, int y, World world) {
-      super.enterWorldAt(x, y, world) ;
-      world.terrain().maskAsPaved(tilesAround(), true) ;
-    }
-    
-    
-    public void exitWorld() {
-      world.terrain().maskAsPaved(tilesAround(), false) ;
-      super.exitWorld() ;
-    }
-  }
-  
-  
-  
-  /**  Rendering and interface methods-
-    */
-  public boolean pointsOkay(Tile points[]) {
-    if (points.length != 2) return false ;
-    final Tile start = offsetFor(points[0]), end = offsetFor(points[1]) ;
-    final Tile path[] = linePath(start, end) ;
-    return path != null ;
-  }
-  
-  
-  public void doPlace(Tile points[]) {
-    final Tile start = offsetFor(points[0]), end = offsetFor(points[1]) ;
-    final Tile path[] = linePath(start, end) ;
-    //
-    //  Having obtained the path between these points, we need to clear all
-    //  affected tiles-
+  protected Batch <Tile> toClear(Tile from, Tile to) {
+    path = linePath(from, to, false) ;
+    if (path == null) return null ;
     final Batch <Tile> clearB = new Batch <Tile> () ;
     for (Tile t : path) {
+      if (t.flaggedWith() != null || t.owner() instanceof MagLineNode) continue ;
       t.flagWith(clearB) ;
       clearB.add(t) ;
-      for (Tile n : t.allAdjacent(tempB)) {
-        if (n.flaggedWith() != null) continue ;
+      for (Tile n : t.allAdjacent(tempB)) if (n != null) {
+        if (n.flaggedWith() != null || n.owner() instanceof MagLineNode) continue ;
         n.flagWith(clearB) ;
         clearB.add(n) ;
       }
     }
     for (Tile t : clearB) t.flagWith(null) ;
-    final Tile toClear[] = (Tile[]) clearB.toArray(Tile.class) ;
-    Paving.clearRoute(toClear) ;
-    //
-    //  Then we install Mag Nodes at regular stops along the route-
-    for (Tile t : path) {
-      final MagNode node = new MagNode() ;
-      node.enterWorldAt(t.x, t.y, t.world) ;
-    }
+    return clearB ;
   }
   
   
-  public void previewPlaced(Tile points[], boolean canPlace) {
-    //  TODO:  You'll have to generate the appropriate set of mag nodes, and a
-    //  tile overlay for the relevant pathing area, and set that either green
-    //  or red depending on whether it's legal or not.
+  protected Batch <Element> toPlace(Tile from, Tile to) {
+    path = linePath(from, to, false) ;
+    if (path == null) return null ;
+    final Batch <MagLineNode> nodes = new Batch <MagLineNode> () ;
+    for (Tile t : path) {
+      final MagLineNode node = new MagLineNode() ;
+      node.setPosition(t.x, t.y, t.world) ;
+      nodes.add(node) ;
+    }
+    for (Tile t : path) t.flagWith(this) ;
+    for (MagLineNode node : nodes) node.updateSprite() ;
+    for (Tile t : path) t.flagWith(null) ;
+    return (Batch <Element>) (Batch) nodes ;
+  }
+  
+  
+  /**  Rendering and interface methods-
+    */
+  public String fullName() {
+    return "Mag Line" ;
+  }
+  
+  
+  public Texture portrait() {
+    return Texture.loadTexture("media/GUI/Buttons/mag_line_button.gif") ;
+  }
+  
+  
+  public String helpInfo() {
+    return
+      "Mag Lines facilitate transport between distant sectors of your base,"+
+      "along with distribution of water, power and life support." ;
   }
 }
-
-
-
-
 
 
 

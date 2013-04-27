@@ -35,7 +35,7 @@ public class HUD extends UIGroup {
       dragMP.setTo(nextMP) ;
     }
     if (mouseB && nextMB && (mouseState != DRAGGED)) {
-      mouseState = (dragMP.lineDist(nextMP) > DRAG_DIST) ? DRAGGED : PRESSED ;
+      mouseState = (dragMP.pointDist(nextMP) > DRAG_DIST) ? DRAGGED : PRESSED ;
     }
     mousePos.setTo(nextMP) ;
     mouseB = nextMB ;

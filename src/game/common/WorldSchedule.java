@@ -38,12 +38,18 @@ public class WorldSchedule {
   }
   
   final SortTree <Event> events = new SortTree <Event> () {
+    public int compare(Event a, Event b) {
+      if (a.updates == b.updates) return 0 ;
+      return a.time > b.time ? 1 : -1 ;
+    }
+    /*
     protected boolean greater(Event a, Event b) {
       return a.time > b.time ;
     }
     protected boolean match(Event a, Event b) {
       return a.updates == b.updates ;
     }
+    //*/
   } ;
   
   final Table <Updates, Object>
@@ -56,7 +62,7 @@ public class WorldSchedule {
     s.saveFloat(currentTime) ;
     s.saveInt(allUpdates.size()) ;
     for (Object node : allUpdates.values()) {
-      final Event event = events.valueFor(node) ;
+      final Event event = events.refValue(node) ;
       s.saveFloat(event.time) ;
       s.saveInt(event.numUpdates) ;
       s.saveObject(event.updates) ;
@@ -94,7 +100,7 @@ public class WorldSchedule {
     final Object node = allUpdates.get(updates) ;
     //I.say("...Unscheduling "+updates+" node okay? "+(node != null)) ;
     if (node == null) return ;
-    events.delete(node) ;
+    events.deleteRef(node) ;
     allUpdates.remove(updates) ;
   }
   
@@ -115,28 +121,26 @@ public class WorldSchedule {
     this.currentTime = currentTime ;
     //  Find the current time, and descend to all events left of that dividing
     //  line (i.e, earlier.)
-    final Batch happened = new Batch () ;
-    final Descent <Event> descent = new Descent <Event> () {
-      protected Side descentFrom(Event event) {
-        return (event.time > currentTime) ? Side.L : Side.BOTH ;
-      }
-      protected boolean process(Object node, Event event) {
-        if (event.time <= currentTime) happened.add(node) ;
-        return true ;
-      }
-    } ;
-    events.applyDescent(descent) ;
+    final Batch <Event> happened = new Batch <Event> () ;
+    while (true) {
+      final Object leastRef = events.leastRef() ;
+      if (leastRef == null) break ;
+      final Event event = events.refValue(leastRef) ;
+      if ((event.time > currentTime)) break ;
+      events.deleteRef(leastRef) ;
+      happened.add(event) ;
+    }
     //  Remove all the events from the schedule that have already occured, make
     //  them 'happen', and have them recur in the schedule at a later slot-
     initTime = System.nanoTime() ;
-    for (Object node : happened) {
+    for (Event event : happened) {
       //  Make sure we don't spend too long on any single update-
       if (timeUp()) break ;
-      final Event event = events.valueFor(node) ;
-      events.delete(node) ;
       event.time += event.updates.scheduledInterval() ;
       allUpdates.put(event.updates, events.insert(event)) ;
       event.updates.updateAsScheduled(event.numUpdates++) ;
     }
   }
 }
+
+

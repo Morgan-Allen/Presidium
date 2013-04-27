@@ -201,7 +201,7 @@ public final class Spacing implements TileConstants {
       return nearestOpenTile(element.area(), client, element.world()) ;
     }
     else {
-      final Vec3D p = element.position() ;
+      final Vec3D p = element.position(pA) ;
       return element.world().tileAt(p.x, p.y) ;
     }
   }

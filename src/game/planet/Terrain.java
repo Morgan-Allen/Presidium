@@ -9,6 +9,7 @@ package src.game.planet ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.* ;
+import src.graphics.terrain.TerrainMesh.Mask ;
 import src.util.* ;
 
 
@@ -36,14 +37,12 @@ public class Terrain implements TileConstants, Session.Saveable {
     roadMask[][] ;
   final Habitat
     habitats[][] ;
-
   
-  final TerrainMesh.Mask meshMask = new TerrainMesh.Mask() {
+  final Mask pavingMask = new Mask() {
     protected boolean maskAt(int x, int y) {
       return roadMask[x][y] > 0 ;
     }
   } ;
-  
   
   private static class MeshPatch {
     int x, y ;
@@ -111,8 +110,8 @@ public class Terrain implements TileConstants, Session.Saveable {
     final int
       minX = (int) (area.xpos() / patchSize),
       minY = (int) (area.ypos() / patchSize),
-      dimX = 1 + (int) (area.xmax() / patchSize) - minX,
-      dimY = 1 + (int) (area.ymax() / patchSize) - minY ;
+      dimX = 1 + (int) ((area.xmax() - 1) / patchSize) - minX,
+      dimY = 1 + (int) ((area.ymax() - 1) / patchSize) - minY ;
     final MeshPatch under[] = new MeshPatch[dimX * dimY] ;
     int i = 0 ; for (Coord c : Visit.grid(minX, minY, dimX, dimY, 1)) {
       under[i++] = patches[c.x][c.y] ;
@@ -127,7 +126,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     if (tiles == null) return ;
     final Tile o = tiles[0] ;
     final Box2D bounds = new Box2D().set(o.x, o.y, 0, 0) ;
-    for (Tile t : tiles) {
+    for (Tile t : tiles) if (t != null) {
       roadMask[t.x][t.y] += is ? 1 : -1 ;
       bounds.include(t.x, t.y, 0.5f) ;
     }
@@ -157,6 +156,40 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   public float trueHeight(int x, int y) {
     return HeightMap.sampleAt(mapSize, heightVals, x, y) / 4 ;
+  }
+  
+  
+  public TerrainMesh createOverlay(Tile tiles[], Texture tex) {
+    final Table <Tile, Tile> pathTable = new Table(tiles.length) ;
+    Box2D area = null ;
+    for (Tile t : tiles) {
+      if (area == null) area = new Box2D().set(t.x, t.y, 0, 0) ;
+      pathTable.put(t, t) ;
+      area.include(t.x, t.y, 0.5f) ;
+    }
+    final World world = tiles[0].world ;
+    final TerrainMesh overlay = createOverlay(
+      area, tex,
+      new TerrainMesh.Mask() { protected boolean maskAt(int x, int y) {
+        final Tile t = world.tileAt(x, y) ;
+        return (t == null) ? false : (pathTable.get(t) != null) ;
+      } }
+    ) ;
+    return overlay ;
+  }
+  
+  
+  public TerrainMesh createOverlay(Box2D area, Texture tex, Mask mask) {
+    final int
+      minX = (int) Math.ceil(area.xpos()),
+      minY = (int) Math.ceil(area.ypos()),
+      dimX = (int) area.xdim(),
+      dimY = (int) area.ydim() ;
+    final TerrainMesh overlay = TerrainMesh.genMesh(
+      minX, minY, minX + dimX, minY + dimY,
+      tex, heightVals, mask
+    ) ;
+    return overlay ;
   }
   
   
@@ -197,7 +230,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     final int x = patch.x, y = patch.y ;
     patch.roadsMesh = TerrainMesh.genMesh(
       x, y, x + patchSize, y + patchSize,
-      Habitat.ROAD_TEXTURE, heightVals, meshMask
+      Habitat.ROAD_TEXTURE, heightVals, pavingMask
     ) ;
     patch.updateRoads = false ;
   }

@@ -114,22 +114,28 @@ public class TownVault extends Venue implements VenueConstants {
       maxRange * 2, maxRange * 2
     ) ;
     
+    I.say("  Searching from "+enterTile+"... ") ;
     final Spread spread = new Spread(enterTile) {
       
       protected boolean canAccess(Tile t) {
-        if (t.owningType() >= Element.FIXTURE_OWNS) return false ;
+        if (t.blocked()) return false ;
+        //if (t.pathType() >= Tile.PATH_HINDERS) return false ;
+        //if (t.owningType() >= Element.FIXTURE_OWNS) return false ;
         return limit.contains(t.x, t.y) ;
       }
       
       protected boolean canPlaceAt(Tile t) {
+        I.add("|") ;
         holding.setPosition(t.x, t.y, world) ;
         if (holding.canPlace()) {
+          I.say("Found location!") ;
           return true ;
         }
-        return false;
+        return false ;
       }
     } ;
     spread.doSearch() ;
+    I.say("  Total tiles searched: "+spread.allSearched(Tile.class).length) ;
     
     if (holding.origin() != null) return holding ;
     return null ;
@@ -137,8 +143,8 @@ public class TownVault extends Venue implements VenueConstants {
   
   
   private Vec3D idealSite(Citizen citizen) {
-    Vec3D midPos = citizen.work().position() ;
-    midPos.add(this.position()).scale(0.5f) ;
+    Vec3D midPos = citizen.work().position(null) ;
+    midPos.add(this.position(null)).scale(0.5f) ;
     return midPos ;
   }
   

@@ -19,8 +19,6 @@ import src.graphics.widgets.* ;
 
 public class World {
   
-  
-  
   /**  Common fields, default constructors, and save/load methods-
     */
   final public static int
@@ -154,15 +152,16 @@ public class World {
   public void updateWorld() {
     currentTime += 1f / PlayLoop.UPDATES_PER_SECOND ;
     sections.updateBounds() ;
+    
+    //*
     schedule.advanceSchedule(currentTime) ;
     
     float growIndex = (currentTime % Terrain.GROWTH_INTERVAL) ;
     growIndex *= size * size * 1f / Terrain.GROWTH_INTERVAL ;
     growth.scanThroughTo((int) growIndex) ;
     
-    for (Mobile m : active) {
-      m.updateAsMobile() ;
-    }
+    for (Mobile m : active) m.updateAsMobile() ;
+    //*/
   }
   
   
@@ -201,8 +200,7 @@ public class World {
     Vec3D viewPos = new Vec3D() ;
     float viewRad = -1 ;
     for (Mobile active : this.active) {
-      viewPos.setTo(active.position()) ;
-      viewPos.z += active.height() / 2 ;
+      active.viewPosition(viewPos) ;
       viewRad = (active.height() / 2) + active.radius() ;
       if (rendering.port.intersects(viewPos, viewRad)) {
         visibleElements.add(active) ;

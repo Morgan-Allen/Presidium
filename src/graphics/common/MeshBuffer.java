@@ -20,6 +20,7 @@ public class MeshBuffer implements Rendering.Client {
     NFP = 9 ,  //normal floats per polygon
     TFP = 6 ;  //texture coordinate floats per polygon
   
+  public Colour colour ;
   protected int numFacets ;
   private FloatBuffer vertBuffer, normBuffer, textBuffer ;
   
@@ -46,6 +47,7 @@ public class MeshBuffer implements Rendering.Client {
   
   public void renderTo(Rendering rendering) {
     if (numFacets == 0) return ;
+    if (colour != null) colour.bindColour() ;
     render(1, 0, null, vertBuffer, normBuffer, textBuffer, numFacets) ;
   }
   

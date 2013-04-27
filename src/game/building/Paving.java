@@ -114,7 +114,7 @@ public class Paving implements TileConstants {
       oldRoute = currentMatch(newRoute, a) ;
     final RouteSearch search = new RouteSearch(this, newRoute) ;
     search.doSearch() ;
-    newRoute.path = search.getPath(Tile.class) ;
+    newRoute.path = search.fullPath(Tile.class) ;
     //
     //  Then, check to see if the new path differs from the old.  If so, delete
     //  the old path and instate the new.

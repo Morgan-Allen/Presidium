@@ -208,6 +208,16 @@ public abstract class Mobile extends Element
   
   /**  Rendering and interface methods-
     */
+  public Vec3D viewPosition(Vec3D v) {
+    if (v == null) v = new Vec3D() ;
+    final float alpha = PlayLoop.frameTime() ;
+    v.setTo(position).scale(1 - alpha) ;
+    v.add(nextPosition, alpha, v) ;
+    v.z += height() ;
+    return v ;
+  }
+  
+  
   protected void renderFor(Rendering rendering, Base base) {
     final Sprite s = this.sprite() ;
     final float alpha = PlayLoop.frameTime() ;
@@ -219,5 +229,9 @@ public abstract class Mobile extends Element
     //super.renderFor(rendering, base) ;
   }
 }
+
+
+
+
 
 

@@ -66,6 +66,8 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
     if (numFacets == 0) return ;
     final Texture tex = textures[(int) animFrame] ;
     if (tex == null) return ;
+    
+    GL11.glDepthMask(false) ;
     textures[(int) animFrame].bindTex() ;
     super.renderTo(rendering) ;
     if (textures.length > 1) {
@@ -75,6 +77,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
       nextTex.bindTex() ;
       super.renderTo(rendering) ;
     }
+    GL11.glDepthMask(true) ;
   }
   
   

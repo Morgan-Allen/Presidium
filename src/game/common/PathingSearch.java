@@ -32,7 +32,7 @@ public class PathingSearch extends AgendaSearch <Boardable> {
       I.complain("NO DESTINATION!") ;
     }
     this.destination = dest ;
-    I.say("Searching for path between "+init+" and "+dest) ;
+    ///I.say("Searching for path between "+init+" and "+dest) ;
   }
   
   
@@ -49,11 +49,12 @@ public class PathingSearch extends AgendaSearch <Boardable> {
     if (spot == null) return -1 ;
     //  TODO:  If this spot is fogged, return a low nonzero value.
     //  TODO:  Incorporate sector-based danger values.
+    float baseCost = Spacing.distance(prior, spot) ;
     switch(spot.pathType()) {
-      case (Tile.PATH_CLEAR  ) : return 1.0f ;
-      case (Tile.PATH_ROAD   ) : return 0.5f ;
-      case (Tile.PATH_HINDERS) : return 5.0f ;
-      default : return 0 ;
+      case (Tile.PATH_CLEAR  ) : return 1.0f * baseCost ;
+      case (Tile.PATH_ROAD   ) : return 0.5f * baseCost ;
+      case (Tile.PATH_HINDERS) : return 2.0f * baseCost ;
+      default : return baseCost ;
     }
   }
   

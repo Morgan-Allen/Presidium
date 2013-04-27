@@ -10,6 +10,8 @@ import src.game.common.* ;
 import src.game.building.* ;
 import src.util.* ;
 
+import src.game.base.* ;
+
 
 
 public class ActorPathing {
@@ -73,8 +75,12 @@ public class ActorPathing {
       final PathingSearch search = new PathingSearch(
         location(actor), location(target)
       ) ;
+      if (target instanceof DrillingMetals) {
+        search.verbose = true ;
+      }
       search.doSearch() ;
-      path = search.getPath(Boardable.class) ;
+      //path = search.bestPath(Boardable.class) ;
+      path = search.fullPath(Boardable.class) ;
       stepIndex = 0 ;
     }
     else {

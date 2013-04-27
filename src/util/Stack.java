@@ -103,22 +103,6 @@ public class Stack <T> implements Series <T> {
     */
   final public T removeIndex(int n) {
     return remove(atIndex(n)) ;
-    /*
-    int i = 0 ;
-    for (Entry <T> c = first, prior = null ; (c != null) ; prior = c, c = c.next) {
-      if (i++ == n) {
-        if (--size == 0)
-          first = last = null ;
-        else {
-          if (prior == null) first = c.next ;
-          else if (c == null) last = prior ;
-          else prior.next = c.next ;
-        }
-        return c.refers ;
-      }
-    }
-    return null ;
-    //*/
   }
   
   /**  Returns the nth entry in this stack-

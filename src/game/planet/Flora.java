@@ -83,7 +83,7 @@ public class Flora extends Element implements TileConstants {
     
     if ((! init) && t.owner() instanceof Flora) {
       final Flora f = (Flora) t.owner() ;
-      f.incGrowth(Rand.num() * 2) ;
+      f.incGrowth(Rand.num() * 2 * 0.1f) ;
     }
     
     else if ((! t.blocked()) && Rand.num() < growChance) {
@@ -98,13 +98,16 @@ public class Flora extends Element implements TileConstants {
       }
       if (numBlocked < 2) {
         final Flora f = new Flora(h) ;
-        f.enterWorldAt(t.x, t.y, world) ;
         if (init) {
+          f.enterWorldAt(t.x, t.y, world) ;
           if (Rand.num() < growChance * 4) f.incGrowth(MAX_GROWTH - 1) ;
           else f.incGrowth(1) ;
           f.inceptTime = -10 ;
         }
-        else f.incGrowth(0.5f) ;
+        else if (Rand.num() < 0.1f) {
+          f.enterWorldAt(t.x, t.y, world) ;
+          f.incGrowth(0.5f) ;
+        }
       }
     }
   }

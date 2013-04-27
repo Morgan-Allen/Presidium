@@ -115,7 +115,7 @@ public class VenueOrders {
       for (Item i : c.out) urgency += receivedShortage(i.type) ;
       if (urgency > maxUrgency) { picked = m ; maxUrgency = urgency ; }
     }
-    I.say("Urgency was: "+maxUrgency) ;
+    ///I.say("Urgency was: "+maxUrgency) ;
     if (picked != null) orders.add(picked) ;
     return picked ;
   }

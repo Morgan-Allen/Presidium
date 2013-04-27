@@ -27,8 +27,8 @@ public class PathingCache {
   final World world ;
   final Base base ;
   
-  Region sectionRegions[][][] ;
-  Region tileRegions[][] ;
+  Place sectionPlaces[][][] ;
+  Place tilePlaces[][] ;
   float lastSectionUpdates[][] ;
   
   
@@ -36,8 +36,8 @@ public class PathingCache {
     this.world = world ;
     this.base = base ;
     final int SGS = world.size / World.SECTION_RESOLUTION ;
-    sectionRegions = new Region[SGS][SGS][] ;
-    tileRegions = new Region[world.size][world.size] ;
+    sectionPlaces = new Place[SGS][SGS][] ;
+    tilePlaces = new Place[world.size][world.size] ;
     lastSectionUpdates = new float[SGS][SGS] ;
   }
   
@@ -56,7 +56,7 @@ public class PathingCache {
   //  TODO:  Consider using a Table to increase lookup efficiency.
   private static class Path {
     
-    Region from, to ;
+    Place from, to ;
     float cost ;
   }
   
@@ -75,29 +75,30 @@ public class PathingCache {
       destT = tilePos(destB) ;
     if (initT == null || destT == null) return null ;
     
-    final Region regionPath[] = getRegionPath(initT, destT) ;
+    final Place placesPath[] = getPlacesPath(initT, destT) ;
     final PathingSearch search ;
-    if (regionPath == null || regionPath.length < 2) {
+    if (placesPath == null || placesPath.length < 2) {
       if (Spacing.axisDist(initT, destT) < World.SECTION_RESOLUTION * 2) {
         search = new PathingSearch(initB, destB) ;
       }
       else return null ;
     }
     else {
-      search = new PathingSearch(initB, regionPath[1].core) ;
+      search = new PathingSearch(initB, placesPath[1].core) ;
     }
     search.doSearch() ;
-    return search.getPath(Boardable.class) ;
+    return search.fullPath(Boardable.class) ;
   }
   
   
-  Path currentPath(final Region from, final Region to) {
+  private Path currentPath(final Place from, final Place to) {
     if (from.isDead || to.isDead) I.complain("DEAD REGIONS!") ;
     for (Path p : from.paths) {
       if ((p.from == from && p.to == to) || (p.to == from && p.from == to)) {
         return p ;
       }
     }
+    
     final Path path = new Path() ;
     path.from = from ;
     path.to = to ;
@@ -114,6 +115,7 @@ public class PathingCache {
     } ;
     search.doSearch() ;
     path.cost = search.totalCost() ;
+    
     I.say("Cost between "+from.core+" and "+to.core+" was: "+path.cost) ;
     from.paths.include(path) ;
     to.paths.include(path) ;
@@ -123,57 +125,57 @@ public class PathingCache {
   
   /**  Acquiring a path through the various region-divisions-
     */
-  protected Region[] getRegionPath(Tile init, Tile dest) {
+  protected Place[] getPlacesPath(Tile init, Tile dest) {
     if (init == null || dest == null) return null ;
-    updateRegions(world.sections.sectionAt(init.x, init.y)) ;
-    updateRegions(world.sections.sectionAt(dest.x, dest.y)) ;
-    final Region
-      initRegion = tileRegions[init.x][init.y],
-      destRegion = tileRegions[dest.x][dest.y] ;
-    if (initRegion == null || destRegion == null) return null ;
+    updatePlaces(world.sections.sectionAt(init.x, init.y)) ;
+    updatePlaces(world.sections.sectionAt(dest.x, dest.y)) ;
+    final Place
+      initPlace = tilePlaces[init.x][init.y],
+      destPlace = tilePlaces[dest.x][dest.y] ;
+    if (initPlace == null || destPlace == null) return null ;
     
     ///I.say("BEGINNING REGION PATH SEARCH") ;
-    final AgendaSearch search = new AgendaSearch <Region> (initRegion) {
+    final AgendaSearch search = new AgendaSearch <Place> (initPlace) {
       
-      protected Region[] adjacent(Region spot) {
-        return regionsNear(spot) ;
+      protected Place[] adjacent(Place spot) {
+        return placesNear(spot) ;
       }
       
-      protected boolean endSearch(Region best) {
-        return best == destRegion ;
+      protected boolean endSearch(Place best) {
+        return best == destPlace ;
       }
       
-      protected float cost(Region prior, Region spot) {
+      protected float cost(Place prior, Place spot) {
         return currentPath(prior, spot).cost ;
       }
       
-      protected float estimate(Region spot) {
-        return Spacing.distance(spot, destRegion) ;
+      protected float estimate(Place spot) {
+        return Spacing.distance(spot, destPlace) ;
       }
     } ;
     search.doSearch() ;
     ///I.say("FINISHED REGION PATH SEARCH") ;
-    return (Region[]) search.getPath(Region.class) ;
+    return (Place[]) search.fullPath(Place.class) ;
   }
   
 
-  Region[] regionsNear(Region region) {
+  Place[] placesNear(Place region) {
     if (region.nearCache == null) {
       I.say("Obtaining regions near: "+region.core) ;
-      final Batch <Region> near = new Batch <Region> () ;
+      final Batch <Place> near = new Batch <Place> () ;
       //
       //  We add any others regions in the same section, along with regions in
       //  directly adjoining sections.
       final Section c = region.section ;
-      for (Region r : sectionRegions[c.x][c.y]) {
+      for (Place r : sectionPlaces[c.x][c.y]) {
         if (r != region) near.add(r) ;
       }
       for (Section s : world.sections.neighbours(region.section, null)) {
         if (s == null) continue ;
-        updateRegions(s) ;
-        for (Region r : sectionRegions[s.x][s.y]) near.add(r) ;
+        updatePlaces(s) ;
+        for (Place r : sectionPlaces[s.x][s.y]) near.add(r) ;
       }
-      region.nearCache = (Region[]) near.toArray(Region.class) ;
+      region.nearCache = (Place[]) near.toArray(Place.class) ;
     }
     return region.nearCache ;
   }
@@ -181,13 +183,13 @@ public class PathingCache {
   
   /**  Identifying- and caching- discrete regions of the map.
     */
-  static class Region implements Target {
+  static class Place implements Target {
     
     Tile tiles[], core ;
     Section section ;
     List <Path> paths = new List <Path> () ;
     
-    private Region nearCache[] ;
+    private Place nearCache[] ;
     private Object flagged ;
     private boolean isDead = false ;
     
@@ -205,29 +207,29 @@ public class PathingCache {
   }
   
   
-  void updateRegions(final Section section) {
+  void updatePlaces(final Section section) {
     //
     //  We only need to update regions for this section if they haven't been
     //  initialised, or if they've expired-
     final int sX = section.x, sY = section.y ;
     final float time = world.currentTime() ;
     if (lastSectionUpdates[sX][sY] < (time - UPDATE_INTERVAL)) {
-      final Region regions[] = sectionRegions[sX][sY] ;
-      if (regions != null) for (Region r : regions) deleteRegion(r) ;
-      sectionRegions[sX][sY] = null ;
+      final Place regions[] = sectionPlaces[sX][sY] ;
+      if (regions != null) for (Place r : regions) deletePlace(r) ;
+      sectionPlaces[sX][sY] = null ;
     }
-    if (sectionRegions[sX][sY] != null) return ;
+    if (sectionPlaces[sX][sY] != null) return ;
     //
     //  We need to find every contiguous area of unblocked tiles within this
     //  section, and the tiles outside the section which they border on-
     final Box2D limit = section.area ;
-    final Batch <Region> allRegions = new Batch <Region> () ;
+    final Batch <Place> allPlaces = new Batch <Place> () ;
     //
     //  TODO:  Ideally, you might try to capture different terrain types, fog
     //  levels, walled areas, etc.
     //  TODO:  Test this based on terrain types?
     for (Tile t : world.tilesIn(limit, false)) {
-      if (t.blocked() || tileRegions[t.x][t.y] != null) continue ;
+      if (t.blocked() || tilePlaces[t.x][t.y] != null) continue ;
       final Spread spread = new Spread(t) {
         
         protected boolean canAccess(Tile t) {
@@ -242,25 +244,25 @@ public class PathingCache {
       spread.doSearch() ;
       final Tile grabbed[] = spread.allSearched(Tile.class) ;
       if (grabbed.length > 0) {
-        allRegions.add(createRegion(section, grabbed)) ;
+        allPlaces.add(createPlace(section, grabbed)) ;
       }
     }
-    sectionRegions[sX][sY] = (Region[]) allRegions.toArray(Region.class) ;
+    sectionPlaces[sX][sY] = (Place[]) allPlaces.toArray(Place.class) ;
     lastSectionUpdates[sX][sY] = time ;
   }
   
   
-  Region createRegion(Section section, Tile grabbed[]) {
+  Place createPlace(Section section, Tile grabbed[]) {
     //
     //  We base the region's core position on the average of all member
     //  tiles.
-    final Region region = new Region() ;
-    I.say("Creating region of size: "+grabbed.length) ;
-    region.section = section ;
-    region.tiles = grabbed ;
+    final Place place = new Place() ;
+    I.say("Creating place of size: "+grabbed.length) ;
+    place.section = section ;
+    place.tiles = grabbed ;
     Vec2D corePos = new Vec2D(), tilePos = new Vec2D() ;
     for (Tile t : grabbed) {
-      tileRegions[t.x][t.y] = region ;
+      tilePlaces[t.x][t.y] = place ;
       corePos.x += t.x ;
       corePos.y += t.y ;
     }
@@ -271,22 +273,22 @@ public class PathingCache {
       tilePos.set(t.x, t.y) ;
       final float dist = corePos.pointDist(tilePos) ;
       //I.say("Distance is: "+dist) ;
-      if (dist < minDist) { minDist = dist ; region.core = t ; }
+      if (dist < minDist) { minDist = dist ; place.core = t ; }
     }
-    I.say("Core: "+region.core) ; 
-    return region ;
+    I.say("Core: "+place.core) ; 
+    return place ;
   }
   
   
-  void deleteRegion(Region region) {
-    I.say("Deleting region with core: "+region.core) ;
-    for (Path path : region.paths) {
+  void deletePlace(Place place) {
+    I.say("Deleting place with core: "+place.core) ;
+    for (Path path : place.paths) {
       path.from.paths.remove(path) ;
       path.to.paths.remove(path) ;
       path.from.nearCache = path.to.nearCache = null ;
     }
-    for (Tile t : region.tiles) tileRegions[t.x][t.y] = null ;
-    region.isDead = true ;
+    for (Tile t : place.tiles) tilePlaces[t.x][t.y] = null ;
+    place.isDead = true ;
   }
 }
 

@@ -106,10 +106,11 @@ public class Camera {
     final Vec3D lockOff = new Vec3D().set(lockX, lockY, 0) ;
     port.flatToIso(lockOff).scale(-1f / port.screenScale()) ;
     final Vec3D
-      lockPos = lockTarget.sprite().position,
+      lockPos = lockTarget.viewPosition(null),
       viewPos = port.cameraPosition,
       targPos = new Vec3D().setTo(lockPos).add(lockOff),
       displace = targPos.sub(viewPos, new Vec3D()) ;
+    //I.say("Following: "+lockTarget+", position: "+lockPos) ;
     final float distance = displace.length() ;
     //
     //  Now, ascertain the rate at which we should 'drift' toward the target-

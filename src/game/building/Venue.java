@@ -15,7 +15,7 @@ import src.util.* ;
 
 
 public abstract class Venue extends Fixture implements
-  Inventory.Owner, Behaviour, Boardable, WorldSchedule.Updates
+  Inventory.Owner, Behaviour, Boardable, WorldSchedule.Updates, Installation
 {
   
   
@@ -130,7 +130,6 @@ public abstract class Venue extends Fixture implements
     }
     return result ;
   }
-  
   
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
@@ -248,14 +247,45 @@ public abstract class Venue extends Fixture implements
   }
   
   
+  /**  Installation interface-
+    */
+  public boolean pointsOkay(Tile from, Tile to) {
+    if (from == null) return false ;
+    final Tile t = from ;
+    setPosition(t.x, t.y, t.world) ;
+    return canPlace() ;
+  }
+
+
+  public void doPlace(Tile from, Tile to) {
+    final Tile t = from ;
+    setPosition(t.x, t.y, t.world) ;
+    clearSurrounds() ;
+    enterWorldAt(t.x, t.y, t.world) ;
+    sprite().colour = null ;
+  }
+
+
+  public void preview(
+    boolean canPlace, Rendering rendering, Tile from, Tile to
+  ) {
+    if (from == null) return ;
+    final Tile t = from ;
+    setPosition(t.x, t.y, t.world) ;
+    
+    this.position(sprite().position) ;
+    sprite().colour = canPlace ? Colour.GREEN : Colour.RED ;
+    rendering.addClient(sprite()) ;
+  }
+  
   
   /**  Rendering and interface methods-
     */
   public String toString() {
     return fullName() ;
   }
-  
-  
+
+
   public String[] infoCategories() {
     return null ;
   }

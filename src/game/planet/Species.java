@@ -16,11 +16,10 @@ public class Species extends Trait {
   /*
   final public static Species
     //
-    //  Humanoids first.
+    //  Friendlies first (would these count as different species, though?)-
     PRIMITIVE   = new Species("Primitive"),
     MUTANT      = new Species("Mutant"),
     INFECTED    = new Species("Infected"),
-    
     CHANGELING  = new Species("Changeling"),
     KRECH       = new Species("Krech"),
     JOVIAN      = new Species("Jovian"),
@@ -46,7 +45,7 @@ public class Species extends Trait {
     //  Silicates-
     REM_LEECH   = new Species("Rem Leech"),
     MERCURIAL   = new Species("Mercurial"),
-    SERAPH      = new Species("Seraph")
+    ARCHON      = new Species("Archon")
   ;
   //*/
   

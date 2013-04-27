@@ -80,7 +80,7 @@ public class Tile implements Target, TileConstants, Boardable {
   }
   
   public float radius() {
-    return 0.5f ;
+    return 0.0f ;
   }
   
   public float height() {
@@ -129,6 +129,14 @@ public class Tile implements Target, TileConstants, Boardable {
   
   
   public void flagWith(Object f) {
+    /*
+    if (f != null && flagged != null) {
+      I.complain("PREVIOUS FLAGGING WAS NOT CLEARED- "+f+" "+flagged) ;
+    }
+    if (f == null && flagged == null) {
+      I.complain("PREVIOUS FLAGGING ALREADY CLEARED!") ;
+    }
+    //*/
     flagged = f ;
   }
   
@@ -162,6 +170,7 @@ public class Tile implements Target, TileConstants, Boardable {
   public Boardable[] canBoard(Boardable batch[]) {
     if (batch == null) batch = new Boardable[8] ;
     
+    //*
     if (owner() instanceof Venue) {
       final Tile e = ((Venue) owner()).entrance() ;
       for (int n : N_INDEX) {
@@ -172,6 +181,7 @@ public class Tile implements Target, TileConstants, Boardable {
       }
       return batch ;
     }
+    //*/
     
     for (int n : N_INDEX) {
       batch[n] = null ;
@@ -183,12 +193,16 @@ public class Tile implements Target, TileConstants, Boardable {
       if (batch[(i + 7) % 8] == null) batch[i] = null ;
       if (batch[(i + 1) % 8] == null) batch[i] = null ;
     }
+    
+    //*
     for (int n : N_ADJACENT) {
       final Tile t = world.tileAt(x + N_X[n], y + N_Y[n]) ;
       if (t == null || ! (t.owner() instanceof Venue)) continue ;
       final Venue v = (Venue) t.owner() ;
       if (v.entrance() == this) batch[n] = v ;
     }
+    //*/
+    
     return batch ;
   }
   

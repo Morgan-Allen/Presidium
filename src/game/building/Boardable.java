@@ -13,6 +13,7 @@ import src.util.* ;
 
 public interface Boardable extends Target {
   
+  
   void setInside(Mobile m, boolean is) ;
   Series <Mobile> inside() ;
   

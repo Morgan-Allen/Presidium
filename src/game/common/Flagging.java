@@ -167,12 +167,18 @@ public class Flagging implements Session.Saveable {
       }
     }
     final SortTree <NodeEntry> agenda = new SortTree <NodeEntry> () {
+      public int compare(NodeEntry a, NodeEntry b) {
+        if (a.node == b.node) return 0 ;
+        return a.distance < b.distance ? 1 : -1 ;
+      }
+      /*
       protected boolean greater(NodeEntry a, NodeEntry b) {
         return a.distance < b.distance ;
       }
       protected boolean match(NodeEntry a, NodeEntry b) {
         return a.node == b.node ;
       }
+      //*/
     } ;
     agenda.insert(new NodeEntry(root)) ;
     //
@@ -185,10 +191,10 @@ public class Flagging implements Session.Saveable {
         while (agenda.size() > 0) {
           //
           //  We obtain the next entry in the agenda-
-          final Object ref = agenda.greatest() ;
-          final NodeEntry entry = agenda.valueFor(ref) ;
+          final Object ref = agenda.greatestRef() ;
+          final NodeEntry entry = agenda.refValue(ref) ;
           final Object nearest = entry.node ;
-          agenda.delete(ref) ;
+          agenda.deleteRef(ref) ;
           //
           //  If it's not a node, return this.  Otherwise, add the children of
           //  the node to the agenda.  Reject anything out of range.

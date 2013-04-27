@@ -6,12 +6,15 @@ import src.game.actors.* ;
 import src.game.building.Paving.Route ;
 import src.game.common.* ;
 import src.game.planet.* ;
-import src.util.I;
+import src.util.* ;
 
 
 
 /**  A specialised search algorithm used especially for road connections.
   */
+//  TODO:  Possibly introduce a 'safety feature' to ensure that the path won't
+//  extend more than 3 or 4 times longer than the euclidean distance estimate-
+//  I don't want stupidly convoluted or out-of-the-way routes being taken.
 public class RouteSearch extends AgendaSearch <Tile> {
   
   
@@ -26,7 +29,7 @@ public class RouteSearch extends AgendaSearch <Tile> {
     this.destination = end ;
     this.terrain = end.world.terrain() ;
     this.priority = priority ;
-    I.say("Searching for route between "+start+" and "+end) ;
+    ///I.say("Searching for route between "+start+" and "+end) ;
   }
   
   
@@ -35,7 +38,7 @@ public class RouteSearch extends AgendaSearch <Tile> {
     this.destination = route.end ;
     this.terrain = paving.venue.world().terrain() ;
     this.priority = Element.FIXTURE_OWNS ;
-    I.say("Searching for route between "+route.start+" and "+destination) ;
+    ///I.say("Searching for route between "+route.start+" and "+destination) ;
   }
   
   
@@ -62,6 +65,7 @@ public class RouteSearch extends AgendaSearch <Tile> {
   
   
   protected boolean canEnter(Tile t) {
+    ///if (t == null) I.complain("TILE IS NULL!") ;
     return t.habitat().pathClear && (
       t.owner() == null ||
       t.owner().owningType() < priority

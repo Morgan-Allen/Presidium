@@ -160,6 +160,7 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   
   public TerrainMesh createOverlay(Tile tiles[], Texture tex) {
+    if (tiles == null || tiles.length < 1) I.complain("No tiles in overlay!") ;
     final Table <Tile, Tile> pathTable = new Table(tiles.length) ;
     Box2D area = null ;
     for (Tile t : tiles) {

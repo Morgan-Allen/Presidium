@@ -1,6 +1,7 @@
 
 
 package src.game.building ;
+import src.game.base.MagLineNode;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.TerrainMesh ;
@@ -26,9 +27,13 @@ public interface Installation {
   
   public abstract static class Line implements Installation {
     
+    
+    /**  Fields, constructors, and interface contract-
+      */
     final World world ;
     protected Batch <Tile> toClear ;
     protected Batch <Element> toPlace ;
+    private Tile tempB[] = new Tile[9] ;
     
     
     protected Line(World world) {
@@ -39,7 +44,53 @@ public interface Installation {
     protected abstract Batch <Tile> toClear(Tile from, Tile to) ;
     protected abstract Batch <Element> toPlace(Tile from, Tile to) ;
     
-
+    
+    /**  Utility methods helpful for obtaining common results-
+      */
+    protected Tile[] lineVicinityPath(
+      Tile from, Tile to, boolean full, final Class... exceptions
+    ) {
+      if (from == null || to == null) return null ;
+      final RouteSearch search = new RouteSearch(from, to, Element.VENUE_OWNS) {
+        protected boolean canEnter(Tile t) {
+          for (Tile n : t.vicinity(tempB)) {
+            if (n == null) return false ;
+            boolean skip = false ;
+            if (n.owner() != null) for (Class c : exceptions) {
+              if (n.owner().getClass() == c) { skip = true ; break ; }
+            }
+            if (skip || super.canEnter(n)) continue ;
+            return false ;
+          }
+          return true ;
+        }
+      } ;
+      search.doSearch() ;
+      if (full) return search.fullPath(Tile.class) ;
+      else return search.bestPath(Tile.class) ;
+    }
+    
+    
+    protected Batch <Tile> lineVicinity(Tile path[], Class... exceptions) {
+      if (path == null) return null ;
+      final Batch <Tile> clearB = new Batch <Tile> () ;
+      for (Tile t : path) for (Tile n : t.vicinity(tempB)) if (n != null) {
+        if (n.flaggedWith() != null) continue ;
+        boolean skip = false ;
+        if (n.owner() != null) for (Class c : exceptions) {
+          if (n.owner().getClass() == c) { skip = true ; break ; }
+        }
+        if (skip) continue ;
+        n.flagWith(clearB) ;
+        clearB.add(n) ;
+      }
+      for (Tile t : clearB) t.flagWith(null) ;
+      return clearB ;
+    }
+    
+    
+    /**  Direct implementation of Installation interface-
+      */
     public boolean pointsOkay(Tile from, Tile to) {
       toClear = toClear(from, to) ;
       toPlace = toPlace(from, to) ;
@@ -65,24 +116,8 @@ public interface Installation {
     ) {
       if (toClear == null || toPlace == null) return ;
       final TerrainMesh overlay = world.terrain().createOverlay(
-       (Tile[]) toClear.toArray(Tile.class), Texture.WHITE_TEX
+        (Tile[]) toClear.toArray(Tile.class), Texture.WHITE_TEX
       ) ;
-      /*
-      final Table <Tile, Tile> pathTable = new Table(toClear.size()) ;
-      Box2D area = null ;
-      for (Tile t : toClear) {
-        if (area == null) area = new Box2D().set(t.x, t.y, 0, 0) ;
-        pathTable.put(t, t) ;
-        area.include(t.x, t.y, 0.5f) ;
-      }
-      final TerrainMesh overlay = world.terrain().createOverlay(
-        area, Texture.WHITE_TEX,
-        new TerrainMesh.Mask() { protected boolean maskAt(int x, int y) {
-          final Tile t = world.tileAt(x, y) ;
-          return (t == null) ? false : (pathTable.get(t) != null) ;
-        } }
-      ) ;
-      //*/
       overlay.colour = canPlace ? Colour.GREEN : Colour.RED ;
       rendering.addClient(overlay) ;
       

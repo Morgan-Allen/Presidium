@@ -14,7 +14,7 @@ public class MagLine extends Installation.Line {
   
   final Base base ;
   private Tile path[] ;
-  final private Tile tempB[] = new Tile[8] ;
+  final private Tile tempB[] = new Tile[9] ;
   
   
   public MagLine(Base base) {
@@ -39,46 +39,23 @@ public class MagLine extends Installation.Line {
   }
   
   
-  private Tile[] linePath(Tile from, Tile to, boolean full) {
+  protected Tile[] lineVicinityPath(
+    Tile from, Tile to, boolean full, Class... exceptions
+  ) {
     final Tile start = offsetFor(from), end = offsetFor(to) ;
     if (start == null || end == null) return null ;
-    final RouteSearch search = new RouteSearch(start, end, Element.VENUE_OWNS) {
-      protected boolean canEnter(Tile t) {
-        for (Tile n : t.allAdjacent(tempB)) {
-          if (n == null) return false ;
-          if (n.owner() instanceof MagLineNode || super.canEnter(n)) continue ;
-          return false ;
-        }
-        return t.owner() instanceof MagLineNode || super.canEnter(t) ;
-      }
-    } ;
-    search.doSearch() ;
-    if (full) return search.fullPath(Tile.class) ;
-    else return search.bestPath(Tile.class) ;
+    return super.lineVicinityPath(start, end, full, exceptions) ;
   }
   
   
   protected Batch <Tile> toClear(Tile from, Tile to) {
-    path = linePath(from, to, false) ;
-    if (path == null) return null ;
-    final Batch <Tile> clearB = new Batch <Tile> () ;
-    for (Tile t : path) {
-      if (t.flaggedWith() != null || t.owner() instanceof MagLineNode) continue ;
-      t.flagWith(clearB) ;
-      clearB.add(t) ;
-      for (Tile n : t.allAdjacent(tempB)) if (n != null) {
-        if (n.flaggedWith() != null || n.owner() instanceof MagLineNode) continue ;
-        n.flagWith(clearB) ;
-        clearB.add(n) ;
-      }
-    }
-    for (Tile t : clearB) t.flagWith(null) ;
-    return clearB ;
+    path = lineVicinityPath(from, to, false, MagLineNode.class) ;
+    return lineVicinity(path, MagLineNode.class) ;
   }
   
   
   protected Batch <Element> toPlace(Tile from, Tile to) {
-    path = linePath(from, to, false) ;
+    path = lineVicinityPath(from, to, false, MagLineNode.class) ;
     if (path == null) return null ;
     final Batch <MagLineNode> nodes = new Batch <MagLineNode> () ;
     for (Tile t : path) {

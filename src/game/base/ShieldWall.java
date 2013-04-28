@@ -26,61 +26,28 @@ public class ShieldWall extends Installation.Line {
   
   /**  Searching for a suitable path between tiles or venues-
     */
-  
-  private Tile[] linePath(Tile from, Tile to, boolean full) {
-    if (from == null || to == null) return null ;
-    final RouteSearch search = new RouteSearch(from, to, Element.VENUE_OWNS) {
-      protected boolean canEnter(Tile t) {
-        for (Tile n : t.allAdjacent(tempB)) {
-          if (n == null) return false ;
-          if (n.owner() instanceof MagLineNode || super.canEnter(n)) continue ;
-          return false ;
-        }
-        return t.owner() instanceof MagLineNode || super.canEnter(t) ;
-      }
-    } ;
-    search.doSearch() ;
-    if (full) return search.fullPath(Tile.class) ;
-    else return search.bestPath(Tile.class) ;
-  }
-  
-  
   protected Batch <Tile> toClear(Tile from, Tile to) {
-    path = linePath(from, to, false) ;
-    if (path == null) return null ;
-    final Batch <Tile> clearB = new Batch <Tile> () ;
-    for (Tile t : path) {
-      /*
-      if (t.flaggedWith() != null || t.owner() instanceof MagNode) continue ;
-      t.flagWith(clearB) ;
-      clearB.add(t) ;
-      for (Tile n : t.allAdjacent(tempB)) if (n != null) {
-        if (n.flaggedWith() != null || n.owner() instanceof MagNode) continue ;
-        n.flagWith(clearB) ;
-        clearB.add(n) ;
-      }
-      //*/
-    }
-    for (Tile t : clearB) t.flagWith(null) ;
-    return clearB ;
+    //
+    //  TODO:  Permit placement over magline nodes?  Or reserve that for Blast
+    //  Doors?  (How often should those be placed?)
+    path = super.lineVicinityPath(from, to, false, ShieldWallSection.class) ;
+    return lineVicinity(path, ShieldWallSection.class) ;
   }
   
   
   protected Batch <Element> toPlace(Tile from, Tile to) {
-    path = linePath(from, to, false) ;
+    path = super.lineVicinityPath(from, to, false, ShieldWallSection.class) ;
     if (path == null) return null ;
-    final Batch <Element> nodes = new Batch <Element> () ;
-    /*
+    final Batch <ShieldWallSection> nodes = new Batch () ;
     for (Tile t : path) {
-      final MagNode node = new MagNode() ;
+      final ShieldWallSection node = new ShieldWallSection() ;
       node.setPosition(t.x, t.y, t.world) ;
       nodes.add(node) ;
     }
     for (Tile t : path) t.flagWith(this) ;
-    for (MagNode node : nodes) node.updateSprite() ;
+    for (ShieldWallSection node : nodes) node.updateSprite() ;
     for (Tile t : path) t.flagWith(null) ;
-    //*/
-    return nodes ;
+    return (Batch <Element>) (Batch) nodes ;
   }
   
   

@@ -60,8 +60,7 @@ public class TerrainGen implements TileConstants {
   
   //
   //  TODO:  This will have to be a little more sophisticated.  Ensure a
-  //  certain proportion of land, sea, and various terrain types?  Avoid
-  //  creating islands?
+  //  certain proportion of land, sea, and various terrain types.
   private void setupRegions() {
     final int GS = sectorGridSize ;
     sectors = new Sector[GS][GS] ;

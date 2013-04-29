@@ -46,14 +46,17 @@ public class RouteSearch extends AgendaSearch <Tile> {
     return t == destination ;
   }
   
-
+  
   protected float estimate(Tile spot) {
-    final float xd = spot.x - destination.x, yd = spot.y - destination.y ;
-    return ((xd > 0 ? xd : -xd) + (yd > 0 ? yd : -yd)) * 2 ;
+    final float
+      xd = spot.x - destination.x,
+      yd = spot.y - destination.y ;
+    return ((xd > 0 ? xd : -xd) + (yd > 0 ? yd : -yd)) * 5 ;
   }
   
   
   protected float cost(Tile prior, Tile spot) {
+    //  You need to introduce a penalty for 'switching directions'.
     if (terrain.isRoad(spot)) return 1 ;
     return 2 ;
   }

@@ -23,6 +23,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
   
   public abstract static class Mask {
     protected abstract boolean maskAt(final int x, final int y) ;
+    protected abstract boolean nullsCount() ;
   }
   
   
@@ -95,6 +96,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
     //  produced-
     MeshBuffer.beginRecord() ;
     int numTiled = 0 ;
+    final boolean nullsCount = mask.nullsCount() ;
     for (int x = maxX ; x-- > minX ;) for (int y = maxY ; y-- > minY ;) {
       //
       //  We assume the use of inner fringing here, so only masked tiles are
@@ -104,7 +106,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
         final int nX = N_X[n] + x ;
         final int nY = N_Y[n] + y ;
         try { nearT[n] = mask.maskAt(nX, nY) ; }
-        catch (ArrayIndexOutOfBoundsException e) { nearT[n] = false ; }
+        catch (ArrayIndexOutOfBoundsException e) { nearT[n] = nullsCount ; }
       }
       float UVslices[][] = TerrainPattern.innerFringeUV(nearT) ;
       //

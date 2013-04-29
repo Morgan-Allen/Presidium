@@ -48,13 +48,18 @@ public interface Installation {
     /**  Utility methods helpful for obtaining common results-
       */
     protected Tile[] lineVicinityPath(
-      Tile from, Tile to, boolean full, final Class... exceptions
+      Tile from, Tile to, boolean full,
+      final boolean allowNulls, final Class... exceptions
     ) {
       if (from == null || to == null) return null ;
       final RouteSearch search = new RouteSearch(from, to, Element.VENUE_OWNS) {
         protected boolean canEnter(Tile t) {
+          if (t == null) return false ;
           for (Tile n : t.vicinity(tempB)) {
-            if (n == null) return false ;
+            if (n == null) {
+              if (allowNulls) continue ;
+              else return false ;
+            }
             boolean skip = false ;
             if (n.owner() != null) for (Class c : exceptions) {
               if (n.owner().getClass() == c) { skip = true ; break ; }
@@ -71,7 +76,9 @@ public interface Installation {
     }
     
     
-    protected Batch <Tile> lineVicinity(Tile path[], Class... exceptions) {
+    protected Batch <Tile> lineVicinity(
+      Tile path[], Class... exceptions
+    ) {
       if (path == null) return null ;
       final Batch <Tile> clearB = new Batch <Tile> () ;
       for (Tile t : path) for (Tile n : t.vicinity(tempB)) if (n != null) {
@@ -116,7 +123,7 @@ public interface Installation {
     ) {
       if (toClear == null || toPlace == null) return ;
       final TerrainMesh overlay = world.terrain().createOverlay(
-        (Tile[]) toClear.toArray(Tile.class), Texture.WHITE_TEX
+        (Tile[]) toClear.toArray(Tile.class), true, Texture.WHITE_TEX
       ) ;
       overlay.colour = canPlace ? Colour.GREEN : Colour.RED ;
       rendering.addClient(overlay) ;

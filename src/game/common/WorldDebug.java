@@ -6,17 +6,14 @@
 
 package src.game.common ;
 import src.game.planet.* ;
-import src.game.tactical.Patrolling ;
 import src.game.actors.* ;
-import src.game.base.* ;
 import src.game.building.* ;
+import src.game.common.PathingCache.Place ;
 import src.graphics.widgets.* ;
 import src.graphics.common.* ;
-import src.graphics.cutout.* ;
 import src.graphics.terrain.* ;
 import src.user.* ;
 import src.util.* ;
-import src.game.common.PathingCache.Place ;
 
 
 
@@ -58,10 +55,13 @@ public class WorldDebug extends PlayLoop {
   /**  Setup and initialisation-
     */
   protected World createWorld() {
-    final TerrainGen TG = new TerrainGen(32,
-      Habitat.OCEAN, Habitat.ESTUARY,
-      Habitat.MEADOW, Habitat.BARRENS,
-      Habitat.DESERT//, Habitat.MESA
+    final TerrainGen TG = new TerrainGen(
+      64, 0.2f,
+      Habitat.OCEAN  , 0.33f,
+      Habitat.ESTUARY, 0.25f,
+      Habitat.MEADOW , 0.5f,
+      Habitat.BARRENS, 0.3f,
+      Habitat.DESERT , 0.2f
     ) ;
     World world = new World(TG.generateTerrain()) ;
     return world ;
@@ -92,15 +92,7 @@ public class WorldDebug extends PlayLoop {
       final Tile t = world.tileAt(c.x, c.y) ;
       if (! t.blocked()) free = t ;
     }
-    
     GameSettings.freePath = true ;
-    /*
-    if (free != null) {
-      citizen = new Citizen(Vocation.ARTIFICER, base) ;
-      citizen.enterWorldAt(free.x, free.y, world) ;
-      ((BaseUI) HUD).setSelection(citizen) ;
-    }
-    //*/
   }
   
   
@@ -109,29 +101,12 @@ public class WorldDebug extends PlayLoop {
     */
   protected void updateGameState() {
     super.updateGameState() ;
-    //if (citizen.currentAction() != lastAction) assignRandomTarget(citizen) ;
-  }
-  
-  
-  private void assignRandomTarget(Citizen c) {
-    final int size = world().size ;
-    Tile dest = world().tileAt(Rand.index(size), Rand.index(size)) ;
-    dest = Spacing.nearestOpenTile(dest, dest) ;
-    if (dest == null) return ;
-    I.say("SENDING ACTOR TO: "+dest) ;
-    c.assignAction(lastAction = new Action(
-      c, dest, this, "actionGo",
-      Model.AnimNames.LOOK, "going..."
-    )) ;
-  }
-  
-  public boolean actionGo(Actor actor, Tile dest) {
-    return true ;
   }
   
   
   protected void renderGameGraphics() {
     super.renderGameGraphics() ;
+    this.highlightPath() ;
   }
   
 
@@ -151,6 +126,78 @@ public class WorldDebug extends PlayLoop {
       return true ;
     }
     return false ;
+  }
+  
+  
+  
+  /**  Debugging actor behaviour-
+    */
+  private void introduceCitizen(Tile free) {
+    if (free != null) {
+      citizen = new Citizen(Vocation.ARTIFICER, played()) ;
+      citizen.enterWorldAt(free.x, free.y, world()) ;
+      ((BaseUI) currentUI()).setSelection(citizen) ;
+    }
+  }
+  
+  private void assignRandomTarget(Citizen c) {
+    final int size = world().size ;
+    Tile dest = world().tileAt(Rand.index(size), Rand.index(size)) ;
+    dest = Spacing.nearestOpenTile(dest, dest) ;
+    if (dest == null) return ;
+    I.say("SENDING ACTOR TO: "+dest) ;
+    c.assignAction(lastAction = new Action(
+      c, dest, this, "actionGo",
+      Model.AnimNames.LOOK, "going..."
+    )) ;
+  }
+  
+  public boolean actionGo(Actor actor, Tile dest) {
+    return true ;
+  }
+  
+  
+  /**  Debugging pathfinding and region-caching-
+    */
+  private void highlightRegion() {
+    final Tile t = ((BaseUI) currentUI()).pickedTile() ;
+    if (t == null) return ;
+    final Place p = played().pathingCache.tilePlaces[t.x][t.y] ;
+    if (p == null) return ;
+    final TerrainMesh previewMesh = world().terrain().createOverlay(
+      p.tiles, false, Texture.WHITE_TEX
+    ) ;
+    //previewMesh.colour = Colour.GREEN ;
+    rendering().addClient(previewMesh) ;
+  }
+  
+  
+  private void highlightPath() {
+    final BaseUI UI = (BaseUI) currentUI() ;
+    if (UI.mouseClicked()) {
+      if (picked != null) picked = null ;
+      else {
+        picked = UI.pickedTile() ;
+        if (picked != null && picked.owner() instanceof Venue) {
+          picked = ((Venue) picked.owner()).entrance() ;
+        }
+      }
+    }
+    Tile hovered = UI.pickedTile() ;
+    if (hovered != null && hovered.owner() instanceof Venue) {
+      hovered = ((Venue) hovered.owner()).entrance() ;
+    }
+    if (picked != null && hovered != null) {
+      final PathingSearch search = new PathingSearch(picked, hovered) ;
+      search.doSearch() ;
+      final Tile path[] = (Tile[]) search.fullPath(Tile.class) ;
+      if (path != null && path.length > 0) {
+        final TerrainMesh overlay = world().terrain().createOverlay(
+          path, false, Texture.WHITE_TEX
+        ) ;
+        rendering().addClient(overlay) ;
+      }
+    }
   }
 }
 
@@ -192,26 +239,6 @@ public class WorldDebug extends PlayLoop {
 //
 //  This enabled highlighting of regions associated with particular tiles-
 /*
-final Tile t = ((BaseUI) currentUI()).pickedTile() ;
-if (t == null) return ;
-final Region r = played().pathingCache.tileRegions[t.x][t.y] ;
-if (r == null) return ;
-//I.say("Generating preview...") ;
-final TerrainMesh.Mask previewMask = new TerrainMesh.Mask() {
-  protected boolean maskAt(int x, int y) {
-    return played().pathingCache.tileRegions[x][y] == r ;
-  }
-} ;
-final WorldSections.Section s = r.section ;
-final int SR = World.SECTION_RESOLUTION ;
-final int size = world().size ;
-final TerrainMesh previewMesh = TerrainMesh.genMesh(
-  //s.x * SR, s.y * SR, (s.x * SR) + SR, (s.y * SR) + SR,
-  0, 0, size, size,
-  Texture.WHITE_TEX, new byte[size + 1][size + 1], previewMask
-) ;
-//previewMesh.colour = Colour.GREEN ;
-rendering().addClient(previewMesh) ;
 //*/
 
 

@@ -209,8 +209,6 @@ public final class Spacing implements TileConstants {
   
   /**  Distance calculation methods-
     */
-  
-  
   public static float distance(Target a, Target b) {
     float dist = a.position(pA).distance(b.position(pB)) ;
     dist -= a.radius() + b.radius() ;

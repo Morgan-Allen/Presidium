@@ -39,10 +39,10 @@ public class Batch <K> implements Series <K> {
   
   /**  Returns an array with identical contents to this Batch.
     */
-  final public Object[] toArray(Class typeClass) {
+  final public K[] toArray(Class typeClass) {
     final Object[] array = (Object[]) Array.newInstance(typeClass, size) ;
     int i = 0 ; for (K t : this) array[i++] = t ;
-    return array ;
+    return (K[]) array ;
   }
   
   final public Object[] toArray() { return toArray(Object.class) ; }

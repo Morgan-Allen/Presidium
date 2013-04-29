@@ -5,9 +5,9 @@
   */
 
 package src.graphics.common ;
+import src.util.* ;
 import org.lwjgl.opengl.* ;
-
-import src.util.Visit;
+import java.awt.Color ;
 
 
 
@@ -16,7 +16,6 @@ import src.util.Visit;
   *  complement.
   */
 public class Colour {
-  
   
   
   final public static Colour
@@ -44,29 +43,11 @@ public class Colour {
   }
 	
 	
-	private static float
-	  max,
-	  min,
-	  gap,
-	  hue,
-	  sat,
-	  val,
-	  
-	  dif,
-	  mix,
-	  right,
-	  left ;
-	private static int
-	  sec ;
-	private static Colour temp = new Colour() ;
-	
-	
 	public float
 	  r = 1,
 	  g = 1,
 	  b = 1,
 	  a = 1 ;
-	//red, green, blue, and alpha, respectively.
   
 	
 	public Colour() {}
@@ -108,65 +89,15 @@ public class Colour {
 	}
 	
 	
-	/**  Sets this RGBA colour to represent the given Hue/Saturation/Value (or
-	  *  Brightness) coordinates as a 3-valued float array: Alpha is not affected.
-	  */
-	public Colour setHSV(float hsv[]) {
-		hue = hsv[0] * 6 ;
-		sat = hsv[1] ;
-		
-		sec = (int)hue ;  //sector of colour spectrum.
-		dif = hue - sec ;  //fractional part of spectrum position.
-		mix = 1 - sat ;  //the degree to which the colour is 'impure.'
-	  right = 1 - (sat * dif) ;  //components leaning towards either end
-	  left = 1 - (sat * (1 - dif)) ;  //...of the spectrum.
-
-		switch(sec) {
-			case 0:
-				r = val ;
-				g = left ;
-				b = mix ;
-			break ;
-			case 1:
-				r = right ;
-				g = val ;
-				b = mix ;
-			break ;
-			case 2:
-				r = mix ;
-				g = val ;
-				b = left ;
-			break ;
-			case 3:
-				r = mix ;
-				g = right ;
-				b = val ;
-			break ;
-			case 4:
-				r = left ;
-				g = mix ;
-				b = val ;
-			break ;
-			default:
-				r = val ;
-				g = mix ;
-				b = right ;
-			break ;
-		}
-		return setValue(hsv[2]) ;
-	}
-	
-	
 	/**  Sets the Value (or brightness) of this colour to the desired value.  An
 	  *  RGB colour's maximum component defines brightness.
 	  */
 	public Colour setValue(float v) {
-		val = value() ;
-		if(val > 0) {
-			val = v / val ;
-			r *= val ;
-			g *= val ;
-			b *= val ;
+		final float val = value() ;
+		if (val > 0) {
+			r *= v / val ;
+			g *= v / val ;
+			b *= v / val ;
 		}
 		else r = g = b = v ;
 		return this ;
@@ -177,9 +108,7 @@ public class Colour {
 	  *  maximum of RGB components.)
 	  */
 	public float value() {
-		max = (r > g) ? r : g ;
-		if(max < b) max = b ;
-		return max ;
+	  return Math.max(r, Math.max(g, b)) ;
 	}
 	
 	
@@ -188,12 +117,13 @@ public class Colour {
 	  *  is null, a new Colour is initialised.)
 	  */
 	public Colour complement(Colour result) {
-		if(result == this) {
+		if (result == this) {
+		  final Colour temp = new Colour() ;
 			complement(temp) ;
 			set(temp) ;
 			return this ;
 		}
-	  else if(result == null) result = new Colour() ;
+	  else if (result == null) result = new Colour() ;
 		result.r = g + b / 2 ;
 		result.g = r + b / 2 ;
 		result.b = r + g / 2 ;
@@ -207,31 +137,23 @@ public class Colour {
 	  *  3 value float array (which, if null, is initialised and then returned.)
 	  */
 	public float[] getHSV(float[] result) {
-		if((result == null) || (result.length != 3)) result = new float[3] ;
-		
-		max = (r > g) ? r : g ;
-		min = (r < g) ? r : g ;
-		if(max < b) max = b ;
-		if(min > b) min = b ;
-		val = max ;
-		gap = max - min ;
-		
-		if (max * gap > 0) {
-			sat = gap / max ;
-			if(r == max) hue = (g - b) / gap ;
-			else if(g == max) hue = 2 + ((b - r) / gap) ;
-			else hue = 4 + ((r - g) / gap) ;
-			
-			hue /= 6 ;
-			hue %= 1 ;
-		}
-		else hue = sat = val = 0 ;
-		
-		result[0] = hue ;
-		result[1] = sat ;
-		result[2] = val ;
+		if ((result == null) || (result.length != 3)) result = new float[3] ;
+		Color.RGBtoHSB((int) (r * 255), (int) (g * 255), (int) (b * 255), result) ;
 		return result ;
 	}
+	
+	
+  /**  Sets this RGBA colour to represent the given Hue/Saturation/Value (or
+    *  Brightness) coordinates as a 3-valued float array: Alpha is not affected.
+    */
+  public Colour setHSV(float hsv[]) {
+    int bytes = Color.HSBtoRGB(hsv[0], hsv[1], hsv[2]) ;
+    r = (((bytes >> 16) & 0xff) / 255f) ;
+    g = (((bytes >> 8 ) & 0xff) / 255f) ;
+    b = (((bytes >> 0 ) & 0xff) / 255f) ;
+    a = 1 ;
+    return this ;
+  }
 	
 	
 	/**  Converts this colour into byte format-
@@ -245,13 +167,12 @@ public class Colour {
 	
 	
 	/**  Sets RGBA values from the given byte format-
-	  *  TODO:  TEST THIS...
     */
 	public void setFromBytes(byte vals[], int i) {
-	  r = (vals[i + 0] + 128) / 255f ;
-    g = (vals[i + 1] + 128) / 255f ;
-    b = (vals[i + 2] + 128) / 255f ;
-    a = (vals[i + 3] + 128) / 255f ;
+	  r = (vals[i + 0] & 0xff) / 255f ;
+    g = (vals[i + 1] & 0xff) / 255f ;
+    b = (vals[i + 2] & 0xff) / 255f ;
+    a = (vals[i + 3] & 0xff) / 255f ;
 	}
 	
 	

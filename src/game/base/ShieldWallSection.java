@@ -75,7 +75,14 @@ public class ShieldWallSection extends Element implements TileConstants {
     SECTION_MODEL_RIGHT  = SECTION_MODELS[1],
     SECTION_MODEL_CORNER = SECTION_MODELS[2],
     TOWER_MODEL_LEFT     = SECTION_MODELS[3],
-    TOWER_MODEL_RIGHT    = SECTION_MODELS[4] ;
+    TOWER_MODEL_RIGHT    = SECTION_MODELS[4],
+    DOOR_MODELS[] = ImageModel.loadModels(
+      ShieldWallSection.class, 3, 2, "media/Buildings/military aura/",
+      "wall_gate_left.png",
+      "wall_gate_right.png"
+    ),
+    DOOR_MODEL_LEFT  = DOOR_MODELS[0],
+    DOOR_MODEL_RIGHT = DOOR_MODELS[1] ;
   
   
   void updateSprite() {
@@ -83,6 +90,11 @@ public class ShieldWallSection extends Element implements TileConstants {
     attachSprite(model.makeSprite()) ;
   }
   
+  //
+  //  TODO:  You'll have to find some way to insert blast doors automatically
+  //  along the perimeter.  Check minimum path length first, ensure it's a
+  //  straight section, and get the correct orientation at a given point.
+  //  ...Yes.
   
   private ImageModel getModel() {
     final Tile o = origin() ;
@@ -110,3 +122,7 @@ public class ShieldWallSection extends Element implements TileConstants {
     return t.flaggedWith() != null || t.owner() instanceof MagLineNode ;
   }
 }
+
+
+
+

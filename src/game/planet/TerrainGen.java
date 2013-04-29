@@ -14,39 +14,62 @@ public class TerrainGen implements TileConstants {
   final static int
     DETAIL_RESOLUTION = 8 ;
   
-  int mapSize, sectorGridSize ;
-  Habitat gradient[] ;
-  Sector sectors[][] ;
+  final int mapSize, sectorGridSize ;
+  final float typeNoise ;
+  final Habitat habitats[] ;
+  final Float habitatAmounts[] ;
   
   static class Sector {
     int coreX, coreY ;
     int gradientID ;
-    //float borderBlends[][] ;
   }
-  
-  //private float tileOffsets[][] ;
+
+  private Sector sectors[][] ;
   private float blendsX[][], blendsY[][] ;
-  
   private byte sectorVal[][] ;
   private byte typeIndex[][] ;
   private byte heightMap[][] ;
   private byte varsIndex[][] ;
   
   
-  public TerrainGen(int minSize, Habitat... gradient) {
+  
+  /**  NOTE:  This constructor expects a gradient argument consisting of paired
+    *  habitats and float-specified proportions for each.  Do not fuck with it.
+    */
+  public TerrainGen(int minSize, float typeNoise, Object... gradient) {
     this.mapSize = checkMapSize(minSize) ;
-    this.gradient = gradient ;
+    this.typeNoise = Visit.clamp(typeNoise, 0, 1) ;
     this.sectorGridSize = mapSize / Planet.SECTOR_SIZE ;
+    //
+    //  Here, we verify amd compile the gradient of habitat proportions.
+    final Batch <Habitat> habB  = new Batch <Habitat> () ;
+    final Batch <Float> amountB = new Batch <Float> ()   ;
+    boolean habNext = true ;
+    for (Object o : gradient) {
+      if (habNext) {
+        if (! (o instanceof Habitat)) I.complain("Expected habitat...") ;
+        habB.add((Habitat) o) ;
+        habNext = false ;
+      }
+      else {
+        if (! (o instanceof Float)) I.complain("Expected amount as float...") ;
+        amountB.add((Float) o) ;
+        habNext = true ;
+      }
+    }
+    if (gradient.length % 2 != 0) I.complain("Missing argument...") ;
+    habitats = habB.toArray(Habitat.class) ;
+    habitatAmounts = amountB.toArray(Float.class) ;
   }
   
   
   public Terrain generateTerrain() {
-    setupRegions() ;
+    setupSectors() ;
     setupTiles() ;
-    return new Terrain(gradient, typeIndex, varsIndex, heightMap) ;
+    return new Terrain(habitats, typeIndex, varsIndex, heightMap) ;
   }
   
-
+  
   /**  Generating the overall region layout:
     */
   private int checkMapSize(int minSize) {
@@ -54,33 +77,71 @@ public class TerrainGen implements TileConstants {
     while (mapSize < minSize) mapSize *= 2 ;
     if (mapSize == minSize) return mapSize ;
     I.complain("MAP SIZE MUST BE A POWER OF 2 MULTIPLE OF SECTOR SIZE.") ;
-    return -1  ;
+    return -1 ;
   }
   
   
-  //
-  //  TODO:  This will have to be a little more sophisticated.  Ensure a
-  //  certain proportion of land, sea, and various terrain types.
-  private void setupRegions() {
+  private void setupSectors() {
     final int GS = sectorGridSize ;
+    initSectorVals(GS) ;
+    initSectorBlends(GS) ;
     sectors = new Sector[GS][GS] ;
-    sectorVal = new byte[GS][GS] ;
-    
-    //final HeightMap sectorHeights = new HeightMap(GS + 1) ;
-    //byte sectorVals[][] = sectorHeights.asScaledBytes(gradient.length * 0.99f) ;
-    
     for (Coord c : Visit.grid(0, 0, GS, GS, 1)) {
       final Sector s = new Sector() ;
       s.coreX = (int) ((c.x + 0.5f) * Planet.SECTOR_SIZE) ;
       s.coreY = (int) ((c.y + 0.5f) * Planet.SECTOR_SIZE) ;
-      //float sample = HeightMap.sampleAt(GS, sectorVals, c.x, c.y) ;
-      //s.typeID = (byte) Visit.clamp((int) sample, gradient.length) ;
-      s.gradientID = Rand.index(gradient.length) ;
+      s.gradientID = sectorVal[c.x][c.y] ;
       I.say("Type ID: "+s.gradientID+", core: "+s.coreX+"|"+s.coreY) ;
       sectors[c.x][c.y] = s ;
-      sectorVal[c.x][c.y] = (byte) s.gradientID ;
     }
-    
+  }
+  
+  
+  private void initSectorVals(int GS) {
+    //
+    //  Set up the requisite data stores first-
+    final Vec3D seedVals[][] = new Vec3D[GS][GS] ;
+    final HeightMap heightMap = new HeightMap(GS + 1) ;
+    final float heightVals[][] = heightMap.value() ;
+    sectorVal = new byte[GS][GS] ;
+    //
+    //  We then generate seed values for each sector, and sort by height.
+    final SortTree <Vec3D> sorting = new SortTree <Vec3D> () {
+      public int compare(Vec3D a, Vec3D b) {
+        if (a == b) return 0 ;
+        return a.z > b.z ? 1 : -1 ;
+      }
+    } ;
+    for (Coord c : Visit.grid(0, 0, GS, GS, 1)) {
+      final Vec3D v = seedVals[c.x][c.y] = new Vec3D() ;
+      final float val = (Rand.num() < typeNoise) ?
+        ((Rand.num() < typeNoise) ? Rand.num() : heightVals[c.x][c.y]) :
+        ((Rand.num() * typeNoise) + (heightVals[c.x][c.y] * (1 - typeNoise))) ;
+      v.set(c.x, c.y, val) ;
+      sorting.add(v) ;
+    }
+    //
+    //  We then determine how many sectors of each habitat are required,
+    //  compile the IDs sequentially by height, and assign to their sectors.
+    float sumAmounts = 0, sumToNext = 0 ;
+    for (int i = habitats.length ; i-- > 0 ;) sumAmounts += habitatAmounts[i] ;
+    final byte typeAssigned[] = new byte[sorting.size()] ;
+    byte currentTypeID = -1 ;
+    for (int i = 0 ; i < typeAssigned.length ; i++) {
+      final float indexInSum = i * sumAmounts / typeAssigned.length ;
+      if (indexInSum >= sumToNext) {
+        currentTypeID++ ;
+        sumToNext += habitatAmounts[currentTypeID] ;
+      }
+      typeAssigned[i] = currentTypeID ;
+    }
+    int count = 0 ; for (Vec3D v : sorting) {
+      sectorVal[(int) v.x][(int) v.y] = typeAssigned[count++] ;
+    }
+  }
+  
+  
+  private void initSectorBlends(int GS) {
     blendsX = new float[GS - 1][] ;
     blendsY = new float[GS - 1][] ;
     final int SS = Planet.SECTOR_SIZE, DR = DETAIL_RESOLUTION ;
@@ -89,9 +150,6 @@ public class TerrainGen implements TileConstants {
       blendsY[n] = staggeredLine(mapSize + 1, DR, SS / 2, true) ;
     }
   }
-  
-  
-  
   
   
   
@@ -120,15 +178,15 @@ public class TerrainGen implements TileConstants {
         sampleY = Visit.clamp(c.y + blendsY[YBI][c.x], 0, mapSize - 1) ;
       float sum = HeightMap.sampleAt(mapSize, sectorVal, sampleX, sampleY) ;
       
-      int gradID = Visit.clamp((int) sum, gradient.length) ;
-      if (! gradient[gradID].isOcean) {
+      int gradID = Visit.clamp((int) sum, habitats.length) ;
+      if (! habitats[gradID].isOcean) {
         float detail = HeightMap.sampleAt(mapSize, detailGrid, c.x, c.y) / 10f ;
         sum += detail * detail * 2 ;
-        gradID = Visit.clamp((int) sum, gradient.length) ;
-        typeIndex[c.x][c.y] = (byte) gradient[gradID].ID ;
+        gradID = Visit.clamp((int) sum, habitats.length) ;
+        typeIndex[c.x][c.y] = (byte) habitats[gradID].ID ;
       }
       
-      if (gradient[gradID] == Habitat.ESTUARY && Rand.index(4) == 0) {
+      if (habitats[gradID] == Habitat.ESTUARY && Rand.index(4) == 0) {
         typeIndex[c.x][c.y] = (byte) Habitat.MEADOW.ID ;
       }
     }

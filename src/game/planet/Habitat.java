@@ -52,6 +52,11 @@ public class Habitat {
     IS_WASTE  = "is wastes" ;
   
   
+  //
+  //  TODO:  Each habitat needs to implement it's own routines to handle
+  //  painting FX, flora and outcrops setup.  (Growth/erosion can be handled
+  //  by the fixtures themselves.)
+  
   final public static Habitat
     //
     //  Ocean habitats, which occur at or below current sea levels.

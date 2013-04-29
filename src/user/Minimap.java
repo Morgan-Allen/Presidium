@@ -9,8 +9,7 @@ import src.game.common.* ;
 import src.game.planet.* ;
 import src.util.* ;
 import src.graphics.common.* ;
-import src.graphics.widgets.UINode;
-
+import src.graphics.widgets.UINode ;
 import org.lwjgl.opengl.* ;
 
 
@@ -46,19 +45,11 @@ public class Minimap extends UINode {
     mapImage.putBytes(RGBA) ;
   }
   
+  
   public void updateAt(int x, int y) {
-    //  This has to be ARGB, rather than RGBA-
-    /*
-    final byte[] avg = world.tileAt(x, y).habitat().overlay.colourAverage() ;
-    final int val =
-      (((int) avg[0] & 0xff) << 8 ) |
-      (((int) avg[1] & 0xff) << 16) |
-      (((int) avg[2] & 0xff) << 24) |
-      (0xff << 0) ;
-    final float size = world.size ;
-    mapImage.putVal(x / size, y / size, val) ;
-    //  Bugger.  Everything has to be complicated...
-    //*/
+    final Habitat h = world.terrain().habitatAt(x, y) ;
+    final Colour avg = h.baseTex.averaged() ;
+    //mapImage.putBytesAt(x, y, avg.storeByteValue(null, 0)) ;
   }
   
   
@@ -72,6 +63,7 @@ public class Minimap extends UINode {
     final Tile pos = getMapPosition(UI.mousePos()) ;
     if (pos == null) return ;
     UI.camera.lockOn(pos) ;
+    //UI.camera.zoomTo(pos) ;
   }
   
   

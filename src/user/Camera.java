@@ -20,8 +20,9 @@ public class Camera {
   
   final BaseUI UI ;
   final Viewport port ;
-
-  private Element lockTarget = null ;
+  
+  //private Element lockTarget = null ;
+  private Target lockTarget = null ;
   private float lockX = 0, lockY = 0 ;
   
   
@@ -31,12 +32,12 @@ public class Camera {
   }
   
   void saveState(Session s) throws Exception {
-    s.saveObject(lockTarget) ;
+    s.saveTarget(lockTarget) ;
     port.cameraPosition.saveTo(s.output()) ;
   }
   
   void loadState(Session s) throws Exception {
-    lockTarget = (Element) s.loadObject() ;
+    lockTarget = s.loadTarget() ;
     port.cameraPosition.loadFrom(s.input()) ;
   }
   
@@ -47,14 +48,17 @@ public class Camera {
     */
   protected void lockOn(Target target) {
     if (
-      target == null || ! (target instanceof Element) ||
-      ((Element) target).sprite() == null
+      target == null
     ) {
       lockTarget = null ;
       UI.voidSelection() ;
     }
     else {
-      lockTarget = (Element) target ;
+      if (
+        (target instanceof Element) &&
+        ((Element) target).sprite() == null
+      ) { lockOn(null) ; return ; }
+      lockTarget = target ;
     }
   }
   
@@ -102,25 +106,30 @@ public class Camera {
     //
     //  Ascertain the difference between the current camera position and the
     //  the target's position.
-    //I.say("Lock offset is: "+lockX+", "+lockY) ;
-    final Vec3D lockOff = new Vec3D().set(lockX, lockY, 0) ;
-    port.flatToIso(lockOff).scale(-1f / port.screenScale()) ;
+    //final Vec3D lockOff = new Vec3D().set(lockX, lockY, 0) ;
+    //port.flatToIso(lockOff).scale(-1f / port.screenScale()) ;
     final Vec3D
-      lockPos = lockTarget.viewPosition(null),
+      lockPos = (lockTarget instanceof Element) ?
+        ((Element) lockTarget).viewPosition(null) :
+        lockTarget.position(null),
       viewPos = port.cameraPosition,
-      targPos = new Vec3D().setTo(lockPos).add(lockOff),
+      targPos = new Vec3D().setTo(lockPos),//.add(lockOff),
       displace = targPos.sub(viewPos, new Vec3D()) ;
-    //I.say("Following: "+lockTarget+", position: "+lockPos) ;
     final float distance = displace.length() ;
     //
-    //  Now, ascertain the rate at which we should 'drift' toward the target-
-    //  faster when we're farther away-
-    final float drift = Math.min(1,
-      (2 * (distance + 2) * (distance + 2) * 0.4f) /
-      (PlayLoop.FRAMES_PER_SECOND * distance)
-    ) ;
-    //  Adjust the camera position.
-    viewPos.add(displace.scale(drift)) ;
+    //  If distance is too large, just go straight to the point-
+    if (distance > 32) {
+      viewPos.add(displace) ;
+    }
+    else {
+      //
+      //  Otherwise, ascertain the rate at which one should 'drift' toward the
+      //  target, and displace accordingly-
+      final float drift = Math.min(1,
+        ((distance + 2) * 5) / (PlayLoop.FRAMES_PER_SECOND * distance)
+      ) ;
+      viewPos.add(displace.scale(drift)) ;
+    }
   }
 }
 

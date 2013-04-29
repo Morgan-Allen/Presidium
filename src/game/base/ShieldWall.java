@@ -30,13 +30,13 @@ public class ShieldWall extends Installation.Line {
     //
     //  TODO:  Permit placement over magline nodes?  Or reserve that for Blast
     //  Doors?  (How often should those be placed?)
-    path = super.lineVicinityPath(from, to, false, ShieldWallSection.class) ;
+    path = lineVicinityPath(from, to, false, true, ShieldWallSection.class) ;
     return lineVicinity(path, ShieldWallSection.class) ;
   }
   
   
   protected Batch <Element> toPlace(Tile from, Tile to) {
-    path = super.lineVicinityPath(from, to, false, ShieldWallSection.class) ;
+    path = lineVicinityPath(from, to, false, true, ShieldWallSection.class) ;
     if (path == null) return null ;
     final Batch <ShieldWallSection> nodes = new Batch () ;
     for (Tile t : path) {

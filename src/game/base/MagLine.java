@@ -44,7 +44,7 @@ public class MagLine extends Installation.Line {
   ) {
     final Tile start = offsetFor(from), end = offsetFor(to) ;
     if (start == null || end == null) return null ;
-    return super.lineVicinityPath(start, end, full, exceptions) ;
+    return lineVicinityPath(start, end, full, false, exceptions) ;
   }
   
   

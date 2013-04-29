@@ -42,6 +42,9 @@ public class Terrain implements TileConstants, Session.Saveable {
     protected boolean maskAt(int x, int y) {
       return roadMask[x][y] > 0 ;
     }
+    protected boolean nullsCount() {
+      return true ;
+    }
   } ;
   
   private static class MeshPatch {
@@ -124,9 +127,9 @@ public class Terrain implements TileConstants, Session.Saveable {
     */
   public void maskAsPaved(Tile tiles[], boolean is) {
     if (tiles == null) return ;
-    final Tile o = tiles[0] ;
-    final Box2D bounds = new Box2D().set(o.x, o.y, 0, 0) ;
+    Box2D bounds = null ;
     for (Tile t : tiles) if (t != null) {
+      if (bounds == null) bounds = new Box2D().set(t.x, t.y, 0, 0) ;
       roadMask[t.x][t.y] += is ? 1 : -1 ;
       bounds.include(t.x, t.y, 0.5f) ;
     }
@@ -159,7 +162,9 @@ public class Terrain implements TileConstants, Session.Saveable {
   }
   
   
-  public TerrainMesh createOverlay(Tile tiles[], Texture tex) {
+  public TerrainMesh createOverlay(
+    Tile tiles[], final boolean nullsCount, Texture tex
+  ) {
     if (tiles == null || tiles.length < 1) I.complain("No tiles in overlay!") ;
     final Table <Tile, Tile> pathTable = new Table(tiles.length) ;
     Box2D area = null ;
@@ -171,10 +176,15 @@ public class Terrain implements TileConstants, Session.Saveable {
     final World world = tiles[0].world ;
     final TerrainMesh overlay = createOverlay(
       area, tex,
-      new TerrainMesh.Mask() { protected boolean maskAt(int x, int y) {
-        final Tile t = world.tileAt(x, y) ;
-        return (t == null) ? false : (pathTable.get(t) != null) ;
-      } }
+      new TerrainMesh.Mask() {
+        protected boolean maskAt(int x, int y) {
+          final Tile t = world.tileAt(x, y) ;
+          return (t == null) ? false : (pathTable.get(t) != null) ;
+        }
+        protected boolean nullsCount() {
+          return nullsCount ;
+        }
+      }
     ) ;
     return overlay ;
   }

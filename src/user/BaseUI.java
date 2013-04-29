@@ -43,9 +43,13 @@ public class BaseUI extends HUD {
   
   final World world ;
   final Rendering rendering ;
+  
   private Base played ;
   private Vec3D homePos = new Vec3D() ;
   final public Camera camera ;
+  
+  private Minimap minimap ;
+  private Button buildingsButton ;
   
   
   private Tile pickTile ;
@@ -55,8 +59,6 @@ public class BaseUI extends HUD {
   
   private UITask task ;
   private UIGroup selectInfo, newPanel ;
-  
-  private Button buildingsButton ;
   
   
   
@@ -95,19 +97,12 @@ public class BaseUI extends HUD {
     buildingsButton.relBound.set(0, 0, 0, 0) ;
     buildingsButton.attachTo(this) ;
     
-    /*
-    if (player != null) {
-      //  TODO:  Might want to automate addition of classes from the content
-      //  packages?
-      //  TODO:  Move all these to the BuildingsTab class.  Possibly as part of
-      //  a text feed.
-      //buildingsTab.absBound.set(220, 20, 0, 0) ;
-      //buildingsTab.attachTo(this) ;
-      
-      //creditText.attachTo(this) ;
-    }
-    //*/
-    //buildingsTab = new BuildingsTab(this) ;
+    minimap = new Minimap(this, world, played) ;
+    minimap.relBound.set(1, 1, 0, 0) ;
+    minimap.absBound.set(-210, -210, 200, 200) ;
+    minimap.attachTo(this) ;
+    
+    
     /*
     buildingsButton = new Button(
       this, "media/GUI/Tabs/install_button.gif",

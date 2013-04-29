@@ -49,7 +49,6 @@ final public class Texture {
   private boolean cached = false ;
   private String texName = "", alphaName = "" ;
   
-  
   public int xdim() { return xdim ; }
   public int ydim() { return ydim ; }
   public int trueSize() { return trueSize ; }
@@ -69,9 +68,11 @@ final public class Texture {
     return loaded ;
   }
   
+  
   public static Texture loadTexture(String name) {
     return Texture.loadTexture(name, null) ;
   }
+  
   
   public static Texture loadTexture(DataInputStream in) throws Exception {
     final String texName   = LoadService.readString(in) ;
@@ -79,12 +80,14 @@ final public class Texture {
     return loadTexture(texName, alphaName) ;
   }
   
+  
   public static void saveTexture(
     Texture tex, DataOutputStream out
   ) throws Exception {
     LoadService.writeString(out, tex.texName  ) ;
     LoadService.writeString(out, tex.alphaName) ;
   }
+  
   
   public static Texture loadTexture(String pathName, String alphaName) {
     //
@@ -235,12 +238,14 @@ final public class Texture {
         pixel = fill[ind++] ;
         //
         //  weight the average by alpha.
-        final float w = (alpha >> shiftA) * 1f / 255 ;
-        sumWeights += w ;
+        final float w = ((alpha >> shiftA) & 0xff) / 255f ;
         r = (pixel >> 16) & 0xff ;
         g = (pixel >> 8 ) & 0xff ;
         b = (pixel >> 0 ) & 0xff ;
-        aR += r * w ; aG += g * w ; aB += b * w ;
+        if (w > 0) {
+          sumWeights += w ;
+          aR += r * w ; aG += g * w ; aB += b * w ;
+        }
         //
         //  Insert the bytes into the array.
         vals[v++] = (byte) r ;
@@ -250,19 +255,18 @@ final public class Texture {
       }
     }
     //
-    //  Finish averaging and store results.
+    //  Finish averaging and store results (diminishing saturation a little.)
     averaged = new Colour().set(
       aR / (sumWeights * 255),
       aG / (sumWeights * 255),
       aB / (sumWeights * 255),
       sumWeights / (high * len)
     ) ;
-    /*
-    average[0] = (byte) ((int) (aR / sumWeights) & 0xff) ;
-    average[1] = (byte) ((int) (aG / sumWeights) & 0xff) ;
-    average[2] = (byte) ((int) (aB / sumWeights) & 0xff) ;
-    average[3] = (byte) (sumWeights * 255 / (high * len)) ;
-    //*/
+    final float HSV[] = averaged.getHSV(null) ;
+    HSV[1] *= 0.7f ;
+    averaged.setHSV(HSV) ;
+    //
+    //  Create the byte buffer and store contents-
     buffer = BufferUtils.createByteBuffer(vals.length) ;
     totalBytesUsed += buffer.capacity() ;
     //

@@ -106,7 +106,7 @@ public class WorldDebug extends PlayLoop {
   
   protected void renderGameGraphics() {
     super.renderGameGraphics() ;
-    ///this.highlightPath() ;
+    this.highlightPath() ;
   }
   
 
@@ -171,6 +171,20 @@ public class WorldDebug extends PlayLoop {
     rendering().addClient(previewMesh) ;
   }
   
+  private void highlightPath() {
+    final BaseUI UI = (BaseUI) currentUI() ;
+    if (UI.mouseClicked()) {
+      if (picked != null) picked = null ;
+      else picked = hovered(UI) ;
+    }
+    final Boardable hovered = hovered(UI) ;
+    if (picked != null && hovered != null) {
+      final PathingSearch search = new PathingSearch(picked, hovered) ;
+      search.doSearch() ;
+      renderOverlay(search.allSearched(Boardable.class), Colour.GREEN) ;
+      renderOverlay(search.fullPath(Boardable.class), Colour.BLUE) ;
+    }
+  }
   
   private Boardable hovered(BaseUI UI) {
     final Tile t = UI.pickedTile() ;
@@ -180,27 +194,17 @@ public class WorldDebug extends PlayLoop {
     return t ;
   }
   
-  private void highlightPath() {
-    final BaseUI UI = (BaseUI) currentUI() ;
-    if (UI.mouseClicked()) {
-      if (picked != null) picked = null ;
-      else picked = hovered(UI) ;
+  private void renderOverlay(Boardable path[], Colour c) {
+    final Batch <Tile> tiles = new Batch <Tile> () ;
+    if (path != null) for (Boardable b : path) {
+      if (b instanceof Tile) tiles.add((Tile) b) ;
     }
-    Boardable hovered = hovered(UI) ;
-    if (picked != null && hovered != null) {
-      final PathingSearch search = new PathingSearch(picked, hovered) ;
-      search.doSearch() ;
-      final Boardable path[] = (Boardable[]) search.fullPath(Boardable.class) ;
-      final Batch <Tile> tiles = new Batch <Tile> () ;
-      if (path != null) for (Boardable b : path) {
-        if (b instanceof Tile) tiles.add((Tile) b) ;
-      }
-      if (tiles.size() > 0) {
-        final TerrainMesh overlay = world().terrain().createOverlay(
-          tiles.toArray(Tile.class), false, Texture.WHITE_TEX
-        ) ;
-        rendering().addClient(overlay) ;
-      }
+    if (tiles.size() > 0) {
+      final TerrainMesh overlay = world().terrain().createOverlay(
+        tiles.toArray(Tile.class), false, Texture.WHITE_TEX
+      ) ;
+      overlay.colour = c ;
+      rendering().addClient(overlay) ;
     }
   }
 }

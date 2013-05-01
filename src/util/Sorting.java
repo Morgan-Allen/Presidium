@@ -351,36 +351,40 @@ public abstract class Sorting <K> implements Series <K> {
   
 
   final public Iterator <K> iterator() {
-    final Stack <Node> nodeStack = new Stack <Node> () ;
-    final Stack <Side> nextSides = new Stack <Side> () ;
+    final int height = root.height ;
+    final Node nodeStack[] = new Node[height + 1] ;
+    final Side sideStack[] = new Side[height + 1] ;
     if (root != null) {
-      nodeStack.addFirst(root) ;
-      nextSides.addFirst(Side.L) ;
+      nodeStack[0] = root ;
+      sideStack[0] = Side.L ;
     }
     return new Iterator <K> () {
+      int level = root == null ? -1 : 0 ;
       Node current = getNext() ;
       
       Node getNext() {
-        while (nodeStack.size() > 0) {
-          final Node next = nodeStack.getFirst() ;
-          final Side nextSide = nextSides.removeFirst() ;
+        while (level >= 0) {
+          final Node next = nodeStack[level] ;
+          final Side nextSide = sideStack[level] ;
           if (nextSide == Side.L) {
-            nextSides.addFirst(Side.R) ;
+            sideStack[level] = Side.R ;
             if (next.kidL != null) {
-              nodeStack.addFirst(next.kidL) ;
-              nextSides.addFirst(Side.L) ;
+              level++ ;
+              nodeStack[level] = next.kidL ;
+              sideStack[level] = Side.L ;
             }
           }
           else if (nextSide == Side.R) {
-            nextSides.addFirst(Side.NEITHER) ;
+            sideStack[level] = Side.NEITHER ;
             if (next.kidR != null) {
-              nodeStack.addFirst(next.kidR) ;
-              nextSides.addFirst(Side.L) ;
+              level++ ;
+              nodeStack[level] = next.kidR ;
+              sideStack[level] = Side.L ;
             }
             return next ;
           }
           else if (nextSide == Side.NEITHER) {
-            nodeStack.removeFirst() ;
+            level-- ;
           }
         }
         return null ;

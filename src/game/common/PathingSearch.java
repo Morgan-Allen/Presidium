@@ -20,10 +20,8 @@ public class PathingSearch extends Search <Boardable> {
   /**  Field definitions and constructors-
     */
   final protected Boardable destination ;
-  
-  //private Vec3D posA = new Vec3D(), posB = new Vec3D() ;
+  private Target aimPoint = null ;
   private Boardable batch[] = new Boardable[8] ;
-  //private Box2D box = new Box2D() ;
   
   
   public PathingSearch(Boardable init, Boardable dest, boolean safe) {
@@ -32,6 +30,11 @@ public class PathingSearch extends Search <Boardable> {
       I.complain("NO DESTINATION!") ;
     }
     this.destination = dest ;
+    if (destination instanceof Venue) {
+      final Tile e[] = ((Venue) destination).entrances() ;
+      if (e.length == 1) aimPoint = e[0] ;
+    }
+    if (aimPoint == null) aimPoint = destination ;
   }
   
   
@@ -43,7 +46,7 @@ public class PathingSearch extends Search <Boardable> {
   public PathingSearch doSearch() {
     if (verbose) I.say(
       "Searching for path between "+init+" and "+destination+
-      ", distance: "+Spacing.distance(init, destination)
+      ", distance: "+Spacing.outerDistance(init, destination)
     ) ;
     super.doSearch() ;
     return this ;
@@ -73,7 +76,7 @@ public class PathingSearch extends Search <Boardable> {
     //  TODO:  If this spot is fogged, return a low nonzero value.
     //  TODO:  Incorporate sector-based danger values.
     float baseCost = Spacing.distance(prior, spot) ;
-    switch(spot.pathType()) {
+    switch (spot.pathType()) {
       case (Tile.PATH_CLEAR  ) : return 1.0f * baseCost ;
       case (Tile.PATH_ROAD   ) : return 0.5f * baseCost ;
       case (Tile.PATH_HINDERS) : return 2.0f * baseCost ;
@@ -83,9 +86,9 @@ public class PathingSearch extends Search <Boardable> {
   
   
   protected float estimate(Boardable spot) {
-    final float dist = Spacing.distance(spot, destination) ;
-    if (init.pathType() == Tile.PATH_ROAD) return dist * 0.55f ;
-    return dist ;
+    final float dist = Spacing.distance(spot, aimPoint) ;
+    //if (init.pathType() == Tile.PATH_ROAD) return dist * 0.55f ;
+    return dist * 1.1f ;
   }
   
   

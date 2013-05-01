@@ -24,7 +24,6 @@ public class ExcavationShaft extends Venue implements VenueConstants {
     ) ;
   
   
-  //Batch <Tile> excavated = new Batch <Tile> () ;
   List <Fixture> shaftsDug ;
   boolean seekCarbons, seekMetals, seekIsotopes ;
   
@@ -71,7 +70,7 @@ public class ExcavationShaft extends Venue implements VenueConstants {
   
   
   void placeNextShaft() {
-    
+    //  You have to find space for
   }
   
   
@@ -94,19 +93,5 @@ public class ExcavationShaft extends Venue implements VenueConstants {
       "the terrain surrounding your settlement." ;
   }
 }
-
-
-
-
-
-//
-//  TODO:  You want to gradually expand the area of excavated tiles around
-//  this site, with some kind of surface manifestation thereof.
-//  Exacavated tiles produce minerals continuously, but their yield
-//  declines over time (1/(n + 1)), where n is the number of days(?) since
-//  discovery.
-//  TODO:  I also want actors to be seen *moving* between these sites.
-//  Okay.  Smelters/drills (3 types.)  Main shafts.  Claimed territory.
-//  TODO:  This should bear some relation to underground mineral deposits.
 
 

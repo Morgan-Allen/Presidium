@@ -35,7 +35,7 @@ public abstract class Search <T> {
   
 
   final protected T init ;
-  final int maxAgenda ;
+  final int maxSearched ;
   Batch <T> flagged = new Batch <T> () ;
   
   private float totalCost = -1 ;
@@ -48,7 +48,7 @@ public abstract class Search <T> {
   public Search(T init, int maxPathLength) {
     if (init == null) I.complain("INITIAL AGENDA ENTRY CANNOT BE NULL!") ;
     this.init = init ;
-    this.maxAgenda = (maxPathLength < 0) ? -1 : (maxPathLength * 1) ;
+    this.maxSearched = (maxPathLength < 0) ? -1 : (maxPathLength * 1) ;
   }
   
   
@@ -60,8 +60,8 @@ public abstract class Search <T> {
     tryEntry(init, null, 0) ;
     
     while (agenda.size() > 0) {
-      if (maxAgenda > 0 && flagged.size() > maxAgenda) {
-        I.say("Reached maximum search size ("+maxAgenda+")") ;
+      if (maxSearched > 0 && flagged.size() > maxSearched) {
+        if (verbose) I.say("Reached maximum search size ("+maxSearched+")") ;
         break ;
       }
       final Object nextRef = agenda.leastRef() ;

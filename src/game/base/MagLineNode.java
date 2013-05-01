@@ -20,6 +20,7 @@ public class MagLineNode extends Element implements
   /**  Constants, fields, constructors and save/load functions.
     */
   final Base base ;
+  private int facing ;
   private boolean isHub = false ;
   private Tile around[] = new Tile[9] ;
   private Paving paving ;
@@ -33,6 +34,7 @@ public class MagLineNode extends Element implements
   
   public MagLineNode(Session s) throws Exception {
     super(s) ;
+    this.facing = s.loadInt() ;
     this.base = (Base) s.loadObject() ;
     this.isHub = s.loadBool() ;
     if (isHub) {
@@ -44,6 +46,7 @@ public class MagLineNode extends Element implements
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveInt(facing) ;
     s.saveObject(base) ;
     s.saveBool(isHub) ;
     if (isHub) paving.saveState(s) ;
@@ -147,29 +150,33 @@ public class MagLineNode extends Element implements
   //
   //  NOTE:  This method should only be called when the node is first laid
   //  down.  TODO:  Move to within constructor?
+  //  TODO:  Separate the model-selection and functional aspects of this
+  //  process better.
   void updateFacing() {
-    final Model model = getModel() ;
-    if (model == NODE_MODEL_CENTRE) {
-      isHub = true ;
+    final Model model = updateModel() ;
+    if (model == NODE_MODEL_CENTRE || model == NODE_MODEL_FLAT) {
       paving = new Paving(this) ;
     }
     attachSprite(model.makeSprite()) ;
   }
   
   
-  private ImageModel getModel() {
+  private ImageModel updateModel() {
     final Tile o = origin() ;
     o.allAdjacent(around) ;
     int numNear = 0 ;
     for (int n : N_ADJACENT) if (isNode(n)) numNear++ ;
-    if (numNear != 2) return NODE_MODEL_CENTRE ;
+    if (numNear != 2) {
+      isHub = true ;
+      return NODE_MODEL_CENTRE ;
+    }
     if (isNode(N) && isNode(S)) {
-      if (o.y % 6 == 0) return NODE_MODEL_CENTRE ;
+      if (o.y % 6 == 0) isHub = true ;
       if (o.y % 3 == 0) return NODE_MODEL_FLAT ;
       return NODE_MODEL_RIGHT ;
     }
     if (isNode(W) && isNode(E)) {
-      if (o.x % 6 == 0) return NODE_MODEL_CENTRE ;
+      if (o.x % 6 == 0) isHub = true ;
       if (o.x % 3 == 0) return NODE_MODEL_FLAT ;
       return NODE_MODEL_LEFT  ;
     }

@@ -76,6 +76,7 @@ public class ActorPathing {
       final PathingSearch search = new PathingSearch(
         location(actor), location(target)
       ) ;
+      search.verbose = true ;
       search.doSearch() ;
       //path = search.bestPath(Boardable.class) ;
       path = search.fullPath(Boardable.class) ;

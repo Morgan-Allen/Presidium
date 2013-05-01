@@ -7,18 +7,17 @@
 
 package src.game.building ;
 import src.game.common.* ;
-import src.game.actors.* ;
 import src.util.* ;
 
 
 
-public abstract class Spread extends AgendaSearch <Tile> {
+public abstract class TileSpread extends Search <Tile> {
   
   final Tile batch[] = new Tile[4] ;
   
   
-  public Spread(Tile init) {
-    super(init) ;
+  public TileSpread(Tile init) {
+    super(init, -1) ;
   }
   
   
@@ -44,5 +43,13 @@ public abstract class Spread extends AgendaSearch <Tile> {
   
   protected float estimate(Tile spot) {
     return 0 ;
+  }
+  
+  protected void setEntry(Tile spot, Entry flag) {
+    spot.flagWith(flag) ;
+  }
+  
+  protected Entry entryFor(Tile spot) {
+    return (Entry) spot.flaggedWith() ;
   }
 }

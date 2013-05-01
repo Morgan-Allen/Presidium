@@ -11,6 +11,7 @@ package src.util ;
 public interface TileConstants {
   
   final public static int
+    //
     //  Starts north, going clockwise:
     N  = 0,
     NE = 1,
@@ -24,5 +25,28 @@ public interface TileConstants {
     N_Y[]        = {  1,  1,  0, -1, -1, -1,  0,  1  },
     N_INDEX[]    = {  N, NE,  E, SE,  S, SW,  W, NW  },
     N_ADJACENT[] = {  N,      E,      S,      W      },
-    N_DIAGONAL[] = {     NE,     SE,     SW,     NW  } ;
+    N_DIAGONAL[] = {     NE,     SE,     SW,     NW  },
+    //
+    //  Used to indicate the direction of facing for linear installations-
+    X_AXIS = 0,
+    Y_AXIS = 1,
+    CORNER = 2 ;
+  
+  
+  public abstract static class TileMask {
+    public abstract boolean maskAt(final int x, final int y) ;
+    public boolean nullsCount() { return false ; }
+    
+    /*
+    public int simpleLineIndex(boolean near[]) {
+      int numNear = 0 ;
+      for (int n : N_ADJACENT) if (near[n]) numNear++ ;
+      if (numNear != 2) return CORNER ;
+      if (near[N] && near[S]) return Y_AXIS ;
+      if (near[W] && near[E]) return X_AXIS ;
+      return CORNER ;
+    }
+    //*/
+  }
+  
 }

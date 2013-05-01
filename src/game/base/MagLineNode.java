@@ -2,6 +2,7 @@
 
 
 package src.game.base ;
+import src.game.building.Paving ;
 import src.game.common.* ;
 import src.graphics.common.Model ;
 import src.graphics.common.Texture ;
@@ -10,29 +11,104 @@ import src.util.* ;
 
 
 
-//   TODO:  This also needs to implement the Paving interface.
 
-
-
-public class MagLineNode extends Element implements TileConstants {
+public class MagLineNode extends Element implements
+  TileConstants, Paving.Hub, Schedule.Updates
+{
+  
   
   /**  Constants, fields, constructors and save/load functions.
     */
+  final Base base ;
+  private boolean isHub = false ;
   private Tile around[] = new Tile[9] ;
+  private Paving paving ;
   
   
-  MagLineNode() {
+  MagLineNode(Base base) {
     super() ;
+    this.base = base ;
   }
   
   
   public MagLineNode(Session s) throws Exception {
     super(s) ;
+    this.base = (Base) s.loadObject() ;
+    this.isHub = s.loadBool() ;
+    if (isHub) {
+      paving = new Paving(this) ;
+      paving.loadState(s) ;
+    }
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveObject(base) ;
+    s.saveBool(isHub) ;
+    if (isHub) paving.saveState(s) ;
+  }
+  
+  
+  
+  /**  Life cycle and placement-
+    */
+  public void enterWorldAt(int x, int y, World world) {
+    super.enterWorldAt(x, y, world) ;
+    world.terrain().maskAsPaved(origin().vicinity(around), true) ;
+    if (isHub) {
+      paving.onWorldEntry() ;
+      world.schedule.scheduleForUpdates(this) ;
+    }
+  }
+
+
+  public void exitWorld() {
+    if (isHub) {
+      paving.onWorldExit() ;
+      world.schedule.unschedule(this) ;
+    }
+    world.terrain().maskAsPaved(origin().vicinity(around), false) ;
+    super.exitWorld() ;
+  }
+  
+  
+  public float scheduledInterval() {
+    return 10 ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+  }
+  
+  
+  public Tile[] entrances() {
+    return new Tile[] { origin() } ;
+  }
+  
+  
+  public Paving paving() {
+    return paving ;
+  }
+  
+  
+  public boolean usesRoads() {
+    return true ;
+  }
+  
+  
+  public Tile[] surrounds() {
+    return origin().vicinity(around) ;
+  }
+
+
+  public Base base() {
+    return base ;
+  }
+  
+  
+  public Box2D area() {
+    return area(null) ;
   }
   
   
@@ -45,20 +121,6 @@ public class MagLineNode extends Element implements TileConstants {
     return Element.VENUE_OWNS ;
   }
   
-  
-  
-  /**  Life cycle and placement-
-    */
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
-    world.terrain().maskAsPaved(origin().vicinity(around), true) ;
-  }
-  
-  
-  public void exitWorld() {
-    world.terrain().maskAsPaved(origin().vicinity(around), false) ;
-    super.exitWorld() ;
-  }
   
   
   /**  Rendering and interface methods-
@@ -77,8 +139,20 @@ public class MagLineNode extends Element implements TileConstants {
     NODE_MODEL_FLAT   = NODE_MODELS[3] ;
   
   
-  void updateSprite() {
+  public String toString() {
+    return "Mag Node" ;
+  }
+  
+  
+  //
+  //  NOTE:  This method should only be called when the node is first laid
+  //  down.  TODO:  Move to within constructor?
+  void updateFacing() {
     final Model model = getModel() ;
+    if (model == NODE_MODEL_CENTRE) {
+      isHub = true ;
+      paving = new Paving(this) ;
+    }
     attachSprite(model.makeSprite()) ;
   }
   
@@ -90,10 +164,12 @@ public class MagLineNode extends Element implements TileConstants {
     for (int n : N_ADJACENT) if (isNode(n)) numNear++ ;
     if (numNear != 2) return NODE_MODEL_CENTRE ;
     if (isNode(N) && isNode(S)) {
+      if (o.y % 6 == 0) return NODE_MODEL_CENTRE ;
       if (o.y % 3 == 0) return NODE_MODEL_FLAT ;
       return NODE_MODEL_RIGHT ;
     }
     if (isNode(W) && isNode(E)) {
+      if (o.x % 6 == 0) return NODE_MODEL_CENTRE ;
       if (o.x % 3 == 0) return NODE_MODEL_FLAT ;
       return NODE_MODEL_LEFT  ;
     }
@@ -104,7 +180,9 @@ public class MagLineNode extends Element implements TileConstants {
   private boolean isNode(int dir) {
     final Tile t = around[dir] ;
     if (t == null) return false ;
-    return t.flaggedWith() != null || t.owner() instanceof MagLineNode ;
+    return
+      t.flaggedWith() instanceof MagLine ||
+      t.owner() instanceof MagLineNode ;
   }
 }  
 

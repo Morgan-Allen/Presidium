@@ -7,7 +7,7 @@
 
 package src.game.common ;
 import src.util.* ;
-import src.util.SortTree.* ;
+import src.util.Sorting.* ;
 
 
 
@@ -16,7 +16,7 @@ import src.util.SortTree.* ;
   *  schedule advancement for calculating the proper time for new events.
   *  Consequently, the shedule should be advanced at regular intervals.
   */
-public class WorldSchedule {
+public class Schedule {
   
   
   final static int MAX_UPDATE_INTERVAL = 5 ;
@@ -37,19 +37,11 @@ public class WorldSchedule {
     }
   }
   
-  final SortTree <Event> events = new SortTree <Event> () {
+  final Sorting <Event> events = new Sorting <Event> () {
     public int compare(Event a, Event b) {
       if (a.updates == b.updates) return 0 ;
       return a.time > b.time ? 1 : -1 ;
     }
-    /*
-    protected boolean greater(Event a, Event b) {
-      return a.time > b.time ;
-    }
-    protected boolean match(Event a, Event b) {
-      return a.updates == b.updates ;
-    }
-    //*/
   } ;
   
   final Table <Updates, Object>
@@ -121,26 +113,22 @@ public class WorldSchedule {
     this.currentTime = currentTime ;
     //  Find the current time, and descend to all events left of that dividing
     //  line (i.e, earlier.)
-    final Batch <Event> happened = new Batch <Event> () ;
+    //final Batch <Event> happened = new Batch <Event> () ;
+    initTime = System.nanoTime() ;
     while (true) {
+      if (timeUp()) break ;
       final Object leastRef = events.leastRef() ;
       if (leastRef == null) break ;
       final Event event = events.refValue(leastRef) ;
-      if ((event.time > currentTime)) break ;
+      if (event.time > currentTime) break ;
       events.deleteRef(leastRef) ;
-      happened.add(event) ;
-    }
-    //  Remove all the events from the schedule that have already occured, make
-    //  them 'happen', and have them recur in the schedule at a later slot-
-    initTime = System.nanoTime() ;
-    for (Event event : happened) {
-      //  Make sure we don't spend too long on any single update-
-      if (timeUp()) break ;
       event.time += event.updates.scheduledInterval() ;
       allUpdates.put(event.updates, events.insert(event)) ;
       event.updates.updateAsScheduled(event.numUpdates++) ;
     }
   }
 }
+
+
 
 

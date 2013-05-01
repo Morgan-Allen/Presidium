@@ -9,7 +9,6 @@ package src.game.planet ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.* ;
-import src.graphics.terrain.TerrainMesh.Mask ;
 import src.util.* ;
 
 
@@ -26,6 +25,14 @@ public class Terrain implements TileConstants, Session.Saveable {
     MAX_RADIATION   = 10,
     GROWTH_INTERVAL = Planet.DAY_LENGTH ;
   
+  final public static byte
+    TYPE_CARBONS  = 0,
+    TYPE_METALS   = 1,
+    TYPE_ISOTOPES = 2,
+    DEGREE_SPARSE = 0,
+    DEGREE_COMMON = 1,
+    DEGREE_HEAVY  = 2 ;
+  
   
   final public int
     mapSize ;
@@ -33,16 +40,19 @@ public class Terrain implements TileConstants, Session.Saveable {
     heightVals[][],
     typeIndex[][],
     varsIndex[][] ;
-  private byte
-    roadMask[][] ;
+  
   final Habitat
     habitats[][] ;
+  private byte
+    minerals[][] ;
+  private byte
+    roadMask[][] ;
   
-  final Mask pavingMask = new Mask() {
-    protected boolean maskAt(int x, int y) {
+  final TileMask pavingMask = new TileMask() {
+    public boolean maskAt(int x, int y) {
       return roadMask[x][y] > 0 ;
     }
-    protected boolean nullsCount() {
+    public boolean nullsCount() {
       return true ;
     }
   } ;
@@ -123,8 +133,69 @@ public class Terrain implements TileConstants, Session.Saveable {
   }
   
   
-  /**  Modifying and querying terrain contents from within the world-
+  
+  /**  Habitats and mineral deposits-
     */
+  public void setHabitat(Tile t, Habitat h) {
+    habitats[t.x][t.y] = h ;
+    typeIndex[t.x][t.y] = (byte) h.ID ;
+    final MeshPatch patch = patches[t.x / patchSize][t.y / patchSize] ;
+    patch.updateMesh = true ;
+  }
+  
+  
+  public Habitat habitatAt(int x, int y) {
+    try { return habitats[x][y] ; }
+    catch (ArrayIndexOutOfBoundsException e) { return null ; }
+  }
+  
+  
+  public float mineralsAt(Tile t, byte type) {
+    byte m = minerals[t.x][t.y] ;
+    if (m-- <= 0) return 0 ;
+    if (m / 3 != type) return 0 ;
+    switch (m % 3) {
+      case (0) : return 2 ;
+      case (1) : return 5 ;
+      case (2) : return 9 ;
+    }
+    return 0 ;
+  }
+  
+  
+  public byte mineralType(Tile t) {
+    byte m = minerals[t.x][t.y] ;
+    if (m-- == 0) return 0 ;
+    return (byte) (m / 3) ;
+  }
+  
+  
+  public float extractMineralAt(Tile t, byte type) {
+    final float amount = mineralsAt(t, type) ;
+    if (amount <= 0) I.complain("Can't extract that mineral type!") ;
+    minerals[t.x][t.y] = -1 ;
+    return amount ;
+  }
+  
+  
+  public void setMinerals(Tile t, byte type, byte degree) {
+    minerals[t.x][t.y] = (byte) (1 + (type * 3) + degree) ;
+  }
+  
+  
+  public float trueHeight(int x, int y) {
+    return HeightMap.sampleAt(mapSize, heightVals, x, y) / 4 ;
+  }
+  
+  
+  
+  /**  Pavements and overlays-
+    */
+  public boolean isRoad(Tile t) {
+    return roadMask[t.x][t.y] > 0 ;
+  }
+  
+  
   public void maskAsPaved(Tile tiles[], boolean is) {
     if (tiles == null) return ;
     Box2D bounds = null ;
@@ -135,30 +206,6 @@ public class Terrain implements TileConstants, Session.Saveable {
     }
     bounds.expandBy(1) ;
     for (MeshPatch patch : patchesUnder(bounds)) patch.updateRoads = true ;
-  }
-  
-  
-  public void setHabitat(Tile t, Habitat h) {
-    habitats[t.x][t.y] = h ;
-    typeIndex[t.x][t.y] = (byte) h.ID ;
-    final MeshPatch patch = patches[t.x / patchSize][t.y / patchSize] ;
-    patch.updateMesh = true ;
-  }
-  
-  
-  public boolean isRoad(Tile t) {
-    return roadMask[t.x][t.y] > 0 ;
-  }
-  
-  
-  public Habitat habitatAt(int x, int y) {
-    try { return habitats[x][y] ; }
-    catch (ArrayIndexOutOfBoundsException e) { return null ; }
-  }
-  
-  
-  public float trueHeight(int x, int y) {
-    return HeightMap.sampleAt(mapSize, heightVals, x, y) / 4 ;
   }
   
   
@@ -176,12 +223,12 @@ public class Terrain implements TileConstants, Session.Saveable {
     final World world = tiles[0].world ;
     final TerrainMesh overlay = createOverlay(
       area, tex,
-      new TerrainMesh.Mask() {
-        protected boolean maskAt(int x, int y) {
+      new TerrainMesh.TileMask() {
+        public boolean maskAt(int x, int y) {
           final Tile t = world.tileAt(x, y) ;
           return (t == null) ? false : (pathTable.get(t) != null) ;
         }
-        protected boolean nullsCount() {
+        public boolean nullsCount() {
           return nullsCount ;
         }
       }
@@ -190,7 +237,7 @@ public class Terrain implements TileConstants, Session.Saveable {
   }
   
   
-  public TerrainMesh createOverlay(Box2D area, Texture tex, Mask mask) {
+  public TerrainMesh createOverlay(Box2D area, Texture tex, TileMask mask) {
     final int
       minX = (int) Math.ceil(area.xpos()),
       minY = (int) Math.ceil(area.ypos()),

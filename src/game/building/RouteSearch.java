@@ -3,7 +3,6 @@
 
 package src.game.building ;
 import src.game.actors.* ;
-import src.game.building.Paving.Route ;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.util.* ;
@@ -12,11 +11,11 @@ import src.util.* ;
 
 /**  A specialised search algorithm used especially for road connections.
   */
-//  TODO:  Possibly introduce a 'safety feature' to ensure that the path won't
-//  extend more than 3 or 4 times longer than the euclidean distance estimate-
-//  I don't want stupidly convoluted or out-of-the-way routes being taken.
-public class RouteSearch extends AgendaSearch <Tile> {
+public class RouteSearch extends Search <Tile> {
   
+  
+  final static float
+    MAX_DISTANCE_MULT = 4.0f ;
   
   final Terrain terrain  ;
   final Tile destination ;
@@ -25,20 +24,10 @@ public class RouteSearch extends AgendaSearch <Tile> {
   
   
   public RouteSearch(Tile start, Tile end, int priority) {
-    super(start) ;
+    super(start, (Spacing.axisDist(start, end) * 10) + 10) ;
     this.destination = end ;
     this.terrain = end.world.terrain() ;
     this.priority = priority ;
-    ///I.say("Searching for route between "+start+" and "+end) ;
-  }
-  
-  
-  public RouteSearch(Paving paving, Route route) {
-    super(route.start) ;
-    this.destination = route.end ;
-    this.terrain = paving.venue.world().terrain() ;
-    this.priority = Element.FIXTURE_OWNS ;
-    ///I.say("Searching for route between "+route.start+" and "+destination) ;
   }
   
   
@@ -56,7 +45,6 @@ public class RouteSearch extends AgendaSearch <Tile> {
   
   
   protected float cost(Tile prior, Tile spot) {
-    //  You need to introduce a penalty for 'switching directions'.
     if (terrain.isRoad(spot)) return 1 ;
     return 2 ;
   }
@@ -68,11 +56,27 @@ public class RouteSearch extends AgendaSearch <Tile> {
   
   
   protected boolean canEnter(Tile t) {
+    if (t == init || t == destination) return true ;
     ///if (t == null) I.complain("TILE IS NULL!") ;
     return t.habitat().pathClear && (
       t.owner() == null ||
       t.owner().owningType() < priority
     ) ;
   }
+  
+  
+  protected void setEntry(Tile spot, Entry flag) {
+    spot.flagWith(flag) ;
+  }
+  
+  
+  protected Entry entryFor(Tile spot) {
+    return (Entry) spot.flaggedWith() ;
+  }
 }
+
+
+
+
+
 

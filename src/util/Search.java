@@ -4,26 +4,20 @@
   *  for now, feel free to poke around for non-commercial purposes.
   */
 
-package src.game.common ;
-import src.util.* ;
+package src.util ;
 import java.lang.reflect.Array ;
 
 
 
-//
-//  TODO:  Don't rely on targets.  All you really need here is flagging.  Maybe
-//  move to the .util package?
-
-//  PROBLEM:  You were trying to remove insertion references that had already
-//  been deleted!  Ha!  Gotcha now, sucker!
-
-
-public abstract class AgendaSearch <T extends Target> {
+/**  A genericised search algorithm suitable for A*, Djikstra, or other forms
+  *  of pathfinding and graph navigation.
+  */
+public abstract class Search <T> {
   
   
   /**  Fields and constructors-
     */
-  final SortTree <T> agenda = new SortTree <T> () {
+  final Sorting <T> agenda = new Sorting <T> () {
     public int compare(T a, T b) {
       if (a == b) return 0 ;
       final float aT = entryFor(a).total, bT = entryFor(b).total ;
@@ -32,7 +26,7 @@ public abstract class AgendaSearch <T extends Target> {
   } ;
   
   
-  private class Entry {
+  protected class Entry {
     float priorCost, futureEstimate, total ;
     T refers ;
     Entry prior ;
@@ -40,7 +34,8 @@ public abstract class AgendaSearch <T extends Target> {
   }
   
 
-  final T init ;
+  final protected T init ;
+  final int maxAgenda ;
   Batch <T> flagged = new Batch <T> () ;
   
   private float totalCost = -1 ;
@@ -50,31 +45,38 @@ public abstract class AgendaSearch <T extends Target> {
   public boolean verbose = false ;
   
 
-  public AgendaSearch(T init) {
+  public Search(T init, int maxPathLength) {
     if (init == null) I.complain("INITIAL AGENDA ENTRY CANNOT BE NULL!") ;
     this.init = init ;
+    this.maxAgenda = (maxPathLength < 0) ? -1 : (maxPathLength * 1) ;
   }
   
   
   /**  Performs the actual search algorithm.
     */
-  public AgendaSearch <T> doSearch() {
+  public Search <T> doSearch() {
     if (verbose) I.say("   ...searching ") ;
     if (! canEnter(init)) return this ;
     tryEntry(init, null, 0) ;
     
     while (agenda.size() > 0) {
+      if (maxAgenda > 0 && flagged.size() > maxAgenda) {
+        I.say("Reached maximum search size ("+maxAgenda+")") ;
+        break ;
+      }
       final Object nextRef = agenda.leastRef() ;
       final T next = agenda.refValue(nextRef) ;
       agenda.deleteRef(nextRef) ;
       if (endSearch(next)) {
         success = true ;
         totalCost = bestEntry.total ;
-        if (verbose) I.say("  ...search complete, total cost: "+totalCost) ;
+        if (verbose) I.say(
+          "  ...search complete, total cost: "+totalCost+
+          " all searched: "+flagged.size()
+        ) ;
         break ;
       }
       for (T near : adjacent(next)) if (near != null) {
-        //if (near == null || ! canEnter(near)) continue ;
         tryEntry(near, next, cost(next, near)) ;
       }
     }
@@ -122,18 +124,11 @@ public abstract class AgendaSearch <T extends Target> {
   protected abstract T[] adjacent(T spot) ;
   protected boolean canEnter(T spot) { return true ; }
   protected abstract boolean endSearch(T best) ;
-  
   protected abstract float cost(T prior, T spot) ;
   protected abstract float estimate(T spot) ;
   
-  
-  protected void setEntry(T spot, Entry flag) {
-    spot.flagWith(flag) ;
-  }
-  
-  protected Entry entryFor(T spot) {
-    return (Entry) spot.flaggedWith() ;
-  }
+  protected abstract void setEntry(T spot, Entry flag) ;
+  protected abstract Entry entryFor(T spot) ;
   
   
   /**  Returns a list of all the nodes along the path back from the last node

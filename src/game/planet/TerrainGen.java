@@ -70,6 +70,7 @@ public class TerrainGen implements TileConstants {
   }
   
   
+  
   /**  Generating the overall region layout:
     */
   private int checkMapSize(int minSize) {
@@ -106,7 +107,7 @@ public class TerrainGen implements TileConstants {
     sectorVal = new byte[GS][GS] ;
     //
     //  We then generate seed values for each sector, and sort by height.
-    final SortTree <Vec3D> sorting = new SortTree <Vec3D> () {
+    final Sorting <Vec3D> sorting = new Sorting <Vec3D> () {
       public int compare(Vec3D a, Vec3D b) {
         if (a == b) return 0 ;
         return a.z > b.z ? 1 : -1 ;

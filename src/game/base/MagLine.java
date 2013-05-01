@@ -8,8 +8,11 @@ import src.graphics.common.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  Introduce Paving effects!
 
-public class MagLine extends Installation.Line {
+
+public class MagLine extends LineInstallation {
   
   
   final Base base ;
@@ -29,44 +32,54 @@ public class MagLine extends Installation.Line {
     if (t == null) return null ;
     if (! (t.owner() instanceof Venue)) return t ;
     final Venue v = (Venue) t.owner() ;
-    v.entrance().edgeAdjacent(tempB) ;
-    for (int i = 4 ; i-- > 0 ;) {
-      if (tempB[i] != null && tempB[i].owner() == v) {
-        return tempB[(i + 2) % 4] ;
+    Tile closest = null ;
+    float minDist = Float.POSITIVE_INFINITY ;
+    for (Tile e : v.entrances()) {
+      e.edgeAdjacent(tempB) ;
+      for (int i = 4 ; i-- > 0 ;) {
+        if (tempB[i] != null && tempB[i].owner() == v) {
+          final Tile opposite = tempB[(i + 2) % 4] ;
+          final float dist = Spacing.distance(opposite, t) ;
+          if (dist < minDist) { closest = opposite ; minDist = dist ; }
+        }
       }
     }
-    return null ;
+    return closest ;
   }
   
   
   protected Tile[] lineVicinityPath(
-    Tile from, Tile to, boolean full, Class... exceptions
+    Tile from, Tile to, boolean full
   ) {
     final Tile start = offsetFor(from), end = offsetFor(to) ;
     if (start == null || end == null) return null ;
-    return lineVicinityPath(start, end, full, false, exceptions) ;
+    return lineVicinityPath(
+      start, end, full, false,
+      MagLineNode.class, ShieldWallBlastDoors.class
+    ) ;
   }
   
   
   protected Batch <Tile> toClear(Tile from, Tile to) {
-    path = lineVicinityPath(from, to, false, MagLineNode.class) ;
-    return lineVicinity(path, MagLineNode.class) ;
+    path = lineVicinityPath(from, to, false) ;
+    return lineVicinity(path, MagLineNode.class, ShieldWallBlastDoors.class) ;
   }
   
   
   protected Batch <Element> toPlace(Tile from, Tile to) {
-    path = lineVicinityPath(from, to, false, MagLineNode.class) ;
+    path = lineVicinityPath(from, to, false) ;
     if (path == null) return null ;
-    final Batch <MagLineNode> nodes = new Batch <MagLineNode> () ;
+    final Batch <Element> nodes = new Batch <Element> () ;
+    for (Tile t : path) t.flagWith(this) ;
     for (Tile t : path) {
-      final MagLineNode node = new MagLineNode() ;
+      if (t.owner() instanceof ShieldWallBlastDoors) continue ;
+      final MagLineNode node = new MagLineNode(base) ;
       node.setPosition(t.x, t.y, t.world) ;
       nodes.add(node) ;
+      node.updateFacing() ;
     }
-    for (Tile t : path) t.flagWith(this) ;
-    for (MagLineNode node : nodes) node.updateSprite() ;
     for (Tile t : path) t.flagWith(null) ;
-    return (Batch <Element>) (Batch) nodes ;
+    return nodes ;
   }
   
   

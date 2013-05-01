@@ -17,6 +17,14 @@ import java.io.* ;
 
 
 
+//
+//  TODO:  You'll need to split this up into multiple tabs-
+//    military & base defence,
+//    commerce, trade & transport,
+//    aesthetics & recreation,
+//    mining & industry,
+//    farming, forestry & ecology,
+//    government, health & education.
 
 
 public class BuildingsTab extends InfoPanel {

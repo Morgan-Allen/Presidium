@@ -12,7 +12,7 @@ import src.game.planet.* ;
 import src.util.* ;
 
 
-
+//
 //  TODO:  Some of the methods employed here might be usefully extended to the
 //  PathingCache class?
 public class Paving implements TileConstants {
@@ -24,17 +24,30 @@ public class Paving implements TileConstants {
   //
   //  TODO:  You'll want to extend this beyond just venues, to allow for
   //  connection to things like mag nodes.
-  final Venue venue ;
-  List <Route> routes = new List <Route> () ;
+  //final Venue venue ;
   
-  static class Route {
+  public static interface Hub extends Target {
+    Paving paving() ;
+    Tile origin() ;
+    Tile[] entrances() ;
+    Tile[] surrounds() ;
+    boolean usesRoads() ;
+    Base base() ;
+    Box2D area() ;
+  }
+  
+  private static class Route {
     Tile start, end, path[] ;
     private boolean fresh ;
   }
   
+  //final Base base ;
+  final Hub hub ;
+  List <Route> routes = new List <Route> () ;
   
-  public Paving(Venue venue) {
-    this.venue = venue ;
+  
+  public Paving(Hub hub) {
+    this.hub = hub ;
   }
   
   
@@ -61,28 +74,35 @@ public class Paving implements TileConstants {
   
   /**  Updating routes to neighbours and perimeter paving-
     */
-  protected void onWorldEntry() {
-    venue.world().terrain().maskAsPaved(venue.surrounds(), true) ;
+  public void onWorldEntry() {
+    if (hub.base() == null || ! hub.usesRoads()) return ;
+    world().terrain().maskAsPaved(hub.surrounds(), true) ;
+    hub.base().toggleForService(hub, "paving", true) ;
   }
   
   
-  protected void onWorldExit() {
-    venue.world().terrain().maskAsPaved(venue.surrounds(), false) ;
+  public void onWorldExit() {
+    if (hub.base() == null || ! hub.usesRoads()) return ;
+    world().terrain().maskAsPaved(hub.surrounds(), false) ;
+    hub.base().toggleForService(hub, "paving", false) ;
   }
   
   
+  private World world() {
+    return hub.base().world ;
+  }
+  
+  
+  //
   //  Restore this later once the essentials of road display are sorted...
-  protected void updateRoutes() {
-    ///if (true) return ;
-    
+  public void updateRoutes() {
     final float searchDist = Planet.SECTOR_SIZE ;
-    final Base base = venue.base() ;
-    final Box2D limit = new Box2D(), area = venue.area() ;
-    for (Route r : venue.paving.routes) r.fresh = false ;
+    final Box2D limit = new Box2D(), area = hub.area() ;
+    for (Route r : routes) r.fresh = false ;
     //
     //  Refresh any routes to nearby venues in each of the cardinal directions-
     for (int d : N_ADJACENT) {
-
+      
       final float
         xoff = (N_X[d] + 1) / 2f,
         yoff = (N_Y[d] + 1) / 2f ;
@@ -93,40 +113,45 @@ public class Paving implements TileConstants {
         searchDist
       ) ;
       
-      for (Object o : base.servicesNear(base, venue, limit)) {
-        if (! (o instanceof Venue)) continue ;
-        final Venue near = (Venue) o ;
+      for (Object o : hub.base().servicesNear("paving", hub, limit)) {
+        ///I.say(o+" was nearby...") ;
+        if (o == hub || ! (o instanceof Hub)) continue ;
+        final Hub near = (Hub) o ;
         if (! near.usesRoads()) continue ;
-        refreshRoute(venue, near) ;
+        refreshRoute(hub, near) ;
+        break ;
       }
     }
-    for (Route r : venue.paving.routes) if (! r.fresh) {
-      venue.paving.routes.remove(r) ;
+    for (Route r : routes) if (! r.fresh) {
+      routes.remove(r) ;
     }
   }
   
   
-  private void refreshRoute(Venue a, Venue b) {
+  private void refreshRoute(Hub a, Hub b) {
     //
     //  Firstly, identify the previous and current routes between these venues-
     final Route
-      newRoute = routeFor(a.entrance(), b.entrance()),
+      newRoute = routeFor(a.origin(), b.origin()),
       oldRoute = currentMatch(newRoute, a) ;
-    final RouteSearch search = new RouteSearch(this, newRoute) ;
+    final RouteSearch search = new RouteSearch(
+      a.entrances()[0], b.entrances()[0], Element.FIXTURE_OWNS
+    ) ;
+    ///search.verbose = true ;
     search.doSearch() ;
     newRoute.path = search.fullPath(Tile.class) ;
     //
     //  Then, check to see if the new path differs from the old.  If so, delete
     //  the old path and instate the new.
-    final Terrain terrain = venue.world().terrain() ;
+    final Terrain terrain = world().terrain() ;
     if (! routesEqual(newRoute, oldRoute)) {
       if (oldRoute != null) {
         terrain.maskAsPaved(oldRoute.path, false) ;
-        a.paving.routes.remove(oldRoute) ;
+        a.paving().routes.remove(oldRoute) ;
       }
       if (newRoute.path != null) {
         terrain.maskAsPaved(newRoute.path, true) ;
-        a.paving.routes.add(newRoute) ;
+        a.paving().routes.add(newRoute) ;
         clearRoute(newRoute.path) ;
         newRoute.fresh = true ;
       }
@@ -138,7 +163,9 @@ public class Paving implements TileConstants {
   //  You'll eventually want to replace this with explicit construction of
   //  roads...
   public static void clearRoute(Tile path[]) {
-    for (Tile t : path) if (t.owner() != null) t.owner().exitWorld() ;
+    for (Tile t : path) if (t.owningType() < Element.FIXTURE_OWNS) {
+      if (t.owner() != null) t.owner().exitWorld() ;
+    }
   }
   
   
@@ -162,8 +189,8 @@ public class Paving implements TileConstants {
   }
   
   
-  private Route currentMatch(Route r, Venue v) {
-    for (Route m : v.paving.routes) {
+  private Route currentMatch(Route r, Hub v) {
+    for (Route m : v.paving().routes) {
       if (m.start == r.start && m.end == r.end) return m ;
     }
     return null ;
@@ -175,7 +202,7 @@ public class Paving implements TileConstants {
     //  We must ensure the ordering of start/end tiles remains stable to ensure
     //  that pathing between them remains consistent.
     final Route route = new Route() ;
-    final int s = venue.world().size ;
+    final int s = world().size ;
     final boolean flip = ((a.x * s) + a.y) > ((b.x * s) + b.y) ;
     if (flip) { route.start = b ; route.end = b ; }
     else      { route.start = a ; route.end = b ; }

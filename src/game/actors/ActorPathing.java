@@ -72,12 +72,10 @@ public class ActorPathing {
   
   private void refreshPath() {
     if (actor.assignedBase() == null || GameSettings.freePath) {
+      ///I.say("location of "+actor+" is "+actor.origin()) ;
       final PathingSearch search = new PathingSearch(
         location(actor), location(target)
       ) ;
-      if (target instanceof DrillingMetals) {
-        search.verbose = true ;
-      }
       search.doSearch() ;
       //path = search.bestPath(Boardable.class) ;
       path = search.fullPath(Boardable.class) ;
@@ -119,9 +117,12 @@ public class ActorPathing {
     //  we're approaching the terminus-
     if (path != null && ! nearTarget) {
       final Target last = path[path.length - 1] ;
-      final float dist = Spacing.distance(location, last) ;
-      //  TODO:  Consider checking if you're in the same Region instead...
-      if (dist < World.SECTION_RESOLUTION / 2) doRefresh = true ;
+      final int dist = Spacing.outerDistance(location, last) ;
+      //  TODO:  Try checking if you're in the same Region instead...
+      if (dist < World.SECTION_RESOLUTION / 2) {
+        ///I.say("Require refresh due to absent destination... "+last) ;
+        doRefresh = true ;
+      }
     }
     //
     //  If the path needs refreshment, do so-

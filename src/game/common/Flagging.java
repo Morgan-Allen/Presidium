@@ -31,6 +31,7 @@ public class Flagging implements Session.Saveable {
     //
     //  Check to ensure you've been given a valid key-
     boolean keyOkay = false ;
+    if (key instanceof String) keyOkay = true ;
     if (key instanceof Class) keyOkay = true ;
     if (key instanceof Session.Saveable) keyOkay = true ;
     if (key instanceof Item.Type) keyOkay = true ;
@@ -45,6 +46,7 @@ public class Flagging implements Session.Saveable {
     
     final int keyType = s.loadInt() ;
     if (keyType == 0) key = s.loadClass() ;
+    else if (keyType == 1) key = s.loadString() ;
     else key = s.loadObject() ;
     //
     //  Load the root node from disk-
@@ -60,8 +62,12 @@ public class Flagging implements Session.Saveable {
       s.saveInt(0) ;
       s.saveClass((Class) key) ;
     }
-    if (key instanceof Session.Saveable) {
+    if (key instanceof String) {
       s.saveInt(1) ;
+      s.saveString((String) key) ;
+    }
+    if (key instanceof Session.Saveable) {
+      s.saveInt(2) ;
       s.saveObject((Session.Saveable) key) ;
     }
     //
@@ -166,7 +172,7 @@ public class Flagging implements Session.Saveable {
           Spacing.distance(origin, (Target) n) ;
       }
     }
-    final SortTree <NodeEntry> agenda = new SortTree <NodeEntry> () {
+    final Sorting <NodeEntry> agenda = new Sorting <NodeEntry> () {
       public int compare(NodeEntry a, NodeEntry b) {
         if (a.node == b.node) return 0 ;
         return a.distance < b.distance ? 1 : -1 ;

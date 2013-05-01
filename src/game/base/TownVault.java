@@ -115,7 +115,7 @@ public class TownVault extends Venue implements VenueConstants {
     ) ;
     
     I.say("  Searching from "+enterTile+"... ") ;
-    final Spread spread = new Spread(enterTile) {
+    final TileSpread spread = new TileSpread(enterTile) {
       
       protected boolean canAccess(Tile t) {
         if (t.blocked()) return false ;

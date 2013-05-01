@@ -123,8 +123,9 @@ public abstract class Element implements Target, Session.Saveable {
   public int ydim() { return 1 ; }
   public int zdim() { return 1 ; }
   
-  public Box2D area() {
-    return new Box2D().set(
+  public Box2D area(Box2D put) {
+    if (put == null) put = new Box2D() ;
+    return put.set(
       location.x - 0.5f, location.y - 0.5f,
       xdim(), ydim()
     ) ;

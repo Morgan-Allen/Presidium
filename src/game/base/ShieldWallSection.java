@@ -16,6 +16,8 @@ public class ShieldWallSection extends Element implements TileConstants {
   /**  Field definitions, constructors and save/load methods-
     */
   private Tile around[] = new Tile[9] ;
+  private int facing ;
+  private boolean isTower ;
   
   
   ShieldWallSection() {
@@ -25,11 +27,15 @@ public class ShieldWallSection extends Element implements TileConstants {
   
   public ShieldWallSection(Session s) throws Exception {
     super(s) ;
+    this.facing = s.loadInt() ;
+    this.isTower = s.loadBool() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveInt(facing) ;
+    s.saveBool(isTower) ;
   }
   
   
@@ -58,6 +64,10 @@ public class ShieldWallSection extends Element implements TileConstants {
   }
   
   
+  public int facing() {
+    return facing ;
+  }
+  
   
   
   /**  Rendering and interface methods-
@@ -75,42 +85,36 @@ public class ShieldWallSection extends Element implements TileConstants {
     SECTION_MODEL_RIGHT  = SECTION_MODELS[1],
     SECTION_MODEL_CORNER = SECTION_MODELS[2],
     TOWER_MODEL_LEFT     = SECTION_MODELS[3],
-    TOWER_MODEL_RIGHT    = SECTION_MODELS[4],
-    DOOR_MODELS[] = ImageModel.loadModels(
-      ShieldWallSection.class, 3, 2, "media/Buildings/military aura/",
-      "wall_gate_left.png",
-      "wall_gate_right.png"
-    ),
-    DOOR_MODEL_LEFT  = DOOR_MODELS[0],
-    DOOR_MODEL_RIGHT = DOOR_MODELS[1] ;
+    TOWER_MODEL_RIGHT    = SECTION_MODELS[4] ;
   
   
-  void updateSprite() {
-    final Model model = getModel() ;
-    attachSprite(model.makeSprite()) ;
-  }
-  
-  //
-  //  TODO:  You'll have to find some way to insert blast doors automatically
-  //  along the perimeter.  Check minimum path length first, ensure it's a
-  //  straight section, and get the correct orientation at a given point.
-  //  ...Yes.
-  
-  private ImageModel getModel() {
+  void updateFacing() {
     final Tile o = origin() ;
     o.allAdjacent(around) ;
     int numNear = 0 ;
+    facing = CORNER ;
     for (int n : N_ADJACENT) if (isNode(n)) numNear++ ;
-    if (numNear != 2) return SECTION_MODEL_CORNER ;
-    if (isNode(N) && isNode(S)) {
-      if (o.y % 6 == 0) return TOWER_MODEL_RIGHT ;
-      if (o.y % 3 == 0) return SECTION_MODEL_CORNER ;
-      return SECTION_MODEL_RIGHT ;
+    if (numNear == 2) {
+      if (isNode(N) && isNode(S)) facing = Y_AXIS ;
+      if (isNode(W) && isNode(E)) facing = X_AXIS ;
     }
-    if (isNode(W) && isNode(E)) {
-      if (o.x % 6 == 0) return TOWER_MODEL_LEFT ;
-      if (o.x % 3 == 0) return SECTION_MODEL_CORNER ;
-      return SECTION_MODEL_LEFT  ;
+    attachSprite(updateModel().makeSprite()) ;
+  }
+  
+  
+  void setTower(boolean is) {
+    isTower = is ;
+    attachSprite(updateModel().makeSprite()) ;
+  }
+  
+  
+  private ImageModel updateModel() {
+    switch (facing) {
+      case (Y_AXIS) :
+        return isTower ? TOWER_MODEL_RIGHT : SECTION_MODEL_RIGHT ;
+      case (X_AXIS) :
+        return isTower ? TOWER_MODEL_LEFT : SECTION_MODEL_LEFT ;
+      case (CORNER) : break ;
     }
     return SECTION_MODEL_CORNER ;
   }
@@ -119,7 +123,10 @@ public class ShieldWallSection extends Element implements TileConstants {
   private boolean isNode(int dir) {
     final Tile t = around[dir] ;
     if (t == null) return false ;
-    return t.flaggedWith() != null || t.owner() instanceof MagLineNode ;
+    return
+      t.flaggedWith() instanceof ShieldWall ||
+      t.owner() instanceof ShieldWallSection ||
+      t.owner() instanceof ShieldWallBlastDoors ;
   }
 }
 

@@ -28,7 +28,7 @@ public class World {
   final public int size ;
   final Tile tiles[][] ;
   final public WorldSections sections ;
-  final public WorldSchedule schedule ;
+  final public Schedule schedule ;
   
   private Terrain terrain ;
   private RandomScan growth ;
@@ -53,7 +53,7 @@ public class World {
       tiles[c.x][c.y] = new Tile(this, c.x, c.y) ;
     }
     sections = new WorldSections(this, SECTION_RESOLUTION) ;
-    schedule = new WorldSchedule() ;
+    schedule = new Schedule() ;
     growth = new RandomScan(size) {
       protected void scanAt(int x, int y) { growthAt(x, y) ; }
     } ;

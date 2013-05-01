@@ -81,7 +81,7 @@ public class VenuePersonnel {
     //  name, and maybe links to family or one or two past career events.
     final Citizen citizen = new Citizen(v, venue.base()) ;
     citizen.setWorkVenue(venue) ;
-    final Tile t = venue.entrance() ;
+    final Tile t = venue.entrances()[0] ;
     citizen.enterWorldAt(t.x, t.y, venue.world()) ;
     //I.say("Recruited "+citizen+" at: "+t) ;
     //((BaseUI) PlayLoop.currentUI()).setSelection(citizen) ;

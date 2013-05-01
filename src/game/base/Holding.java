@@ -149,7 +149,6 @@ public class Holding extends Venue implements VenueConstants {
   /**  Rendering and interface methods-
     */
   public String fullName() {
-    
     return "Home of "+personnel.residents().first().fullName() ;
   }
   

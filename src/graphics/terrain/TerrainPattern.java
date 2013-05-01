@@ -12,7 +12,10 @@ import src.util.* ;
 public class TerrainPattern implements TileConstants {
   
   
-  
+  /**  Converts a UV map expressed in terms of unit grid coordinates into a
+    *  scaled version based on vertex coordinates within standard UV limits
+    *  (i.e, [1, 0].  This allows UV to be specified more naturally below.)
+    */
   final static float
     MIN_UV = 0.01f,  //allow a slight margin for safety's sake...
     MAX_UV = 1 - MIN_UV,
@@ -21,12 +24,9 @@ public class TerrainPattern implements TileConstants {
       MIN_UV, MIN_UV, MIN_UV, MAX_UV, MAX_UV, MIN_UV  //...second triangle.
     } ;
   
-  /**  Converts a UV map expressed in terms of unit grid coordinates into a
-    *  scaled version based on vertex coordinates within standard UV limits
-    *  (i.e, [1, 0].  This allows UV to be specified more naturally below.)
-    */
   protected final static float[][] shrinkUVMap(float initMap[][], float maxUV) {
     float processedUV[][] = new float[initMap.length][] ;
+    //
     //  Here, the specific coordinates are stored-
     int i = 0 ; for (float[] UV : initMap) {
       final float MAP[] = processedUV[i++] = new float[12] ;
@@ -38,7 +38,11 @@ public class TerrainPattern implements TileConstants {
     return processedUV ;
   }
   
-
+  
+  /**  This is code for the patterns associated with the road map or localised
+    *  terrain splats, which remain neatly self-contained in their own tiles:
+    */
+  //
   //  These indices refer to x/y coordinates within the UV map of a texture
   //  that keeps it's fringe inside it's masked area.
   //  The texture image looks something like this (in terms of compass-point
@@ -94,6 +98,7 @@ public class TerrainPattern implements TileConstants {
   
   
   protected static int[] innerFringeIndices(boolean near[]) {
+    //
     //  Assemble the ascertained components-
     innerIndices[0] = innerIndices[1] = -1 ;
     final boolean
@@ -131,7 +136,10 @@ public class TerrainPattern implements TileConstants {
   }
   
   
-
+  /**  This is code for the patterns associated with basic terrain types, which
+    *  can overlap with or 'fringe' on eachother...
+    */
+  //
   //  These indices refer to x/y coordinates within the UV map of a terrain
   //  fringing texture for given combinations of adjacent tiles.
   //  The texture image looks something like this (in terms of compass-point
@@ -169,6 +177,7 @@ public class TerrainPattern implements TileConstants {
     },
     OUTER_FRINGE_UV[][] = shrinkUVMap(OUTER_FRINGE_INDEX, 6),
     OUTER_FRINGE_CENTRE[] = OUTER_FRINGE_UV[0] ;
+  //
   //  Having done that, we can now define some convenient constants:
   final static int
     CORNER_OFFSET = 16,
@@ -184,8 +193,10 @@ public class TerrainPattern implements TileConstants {
   
   
   protected static int[] outerFringeIndices(boolean near[]) {
+    //
     //  First, clear the data-
     for (int n = 4 ; n-- > 0 ;) outerIndices[n] = -1 ;
+    //
     //  Check to see what main combination is required...
     int pI = 0 ;  //piece index.
     int comboIndex = 0 ;
@@ -204,6 +215,7 @@ public class TerrainPattern implements TileConstants {
       default :
         outerIndices[pI++] = NONE + comboIndex ;
     }
+    //
     //  Now, check for nearby corners, make sure they're 'clear', and, if so,
     //  render them:
     for (int n = 1 ; n < 8 ; n += 2) {
@@ -216,14 +228,20 @@ public class TerrainPattern implements TileConstants {
     return outerIndices ;
   }
   
+  
   protected static float[][] outerFringeUV(boolean near[]) {
     final int indices[] = outerFringeIndices(near) ;
-    for (int n = 4 ; n-- > 0 ;)
+    for (int n = 4 ; n-- > 0 ;) {
       outerUV[n] = (indices[n] == -1) ? null : OUTER_FRINGE_UV[indices[n]] ;
+    }
     return outerUV ;
   }
-
-
+  
+  
+  
+  /**  Finally, we have code for the semi-randomised fringe pieces of a
+    *  texture-
+    */
   final public static float
     FRINGE_EXTRAS_INDEX[][] = {
       {1, 4},
@@ -234,7 +252,8 @@ public class TerrainPattern implements TileConstants {
       {4, 5}
     },
     FRINGE_EXTRAS_UV[][] = shrinkUVMap(FRINGE_EXTRAS_INDEX, 6) ;
-
+  
+  
   protected static float[][] extraFringeUV(int varID) {
     varID %= FRINGE_EXTRAS_INDEX.length ;
     innerUV[0] = FRINGE_EXTRAS_UV[varID] ;
@@ -242,3 +261,7 @@ public class TerrainPattern implements TileConstants {
     return innerUV ;
   }
 }
+
+
+
+

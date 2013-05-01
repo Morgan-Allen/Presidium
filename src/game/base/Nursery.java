@@ -81,7 +81,7 @@ public class Nursery extends Venue implements VenueConstants {
     toPlant.clear() ;
     
     final Nursery nursery = this ;
-    final Spread spread = new Spread(o) {
+    final TileSpread spread = new TileSpread(o) {
       protected boolean canAccess(Tile t) {
         return nursery.canAccess(t, area) ;
       }

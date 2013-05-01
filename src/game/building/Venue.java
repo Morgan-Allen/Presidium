@@ -15,7 +15,8 @@ import src.util.* ;
 
 
 public abstract class Venue extends Fixture implements
-  Inventory.Owner, Behaviour, Boardable, WorldSchedule.Updates, Installation
+  Schedule.Updates, Boardable, Installation,
+  Inventory.Owner, Behaviour, Paving.Hub
 {
   
   
@@ -94,6 +95,11 @@ public abstract class Venue extends Fixture implements
   }
   
   
+  public Paving paving() {
+    return paving ;
+  }
+  
+  
   
   /**  Installation and positioning-
     */
@@ -111,7 +117,7 @@ public abstract class Venue extends Fixture implements
   public void clearSurrounds() {
     final Box2D around = new Box2D().setTo(area()).expandBy(1) ;
     final World world = origin().world ;
-    final Tile eT = entrance() ;
+    final Tile eT = entrances()[0] ;
     for (Tile t : world.tilesIn(around, false)) {
       if (t.owner() != null) t.owner().exitWorld() ;
     }
@@ -131,12 +137,13 @@ public abstract class Venue extends Fixture implements
     return result ;
   }
   
+  
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
     if (base != null) base.toggleBelongs(this, true) ;
     world.schedule.scheduleForUpdates(this) ;
     personnel.onWorldEntry() ;
-    if (usesRoads()) paving.onWorldEntry() ;
+    paving.onWorldEntry() ;
   }
   
   
@@ -144,7 +151,7 @@ public abstract class Venue extends Fixture implements
     if (base != null) base.toggleBelongs(this, false) ;
     world.schedule.unschedule(this) ;
     personnel.onWorldExit() ;
-    if (usesRoads()) paving.onWorldExit() ;
+    paving.onWorldExit() ;
     super.exitWorld() ;
   }
   
@@ -157,8 +164,13 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  public Tile entrance() {
-    return entrance ;
+  public Tile[] entrances() {
+    return new Tile[] { entrance } ;
+  }
+  
+  
+  public boolean isEntrance(Tile t) {
+    return entrance == t ;
   }
   
   
@@ -192,9 +204,10 @@ public abstract class Venue extends Fixture implements
   
   
   public Boardable[] canBoard(Boardable batch[]) {
-    if (batch == null) batch = new Boardable[1] ;
-    else for (int i = batch.length ; i-- > 0 ;) batch[i] = null ;
-    batch[0] = entrance() ;
+    if (batch == null) return entrances() ;
+    for (int i = batch.length ; i-- > 0 ;) batch[i] = null ;
+    final Tile e[] = entrances() ;
+    for (int i = e.length ; i-- > 0 ;) batch[i] = e[i] ;
     return batch ;
   }
   
@@ -245,6 +258,7 @@ public abstract class Venue extends Fixture implements
   public Object[] services() {
     return itemsMade() ;
   }
+  
   
   
   /**  Installation interface-
@@ -316,6 +330,7 @@ public abstract class Venue extends Fixture implements
     if (! stocks.empty()) d.append("\n\nCURRENT STOCKS:") ;
     stocks.writeInformation(d) ;
     
+    //if (! orders.empty())
     d.append("\n\nCURRENT ORDERS:") ;
     orders.writeInformation(d) ;
   }

@@ -86,7 +86,7 @@ public class Base implements Session.Saveable {
     */
   public void toggleBelongs(Venue venue, boolean is) {
     toggleForService(venue, this, is) ;
-    toggleForService(venue, Venue.class, is) ;
+    toggleForService(venue, venue.getClass(), is) ;
     final Object s[] = venue.services() ;
     if (s != null) for (Object service : s) {
       toggleForService(venue, service, is) ;
@@ -94,16 +94,17 @@ public class Base implements Session.Saveable {
   }
   
   
-  public void toggleForService(Venue venue, Object service, boolean is) {
+  public void toggleForService(Target target, Object service, boolean is) {
+    ///I.say("Toggling "+target+" for service "+service+": "+is) ;
     Flagging flagged = services.get(service) ;
     if (flagged == null) {
       services.put(service, flagged = new Flagging(world, service)) ;
     }
     if (is) {
-      flagged.toggleMember(venue, true) ;
+      flagged.toggleMember(target, true) ;
     }
     else {
-      flagged.toggleMember(venue, false) ;
+      flagged.toggleMember(target, false) ;
       if (flagged.population() == 0) services.remove(service) ;
     }
   }

@@ -85,6 +85,12 @@ public abstract class Fixture extends Element implements Selectable {
   public Box2D area() { return area ; }
   
   
+  public Box2D area(Box2D put) {
+    if (put == null) put = new Box2D() ;
+    return put.setTo(area) ;
+  }
+  
+  
   public Vec3D position(Vec3D v) {
     final Tile o = origin() ;
     if (o == null) return null ;

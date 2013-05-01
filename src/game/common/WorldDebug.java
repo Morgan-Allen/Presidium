@@ -32,7 +32,7 @@ public class WorldDebug extends PlayLoop {
 
   Citizen citizen ;
   Action lastAction = null ;
-  Tile picked = null ;
+  Boardable picked = null ;
   
   
   protected WorldDebug() {
@@ -106,7 +106,7 @@ public class WorldDebug extends PlayLoop {
   
   protected void renderGameGraphics() {
     super.renderGameGraphics() ;
-    this.highlightPath() ;
+    ///this.highlightPath() ;
   }
   
 
@@ -172,28 +172,32 @@ public class WorldDebug extends PlayLoop {
   }
   
   
+  private Boardable hovered(BaseUI UI) {
+    final Tile t = UI.pickedTile() ;
+    if (t != null && t.owner() instanceof Venue) {
+      return (Venue) t.owner() ;
+    }
+    return t ;
+  }
+  
   private void highlightPath() {
     final BaseUI UI = (BaseUI) currentUI() ;
     if (UI.mouseClicked()) {
       if (picked != null) picked = null ;
-      else {
-        picked = UI.pickedTile() ;
-        if (picked != null && picked.owner() instanceof Venue) {
-          picked = ((Venue) picked.owner()).entrance() ;
-        }
-      }
+      else picked = hovered(UI) ;
     }
-    Tile hovered = UI.pickedTile() ;
-    if (hovered != null && hovered.owner() instanceof Venue) {
-      hovered = ((Venue) hovered.owner()).entrance() ;
-    }
+    Boardable hovered = hovered(UI) ;
     if (picked != null && hovered != null) {
       final PathingSearch search = new PathingSearch(picked, hovered) ;
       search.doSearch() ;
-      final Tile path[] = (Tile[]) search.fullPath(Tile.class) ;
-      if (path != null && path.length > 0) {
+      final Boardable path[] = (Boardable[]) search.fullPath(Boardable.class) ;
+      final Batch <Tile> tiles = new Batch <Tile> () ;
+      if (path != null) for (Boardable b : path) {
+        if (b instanceof Tile) tiles.add((Tile) b) ;
+      }
+      if (tiles.size() > 0) {
         final TerrainMesh overlay = world().terrain().createOverlay(
-          path, false, Texture.WHITE_TEX
+          tiles.toArray(Tile.class), false, Texture.WHITE_TEX
         ) ;
         rendering().addClient(overlay) ;
       }

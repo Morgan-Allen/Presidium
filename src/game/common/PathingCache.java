@@ -63,7 +63,7 @@ public class PathingCache {
   
   private Tile tilePos(Boardable b) {
     if (b == null) return null ;
-    if (b instanceof Venue) return ((Venue) b).entrance() ;
+    if (b instanceof Venue) return ((Venue) b).entrances()[0] ;
     final Vec3D p = b.position(null) ;
     return Spacing.nearestOpenTile(world.tileAt(p.x, p.y), b) ;
   }
@@ -74,7 +74,6 @@ public class PathingCache {
       initT = tilePos(initB),
       destT = tilePos(destB) ;
     if (initT == null || destT == null) return null ;
-    
     final Place placesPath[] = getPlacesPath(initT, destT) ;
     final PathingSearch search ;
     if (placesPath == null || placesPath.length < 2) {
@@ -133,9 +132,11 @@ public class PathingCache {
       initPlace = tilePlaces[init.x][init.y],
       destPlace = tilePlaces[dest.x][dest.y] ;
     if (initPlace == null || destPlace == null) return null ;
-    
+    //
     ///I.say("BEGINNING REGION PATH SEARCH") ;
-    final AgendaSearch search = new AgendaSearch <Place> (initPlace) {
+    final Search <Place> search = new Search <Place> (
+      initPlace, -1
+    ) {
       
       protected Place[] adjacent(Place spot) {
         return placesNear(spot) ;
@@ -150,10 +151,19 @@ public class PathingCache {
       }
       
       protected float estimate(Place spot) {
-        return Spacing.distance(spot, destPlace) ;
+        return Spacing.distance(spot.core, destPlace.core) ;
+      }
+      
+      protected void setEntry(Place spot, Entry flag) {
+        spot.flagged = flag ;
+      }
+      
+      protected Entry entryFor(Place spot) {
+        return (Entry) spot.flagged ;
       }
     } ;
     search.doSearch() ;
+    //
     ///I.say("FINISHED REGION PATH SEARCH") ;
     return (Place[]) search.fullPath(Place.class) ;
   }
@@ -183,16 +193,15 @@ public class PathingCache {
   
   /**  Identifying- and caching- discrete regions of the map.
     */
-  static class Place implements Target {
+  static class Place {
     
     Tile tiles[], core ;
     Section section ;
     List <Path> paths = new List <Path> () ;
-    
     private Place nearCache[] ;
     private Object flagged ;
     private boolean isDead = false ;
-    
+    /*
     public Vec3D position(Vec3D v) { return core.position(v) ; }
     public float height() { return 0 ; }
     public float radius() { return 0 ; }
@@ -200,7 +209,7 @@ public class PathingCache {
     public boolean inWorld() { return true ; }
     public void flagWith(Object f) { this.flagged = f ; }
     public Object flaggedWith() { return flagged ; }
-    
+    //*/
     public String toString() {
       return "Region with core at "+core.x+" "+core.y ;
     }
@@ -230,7 +239,7 @@ public class PathingCache {
     //  TODO:  Test this based on terrain types?
     for (Tile t : world.tilesIn(limit, false)) {
       if (t.blocked() || tilePlaces[t.x][t.y] != null) continue ;
-      final Spread spread = new Spread(t) {
+      final TileSpread spread = new TileSpread(t) {
         
         protected boolean canAccess(Tile t) {
           if (t.blocked() || ! section.area.contains(t.x, t.y)) return false ;

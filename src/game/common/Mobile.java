@@ -14,7 +14,7 @@ import src.util.* ;
 
 
 public abstract class Mobile extends Element
-  implements WorldSchedule.Updates, Selectable
+  implements Schedule.Updates, Selectable
 {
   
   protected float

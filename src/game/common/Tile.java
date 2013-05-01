@@ -177,18 +177,9 @@ public class Tile implements Target, TileConstants, Boardable {
     */
   public Boardable[] canBoard(Boardable batch[]) {
     if (batch == null) batch = new Boardable[8] ;
-    
     if (owner() instanceof Venue) {
-      final Tile e = ((Venue) owner()).entrance() ;
-      for (int n : N_INDEX) {
-        batch[n] = null ;
-        final Tile t = world.tileAt(x + N_X[n], y + N_Y[n]) ;
-        if (t.owner() != this.owner && t != e) continue ;
-        batch[n] = t ;
-      }
-      return batch ;
+      return ((Venue) owner()).entrances() ;
     }
-    
     for (int n : N_INDEX) {
       batch[n] = null ;
       final Tile t = world.tileAt(x + N_X[n], y + N_Y[n]) ;
@@ -199,14 +190,12 @@ public class Tile implements Target, TileConstants, Boardable {
       if (batch[(i + 7) % 8] == null) batch[i] = null ;
       if (batch[(i + 1) % 8] == null) batch[i] = null ;
     }
-    
     for (int n : N_ADJACENT) {
       final Tile t = world.tileAt(x + N_X[n], y + N_Y[n]) ;
       if (t == null || ! (t.owner() instanceof Venue)) continue ;
       final Venue v = (Venue) t.owner() ;
-      if (v.entrance() == this) batch[n] = v ;
+      if (v.isEntrance(this)) batch[n] = v ;
     }
-    
     return batch ;
   }
   

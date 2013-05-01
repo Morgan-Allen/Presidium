@@ -47,7 +47,7 @@ public final class Spacing implements TileConstants {
   //  lead to the existence of inaccessible 'pockets' of terrain- that would
   //  cause pathing problems.
   public static boolean perimeterFits(Element element) {
-    final Box2D area = element.area() ;
+    final Box2D area = element.area(tA) ;
     final Tile perim[] = perimeter(area, element.world()) ;
     //
     //  Here, we check the first perimeter.  First, determine where the first
@@ -146,7 +146,7 @@ public final class Spacing implements TileConstants {
   /**  Promity methods-
     */
   private final static Vec3D pA = new Vec3D(), pB = new Vec3D() ;
-  private final static Box2D tB = new Box2D() ;
+  private final static Box2D tA = new Box2D(), tB = new Box2D() ;
   
   public static Target nearest(
     Series <? extends Target> targets, Target client
@@ -198,7 +198,7 @@ public final class Spacing implements TileConstants {
   
   public static Tile nearestOpenTile(Element element, Target client) {
     if (element.pathType() >= Tile.PATH_HINDERS) {
-      return nearestOpenTile(element.area(), client, element.world()) ;
+      return nearestOpenTile(element.area(tA), client, element.world()) ;
     }
     else {
       final Vec3D p = element.position(pA) ;
@@ -215,6 +215,12 @@ public final class Spacing implements TileConstants {
     return (dist < 0) ? 0 : dist ;
   }
   
+
+  public static int outerDistance(Target a, Target b) {
+    float dist = a.position(pA).distance(b.position(pB)) ;
+    return (int) Math.ceil(dist + a.radius() + b.radius()) ;
+  }
+  
   
   public static float distance(Tile a, Tile b) {
     final int xd = a.x - b.x, yd = a.y - b.y ;
@@ -222,9 +228,25 @@ public final class Spacing implements TileConstants {
   }
   
   
-  public static float axisDist(Tile a, Tile b) {
+  public static int axisDist(Tile a, Tile b) {
     final int xd = Math.abs(a.x - b.x), yd = Math.abs(a.y - b.y) ;
     return Math.max(xd, yd) ;
+  }
+  
+  
+  public static boolean adjacent(Tile t, Element e) {
+    if (t == null || e == null) return false ;
+    e.area(tA) ;
+    tA.expandBy(1) ;
+    return tA.contains(t.x, t.y) ;
+  }
+  
+  
+  public static boolean adjacent(Element a, Element b) {
+    if (a == null || b == null) return false ;
+    a.area(tA) ;
+    b.area(tB) ;
+    return tA.intersects(tB) ;
   }
 }
 

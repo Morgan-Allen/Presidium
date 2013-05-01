@@ -13,7 +13,7 @@ import src.util.* ;
 
 
 
-public class PathingSearch extends AgendaSearch <Boardable> {
+public class PathingSearch extends Search <Boardable> {
   
   
   
@@ -21,22 +21,45 @@ public class PathingSearch extends AgendaSearch <Boardable> {
     */
   final protected Boardable destination ;
   
-  private Vec3D posA = new Vec3D(), posB = new Vec3D() ;
+  //private Vec3D posA = new Vec3D(), posB = new Vec3D() ;
   private Boardable batch[] = new Boardable[8] ;
-  private Box2D box = new Box2D() ;
+  //private Box2D box = new Box2D() ;
   
   
-  public PathingSearch(Boardable init, Boardable dest) {
-    super(init) ;
+  public PathingSearch(Boardable init, Boardable dest, boolean safe) {
+    super(init, safe ? ((Spacing.outerDistance(init, dest) * 10) + 10) : -1) ;
     if (dest == null) {
       I.complain("NO DESTINATION!") ;
     }
     this.destination = dest ;
-    ///I.say("Searching for path between "+init+" and "+dest) ;
   }
   
   
+  public PathingSearch(Boardable init, Boardable dest) {
+    this(init, dest, true) ;
+  }
   
+  
+  public PathingSearch doSearch() {
+    if (verbose) I.say(
+      "Searching for path between "+init+" and "+destination+
+      ", distance: "+Spacing.distance(init, destination)
+    ) ;
+    super.doSearch() ;
+    return this ;
+  }
+  
+  
+  protected void setEntry(Boardable spot, Entry flag) {
+    spot.flagWith(flag) ;
+  }
+  
+  
+  protected Entry entryFor(Boardable spot) {
+    return (Entry) spot.flaggedWith() ;
+  }
+
+
   /**  Actual search-execution methods-
     */
   protected Boardable[] adjacent(Boardable spot) {
@@ -60,11 +83,8 @@ public class PathingSearch extends AgendaSearch <Boardable> {
   
   
   protected float estimate(Boardable spot) {
-    destination.position(posA) ;
-    spot.position(posB) ;
-    final float x = posA.x - posB.x, y = posA.y - posB.y ;
-    final float dist = (float) Math.sqrt((x * x) + (y * y)) * 1.1f ;
-    if (spot.pathType() == Tile.PATH_CLEAR) return dist * 0.55f ;
+    final float dist = Spacing.distance(spot, destination) ;
+    if (init.pathType() == Tile.PATH_ROAD) return dist * 0.55f ;
     return dist ;
   }
   
@@ -73,7 +93,5 @@ public class PathingSearch extends AgendaSearch <Boardable> {
     return best == destination ;
   }
 }
-
-
 
 

@@ -21,12 +21,6 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
   private float animFrame = 0 ;
   
   
-  public abstract static class Mask {
-    protected abstract boolean maskAt(final int x, final int y) ;
-    protected abstract boolean nullsCount() ;
-  }
-  
-  
   
   protected TerrainMesh(int numTiles, Texture... textures) {
     super(numTiles * 2) ;
@@ -37,13 +31,9 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
   
   public void assignTexture(Texture... textures) {
     this.textures = textures ;
-    /*
-    I.say("  Textures are: ") ;
     for (Texture t : textures) {
-      I.add(t+", ") ;
       if (t == null) I.complain("NULL TEXTURE ASSIGNED!") ;
     }
-    //*/
   }
   
   
@@ -89,7 +79,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
     int maxX, int maxY,
     Texture texture,
     final byte heightMap[][],
-    Mask mask
+    TileMask mask
   ) {
     //
     //  We iterate through each tile, recording the stream of geometry
@@ -229,7 +219,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
       numTiled++ ;
     }
     final Object geometry[] = MeshBuffer.compileRecord() ;
-    TerrainMesh mesh = new TerrainMesh(numTiled * 2, null) ;
+    TerrainMesh mesh = new TerrainMesh(numTiled * 2) ;
     mesh.update(
       (float[]) geometry[0],
       (float[]) geometry[1],

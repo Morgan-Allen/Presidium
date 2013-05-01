@@ -10,7 +10,10 @@ import java.util.Iterator ;
 
 
 
-public abstract class SortTree <K> implements Series <K> {
+/**  In essence, a self-balancing binary tree used to maintain entries in a
+  *  well-sorted order.
+  */
+public abstract class Sorting <K> implements Series <K> {
   
   
   
@@ -24,7 +27,7 @@ public abstract class SortTree <K> implements Series <K> {
   static enum Side { L, R, BOTH, NEITHER } ;
   
   private static class Node {
-    SortTree belongs = null ;
+    Sorting belongs = null ;
     Object value ;
     
     Node parent, kidL, kidR ;
@@ -188,6 +191,10 @@ public abstract class SortTree <K> implements Series <K> {
   
   
   public K refValue(Object ref) {
+    if (! containsRef(ref)) I.complain(
+      "Querying value from wrong tree: "+((Node) ref).belongs+
+      " node value: "+((Node) ref).value
+    ) ;
     return (K) ((Node) ref).value ;
   }
   
@@ -235,16 +242,16 @@ public abstract class SortTree <K> implements Series <K> {
       I.complain("Invalid reference.") ;
     }
     final Node n = (Node) ref ;
-    if (n.belongs == null) I.complain("ATTEMPTING TO REMOVE DEAD NODE!") ;
-    if (n.belongs != this) I.complain("REMOVING NODE FROM WRONG TREE!") ;
+    if (n.belongs != this) {
+      if (n.belongs == null) I.complain("ATTEMPTING TO REMOVE DEAD NODE!") ;
+      else I.complain("REMOVING NODE FROM WRONG TREE!") ;
+    }
     //
     //  In the simple case of a leaf node, we merely detach from the parent.
     if (n.height == 0) {
       setParent(n.parent, null, n.side) ;
-      if (n.parent != null) {
-        flagForUpdate(n.parent) ;
-        balanceFrom(n.parent) ;
-      }
+      flagForUpdate(n.parent) ;
+      balanceFrom(n.parent) ;
     }
     else {
       //
@@ -259,10 +266,6 @@ public abstract class SortTree <K> implements Series <K> {
         s = (hR > hL) ? Side.R : Side.L,
         o = (s == Side.R) ? Side.L : Side.R ;
       final Node closest = furthestBranch(kidFor(n, s), o) ;
-      if (closest == null) {
-        I.say("PROBLEM, closest node is null?") ;
-        I.say("Kids are: "+n.kidL+" "+n.kidR) ;
-      }
       if (closest.height > 0) rotate(closest, o, false) ;
       //
       //  Detach the replacement node from it's former parent, and install in
@@ -328,7 +331,7 @@ public abstract class SortTree <K> implements Series <K> {
   
   
   
-  /**  Satisfying the Iterable contract-
+  /**  Satisfying the Series contract-
     */
   public K[] toArray(Class typeClass) {
     final Object[] array = (Object[]) Array.newInstance(typeClass, size) ;
@@ -401,7 +404,7 @@ public abstract class SortTree <K> implements Series <K> {
   /**  Testing routine.
     */
   public static void main(String args[]) {
-    final SortTree <Integer> testTree = new SortTree <Integer> () {
+    final Sorting <Integer> testTree = new Sorting <Integer> () {
       public int compare(Integer a, Integer b) {
         if ((int) a == (int) b) return 0 ;
         return a > b ? 1 : -1 ;

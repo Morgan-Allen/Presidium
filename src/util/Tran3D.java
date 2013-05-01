@@ -15,6 +15,7 @@ public class Tran3D {
   public final Vec3D position = new Vec3D().set(0, 0, 0) ;
   public final Mat3D rotation = new Mat3D().setIdentity() ;
   
+  
   /**  Setup based on existing position and rotation vector/matrix.  Returns
     *  itself.
     */
@@ -23,6 +24,7 @@ public class Tran3D {
   	rotation.setTo(rot) ;
     return this ;
   }
+  
   
   /**  Sets the transform to match the given transform's values.  Returns
     *  itself.
@@ -33,11 +35,13 @@ public class Tran3D {
     return this ;
   }
   
+  
   /**  Sets this transform to the inverse of the argument.  Returns itself.
     */
-  //  NOTE:  matrix transforms are linear operations, i.e. (mat(a) + mat(b) =
-  //  mat(a + b), so the following works.
   public Tran3D setInverse(Tran3D transform) {
+    //
+    //  NOTE:  matrix transforms are linear operations, i.e. (mat(a) + mat(b) =
+    //  mat(a + b), so the following works.
   	transform.rotation.inverse(rotation) ;
   	position.setTo(transform.position) ;
   	position.scale(-1, position) ;
@@ -50,6 +54,7 @@ public class Tran3D {
     trans(result) ;
   }
   
+  
   /**  Performs a rotation + translation on the given vector and stores the
     *  answer in the result vector.
     */
@@ -57,6 +62,7 @@ public class Tran3D {
     rotation.trans(vector) ;
     vector.add(position) ;
   }
+  
   
   /**  Performs a rotation + translation on the given transforms' position, a
     *  rotation on the transform's own, and stores all values in the result

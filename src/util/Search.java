@@ -69,9 +69,10 @@ public abstract class Search <T> {
       agenda.deleteRef(nextRef) ;
       if (endSearch(next)) {
         success = true ;
+        bestEntry = entryFor(next) ;
         totalCost = bestEntry.total ;
         if (verbose) I.say(
-          "  ...search complete, total cost: "+totalCost+
+          "  ...search complete at "+next+", total cost: "+totalCost+
           " all searched: "+flagged.size()
         ) ;
         break ;
@@ -164,6 +165,11 @@ public abstract class Search <T> {
   
   public float totalCost() {
     return totalCost ;
+  }
+  
+  
+  public boolean success() {
+    return success ;
   }
 }
 

@@ -5,14 +5,14 @@
   type="JOINT"
   path="media/Vehicles/"
   file="dropship.ms3d"
-  scale="0.12"
+  scale="0.08"
   bound="3.0"
   stride="1.0"
   height="2.5"
 >
   <animations>
     <animation name="stand"      start="1"  end="3"  duration="0.35" />
-    <animation name="descend"    start="4"  end="17"  duration="40" />
+    <animation name="descend"    start="4"  end="7"  duration="3" />
   </animations>
   
   <attachPoints>

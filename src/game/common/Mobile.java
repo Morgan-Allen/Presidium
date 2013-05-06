@@ -42,8 +42,7 @@ public abstract class Mobile extends Element
     this.nextRotation = s.loadFloat() ;
     position.    loadFrom(s.input()) ;
     nextPosition.loadFrom(s.input()) ;
-    facing. loadFrom(s.input()) ;
-    //base = (Base) s.loadObject() ;
+    facing.loadFrom(s.input()) ;
     aboard = (Boardable) s.loadTarget() ;
   }
   
@@ -53,13 +52,12 @@ public abstract class Mobile extends Element
     s.saveFloat(nextRotation) ;
     position    .saveTo(s.output()) ;
     nextPosition.saveTo(s.output()) ;
-    facing .saveTo(s.output()) ;
-    //s.saveObject(base) ;
+    facing.saveTo(s.output()) ;
     s.saveTarget(aboard) ;
   }
   
-  //public void setBase(Base realm) { this.base = realm ; }
-  //public Base realm() { return base ; }
+  
+  public abstract Base assignedBase() ;
   
   
   /**  Again, more data-definition methods subclasses might well override.
@@ -91,6 +89,8 @@ public abstract class Mobile extends Element
   public void exitWorld() {
     world().toggleActive(this, false) ;
     origin().setInside(this, false) ;
+    world.toggleActive(this, false) ;
+    if (aboard != null) aboard.setInside(this, false) ;
     world().schedule.unschedule(this) ;
     super.exitWorld() ;
   }
@@ -144,10 +144,12 @@ public abstract class Mobile extends Element
     //  -I suspect you may need a more thorough system for dealing with
     //  blockage.
     final Tile comingTile = world().tileAt(disp.x, disp.y) ;
+    //  TODO:  Entering Boardables should be handled here.
     if ((speed <= 0) || checkTileClear(comingTile)) {
       nextPosition.setTo(disp) ;
       nextRotation = angle ;
     }
+    //else abortMotion() ;
     else onMotionBlock(comingTile) ;
   }
   
@@ -169,14 +171,19 @@ public abstract class Mobile extends Element
     else {
       nextRotation = rotation ;
       nextPosition.setTo(position) ;
+      //abortMotion() ;
       onMotionBlock(newTile) ;
     }
   }
   
+  protected boolean checkTileClear(Tile t) {
+    return (t.owner() instanceof Boardable) || ! t.blocked() ;
+  }
   
-  protected boolean checkTileClear(Tile t) { return true ; }
   protected void onMotionBlock(Tile t) {}
   protected void onTileChange(Tile oldTile, Tile newTile) {}
+  
+  public abstract void abortMotion() ;
   
   public float scheduledInterval() { return 1.0f ; }
   public void updateAsScheduled(int numUpdates) {}
@@ -188,6 +195,7 @@ public abstract class Mobile extends Element
   public Boardable aboard() {
     return aboard ;
   }
+  
   
   protected void setAboard(Tile tile, boolean is) {
     if (tile == null) {

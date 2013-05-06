@@ -41,9 +41,12 @@ public abstract class Model {
   
   
   public static void saveModel(
-    Model model,
+    Sprite sprite,
     DataOutputStream out
   ) throws Exception {
+    if (sprite == null) { out.writeInt(-1) ; return ; }
+    final Model model = sprite.model() ;
+    if (model == null) I.complain("Sprite must have model!") ;
     final Integer modelID = modelIDs.get(model) ;
     if (modelID != null) { out.writeInt(modelID) ; return ; }
     final int newID = counterID++ ;
@@ -58,6 +61,7 @@ public abstract class Model {
     DataInputStream in
   ) throws Exception {
     final int modelID = in.readInt() ;
+    if (modelID == -1) return null ;
     Model loaded = IDModels.get(modelID) ;
     if (loaded != null) return loaded ;
     final String modelName = LoadService.readString(in) ;
@@ -120,8 +124,34 @@ public abstract class Model {
   }
   
   public abstract Sprite makeSprite() ;
+  public abstract Colour averageHue() ;
   
-
+  
+  
+  /**  XML factory methods-
+    */
+  public Model loadXMLInfo(
+    String parentPath, String modelName
+  ) {
+    XML parentInfo = XML.load(parentPath) ;
+    final XML modelInfo ;
+    if (modelName == null) modelInfo = parentInfo.child(0) ;
+    else modelInfo = parentInfo.matchChildValue("name", modelName) ;
+    if (modelInfo == null) return this ;
+    //
+    //  If a suitable template is available, take in the data-
+    this.scale = modelInfo.getFloat("scale") ;
+    this.bound = modelInfo.getFloat("bound") ;
+    this.stride = modelInfo.getFloat("stride") ;
+    this.selectBound = this.bound * 0.5f ;  //for now...
+    //
+    //  Finally, load other forms of data and return-
+    loadAnimRanges(modelInfo.child("animations")) ;
+    loadAttachPoints(modelInfo.child("attachPoints")) ;
+    return this ;
+  }
+  
+  
   /**  Loads animation ranges from the given XML definition.
     */
   public static class AnimRange {
@@ -133,7 +163,8 @@ public abstract class Model {
       name = n ; start = s ; end = e ; duration = d ;
     }
   }
-
+  
+  
   public static interface AnimNames {
     static String
       STAND      = "stand",
@@ -159,6 +190,7 @@ public abstract class Model {
   
   
   private static Table <String, String> validAnimNames = null ;
+  
   
   public void loadAnimRanges(XML anims) {
     //
@@ -208,6 +240,7 @@ public abstract class Model {
     final public String function, pointName ;
     AttachPoint(String f, String p) { function = f ; pointName = p ; }
   }
+  
   
   public void loadAttachPoints(XML points) {
     for (XML point : points.children()) {

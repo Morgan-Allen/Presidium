@@ -9,12 +9,15 @@ package src.game.actors ;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.util.* ;
-
 import src.game.base.* ;
 
 
 
-public class ActorPathing {
+//
+//  This is going to have to be reworked to interface correctly with arbitrary
+//  Boardable-paths.
+
+public class MobilePathing {
   
   
   
@@ -22,7 +25,7 @@ public class ActorPathing {
     */
   final int MAX_PATH_SCAN = 8 ;
   
-  final Actor actor ;
+  final Mobile mobile ;
   Target target ;
   
   Boardable path[] = null, pathTarget ;
@@ -30,8 +33,8 @@ public class ActorPathing {
   boolean closeEnough ;
   
   
-  ActorPathing(Actor a) {
-    this.actor = a ;
+  MobilePathing(Mobile a) {
+    this.mobile = a ;
   }
   
   
@@ -59,8 +62,8 @@ public class ActorPathing {
     */
   private Boardable location(Target t) {
     if (t instanceof Boardable) return (Boardable) t ;
-    if (t instanceof Actor) {
-      final Actor a = (Actor) t ;
+    if (t instanceof Mobile) {
+      final Mobile a = (Mobile) t ;
       if (a.aboard() != null) return a.aboard() ;
       return a.origin() ;
     }
@@ -71,10 +74,11 @@ public class ActorPathing {
   
   
   private void refreshPath() {
-    if (actor.assignedBase() == null || GameSettings.freePath) {
+    I.say(mobile+" refreshing path...") ;
+    if (mobile.assignedBase() == null || GameSettings.freePath) {
       ///I.say("location of "+actor+" is "+actor.origin()) ;
       final PathingSearch search = new PathingSearch(
-        location(actor), location(target)
+        location(mobile), location(target)
       ) ;
       search.verbose = true ;
       search.doSearch() ;
@@ -83,8 +87,8 @@ public class ActorPathing {
       stepIndex = 0 ;
     }
     else {
-      path = actor.assignedBase().pathingCache.getLocalPath(
-        location(actor), location(target)
+      path = mobile.assignedBase().pathingCache.getLocalPath(
+        location(mobile), location(target)
       ) ;
       stepIndex = 0 ;
     }
@@ -95,8 +99,9 @@ public class ActorPathing {
     //
     //  Firstly, check to see if the actual path target has been changed-
     this.target = target ;
-    final Boardable location = location(actor), dest = location(target) ;
+    final Boardable location = location(mobile), dest = location(target) ;
     
+    ///I.say(mobile+" location: "+location+", dest: "+dest+" ("+target+")") ;
     if (location == dest) {
       closeEnough = true ;
       return ;
@@ -121,7 +126,6 @@ public class ActorPathing {
       final int dist = Spacing.outerDistance(location, last) ;
       //  TODO:  Try checking if you're in the same Region instead...
       if (dist < World.SECTION_RESOLUTION / 2) {
-        ///I.say("Require refresh due to absent destination... "+last) ;
         doRefresh = true ;
       }
     }
@@ -132,7 +136,7 @@ public class ActorPathing {
       refreshPath() ;
       if (path == null) {
         I.say("COULDN'T FIND PATH TO: "+pathTarget) ;
-        actor.abortAction() ;
+        mobile.abortMotion() ;
         stepIndex = -1 ;
         return ;
       }

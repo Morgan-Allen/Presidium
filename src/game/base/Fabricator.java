@@ -51,9 +51,9 @@ public class Fabricator extends Venue implements VenueConstants {
   }
   
   
-  public Behaviour nextStepFor(Actor actor) {
+  public Behaviour jobFor(Citizen actor) {
     
-    final Delivery d = orders.nextDelivery(actor, itemsMade()) ;
+    final Delivery d = orders.nextDelivery(actor, goods()) ;
     if (d != null) return d ;
     
     final Manufacture m = orders.nextManufacture(actor, conversions()) ;
@@ -68,7 +68,7 @@ public class Fabricator extends Venue implements VenueConstants {
   }
   
   
-  protected Item.Type[] itemsMade() {
+  protected Item.Type[] goods() {
     return new Item.Type[] { PLASTICS } ;
   }
   

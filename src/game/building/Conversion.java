@@ -60,6 +60,7 @@ public class Conversion implements Session.Saveable, VenueConstants {
     //allConversions.add(this) ;
     float num = 1 ;
     boolean recRaw = true ;
+    //
     //  Set up temporary storage variables.
     Class v = null ;
     Batch rawB = new Batch(), outB = new Batch(), skillB = new Batch() ;

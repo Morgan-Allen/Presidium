@@ -19,17 +19,17 @@ public interface ActorConstants {
     CATEGORIC   = 3,
     SKILL       = 4,
     CONDITION   = 5 ;
-
+  
   final public static int
-    EFFORTLESS  = -10,
-    TRIVIAL     = -5 ,
-    SIMPLE      =  0 ,
-    ORDINARY    =  5 ,
-    TRICKY      =  10,
-    DIFFICULT   =  15,
-    STRENUOUS   =  20,
-    PUNISHING   =  25,
-    IMPOSSIBLE  =  30 ;
+    EFFORTLESS_DC  = -10,
+    TRIVIAL_DC     = -5 ,
+    SIMPLE_DC      =  0 ,
+    ROUTINE_DC     =  5 ,
+    TRICKY_DC      =  10,
+    DIFFICULT_DC   =  15,
+    STRENUOUS_DC   =  20,
+    PUNISHING_DC   =  25,
+    IMPOSSIBLE_DC  =  30 ;
   
   final static int
     FORM_NATURAL   = 0,
@@ -93,7 +93,7 @@ public interface ActorConstants {
     COMMON_CUSTOM     = new Skill("Common Custom"    , FORM_SENSITIVE, INSIGHT),
     NOBLE_ETIQUETTE   = new Skill("Noble Etiquette"  , FORM_SENSITIVE, INSIGHT),
     
-    GRAPHIC_MEDIA    = new Skill("Media and Design" , FORM_SENSITIVE, WILL   ),
+    GRAPHIC_MEDIA     = new Skill("Graphic Media"    , FORM_SENSITIVE, WILL   ),
     
     ALL_SENSITIVE[] = Trait.skillsSoFar() ;
   

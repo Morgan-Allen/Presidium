@@ -7,6 +7,8 @@
 package src.game.campaign ;
 
 
-public class Systems {
+
+public class System {
+  
   
 }

@@ -208,6 +208,7 @@ public class WorldSections implements TileConstants {
         //I.say("Section visible: "+s.area) ;
         visibleSections.add(s) ;
         for (Element e : world.fixturesFrom(s.area)) {
+          if (e.sprite() == null) continue ;
           if (! port.intersects(boundsFrom(e, tempBounds))) continue ;
           if (e.visibleTo(base)) visibleFixtures.add(e) ;
         }

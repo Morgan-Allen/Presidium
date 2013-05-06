@@ -87,13 +87,16 @@ public class Inventory {
     //owner.afterTransaction() ;
   }
   
+  
   public float credits() {
     return credits + taxed ;
   }
   
+  
   public float unTaxed() {
     return credits ;
   }
+  
   
   public void taxDone() {
     taxed += credits ;
@@ -109,11 +112,18 @@ public class Inventory {
     return itemTable.size() == 0 && (credits + taxed) <= 0 ;
   }
   
+  
   public Batch <Item> allItems() {
     final Batch <Item> allItems = new Batch <Item> () ;
     for (Item item : itemTable.values()) allItems.add(item) ;
     return allItems ;
   }
+  
+  
+  public void clearItems(Item.Type type) {
+    itemTable.remove(type) ;
+  }
+  
   
   public void removeAllItems() {
     itemTable.clear() ;
@@ -139,9 +149,11 @@ public class Inventory {
     return true ;
   }
   
+  
   public void addItem(Item.Type type, float amount) {
     addItem(new Item(type, amount)) ;
   }
+  
   
   /**  Removes the given item from this inventory.  The item given must have a
     *  single unique match, and the match must be greater in amount.  Returns
@@ -171,6 +183,7 @@ public class Inventory {
     return amount ;
   }
   
+  
   public float transfer(Item item, Owner to) {
     final float amount = Math.min(item.amount, amountOf(item)) ;
     final Item transfers = new Item(item, amount) ;
@@ -187,6 +200,7 @@ public class Inventory {
     return amountOf(new Item(type)) ;
   }
   
+  
   /**  Returns all matches with the given item.
     */
   public Batch <Item> matches(Item item) {
@@ -198,15 +212,13 @@ public class Inventory {
     }
     return matches ;
   }
-
+  
+  
   public Batch <Item> matches(Item.Type type) {
     final Batch <Item> matches = new Batch <Item> (4) ;
     for (Item found : itemTable.values()) {
       if (found.type == type) matches.add(found) ;
     }
-    //final Stack <Item> ofType = types.get(type) ;
-    //if (ofType == null) return matches ;
-    //for (Item found : ofType) matches.add(found) ;
     return matches ;
   }
   
@@ -220,6 +232,7 @@ public class Inventory {
     }
     return amount ;
   }
+  
   
   /**  Returns whether this inventory has enough of the given item to satisfy
     *  match criteria.

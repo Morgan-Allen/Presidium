@@ -7,13 +7,13 @@
 
 package src.game.common ;
 import src.game.planet.* ;
-import src.util.* ;
-import src.graphics.common.* ;
+import src.game.campaign.* ;
 import src.game.actors.* ;
-import src.game.building.* ;
-import src.game.common.WorldSections.Section ;
-import src.game.common.WorldSections.Descent ;
+//import src.game.building.* ;
+import src.game.common.WorldSections.* ;
 import src.graphics.widgets.* ;
+import src.graphics.common.* ;
+import src.util.* ;
 
 
 
@@ -33,7 +33,8 @@ public class World {
   private Terrain terrain ;
   private RandomScan growth ;
   
-  private List <Mobile> active = new List <Mobile> () ;
+  private List <Base> bases = new List <Base> () ;
+  private List <Mobile> mobiles = new List <Mobile> () ;
   private float currentTime ;
   final public Activities activities ;
   
@@ -73,7 +74,7 @@ public class World {
     terrain = (Terrain) s.loadObject() ;
     terrain.initPatchGrid(SECTION_RESOLUTION) ;
     growth.loadState(s) ;
-    
+    s.loadObjects(bases) ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
       toggleActive((Mobile) s.loadObject(), true) ;
     }
@@ -92,9 +93,9 @@ public class World {
     
     s.saveObject(terrain) ;
     growth.saveState(s) ;
-    
-    s.saveInt(active.size()) ;
-    for (Mobile m : active) s.saveObject(m) ;
+    s.saveObjects(bases) ;
+    s.saveInt(mobiles.size()) ;
+    for (Mobile m : mobiles) s.saveObject(m) ;
     activities.saveState(s) ;
   }
   
@@ -111,6 +112,12 @@ public class World {
   public Tile tileAt(int x, int y) {
     try { return tiles[x][y] ; }
     catch (ArrayIndexOutOfBoundsException e) { return null ; }
+  }
+  
+  
+  public Tile tileAt(Target t) {
+    final Vec3D v = t.position(null) ;
+    return tileAt(v.x, v.y) ;
   }
   
   
@@ -137,31 +144,19 @@ public class World {
   }
   
   
-  public Terrain terrain() {
-    return terrain ;
-  }
-  
-  
-  public float currentTime() {
-    return currentTime ;
-  }
-  
   
   /**  Update methods.
     */
   public void updateWorld() {
-    currentTime += 1f / PlayLoop.UPDATES_PER_SECOND ;
     sections.updateBounds() ;
-    
-    //*
-    schedule.advanceSchedule(currentTime) ;
-    
-    float growIndex = (currentTime % Terrain.GROWTH_INTERVAL) ;
-    growIndex *= size * size * 1f / Terrain.GROWTH_INTERVAL ;
-    growth.scanThroughTo((int) growIndex) ;
-    
-    for (Mobile m : active) m.updateAsMobile() ;
-    //*/
+    if (! GameSettings.frozen) {
+      currentTime += 1f / PlayLoop.UPDATES_PER_SECOND ;
+      schedule.advanceSchedule(currentTime) ;
+      float growIndex = (currentTime % Terrain.GROWTH_INTERVAL) ;
+      growIndex *= size * size * 1f / Terrain.GROWTH_INTERVAL ;
+      growth.scanThroughTo((int) growIndex) ;
+      for (Mobile m : mobiles) m.updateAsMobile() ;
+    }
   }
   
   
@@ -173,14 +168,45 @@ public class World {
   
   
   protected void toggleActive(Mobile m, boolean is) {
-    if (is) m.setEntry(active.addLast(m)) ;
-    else active.removeEntry(m.entry()) ;
+    if (is) {
+      m.setEntry(mobiles.addLast(m)) ;
+    }
+    else {
+      mobiles.removeEntry(m.entry()) ;
+    }
+  }
+  
+  
+  protected void registerBase(Base base, boolean active) {
+    if (active) {
+      bases.include(base) ;
+      schedule.scheduleForUpdates(base) ;
+    }
+    else {
+      schedule.unschedule(base) ;
+      bases.remove(base) ;
+    }
+  }
+  
+  
+  public Terrain terrain() {
+    return terrain ;
+  }
+  
+  
+  public float currentTime() {
+    return currentTime ;
   }
   
   
   
   /**  Rendering and interface methods-
     */
+  public float timeWithinFrame() {
+    return currentTime + (PlayLoop.frameTime() / PlayLoop.FRAMES_PER_SECOND) ;
+  }
+  
+  
   public void renderFor(Rendering rendering, Base base) {
     //
     //  First, we obtain lists of all current visible fixtures, actors, and
@@ -199,7 +225,8 @@ public class World {
     //  We also render visible mobiles-
     Vec3D viewPos = new Vec3D() ;
     float viewRad = -1 ;
-    for (Mobile active : this.active) {
+    for (Mobile active : this.mobiles) {
+      if (active.sprite() == null) continue ;
       active.viewPosition(viewPos) ;
       viewRad = (active.height() / 2) + active.radius() ;
       if (rendering.port.intersects(viewPos, viewRad)) {

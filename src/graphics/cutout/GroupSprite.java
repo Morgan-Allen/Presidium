@@ -18,6 +18,7 @@ public class GroupSprite extends Sprite {
   
   final static Model GROUP_MODEL = new Model("GROUP-MODEL", GroupSprite.class) {
     public Sprite makeSprite() { return new GroupSprite() ; }
+    public Colour averageHue() { return Colour.GREY ; }
   } ;
   
   protected Stack <Sprite> modules = new Stack <Sprite> () ;
@@ -29,6 +30,10 @@ public class GroupSprite extends Sprite {
   public GroupSprite() {}
   
   public Model model() { return GROUP_MODEL ; }
+  
+  public Colour averageHue() {
+    return modules.getFirst().averageHue() ;
+  }
   
   
   /**  Creates a new sprite and attaches it to this group-sprite using the

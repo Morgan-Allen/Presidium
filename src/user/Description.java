@@ -7,6 +7,7 @@
 package src.user ;
 import src.graphics.widgets.Text.Clickable ;
 import src.graphics.common.* ;
+import src.util.* ;
 
 
 public interface Description {
@@ -19,6 +20,8 @@ public interface Description {
   public void append(String s, Colour c) ;
   public void append(String s) ;
   public void append(Object o) ;
+  
+  public void appendList(String s, Series l) ;
   
   public boolean insert(Texture graphic, int maxSize) ;
 }

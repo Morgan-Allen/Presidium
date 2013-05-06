@@ -173,6 +173,18 @@ final public class Texture {
     buffer.clear() ;
     buffer.put(vals) ;
   }
+  
+  public void putColour(Colour c, int x, int y) {
+    c.storeByteValue(tempRGBA, 0) ;
+    final int limit = buffer.limit() ;
+    final int offset = ((y * trueSize) + x) * 4 ;
+    buffer.position(offset) ;
+    buffer.put(tempRGBA, 0, 4) ;
+    buffer.limit(limit) ;
+    buffer.position(limit) ;
+    cached = false ;
+  }
+  
   /*
   public void putColour(int tU, int tV, Colour colour) {
     I.say("Size of buffer is: "+buffer.capacity()) ;
@@ -314,7 +326,8 @@ final public class Texture {
   private static IntBuffer tmpID = BufferUtils.createIntBuffer(1) ;
   private void cacheTex() {
     if (glID == -1) {
-      tmpID.rewind() ; GL11.glGenTextures(tmpID) ;
+      tmpID.rewind() ;
+      GL11.glGenTextures(tmpID) ;
       glID = tmpID.get(0) ;
     }
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, glID) ;

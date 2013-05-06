@@ -9,6 +9,8 @@ package src.game.common ;
 import src.util.* ;
 import src.game.planet.* ;
 import src.game.building.* ;
+import src.graphics.common.* ;
+import src.user.* ;
 
 
 
@@ -99,6 +101,11 @@ public class Tile implements Target, TileConstants, Boardable {
     if (e == owner) return ;
     this.owner = e ;
     world.sections.flagBoundsUpdate(x, y) ;
+    /*
+    if (PlayLoop.currentUI() instanceof BaseUI) {
+      ((BaseUI) PlayLoop.currentUI()).minimap.updateAt(this) ;
+    }
+    //*/
   }
   
   
@@ -177,8 +184,8 @@ public class Tile implements Target, TileConstants, Boardable {
     */
   public Boardable[] canBoard(Boardable batch[]) {
     if (batch == null) batch = new Boardable[8] ;
-    if (owner() instanceof Venue) {
-      return ((Venue) owner()).entrances() ;
+    if (blocked() && owner() instanceof Boardable) {
+      return ((Boardable) owner()).canBoard(batch) ;
     }
     for (int n : N_INDEX) {
       batch[n] = null ;
@@ -190,7 +197,7 @@ public class Tile implements Target, TileConstants, Boardable {
       if (batch[(i + 7) % 8] == null) batch[i] = null ;
       if (batch[(i + 1) % 8] == null) batch[i] = null ;
     }
-    for (int n : N_ADJACENT) {
+    for (int n : N_ADJACENT) {//if (batch[n] == null) {
       final Tile t = world.tileAt(x + N_X[n], y + N_Y[n]) ;
       if (t == null || ! (t.owner() instanceof Venue)) continue ;
       final Venue v = (Venue) t.owner() ;
@@ -231,7 +238,19 @@ public class Tile implements Target, TileConstants, Boardable {
   public String toString() {
     return "Tile at "+x+" "+y ;
   }
+  
+  
+  public Colour minimapHue() {
+    if (owner != null && owner.sprite() != null) {
+      return owner.sprite().averageHue() ;
+    }
+    if (world.terrain().isRoad(this)) return Habitat.ROAD_TEXTURE.averaged() ;
+    return habitat().baseTex.averaged() ;
+  }
 }
+
+
+
 
 
 

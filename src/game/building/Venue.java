@@ -14,9 +14,13 @@ import src.util.* ;
 
 
 
+//
+//  Get rid of the entrances() and isEntrance() methods.  Just use the
+//  Boardable interface and equivalents within.
+
 public abstract class Venue extends Fixture implements
   Schedule.Updates, Boardable, Installation,
-  Inventory.Owner, Behaviour, Paving.Hub
+  Inventory.Owner, Citizen.Employment, Paving.Hub
 {
   
   
@@ -119,7 +123,7 @@ public abstract class Venue extends Fixture implements
     final World world = origin().world ;
     final Tile eT = entrances()[0] ;
     for (Tile t : world.tilesIn(around, false)) {
-      if (t.owner() != null) t.owner().exitWorld() ;
+      if (t.owner() != null && t.owner() != this) t.owner().exitWorld() ;
     }
     for (Tile t : world.tilesIn(area(), false)) {
       for (Mobile m : t.inside()) m.setPosition(eT.x, eT.y, world) ;
@@ -228,35 +232,15 @@ public abstract class Venue extends Fixture implements
 
   /**  Recruiting staff and assigning manufacturing tasks-
     */
-  public Behaviour nextStepFor(Actor actor) {
-    return null ;
+  public void setWorker(Citizen actor, boolean is) {
+    personnel.setWorker(actor, is) ;
   }
-  
-  
-  public float priorityFor(Actor actor) {
-    //  Have a system of shifts?
-    return ROUTINE ;
-  }
-  
-  
-  public boolean complete() {
-    return false ;
-  }
-  
-  
-  public boolean monitor(Actor actor) {
-    return false ;
-  }
-  
-  
-  public void abortStep() {}
-  
   
   protected abstract Vocation[] careers() ;
-  protected abstract Item.Type[] itemsMade() ;
+  protected abstract Item.Type[] goods() ;
   
   public Object[] services() {
-    return itemsMade() ;
+    return goods() ;
   }
   
   

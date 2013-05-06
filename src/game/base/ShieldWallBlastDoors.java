@@ -51,15 +51,21 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
   }
   
   
+  /**  Employment methods-
+    */
   protected Vocation[] careers() {
     return new Vocation[] {} ;
   }
   
   
-  protected Item.Type[] itemsMade() {
+  protected Item.Type[] goods() {
     return new Item.Type[] {} ;
   }
   
+  
+  public Behaviour jobFor(Citizen actor) {
+    return null ;
+  }
   
   
   /**  Life cycle and placement-

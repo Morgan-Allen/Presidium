@@ -312,6 +312,10 @@ public class ImageModel extends Model {
   public ImageSprite makeSprite() {
     return new ImageSprite(this) ;
   }
+  
+  public Colour averageHue() {
+    return texture.averaged() ;
+  }
 }
 
 

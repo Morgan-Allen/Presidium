@@ -18,7 +18,6 @@ public class VenuePersonnel {
   /**  Fields, constructors, and save/load methods-
     */
   final Venue venue ;
-  //  TODO- move visitors here as well.
   final List <Citizen>
     workers   = new List <Citizen> (),
     residents = new List <Citizen> () ;
@@ -55,12 +54,14 @@ public class VenuePersonnel {
     */
   protected void onWorldEntry() {
     //  TODO:  This is a temporary measure.  Abolish later.
+    //  Soon, you'll want an explicit process of screening applicants for a
+    //  given position.
     for (Vocation v : venue.careers()) recruitWorker(v) ;
   }
   
   
   protected void onWorldExit() {
-    for (Citizen c : workers  ()) c.setWorkVenue(null) ;
+    for (Citizen c : workers()) c.removeEmployer(venue) ;
     for (Citizen c : residents()) c.setHomeVenue(null) ;
   }
   
@@ -77,22 +78,21 @@ public class VenuePersonnel {
   
   
   public void recruitWorker(Vocation v) {
+    //
     //  You also need to determine the worker's home planet environment, full
     //  name, and maybe links to family or one or two past career events.
     final Citizen citizen = new Citizen(v, venue.base()) ;
-    citizen.setWorkVenue(venue) ;
-    final Tile t = venue.entrances()[0] ;
-    citizen.enterWorldAt(t.x, t.y, venue.world()) ;
+    citizen.addEmployer(venue) ;
+    //citizen.setWorkVenue(venue) ;
+    
+    venue.base.offworld.addImmigrant(citizen) ;
+    
+    //final Tile t = venue.entrances()[0] ;
+    //citizen.enterWorldAt(t.x, t.y, venue.world()) ;
     //I.say("Recruited "+citizen+" at: "+t) ;
     //((BaseUI) PlayLoop.currentUI()).setSelection(citizen) ;
   }
-  
-  
 }
-
-
-
-
 
 
 

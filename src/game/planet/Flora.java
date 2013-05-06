@@ -83,7 +83,7 @@ public class Flora extends Element implements TileConstants {
     
     if ((! init) && t.owner() instanceof Flora) {
       final Flora f = (Flora) t.owner() ;
-      f.incGrowth(Rand.num() * 2 * 0.1f) ;
+      f.incGrowth(Rand.num() * 2 * 0.1f, world) ;
     }
     
     else if ((! t.blocked()) && Rand.num() < growChance) {
@@ -100,27 +100,27 @@ public class Flora extends Element implements TileConstants {
         final Flora f = new Flora(h) ;
         if (init) {
           f.enterWorldAt(t.x, t.y, world) ;
-          if (Rand.num() < growChance * 4) f.incGrowth(MAX_GROWTH - 1) ;
-          else f.incGrowth(1) ;
+          if (Rand.num() < growChance * 4) f.incGrowth(MAX_GROWTH - 1, world) ;
+          else f.incGrowth(1, world) ;
           f.inceptTime = -10 ;
         }
         else if (Rand.num() < 0.1f) {
           f.enterWorldAt(t.x, t.y, world) ;
-          f.incGrowth(0.5f) ;
+          f.incGrowth(0.5f, world) ;
         }
       }
     }
   }
   
   
-  protected void incGrowth(float inc) {
+  protected void incGrowth(float inc, World world) {
     growth += inc ;
     if (growth < 0 || growth >= MAX_GROWTH) exitWorld() ;
     else {
       final int tier = (int) growth ;
       final ImageModel model = habitat.floraModels[varID][tier] ;
       this.attachSprite(model.makeSprite()) ;
-      inceptTime = world().currentTime() ;
+      inceptTime = world.currentTime() ;
     }
   }
 }

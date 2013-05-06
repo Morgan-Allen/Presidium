@@ -21,11 +21,6 @@ public class Paving implements TileConstants {
   
   /**  Field definitions, constructors, and save/load methods-
     */
-  //
-  //  TODO:  You'll want to extend this beyond just venues, to allow for
-  //  connection to things like mag nodes.
-  //final Venue venue ;
-  
   public static interface Hub extends Target {
     Paving paving() ;
     Tile origin() ;
@@ -36,12 +31,12 @@ public class Paving implements TileConstants {
     Box2D area() ;
   }
   
-  private static class Route {
+  protected static class Route {
+    Hub hubA, hubB ;
     Tile start, end, path[] ;
     private boolean fresh ;
   }
   
-  //final Base base ;
   final Hub hub ;
   List <Route> routes = new List <Route> () ;
   
@@ -132,7 +127,7 @@ public class Paving implements TileConstants {
     //
     //  Firstly, identify the previous and current routes between these venues-
     final Route
-      newRoute = routeFor(a.origin(), b.origin()),
+      newRoute = routeFor(a, b),
       oldRoute = currentMatch(newRoute, a) ;
     final RouteSearch search = new RouteSearch(
       a.entrances()[0], b.entrances()[0], Element.FIXTURE_OWNS
@@ -189,7 +184,7 @@ public class Paving implements TileConstants {
   }
   
   
-  private Route currentMatch(Route r, Hub v) {
+  protected Route currentMatch(Route r, Hub v) {
     for (Route m : v.paving().routes) {
       if (m.start == r.start && m.end == r.end) return m ;
     }
@@ -197,11 +192,14 @@ public class Paving implements TileConstants {
   }
   
   
-  private Route routeFor(Tile a, Tile b) {
+  private Route routeFor(Hub aH, Hub bH) {
     //
     //  We must ensure the ordering of start/end tiles remains stable to ensure
     //  that pathing between them remains consistent.
+    final Tile a = aH.origin(), b = bH.origin() ;
     final Route route = new Route() ;
+    route.hubA = aH ;
+    route.hubB = bH ;
     final int s = world().size ;
     final boolean flip = ((a.x * s) + a.y) > ((b.x * s) + b.y) ;
     if (flip) { route.start = b ; route.end = b ; }
@@ -209,4 +207,6 @@ public class Paving implements TileConstants {
     return route ;
   }
 }
+
+
 

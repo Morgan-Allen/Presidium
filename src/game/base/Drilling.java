@@ -113,7 +113,7 @@ public class Drilling extends Venue implements VenueConstants {
   }
 
 
-  protected Item.Type[] itemsMade() {
+  protected Item.Type[] goods() {
     return new Item.Type[] { mined } ;
   }
   
@@ -123,9 +123,9 @@ public class Drilling extends Venue implements VenueConstants {
   }
   
   
-  public Behaviour nextStepFor(Actor actor) {
+  public Behaviour jobFor(Citizen actor) {
 
-    final Delivery d = orders.nextDelivery(actor, itemsMade()) ;
+    final Delivery d = orders.nextDelivery(actor, goods()) ;
     if (d != null) return d ;
     
     if (stocks.amountOf(mined) > 50) return null ;

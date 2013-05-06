@@ -141,6 +141,14 @@ public class Text extends UINode implements Description {
   public void append(String s, Colour c) { append(s, null, c) ; }
   public void append(String s) { append(s, null, null) ; }
   
+  public void appendList(String s, Series l) {
+    append(s) ;
+    int i = 0 ; for (Object o : l) {
+      append(o) ;
+      if (++i < l.size()) append(", ") ;
+    }
+  }
+  
   
   /**  Adds a single image entry to this text object.  Images are used as
     *  'bullets' to indent and separate text, and this format is retained until

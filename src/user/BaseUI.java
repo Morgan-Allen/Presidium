@@ -48,7 +48,7 @@ public class BaseUI extends HUD {
   private Vec3D homePos = new Vec3D() ;
   final public Camera camera ;
   
-  private Minimap minimap ;
+  final public Minimap minimap ;
   private Button buildingsButton ;
   
   
@@ -67,18 +67,10 @@ public class BaseUI extends HUD {
     this.world = world ;
     this.rendering = rendering ;
     this.camera = new Camera(this, rendering.port) ;
-  }
-  
-  
-  public void setupUI(Base played, Vec3D homePos) {
-    this.played = played ;
-    this.homePos.setTo(homePos) ;
-    rendering.port.cameraPosition.setTo(homePos) ;
     this.relBound.set(0, 0, 1, 1) ;
     
-
     final BaseUI UI = this ;
-    buildingsButton = new Button(
+    this.buildingsButton = new Button(
       this, "media/GUI/Tabs/install_button.gif",
       "Open the installations panel"
     ) {
@@ -96,55 +88,26 @@ public class BaseUI extends HUD {
     buildingsButton.absBound.set(10, 10, 40, 40) ;
     buildingsButton.relBound.set(0, 0, 0, 0) ;
     buildingsButton.attachTo(this) ;
-    
-    minimap = new Minimap(this, world, played) ;
+
+    this.minimap = new Minimap(this, world, null) ;
     minimap.relBound.set(1, 1, 0, 0) ;
     minimap.absBound.set(-210, -210, 200, 200) ;
     minimap.attachTo(this) ;
-    
-    
-    /*
-    buildingsButton = new Button(
-      this, "media/GUI/Tabs/install_button.gif",
-      "Open the installations panel"
-    ) {
-      protected void whenClicked() {
-        if (UI.currentPanel() instanceof BuildingsTab) {
-          UI.setPanel(null) ;
-          return ;
-        }
-        final BuildingsTab tab = new BuildingsTab(UI) ;
-        UI.setPanel(tab) ;
-      }
-    } ;
-    buildingsButton.stretch = false ;
-    buildingsButton.absBound.set(10, 10, 40, 40) ;
-    buildingsButton.relBound.set(0, 0, 0, 0) ;
-    buildingsButton.attachTo(this) ;
-    
-    creditText = new Text(this, INFO_FONT, "", false) ;
-    creditText.absBound.set(10, -50, 100, 40) ;
-    creditText.relBound.set(0.33f, 1, 0, 0) ;
-    creditText.attachTo(this) ;
-    
-    minimap = new Minimap(this, world, realm) ;
-    minimap.relBound.set(1, 1, 0, 0) ;
-    minimap.absBound.set(-210, -210, 200, 200) ;
-    minimap.attachTo(this) ;
-    //*/
-    /*
-    messages = new MessageFeed(this) ;
-    messages.relBound.set(0.33f, 0.9f, 0.33f, 0.1f) ;
-    messages.absBound.set(0, -10, 0, 0) ;
-    messages.attachTo(this) ;
-    //*/
+  }
+  
+  
+  public void assignBaseSetup(Base played, Vec3D homePos) {
+    this.played = played ;
+    this.homePos.setTo(homePos) ;
+    rendering.port.cameraPosition.setTo(homePos) ;
+    minimap.setBase(played) ;
   }
   
   
   public void loadState(Session s) throws Exception {
-    final Base realm = (Base) s.loadObject() ;
+    final Base played = (Base) s.loadObject() ;
     homePos.loadFrom(s.input()) ;
-    setupUI(realm, homePos) ;
+    assignBaseSetup(played, homePos) ;
     camera.loadState(s) ;
     final Target lastSelect = s.loadTarget() ;
     setSelection((Selectable) lastSelect) ;
@@ -182,11 +145,7 @@ public class BaseUI extends HUD {
       if (KeyInput.isKeyDown(Keyboard.KEY_ESCAPE)) task.cancelTask() ;
       else task.doTask() ;
     }
-    //
-    //  TODO:  Add the overlays as clients to the rendering?
-    //if (true) return ;
-    //HOVER_OVERLAY.draw(hovered, rendering.port) ;
-    //PICKED_OVERLAY.draw(selected, rendering.port) ;
+    //  You need to add the selection overlays as clients here.
   }
   
   
@@ -195,6 +154,7 @@ public class BaseUI extends HUD {
     */
   public void renderHUD(Box2D bounds) {
     super.renderHUD(bounds) ;
+    //
     //  NOTE:  We have to wait until after HUD rendering for this, to ensure
     //  that the info-panel's bounds have been correctly updated.
     if (selectInfo != null) camera.setLockOffset(selectInfo.xdim() / 2, 0) ;
@@ -225,6 +185,7 @@ public class BaseUI extends HUD {
   public Tile    pickedTile   () { return pickTile    ; }
   public Fixture pickedFixture() { return pickFixture ; }
   public Mobile  pickedMobile () { return pickMobile  ; }
+  
   
   
   /**  Updates the current selection of items in the world-
@@ -267,10 +228,8 @@ public class BaseUI extends HUD {
   }
   
   
+  
   /**  Sets the current selection to the given argument.
-    *  TODO:  In order to ensure that info-panels bounds are correctly
-    *  calculated at all times, the switch from an old to a new selection may
-    *  have to be delayed.
     */
   public void setSelection(Selectable s) {
     if (s != null) {
@@ -315,9 +274,6 @@ public class BaseUI extends HUD {
   UIGroup currentPanel() {
     return selectInfo ;
   }
-  
-  
-  
 }
 
 
@@ -327,6 +283,42 @@ public class BaseUI extends HUD {
 
 
 
+
+/*
+buildingsButton = new Button(
+  this, "media/GUI/Tabs/install_button.gif",
+  "Open the installations panel"
+) {
+  protected void whenClicked() {
+    if (UI.currentPanel() instanceof BuildingsTab) {
+      UI.setPanel(null) ;
+      return ;
+    }
+    final BuildingsTab tab = new BuildingsTab(UI) ;
+    UI.setPanel(tab) ;
+  }
+} ;
+buildingsButton.stretch = false ;
+buildingsButton.absBound.set(10, 10, 40, 40) ;
+buildingsButton.relBound.set(0, 0, 0, 0) ;
+buildingsButton.attachTo(this) ;
+
+creditText = new Text(this, INFO_FONT, "", false) ;
+creditText.absBound.set(10, -50, 100, 40) ;
+creditText.relBound.set(0.33f, 1, 0, 0) ;
+creditText.attachTo(this) ;
+
+minimap = new Minimap(this, world, realm) ;
+minimap.relBound.set(1, 1, 0, 0) ;
+minimap.absBound.set(-210, -210, 200, 200) ;
+minimap.attachTo(this) ;
+//*/
+/*
+messages = new MessageFeed(this) ;
+messages.relBound.set(0.33f, 0.9f, 0.33f, 0.1f) ;
+messages.absBound.set(0, -10, 0, 0) ;
+messages.attachTo(this) ;
+//*/
 
 
 

@@ -75,24 +75,21 @@ public class TownVault extends Venue implements VenueConstants {
       ///I.say("Adding demand for: "+holding.fullName()) ;
     }
     
-    for (Object o : base().servicesNear(base(), this, 32)) {
-      final Venue v = (Venue) o ;
-      for (Citizen c : v.personnel.workers()) {
-        if (c.home() == null) toHouse.include(c) ;
-      }
-    }
-    if (toHouse.size() > 0) {
-      Citizen citizen = toHouse.first() ;
-      I.say("Attempting to find housing for: "+citizen) ;
-      Holding holding = findHousingSite(citizen) ;
-      if (holding != null) {
-        I.say("Housing found!") ;
-        final Tile o = holding.origin() ;
-        holding.clearSurrounds() ;
-        holding.enterWorldAt(o.x, o.y, world) ;
-        citizen.setHomeVenue(holding) ;
-        toHouse.remove(citizen) ;
-        holdings.add(holding) ;
+    for (Object t : base().servicesNear(base(), this, 32)) {
+      final Venue v = (Venue) t ;
+      for (Citizen citizen : v.personnel.workers()) {
+        if (citizen.home() != null) continue ;
+        I.say("Attempting to find housing for: "+citizen) ;
+        Holding holding = findHousingSite(citizen, v) ;
+        if (holding != null) {
+          I.say("Housing found!") ;
+          final Tile o = holding.origin() ;
+          holding.clearSurrounds() ;
+          holding.enterWorldAt(o.x, o.y, world) ;
+          citizen.setHomeVenue(holding) ;
+          toHouse.remove(citizen) ;
+          holdings.add(holding) ;
+        }
       }
     }
   }
@@ -101,12 +98,12 @@ public class TownVault extends Venue implements VenueConstants {
   /**  Obtaining and rating housing sites-
     *    Consider making this static within the Holding class.
     */
-  private Holding findHousingSite(Citizen citizen) {
+  private Holding findHousingSite(Citizen citizen, Venue works) {
     
     final int maxRange = Planet.SECTOR_SIZE ;
     final Holding holding = new Holding(base(), this) ;
     
-    Vec3D midPos = idealSite(citizen) ;
+    Vec3D midPos = idealSite(citizen, works) ;
     final Tile midTile = world.tileAt(midPos.x, midPos.y) ;
     final Tile enterTile = Spacing.nearestOpenTile(midTile, midTile) ;
     final Box2D limit = new Box2D().set(
@@ -142,11 +139,12 @@ public class TownVault extends Venue implements VenueConstants {
   }
   
   
-  private Vec3D idealSite(Citizen citizen) {
-    Vec3D midPos = citizen.work().position(null) ;
+  private Vec3D idealSite(Citizen citizen, Venue works) {
+    Vec3D midPos = works.position(null) ;
     midPos.add(this.position(null)).scale(0.5f) ;
     return midPos ;
   }
+  
   
   /*
   private float rateHolding(Holding holding, Citizen citizen) {
@@ -157,10 +155,10 @@ public class TownVault extends Venue implements VenueConstants {
   //*/
   
   //  TODO- debug this.
-  
+
   /**  Implementing construction, upgrades, downgrades and salvage-
     */
-  public Behaviour nextStepFor(Actor actor) {
+  public Behaviour jobFor(Citizen actor) {
     for (Holding h : holdings) for (Item i : h.goodsNeeded().raw) {
       final Delivery d = deliveryFor(i, h) ;
       if (d != null) return d ;
@@ -206,7 +204,7 @@ public class TownVault extends Venue implements VenueConstants {
     return new Vocation[] { Vocation.TECHNICIAN } ;
   }
   
-  protected Item.Type[] itemsMade() {
+  protected Item.Type[] goods() {
     return new Item.Type[0] ;
   }
 }

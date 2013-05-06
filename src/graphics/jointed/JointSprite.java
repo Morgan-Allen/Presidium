@@ -77,7 +77,6 @@ public class JointSprite extends Sprite {
       animation = new Animation(this, range) ;
     }
     animation.setProgress(progress) ;
-    //animation.setProgress((System.currentTimeMillis() / 1000f) % 1) ;
   }
   
   

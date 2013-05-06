@@ -6,22 +6,85 @@
 
 
 package src.game.building ;
+import src.game.actors.Actor;
+import src.game.actors.Behaviour;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.user.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  This could issue orders as well.  Implement an 'Employment'
+//  interface to generate Plans for particular actors.
 
-public class Vehicle extends Mobile implements Boardable {
+
+public abstract class Vehicle extends Mobile implements
+  Boardable, Inventory.Owner, Citizen.Employment
+{
   
   
-  List <Mobile> inside = new List <Mobile> () ;
-  DropPoint dropPoint ;
+  /**  Fields, constants, constructors and save/load methods-
+    */
+  final public Inventory cargo = new Inventory(this) ;
+  final protected List <Mobile> inside = new List <Mobile> () ;
+  final protected List <Citizen> crew = new List <Citizen> () ;
+  
+  protected Venue dropPoint ;
+  protected float entranceFace = Venue.ENTRANCE_NONE ;
+  
+  
+  public Vehicle() {
+    super() ;
+  }
+
+  public Vehicle(Session s) throws Exception {
+    super(s) ;
+    cargo.loadState(s) ;
+    s.loadObjects(inside) ;
+    s.loadObjects(crew) ;
+    dropPoint = (Venue) s.loadObject() ;
+    entranceFace = s.loadFloat() ;
+  }
+  
+  public void saveState(Session s) throws Exception {
+    super.saveState(s) ;
+    cargo.saveState(s) ;
+    s.saveObjects(inside) ;
+    s.saveObjects(crew) ;
+    s.saveObject(dropPoint) ;
+    s.saveFloat(entranceFace) ;
+  }
+  
+  
+  public Base assignedBase() {
+    if (dropPoint != null) return dropPoint.base() ;
+    return null ;
+  }
   
   
   
+  /**  Assigning jobs to crew members-
+    */
+  public Behaviour jobFor(Citizen actor) {
+    return null ;
+  }
   
+  
+  public void setWorker(Citizen actor, boolean is) {
+    if (is) crew.include(actor) ;
+    else crew.remove(actor) ;
+  }
+  
+  
+  public List <Citizen> crew() {
+    return crew ;
+  }
+  
+  
+  
+  /**  Handling passengers and cargo-
+    */
   public void setInside(Mobile m, boolean is) {
     if (is) {
       inside.include(m) ;
@@ -31,9 +94,11 @@ public class Vehicle extends Mobile implements Boardable {
     }
   }
   
+  
   public List <Mobile> inside() {
     return inside ;
   }
+  
 
   public Boardable[] canBoard(Boardable batch[]) {
     if (batch == null) batch = new Boardable[1] ;
@@ -51,38 +116,61 @@ public class Vehicle extends Mobile implements Boardable {
     return put ;
   }
   
+
+  public Inventory inventory() { return cargo ; }
+  
+  
+  public boolean landed() {
+    return true ;
+  }
+  
+  
   
   /**  Rendering and interface methods-
     */
-  public String fullName() {
-    return null ;
-  }
-  
-  public Texture portrait() {
-    return null ;
-  }
-  
-  public String helpInfo() {
-    return null ;
+  public String toString() {
+    return fullName() ;
   }
   
   public String[] infoCategories() {
-    return null ;
-  }
-  
-  public void writeInformation(Description description, int categoryID) {
+    return null ;  //cargo, passengers, integrity.
   }
 
   public void whenClicked() {
+    if (PlayLoop.currentUI() instanceof BaseUI) {
+      ((BaseUI) PlayLoop.currentUI()).setSelection(this) ;
+    }
   }
-  
 }
 
 
 
 
 
+/*
+//  Strictly speaking, this ought to depend on the vehicle's motion-facing...
+protected Tile entrance() {
+  final Tile o = origin() ;
+  if (o == null) return null ;
+  final int size = (int) Math.ceil(radius() * 2) ;
+  final int coords[] = Spacing.entranceCoords(size, size, entranceFace) ;
+  return world.tileAt(o.x + coords[0], o.y + coords[1]) ;
+}
 
+
+protected void toggleDropPoint(Base base, boolean is) {
+  if (is != (dropPoint != null)) I.complain("Incorrect drop state...") ;
+  if (is) {
+    dropPoint = new DropZone(this, base) ;
+    final Tile e = entrance() ;
+    dropPoint.enterWorldAt(e.x, e.y, world) ;
+  }
+  else {
+    dropPoint.exitWorld() ;
+    dropPoint = null ;
+  }
+}
+//*/
 
 
 

@@ -46,7 +46,7 @@ public abstract class Element implements Target, Session.Saveable {
   public void saveState(Session s) throws Exception {
     s.saveBool(world != null) ;
     s.saveTarget(location) ;
-    Model.saveModel(sprite.model(), s.output()) ;
+    Model.saveModel(sprite, s.output()) ;
   }
   
   
@@ -75,6 +75,11 @@ public abstract class Element implements Target, Session.Saveable {
   public void setPosition(float x, float y, World world) {
     this.location = world.tileAt(x, y) ;
     if (location == null) I.complain("Bad location for element: "+x+" "+y) ;
+  }
+  
+  public void enterWorld() {
+    if (location == null) I.complain("Position never set!") ;
+    enterWorldAt(location.x, location.y, location.world) ;
   }
   
   public boolean inWorld() {

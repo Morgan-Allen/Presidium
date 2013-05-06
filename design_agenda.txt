@@ -1,8 +1,18 @@
 
 
-Todo:
 
-Implement the fabricator and culture vats.
-Implement housing placement and the town vault.
-Implement imports/exports.
+16 commodity types to cover (everything else is minor)
+  foodstuffs (3 types), spice
+  carbons, metals, isotopes,
+  parts, plastics, soma,
+  inscriptions, decor, medicines,
+  power, water/life support
+  devices/outfits
 
+What are the tradeoffs involved in this game?
+  The packing problem of placement of services and infrastructure while
+  accomodating aura structures.
+  The personnel you choose to recruit, their personalities, and which missions
+  you send them on at what times.
+  The schools you invest in and large-scale politics, which become an
+  increasingly binding commitment.

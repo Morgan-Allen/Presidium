@@ -12,37 +12,37 @@ import src.game.building.* ;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.jointed.* ;
-import src.user.Description ;
+import src.user.* ;
 import src.util.* ;
 
 
 
-public class Citizen extends Actor implements Behaviour {
+public class Citizen extends Actor {
   
   
+  final static String
+    FILE_DIR = "media/Actors/human/",
+    XML_PATH = FILE_DIR+"HumanModels.xml" ;
   final public static Model
     MODEL_MALE = MS3DModel.loadMS3D(
-      Actor.class, "media/Actors/human/", "MaleAnimNewSkin.ms3d", 0.025f
-    ),
+      Actor.class, FILE_DIR, "MaleAnimNewSkin.ms3d", 0.025f
+    ).loadXMLInfo(XML_PATH, "MalePrime"),
     MODEL_FEMALE = MS3DModel.loadMS3D(
-      Actor.class, "media/Actors/human/", "FemaleAnimNewSkin.ms3d", 0.025f
-    ) ;
-  static {
-    final XML
-      fileXML = XML.load("media/Actors/human/HumanModels.xml"),
-      maleXML = fileXML.matchChildValue("name", "MalePrime"),
-      femaleXML = fileXML.matchChildValue("name", "FemalePrime");
-    MODEL_MALE.loadAnimRanges(maleXML.child("animations")) ;
-    MODEL_MALE.loadAttachPoints(maleXML.child("attachPoints")) ;
-    MODEL_FEMALE.loadAnimRanges(femaleXML.child("animations")) ;
-    MODEL_FEMALE.loadAttachPoints(femaleXML.child("attachPoints")) ;
+      Actor.class, FILE_DIR, "FemaleAnimNewSkin.ms3d", 0.025f
+    ).loadXMLInfo(XML_PATH, "FemalePrime") ;
+  
+  
+  public static interface Employment extends Session.Saveable {
+    Behaviour jobFor(Citizen actor) ;
+    void setWorker(Citizen actor, boolean is) ;
   }
   
   
-  
-  
   private Vocation vocation ;
-  private Venue home, work ;
+  final List <Employment> employment = new List <Employment> () ;
+  //private Venue home, work ;
+  private Venue home ;
+  
   
   
   public Citizen(Vocation vocation, Base base) {
@@ -55,8 +55,9 @@ public class Citizen extends Actor implements Behaviour {
   
   public Citizen(Session s) throws Exception {
     super(s) ;
-    home = (Venue) s.loadObject() ;
-    work = (Venue) s.loadObject() ;
+    s.loadObjects(employment) ;
+    //home = (Venue) s.loadObject() ;
+    //work = (Venue) s.loadObject() ;
     vocation = Vocation.ALL_VOCATIONS[s.loadInt()] ;
     initSprite() ;
   }
@@ -64,22 +65,31 @@ public class Citizen extends Actor implements Behaviour {
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveObject(home) ;
-    s.saveObject(work) ;
+    s.saveObjects(employment) ;
+    //s.saveObject(home) ;
+    //s.saveObject(work) ;
     s.saveInt(vocation.ID) ;
   }
   
   
+  /*
   public void setWorkVenue(Venue work) {
     final Venue old = this.work ;
     if (old != null) old.personnel.setWorker(this, false) ;
     this.work = work ;
     if (work != null) work.personnel.setWorker(this, true) ;
   }
+  //*/
   
   
-  public Venue work() {
-    return work ;
+  public void addEmployer(Employment e) {
+    employment.include(e) ;
+    e.setWorker(this, true) ;
+  }
+  
+  public void removeEmployer(Employment e) {
+    employment.remove(e) ;
+    e.setWorker(this, false) ;
   }
   
   
@@ -99,44 +109,32 @@ public class Citizen extends Actor implements Behaviour {
   
   /**  Behaviour implementation-
     */
-  public boolean monitor(Actor actor) {
-    return true ;
+  public boolean switchBehaviour(Behaviour next, Behaviour last) {
+    return next.priorityFor(this) >= (last.priorityFor(this) + 2) ;
   }
   
   
-  public Behaviour nextStepFor(Actor actor) {
+  public Behaviour nextBehaviour() {
+    final Citizen actor = this ;
     //  TODO:  Use a choice for this.
-    if (work != null) {
+    for (Employment work : employment) {
+    //if (work != null) {
       //I.say("Getting next work step...") ;
-      Behaviour atWork = work.nextStepFor(actor) ;
+      Behaviour atWork = work.jobFor(actor) ;
       if (atWork != null) return atWork ;
     }
     if (home != null) {
-      Behaviour atHome = home.nextStepFor(actor) ;
+      Behaviour atHome = home.jobFor(actor) ;
       if (atHome != null) return atHome ;
     }
+    //
+    //  If you've no other business to attend to, try and find any untaken job
+    //  nearby and attend to it-
+    
     //
     //  Try a range of other spontaneous behaviours, include relaxation and
     //  wandering-
     return new Patrolling(actor, actor, 5) ;
-  }
-  
-  public void abortStep() {
-  }
-  
-  
-  protected Behaviour initBehaviour() {
-    return this ;
-  }
-  
-  
-  public float priorityFor(Actor actor) {
-    return CRITICAL ;
-  }
-  
-  
-  public boolean complete() {
-    return false ;
   }
   
   
@@ -172,7 +170,7 @@ public class Citizen extends Actor implements Behaviour {
   
   public Texture portrait() {
     //  TODO:
-    //  Get the portrait associated with your ethnicity, age, and handsomeness.
+    //  Get the portrait associated with your ethnicity, age, sex, and looks.
     //  Overlay the texture for your vocation-costume.
     //  Return that.
     return null ;
@@ -202,7 +200,9 @@ public class Citizen extends Actor implements Behaviour {
       b.describeBehaviour(d) ;
     }
     d.append("\n") ;
-    if (work != null) { d.append("\nWork: ") ; d.append(work) ; }
+    if (employment.size() > 0) {
+      d.appendList("Works at: ", employment) ;
+    }
     else d.append("\nUnemployed") ;
     if (home != null) { d.append("\nHome: ") ; d.append(home) ; }
     else d.append("\nHomeless") ;
@@ -224,8 +224,6 @@ public class Citizen extends Actor implements Behaviour {
 
 
 /*
-
-
 *  Is there a pressing, life-threatening emergency?
    Running from an enemy, or raising an alarm.
    Treating/sheltering/defending someone injured or attacked.
@@ -269,6 +267,16 @@ public class Citizen extends Actor implements Behaviour {
 
 
 
+/*
+public boolean monitor(Actor actor) {
+  //  Get the next step regardless every 2 seconds or so, compare priority
+  //  with the actor's current plan, and switch if the difference is big
+  //  enough.
+  //  TODO:  Consider checking after every discrete action?  That might be
+  //  more granular.
+  return true ;
+}
+//*/
 
 
 

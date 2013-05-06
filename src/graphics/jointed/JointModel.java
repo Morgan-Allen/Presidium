@@ -48,6 +48,11 @@ public abstract class JointModel extends Model {
   }
   
   
+  public Colour averageHue() {
+    return Colour.GREY ;
+  }
+  
+  
   public void reportJoints() {
     for (Joint joint : joints) {
       I.say("Joint name is: "+joint.name) ;

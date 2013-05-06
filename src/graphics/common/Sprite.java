@@ -23,11 +23,21 @@ public abstract class Sprite implements Rendering.Client {
   
   
   protected Model.AnimRange rangeFor(String animName) {
-    for (Model.AnimRange range : this.model().animRanges()) {
+    /*
+    for (Model.AnimRange range : model().animRanges()) {
       if (range.name == animName) {
         return range ;
       }
     }
+    //*/
+    for (Model.AnimRange range : model().animRanges()) {
+      if (range.name.equals(animName)) return range ;
+    }
     return null ;
+  }
+  
+  
+  public Colour averageHue() {
+    return model().averageHue() ;
   }
 }

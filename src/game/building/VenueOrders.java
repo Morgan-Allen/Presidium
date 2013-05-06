@@ -181,6 +181,17 @@ public class VenueOrders {
   }
   
   
+  public Batch <Item> shortages(boolean requiredOnly) {
+    final Batch <Item> batch = new Batch <Item> () ;
+    for (Demand d : demands.values()) {
+      float amount = requiredShortage(d.type) ;
+      if (! requiredOnly) amount += receivedShortage(d.type) ;
+      final Item i = new Item(d.type, amount) ;
+      batch.add(i) ;
+    }
+    return batch ;
+  }
+  
   
 
   /**  Updates and maintenance.

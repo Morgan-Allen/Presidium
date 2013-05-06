@@ -11,32 +11,17 @@ import src.user.Description ;
 
 
 
-public class Creature extends Actor implements Behaviour {
-
+public class Creature extends Actor {
   
-  protected Behaviour initBehaviour() {
-    return this ;
+  
+  
+  public boolean switchBehaviour(Behaviour next, Behaviour last) {
+    return next.priorityFor(this) >= (last.priorityFor(this) + 2) ;
   }
   
-  public Behaviour nextStepFor(Actor actor) {
+  public Behaviour nextBehaviour() {
     return null ;
   }
-  
-  public void abortStep() {
-  }
-  
-  public float priorityFor(Actor actor) {
-    return CRITICAL ;
-  }
-
-  public boolean complete() {
-    return false ;
-  }
-
-  public boolean monitor(Actor actor) {
-    return true ;
-  }
-  
   
   
   /**  Rendering and interface methods-

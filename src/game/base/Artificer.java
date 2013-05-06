@@ -49,16 +49,16 @@ public class Artificer extends Venue implements VenueConstants {
     super.updateAsScheduled(numUpdates) ;
     //
     //  TODO:  This is a temporary measure.  Remove later.
-    //orders.updateDemand(PARTS, 10) ;
-    //orders.receiveDemand(PARTS, 10) ;
-    
+    for (Item.Type good : goods()) {
+      if (orders.receivedShortage(good) < 10) orders.receiveDemand(good, 10) ;
+    }
     orders.translateDemands(conversions()) ;
   }
   
   
-  public Behaviour nextStepFor(Actor actor) {
+  public Behaviour jobFor(Citizen actor) {
     
-    final Delivery d = orders.nextDelivery(actor, itemsMade()) ;
+    final Delivery d = orders.nextDelivery(actor, goods()) ;
     if (d != null) return d ;
     
     final Manufacture m = orders.nextManufacture(actor, conversions()) ;
@@ -73,7 +73,7 @@ public class Artificer extends Venue implements VenueConstants {
   }
   
   
-  protected Item.Type[] itemsMade() {
+  protected Item.Type[] goods() {
     return new Item.Type[] { PARTS } ;
   }
   

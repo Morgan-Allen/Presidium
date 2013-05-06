@@ -125,7 +125,7 @@ public class Nursery extends Venue implements VenueConstants {
   }
   
   
-  protected Item.Type[] itemsMade() {
+  protected Item.Type[] goods() {
     return new Item.Type[] { STARCHES, GREENS, PROTEIN } ;
   }
   
@@ -135,8 +135,8 @@ public class Nursery extends Venue implements VenueConstants {
   }
   
 
-  public Behaviour nextStepFor(Actor actor) {
-    final Delivery d = orders.nextDelivery(actor, itemsMade()) ;
+  public Behaviour jobFor(Citizen actor) {
+    final Delivery d = orders.nextDelivery(actor, goods()) ;
     if (d != null) return d ;
     
     final Farming f = new Farming(actor, this) ;

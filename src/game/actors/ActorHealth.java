@@ -64,8 +64,13 @@ public class ActorHealth {
     return rate ;
   }
   
+  
   public int moveType() { return moveType ; }
   
+  
+  public boolean conscious() {
+    return true ;
+  }
   
   
   

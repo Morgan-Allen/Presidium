@@ -17,8 +17,6 @@ import src.util.* ;
 
 
 
-
-
 public class WorldDebug extends PlayLoop {
   
   
@@ -52,6 +50,7 @@ public class WorldDebug extends PlayLoop {
   }
   
   
+  
   /**  Setup and initialisation-
     */
   protected World createWorld() {
@@ -76,7 +75,7 @@ public class WorldDebug extends PlayLoop {
   
   protected HUD createUI(Base base, Rendering rendering) {
     BaseUI UI = new BaseUI(base.world, rendering) ;
-    UI.setupUI(base, new Vec3D(8, 8, 0)) ;
+    UI.assignBaseSetup(base, new Vec3D(8, 8, 0)) ;
     return UI ;
   }
   
@@ -109,11 +108,14 @@ public class WorldDebug extends PlayLoop {
     this.highlightPath() ;
   }
   
-
+  
   protected boolean shouldExitLoop() {
     if (KeyInput.wasKeyPressed('r')) {
       resetGame() ;
       return false ;
+    }
+    if (KeyInput.wasKeyPressed('f')) {
+      GameSettings.frozen = ! GameSettings.frozen ;
     }
     if (KeyInput.wasKeyPressed('s')) {
       I.say("SAVING GAME...") ;
@@ -122,6 +124,7 @@ public class WorldDebug extends PlayLoop {
     }
     if (KeyInput.wasKeyPressed('l')) {
       I.say("LOADING GAME...") ;
+      GameSettings.frozen = true ;
       PlayLoop.loadGame("saves/test_session.rep") ;
       return true ;
     }
@@ -157,6 +160,7 @@ public class WorldDebug extends PlayLoop {
   }
   
   
+  
   /**  Debugging pathfinding and region-caching-
     */
   private void highlightRegion() {
@@ -180,7 +184,9 @@ public class WorldDebug extends PlayLoop {
     final Boardable hovered = hovered(UI) ;
     if (picked != null && hovered != null) {
       final PathingSearch search = new PathingSearch(picked, hovered) ;
+      if (KeyInput.wasKeyPressed('p')) search.verbose = true ;
       search.doSearch() ;
+      //if (UI.mouseClicked() && picked != hovered) search.verbose = true ;
       renderOverlay(search.allSearched(Boardable.class), Colour.GREEN) ;
       renderOverlay(search.fullPath(Boardable.class), Colour.BLUE) ;
     }
@@ -210,57 +216,5 @@ public class WorldDebug extends PlayLoop {
 }
 
 
-//
-//  TODO:  Create internal options for the following.
 
-//
-//  This enabled highlighting of paths between different tiles-
-/*
-    final BaseUI UI = (BaseUI) currentUI() ;
-    if (UI.mouseClicked()) {
-      if (picked != null) picked = null ;
-      else {
-        picked = UI.pickedTile() ;
-        if (picked != null && picked.owner() instanceof Venue) {
-          picked = ((Venue) picked.owner()).entrance() ;
-        }
-      }
-    }
-    Tile hovered = UI.pickedTile() ;
-    if (hovered != null && hovered.owner() instanceof Venue) {
-      hovered = ((Venue) hovered.owner()).entrance() ;
-    }
-    
-    if (picked != null && hovered != null) {
-      final PathingSearch search = new PathingSearch(picked, hovered) ;
-      search.doSearch() ;
-      final Tile path[] = (Tile[]) search.fullPath(Tile.class) ;
-      if (path != null && path.length > 0) {
-        final TerrainMesh overlay = world().terrain().createOverlay(
-          path, Texture.WHITE_TEX
-        ) ;
-        rendering().addClient(overlay) ;
-      }
-    }
-//*/
-
-//
-//  This enabled highlighting of regions associated with particular tiles-
-/*
-//*/
-
-
-/*
-final Citizen c = new Citizen(Vocation.ARTIFICER) ;
-c.enterWorldAt(free.x, free.y, world) ;
-//c.assignBehaviour(new Patrolling(c, c, 10)) ;
-((BaseUI) HUD).setSelection(c) ;
-//*/
-
-/*
-Terrain terrain = new Terrain(
-  32, 0.5f, 0.75f,  //map size, relative elevation, and amount of land
-  7, 6, 2  //insolation, moisture and radiation
-) ;
-//*/
 

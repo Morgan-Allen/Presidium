@@ -19,8 +19,11 @@ public class ExcavationShaft extends Venue implements VenueConstants {
   final static String
     IMG_DIR = "media/Buildings/artificer aura/" ;
   final static ImageModel
-    MODEL = ImageModel.asIsometricModel(
+    SHAFT_MODEL = ImageModel.asIsometricModel(
       ExcavationShaft.class, IMG_DIR+"excavation_shaft.gif", 4, 2
+    ),
+    MINE_OPENING = ImageModel.asIsometricModel(
+      ExcavationShaft.class, IMG_DIR+"sunk_shaft.gif", 4, 0.5f
     ) ;
   
   
@@ -31,7 +34,7 @@ public class ExcavationShaft extends Venue implements VenueConstants {
   
   public ExcavationShaft(Base base) {
     super(4, 2, Venue.ENTRANCE_EAST, base) ;
-    attachSprite(MODEL.makeSprite()) ;
+    attachSprite(SHAFT_MODEL.makeSprite()) ;
   }
 
 
@@ -52,7 +55,7 @@ public class ExcavationShaft extends Venue implements VenueConstants {
   }
   
   
-  protected Item.Type[] itemsMade() {
+  protected Item.Type[] goods() {
     return new Item.Type[] { CARBONS, METALS, ISOTOPES } ;
   }
   
@@ -64,7 +67,7 @@ public class ExcavationShaft extends Venue implements VenueConstants {
   //  carbons, metals, or isotopes.  So, you're using a spread.
   
   //  Okay.  That seems straightforward enough.
-  public Behaviour nextStepFor(Actor actor) {
+  public Behaviour jobFor(Citizen actor) {
     return null ;
   }
   

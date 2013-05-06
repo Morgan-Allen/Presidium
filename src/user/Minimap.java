@@ -14,43 +14,64 @@ import org.lwjgl.opengl.* ;
 
 
 //
-//  TODO:  Update minimap when terrain type is changed!
+//  TODO:  Have the minimap refresh itself every second or so, and simply fade
+//  in the new version on top of the old?  Something like that.  If you wanted,
+//  you could do some kind of fancy burn-in or flicker transition-effect.
 public class Minimap extends UINode {
   
   
+  final static float
+    FADE_DELAY = 1.0f ;
+  
   final BaseUI UI ;
   final World world ;
-  final Texture mapImage ;
-  private Base realm ;
+  private Base base ;
+  
+  private Texture mapImage ;//, newImage ;
+  //private float oldFade = 0 ;
+  
   
   
   public Minimap(BaseUI UI, World world, Base realm) {
     super(UI) ;
     this.UI = UI ;
     this.world = world ;
-    this.realm = realm  ;
+    this.base = realm  ;
     //
     final int texSize = world.size ;
     mapImage = Texture.createTexture(texSize, texSize) ;
+    updateImage(mapImage) ;
+  }
+  
+  
+  private void updateImage(Texture image) {
+    final int texSize = world.size ;
     byte RGBA[] = new byte[texSize * texSize * 4] ;
     for (int y = 0, m = 0 ; y < texSize ; y++) {
       for (int x = 0 ; x < texSize ; x++) {
-        final Habitat h = world.terrain().habitatAt(x, y) ;
-        final Colour avg = h.baseTex.averaged() ;
+        final Tile t = world.tileAt(x, y) ;
+        final Colour avg = t.minimapHue() ;
         avg.storeByteValue(RGBA, m) ;
         m += 4 ;
         RGBA[m - 1] = (byte) 0xff ;
       }
     }
-    mapImage.putBytes(RGBA) ;
+    image.putBytes(RGBA) ;
   }
   
   
-  public void updateAt(int x, int y) {
-    final Habitat h = world.terrain().habitatAt(x, y) ;
-    final Colour avg = h.baseTex.averaged() ;
-    //mapImage.putBytesAt(x, y, avg.storeByteValue(null, 0)) ;
+  public void setBase(Base base) {
+    this.base = base ;
   }
+  
+  
+  //*
+  public void updateAt(Tile t) {
+    final Colour avg = t.minimapHue() ;
+    ///I.say("  Updating minimap at "+t+", hue: "+avg) ;
+    mapImage.putColour(avg, t.x, t.y) ;
+  }
+  //*/
   
   
   protected UINode selectionAt(Vec2D mousePos) {
@@ -80,14 +101,27 @@ public class Minimap extends UINode {
   
   
   protected void render() {
+    //if (oldFade > FADE_DELAY || newImage == null) {
+    //  mapImage = newImage ;
+    //  final int texSize = world.size ;
+    //  newImage = Texture.createTexture(texSize, texSize) ;
+    //  updateImage(newImage) ;
+    //  oldFade = 0 ;
+    //}
+    //oldFade += 1f / PlayLoop.FRAMES_PER_SECOND ;
+    
     GL11.glColor4f(1, 1, 1, 1) ;
     mapImage.bindTex() ;
     renderTex() ;
-    if (realm != null) {
-      realm.fogMap().bindTex() ;
+    //GL11.glColor4f(1, 1, 1, oldFade) ;
+    //newImage.bindTex() ;
+    //renderTex() ;
+    if (base != null) {
+      base.fogMap().bindTex() ;
       renderTex() ;
     }
   }
+  
   
   private void renderTex() {
     //
@@ -109,3 +143,7 @@ public class Minimap extends UINode {
     GL11.glEnd() ;
   }
 }
+
+
+
+

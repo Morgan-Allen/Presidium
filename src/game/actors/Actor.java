@@ -22,22 +22,17 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
     */
   final public ActorHealth health = new ActorHealth(this) ;
   final public ActorTraining training = new ActorTraining(this) ;
-  final public ActorPathing pathing = new ActorPathing(this) ;
   final public ActorEquipment equipment = new ActorEquipment(this) ;
   
+  final public MobilePathing pathing = new MobilePathing(this) ;
   private Action action ;
   private Stack <Behaviour> behaviourStack = new Stack <Behaviour> () ;
   private Base base ;
-  
   Table <Element, Element> seen = new Table <Element, Element> () ;
   
   
   public Actor() {
-    behaviourStack.add(initBehaviour()) ;
   }
-  
-  
-  protected abstract Behaviour initBehaviour() ;
   
   
   public Actor(Session s) throws Exception {
@@ -89,35 +84,48 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   
   public void assignBehaviour(Behaviour behaviour) {
     if (behaviour == null) I.complain("CANNOT ASSIGN NULL BEHAVIOUR.") ;
-    behaviourStack.addFirst(behaviour) ;
     assignAction(null) ;
+    behaviourStack.clear() ;
+    behaviourStack.addFirst(behaviour) ;
   }
   
   
+  protected abstract Behaviour nextBehaviour() ;
+  protected abstract boolean switchBehaviour(Behaviour next, Behaviour last) ;
+  
+  
   private Action getNextAction() {
+    //
+    //  Firstly, check to see if a more compelling behaviour is due-
+    if (behaviourStack.size() > 0) {
+      final Behaviour
+        last = behaviourStack.getLast(),
+        next = nextBehaviour() ;
+      if (switchBehaviour(next, last)) assignBehaviour(next) ;
+    }
+    //
+    //  Otherwise, drill down through the set of behaviours to get a concrete
+    //  action-
     while (true) {
-      final Behaviour current = behaviourStack.getFirst() ;
       Behaviour step = null ;
-      ///I.say(this+" getting next action from "+current) ;
+      if (behaviourStack.size() == 0) {
+        step = nextBehaviour() ;
+        if (step == null) return null ;
+        behaviourStack.add(step) ;
+      }
+      final Behaviour current = behaviourStack.getFirst() ;
       if (current.complete() || (step = current.nextStepFor(this)) == null) {
-        if (behaviourStack.size() == 1) {
-          //I.complain("ROOT BEHAVIOUR CANNOT RETURN NULL!") ;
-          return null ;
-        }
         behaviourStack.removeFirst() ;
       }
       else {
         behaviourStack.addFirst(step) ;
-        if (step instanceof Action) {
-          //I.say("Returning action: "+step) ;
-          return (Action) step ;
-        }
+        if (step instanceof Action) return (Action) step ;
       }
     }
   }
   
   
-  protected void abortAction() {
+  public void abortMotion() {
     if (action == null) return ;
     I.say(this+" aborting action...") ;
     behaviourStack.removeFirst() ;
@@ -163,13 +171,24 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   
   protected void updateAsMobile() {
     super.updateAsMobile() ;
-    //  You'll have to skip this if you're KO or dead.
+    if (! health.conscious()) return ;
     if (action != null) action.updateAction() ;
   }
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    //  You'll have to skip this if you're KO or dead.
+    if (! health.conscious()) return ;
+    //
+    //  We check every 10 seconds to see if a more compelling behaviour has
+    //  come up.  We also query new actions whenever the current action is
+    //  missing or expires, and allow behaviours to monitor the actor at
+    //  regular intervals-
+    if (numUpdates % 10 == 0 && behaviourStack.size() > 0) {
+      final Behaviour
+        last = behaviourStack.getLast(),
+        next = nextBehaviour() ;
+      if (switchBehaviour(next, last)) assignBehaviour(next) ;
+    }
     if (action == null || action.complete()) {
       assignAction(getNextAction()) ;
     }

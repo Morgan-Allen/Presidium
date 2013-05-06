@@ -42,7 +42,7 @@ public class Action implements Behaviour, Model.AnimNames {
     this.actor = actor ;
     this.basis = basis ;
     this.toCall = namedMethodFor(basis, methodName) ;
-    this.priority = 1 ;
+    this.priority = ROUTINE ;
     //  TODO:  Consider automatically looking for the nearest clear tile!
     this.actionTarget = this.moveTarget = target ;
     this.duration = 1.0f ;
@@ -162,6 +162,7 @@ public class Action implements Behaviour, Model.AnimNames {
   protected void adjustMotion() {
     //
     //  Update the actor's pathing and current heading as required.
+    ///I.say(actor+" move target is: "+moveTarget) ;
     actor.pathing.updateWithTarget(moveTarget) ;
     final boolean closeEnough = actor.pathing.closeEnough() ;
     if (closeEnough) {

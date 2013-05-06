@@ -77,17 +77,17 @@ public interface VenueConstants extends ActorConstants {
     
     METALS_TO_PARTS = new Conversion(
       2, METALS, TO, 1, PARTS,
-      Artificer.class, TRICKY, ASSEMBLY, SIMPLE, CHEMISTRY
+      Artificer.class, TRICKY_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
     ),
     
     PITCHES_TO_PLASTICS = new Conversion(
       2, CARBONS, TO, 1, PLASTICS,
-      Fabricator.class, TRICKY, CHEMISTRY, SIMPLE, GRAPHIC_MEDIA
+      Fabricator.class, TRICKY_DC, CHEMISTRY, SIMPLE_DC, GRAPHIC_MEDIA
     ),
     
     NONE_TO_SOMA = new Conversion(
       TO, 1, SOMA,
-      CultureVats.class, ORDINARY, CHEMISTRY, ORDINARY, PHARMACY
+      CultureVats.class, ROUTINE_DC, CHEMISTRY, ROUTINE_DC, PHARMACY
     ) ;
 }
 

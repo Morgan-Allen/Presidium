@@ -6,7 +6,7 @@
 
 
 package src.game.common ;
-import src.game.common.WorldSections.Section ;
+//import src.game.common.WorldSections.Section ;
 import src.game.building.* ;
 import src.util.* ;
 
@@ -49,6 +49,10 @@ public class PathingSearch extends Search <Boardable> {
       ", distance: "+Spacing.outerDistance(init, destination)
     ) ;
     super.doSearch() ;
+    if (verbose) {
+      if (success()) I.say("  Success!") ;
+      else I.say("Failed.") ;
+    }
     return this ;
   }
   

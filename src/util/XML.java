@@ -26,7 +26,6 @@ public class XML {
     values[] ;
   protected Object attached = null ;
   
-  //miscellaneous no-brainer accessor methods.
   public String tag()       { return tag ; }
   public String content()   { return content ; }
   public int numChildren()  { return children.length ; }
@@ -66,14 +65,34 @@ public class XML {
     return null ;
   }
   
+  
   /**  Returns this node's value for the given attribute (if present- null
     *  otherwise.)
     */
-  public String value(String att) {
+  public String value(String label) {
     for (int n = values.length ; n-- > 0 ;)
-      if (attributes[n].equals(att)) return values[n] ;
+      if (attributes[n].equals(label)) return values[n] ;
     return null ;
   }
+  
+  
+  public boolean getBool(String label) {
+    final String val = value(label) ;
+    return (val == null) ? false : Boolean.parseBoolean(val) ;
+  }
+  
+  
+  public float getFloat(String label) {
+    final String val = value(label) ;
+    return (val == null) ? 1 : Float.parseFloat(val) ;
+  }
+  
+
+  public int getInt(String label) {
+    return (int) getFloat(label) ;
+  }
+  
+  
   
   /**  Returns the XML node constructed from the file with the given name.
     */

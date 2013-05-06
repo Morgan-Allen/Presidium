@@ -13,9 +13,16 @@ import src.util.* ;
 
 
 //
+//  TODO:  It might be best if this only updated when buildings in a section
+//  are placed/deleted, fog levels change, etc. etc.- and no more than once per
+//  10 seconds.
+//
 //  TODO:  Next, ideally, you'll want to build up a recursive tree-structure
 //  out of Regions so that the viability of pathing attempts can be determined
 //  as quickly as possible (when querying nearby venues, etc.)
+//
+//  TODO:  Much of this functionality is similar to the Paving class.  Consider
+//  merging or extension if possible.
 
 
 public class PathingCache {
@@ -53,7 +60,8 @@ public class PathingCache {
   /**  Searching for- and caching- paths between discrete regions-
     */
   //
-  //  TODO:  Consider using a Table to increase lookup efficiency.
+  //  TODO:  Consider using a Table to increase lookup efficiency, and/or have
+  //  this extend the Route class in Paving.
   private static class Path {
     
     Place from, to ;
@@ -198,18 +206,11 @@ public class PathingCache {
     Tile tiles[], core ;
     Section section ;
     List <Path> paths = new List <Path> () ;
+    
     private Place nearCache[] ;
     private Object flagged ;
     private boolean isDead = false ;
-    /*
-    public Vec3D position(Vec3D v) { return core.position(v) ; }
-    public float height() { return 0 ; }
-    public float radius() { return 0 ; }
     
-    public boolean inWorld() { return true ; }
-    public void flagWith(Object f) { this.flagged = f ; }
-    public Object flaggedWith() { return flagged ; }
-    //*/
     public String toString() {
       return "Region with core at "+core.x+" "+core.y ;
     }

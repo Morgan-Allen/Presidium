@@ -105,6 +105,7 @@ public abstract class PlayLoop implements Session.Saveable {
     gameStateWipe() ;
     world = createWorld() ;
     played = createBase(world) ;
+    world.registerBase(played, true) ;
     UI = createUI(played, rendering) ;
     configureScenario(world, played, UI) ;
   }

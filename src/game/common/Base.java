@@ -8,6 +8,7 @@
 package src.game.common ;
 import src.game.actors.* ;
 import src.game.building.* ;
+import src.game.campaign.Offworld;
 import src.graphics.common.* ;
 import src.util.* ;
 
@@ -19,14 +20,14 @@ import src.util.* ;
 //  world!
 
 
-public class Base implements Session.Saveable {
+public class Base implements Session.Saveable, Schedule.Updates {
   
   
   
   /**  Fields, constructors, and save/load methods-
     */
   final public World world ;
-  
+  final public Offworld offworld = new Offworld(this) ;
   Actor ruler ;
   List <Actor> personnel = new List <Actor> () ;
   Table <Object, Flagging> services = new Table() ;
@@ -48,7 +49,8 @@ public class Base implements Session.Saveable {
     this.world = s.world() ;
     initFog() ;
     pathingCache = new PathingCache(world, this) ;
-    
+
+    offworld.loadState(s) ;
     ruler = (Actor) s.loadObject() ;
     s.loadObjects(personnel) ;
     
@@ -60,6 +62,7 @@ public class Base implements Session.Saveable {
   
   
   public void saveState(Session s) throws Exception {
+    offworld.saveState(s) ;
     s.saveObject(ruler) ;
     s.saveObjects(personnel) ;
     
@@ -80,6 +83,16 @@ public class Base implements Session.Saveable {
     return fogMap ;
   }
   
+  
+  /**  Regular updates-
+    */
+  public float scheduledInterval() {
+    return 10 ;
+  }
+  
+  public void updateAsScheduled(int numUpdates) {
+    offworld.updateEvents() ;
+  }
   
   
   /**  Locating goods and services on offer or required-

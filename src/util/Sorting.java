@@ -351,7 +351,7 @@ public abstract class Sorting <K> implements Series <K> {
   
 
   final public Iterator <K> iterator() {
-    final int height = root.height ;
+    final int height = heightFor(root) ;
     final Node nodeStack[] = new Node[height + 1] ;
     final Side sideStack[] = new Side[height + 1] ;
     if (root != null) {

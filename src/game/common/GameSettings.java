@@ -14,16 +14,23 @@ public class GameSettings {
   public static boolean
     buildFree = false,
     noFog     = false,
-    freePath  = false ;
+    freePath  = false,
+    frozen    = false ;
   
   
+  /*
   public static void loadSettings(Session s) throws Exception {
     buildFree = s.loadBool() ;
     noFog = s.loadBool() ;
+    freePath = s.loadBool() ;
+    frozen = s.loadBool() ;
   }
   
   public static void saveSettings(Session s) throws Exception {
     s.saveBool(buildFree) ;
     s.saveBool(noFog) ;
+    s.saveBool(freePath) ;
+    s.saveBool(s.loadBool) ;
   }
+  //*/
 }

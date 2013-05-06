@@ -34,16 +34,16 @@ public class Holding extends Venue implements VenueConstants {
   
   final static Conversion construction[] = {
     new Conversion(
-      5, PARTS, SIMPLE, ASSEMBLY
+      5, PARTS, SIMPLE_DC, ASSEMBLY
     ),
     new Conversion(
-      10, PARTS, 5, PLASTICS, ORDINARY, ASSEMBLY
+      10, PARTS, 5, PLASTICS, ROUTINE_DC, ASSEMBLY
     ),
     new Conversion(
-      15, PARTS, 10, PLASTICS, TRICKY, ASSEMBLY
+      15, PARTS, 10, PLASTICS, TRICKY_DC, ASSEMBLY
     ),
     new Conversion(
-      20, PARTS, 15, PLASTICS, 5, INSCRIPTION, DIFFICULT, ASSEMBLY
+      20, PARTS, 15, PLASTICS, 5, INSCRIPTION, DIFFICULT_DC, ASSEMBLY
     ),
   } ;
   final static int occupancies[] = { 5, 5, 5, 5 } ;
@@ -144,6 +144,11 @@ public class Holding extends Venue implements VenueConstants {
   }
   
   
+  public Behaviour jobFor(Citizen actor) {
+    return null ;
+  }
+  
+  
   
   
   /**  Rendering and interface methods-
@@ -167,7 +172,7 @@ public class Holding extends Venue implements VenueConstants {
     return new Vocation[0] ;
   }
   
-  protected Item.Type[] itemsMade() {
+  protected Item.Type[] goods() {
     return new Item.Type[0] ;
   }
 }

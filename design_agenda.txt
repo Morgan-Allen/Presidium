@@ -1,6 +1,19 @@
 
 
 
+*  Consider having crops extend flora.
+
+*  Extra critter models:  Gigans and cranial.
+*  Extra humanoid models:  fat/skinny, young/old.
+*  Mutant/primitive/infected textures.
+
+*  Mining implementation-
+  grabbing areas (done... ish.  need to include clusters of fixtures.),
+  mining out areas over time,
+  creating underground tunnels to traverse,
+  smelting stuff on the surface.
+
+
 16 commodity types to cover (everything else is minor)
   foodstuffs (3 types), spice
   carbons, metals, isotopes,
@@ -9,6 +22,15 @@
   power, water/life support
   devices/outfits
 
+Structure Types (more related to schools/preserves later on-)
+  Artificer:  culture vats, reactor, foundry, excavations and smelter
+  Ecologist:  botanical station, surveyor, solar array, air processor
+  Physician:  sickbay, minder's ward, detention bloc, counsel chamber
+  Military:  bastion, house garrison, arena, mercenary company HQ
+  Commerce:  supply depot, stock exchange, cantina, audit office
+  Aesthete:  fabricator, arcology, PLAZA, companion training house
+
+
 What are the tradeoffs involved in this game?
   The packing problem of placement of services and infrastructure while
   accomodating aura structures.
@@ -16,3 +38,5 @@ What are the tradeoffs involved in this game?
   you send them on at what times.
   The schools you invest in and large-scale politics, which become an
   increasingly binding commitment.
+  
+  

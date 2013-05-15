@@ -7,16 +7,16 @@
 package src.game.common ;
 
 
+
 public class GameSettings {
   
-
   
   public static boolean
     buildFree = false,
+    hireFree  = false,
     noFog     = false,
     freePath  = false,
     frozen    = false ;
-  
   
   /*
   public static void loadSettings(Session s) throws Exception {

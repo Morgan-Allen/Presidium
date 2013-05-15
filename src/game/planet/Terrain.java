@@ -13,7 +13,6 @@ import src.util.* ;
 
 
 
-//  TODO:  An underground level, showing mineral deposits?
 public class Terrain implements TileConstants, Session.Saveable {
   
   
@@ -26,12 +25,17 @@ public class Terrain implements TileConstants, Session.Saveable {
     GROWTH_INTERVAL = Planet.DAY_LENGTH ;
   
   final public static byte
-    TYPE_CARBONS  = 0,
-    TYPE_METALS   = 1,
-    TYPE_ISOTOPES = 2,
-    DEGREE_SPARSE = 0,
-    DEGREE_COMMON = 1,
-    DEGREE_HEAVY  = 2 ;
+    TYPE_CARBONS  = 1,
+    TYPE_METALS   = 2,
+    TYPE_ISOTOPES = 3,
+    TYPE_NOTHING  = 0,
+    DEGREE_SPARSE = 1,
+    DEGREE_COMMON = 2,
+    DEGREE_HEAVY  = 3,
+    DEGREE_TAKEN  = 0,
+    NUM_TYPES = 4,
+    NUM_DEGREES = 4,
+    MAX_MINERAL_AMOUNT = 10 ;
   
   
   final public int
@@ -63,9 +67,9 @@ public class Terrain implements TileConstants, Session.Saveable {
     boolean updateMesh, updateRoads ;
   }
   
-  
   private int patchGridSize, patchSize ;
   private MeshPatch patches[][] ;
+  
   
   
   Terrain(
@@ -83,6 +87,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     for (Coord c : Visit.grid(0, 0, mapSize, mapSize, 1)) {
       habitats[c.x][c.y] = Habitat.ALL_HABITATS[typeIndex[c.x][c.y]] ;
     }
+    this.minerals = new byte[mapSize][mapSize] ;
   }
   
   
@@ -103,6 +108,8 @@ public class Terrain implements TileConstants, Session.Saveable {
     for (Coord c : Visit.grid(0, 0, mapSize, mapSize, 1)) {
       habitats[c.x][c.y] = Habitat.ALL_HABITATS[typeIndex[c.x][c.y]] ;
     }
+    minerals = new byte[mapSize][mapSize] ;
+    s.loadByteArray(minerals) ;
   }
   
   
@@ -113,6 +120,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     s.saveByteArray(varsIndex) ;
     
     s.saveByteArray(roadMask) ;
+    s.saveByteArray(minerals) ;
   }
   
   
@@ -136,11 +144,16 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   /**  Habitats and mineral deposits-
     */
+  private static Tile tempV[] = new Tile[9] ;
+  
   public void setHabitat(Tile t, Habitat h) {
     habitats[t.x][t.y] = h ;
     typeIndex[t.x][t.y] = (byte) h.ID ;
-    final MeshPatch patch = patches[t.x / patchSize][t.y / patchSize] ;
-    patch.updateMesh = true ;
+    t.refreshHabitat() ;
+    for (Tile n : t.vicinity(tempV)) if (n != null) {
+      final MeshPatch patch = patches[n.x / patchSize][n.y / patchSize] ;
+      patch.updateMesh = true ;
+    }
   }
   
   
@@ -152,12 +165,12 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   public float mineralsAt(Tile t, byte type) {
     byte m = minerals[t.x][t.y] ;
-    if (m-- <= 0) return 0 ;
-    if (m / 3 != type) return 0 ;
-    switch (m % 3) {
-      case (0) : return 2 ;
-      case (1) : return 5 ;
-      case (2) : return 9 ;
+    if (m == 0) return 0 ;
+    if (m / NUM_TYPES != type) return 0 ;
+    switch (m % NUM_TYPES) {
+      case (DEGREE_SPARSE) : return 2 ;
+      case (DEGREE_COMMON) : return 5 ;
+      case (DEGREE_HEAVY ) : return 9 ;
     }
     return 0 ;
   }
@@ -165,25 +178,25 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   public byte mineralType(Tile t) {
     byte m = minerals[t.x][t.y] ;
-    if (m-- == 0) return 0 ;
-    return (byte) (m / 3) ;
+    if (m == 0) return 0 ;
+    return (byte) (m / NUM_TYPES) ;
   }
   
   
   public float extractMineralAt(Tile t, byte type) {
     final float amount = mineralsAt(t, type) ;
     if (amount <= 0) I.complain("Can't extract that mineral type!") ;
-    minerals[t.x][t.y] = -1 ;
+    minerals[t.x][t.y] = (byte) ((type * NUM_DEGREES) + DEGREE_TAKEN) ;
     return amount ;
   }
   
   
   public void setMinerals(Tile t, byte type, byte degree) {
-    minerals[t.x][t.y] = (byte) (1 + (type * 3) + degree) ;
+    minerals[t.x][t.y] = (byte) ((type * NUM_DEGREES) + degree) ;
   }
   
   
-  public float trueHeight(int x, int y) {
+  public float trueHeight(float x, float y) {
     return HeightMap.sampleAt(mapSize, heightVals, x, y) / 4 ;
   }
   
@@ -210,17 +223,16 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   
   public TerrainMesh createOverlay(
-    Tile tiles[], final boolean nullsCount, Texture tex
+    final World world, Tile tiles[], final boolean nullsCount, Texture tex
   ) {
     if (tiles == null || tiles.length < 1) I.complain("No tiles in overlay!") ;
     final Table <Tile, Tile> pathTable = new Table(tiles.length) ;
     Box2D area = null ;
-    for (Tile t : tiles) {
+    for (Tile t : tiles) if (t != null) {
       if (area == null) area = new Box2D().set(t.x, t.y, 0, 0) ;
       pathTable.put(t, t) ;
       area.include(t.x, t.y, 0.5f) ;
     }
-    final World world = tiles[0].world ;
     final TerrainMesh overlay = createOverlay(
       area, tex,
       new TerrainMesh.TileMask() {
@@ -249,6 +261,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     ) ;
     return overlay ;
   }
+  
   
   
   /**  Rendering and interface methods-

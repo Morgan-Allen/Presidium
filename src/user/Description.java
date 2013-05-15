@@ -24,4 +24,19 @@ public interface Description {
   public void appendList(String s, Series l) ;
   
   public boolean insert(Texture graphic, int maxSize) ;
+  
+  
+  public abstract static class Link implements Clickable {
+    
+    final String name ;
+    
+    public Link(String name) { this.name = name ; }
+    
+    public String fullName() { return name ; }
+  }
 }
+
+
+
+
+

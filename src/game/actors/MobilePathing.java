@@ -9,13 +9,9 @@ package src.game.actors ;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.util.* ;
-import src.game.base.* ;
+//import src.game.base.* ;
 
 
-
-//
-//  This is going to have to be reworked to interface correctly with arbitrary
-//  Boardable-paths.
 
 public class MobilePathing {
   
@@ -67,7 +63,9 @@ public class MobilePathing {
       if (a.aboard() != null) return a.aboard() ;
       return a.origin() ;
     }
-    if (t instanceof Element) return ((Element) t).origin() ;
+    if (t instanceof Element) {
+      return Spacing.nearestOpenTile((Element) t, mobile, mobile.world()) ;
+    }
     I.complain("CANNOT GET LOCATION FOR: "+t) ;
     return null ;
   }
@@ -100,7 +98,6 @@ public class MobilePathing {
     //  Firstly, check to see if the actual path target has been changed-
     this.target = target ;
     final Boardable location = location(mobile), dest = location(target) ;
-    
     ///I.say(mobile+" location: "+location+", dest: "+dest+" ("+target+")") ;
     if (location == dest) {
       closeEnough = true ;
@@ -136,7 +133,7 @@ public class MobilePathing {
       refreshPath() ;
       if (path == null) {
         I.say("COULDN'T FIND PATH TO: "+pathTarget) ;
-        mobile.abortMotion() ;
+        mobile.pathingAbort() ;
         stepIndex = -1 ;
         return ;
       }

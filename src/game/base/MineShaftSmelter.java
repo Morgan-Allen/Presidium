@@ -11,11 +11,12 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.user.BuildingsTab ;
 import src.util.* ;
 
 
 
-public class Drilling extends Venue implements VenueConstants {
+public class MineShaftSmelter extends Venue implements VenueConstants {
   
   
   
@@ -24,13 +25,14 @@ public class Drilling extends Venue implements VenueConstants {
   final static String IMG_DIR = "media/Buildings/artificer aura/" ;
   final static Model 
     DRILL_MODELS[] = ImageModel.loadModels(
-      Drilling.class, 3, 3, IMG_DIR,
+      MineShaftSmelter.class, 3, 3, IMG_DIR,
       "isotopes_smelter.gif",
       "metals_smelter.gif",
       "carbons_smelter.gif"
     ),
     ALL_MOLD_MODELS[][] = ImageModel.fromTextureGrid(
-      Drilling.class, Texture.loadTexture(IMG_DIR+"all_molds.png"), 4, 5, 1
+      MineShaftSmelter.class, Texture.loadTexture(IMG_DIR+"all_molds.png"),
+      4, 5, 1
     ) ;
   final static int
     MOLD_COORDS[] = {
@@ -62,7 +64,7 @@ public class Drilling extends Venue implements VenueConstants {
   final Mold molds[] = new Mold[NUM_MOLDS] ;
   
   
-  public Drilling(Base belongs, int variant) {
+  public MineShaftSmelter(Base belongs, int variant) {
     super(4, 3, Venue.ENTRANCE_NORTH, belongs) ;
     this.variant = variant ;
     this.mined = MINED_TYPES[variant] ;
@@ -71,7 +73,7 @@ public class Drilling extends Venue implements VenueConstants {
   }
   
   
-  public Drilling(Session s) throws Exception {
+  public MineShaftSmelter(Session s) throws Exception {
     super(s) ;
     variant = s.loadInt() ;
     mined = MINED_TYPES[variant] ;
@@ -165,7 +167,7 @@ public class Drilling extends Venue implements VenueConstants {
   }
   
   
-  public boolean actionDrill(Actor actor, Drilling drilling) {
+  public boolean actionDrill(Actor actor, MineShaftSmelter drilling) {
     //I.say("Performing drill action...") ;
     for (Mold m : molds) {
       if (m.coolTime != -1) continue ;
@@ -241,6 +243,11 @@ public class Drilling extends Venue implements VenueConstants {
     return
       mined.name+" Drills extract large quantities of "+mined.name+
       " from subterranean mineral deposits.";
+  }
+  
+  
+  public String buildCategory() {
+    return BuildingsTab.TYPE_ARTIFICER ;
   }
 }
 

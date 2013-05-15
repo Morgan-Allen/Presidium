@@ -38,9 +38,9 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   final static float
     LOWER_FLIGHT_HEIGHT = 5,
-    UPPER_FLIGHT_RADIUS = 15,
-    UPPER_FLIGHT_TIME   = 20,
-    LOWER_FLIGHT_TIME   = 10,
+    UPPER_FLIGHT_RADIUS = 7,
+    UPPER_FLIGHT_TIME   = 9,
+    LOWER_FLIGHT_TIME   = 7,
     TOTAL_FLIGHT_TIME = UPPER_FLIGHT_TIME + LOWER_FLIGHT_TIME ;
   final public static int
     STAGE_DESCENT  = 0,
@@ -96,11 +96,10 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   /**  Perform the actual exchange of goods and people.
     */
   public void updateAsScheduled(int numUpdates) {
-    super.updateAsScheduled(numUpdates) ;
     //I.say("Updating freighter, no. of passengers: "+inside().size()) ;
     if (stage == STAGE_LANDED) {
       for (Mobile m : inside()) if (! m.inWorld()) {
-        final Tile e = dropPoint.entrances()[0] ;
+        final Tile e = dropPoint.mainEntrance() ;
         setInside(m, false) ;
         m.enterWorldAt(e.x, e.y, world) ;
         break ;
@@ -168,9 +167,11 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     liftOff.y = Visit.clamp(liftOff.y, 0, world.size - 1) ;
     this.initTime = world.currentTime() ;
     this.stage = STAGE_DESCENT ;
+    
     final Vec3D p = getShipPos(0) ;
     enterWorldAt((int) p.x, (int) p.y, world) ;
-    updateAsMobile() ;
+    position.setTo(nextPosition.setTo(p)) ;
+    rotation = nextRotation = getShipRot(0, true) ;
   }
   
   
@@ -231,12 +232,14 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   /**  Updating motion over time-
     */
   protected void updateAsMobile() {
-    ///I.say("Updating dropship...") ;
     super.updateAsMobile() ;
     if (stage == STAGE_DESCENT) {
+      ///I.say("Updating descent...") ;
       float time = Math.min(world.currentTime() - initTime, TOTAL_FLIGHT_TIME) ;
       this.nextPosition.setTo(getShipPos(time)) ;
       this.nextRotation = getShipRot(time, true) ;
+      ///I.say("Current position/rotation: "+position+"/"+rotation) ;
+      ///I.say("Next position/rotation: "+nextPosition+"/"+nextRotation) ;
       if (time == TOTAL_FLIGHT_TIME) {
         completeDescent() ;
         stage = STAGE_LANDED ;
@@ -255,26 +258,33 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     }
   }
   
+  protected boolean checkTileClear(Tile t) {
+    return true ;
+  }
   
-  public void abortMotion() {
+  
+  public void pathingAbort() {
     //  Not sure what to do here, exactly...
   }
   
   
   //  TODO:  Move this to the vehicle class?
+  //      ...This is still causing problems- jittery positioning.  Also, wierd
+  //         effects on cropland.  You'll need to perform explicit placement.
   private Vec3D getShipPos(float time) {
     if (time < UPPER_FLIGHT_TIME) {
       final float
         progress = time / UPPER_FLIGHT_TIME,
-        asAngle = (float) Math.toRadians(progress * 90),
+        asAngle  = (float) Math.toRadians(progress * 90),
         horiz = (float) Math.sin(asAngle),
-        vert = (float) Math.cos(asAngle) ;
-      final Vec3D pos = new Vec3D().set(
+        vert  = (float) Math.cos(asAngle) ;
+      final Vec3D p = new Vec3D(
         (landPos.x * horiz) + (liftOff.x * (1 - horiz)),
         (landPos.y * horiz) + (liftOff.y * (1 - horiz)),
         LOWER_FLIGHT_HEIGHT + (UPPER_FLIGHT_RADIUS * vert)
       ) ;
-      return pos ;
+      //I.say("  Horiz/vert are: "+horiz+"/"+vert+", pos: "+p) ;
+      return p ;
     }
     else {
       final float height = LOWER_FLIGHT_HEIGHT *
@@ -285,6 +295,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   
   private float getShipRot(float time, boolean descent) {
+    ///if (true) return 0 ;
     final Vec2D initVec = new Vec2D(liftOff).sub(landPos).normalise() ;
     if (descent) initVec.scale(-1) ;
     final float rotate = time / (UPPER_FLIGHT_TIME + LOWER_FLIGHT_TIME) ;

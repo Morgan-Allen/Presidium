@@ -13,6 +13,7 @@ import src.game.common.* ;
 import src.game.tactical.Patrolling ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.user.BuildingsTab;
 
 
 
@@ -71,6 +72,10 @@ public class Bastion extends Venue {
     return
       "The Bastion is your seat of command for the settlement as a "+
       "whole." ;
+  }
+  
+  public String buildCategory() {
+    return BuildingsTab.TYPE_MILITARY ;
   }
 }
 

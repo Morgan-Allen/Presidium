@@ -6,6 +6,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.user.BuildingsTab;
 import src.util.* ;
 
 
@@ -13,6 +14,9 @@ import src.util.* ;
 public class ShieldWallBlastDoors extends Venue implements TileConstants {
   
   
+  
+  /**  Fields, constants, constructors and save/load methods-
+    */
   final static String
     IMG_DIR = "media/Buildings/military aura/" ;
   final static ImageModel
@@ -51,6 +55,7 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
   }
   
   
+  
   /**  Employment methods-
     */
   protected Vocation[] careers() {
@@ -68,11 +73,17 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
   }
   
   
+  
   /**  Life cycle and placement-
     */
   public void setPosition(float x, float y, World world) {
     super.setPosition(x, y, world) ;
     entrances = null ;
+  }
+  
+  
+  public Tile mainEntrance() {
+    return entrances()[0] ;
   }
   
   
@@ -93,6 +104,16 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
       } ;
     }
     return null ;
+  }
+  
+  
+  public Boardable[] canBoard(Boardable batch[]) {
+    if (batch == null) batch = new Boardable[2] ;
+    else for (int i = batch.length ; i-- > 2 ;) batch[i] = null ;
+    entrances() ;
+    batch[0] = entrances[0] ;
+    batch[1] = entrances[1] ;
+    return batch ;
   }
   
   
@@ -120,6 +141,11 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
     return
       "Blast Doors grant your citizens access to enclosed sector of your "+
       "base." ;
+  }
+  
+  
+  public String buildCategory() {
+    return BuildingsTab.TYPE_MILITARY ;
   }
 }
 

@@ -117,6 +117,7 @@ public class JointSprite extends Sprite {
   
   
   public void renderTo(Rendering rendering) {
+    ///I.say("Rendering joint sprite") ;
     root.rotation.setIdentity() ;
     root.rotation.rotateZ((float) Math.toRadians(270 - rotation)) ;
     root.rotation.trans(root.model.rotation, root.rotation) ;

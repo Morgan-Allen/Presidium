@@ -5,6 +5,7 @@ package src.game.base ;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
+import src.user.BuildingsTab;
 import src.util.* ;
 
 
@@ -29,6 +30,8 @@ public class MagLine extends LineInstallation {
   /**  Searching for a suitable path between tiles or venues-
     */
   private Tile offsetFor(Tile t) {
+    return t ;
+    /*
     if (t == null) return null ;
     if (! (t.owner() instanceof Venue)) return t ;
     final Venue v = (Venue) t.owner() ;
@@ -45,6 +48,7 @@ public class MagLine extends LineInstallation {
       }
     }
     return closest ;
+    //*/
   }
   
   
@@ -97,8 +101,13 @@ public class MagLine extends LineInstallation {
   
   public String helpInfo() {
     return
-      "Mag Lines facilitate transport between distant sectors of your base,"+
-      "along with distribution of water, power and life support." ;
+      "Mag Lines facilitate transport between distant sectors of your base, "+
+      "along with distribution of power and life support." ;
+  }
+  
+  
+  public String buildCategory() {
+    return BuildingsTab.TYPE_COMMERCE ;
   }
 }
 

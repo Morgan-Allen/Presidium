@@ -155,6 +155,8 @@ public class Rendering {
     clients.clear() ;
     
     if (HUD != null) {
+      //  Alpha blending doesn't seem to work here.  Fix this.
+      GL11.glEnable(GL11.GL_COLOR_MATERIAL) ;
       HUD.renderHUD(new Box2D().set(0, 0, viewWide, viewHigh)) ;
     }
     

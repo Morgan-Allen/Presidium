@@ -73,7 +73,7 @@ public class Stack <T> implements Series <T> {
   final public T removeFirst() {
     if (first == null) return null ;
     final T t = first.refers ;
-    first = (size-- > 0) ? first.next : (last = null) ;
+    first = (--size > 0) ? first.next : (last = null) ;
     return t ;
   }
   

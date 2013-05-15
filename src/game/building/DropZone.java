@@ -10,6 +10,7 @@ import src.game.common.* ;
 import src.game.planet.Planet;
 import src.game.actors.* ;
 import src.graphics.common.* ;
+import src.user.BuildingsTab;
 import src.user.Description;
 import src.util.* ;
 
@@ -109,13 +110,12 @@ public class DropZone extends Venue implements VenueConstants {
   /**  Entry and exit methods, that similarly need to be overwritten.
     */
   public int owningType() {
-    return Element.VENUE_OWNS ;
+    return inWorld() ? Element.VENUE_OWNS : Element.FIXTURE_OWNS ;
   }
   
   
   public int pathType() {
-    ///I.say("Path type for drop zone blocked? "+landing.landed()) ;
-    return landing.landed() ? Tile.PATH_BLOCKS : Tile.PATH_CLEAR ;
+    return landing.landed() ? Tile.PATH_BLOCKS : Tile.PATH_HINDERS ;
   }
   
   
@@ -125,6 +125,11 @@ public class DropZone extends Venue implements VenueConstants {
     if (landing.landed()) batch[1] = landing ;
     //I.say("DropZone can board: "+batch[0]+" and "+batch[1]) ;
     return batch ;
+  }
+  
+  
+  public Vehicle landing() {
+    return landing ;
   }
   
   
@@ -145,6 +150,10 @@ public class DropZone extends Venue implements VenueConstants {
   
   public void writeInformation(Description d, int categoryID) {
     landing.writeInformation(d, categoryID) ;
+  }
+  
+  public String buildCategory() {
+    return BuildingsTab.TYPE_HIDDEN ;
   }
 }
 

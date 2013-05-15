@@ -164,9 +164,8 @@ public class Action implements Behaviour, Model.AnimNames {
     //  Update the actor's pathing and current heading as required.
     ///I.say(actor+" move target is: "+moveTarget) ;
     actor.pathing.updateWithTarget(moveTarget) ;
-    final boolean closeEnough = actor.pathing.closeEnough() ;
-    if (closeEnough) {
-      actor.projectHeading(actionTarget.position(null), 0) ;
+    if (actor.pathing.closeEnough()) {
+      actor.projectHeading(actionTarget, 0) ;
       if (inRange != 1) {
         inRange = 1 ;
         progress = oldProgress = 0 ;
@@ -175,7 +174,7 @@ public class Action implements Behaviour, Model.AnimNames {
     else {
       final Target nextStep = actor.pathing.nextStep() ;
       if (nextStep == null) return ;
-      actor.projectHeading(nextStep.position(null), actor.health.moveRate()) ;
+      actor.projectHeading(nextStep, actor.health.moveRate()) ;
       if (inRange != 0) {
         inRange = 0 ;
         progress = oldProgress = 0 ;

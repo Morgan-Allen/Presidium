@@ -131,7 +131,7 @@ public abstract class LineInstallation implements Installation, TileConstants {
   ) {
     if (toClear == null || toPlace == null) return ;
     final TerrainMesh overlay = world.terrain().createOverlay(
-      (Tile[]) toClear.toArray(Tile.class), true, Texture.WHITE_TEX
+      world, (Tile[]) toClear.toArray(Tile.class), true, Texture.WHITE_TEX
     ) ;
     overlay.colour = canPlace ? Colour.GREEN : Colour.RED ;
     rendering.addClient(overlay) ;

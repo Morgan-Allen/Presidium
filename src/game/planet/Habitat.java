@@ -27,12 +27,12 @@ public class Habitat {
   final static ImageModel
     DESERT_FLORA_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
-      Texture.loadTexture(TERRAIN_PATH+"old_flora_touchup.png"),
+      Texture.loadTexture(TERRAIN_PATH+"old_flora_resize.png"),
       4, 4, 1.9f
     ),
     FOREST_FLORA_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
-      Texture.loadTexture(TERRAIN_PATH+"old_flora_touchup.png"),
+      Texture.loadTexture(TERRAIN_PATH+"old_flora_resize.png"),
       4, 4, 1.9f
     ),
     WASTES_FLORA_MODELS[][] = ImageModel.fromTextureGrid(
@@ -41,8 +41,23 @@ public class Habitat {
       4, 4, 2.0f
     ),
     PLANKTON_MODELS[][] = null,
-    //ANNUALS_MODELS[][] = null,
-    NO_FLORA[][] = null ;
+    ANNUALS_MODELS[][]  = null,
+    NO_FLORA[][]        = null,
+    //
+    //  Finally, mineral outcrop models-
+    OUTCROP_MODELS[][] = ImageModel.fromTextureGrid(
+      Habitat.class,
+      Texture.loadTexture(TERRAIN_PATH+"all_outcrops.png"),
+      3, 3, 2.0f
+    ),
+    DUNE_MODELS[]    = OUTCROP_MODELS[2],
+    MINERAL_MODELS[] = OUTCROP_MODELS[1],
+    ROCK_LODE_MODELS[] = OUTCROP_MODELS[0],
+    SPIRE_MODELS[][] = ImageModel.fromTextureGrid(
+      Habitat.class,
+      Texture.loadTexture(TERRAIN_PATH+"all_spires.png"),
+      3, 2, 2.0f
+    ) ;
   
   final private static String
     MOISTURE   = "moisture",

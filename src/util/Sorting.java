@@ -287,28 +287,46 @@ public abstract class Sorting <K> implements Series <K> {
   }
   
   
-  public Object bestMatch(K value) {
-    Node n = root ; while (true) {
-      final int comp = compare(value, (K) n.value) ;
-      final Side s = (comp > 0) ? Side.R : Side.L ;
-      if (kidFor(n, s) == null) break ;
+  private Batch <Node> matchesFor(K value) {
+    final Batch <Node> matches = new Batch <Node> () ;
+    matchFrom(value, root, matches) ;
+    return matches ;
+  }
+  
+  
+  private void matchFrom(K value, Node node, Batch <Node> matches) {
+    final int comp = compare(value, (K) node.value) ;
+    if (comp == 0) matches.add(node) ;
+    if (node.kidL != null) {
+      if (comp < 0 || compare((K) node.kidL.value, (K) node.value) != -1) {
+        matchFrom(value, node.kidL, matches) ;
+      }
     }
-    return n ;
+    if (node.kidR != null) {
+      if (comp > 0 || compare((K) node.kidR.value, (K) node.value) !=  1) {
+        matchFrom(value, node.kidR, matches) ;
+      }
+    }
   }
   
   
   public boolean contains(K value) {
-    final Object ref = bestMatch(value) ;
-    return compare((K) ((Node) ref).value, value) == 0 ;
+    final Batch <Node> matches = matchesFor(value) ;
+    return matches.size() > 0 ;
   }
   
   
   public void delete(K value) {
-    final Object ref = bestMatch(value) ;
-    if (compare((K) ((Node) ref).value, value) != 0) {
-      I.complain("Does not contain "+value) ;
+    ///I.say("Tree state is: "+this.toString()) ;
+    final Batch <Node> matches = matchesFor(value) ;
+    ///I.say(matches.size()+" matches found.") ;
+    for (Node node : matches) {
+      if (node.value == value) {
+        deleteRef(node) ;
+        return ;
+      }
     }
-    else deleteRef(ref) ;
+    I.complain("Does not contain "+value) ;
   }
   
   

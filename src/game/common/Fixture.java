@@ -6,13 +6,14 @@
 
 
 package src.game.common ;
+import src.game.building.* ;
 import src.graphics.common.* ;
-import src.user.Selectable ;
+import src.user.* ;
 import src.util.* ;
 
 
 
-public abstract class Fixture extends Element implements Selectable {
+public abstract class Fixture extends Element {
   
   
   /**  Field definitions, constructors, and save/load methods-
@@ -47,12 +48,58 @@ public abstract class Fixture extends Element implements Selectable {
   /**  Life cycle, ownership and positioning-
     */
   public boolean canPlace() {
+    if (origin() == null) return false ;
+    final Box2D around = new Box2D().setTo(area()).expandBy(1) ;
+    for (Tile t : origin().world.tilesIn(around, false)) {
+      if (t == null || ! t.habitat().pathClear) return false ;
+      if (t.owningType() >= this.owningType()) return false ;
+    }
+    return true ;
+  }
+  
+  
+  public void clearSurrounds() {
+    final Box2D around = new Box2D().setTo(area()).expandBy(1) ;
+    final World world = origin().world ;
+    for (Tile t : world.tilesIn(around, false)) {
+      if (t.owner() != null && t.owningType() < this.owningType()) {
+        t.owner().exitWorld() ;
+      }
+    }
+    Tile exit = null ;
+    if (this instanceof Venue) exit = ((Venue) this).mainEntrance() ;
+    else {
+      final Tile perim[] = Spacing.perimeter(area(), world) ;
+      for (Tile p : perim) if (! p.blocked()) { exit = p ; break ; }
+    }
+    if (exit == null) I.complain("No exit point from "+this) ;
+    for (Tile t : world.tilesIn(area(), false)) {
+      for (Mobile m : t.inside()) {
+        m.setPosition(exit.x, exit.y, world) ;
+      }
+    }
+  }
+  
+  
+  public Tile[] surrounds() {
+    final Box2D around = new Box2D().setTo(area()).expandBy(1) ;
+    final World world = origin().world ;
+    final Tile result[] = new Tile[(int) (around.xdim() * around.ydim())] ;
+    int i = 0 ; for (Tile t : world.tilesIn(around, false)) {
+      result[i++] = t ;
+    }
+    return result ;
+  }
+  
+  /*
+  public boolean canPlace() {
     if (! super.canPlace()) return false ;
     for (Tile t : origin().world.tilesIn(area, false)) {
       if (t == null || t.blocked()) return false ;
     }
     return true ;
   }
+  //*/
   
   
   public void enterWorldAt(int x, int y, World world) {

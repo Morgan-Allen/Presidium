@@ -1,13 +1,9 @@
 
 
 package src.game.building ;
-//import src.game.base.MagLineNode ;
-import src.game.base.MagLineNode;
-import src.game.base.ShieldWallSection;
 import src.game.common.* ;
 import src.graphics.common.* ;
-import src.graphics.terrain.TerrainMesh ;
-import src.util.* ;
+import src.user.* ;
 
 
 
@@ -24,7 +20,11 @@ public interface Installation {
   String fullName() ;
   Texture portrait() ;
   String helpInfo() ;
+  String buildCategory() ;
 }
+
+
+
 
 
 

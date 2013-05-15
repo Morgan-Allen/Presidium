@@ -128,6 +128,7 @@ public class Offworld {
     Commerce commerce, Inventory shortages,
     float visitInterval, float stayDuration
   ) {
+    if (true) return ;
     final Dropship ship = commerce.ship ;
     /*
     I.say(
@@ -217,6 +218,7 @@ public class Offworld {
       if (totalAmount + item.amount > ship.MAX_CAPACITY) break ;
       available.removeItem(item) ;
       ship.cargo.addItem(item) ;
+      totalAmount += item.amount ;
     }
   }
 }

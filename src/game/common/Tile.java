@@ -22,6 +22,8 @@ public class Tile implements Target, TileConstants, Boardable {
     PATH_CLEAR = 1,
     PATH_HINDERS = 2,
     PATH_BLOCKS = 3 ;
+  private static Stack <Mobile>
+    NONE_INSIDE = new Stack <Mobile> () ;
   
   
   final public World world ;
@@ -31,7 +33,7 @@ public class Tile implements Target, TileConstants, Boardable {
   private float elevation = Float.NEGATIVE_INFINITY ;
   private Habitat habitat = null ;
   private Element owner ;
-  private Stack <Mobile> inside = null ;
+  private Stack <Mobile> inside = NONE_INSIDE ;
   
   
   
@@ -49,7 +51,7 @@ public class Tile implements Target, TileConstants, Boardable {
     habitat = Habitat.ALL_HABITATS[s.loadInt()] ;
     owner = (Element) s.loadObject() ;
     if (s.loadBool()) s.loadObjects(inside = new Stack <Mobile> ()) ;
-    else inside = null ;
+    else inside = NONE_INSIDE ;
   }
   
   
@@ -57,7 +59,7 @@ public class Tile implements Target, TileConstants, Boardable {
     s.saveFloat(elevation) ;
     s.saveInt(habitat().ID) ;
     s.saveObject(owner) ;
-    if (inside == null) s.saveBool(false) ;
+    if (inside == NONE_INSIDE) s.saveBool(false) ;
     else { s.saveBool(true) ; s.saveObjects(inside) ; }
   }
   
@@ -111,7 +113,13 @@ public class Tile implements Target, TileConstants, Boardable {
   
   public Habitat habitat() {
     if (habitat != null) return habitat ;
-    return habitat = world.terrain().habitatAt(x, y) ;
+    refreshHabitat() ;
+    return habitat ;
+  }
+  
+  
+  public void refreshHabitat() {
+    habitat = world.terrain().habitatAt(x, y) ;
   }
   
   
@@ -197,13 +205,28 @@ public class Tile implements Target, TileConstants, Boardable {
       if (batch[(i + 7) % 8] == null) batch[i] = null ;
       if (batch[(i + 1) % 8] == null) batch[i] = null ;
     }
-    for (int n : N_ADJACENT) {//if (batch[n] == null) {
+    for (int n : N_ADJACENT) if (batch[n] == null) {
       final Tile t = world.tileAt(x + N_X[n], y + N_Y[n]) ;
-      if (t == null || ! (t.owner() instanceof Venue)) continue ;
-      final Venue v = (Venue) t.owner() ;
+      if (t == null || ! (t.owner() instanceof Boardable)) continue ;
+      final Boardable v = (Boardable) t.owner() ;
       if (v.isEntrance(this)) batch[n] = v ;
     }
     return batch ;
+  }
+  
+  
+  public boolean isEntrance(Boardable b) {
+    if (b instanceof Tile) {
+      final Tile t = (Tile) b ;
+      if (t.blocked()) return false ;
+      return Spacing.axisDist(this, t) < 2 ;
+    }
+    return (b == null) ? false : b.isEntrance(this) ;
+  }
+  
+  
+  public boolean allowsEntry(Mobile m) {
+    return ! blocked() ;
   }
   
   
@@ -215,20 +238,18 @@ public class Tile implements Target, TileConstants, Boardable {
   
   
   public void setInside(Mobile m, boolean is) {
-    ///I.say(is+" for presence at "+this) ;
     if (is) {
-      if (inside == null) inside = new Stack <Mobile> () ;
+      if (inside == NONE_INSIDE) inside = new Stack <Mobile> () ;
       inside.include(m) ;
     }
-    else if (inside != null) {
+    else {
       inside.remove(m) ;
-      if (inside.size() == 0) inside = null ;
+      if (inside.size() == 0) inside = NONE_INSIDE ;
     }
   }
   
   
   public Stack <Mobile> inside() {
-    if (inside == null) return new Stack <Mobile> () ;
     return inside ;
   }
   
@@ -241,10 +262,12 @@ public class Tile implements Target, TileConstants, Boardable {
   
   
   public Colour minimapHue() {
+    /*
     if (owner != null && owner.sprite() != null) {
       return owner.sprite().averageHue() ;
     }
     if (world.terrain().isRoad(this)) return Habitat.ROAD_TEXTURE.averaged() ;
+    //*/
     return habitat().baseTex.averaged() ;
   }
 }

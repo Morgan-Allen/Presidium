@@ -11,6 +11,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.user.BuildingsTab;
 
 
 
@@ -96,6 +97,10 @@ public class Artificer extends Venue implements VenueConstants {
     return
       "The Artificer manufactures parts, inscriptions, devices and armour "+
       "for your citizens." ;
+  }
+  
+  public String buildCategory() {
+    return BuildingsTab.TYPE_ARTIFICER ;
   }
 }
 

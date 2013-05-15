@@ -11,6 +11,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.user.BuildingsTab;
 import src.util.* ;
 
 
@@ -91,6 +92,10 @@ public class Fabricator extends Venue implements VenueConstants {
     return
       "The Fabricator manufactures plastics, pressfeed, decor and outfits "+
       "for your citizens." ;
+  }
+  
+  public String buildCategory() {
+    return BuildingsTab.TYPE_AESTHETE ;
   }
 }
 

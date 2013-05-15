@@ -24,7 +24,8 @@ public class Paving implements TileConstants {
   public static interface Hub extends Target {
     Paving paving() ;
     Tile origin() ;
-    Tile[] entrances() ;
+    Tile mainEntrance() ;
+    //Tile[] entrances() ;
     Tile[] surrounds() ;
     boolean usesRoads() ;
     Base base() ;
@@ -130,7 +131,7 @@ public class Paving implements TileConstants {
       newRoute = routeFor(a, b),
       oldRoute = currentMatch(newRoute, a) ;
     final RouteSearch search = new RouteSearch(
-      a.entrances()[0], b.entrances()[0], Element.FIXTURE_OWNS
+      a.mainEntrance(), b.mainEntrance(), Element.FIXTURE_OWNS
     ) ;
     ///search.verbose = true ;
     search.doSearch() ;

@@ -19,6 +19,8 @@ public interface Boardable extends Target {
   
   Box2D area(Box2D put) ;
   Boardable[] canBoard(Boardable batch[]) ;
+  boolean isEntrance(Boardable b) ;
   
   int pathType() ;
+  boolean allowsEntry(Mobile m) ;
 }

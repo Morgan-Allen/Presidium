@@ -6,8 +6,7 @@
 
 
 package src.game.building ;
-import src.game.actors.Actor;
-import src.game.actors.Behaviour;
+import src.game.actors.* ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.user.* ;
@@ -105,6 +104,16 @@ public abstract class Vehicle extends Mobile implements
     else for (int i = batch.length ; i-- > 0 ;) batch[i] = null ;
     batch[0] = dropPoint ;
     return batch ;
+  }
+  
+  
+  public boolean isEntrance(Boardable b) {
+    return dropPoint == b ;
+  }
+  
+  
+  public boolean allowsEntry(Mobile m) {
+    return m.assignedBase() == assignedBase() ;
   }
   
   

@@ -10,11 +10,11 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.user.BuildingsTab;
 import src.util.* ;
 
 
 
-//  Consider having crops extend flora?
 
 
 public class Nursery extends Venue implements VenueConstants {
@@ -139,6 +139,7 @@ public class Nursery extends Venue implements VenueConstants {
     final Delivery d = orders.nextDelivery(actor, goods()) ;
     if (d != null) return d ;
     
+    //if (true) return null ;
     final Farming f = new Farming(actor, this) ;
     if (f.nextStep() != null) return f ;
     
@@ -160,6 +161,11 @@ public class Nursery extends Venue implements VenueConstants {
   public String helpInfo() {
     return
       "Botanical Stations are responsible for agriculture and forestry.";
+  }
+  
+  
+  public String buildCategory() {
+    return BuildingsTab.TYPE_ECOLOGIST ;
   }
 }
 

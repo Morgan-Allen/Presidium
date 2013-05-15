@@ -90,6 +90,15 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   }
   
   
+  public void cancelBehaviour(Behaviour b) {
+    if (! behaviourStack.includes(b)) I.complain("Behaviour not active.") ;
+    while (behaviourStack.size() > 0) {
+      final Behaviour top = behaviourStack.removeFirst() ;
+      if (top == b) break ;
+    }
+  }
+  
+  
   protected abstract Behaviour nextBehaviour() ;
   protected abstract boolean switchBehaviour(Behaviour next, Behaviour last) ;
   
@@ -125,7 +134,7 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   }
   
   
-  public void abortMotion() {
+  public void pathingAbort() {
     if (action == null) return ;
     I.say(this+" aborting action...") ;
     behaviourStack.removeFirst() ;
@@ -171,12 +180,14 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   
   protected void updateAsMobile() {
     super.updateAsMobile() ;
+    
     if (! health.conscious()) return ;
     if (action != null) action.updateAction() ;
   }
   
+  
   public void updateAsScheduled(int numUpdates) {
-    super.updateAsScheduled(numUpdates) ;
+    //super.updateAsScheduled(numUpdates) ;
     if (! health.conscious()) return ;
     //
     //  We check every 10 seconds to see if a more compelling behaviour has
@@ -200,7 +211,7 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   /**  Rendering and interface methods-
     */
   protected void renderFor(Rendering rendering, Base base) {
-    if (aboard() != null) return ;
+    if (indoors()) return ;
     final Sprite s = sprite() ;
     if (action != null) {
       s.setAnimation(action.animName(), action.animProgress()) ;

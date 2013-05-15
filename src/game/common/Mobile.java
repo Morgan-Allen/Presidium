@@ -25,9 +25,11 @@ public abstract class Mobile extends Element
   protected final Vec3D
     position = new Vec3D(),
     nextPosition = new Vec3D() ;
+  private Boardable
+    aboard = null,
+    boarding = null ;
   
   private ListEntry <Mobile> entry = null ;
-  private Boardable aboard = null ;
   
   
   /**  Basic constructors and save/load functionality-
@@ -44,6 +46,7 @@ public abstract class Mobile extends Element
     nextPosition.loadFrom(s.input()) ;
     facing.loadFrom(s.input()) ;
     aboard = (Boardable) s.loadTarget() ;
+    boarding = (Boardable) s.loadTarget() ;
   }
   
   public void saveState(Session s) throws Exception {
@@ -54,10 +57,9 @@ public abstract class Mobile extends Element
     nextPosition.saveTo(s.output()) ;
     facing.saveTo(s.output()) ;
     s.saveTarget(aboard) ;
+    s.saveTarget(boarding) ;
   }
   
-  
-  public abstract Base assignedBase() ;
   
   
   /**  Again, more data-definition methods subclasses might well override.
@@ -71,9 +73,11 @@ public abstract class Mobile extends Element
   public int pathType() { return Tile.PATH_CLEAR ; }
   public int owningType() { return NOTHING_OWNS ; }
   
+  public abstract Base assignedBase() ;
   
   
-  /**  Called whenever the actor enters/exits the world...
+  
+  /**  Called whenever the mobile enters/exits the world...
    */
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
@@ -98,118 +102,151 @@ public abstract class Mobile extends Element
   ListEntry <Mobile> entry() { return entry ; }
   
   
+  
+  /**  Dealing with position and motion-
+    */
   public void setPosition(float xp, float yp, World world) {
-    final Tile oldTile = origin() ;
+    final Tile
+      oldTile = origin(),
+      newTile = world.tileAt(xp, yp) ;
     super.setPosition(xp, yp, world) ;
+    ///I.say("Setting mobile position") ;
     nextPosition.setTo(position.set(xp, yp, 0)) ;
-    final Tile newTile = origin() ;
-    if (inWorld() && oldTile != newTile) {
-      if (oldTile != null) oldTile.setInside(this, false) ;
-      if (newTile != null) newTile.setInside(this, true) ;
-      onTileChange(oldTile, newTile) ;
+    
+    if (inWorld()) {
+      if (oldTile != newTile) onTileChange(oldTile, newTile) ;
+      final Boardable toBoard = (newTile.owner() instanceof Boardable) ?
+        (Boardable) newTile.owner() :
+        newTile ;
+      if (aboard != toBoard) {
+        if (aboard != null) oldTile.setInside(this, false) ;
+        if (toBoard != null) toBoard.setInside(this, true) ;
+        aboard = toBoard ;
+      }
     }
   }
   
   
+  public Boardable aboard() {
+    return aboard ;
+  }
+  
+  
+  //  TODO:  This will create problems.  Much of the code from projectHeading
+  //  should be moved to updateMobile to avoid this.
   public void setHeading(Vec3D nextPos, float nextRot) {
     nextPosition.setTo(nextPos) ;
     nextRotation = nextRot ;
   }
   
   
-  public void projectHeading(Vec3D t, float speed) {
-    Vec2D disp = new Vec2D() ;
-    disp.set(
-      t.x - position.x,
-      t.y - position.y
-    ) ;
-    disp.normalise() ;
-    facing.setTo(disp) ;
-    final float
-      angle = disp.toAngle(),
-      dist = disp.length() ;
-    if (dist < this.radius()) {
-      return ;
-    }
+  public void projectHeading(Target target, float speed) {
+    ///I.say("Projecting motion toward: "+target) ;
     //
-    //  Calculate how far forward one can safely move in this interval-
-    float moveRate = 0 ; if (speed > 0) {
-      moveRate = speed / PlayLoop.UPDATES_PER_SECOND ;
-      if (dist < moveRate) moveRate = dist ;
-    }
-    disp.scale(moveRate) ;
+    //  Determine the appropriate offset and angle for this target-
+    final Vec3D p = target.position(null) ;
+    final Vec2D disp = new Vec2D(
+      p.x - position.x,
+      p.y - position.y
+    ) ;
+    final float dist = disp.length() ;
+    final float angle = dist == 0 ? 0 : disp.normalise().toAngle() ;
+    facing.setTo(disp) ;
+    //
+    //  Determine how far one can move this update.  (Later on, this might need
+    //  doing for rotation as well?)
+    final float moveRate = speed / PlayLoop.UPDATES_PER_SECOND ;
+    disp.scale(Math.min(moveRate, dist)) ;
     disp.x += position.x ;
     disp.y += position.y ;
     //
-    //  -I suspect you may need a more thorough system for dealing with
-    //  blockage.
+    //  Determine whether the upcoming target (or, failing that, next tile,) is
+    //  a suitable target for boarding.
     final Tile comingTile = world().tileAt(disp.x, disp.y) ;
-    //  TODO:  Entering Boardables should be handled here.
-    if ((speed <= 0) || checkTileClear(comingTile)) {
+    boarding = null ;
+    if (target instanceof Boardable) {
+      final Boardable bT = (Boardable) target ;
+      if (bT.area(null).contains(disp.x, disp.y) && bT.isEntrance(aboard)) {
+        boarding = bT ;
+      }
+    }
+    if (boarding == null && aboard != null) {
+      if (aboard.area(null).contains(disp.x, disp.y)) {
+        boarding = aboard ;
+      }
+    }
+    if (boarding == null) {
+      if ((speed <= 0) || checkTileClear(comingTile)) {
+        boarding = comingTile ;
+      }
+    }
+    //
+    //  If it's possible to board the upcoming tile/target, update heading.
+    //  Otherwise, stay put and raise an alert-
+    if (boarding == null) {
+      onMotionBlock(comingTile) ;
+      nextPosition.setTo(position) ;
+      nextRotation = rotation ;
+    }
+    else {
       nextPosition.setTo(disp) ;
       nextRotation = angle ;
     }
-    //else abortMotion() ;
-    else onMotionBlock(comingTile) ;
+    if (boarding == null || boarding instanceof Tile) {
+      nextPosition.z = world.terrain().trueHeight(disp.x, disp.y) ;
+    }
+    else nextPosition.z = boarding.position(p).z ;
+    ///I.say("Next z: "+nextPosition.z+", old z: "+position.z) ;
   }
   
   
   protected void updateAsMobile() {
+    /*
+    if (indoors()) {
+      nextPosition.z = aboard().position(null).z ;
+    }
+    //*/
+    ///I.say("Next z: "+nextPosition.z+", old z: "+position.z) ;
+    
     final Tile
       oldTile = origin(),
       newTile = world().tileAt(nextPosition.x, nextPosition.y) ;
-    if (checkTileClear(newTile)) {
-      position.setTo(nextPosition) ;
-      rotation = nextRotation ;
-      super.setPosition(nextPosition.x, nextPosition.y, world()) ;
-      if (newTile != oldTile) {
-        setAboard(oldTile, false) ;
-        setAboard(newTile, true ) ;
-        onTileChange(oldTile, newTile) ;
-      }
+    if (oldTile != newTile) onTileChange(oldTile, newTile) ;
+    ///I.say("Aboard is: "+aboard) ;
+    
+    //  ...There's a problem here.  You need to have some kind of emergency
+    //  fallback in the event that you can't follow your specified path.
+    /*
+    if ((! checkTileClear(newTile)) && newTile.owner() instanceof Boardable) {
+      boarding = (Boardable) newTile.owner() ;
     }
-    else {
-      nextRotation = rotation ;
-      nextPosition.setTo(position) ;
-      //abortMotion() ;
-      onMotionBlock(newTile) ;
+    //*/
+    if (boarding != aboard) {
+      if (aboard != null) aboard.setInside(this, false) ;
+      if (boarding != null) boarding.setInside(this, true) ;
+      aboard = boarding ;
     }
+    position.setTo(nextPosition) ;
+    rotation = nextRotation ;
   }
   
+  
   protected boolean checkTileClear(Tile t) {
-    return (t.owner() instanceof Boardable) || ! t.blocked() ;
+    return ! t.blocked() ;
   }
   
   protected void onMotionBlock(Tile t) {}
+  
   protected void onTileChange(Tile oldTile, Tile newTile) {}
   
-  public abstract void abortMotion() ;
+  public abstract void pathingAbort() ;
+  
   
   public float scheduledInterval() { return 1.0f ; }
-  public void updateAsScheduled(int numUpdates) {}
   
   
-  
-  /**  Dealing with venues, vehicles, security checks, etc-
-    */
-  public Boardable aboard() {
-    return aboard ;
-  }
-  
-  
-  protected void setAboard(Tile tile, boolean is) {
-    if (tile == null) {
-      if (is) aboard = null ;
-      return ;
-    }
-    if (tile.owner() instanceof Boardable) {
-      if (is) aboard = (Boardable) tile.owner() ;
-      ((Boardable) tile.owner()).setInside(this, is) ;
-    }
-    else {
-      if (is) aboard = null ;
-      tile.setInside(this, is) ;
-    }
+  public boolean indoors() {
+    return aboard != null && ! (aboard instanceof Tile) ;
   }
   
   
@@ -231,10 +268,11 @@ public abstract class Mobile extends Element
     final float alpha = PlayLoop.frameTime() ;
     s.position.setTo(position).scale(1 - alpha) ;
     s.position.add(nextPosition, alpha, s.position) ;
+    I.say("Sprite position is: "+s.position) ;
     final float rotateChange = Vec2D.degreeDif(nextRotation, rotation) ;
-    s.rotation = (rotation + (rotateChange *  alpha) + 360) % 360 ;
+    s.rotation = (rotation + (rotateChange * alpha) + 360) % 360 ;
+    ///I.say("sprite position/rotation: "+s.position+" "+s.rotation) ;
     rendering.addClient(s) ;
-    //super.renderFor(rendering, base) ;
   }
 }
 

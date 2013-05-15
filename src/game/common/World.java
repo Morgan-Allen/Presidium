@@ -289,7 +289,7 @@ public class World {
     float minDist = Float.POSITIVE_INFINITY ;
     for (Element e : near) if (e instanceof Mobile) {
       final Mobile m = (Mobile) e ;
-      if (m.aboard() != null) continue ;
+      if (m.indoors()) continue ;
       final float selRad = (m.height() + m.radius()) / 2 ;
       final Vec3D selPos = m.position(null) ;
       selPos.z += m.height() / 2 ;

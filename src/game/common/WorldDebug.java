@@ -55,14 +55,16 @@ public class WorldDebug extends PlayLoop {
     */
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(
-      64, 0.2f,
+      128, 0.2f,
       Habitat.OCEAN  , 0.33f,
       Habitat.ESTUARY, 0.25f,
       Habitat.MEADOW , 0.5f,
       Habitat.BARRENS, 0.3f,
       Habitat.DESERT , 0.2f
     ) ;
-    World world = new World(TG.generateTerrain()) ;
+    final World world = new World(TG.generateTerrain()) ;
+    TG.setupMinerals(world) ;
+    TG.setupOutcrops(world) ;
     return world ;
   }
   
@@ -92,6 +94,7 @@ public class WorldDebug extends PlayLoop {
       if (! t.blocked()) free = t ;
     }
     GameSettings.freePath = true ;
+    GameSettings.hireFree = true ;
   }
   
   
@@ -105,7 +108,7 @@ public class WorldDebug extends PlayLoop {
   
   protected void renderGameGraphics() {
     super.renderGameGraphics() ;
-    this.highlightPath() ;
+    ///this.highlightPath() ;
   }
   
   
@@ -124,7 +127,7 @@ public class WorldDebug extends PlayLoop {
     }
     if (KeyInput.wasKeyPressed('l')) {
       I.say("LOADING GAME...") ;
-      GameSettings.frozen = true ;
+      //GameSettings.frozen = true ;
       PlayLoop.loadGame("saves/test_session.rep") ;
       return true ;
     }
@@ -151,7 +154,7 @@ public class WorldDebug extends PlayLoop {
     I.say("SENDING ACTOR TO: "+dest) ;
     c.assignAction(lastAction = new Action(
       c, dest, this, "actionGo",
-      Model.AnimNames.LOOK, "going..."
+      Model.AnimNames.LOOK, "going to "+dest
     )) ;
   }
   
@@ -169,11 +172,12 @@ public class WorldDebug extends PlayLoop {
     final Place p = played().pathingCache.tilePlaces[t.x][t.y] ;
     if (p == null) return ;
     final TerrainMesh previewMesh = world().terrain().createOverlay(
-      p.tiles, false, Texture.WHITE_TEX
+      world(), p.tiles, false, Texture.WHITE_TEX
     ) ;
     //previewMesh.colour = Colour.GREEN ;
     rendering().addClient(previewMesh) ;
   }
+  
   
   private void highlightPath() {
     final BaseUI UI = (BaseUI) currentUI() ;
@@ -190,7 +194,12 @@ public class WorldDebug extends PlayLoop {
       renderOverlay(search.allSearched(Boardable.class), Colour.GREEN) ;
       renderOverlay(search.fullPath(Boardable.class), Colour.BLUE) ;
     }
+    else if (hovered instanceof Tile) {
+      renderOverlay(new Tile[] { (Tile) hovered }, Colour.GREEN) ;
+      if (KeyInput.wasKeyPressed('p')) I.say("Current tile: "+hovered) ;
+    }
   }
+  
   
   private Boardable hovered(BaseUI UI) {
     final Tile t = UI.pickedTile() ;
@@ -207,7 +216,7 @@ public class WorldDebug extends PlayLoop {
     }
     if (tiles.size() > 0) {
       final TerrainMesh overlay = world().terrain().createOverlay(
-        tiles.toArray(Tile.class), false, Texture.WHITE_TEX
+        world(), tiles.toArray(Tile.class), false, Texture.WHITE_TEX
       ) ;
       overlay.colour = c ;
       rendering().addClient(overlay) ;

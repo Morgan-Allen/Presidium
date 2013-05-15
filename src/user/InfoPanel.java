@@ -19,8 +19,12 @@ public class InfoPanel extends UIGroup {
   
   
   final public Texture BORDER_TEX = Texture.loadTexture(
-      "media/GUI/Panel.png"
+    "media/GUI/Panel.png"
   ) ;
+  final public static int
+    DEFAULT_TOP_MARGIN = 50,
+    MARGIN_WIDTH = 10,
+    HEADER_HEIGHT = 25 ;
   
   
   final protected BaseUI UI ;
@@ -32,7 +36,7 @@ public class InfoPanel extends UIGroup {
   
   
   
-  public InfoPanel(BaseUI UI, Selectable selected) {
+  public InfoPanel(BaseUI UI, Selectable selected, int topMargin) {
     super(UI) ;
     this.UI = UI ;
     //
@@ -40,21 +44,22 @@ public class InfoPanel extends UIGroup {
     //         template-wise...
     this.relBound.set(0.00f, 0.0f, 0.33f, 1.0f) ;
     this.absBound.set(20, 70, -40, -90) ;
+    final int MW = MARGIN_WIDTH, HH = HEADER_HEIGHT ;
     
     this.border = new Bordering(UI, BORDER_TEX) ;
     border.drawInset.set(-40, -40, 80, 80) ;
-    border.absBound.set(10, 10, -20, -20) ;
+    border.absBound.set(MW, MW, -2 * MW, -2 * MW) ;
     border.relBound.set(0, 0, 1, 1) ;
     border.attachTo(this) ;
     
     headerText = new Text(UI, BaseUI.INFO_FONT) ;
     headerText.relBound.set(0, 1, 1, 0) ;
-    headerText.absBound.set(10, -10 -40, -20, 40) ;
+    headerText.absBound.set(MW, -MW - (topMargin + HH), -2 * MW, HH) ;
     headerText.attachTo(this) ;
     
     detailText = new Text(UI, BaseUI.INFO_FONT) ;
     detailText.relBound.set(0, 0, 1, 1) ;
-    detailText.absBound.set(10, 10, -20, -40 -20 -10) ;
+    detailText.absBound.set(MW, MW, -2 * MW, (-2 * MW) - (topMargin + HH)) ;
     detailText.attachTo(this) ;
     detailText.getScrollBar().attachTo(this) ;
 

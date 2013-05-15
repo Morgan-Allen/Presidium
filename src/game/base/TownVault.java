@@ -12,6 +12,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.user.BuildingsTab;
 import src.util.* ;
 
 
@@ -181,6 +182,16 @@ public class TownVault extends Venue implements VenueConstants {
   }
   
   
+  protected Vocation[] careers() {
+    return new Vocation[] { Vocation.TECHNICIAN } ;
+  }
+  
+  
+  protected Item.Type[] goods() {
+    return new Item.Type[0] ;
+  }
+  
+  
 
   /**  Rendering and interface methods-
     */
@@ -200,12 +211,8 @@ public class TownVault extends Venue implements VenueConstants {
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.TECHNICIAN } ;
-  }
-  
-  protected Item.Type[] goods() {
-    return new Item.Type[0] ;
+  public String buildCategory() {
+    return BuildingsTab.TYPE_MILITARY ;
   }
 }
 

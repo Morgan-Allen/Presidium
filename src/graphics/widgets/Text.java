@@ -62,6 +62,8 @@ public class Text extends UINode implements Description {
     setText(t) ;
   }
   
+  //  TODO:  Scrollbars should be possible to associate with arbitrary UI
+  //  groups.
   public Scrollbar getScrollBar() {
     final Scrollbar bar = new Scrollbar(
       myHUD, Scrollbar.SCROLL_TEX, fullSize, true
@@ -378,8 +380,7 @@ public class Text extends UINode implements Description {
       lastBullet = null ;
     boolean
       newWord,
-      newLine,
-      newBullet ;
+      newLine ;
     float
       xpos = 0, ypos = 0,
       entryW = 0, entryH = 0 ;
@@ -391,9 +392,13 @@ public class Text extends UINode implements Description {
     //
     //  Here's the main loop for determining entry positions...
     while ((open = open.nextEntry()) != allEntries) {
-      newLine = newWord = newBullet = false ;
+      newLine = newWord = false ;
       
       if (open.refers instanceof ImageEntry) {
+        if (lastBullet != null) {
+          final float minY = lastBullet.ypos() - (lineHigh * 1.5f) ;
+          if (ypos > minY) ypos = minY ;
+        }
         final ImageEntry entry = (ImageEntry) open.refers ;
         entry.visible = true ;
         entry.set(
@@ -412,7 +417,7 @@ public class Text extends UINode implements Description {
           //  and you automatically escape from the last bullet.
           //  Either that or a space means a new word.
           case('\n'):
-            newLine = newWord = newBullet = true ;
+            newLine = newWord = true ;
             entry.visible = false ;
           break ;
           case(' '):

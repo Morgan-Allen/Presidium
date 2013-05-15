@@ -11,6 +11,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.user.BuildingsTab;
 import src.util.Rand;
 import src.util.Visit;
 
@@ -149,6 +150,15 @@ public class Holding extends Venue implements VenueConstants {
   }
   
   
+  protected Vocation[] careers() {
+    return new Vocation[0] ;
+  }
+  
+  
+  protected Item.Type[] goods() {
+    return new Item.Type[0] ;
+  }
+  
   
   
   /**  Rendering and interface methods-
@@ -168,12 +178,8 @@ public class Holding extends Venue implements VenueConstants {
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[0] ;
-  }
-  
-  protected Item.Type[] goods() {
-    return new Item.Type[0] ;
+  public String buildCategory() {
+    return BuildingsTab.TYPE_COMMERCE ;
   }
 }
 

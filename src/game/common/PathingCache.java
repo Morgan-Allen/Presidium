@@ -71,7 +71,7 @@ public class PathingCache {
   
   private Tile tilePos(Boardable b) {
     if (b == null) return null ;
-    if (b instanceof Venue) return ((Venue) b).entrances()[0] ;
+    if (b instanceof Venue) return ((Venue) b).mainEntrance() ;
     final Vec3D p = b.position(null) ;
     return Spacing.nearestOpenTile(world.tileAt(p.x, p.y), b) ;
   }

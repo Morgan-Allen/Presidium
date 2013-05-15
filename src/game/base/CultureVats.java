@@ -11,6 +11,7 @@ import src.game.building.* ;
 import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.user.BuildingsTab;
 
 
 
@@ -92,4 +93,12 @@ public class CultureVats extends Venue implements VenueConstants {
       "basic foodstuffs." ;
   }
   
+  public String buildCategory() {
+    return BuildingsTab.TYPE_ARTIFICER ;
+  }
 }
+
+
+
+
+

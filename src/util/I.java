@@ -85,7 +85,9 @@ public class I {
   
   
   private final static int
-    MODE_GREY = 0 ;
+    MODE_GREY   = 0,
+    MODE_COLOUR = 1 ;
+  
   
   private static class Presentation extends JFrame {
     
@@ -99,32 +101,58 @@ public class I {
       this.mode = mode ;
     }
     
+    
     public void paint(Graphics g) {
       super.paint(g) ;
+      if (mode == MODE_GREY) paintGrey(g) ;
+      if (mode == MODE_COLOUR) paintColour(g) ;
+    }
+    
+    
+    private void paintGrey(Graphics g) {
       final byte scale[] = new byte[256] ;
       for (int s = 256 ; s-- > 0 ;) {
         scale[s] = (byte) s ;
       }
-      if (mode == MODE_GREY) {
-        float vals[][] = (float[][]) data ;
-        final int w = vals.length, h = vals[0].length ;
-        BufferedImage image = new BufferedImage(
-          w, h, BufferedImage.TYPE_BYTE_GRAY
-        ) ;
-        final byte byteData[] = new byte[w * h] ;
-        for (int y = h ; y-- > 0 ;) for (int x = 0 ; x < w ; x++) {
-          final int grey = (int) (vals[x][y] * 255) ;
-          byteData[((h - (y + 1)) * w) + x] = scale[grey] ;
-        }
-        image.getRaster().setDataElements(0, 0, w, h, byteData) ;
-        Container pane = this.getContentPane() ;
-        g.drawImage(
-          image,
-          0, this.getHeight() - pane.getHeight(),
-          pane.getWidth(), pane.getHeight(),
-          null
-        ) ;
+      float vals[][] = (float[][]) data ;
+      final int w = vals.length, h = vals[0].length ;
+      final byte byteData[] = new byte[w * h] ;
+      for (Coord c : Visit.grid(0, 0, w, h, 1)) {
+        final int grey = (int) (vals[c.x][c.y] * 255) ;
+        byteData[imgIndex(c.x, c.y, w, h)] = scale[grey] ;
       }
+      presentImage(g, byteData, BufferedImage.TYPE_BYTE_GRAY, w, h) ;
+    }
+    
+    
+    private void paintColour(Graphics g) {
+      final int vals[][] = (int[][]) data ;
+      final int w = vals.length, h = vals[0].length ;
+      final int intData[] = new int[w * h] ;
+      for (Coord c : Visit.grid(0, 0, w, h, 1)) {
+        intData[imgIndex(c.x, c.y, w, h)] = vals[c.x][c.y] ;
+      }
+      presentImage(g, intData, BufferedImage.TYPE_INT_ARGB, w, h) ;
+    }
+    
+    
+    private int imgIndex(int x, int y, int w, int h) {
+      return ((h - (y + 1)) * w) + x ;
+    }
+    
+    
+    private void presentImage(
+      Graphics g, Object imgData, int imageMode, int w, int h
+    ) {
+      final BufferedImage image = new BufferedImage(w, h, imageMode) ;
+      image.getRaster().setDataElements(0, 0, w, h, imgData) ;
+      final Container pane = this.getContentPane() ;
+      g.drawImage(
+        image,
+        0, this.getHeight() - pane.getHeight(),
+        pane.getWidth(), pane.getHeight(),
+        null
+      ) ;
     }
   }
   
@@ -136,16 +164,30 @@ public class I {
     float greyVals[][],
     String name, int w, int h
   ) {
+    present(greyVals, MODE_GREY, name, w, h) ;
+  }
+  
+  public static void present(
+    int colourVals[][],
+    String name, int w, int h
+  ) {
+    present(colourVals, MODE_COLOUR, name, w, h) ;
+  }
+  
+  private static void present(
+    Object vals, int mode,
+    String name, int w, int h
+  ) {
     Presentation window = windows.get(name) ;
     if (window == null) {
-      window = new Presentation(name, greyVals, MODE_GREY) ;
+      window = new Presentation(name, vals, mode) ;
       window.getContentPane().setPreferredSize(new Dimension(w, h)) ;
       window.pack() ;
       window.setVisible(true) ;
       windows.put(name, window) ;
     }
     else {
-      window.data = greyVals ;
+      window.data = vals ;
       window.getContentPane().setPreferredSize(new Dimension(w, h)) ;
       window.pack() ;
       window.repaint() ;

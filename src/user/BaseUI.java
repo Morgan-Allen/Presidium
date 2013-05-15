@@ -191,7 +191,6 @@ public class BaseUI extends HUD {
   /**  Updates the current selection of items in the world-
     */
   void updateSelection() {
-    //I.say("Updating selection-") ;
     //
     //  If the new selection differs from the old, we can think about adding or
     //  removing it's associated information panel-
@@ -215,10 +214,13 @@ public class BaseUI extends HUD {
     hovered = null ;
     pickTile = world.pickedTile(this, rendering.port) ;
     pickMobile = world.pickedMobile(this, rendering.port) ;
+    ///if (pickMobile != null) I.say("Picked mobile: "+pickMobile) ;
     pickFixture = world.pickedFixture(this, rendering.port) ;
     
     if (pickMobile != null) hovered = pickMobile ;
-    else if (pickFixture != null) hovered = pickFixture ;
+    else if (pickFixture instanceof Selectable) {
+      hovered = (Selectable) pickFixture ;
+    }
     else hovered = null ;
     //
     //  Having done so, we can check whether the selection is active or not-
@@ -237,7 +239,7 @@ public class BaseUI extends HUD {
         selected = s ;
         camera.lockOn(selected) ;
       }
-      newPanel = new InfoPanel(this, s) ;
+      newPanel = new InfoPanel(this, s, InfoPanel.DEFAULT_TOP_MARGIN) ;
     }
     else if (selected != null) {
       camera.lockOn(selected = null) ;

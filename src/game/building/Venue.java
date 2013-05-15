@@ -9,6 +9,7 @@ package src.game.building ;
 import src.game.actors.* ;
 import src.game.common.* ;
 import src.graphics.common.* ;
+import src.graphics.terrain.* ;
 import src.user.* ;
 import src.util.* ;
 
@@ -20,7 +21,8 @@ import src.util.* ;
 
 public abstract class Venue extends Fixture implements
   Schedule.Updates, Boardable, Installation,
-  Inventory.Owner, Citizen.Employment, Paving.Hub
+  Inventory.Owner, Citizen.Employment, Paving.Hub,
+  Selectable
 {
   
   
@@ -107,40 +109,6 @@ public abstract class Venue extends Fixture implements
   
   /**  Installation and positioning-
     */
-  public boolean canPlace() {
-    if (origin() == null) return false ;
-    final Box2D around = new Box2D().setTo(area()).expandBy(1) ;
-    for (Tile t : origin().world.tilesIn(around, false)) {
-      if (t == null || ! t.habitat().pathClear) return false ;
-      if (t.owningType() >= this.owningType()) return false ;
-    }
-    return true ;
-  }
-  
-  
-  public void clearSurrounds() {
-    final Box2D around = new Box2D().setTo(area()).expandBy(1) ;
-    final World world = origin().world ;
-    final Tile eT = entrances()[0] ;
-    for (Tile t : world.tilesIn(around, false)) {
-      if (t.owner() != null && t.owner() != this) t.owner().exitWorld() ;
-    }
-    for (Tile t : world.tilesIn(area(), false)) {
-      for (Mobile m : t.inside()) m.setPosition(eT.x, eT.y, world) ;
-    }
-  }
-  
-  
-  public Tile[] surrounds() {
-    final Box2D around = new Box2D().setTo(area()).expandBy(1) ;
-    final World world = origin().world ;
-    final Tile result[] = new Tile[(int) (around.xdim() * around.ydim())] ;
-    int i = 0 ; for (Tile t : world.tilesIn(around, false)) {
-      result[i++] = t ;
-    }
-    return result ;
-  }
-  
   
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
@@ -165,16 +133,6 @@ public abstract class Venue extends Fixture implements
     final Tile o = origin() ;
     final int off[] = Spacing.entranceCoords(size, size, entranceFace) ;
     entrance = world.tileAt(o.x + off[0], o.y + off[1]) ;
-  }
-  
-  
-  public Tile[] entrances() {
-    return new Tile[] { entrance } ;
-  }
-  
-  
-  public boolean isEntrance(Tile t) {
-    return entrance == t ;
   }
   
   
@@ -207,12 +165,26 @@ public abstract class Venue extends Fixture implements
   }
   
   
+  public Tile mainEntrance() {
+    return entrance ;
+  }
+  
+  
   public Boardable[] canBoard(Boardable batch[]) {
-    if (batch == null) return entrances() ;
-    for (int i = batch.length ; i-- > 0 ;) batch[i] = null ;
-    final Tile e[] = entrances() ;
-    for (int i = e.length ; i-- > 0 ;) batch[i] = e[i] ;
+    if (batch == null) batch = new Boardable[1] ;
+    else for (int i = batch.length ; i-- > 1 ;) batch[i] = null ;
+    batch[0] = entrance ;
     return batch ;
+  }
+  
+  
+  public boolean isEntrance(Boardable t) {
+    return entrance == t ;
+  }
+  
+  
+  public boolean allowsEntry(Mobile m) {
+    return m.assignedBase() == base ;
   }
   
   
@@ -253,14 +225,14 @@ public abstract class Venue extends Fixture implements
     setPosition(t.x, t.y, t.world) ;
     return canPlace() ;
   }
-
-
+  
+  
   public void doPlace(Tile from, Tile to) {
     final Tile t = from ;
     setPosition(t.x, t.y, t.world) ;
     clearSurrounds() ;
-    enterWorldAt(t.x, t.y, t.world) ;
-    sprite().colour = null ;
+    enterWorld() ;
+    if (sprite() != null) sprite().colour = null ;
   }
 
 
@@ -269,12 +241,20 @@ public abstract class Venue extends Fixture implements
   ) {
     if (from == null) return ;
     final Tile t = from ;
+    final World world = t.world ;
     setPosition(t.x, t.y, t.world) ;
+    final TerrainMesh overlay = world.terrain().createOverlay(
+      world, surrounds(), false, Texture.WHITE_TEX
+    ) ;
+    overlay.colour = canPlace ? Colour.GREEN : Colour.RED ;
+    rendering.addClient(overlay) ;
     
+    if (sprite() == null) return ;
     this.position(sprite().position) ;
     sprite().colour = canPlace ? Colour.GREEN : Colour.RED ;
     rendering.addClient(sprite()) ;
   }
+  
   
   
   /**  Rendering and interface methods-

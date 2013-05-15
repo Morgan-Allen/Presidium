@@ -22,6 +22,7 @@ public class PathingSearch extends Search <Boardable> {
   final protected Boardable destination ;
   private Target aimPoint = null ;
   private Boardable batch[] = new Boardable[8] ;
+  private Mobile client = null ;
   
   
   public PathingSearch(Boardable init, Boardable dest, boolean safe) {
@@ -31,8 +32,7 @@ public class PathingSearch extends Search <Boardable> {
     }
     this.destination = dest ;
     if (destination instanceof Venue) {
-      final Tile e[] = ((Venue) destination).entrances() ;
-      if (e.length == 1) aimPoint = e[0] ;
+      aimPoint = ((Venue) destination).mainEntrance() ;
     }
     if (aimPoint == null) aimPoint = destination ;
   }
@@ -86,6 +86,11 @@ public class PathingSearch extends Search <Boardable> {
       case (Tile.PATH_HINDERS) : return 2.0f * baseCost ;
       default : return baseCost ;
     }
+  }
+  
+  
+  protected boolean canEnter(Boardable spot) {
+    return (client == null) ? true : spot.allowsEntry(client) ;
   }
   
   

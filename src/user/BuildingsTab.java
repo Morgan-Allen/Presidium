@@ -5,49 +5,44 @@
   */
 
 package src.user ;
-import src.game.building.*;
+import src.game.building.* ;
 import src.game.common.* ;
 import src.util.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import java.lang.reflect.Constructor ;
-import org.lwjgl.input.Keyboard ;
-import java.io.* ;
 
-
-
-
-//
-//  TODO:  You'll need to split this up into multiple tabs-
-//    military & base defence,
-//    commerce, trade & transport,
-//    aesthetics & recreation,
-//    mining & industry,
-//    farming, forestry & ecology,
-//    government, health & education.
 
 
 public class BuildingsTab extends InfoPanel {
   
   
-  /**  Field definitions and constructors-
+  /**  Constant definitions, data fields and constructors-
     */
-  final BaseUI UI ;
-  final List <InstallType> types = new List <InstallType> () ;
-  InstallType helpShown = null ;
+  final public static String
+    TYPE_MILITARY  = "military",
+    TYPE_COMMERCE  = "commerce",
+    TYPE_AESTHETE  = "aesthete",
+    TYPE_ARTIFICER = "artificer",
+    TYPE_ECOLOGIST = "ecologist",
+    TYPE_PHYSICIAN = "physician",
+    
+    TYPE_SCHOOL    = "school",
+    TYPE_PRESERVE  = "preserve",
+    
+    TYPE_HIDDEN    = "hidden" ;
+  final static int
+    BUTTONS_ACROSS = 3,
+    BUTTONS_HEIGHT = 40 ;
   
   
-  BuildingsTab(BaseUI UI) {
-    super(UI, null) ;
-    this.UI = UI ;
-    setupAllTypes() ;
+  private class Category {
+    String name ;
+    final List <InstallType> types = new List <InstallType> () ;
   }
   
 
-  
-  /**  Compiling the list of all building types-
-    */
-  static class InstallType {
+  private class InstallType {
     Texture icon ;
     String name, description ;
     
@@ -57,19 +52,72 @@ public class BuildingsTab extends InfoPanel {
   }
   
   
-  void setupAllTypes() {
+  final BaseUI UI ;
+  Button categoryButtons[] ;
+  
+  final Table <String, Category> categories = new Table <String, Category> () ;
+  InstallType helpShown = null, listShown = null ;
+  Category currentCategory = null, hoveredCategory = null ;
+  
+  
+  BuildingsTab(BaseUI UI) {
+    super(UI, null, BUTTONS_HEIGHT * 2) ;
+    this.UI = UI ;
+    setupCategories() ;
+    setupInstallTypes() ;
+  }
+  
+
+  
+  /**  Compiling the list of all building types-
+    */
+  void setupCategories() {
+    categoryButtons = new Button[] {
+      buttonFor(TYPE_MILITARY , "military_category_button" , 0, 0),
+      buttonFor(TYPE_COMMERCE , "commerce_category_button" , 1, 0),
+      buttonFor(TYPE_AESTHETE , "aesthete_category_button" , 2, 0),
+      buttonFor(TYPE_ARTIFICER, "artificer_category_button", 0, 1),
+      buttonFor(TYPE_ECOLOGIST, "ecologist_category_button", 1, 1),
+      buttonFor(TYPE_PHYSICIAN, "physician_category_button", 2, 1)
+    } ;
+  }
+  
+  
+  private Button buttonFor(final String typeID, String img, int a, int d) {
+    final String IMG_DIR = "media/GUI/Buttons/" ;
+    final Button button = new Button(UI, IMG_DIR+img+".png", typeID) {
+      protected void whenClicked() {
+        currentCategory = categories.get(typeID) ;
+      }
+      protected void whenHovered() {
+        hoveredCategory = categories.get(typeID) ;
+      }
+    } ;
+    button.relBound.set(a * 1f / BUTTONS_ACROSS, 1, 1f / BUTTONS_ACROSS, 0) ;
+    button.absBound.set(0, (d + 1) * -BUTTONS_HEIGHT, 0, BUTTONS_HEIGHT) ;
+    button.attachTo(this) ;
+    button.stretch = true ;
+    final Category category = new Category() ;
+    category.name = typeID ;
+    categories.put(typeID, category) ;
+    return button ;
+  }
+  
+  
+  void setupInstallTypes() {
     final Batch <Class> buildClasses = LoadService.loadClassesInDir(
       "src/game/base", "src.game.base"
     ) ;
-    for (Class buildClass : buildClasses) try {
+    for (Class buildClass : buildClasses) {
       //
-      //  Secondly, we need to ensure that the class refers to a type of venue
+      //  Firstly, we need to ensure that the class refers to a type of venue
       //  and has an appropriate constructor.
       if (! Installation.class.isAssignableFrom(buildClass)) continue ;
-      final Constructor cons = buildClass.getConstructor(Base.class) ;
-      if (cons == null) continue ;
+      final Constructor cons ;
+      try { cons = buildClass.getConstructor(Base.class) ; }
+      catch (Exception e) { continue ; }
       //
-      //  Finally, construct the building type:
+      //  Secondly, construct the building type with an appropriate instance-
       final InstallType type = new InstallType() ;
       type.buildClass = buildClass ;
       type.buildCons = cons ;
@@ -80,11 +128,12 @@ public class BuildingsTab extends InfoPanel {
       if (type.name == null || type.icon == null || type.description == null)
         continue ;
       //
-      //
-      ///I.say("New building type added: "+buildClass.getName()) ;
-      types.add(type) ;
+      //  Finally, determine which category this structure belongs to-
+      final String category = type.instanced.buildCategory() ;
+      final Category match = categories.get(category) ;
+      if (match == null) continue ;
+      match.types.add(type) ;
     }
-    catch (Exception e) { continue ; }// I.report(e) ; continue ; }
   }
   
   
@@ -101,34 +150,78 @@ public class BuildingsTab extends InfoPanel {
     */
   protected void updateText() {
     detailText.setText("") ;
-    for (final InstallType type : types) {
-      detailText.append("\n") ;
+    headerText.setText("") ;
+    if (! Visit.arrayIncludes(categoryButtons, UI.selected())) {
+      hoveredCategory = null ;
+    }
+    if (currentCategory == null) return ;
+    
+    final String name = currentCategory.name.toUpperCase() ;
+    headerText.setText(name+" STRUCTURES") ;
+    
+    for (final InstallType type : currentCategory.types) {
       detailText.insert(type.icon, 40) ;
       detailText.append("  "+type.name) ;
-      detailText.append("\n  ") ;
-      detailText.append("\n") ;
+      
       detailText.append(new Text.Clickable() {
-        public void whenClicked() { initBuildTask(type, UI.rendering) ; }
-        public String fullName() { return "(BUILD)" ; }
+        public void whenClicked() { initInstallTask(type) ; }
+        public String fullName() { return "\n  (BUILD)" ; }
       }) ;
       detailText.append(new Text.Clickable() {
-        public void whenClicked() { helpShown = type ; }
-        public String fullName() { return "(INFO)" ; }
+        public void whenClicked() {
+          listShown = (type == listShown) ? null : type ;
+          helpShown = null ;
+        }
+        public String fullName() { return "  (LIST)" ; }
       }) ;
+      detailText.append(new Text.Clickable() {
+        public void whenClicked() {
+          helpShown = (type == helpShown) ? null : type ;
+          listShown = null ;
+        }
+        public String fullName() { return "  (INFO)" ; }
+      }) ;
+      
       if (helpShown == type) {
         detailText.append("\n") ;
         detailText.append(type.description) ;
+        detailText.append("\n") ;
       }
+      if (listShown == type) {
+        final Batch <Installation> installed = listInstalled(type) ;
+        int ID = 0 ;
+        if (installed.size() == 0) {
+          detailText.append("\n  (no current installations)") ;
+        }
+        else for (Installation i : installed) {
+          detailText.append("\n    ") ;
+          final String label = i.fullName()+" No. "+(++ID) ;
+          detailText.append(label, (Text.Clickable) i) ;
+          //  You might also list location.
+        }
+        detailText.append("\n") ;
+      }
+      
       detailText.append("\n") ;
     }
   }
   
   
+  Batch <Installation> listInstalled(InstallType type) {
+    Batch <Installation> installed = new Batch <Installation> () ;
+    final Tile zero = UI.world.tileAt(0, 0) ;
+    for (Object o : UI.played().servicesNear(type.buildClass, zero, -1)) {
+      if (! (o instanceof Installation)) continue ;
+      installed.add((Installation) o) ;
+    }
+    return installed ;
+  }
+  
   
   /**  Actual placement of buildings-
     */
-  void initBuildTask(final InstallType type, final Rendering rendering) {
-    I.say("Beginning build task...") ;
+  void initInstallTask(InstallType type) {
+    ///I.say("Beginning build task...") ;
     final InstallTask task = new InstallTask() ;
     task.toInstall = type.instanced ;
     UI.setTask(task) ;
@@ -156,15 +249,6 @@ public class BuildingsTab extends InfoPanel {
           hasPressed = true ;
         }
       }
-      
-      /*
-      if (to == null) to = from ;
-      if (UI.mouseDown() && from != null) hasPressed = true ;
-      if (UI.mouseDragged()) {
-        to = UI.pickedTile() ;
-      }
-      //*/
-      
       final boolean canPlace = toInstall.pointsOkay(from, to) ;
       
       if (canPlace && hasPressed && ! UI.mouseDown()) {
@@ -186,51 +270,6 @@ public class BuildingsTab extends InfoPanel {
     }
   }
 }
-
-
-
-
-/*
-UITask buildTask = new UITask() {
-  
-  public void doTask() {
-    final World world = UI.played().world ;
-    final Venue installed = type.instanced ;
-    final Tile tile = UI.pickedTile() ;
-    if (tile == null) return ;
-    //
-    //  Check that nothing in the underlying area is of higher priority.
-    installed.setPosition(tile.x, tile.y, world) ;
-    final Sprite s = installed.sprite() ;
-    //final Box2D area = new Box2D().setTo(installed.area()) ;
-    //area.expandBy(1) ;
-    //final boolean canPlace = canPlace(world, installed, area) ;
-    final boolean canPlace = installed.canPlace() ;
-    s.colour = canPlace ? Colour.GREEN : Colour.RED ;
-    installed.position(s.position) ;
-    rendering.clearDepth() ;
-    rendering.addClient(s) ;
-    //
-    //  
-    if (canPlace && UI.mouseClicked()) {
-      installed.clearSurrounds() ;
-      //clearArea(world, area) ;
-      s.colour = null ;
-      installed.enterWorldAt(tile.x, tile.y, world) ;
-      UI.endTask() ;
-      refreshInstance(type) ;
-    }
-  }
-  
-  public void cancelTask() {
-    UI.endTask() ;
-  }
-  
-  public Texture cursorImage() {
-    return type.icon ;
-  }
-} ;
-//*/
 
 
 

@@ -19,6 +19,22 @@ public final class Spacing implements TileConstants {
   
   final static int
     CLUSTER_SIZE = 8 ;
+
+  private final static Vec3D pA = new Vec3D(), pB = new Vec3D() ;
+  private final static Box2D tA = new Box2D(), tB = new Box2D() ;
+  
+  final static Tile PERIM_ARRAYS[][] = {
+    new Tile[8 ],
+    new Tile[12],
+    new Tile[16],
+    new Tile[20]
+  } ;
+  final static Element NEAR_ARRAYS[][] = {
+    new Element[8 ],
+    new Element[12],
+    new Element[16],
+    new Element[20]
+  } ;
   
   
   //
@@ -31,7 +47,9 @@ public final class Spacing implements TileConstants {
       maxY = (int) (minY + area.ydim() + 1),
       wide = 1 + maxX - minX,
       high = 1 + maxY - minY ;
-    final Tile perim[] = new Tile[(wide + high - 2) * 2] ;
+    final Tile perim[] ;
+    if (wide == high && wide < 4 + 2) perim = PERIM_ARRAYS[wide - 2] ;
+    else perim = new Tile[(wide + high - 2) * 2] ;
     int tX, tY, pI = 0 ;
     for (tX = minX ; tX++ < maxX ;) perim[pI++] = world.tileAt(tX, minY) ;
     for (tY = minY ; tY++ < maxY ;) perim[pI++] = world.tileAt(maxX, tY) ;
@@ -39,67 +57,6 @@ public final class Spacing implements TileConstants {
     for (tY = maxY ; tY-- > minY ;) perim[pI++] = world.tileAt(minX, tY) ;
     return perim ;
   }
-  
-  
-  //
-  //  This method checks whether the placement of the given element in this
-  //  location would create secondary 'gaps' along it's perimeter that might
-  //  lead to the existence of inaccessible 'pockets' of terrain- that would
-  //  cause pathing problems.
-  public static boolean perimeterFits(Element element) {
-    final Box2D area = element.area(tA) ;
-    final Tile perim[] = perimeter(area, element.world()) ;
-    //
-    //  Here, we check the first perimeter.  First, determine where the first
-    //  taken (reserved) tile after a contiguous gap is-
-    boolean inClearSpace = false ;
-    int index = perim.length - 1 ;
-    while (index >= 0) {
-      final Tile t = perim[index] ;
-      if (t.blocked()) { if (inClearSpace) break ; }
-      else { inClearSpace = true ; }
-      index-- ;
-    }
-    //
-    //  Then, starting from that point, and scanning in the other direction,
-    //  ensure there's no more than a single contiguous clear space-
-    final int
-      firstTaken = (index + perim.length) % perim.length,
-      firstClear = (firstTaken + 1) % perim.length ;
-    inClearSpace = false ;
-    int numSpaces = 0 ;
-    for (index = firstClear ; index != firstTaken ;) {
-      final Tile t = perim[index] ;
-      if (t.blocked()) { inClearSpace = false ; }
-      else if (! inClearSpace) { inClearSpace = true ; numSpaces++ ; }
-      index = (index + 1) % perim.length ;
-    }
-    if (numSpaces > 1) return false ;
-    return true ;
-  }
-  
-  
-  /*
-  public static Tile[] traceSurrounding(Element element, int maxLen) {
-    final Tile perim[] = perimeter(element.area(), element.world()) ;
-    Tile temp[] = new Tile[8] ;
-    Tile lastClear = null, lastBlock = null ;
-    
-    for (Tile t : perim) if (! t.blocked()) { lastClear = t ; break ; }
-    if (lastClear != null) for (Tile t : lastClear.edgeAdjacent(temp)) {
-      if (t.blocked()) { lastBlock = t ; break ; }
-    }
-    if (lastClear == null || lastBlock == null) return new Tile[0] ;
-    
-    
-    final Batch <Tile> clear = new Batch <Tile> () ;
-    Tile nextClear, nextBlock ;
-    
-    //  TODO:  Figure out how this works.
-    
-    return (Tile[]) clear.toArray(Tile.class) ;
-  }
-  //*/
   
 
   public static int[] entranceCoords(int xdim, int ydim, float face) {
@@ -129,24 +86,83 @@ public final class Spacing implements TileConstants {
     }
     return new int[] { enterX, enterY } ;
   }
+
+  
+  
+  /**  Methods for assisting placement-viability checks:
+    */
+  //
+  //  This method checks whether the placement of the given element in this
+  //  location would create secondary 'gaps' along it's perimeter that might
+  //  lead to the existence of inaccessible 'pockets' of terrain- that would
+  //  cause pathing problems.
+  public static boolean perimeterFits(Element element) {
+    final Box2D area = element.area(tA) ;
+    final Tile perim[] = perimeter(area, element.origin().world) ;
+    //
+    //  Here, we check the first perimeter.  First, determine where the first
+    //  taken (reserved) tile after a contiguous gap is-
+    boolean inClearSpace = false ;
+    int index = perim.length - 1 ;
+    while (index >= 0) {
+      final Tile t = perim[index] ;
+      if (t == null || t.blocked()) { if (inClearSpace) break ; }
+      else { inClearSpace = true ; }
+      index-- ;
+    }
+    //
+    //  Then, starting from that point, and scanning in the other direction,
+    //  ensure there's no more than a single contiguous clear space-
+    final int
+      firstTaken = (index + perim.length) % perim.length,
+      firstClear = (firstTaken + 1) % perim.length ;
+    inClearSpace = false ;
+    int numSpaces = 0 ;
+    for (index = firstClear ; index != firstTaken ;) {
+      final Tile t = perim[index] ;
+      if (t == null || t.blocked()) { inClearSpace = false ; }
+      else if (! inClearSpace) { inClearSpace = true ; numSpaces++ ; }
+      index = (index + 1) % perim.length ;
+    }
+    if (numSpaces > 1) return false ;
+    return true ;
+  }
+  
+  
+  
+  public static int numNeighbours(Element element, World world) {
+    if (element.xdim() > 4 || element.xdim() != element.ydim()) {
+      I.complain("This method is intended only for small, regular elements.") ;
+    }
+    final int size = element.xdim() - 1 ;
+    int numNeighbours = 0 ;
+    final Element near[] = NEAR_ARRAYS[size] ;
+    final Tile perim[] = (size == 0) ?
+      element.origin().allAdjacent(PERIM_ARRAYS[0]) :
+      Spacing.perimeter(element.area(tA), world) ;
+    
+    for (Tile t : perim) if (t != null) {
+      final Element o = t.owner() ;
+      if (o != null && o.flaggedWith() == null) {
+        near[numNeighbours++] = o ;
+        o.flagWith(element) ;
+      }
+    }
+    
+    for (int i = numNeighbours ; i-- > 0 ;) near[i].flagWith(null) ;
+    return numNeighbours ;
+  }
   
   
   
   
   
-  
-  
-  
-  
-  
-  
+  //
   //  TODO:  You'll need to replace this with a general 'pickBest' method,
   //  possibly from the Visit class.
   
   /**  Promity methods-
     */
-  private final static Vec3D pA = new Vec3D(), pB = new Vec3D() ;
-  private final static Box2D tA = new Box2D(), tB = new Box2D() ;
   
   public static Target nearest(
     Series <? extends Target> targets, Target client
@@ -196,9 +212,11 @@ public final class Spacing implements TileConstants {
   }
   
   
-  public static Tile nearestOpenTile(Element element, Target client) {
+  public static Tile nearestOpenTile(
+    Element element, Target client, World world
+  ) {
     if (element.pathType() >= Tile.PATH_HINDERS) {
-      return nearestOpenTile(element.area(tA), client, element.world()) ;
+      return nearestOpenTile(element.area(tA), client, world) ;
     }
     else {
       final Vec3D p = element.position(pA) ;
@@ -242,6 +260,13 @@ public final class Spacing implements TileConstants {
   }
   
   
+  public static boolean edgeAdjacent(Tile a, Tile b) {
+    if (a.x == b.x) return a.y == b.y + 1 || a.y == b.y - 1 ;
+    if (a.y == b.y) return a.x == b.x + 1 || a.x == b.x - 1 ;
+    return false ;
+  }
+  
+  
   public static boolean adjacent(Element a, Element b) {
     if (a == null || b == null) return false ;
     a.area(tA) ;
@@ -256,13 +281,28 @@ public final class Spacing implements TileConstants {
 
 
 
-//
-//  This checks whether the placement of a given fixture is legal.
-//  TODO:  Use this to replace the canPlace method of the Fixture/Venue
-//  classes?
-//  TODO:  Instead of just giving a true/false value, return a batch of all
-//  elements that clash with the placement of this fixture.  Then you can
-//  remove them!
+/*
+public static Tile[] traceSurrounding(Element element, int maxLen) {
+  final Tile perim[] = perimeter(element.area(), element.world()) ;
+  Tile temp[] = new Tile[8] ;
+  Tile lastClear = null, lastBlock = null ;
+  
+  for (Tile t : perim) if (! t.blocked()) { lastClear = t ; break ; }
+  if (lastClear != null) for (Tile t : lastClear.edgeAdjacent(temp)) {
+    if (t.blocked()) { lastBlock = t ; break ; }
+  }
+  if (lastClear == null || lastBlock == null) return new Tile[0] ;
+  
+  
+  final Batch <Tile> clear = new Batch <Tile> () ;
+  Tile nextClear, nextBlock ;
+  
+  //  TODO:  Figure out how this works.
+  
+  return (Tile[]) clear.toArray(Tile.class) ;
+}
+//*/
+
 /*
 public static boolean canPlace(Element fixture, World world) {
   //

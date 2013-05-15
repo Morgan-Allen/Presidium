@@ -81,6 +81,7 @@ public abstract class Plan implements Saveable, Behaviour {
 
   public void abortStep() {
     I.say("Aborting plan! "+this) ;
+    actor.cancelBehaviour(this) ;
   }
   
   
@@ -91,7 +92,7 @@ public abstract class Plan implements Saveable, Behaviour {
     }
     if (nextStep == null || nextStep.complete()) {
       if (valid()) nextStep = getNextStep() ;
-      else nextStep = null ;
+      else { I.say("Plan no longer valid!") ; nextStep = null ; }
     }
     return nextStep ;
   }

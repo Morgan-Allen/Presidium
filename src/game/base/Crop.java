@@ -75,9 +75,12 @@ public class Crop extends Element {
     return Tile.PATH_HINDERS ;
   }
   
+  
   public int owningType() {
-    return Element.ENVIRONMENT_OWNS ;
+    return Element.FIXTURE_OWNS ;
   }
 }
+
+
 
 

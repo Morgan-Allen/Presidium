@@ -104,6 +104,7 @@ public class Farming extends Plan implements VenueConstants {
     //
     //  Find the nearest unworked tile-
     for (Tile t : nursery.toPlant) {
+      if (! nursery.canPlant(t)) { nursery.toPlant.remove(t) ; continue ; }
       if (world.activities.includes(t, Farming.class)) continue ;
       final float dist = Spacing.distance(t, actor) ;
       if (dist < minDist) { minDist = dist ; nearest = t ; }
@@ -147,7 +148,7 @@ public class Farming extends Plan implements VenueConstants {
     //
     //  Find the nearest mature crop-
     for (Crop c : nursery.planted) {
-      if (! c.inWorld()) continue ;
+      if (! c.inWorld()) { nursery.planted.remove(c) ; continue ; }
       if (c.growStage < Crop.MAX_GROWTH) continue ;
       if (world.activities.includes(c, Farming.class)) continue ;
       final float dist = Spacing.distance(c, actor) ;

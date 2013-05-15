@@ -40,7 +40,7 @@ public class RouteSearch extends Search <Tile> {
     final float
       xd = spot.x - destination.x,
       yd = spot.y - destination.y ;
-    return ((xd > 0 ? xd : -xd) + (yd > 0 ? yd : -yd)) * 5 ;
+    return ((xd > 0 ? xd : -xd) + (yd > 0 ? yd : -yd)) / 2f ;
   }
   
   

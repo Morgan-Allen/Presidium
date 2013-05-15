@@ -85,8 +85,8 @@ public class MagLineNode extends Element implements
   }
   
   
-  public Tile[] entrances() {
-    return new Tile[] { origin() } ;
+  public Tile mainEntrance() {
+    return origin() ;
   }
   
   

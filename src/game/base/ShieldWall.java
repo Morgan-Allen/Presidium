@@ -5,13 +5,12 @@ package src.game.base ;
 import src.game.building.* ;
 import src.game.common.* ;
 import src.graphics.common.* ;
+import src.user.BuildingsTab;
 import src.util.* ;
 
 
 
 public class ShieldWall extends LineInstallation {
-  
-  
   
   
   final Base base ;
@@ -123,6 +122,11 @@ public class ShieldWall extends LineInstallation {
   public String helpInfo() {
     return
       "Shield Walls are defensive emplacements that improve base security." ;
+  }
+  
+  
+  public String buildCategory() {
+    return BuildingsTab.TYPE_MILITARY ;
   }
 }
 

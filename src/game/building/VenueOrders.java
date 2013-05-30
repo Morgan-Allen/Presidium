@@ -20,7 +20,7 @@ public class VenueOrders {
     */
   final public static float
     ORDER_UNIT = 5,
-    POTENTIAL_INC = 0.05f,
+    POTENTIAL_INC = 0.15f,
     SEARCH_RADIUS = 32,
     MAX_CHECKED = 4 ;
   

@@ -21,7 +21,7 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   /**  Field definitions, constructors and save/load functionality-
     */
   final public ActorHealth health = new ActorHealth(this) ;
-  final public ActorTraining training = new ActorTraining(this) ;
+  final public ActorTraits traits = new ActorTraits(this) ;
   final public ActorEquipment equipment = new ActorEquipment(this) ;
   
   final public MobilePathing pathing = new MobilePathing(this) ;
@@ -38,14 +38,15 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   public Actor(Session s) throws Exception {
     super(s) ;
     health.loadState(s) ;
-    training.loadState(s) ;
+    traits.loadState(s) ;
     pathing.loadState(s) ;
     equipment.loadState(s) ;
-    
+
     action = (Action) s.loadObject() ;
     s.loadObjects(behaviourStack) ;
     base = (Base) s.loadObject() ;
     
+    //if (true) return ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Element e = (Element) s.loadObject() ;
       seen.put(e, e) ;
@@ -56,14 +57,15 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     health.saveState(s) ;
-    training.saveState(s) ;
+    traits.saveState(s) ;
     pathing.saveState(s) ;
     equipment.saveState(s) ;
-    
+
     s.saveObject(action) ;
     s.saveObjects(behaviourStack) ;
     s.saveObject(base) ;
-    
+
+    //if (true) return ;
     s.saveInt(seen.size()) ;
     for (Element e : seen.keySet()) s.saveObject(e) ;
   }
@@ -75,13 +77,6 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   
   /**  Assigning behaviours and actions-
     */
-  public void assignAction(Action action) {
-    world.activities.toggleActive(this.action, false) ;
-    this.action = action ;
-    world.activities.toggleActive(action, true) ;
-  }
-  
-  
   public void assignBehaviour(Behaviour behaviour) {
     if (behaviour == null) I.complain("CANNOT ASSIGN NULL BEHAVIOUR.") ;
     assignAction(null) ;
@@ -96,6 +91,13 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
       final Behaviour top = behaviourStack.removeFirst() ;
       if (top == b) break ;
     }
+  }
+  
+  
+  protected void assignAction(Action action) {
+    world.activities.toggleActive(this.action, false) ;
+    this.action = action ;
+    world.activities.toggleActive(action, true) ;
   }
   
   
@@ -146,6 +148,11 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   
   public Action currentAction() {
     return action ;
+  }
+  
+  
+  public Behaviour topBehaviour() {
+    return behaviourStack.getFirst() ;
   }
   
   
@@ -224,10 +231,15 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   public void whenClicked() {
     ((BaseUI) PlayLoop.currentUI()).setSelection(this) ;
   }
+
+  
+  public InfoPanel createPanel(BaseUI UI) {
+    return new ActorPanel(UI, this) ;
+  }
   
   
   public String toString() {
-    return fullName()+" (Actor)" ;
+    return fullName() ;
   }
 }
 

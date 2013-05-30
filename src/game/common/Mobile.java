@@ -20,8 +20,8 @@ public abstract class Mobile extends Element
   protected float
     rotation,
     nextRotation ;
-  protected Vec3D
-    facing = new Vec3D(1, 0, 0) ;
+  //protected Vec3D
+    //facing = new Vec3D(1, 0, 0) ;
   protected final Vec3D
     position = new Vec3D(),
     nextPosition = new Vec3D() ;
@@ -44,7 +44,7 @@ public abstract class Mobile extends Element
     this.nextRotation = s.loadFloat() ;
     position.    loadFrom(s.input()) ;
     nextPosition.loadFrom(s.input()) ;
-    facing.loadFrom(s.input()) ;
+    //facing.loadFrom(s.input()) ;
     aboard = (Boardable) s.loadTarget() ;
     boarding = (Boardable) s.loadTarget() ;
   }
@@ -55,7 +55,7 @@ public abstract class Mobile extends Element
     s.saveFloat(nextRotation) ;
     position    .saveTo(s.output()) ;
     nextPosition.saveTo(s.output()) ;
-    facing.saveTo(s.output()) ;
+    //facing.saveTo(s.output()) ;
     s.saveTarget(aboard) ;
     s.saveTarget(boarding) ;
   }
@@ -132,15 +132,7 @@ public abstract class Mobile extends Element
   }
   
   
-  //  TODO:  This will create problems.  Much of the code from projectHeading
-  //  should be moved to updateMobile to avoid this.
-  public void setHeading(Vec3D nextPos, float nextRot) {
-    nextPosition.setTo(nextPos) ;
-    nextRotation = nextRot ;
-  }
-  
-  
-  public void projectHeading(Target target, float speed) {
+  public void setHeading(Target target, float speed) {
     ///I.say("Projecting motion toward: "+target) ;
     //
     //  Determine the appropriate offset and angle for this target-
@@ -151,7 +143,7 @@ public abstract class Mobile extends Element
     ) ;
     final float dist = disp.length() ;
     final float angle = dist == 0 ? 0 : disp.normalise().toAngle() ;
-    facing.setTo(disp) ;
+    //facing.setTo(disp) ;
     //
     //  Determine how far one can move this update.  (Later on, this might need
     //  doing for rotation as well?)
@@ -196,24 +188,17 @@ public abstract class Mobile extends Element
       nextPosition.z = world.terrain().trueHeight(disp.x, disp.y) ;
     }
     else nextPosition.z = boarding.position(p).z ;
-    ///I.say("Next z: "+nextPosition.z+", old z: "+position.z) ;
+    //*/
   }
   
   
   protected void updateAsMobile() {
-    /*
-    if (indoors()) {
-      nextPosition.z = aboard().position(null).z ;
-    }
-    //*/
-    ///I.say("Next z: "+nextPosition.z+", old z: "+position.z) ;
     
     final Tile
       oldTile = origin(),
       newTile = world().tileAt(nextPosition.x, nextPosition.y) ;
     if (oldTile != newTile) onTileChange(oldTile, newTile) ;
-    ///I.say("Aboard is: "+aboard) ;
-    
+    //
     //  ...There's a problem here.  You need to have some kind of emergency
     //  fallback in the event that you can't follow your specified path.
     /*
@@ -268,7 +253,6 @@ public abstract class Mobile extends Element
     final float alpha = PlayLoop.frameTime() ;
     s.position.setTo(position).scale(1 - alpha) ;
     s.position.add(nextPosition, alpha, s.position) ;
-    I.say("Sprite position is: "+s.position) ;
     final float rotateChange = Vec2D.degreeDif(nextRotation, rotation) ;
     s.rotation = (rotation + (rotateChange * alpha) + 360) % 360 ;
     ///I.say("sprite position/rotation: "+s.position+" "+s.rotation) ;

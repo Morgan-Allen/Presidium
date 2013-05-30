@@ -141,7 +141,7 @@ public interface ActorConstants {
     AGGRESSIVE = new Trait(PERSONALITY,
       "Vengeful",
       "Aggressive",
-      "Iritable",
+      "Irritable",
       null,
       "Calm",
       "Gentle",
@@ -157,13 +157,13 @@ public interface ActorConstants {
       "Callous"
     ),
     OPTIMISTIC = new Trait(PERSONALITY,
-      "Cheerful",
+      "Blind to Danger",
       "Optimistic",
       "Hopeful",
       null,
       "Doubtful",
       "Pessimistic",
-      "Depressed"
+      "Morose"
     ),
     INQUISITIVE = new Trait(PERSONALITY,
       "Hunger for Knowledge",
@@ -264,16 +264,16 @@ public interface ActorConstants {
     HONOURABLE = new Trait(PERSONALITY,
       "Unimpeachable",
       "Honourable",
-      "Trusty",
+      "Trustworthy",
       null,
-      "Shady",
-      "Duplicitous",
+      "Sly",
+      "Dishonest",
       "Manipulative"
     ),
     EMPATHIC = new Trait(PERSONALITY,
       "Martyr Complex",
-      "Empathic",
-      "Sympathetic",
+      "Compassionate",
+      "Soft",
       null,
       "Cruel",
       "Sadistic",
@@ -293,10 +293,11 @@ public interface ActorConstants {
       "Lusty",
       "Fun",
       null,
-      "Moderate",
+      "Temperate",
       "Abstinent",
       "Frigid"
     ),
+    ALL_PERSONALITY_TRAITS[] = Trait.traitsSoFar(),
     
     
     FEMININE = new Trait(PHYSICAL,
@@ -363,6 +364,10 @@ public interface ActorConstants {
       "Wastes Blood",
       null
     ),
+    BLOOD_TRAITS[] = {
+      DESERT_BLOOD, TUNDRA_BLOOD, FOREST_BLOOD, WASTES_BLOOD
+    },
+    
     MUTATION = new Trait(PHYSICAL,
       "Severe Mutation",
       "Major Mutation",
@@ -374,11 +379,12 @@ public interface ActorConstants {
       "Highly Gifted",
       "Gifted",
       null
-    )
+    ),
+    ALL_PHYSICAL_TRAITS[] = Trait.traitsSoFar()
   ;
-
+  
   final public static Trait
-    ALL_TRAIT_TYPES[] = Trait.from(Trait.allSkills) ;
+    ALL_TRAIT_TYPES[] = Trait.from(Trait.allTraits) ;
 }
 
 

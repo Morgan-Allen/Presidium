@@ -5,7 +5,9 @@ package src.game.base ;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
+import src.user.BaseUI;
 import src.user.BuildingsTab;
+import src.user.Composite;
 import src.util.* ;
 
 
@@ -94,8 +96,8 @@ public class MagLine extends LineInstallation {
   }
   
   
-  public Texture portrait() {
-    return Texture.loadTexture("media/GUI/Buttons/mag_line_button.gif") ;
+  public Composite portrait(BaseUI UI) {
+    return new Composite(UI, "media/GUI/Buttons/mag_line_button.gif") ;
   }
   
   

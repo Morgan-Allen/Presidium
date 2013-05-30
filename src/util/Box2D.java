@@ -170,32 +170,34 @@ public class Box2D {
   
   /**  Expands this box to include the argument box.
     */
-  public void include(Box2D box) {
+  public Box2D include(Box2D box) {
     if (xpos > box.xpos) xpos = box.xpos ;
     if (ypos > box.ypos) ypos = box.ypos ;
     if (xmax < box.xmax) xmax = box.xmax ;
     if (ymax < box.ymax) ymax = box.ymax ;
     xdim = xmax - xpos ;
     ydim = ymax - ypos ;
+    return this ;
   }
   
 
   /**  Expands this box to include a given radius about the given vector point.
     */
-  public void include(Vec2D v, float r) {
-    include(v.x, v.y, r) ;
+  public Box2D include(Vec2D v, float r) {
+    return include(v.x, v.y, r) ;
   }
   
 
   /**  Expands this box to include a given radius about the given x/y point.
     */
-  public void include(float xp, float yp, float r) {
+  public Box2D include(float xp, float yp, float r) {
     if (xpos > xp - r) xpos = xp - r ;
     if (ypos > yp - r) ypos = yp - r ;
     if (xmax < xp + r) xmax = xp + r ;
     if (ymax < yp + r) ymax = yp + r ;
     xdim = xmax - xpos ;
     ydim = ymax - ypos ;
+    return this ;
   }
   
   

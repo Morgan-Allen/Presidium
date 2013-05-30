@@ -50,14 +50,18 @@ public class Terrain implements TileConstants, Session.Saveable {
   private byte
     minerals[][] ;
   private byte
-    roadMask[][] ;
+    roadCounter[][] ;
   
   final TileMask pavingMask = new TileMask() {
     public boolean maskAt(int x, int y) {
-      return roadMask[x][y] > 0 ;
+      return roadCounter[x][y] > 0 ;
     }
     public boolean nullsCount() {
       return true ;
+    }
+    public byte varID(int x, int y) {
+      //  TODO:  Base this on no. of adjacent fixtures, spaced intervals, etc.
+      return 0 ;
     }
   } ;
   
@@ -82,7 +86,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     this.typeIndex = typeIndex ;
     this.varsIndex = varsIndex ;
     this.heightVals = heightVals ;
-    this.roadMask = new byte[mapSize][mapSize] ;
+    this.roadCounter = new byte[mapSize][mapSize] ;
     this.habitats = new Habitat[mapSize][mapSize] ;
     for (Coord c : Visit.grid(0, 0, mapSize, mapSize, 1)) {
       habitats[c.x][c.y] = Habitat.ALL_HABITATS[typeIndex[c.x][c.y]] ;
@@ -102,8 +106,8 @@ public class Terrain implements TileConstants, Session.Saveable {
     s.loadByteArray(typeIndex) ;
     s.loadByteArray(varsIndex) ;
     
-    roadMask = new byte[mapSize][mapSize] ;
-    s.loadByteArray(roadMask) ;
+    roadCounter = new byte[mapSize][mapSize] ;
+    s.loadByteArray(roadCounter) ;
     habitats = new Habitat[mapSize][mapSize] ;
     for (Coord c : Visit.grid(0, 0, mapSize, mapSize, 1)) {
       habitats[c.x][c.y] = Habitat.ALL_HABITATS[typeIndex[c.x][c.y]] ;
@@ -119,7 +123,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     s.saveByteArray(typeIndex) ;
     s.saveByteArray(varsIndex) ;
     
-    s.saveByteArray(roadMask) ;
+    s.saveByteArray(roadCounter) ;
     s.saveByteArray(minerals) ;
   }
   
@@ -205,7 +209,7 @@ public class Terrain implements TileConstants, Session.Saveable {
   /**  Pavements and overlays-
     */
   public boolean isRoad(Tile t) {
-    return roadMask[t.x][t.y] > 0 ;
+    return roadCounter[t.x][t.y] > 0 ;
   }
   
   
@@ -214,7 +218,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     Box2D bounds = null ;
     for (Tile t : tiles) if (t != null) {
       if (bounds == null) bounds = new Box2D().set(t.x, t.y, 0, 0) ;
-      roadMask[t.x][t.y] += is ? 1 : -1 ;
+      roadCounter[t.x][t.y] += is ? 1 : -1 ;
       bounds.include(t.x, t.y, 0.5f) ;
     }
     bounds.expandBy(1) ;

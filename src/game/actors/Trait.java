@@ -15,8 +15,8 @@ public class Trait implements Condition, ActorConstants {
   
   
   static Batch <Trait>
-    skillsSoFar = new Batch <Trait> (),
-    allSkills   = new Batch <Trait> () ;
+    traitsSoFar = new Batch <Trait> (),
+    allTraits   = new Batch <Trait> () ;
   
   static Trait[] from(Batch <Trait> types) {
     final Trait t[] = (Trait[]) types.toArray(Trait.class) ;
@@ -25,8 +25,14 @@ public class Trait implements Condition, ActorConstants {
   }
   
   static Skill[] skillsSoFar() {
-    final Skill t[] = (Skill[]) skillsSoFar.toArray(Skill.class) ;
-    skillsSoFar.clear() ;
+    final Skill t[] = (Skill[]) traitsSoFar.toArray(Skill.class) ;
+    traitsSoFar.clear() ;
+    return t ;
+  }
+  
+  static Trait[] traitsSoFar() {
+    final Trait t[] = traitsSoFar.toArray(Trait.class) ;
+    traitsSoFar.clear() ;
     return t ;
   }
   
@@ -59,20 +65,42 @@ public class Trait implements Condition, ActorConstants {
     this.minVal = min ;
     this.maxVal = max ;
 
-    skillsSoFar.add(this) ;
-    allSkills.add(this) ;
+    traitsSoFar.add(this) ;
+    allTraits.add(this) ;
   }
   
   
   /**  Returns the appropriate description for the given trait-level.
     */
-  public static String descriptionFor(Trait trait, int level) {
-    for (int i = 0 ; i < trait.descriptors.length ; i++) {
-      if (trait.descValues[i] == level) return trait.descriptors[i] ;
+  public static String descriptionFor(Trait trait, float level) {
+    //for (int i = 0 ; i < trait.descriptors.length ; i++) {
+    String bestDesc = null ;
+    float minDiff = Float.POSITIVE_INFINITY ;
+    int i = 0 ; for (String s : trait.descriptors) {
+      final float diff = Math.abs(level - trait.descValues[i]) ;
+      if (diff < minDiff) { minDiff = diff ; bestDesc = s ; }
+      i++ ;
     }
-    return null ;
+    return bestDesc ;
+    /*
+    String topDesc = null ;
+    for (int i = trait.descriptors.length ; i-- > 0 ;) {
+      topDesc = trait.descriptors[i] ;
+      if (trait.descValues[i] == level) return topDesc ;
+    }
+    return topDesc ;
+    //*/
+  }
+  
+  
+  public String toString() {
+    return descriptionFor(this, 2) ;
   }
   
 
   public void affect(Actor a) {}
 }
+
+
+
+

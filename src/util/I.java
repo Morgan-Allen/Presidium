@@ -87,6 +87,8 @@ public class I {
   private final static int
     MODE_GREY   = 0,
     MODE_COLOUR = 1 ;
+  private static Table <String, Presentation> windows = new Table() ;
+  
   
   
   private static class Presentation extends JFrame {
@@ -118,7 +120,7 @@ public class I {
       final int w = vals.length, h = vals[0].length ;
       final byte byteData[] = new byte[w * h] ;
       for (Coord c : Visit.grid(0, 0, w, h, 1)) {
-        final int grey = (int) (vals[c.x][c.y] * 255) ;
+        final int grey = (int) Visit.clamp(vals[c.x][c.y] * 255, 0, 255) ;
         byteData[imgIndex(c.x, c.y, w, h)] = scale[grey] ;
       }
       presentImage(g, byteData, BufferedImage.TYPE_BYTE_GRAY, w, h) ;
@@ -157,9 +159,6 @@ public class I {
   }
   
   
-  private static Table <String, Presentation> windows = new Table() ;
-  
-  
   public static void present(
     float greyVals[][],
     String name, int w, int h
@@ -167,12 +166,14 @@ public class I {
     present(greyVals, MODE_GREY, name, w, h) ;
   }
   
+  
   public static void present(
     int colourVals[][],
     String name, int w, int h
   ) {
     present(colourVals, MODE_COLOUR, name, w, h) ;
   }
+  
   
   private static void present(
     Object vals, int mode,

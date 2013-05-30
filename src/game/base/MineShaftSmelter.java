@@ -11,7 +11,9 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.user.BaseUI;
 import src.user.BuildingsTab ;
+import src.user.Composite;
 import src.util.* ;
 
 
@@ -173,8 +175,8 @@ public class MineShaftSmelter extends Venue implements VenueConstants {
       if (m.coolTime != -1) continue ;
       m.coolTime = 0 ;
       m.minerals = 1 ;
-      m.minerals += actor.training.test(GEOPHYSICS, 5, 1) ? 1 : 0 ;
-      m.minerals += actor.training.test(HARD_LABOUR, 10, 1) ? 1 : 0 ;
+      m.minerals += actor.traits.test(GEOPHYSICS, 5, 1) ? 1 : 0 ;
+      m.minerals += actor.traits.test(HARD_LABOUR, 10, 1) ? 1 : 0 ;
       return true ;
     }
     return false ;
@@ -231,8 +233,8 @@ public class MineShaftSmelter extends Venue implements VenueConstants {
   }
   
   
-  public Texture portrait() {
-    return Texture.loadTexture("media/GUI/Buttons/excavation_button.gif") ;
+  public Composite portrait(BaseUI UI) {
+    return new Composite(UI, "media/GUI/Buttons/excavation_button.gif") ;
   }
   
   

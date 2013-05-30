@@ -43,7 +43,6 @@ public class Action implements Behaviour, Model.AnimNames {
     this.basis = basis ;
     this.toCall = namedMethodFor(basis, methodName) ;
     this.priority = ROUTINE ;
-    //  TODO:  Consider automatically looking for the nearest clear tile!
     this.actionTarget = this.moveTarget = target ;
     this.duration = 1.0f ;
     this.animName = animName ;
@@ -141,9 +140,11 @@ public class Action implements Behaviour, Model.AnimNames {
     return true ;
   }
   
+  
   public void abortStep() {
     progress = -1 ;
     inRange = -1 ;
+    actor.cancelBehaviour(this) ;
   }
   
   
@@ -165,7 +166,7 @@ public class Action implements Behaviour, Model.AnimNames {
     ///I.say(actor+" move target is: "+moveTarget) ;
     actor.pathing.updateWithTarget(moveTarget) ;
     if (actor.pathing.closeEnough()) {
-      actor.projectHeading(actionTarget, 0) ;
+      actor.setHeading(actionTarget, 0) ;
       if (inRange != 1) {
         inRange = 1 ;
         progress = oldProgress = 0 ;
@@ -174,7 +175,7 @@ public class Action implements Behaviour, Model.AnimNames {
     else {
       final Target nextStep = actor.pathing.nextStep() ;
       if (nextStep == null) return ;
-      actor.projectHeading(nextStep, actor.health.moveRate()) ;
+      actor.setHeading(nextStep, actor.health.moveRate()) ;
       if (inRange != 0) {
         inRange = 0 ;
         progress = oldProgress = 0 ;

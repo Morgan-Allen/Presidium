@@ -20,13 +20,15 @@ public abstract class Element implements Target, Session.Saveable {
     NOTHING_OWNS     = 0,
     ENVIRONMENT_OWNS = 1,
     FIXTURE_OWNS     = 2,
-    VENUE_OWNS       = 3 ;
+    VENUE_OWNS       = 3,
+    TERRAIN_OWNS     = 4 ;
 
   private Sprite sprite ;
   private Object flagged ;
   
   protected World world ;
   private Tile location ;
+  private float inceptTime ;
   
   
   
@@ -38,6 +40,7 @@ public abstract class Element implements Target, Session.Saveable {
     s.cacheInstance(this) ;
     world = s.loadBool() ? s.world() : null ;
     location = (Tile) s.loadTarget() ;
+    inceptTime = s.loadFloat() ;
     final Model model = Model.loadModel(s.input()) ;
     if (model != null) attachSprite(model.makeSprite()) ;
   }
@@ -46,6 +49,7 @@ public abstract class Element implements Target, Session.Saveable {
   public void saveState(Session s) throws Exception {
     s.saveBool(world != null) ;
     s.saveTarget(location) ;
+    s.saveFloat(inceptTime) ;
     Model.saveModel(sprite, s.output()) ;
   }
   
@@ -63,6 +67,7 @@ public abstract class Element implements Target, Session.Saveable {
     if (inWorld()) I.complain("Already in world...") ;
     setPosition(x, y, world) ;
     this.world = world ;
+    this.inceptTime = world.currentTime() ;
     if (owningType() != NOTHING_OWNS) location.setOwner(this) ;
   }
   
@@ -117,6 +122,10 @@ public abstract class Element implements Target, Session.Saveable {
   protected void onGrowth() {
   }
   
+  protected void setInceptTime(float t) {
+    inceptTime = t ;
+  }
+  
   
   /**  Methods related to specifying position and size-
     */
@@ -162,6 +171,9 @@ public abstract class Element implements Target, Session.Saveable {
   }
   
   protected void renderFor(Rendering rendering, Base base) {
+    float timeGone = world().currentTime() - inceptTime ;
+    timeGone += PlayLoop.frameTime() / PlayLoop.UPDATES_PER_SECOND ;
+    sprite.colour = Colour.transparency(timeGone) ;
     position(sprite.position) ;
     rendering.addClient(sprite) ;
   }

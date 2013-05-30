@@ -23,6 +23,12 @@ public class Rand {
     return min + ((max - min) * GEN.nextFloat()) ;
   }
   
+  final public static float rangeAvg(float min, float max, int n) {
+    float total = 0 ;
+    for (int r = n ; r-- > 0 ;) total += range(min, max) ;
+    return total / n ;
+  }
+  
   final public static int rollDice(int num, int sides) {
     int total = 0 ;
     while (num-- > 0) total += 1 + (int) (num() * sides) ;

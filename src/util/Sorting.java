@@ -4,6 +4,8 @@
   *  for now, feel free to poke around for non-commercial purposes.
   */
 
+
+
 package src.util ;
 import java.lang.reflect.Array ;
 import java.util.Iterator ;
@@ -104,6 +106,7 @@ public abstract class Sorting <K> implements Series <K> {
   //  case the rotation does nothing to correct the imbalance!  (Branch Y is
   //  then heavier than A, rather than X being heavier than C.)  So, we have to
   //  rotate B into X in the opposite direction first.
+  
   
   void rotate(Node n, Side s, boolean first) {
     final Side o = (s == Side.L) ? Side.R : Side.L ;
@@ -312,14 +315,15 @@ public abstract class Sorting <K> implements Series <K> {
   
   public boolean contains(K value) {
     final Batch <Node> matches = matchesFor(value) ;
-    return matches.size() > 0 ;
+    for (Node node : matches) {
+      if (node.value == value) return true ;
+    }
+    return false ;
   }
   
   
   public void delete(K value) {
-    ///I.say("Tree state is: "+this.toString()) ;
     final Batch <Node> matches = matchesFor(value) ;
-    ///I.say(matches.size()+" matches found.") ;
     for (Node node : matches) {
       if (node.value == value) {
         deleteRef(node) ;

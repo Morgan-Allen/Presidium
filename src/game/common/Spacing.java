@@ -48,7 +48,7 @@ public final class Spacing implements TileConstants {
       wide = 1 + maxX - minX,
       high = 1 + maxY - minY ;
     final Tile perim[] ;
-    if (wide == high && wide < 4 + 2) perim = PERIM_ARRAYS[wide - 2] ;
+    if (wide == high && wide <= 6) perim = PERIM_ARRAYS[wide - 3] ;
     else perim = new Tile[(wide + high - 2) * 2] ;
     int tX, tY, pI = 0 ;
     for (tX = minX ; tX++ < maxX ;) perim[pI++] = world.tileAt(tX, minY) ;
@@ -106,7 +106,9 @@ public final class Spacing implements TileConstants {
     int index = perim.length - 1 ;
     while (index >= 0) {
       final Tile t = perim[index] ;
-      if (t == null || t.blocked()) { if (inClearSpace) break ; }
+      if (t == null || t.owningType() >= element.owningType()) {
+        if (inClearSpace) break ;
+      }
       else { inClearSpace = true ; }
       index-- ;
     }
@@ -120,7 +122,9 @@ public final class Spacing implements TileConstants {
     int numSpaces = 0 ;
     for (index = firstClear ; index != firstTaken ;) {
       final Tile t = perim[index] ;
-      if (t == null || t.blocked()) { inClearSpace = false ; }
+      if (t == null || t.owningType() >= element.owningType()) {
+        inClearSpace = false ;
+      }
       else if (! inClearSpace) { inClearSpace = true ; numSpaces++ ; }
       index = (index + 1) % perim.length ;
     }

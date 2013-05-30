@@ -1,9 +1,15 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 package src.game.base ;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.graphics.common.Texture;
+import src.user.BaseUI;
+import src.user.Composite;
 
 
 
@@ -32,8 +38,8 @@ public class TempDropZone extends DropZone {
   }
 
 
-  public Texture portrait() {
-    return Texture.loadTexture("media/GUI/Buttons/supply_depot_button.gif") ;
+  public Composite portrait(BaseUI UI) {
+    return new Composite(UI, "media/GUI/Buttons/supply_depot_button.gif") ;
   }
   
   public String helpInfo() {

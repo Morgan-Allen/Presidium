@@ -8,16 +8,10 @@
 package src.game.common ;
 import src.game.actors.* ;
 import src.game.building.* ;
-import src.game.campaign.Offworld;
+import src.game.campaign.* ;
 import src.graphics.common.* ;
 import src.util.* ;
 
-
-
-
-//
-//  TODO:  You also need to arrange for items/personnel to be smuggled into the
-//  world!
 
 
 public class Base implements Session.Saveable, Schedule.Updates {
@@ -29,45 +23,60 @@ public class Base implements Session.Saveable, Schedule.Updates {
   final public World world ;
   final public Offworld offworld = new Offworld(this) ;
   Actor ruler ;
-  List <Actor> personnel = new List <Actor> () ;
-  Table <Object, Flagging> services = new Table() ;
   
-  Texture fogMap ;
-  final public PathingCache pathingCache ;
+  final List <Actor> personnel = new List <Actor> () ;
+  final Table <Object, Flagging> services = new Table <Object, Flagging> () ;
+  final public Paving paving ;
+  
+  Texture fogMap ;  //Create a dedicated fogmap later.
+  //final public PathingCache pathingCache ;
+  final public PathingCache pathingCache ;// = new PathingCache(this) ;
   
   
   
   public Base(World world) {
     this.world = world ;
+    pathingCache = new PathingCache(world) ;
+    paving = new Paving(world) ;
+    //paving = new Paving2(this) ;
+    
     initFog() ;
-    pathingCache = new PathingCache(world, this) ;
   }
   
   
   public Base(Session s) throws Exception {
     s.cacheInstance(this) ;
     this.world = s.world() ;
-    initFog() ;
-    pathingCache = new PathingCache(world, this) ;
 
     offworld.loadState(s) ;
     ruler = (Actor) s.loadObject() ;
-    s.loadObjects(personnel) ;
     
+    s.loadObjects(personnel) ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Flagging f = (Flagging) s.loadObject() ;
       services.put(f.key, f) ;
     }
+    paving = new Paving(world) ;
+    //paving = new Paving2(this) ;
+    //paving.loadState(s) ;
+    
+    initFog() ;
+    pathingCache = new PathingCache(world) ;
+    //pathingCache.loadState(s) ;
   }
   
   
   public void saveState(Session s) throws Exception {
+    
     offworld.saveState(s) ;
     s.saveObject(ruler) ;
-    s.saveObjects(personnel) ;
     
+    s.saveObjects(personnel) ;
     s.saveInt(services.size()) ;
     for (Flagging f : services.values()) s.saveObject(f) ;
+    //paving.saveState(s) ;
+    
+    //pathingCache.saveState(s) ;
   }
   
   
@@ -92,6 +101,7 @@ public class Base implements Session.Saveable, Schedule.Updates {
   
   public void updateAsScheduled(int numUpdates) {
     offworld.updateEvents() ;
+    //paving.distribute(VenueConstants.ALL_PROVISIONS) ;
   }
   
   

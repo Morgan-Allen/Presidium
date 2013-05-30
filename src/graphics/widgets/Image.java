@@ -26,28 +26,39 @@ public class Image extends UINode {
     this(myHUD, Texture.loadTexture(textureName)) ;
   }
   
+  
   public Image(HUD myHUD, Texture t) {
     super(myHUD) ;
     texture = t ;
   }
   
-  //  Scale the image to fit within the bounds.
+  
   protected void render() {
+    renderIn(bounds, texture, null) ;
+  }
+  
+  
+  protected void renderIn(Box2D area, Texture tex, Box2D UV) {
     final float scale = stretch ? 1 : Math.min(
       bounds.xdim() / texture.xdim(),
       bounds.ydim() / texture.ydim()
     ) ;
-    final float
-      xmax = stretch ? bounds.xmax() : (bounds.xpos() + texture.xdim() * scale),
-      ymax = stretch ? bounds.ymax() : (bounds.ypos() + texture.ydim() * scale) ;
-    texture.bindTex() ;
     GL11.glColor4f(1, 1, 1, alpha) ;
+    
+    final Box2D drawn = new Box2D().set(
+      area.xpos(), area.ypos(),
+      stretch ? area.xdim() : (texture.xdim() * scale),
+      stretch ? area.ydim() : (texture.ydim() * scale)
+    ) ;
+    if (UV == null) UV = new Box2D().set(0, 0, tex.maxU(), tex.maxV()) ;
+    
+    tex.bindTex() ;
     GL11.glBegin(GL11.GL_QUADS) ;
     drawQuad(
-      xpos(), ypos(),
-      xmax, ymax,
-      0, 0,
-      texture.maxU(), texture.maxV()
+      drawn.xpos(), drawn.ypos(),
+      drawn.xmax(), drawn.ymax(),
+      UV.xpos(), UV.ypos(),
+      UV.xmax(), UV.ymax()
     ) ;
     GL11.glEnd() ;
   }

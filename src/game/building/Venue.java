@@ -21,7 +21,7 @@ import src.util.* ;
 
 public abstract class Venue extends Fixture implements
   Schedule.Updates, Boardable, Installation,
-  Inventory.Owner, Citizen.Employment, Paving.Hub,
+  Inventory.Owner, Citizen.Employment,// Paving.Hub,
   Selectable
 {
   
@@ -42,7 +42,7 @@ public abstract class Venue extends Fixture implements
   
   Base base ;
   List <Mobile> inside = new List <Mobile> () ;
-  final public Paving paving = new Paving(this) ;
+  //final public Paving paving = new Paving(this) ;
   
   final public Inventory stocks = new Inventory(this) ;
   final public VenuePersonnel personnel = new VenuePersonnel(this) ;
@@ -63,7 +63,7 @@ public abstract class Venue extends Fixture implements
     entrance = (Tile) s.loadTarget() ;
     base = (Base) s.loadObject() ;
     s.loadObjects(inside) ;
-    paving.loadState(s) ;
+    //paving.loadState(s) ;
     
     stocks.loadState(s) ;
     personnel.loadState(s) ;
@@ -78,7 +78,7 @@ public abstract class Venue extends Fixture implements
     s.saveTarget(entrance) ;
     s.saveObject(base) ;
     s.saveObjects(inside) ;
-    paving.saveState(s) ;
+    //paving.saveState(s) ;
     
     stocks.saveState(s) ;
     personnel.saveState(s) ;
@@ -100,30 +100,60 @@ public abstract class Venue extends Fixture implements
     return base ;
   }
   
-  
+  /*
   public Paving paving() {
     return paving ;
   }
+  //*/
   
   
   
   /**  Installation and positioning-
     */
+  public boolean canPlace() {
+    if (origin() == null) return false ;
+    final World world = origin().world ;
+    
+    for (Tile t : world.tilesIn(area(), false)) {
+      if (t == null || t.owningType() >= owningType()) return false ;
+    }
+    final Boardable tempB[] = new Boardable[4] ;
+    final Box2D tempA = new Box2D() ;
+    for (Tile n : Spacing.perimeter(area(), world)) {
+      if (n == null) return false ;
+      if (! (n.owner() instanceof Boardable)) continue ;
+      for (Boardable b : ((Boardable) n.owner()).canBoard(tempB)) {
+        if (b == null) continue ;
+        if (area().intersects(b.area(tempA))) return false ;
+      }
+    }
+    
+    if (! Spacing.perimeterFits(this)) return false ;
+    if (mainEntrance().owningType() >= owningType()) return false ;
+    return true ;
+  }
+  
   
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
-    if (base != null) base.toggleBelongs(this, true) ;
+    if (base != null) {
+      base.toggleBelongs(this, true) ;
+      updatePaving(true) ;
+    }
     world.schedule.scheduleForUpdates(this) ;
     personnel.onWorldEntry() ;
-    paving.onWorldEntry() ;
+    //paving.onWorldEntry() ;
   }
   
   
   public void exitWorld() {
-    if (base != null) base.toggleBelongs(this, false) ;
+    if (base != null) {
+      base.toggleBelongs(this, false) ;
+      updatePaving(false) ;
+    }
     world.schedule.unschedule(this) ;
     personnel.onWorldExit() ;
-    paving.onWorldExit() ;
+    //paving.onWorldExit() ;
     super.exitWorld() ;
   }
   
@@ -142,8 +172,11 @@ public abstract class Venue extends Fixture implements
   
   
   public void updateAsScheduled(int numUpdates) {
-    orders.updateOrders() ;
-    if (usesRoads() && numUpdates % 10 == 0) paving.updateRoutes() ;
+    if (base != null && numUpdates % 10 == 0) {
+      orders.updateOrders() ;
+      updatePaving(true) ;
+    }
+    //if (usesRoads() && numUpdates % 10 == 0) paving.updateRoutes() ;
   }
 
   
@@ -196,9 +229,26 @@ public abstract class Venue extends Fixture implements
   }
   
   
+  protected void updatePaving(boolean inWorld) {
+    final Tile perim[] = Spacing.perimeter(area(), world) ;
+    if (inWorld) {
+      base.paving.updateJunction(mainEntrance(), true) ;
+      //base.paving.toggleJunction(this, mainEntrance(), true) ;
+      Paving.clearRoad(perim) ;
+      world.terrain().maskAsPaved(perim, true) ;
+    }
+    else {
+      base.paving.updateJunction(mainEntrance(), false) ;
+      //base.paving.toggleJunction(this, mainEntrance(), true) ;
+      world.terrain().maskAsPaved(perim, false) ;
+    }
+  }
+  
+  /*
   public boolean usesRoads() {
     return true ;
   }
+  //*/
   
   
 
@@ -262,8 +312,8 @@ public abstract class Venue extends Fixture implements
   public String toString() {
     return fullName() ;
   }
-
-
+  
+  
   public String[] infoCategories() {
     return null ;
   }
@@ -271,7 +321,7 @@ public abstract class Venue extends Fixture implements
   
   public void writeInformation(Description d, int categoryID) {
     d.append("PERSONNEL:") ;
-    /*
+    
     final Vocation c[] = careers() ;
     if (c != null) for (final Vocation v : c) {
       d.append(new UserOption() {
@@ -285,7 +335,6 @@ public abstract class Venue extends Fixture implements
         }
       }) ;
     }
-    //*/
     for (Actor a : personnel.workers()) {
       d.append("\n  ") ;
       d.append(a) ;
@@ -294,7 +343,6 @@ public abstract class Venue extends Fixture implements
     if (! stocks.empty()) d.append("\n\nCURRENT STOCKS:") ;
     stocks.writeInformation(d) ;
     
-    //if (! orders.empty())
     d.append("\n\nCURRENT ORDERS:") ;
     orders.writeInformation(d) ;
   }
@@ -308,6 +356,11 @@ public abstract class Venue extends Fixture implements
   
   public void whenClicked() {
     ((BaseUI) PlayLoop.currentUI()).setSelection(this) ;
+  }
+  
+  
+  public InfoPanel createPanel(BaseUI UI) {
+    return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
   }
 }
 

@@ -6,7 +6,8 @@
 
 package src.game.planet ;
 import src.game.actors.* ;
-import src.graphics.common.Texture ;
+import src.user.BaseUI;
+import src.user.Composite;
 import src.user.Description ;
 
 
@@ -31,7 +32,7 @@ public class Creature extends Actor {
     return null;
   }
 
-  public Texture portrait() {
+  public Composite portrait(BaseUI UI) {
     // TODO Auto-generated method stub
     return null;
   }

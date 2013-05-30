@@ -11,7 +11,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.user.BuildingsTab;
+import src.user.* ;
 import src.util.* ;
 
 
@@ -23,13 +23,13 @@ public class Fabricator extends Venue implements VenueConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    Fabricator.class, "media/Buildings/aesthete aura/fabricator.png", 4, 2
+    Fabricator.class, "media/Buildings/aesthete aura/fabricator.png", 3, 2
   ) ;
   
   
   public Fabricator(Base base) {
-    super(4, 2, ENTRANCE_EAST, base) ;
-    this.attachSprite(MODEL.makeSprite()) ;
+    super(3, 2, ENTRANCE_EAST, base) ;
+    attachSprite(MODEL.makeSprite()) ;
   }
   
   
@@ -82,8 +82,8 @@ public class Fabricator extends Venue implements VenueConstants {
   
   /**  Rendering and interface methods-
     */
-  public Texture portrait() {
-    return Texture.loadTexture("media/GUI/Buttons/fabricator_button.gif") ;
+  public Composite portrait(BaseUI UI) {
+    return new Composite(UI, "media/GUI/Buttons/fabricator_button.gif") ;
   }
 
   public String fullName() { return "Fabricator" ; }

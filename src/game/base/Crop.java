@@ -20,17 +20,17 @@ public class Crop extends Element {
   final static int
     MAX_GROWTH = 3 ;
   
-  final Nursery parent ;
+  final BotanicalStation parent ;
   final int varID ;
   float growStage, health ;
   
   
-  Crop(Nursery parent, int varID) {
+  Crop(BotanicalStation parent, int varID) {
     this.parent = parent ;
     this.varID = varID ;
     growStage = 0 ;
     health = 1 ;
-    attachSprite(Nursery.CROP_MODELS[varID][0].makeSprite()) ;
+    attachSprite(BotanicalStation.speciesModel(varID, 0).makeSprite()) ;
   }
   
   
@@ -39,7 +39,7 @@ public class Crop extends Element {
     varID = s.loadInt() ;
     growStage = s.loadFloat() ;
     health = s.loadFloat() ;
-    parent = (Nursery) s.loadObject() ;
+    parent = (BotanicalStation) s.loadObject() ;
   }
   
   
@@ -60,7 +60,7 @@ public class Crop extends Element {
     if (growStage > MAX_GROWTH) growStage = MAX_GROWTH ;
     //
     //  Update the sprite-
-    final Model m = Nursery.CROP_MODELS[varID][(int) growStage] ;
+    final Model m = BotanicalStation.speciesModel(varID, (int) growStage) ;
     ((ImageSprite) sprite()).setModel((ImageModel) m) ;
   }
   
@@ -77,7 +77,7 @@ public class Crop extends Element {
   
   
   public int owningType() {
-    return Element.FIXTURE_OWNS ;
+    return Element.ENVIRONMENT_OWNS ;
   }
 }
 

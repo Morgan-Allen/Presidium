@@ -108,7 +108,7 @@ public class TerrainGen implements TileConstants {
       s.coreX = (int) ((c.x + 0.5f) * Planet.SECTOR_SIZE) ;
       s.coreY = (int) ((c.y + 0.5f) * Planet.SECTOR_SIZE) ;
       s.gradientID = sectorVal[c.x][c.y] ;
-      I.say("Type ID: "+s.gradientID+", core: "+s.coreX+"|"+s.coreY) ;
+      ///I.say("Type ID: "+s.gradientID+", core: "+s.coreX+"|"+s.coreY) ;
       sectors[c.x][c.y] = s ;
     }
   }
@@ -317,8 +317,7 @@ public class TerrainGen implements TileConstants {
       if (degree == 0) var = 0 ;
       terrain.setMinerals(location, (byte) var, degree) ;
     }
-    
-    presentMineralMap(world, terrain) ;
+    ///presentMineralMap(world, terrain) ;
   }
   
   
@@ -388,13 +387,13 @@ public class TerrainGen implements TileConstants {
           if (maxSize < 2) {
             if (mineral == 0) return ;
             rockType = Outcrop.TYPE_DEPOSIT ;
-            maxSize = Rand.yes() ? 3 : 2 ;
+            maxSize = 3 ;// Rand.yes() ? 3 : 2 ;
           }
           //
           //  If placement was successful, 'paint' the perimeter with suitable
           //  habitat types-
           final Outcrop o = tryOutcrop(
-            rockType, mineral, location, maxSize, 2
+            rockType, mineral, location, maxSize, 1
           ) ;
           //*
           if (o != null) {

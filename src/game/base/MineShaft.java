@@ -1,4 +1,8 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 
 package src.game.base ;
@@ -10,30 +14,6 @@ import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.user.* ;
 import src.util.* ;
-
-
-
-
-//
-//  See if there is space for a new shaft to be sunk.  If so, go out there
-//  and sink it.  Plant the shaft surface above.  Mine all the adjoining areas
-//  and take the result to the smelters on the surface.
-//  ...Favour areas that have the highest concentration of desired minerals-
-//  carbons, metals, or isotopes.  So, you're using a spread.
-//  Should mineral outcrops be visible on the surface?  ...Probably.
-
-//  I want subterranean tunnels, too.  I can finally handle that!
-
-//
-//  Once you finish excavating a given area, you add any viable neighbours to
-//  the facing.  Extract minerals until then.  (Random chance of full
-//  success.  Call it 100 attempts?)  300 seconds per day, 256 tiles,
-//  25,600 seconds = 85 days for one miner to exhaust an area.  Give or take.
-//
-//  We'll assume that a lifetime is 300 days.  1500 minutes = 25 hours of
-//  play.  A full, uninterrupted day plus change.  For a virtual lifetime.
-
-
 
 
 
@@ -53,11 +33,9 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
       "carbons_smelter.gif",
       "metals_smelter.gif",
       "isotopes_smelter.gif",
-      //*
       "sunk_shaft.gif",
       "shaft_1.png",
       "shaft_2.png"
-      //*/
     ) ;
   
   final static int
@@ -71,11 +49,11 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
   private boolean
     refreshPromise = false ;
   
-  MineFace firstFace = null ;
-  final MineFace mineGrid[][] ;
+  protected MineFace firstFace = null ;
+  final MineFace faceGrid[][] ;
   final Box2D digArea = new Box2D() ;
   
-  final Sorting <MineFace> workFace = new Sorting <MineFace> () {
+  final Sorting <MineFace> workedFaces = new Sorting <MineFace> () {
     public int compare(MineFace a, MineFace b) {
       if (a == b || a.promise == b.promise) return 0 ;
       return a.promise < b.promise ? 1 : -1 ;
@@ -83,11 +61,12 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
   } ;
   
   
+  
   public MineShaft(Base base) {
     super(4, 2, Venue.ENTRANCE_EAST, base) ;
     attachSprite(SHAFT_MODEL.makeSprite()) ;
     final int gridSize = 4 + (MAX_DIG_RANGE * 2) ;
-    mineGrid = new MineFace[gridSize][gridSize] ;
+    faceGrid = new MineFace[gridSize][gridSize] ;
   }
 
 
@@ -100,11 +79,11 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
     
     firstFace = (MineFace) s.loadObject() ;
     digArea.loadFrom(s.input()) ;
-    s.loadObjects(workFace) ;
+    s.loadObjects(workedFaces) ;
     final int gridSize = 4 + (MAX_DIG_RANGE * 2) ;
-    mineGrid = new MineFace[gridSize][gridSize] ;
+    faceGrid = new MineFace[gridSize][gridSize] ;
     for (Coord c : Visit.grid(0, 0, gridSize, gridSize, 1)) {
-      mineGrid[c.x][c.y] = (MineFace) s.loadObject() ;
+      faceGrid[c.x][c.y] = (MineFace) s.loadObject() ;
     }
   }
   
@@ -118,10 +97,10 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
     
     s.saveObject(firstFace) ;
     digArea.saveTo(s.output()) ;
-    s.saveObjects(workFace) ;
+    s.saveObjects(workedFaces) ;
     final int gridSize = 4 + (MAX_DIG_RANGE * 2) ;
     for (Coord c : Visit.grid(0, 0, gridSize, gridSize, 1)) {
-      s.saveObject(mineGrid[c.x][c.y]) ;
+      s.saveObject(faceGrid[c.x][c.y]) ;
     }
   }
   
@@ -132,7 +111,7 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
     digArea.setTo(area()).expandBy(MAX_DIG_RANGE) ;
-    firstFace = insertOpening(world.tileAt(this)) ;
+    firstFace = insertFace(world.tileAt(this)) ;
   }
   
   
@@ -148,72 +127,82 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
     return b == firstFace || b == mainEntrance() ;
   }
   
-  //  TODO:  Maybe a Table would be simpler?  Speed might not be critical here.
   
-  protected MineFace openingAt(Tile t) {
+  protected MineFace faceAt(Tile t) {
     if (t == null) return null ;
     final int
       offX = t.x - (int) (digArea.xpos() + 0.5f),
       offY = t.y - (int) (digArea.ypos() + 0.5f) ;
-    try { return mineGrid[offX][offY] ; }
+    try { return faceGrid[offX][offY] ; }
     catch (ArrayIndexOutOfBoundsException e) { return null ; }
   }
   
   
-  private MineFace insertOpening(Tile t) {
+  private void refreshPromise() {
+    if (! refreshPromise) return ;
+    final Batch <MineFace> faces = new Batch <MineFace> () ;
+    for (MineFace f : workedFaces) faces.add(f) ;
+    workedFaces.clear() ;
+    for (MineFace f : faces) workedFaces.add(f) ;
+    refreshPromise = false ;
+  }
+  
+  
+  private MineFace insertFace(Tile t) {
     final int
       offX = t.x - (int) (digArea.xpos() + 0.5f),
       offY = t.y - (int) (digArea.ypos() + 0.5f) ;
-    final MineFace near = new MineFace(this) ;
-    near.setPosition(t.x, t.y, world) ;
-    mineGrid[offX][offY] = near ;
-    updatePromise(near) ;
-    workFace.add(near) ;
-    return near ;
+    final MineFace face = new MineFace(this) ;
+    face.setPosition(t.x, t.y, world) ;
+    faceGrid[offX][offY] = face ;
+    updatePromise(face) ;
+    refreshPromise() ;
+    workedFaces.add(face) ;
+    return face ;
   }
   
   
-  protected void openFace(MineFace opening) {
-    I.say("Opening new face from "+opening.origin()) ;
-    int zzz = 4 ;
-    workFace.delete(opening) ;
-    opening.promise = -1 ;
-    //updatePromise(opening) ;
-    final Tile o = opening.origin() ;
+  protected void openFace(MineFace face) {
+    I.say("Opening new face from "+face.origin()) ;
+    refreshPromise() ;
+    workedFaces.delete(face) ;
+    face.promise = -1 ;
+    final Tile o = face.origin() ;
     for (int n : N_ADJACENT) {
       final Tile tN = world.tileAt(o.x + N_X[n], o.y + N_Y[n]) ;
       if (! digArea.contains(tN.x, tN.y)) continue ;
-      if (openingAt(tN) != null) continue ;
-      insertOpening(tN) ;
+      //
+      //  You also need to skip this block if it's been taken by another shaft.
+      //  ...so how do I know that?  ...Permanent ownership?  Underground tiles?
+      if (faceAt(tN) != null) continue ;
+      insertFace(tN) ;
     }
-    zzz += 3 ;
   }
   
   
-  //  There may not be a need for this.  Once an opening is exhausted, it's
-  //  currently removed from the workface.
-  protected void updatePromise(MineFace opening) {
+  protected void updatePromise(MineFace face) {
     final int MDR = MAX_DIG_RANGE ;
     final Terrain terrain = world.terrain() ;
     float promise = 1 ;
     if (seekCarbons) promise += terrain.mineralsAt(
-      opening.origin(), Terrain.TYPE_CARBONS
+      face.origin(), Terrain.TYPE_CARBONS
     ) ;
     if (seekMetals) promise += terrain.mineralsAt(
-      opening.origin(), Terrain.TYPE_METALS
+      face.origin(), Terrain.TYPE_METALS
     ) ;
     if (seekIsotopes) promise += terrain.mineralsAt(
-      opening.origin(), Terrain.TYPE_ISOTOPES
+      face.origin(), Terrain.TYPE_ISOTOPES
     ) ;
-    promise *= MDR / (Spacing.distance(this, opening) + MDR) ;
-    opening.promise = promise ;
+    promise *= MDR / (Spacing.distance(this, face) + MDR) ;
+    face.promise = promise ;
   }
   
   
   private MineFace findNextFace() {
-    for (MineFace opening : workFace) {
-      if (world.activities.includes(opening, Mining.class)) continue ;
-      return opening ;
+    refreshPromise() ;
+    for (MineFace face : workedFaces) {
+      if (world.activities.includes(face, Mining.class)) continue ;
+      return face ;
     }
     return null ;
   }
@@ -248,8 +237,8 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
   }
 
 
-  public Texture portrait() {
-    return Texture.loadTexture("media/GUI/Buttons/excavation_button.gif") ;
+  public Composite portrait(BaseUI UI) {
+    return new Composite(UI, "media/GUI/Buttons/excavation_button.gif") ;
   }
 
 
@@ -266,25 +255,25 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
   
   
   public void writeInformation(Description d, int categoryID) {
-    //
-    //  TODO:  If any of these priorities are changed, you'll have to
-    //  re-evaluate the promise of all current facings.
     
     d.append(new Description.Link("\n[Seek Carbons]") {
       public void whenClicked() {
         seekCarbons = ! seekCarbons ;
+        refreshPromise = true ;
       }
     }, seekCarbons ? Colour.GREEN : Colour.RED) ;
-
+    
     d.append(new Description.Link("\n[Seek Metals]") {
       public void whenClicked() {
         seekMetals = ! seekMetals ;
+        refreshPromise = true ;
       }
     }, seekMetals ? Colour.GREEN : Colour.RED) ;
-
+    
     d.append(new Description.Link("\n[Seek Isotopes]") {
       public void whenClicked() {
         seekIsotopes = ! seekIsotopes ;
+        refreshPromise = true ;
       }
     }, seekIsotopes ? Colour.GREEN : Colour.RED) ;
     
@@ -324,8 +313,6 @@ public Behaviour jobFor(Citizen actor) {
 }
 
 
-//  I NEED SOMETHING SIMPLER!
-//
 //  PROBLEM- this is too predictable.  You need to vary placement more.
 MineOpening placeNextShaft() {
   //

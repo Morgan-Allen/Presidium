@@ -1,4 +1,8 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 
 package src.game.base ;
@@ -16,62 +20,64 @@ public class Mining extends Plan implements VenueConstants {
   
   
   
-  private MineFace opening ;
+  /**  Fields, constructors and save/load methods-
+    */
+  private MineFace face ;
   
   
-  Mining(Actor actor, MineFace opening) {
-    super(actor, opening.parent) ;
-    this.opening = opening ;
+  Mining(Actor actor, MineFace face) {
+    super(actor, face.parent) ;
+    this.face = face ;
   }
   
   
   public Mining(Session s) throws Exception {
     super(s) ;
-    opening = (MineFace) s.loadObject() ;
+    face = (MineFace) s.loadObject() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveObject(opening) ;
+    s.saveObject(face) ;
   }
-
-
-
   
+  
+  
+  /**  Behaviour implementation-
+    */
   public float priorityFor(Actor actor) {
     return ROUTINE ;
   }
   
   
   protected Behaviour getNextStep() {
-    if (opening.promise == -1) {
+    if (face.promise == -1) {
       if (oresCarried(actor) > 0) return nextDelivery() ;
       return null ;
     }
     if (oresCarried(actor) >= 10) return nextDelivery() ;
     return new Action(
-      actor, opening,
+      actor, face,
       this, "actionMine",
-      Model.AnimNames.BUILD, "mining at "+opening.origin()
+      Model.AnimNames.BUILD, "mining at "+face.origin()
     ) ;
   }
   
   
-  public boolean actionMine(Actor actor, MineFace opening) {
+  public boolean actionMine(Actor actor, MineFace face) {
     
     final Terrain terrain = actor.world().terrain() ;
-    final int mineChance = 100 ;
-    boolean success = actor.training.test(GEOPHYSICS, 5, 1) ;
-    success &= actor.training.test(HARD_LABOUR, 15, 1) ;
-    success &= Rand.index(100) < mineChance ;
+    int success = 1 ;
+    success += actor.traits.test(GEOPHYSICS , 5 , 1) ? 1 : 0 ;
+    success *= actor.traits.test(HARD_LABOUR, 15, 1) ? 2 : 1 ;
+    face.workDone += success * 5 * Rand.num() ;
+    I.say("Mining "+face.origin()+", work done: "+face.workDone) ;
     
-    I.say("Mining "+opening.origin()+", success... "+success) ;
-    
-    if (success) {
-      final Tile t = opening.origin() ;
+    if (face.workDone >= 100) {
+      final Tile t = face.origin() ;
       final byte rockType = terrain.mineralType(t) ;
-      float amount = terrain.mineralsAt(t, rockType) ;
+      final float amount = terrain.mineralsAt(t, rockType) ;
       terrain.setMinerals(t, rockType, Terrain.DEGREE_TAKEN) ;
       
       Item.Type itemType = null ;
@@ -82,9 +88,7 @@ public class Mining extends Plan implements VenueConstants {
       }
       final Item mined = new Item(itemType, amount) ;
       actor.equipment.addItem(mined) ;
-      
-      opening.parent.openFace(opening) ;
-      ///I.say("Finished extraction...") ;
+      face.parent.openFace(face) ;
       return true ;
     }
     return false ;
@@ -103,7 +107,7 @@ public class Mining extends Plan implements VenueConstants {
   private Action nextDelivery() {
     I.say("Scheduling ores delivery...") ;
     return new Action(
-      actor, opening.parent,
+      actor, face.parent,
       this, "actionDeliverOres",
       Model.AnimNames.REACH_DOWN, "returning ores"
     ) ;
@@ -123,7 +127,7 @@ public class Mining extends Plan implements VenueConstants {
   /**  Rendering and interface methods-
     */
   public void describeBehaviour(Description d) {
-    d.append("Mining at "+opening.origin()) ;
+    d.append("Mining at "+face.origin()) ;
   }
 }
 

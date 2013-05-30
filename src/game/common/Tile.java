@@ -138,7 +138,10 @@ public class Tile implements Target, TileConstants, Boardable {
   
   
   public int owningType() {
-    if (owner == null) return Element.NOTHING_OWNS ;
+    if (owner == null) {
+      if (habitat().pathClear) return Element.NOTHING_OWNS ;
+      else return Element.TERRAIN_OWNS ;
+    }
     return owner.owningType() ;
   }
   

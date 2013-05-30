@@ -1,4 +1,8 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 package src.game.base ;
 import src.game.common.* ;
@@ -6,7 +10,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.user.BuildingsTab;
+import src.user.* ;
 import src.util.* ;
 
 
@@ -117,23 +121,33 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
   }
   
   
-  public boolean isEntrance(Tile t) {
+  public boolean isEntrance(Boardable t) {
     entrances() ;
     return (entrances[0] == t) || (entrances[1] == t) ;
+  }
+  
+  
+  protected void updatePaving(boolean inWorld) {
+    entrances() ;
+    final Tile s[] = surrounds() ;
+    if (inWorld) Paving.clearRoad(s) ;
+    world.terrain().maskAsPaved(s, inWorld) ;
+    for (Tile t : entrances()) {
+      base().paving.updateJunction(t, inWorld) ;
+    }
   }
   
   
   
   /**  Rendering and interface methods-
     */
-
   public String fullName() {
     return "Blast Doors" ;
   }
 
 
-  public Texture portrait() {
-    return Texture.loadTexture("media/GUI/Buttons/shield_wall_button.gif") ;
+  public Composite portrait(BaseUI UI) {
+    return new Composite(UI, "media/GUI/Buttons/shield_wall_button.gif") ;
   }
 
 

@@ -9,9 +9,13 @@ package src.game.tactical ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.graphics.common.Model ;
-import src.user.Description;
+import src.user.Description ;
 import src.util.* ;
 
+
+//
+//  Maybe priority should be assigned externally?  Depending on how this
+//  behaviour gets generated?
 
 
 public class Patrolling extends Plan {

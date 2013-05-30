@@ -54,9 +54,10 @@ public interface VenueConstants extends ActorConstants {
     LIFE_SUPPORT = new Item.Type(C, PROVISION, "Life Support", 0),
     POWER        = new Item.Type(C, PROVISION, "Power"       , 0),
     
+    ALL_PROVISIONS[] = { WATER, LIFE_SUPPORT, POWER },
+    
     //  Plants (young/mature- species?  Flora or animal remains?  Dead/alive?)
     //  Housing.
-    
     
     /*
     OUTFITS  = new Item.Type(C, UNIQUE, "Outfits", 0),

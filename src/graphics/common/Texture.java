@@ -18,9 +18,7 @@ import org.lwjgl.BufferUtils ;
 
 
 /**  Generalised class for loading and application of 2-dimensional image files
-  *  to OpenGL engine constructs.  Textures also serve as registers for objects
-  *  that wish to be rendered, as all objects of a given texture are rendered in
-  *  a single pass.
+  *  to OpenGL engine constructs.
   */
 final public class Texture {
   

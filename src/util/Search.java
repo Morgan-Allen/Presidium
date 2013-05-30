@@ -27,7 +27,7 @@ public abstract class Search <T> {
   
   
   protected class Entry {
-    float priorCost, futureEstimate, total ;
+    float priorCost, ETA, total ;
     T refers ;
     Entry prior ;
     private Object agendaRef ;
@@ -52,38 +52,41 @@ public abstract class Search <T> {
   }
   
   
+  
   /**  Performs the actual search algorithm.
     */
   public Search <T> doSearch() {
     if (verbose) I.say("   ...searching ") ;
     if (! canEnter(init)) return this ;
     tryEntry(init, null, 0) ;
-    
-    while (agenda.size() > 0) {
-      if (maxSearched > 0 && flagged.size() > maxSearched) {
-        if (verbose) I.say("Reached maximum search size ("+maxSearched+")") ;
-        break ;
-      }
-      final Object nextRef = agenda.leastRef() ;
-      final T next = agenda.refValue(nextRef) ;
-      agenda.deleteRef(nextRef) ;
-      if (endSearch(next)) {
-        success = true ;
-        bestEntry = entryFor(next) ;
-        totalCost = bestEntry.total ;
-        if (verbose) I.say(
-          "  ...search complete at "+next+", total cost: "+totalCost+
-          " all searched: "+flagged.size()
-        ) ;
-        break ;
-      }
-      for (T near : adjacent(next)) if (near != null) {
-        tryEntry(near, next, cost(next, near)) ;
-      }
-    }
-    
+    while (agenda.size() > 0) if (! stepSearch()) break ;
     for (T t : flagged) setEntry(t, null) ;
     return this ;
+  }
+  
+  
+  protected boolean stepSearch() {
+    if (maxSearched > 0 && flagged.size() > maxSearched) {
+      if (verbose) I.say("Reached maximum search size ("+maxSearched+")") ;
+      return false ;
+    }
+    final Object nextRef = agenda.leastRef() ;
+    final T next = agenda.refValue(nextRef) ;
+    agenda.deleteRef(nextRef) ;
+    if (endSearch(next)) {
+      success = true ;
+      bestEntry = entryFor(next) ;
+      totalCost = bestEntry.total ;
+      if (verbose) I.say(
+        "  ...search complete at "+next+", total cost: "+totalCost+
+        " all searched: "+flagged.size()
+      ) ;
+      return false ;
+    }
+    for (T near : adjacent(next)) if (near != null) {
+      tryEntry(near, next, cost(next, near)) ;
+    }
+    return true ;
   }
   
   
@@ -106,8 +109,8 @@ public abstract class Search <T> {
     //  Create the new entry-
     final Entry newEntry = new Entry() ;
     newEntry.priorCost = priorCost ;
-    newEntry.futureEstimate = estimate(spot) ;
-    newEntry.total = newEntry.priorCost + newEntry.futureEstimate ;
+    newEntry.ETA = estimate(spot) ;
+    newEntry.total = newEntry.priorCost + newEntry.ETA ;
     newEntry.refers = spot ;
     newEntry.prior = priorEntry ;
     //
@@ -115,7 +118,7 @@ public abstract class Search <T> {
     setEntry(spot, newEntry) ;
     newEntry.agendaRef = agenda.insert(spot) ;
     if (oldEntry == null) flagged.add(spot) ;
-    if (bestEntry == null || bestEntry.futureEstimate > newEntry.futureEstimate) {
+    if (bestEntry == null || bestEntry.ETA > newEntry.ETA) {
       bestEntry = newEntry ;
     }
     if (verbose) I.add("|") ;
@@ -160,6 +163,12 @@ public abstract class Search <T> {
     T searched[] = (T[]) Array.newInstance(pathClass, len) ;
     for (T t : flagged) searched[--len] = t ;
     return searched ;
+  }
+  
+  
+  public T bestFound() {
+    if (bestEntry == null) return null ;
+    return bestEntry.refers ;
   }
   
   

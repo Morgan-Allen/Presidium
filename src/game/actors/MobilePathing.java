@@ -9,7 +9,6 @@ package src.game.actors ;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.util.* ;
-//import src.game.base.* ;
 
 
 
@@ -74,13 +73,11 @@ public class MobilePathing {
   private void refreshPath() {
     I.say(mobile+" refreshing path...") ;
     if (mobile.assignedBase() == null || GameSettings.freePath) {
-      ///I.say("location of "+actor+" is "+actor.origin()) ;
       final PathingSearch search = new PathingSearch(
         location(mobile), location(target)
       ) ;
-      search.verbose = true ;
+      //search.verbose = true ;
       search.doSearch() ;
-      //path = search.bestPath(Boardable.class) ;
       path = search.fullPath(Boardable.class) ;
       stepIndex = 0 ;
     }
@@ -121,7 +118,11 @@ public class MobilePathing {
     if (path != null && ! nearTarget) {
       final Target last = path[path.length - 1] ;
       final int dist = Spacing.outerDistance(location, last) ;
+      //
       //  TODO:  Try checking if you're in the same Region instead...
+      //  TODO:  That.  The actor has a tendency to repeatedly query their
+      //         path every 1/10th second otherwise, once they near the end of
+      //         the short-term path.
       if (dist < World.SECTION_RESOLUTION / 2) {
         doRefresh = true ;
       }

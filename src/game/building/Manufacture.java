@@ -97,7 +97,7 @@ public class Manufacture extends Plan implements Behaviour {
     //  Secondly, make sure the skill tests all check out.
     boolean success = true ;
     for (int i = c.skills.length ; i-- > 0 ;) {
-      success &= actor.training.test(c.skills[i], c.skillDCs[i], 1) ;
+      success &= actor.traits.test(c.skills[i], c.skillDCs[i], 1) ;
     }
     progress += inc * (success ? 1.5f : 0.5f) ;
     //

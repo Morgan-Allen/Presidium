@@ -19,12 +19,24 @@ public class Colour {
   
   
   final public static Colour
-    HIDE        = new Colour(),
-    WHITE       = new Colour().set(1, 1, 1, 1),
-    NONE        = new Colour().set(0, 0, 0, 0),
-    RED         = new Colour().set(1, 0, 0, 1),
-    GREEN       = new Colour().set(0, 1, 0, 1),
-    BLUE        = new Colour().set(0, 0, 1, 1),
+    HIDE  = new Colour().set(1, 1, 1, 0),
+    WHITE = new Colour().set(1, 1, 1, 1),
+    NONE  = new Colour().set(0, 0, 0, 0),
+    
+    RED     = new Colour().set(1, 0, 0, 1),
+    GREEN   = new Colour().set(0, 1, 0, 1),
+    BLUE    = new Colour().set(0, 0, 1, 1),
+    YELLOW  = new Colour().set(1, 1, 0, 1),
+    CYAN    = new Colour().set(0, 1, 1, 1),
+    MAGENTA = new Colour().set(1, 0, 1, 1),
+    
+    SOFT_RED     = new Colour().set(1, 0, 0, 0.5f),
+    SOFT_GREEN   = new Colour().set(0, 1, 0, 0.5f),
+    SOFT_BLUE    = new Colour().set(0, 0, 1, 0.5f),
+    SOFT_YELLOW  = new Colour().set(1, 1, 0, 0.5f),
+    SOFT_CYAN    = new Colour().set(0, 1, 1, 0.5f),
+    SOFT_MAGENTA = new Colour().set(1, 0, 1, 0.5f),
+    
     GREY        = new Colour().set(0.5f, 0.5f, 0.5f, 1),
     BLACK       = new Colour().set(0, 0, 0, 1),
     TRANSLUCENT = new Colour().set(1, 1, 1, 0.5f) ;

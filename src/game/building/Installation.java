@@ -18,7 +18,7 @@ public interface Installation {
   void preview(boolean canPlace, Rendering rendering, Tile from, Tile to) ;
   
   String fullName() ;
-  Texture portrait() ;
+  Composite portrait(BaseUI UI) ;
   String helpInfo() ;
   String buildCategory() ;
 }

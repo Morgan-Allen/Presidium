@@ -22,16 +22,11 @@ public abstract class UINode {
   final public Box2D
     relBound = new Box2D(),
     absBound = new Box2D() ;
-  public boolean
-    hidden = false ;
-  public float
-    depth = 0,
-    shade = 1 ;
-  protected float
-    absDepth,
-    absShade ;
+  public float relDepth = 0, absDepth = 0 ;
   final protected Box2D
     bounds = new Box2D() ;
+  public boolean
+    hidden = false ;
   
   final protected HUD myHUD ;
   private UIGroup parent ;
@@ -57,11 +52,16 @@ public abstract class UINode {
   
   Box2D fullBounds() { return bounds ; }
   
+  
+  
+  /**  Methods to control the order of rendering for UINodes.
+    */
   public void attachTo(UIGroup group) {
     detach() ;
     parent = group ;
     kidEntry = parent.kids.addLast(this) ;
   }
+  
   
   public void detach() {
     if (parent == null) return ;
@@ -72,22 +72,15 @@ public abstract class UINode {
   
   
   protected void updateState() {
-    if (parent == null) {
-      absDepth = depth ;
-      absShade = shade ;
-    }
-    else {
-      absDepth = depth + parent.absDepth ;
-      absShade = shade * parent.absShade ;
-      //(shade == -1) ? -1 : (shade * parent.absShade) ;
-    }
+    absDepth = relDepth + (parent == null ? 0 : parent.absDepth) ;
   }
   
   
   /**  Sets the absolute size and relative (to parent) position of this node.
     */
   protected void updateRelativeParent() {
-    updateRelativeParent(parent.bounds) ;
+    if (parent == null) updateRelativeParent(new Box2D()) ;
+    else updateRelativeParent(parent.bounds) ;
   }
   
   void updateRelativeParent(Box2D base) {
@@ -100,7 +93,8 @@ public abstract class UINode {
   /**  Sets the absolute position and bounds of this node.
     */
   protected void updateAbsoluteBounds() {
-    updateAbsoluteBounds(parent.bounds) ;
+    if (parent == null) updateAbsoluteBounds(new Box2D()) ;
+    else updateAbsoluteBounds(parent.bounds) ;
   }
   
   void updateAbsoluteBounds(Box2D base) {
@@ -119,7 +113,7 @@ public abstract class UINode {
   protected boolean amDragged() { return myHUD.amSelected(this, DRAGGED) ; }
   
   
-  final void drawQuad(
+  final protected void drawQuad(
     float xmin, float ymin,
     float xmax, float ymax,
     float umin, float vmin,
@@ -127,8 +121,8 @@ public abstract class UINode {
   ) {
     //I.say("\nquad bounds: " + xmin + " " + ymin + " " + xmax + " " + ymax);
     //GL rGL = UI.renderGL ;
-    if (absShade != -1)
-      GL11.glColor3f(absShade, absShade, absShade) ;
+    //if (absShade != -1)
+      //GL11.glColor3f(absShade, absShade, absShade) ;
     GL11.glTexCoord2f(umin, vmax) ;
     GL11.glVertex3f(xmin, ymin, absDepth) ;
     GL11.glTexCoord2f(umin, vmin) ;

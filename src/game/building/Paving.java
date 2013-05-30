@@ -13,161 +13,79 @@ import src.util.* ;
 
 
 //
-//  TODO:  Some of the methods employed here might be usefully extended to the
-//  PathingCache class?
-public class Paving implements TileConstants {
+//  This has a good deal in common with the PathingCache class, and the supply/
+//  demand code.
+
+
+public class Paving {
   
   
   
-  /**  Field definitions, constructors, and save/load methods-
+  /**  Field definitions, constructor and save/load methods-
     */
-  public static interface Hub extends Target {
-    Paving paving() ;
-    Tile origin() ;
-    Tile mainEntrance() ;
-    //Tile[] entrances() ;
-    Tile[] surrounds() ;
-    boolean usesRoads() ;
-    Base base() ;
-    Box2D area() ;
+  final static int PATH_RANGE = World.SECTION_RESOLUTION * 2 ;
+  
+  final World world ;
+  final Flagging junctions ;
+  final Table <Tile, List <Route>> tileRoutes = new Table(1000) ;
+  final Table <Route, Route> allRoutes = new Table(1000) ;
+  
+  
+  public Paving(World world) {
+    this.world = world ;
+    junctions = new Flagging(world, Paving.class) ;
   }
-  
-  protected static class Route {
-    Hub hubA, hubB ;
-    Tile start, end, path[] ;
-    private boolean fresh ;
-  }
-  
-  final Hub hub ;
-  List <Route> routes = new List <Route> () ;
-  
-  
-  public Paving(Hub hub) {
-    this.hub = hub ;
-  }
-  
-  
-  public void loadState(Session s) throws Exception {
-    for (int n = s.loadInt() ; n-- > 0 ;) {
-      final Route r = new Route() ;
-      r.start = (Tile) s.loadTarget() ;
-      r.end = (Tile) s.loadTarget() ;
-      r.path = (Tile[]) s.loadTargetArray(Tile.class) ;
-    }
-  }
-  
-  
-  public void saveState(Session s) throws Exception {
-    s.saveInt(routes.size()) ;
-    for (Route r : routes) {
-      s.saveTarget(r.start) ;
-      s.saveTarget(r.end) ;
-      s.saveTargetArray(r.path) ;
-    }
-  }
-  
-  
-  
-  /**  Updating routes to neighbours and perimeter paving-
-    */
-  public void onWorldEntry() {
-    if (hub.base() == null || ! hub.usesRoads()) return ;
-    world().terrain().maskAsPaved(hub.surrounds(), true) ;
-    hub.base().toggleForService(hub, "paving", true) ;
-  }
-  
-  
-  public void onWorldExit() {
-    if (hub.base() == null || ! hub.usesRoads()) return ;
-    world().terrain().maskAsPaved(hub.surrounds(), false) ;
-    hub.base().toggleForService(hub, "paving", false) ;
-  }
-  
-  
-  private World world() {
-    return hub.base().world ;
-  }
-  
   
   //
-  //  Restore this later once the essentials of road display are sorted...
-  public void updateRoutes() {
-    final float searchDist = Planet.SECTOR_SIZE ;
-    final Box2D limit = new Box2D(), area = hub.area() ;
-    for (Route r : routes) r.fresh = false ;
-    //
-    //  Refresh any routes to nearby venues in each of the cardinal directions-
-    for (int d : N_ADJACENT) {
-      
-      final float
-        xoff = (N_X[d] + 1) / 2f,
-        yoff = (N_Y[d] + 1) / 2f ;
-      limit.set(
-        area.xpos() + (area.xdim() * xoff) - (searchDist * (1 - xoff)),
-        area.ypos() + (area.ydim() * yoff) - (searchDist * (1 - yoff)),
-        searchDist,
-        searchDist
-      ) ;
-      
-      for (Object o : hub.base().servicesNear("paving", hub, limit)) {
-        ///I.say(o+" was nearby...") ;
-        if (o == hub || ! (o instanceof Hub)) continue ;
-        final Hub near = (Hub) o ;
-        if (! near.usesRoads()) continue ;
-        refreshRoute(hub, near) ;
-        break ;
-      }
-    }
-    for (Route r : routes) if (! r.fresh) {
-      routes.remove(r) ;
-    }
-  }
+  //  TODO:  Implement save/load methods-
   
   
-  private void refreshRoute(Hub a, Hub b) {
-    //
-    //  Firstly, identify the previous and current routes between these venues-
-    final Route
-      newRoute = routeFor(a, b),
-      oldRoute = currentMatch(newRoute, a) ;
-    final RouteSearch search = new RouteSearch(
-      a.mainEntrance(), b.mainEntrance(), Element.FIXTURE_OWNS
-    ) ;
-    ///search.verbose = true ;
-    search.doSearch() ;
-    newRoute.path = search.fullPath(Tile.class) ;
-    //
-    //  Then, check to see if the new path differs from the old.  If so, delete
-    //  the old path and instate the new.
-    final Terrain terrain = world().terrain() ;
-    if (! routesEqual(newRoute, oldRoute)) {
-      if (oldRoute != null) {
-        terrain.maskAsPaved(oldRoute.path, false) ;
-        a.paving().routes.remove(oldRoute) ;
-      }
-      if (newRoute.path != null) {
-        terrain.maskAsPaved(newRoute.path, true) ;
-        a.paving().routes.add(newRoute) ;
-        clearRoute(newRoute.path) ;
-        newRoute.fresh = true ;
-      }
-    }
-    else oldRoute.fresh = true ;
-  }
   
   
-  //  You'll eventually want to replace this with explicit construction of
-  //  roads...
-  public static void clearRoute(Tile path[]) {
-    for (Tile t : path) if (t.owningType() < Element.FIXTURE_OWNS) {
-      if (t.owner() != null) t.owner().exitWorld() ;
-    }
-  }
-  
-  
-  /**  Helper methods for initialising and comparing routes-
+  /**  Methods related to installation, updates and deletion of junctions-
     */
-  private boolean routesEqual(Route newRoute, Route oldRoute) {
+  public void updateJunction(Tile t, boolean isMember) {
+    junctions.toggleMember(t, isMember) ;
+    if (isMember) {
+      I.say("Updating road junction "+t) ;
+      for (Target o : junctions.visitNear(t, PATH_RANGE, null)) {
+        final Tile jT = (Tile) o ;
+        routeBetween(t, jT) ;
+      }
+    }
+    else {
+      I.say("Deleting road junction "+t) ;
+      for (Route r : tileRoutes.get(t)) deleteRoute(r) ;
+    }
+  }
+  
+  
+  private boolean routeBetween(Tile a, Tile b) {
+    //
+    //  Firstly, determine the correct current route.
+    final Route route = new Route(a, b) ;
+    final RoadSearch search = new RoadSearch(a, b, Element.FIXTURE_OWNS) ;
+    search.doSearch() ;
+    route.path = search.fullPath(Tile.class) ;
+    route.cost = search.totalCost() ;
+    //
+    //  If the new route differs from the old, delete it.  Otherwise return.
+    final Route oldRoute = allRoutes.get(route) ;
+    if (roadsEqual(route, oldRoute)) return false ;
+    if (oldRoute != null) deleteRoute(oldRoute) ;
+    if (! search.success()) return false ;
+    //
+    //  If the route needs an update, clear the tiles and store the data.
+    allRoutes.put(route, route) ;
+    toggleRoute(route, route.start, true) ;
+    toggleRoute(route, route.end  , true) ;
+    world.terrain().maskAsPaved(route.path, true) ;
+    clearRoad(route.path) ;
+    return true ;
+  }
+  
+  
+  private boolean roadsEqual(Route newRoute, Route oldRoute) {
     if (newRoute.path == null || oldRoute == null) return false ;
     boolean match = true ;
     for (Tile t : newRoute.path) t.flagWith(newRoute) ;
@@ -185,29 +103,130 @@ public class Paving implements TileConstants {
   }
   
   
-  protected Route currentMatch(Route r, Hub v) {
-    for (Route m : v.paving().routes) {
-      if (m.start == r.start && m.end == r.end) return m ;
-    }
-    return null ;
+  private void deleteRoute(Route route) {
+    world.terrain().maskAsPaved(route.path, false) ;
+    allRoutes.remove(route) ;
+    toggleRoute(route, route.start, false) ;
+    toggleRoute(route, route.end  , false) ;
   }
   
   
-  private Route routeFor(Hub aH, Hub bH) {
-    //
-    //  We must ensure the ordering of start/end tiles remains stable to ensure
-    //  that pathing between them remains consistent.
-    final Tile a = aH.origin(), b = bH.origin() ;
-    final Route route = new Route() ;
-    route.hubA = aH ;
-    route.hubB = bH ;
-    final int s = world().size ;
-    final boolean flip = ((a.x * s) + a.y) > ((b.x * s) + b.y) ;
-    if (flip) { route.start = b ; route.end = b ; }
-    else      { route.start = a ; route.end = b ; }
-    return route ;
+  private void toggleRoute(Route route, Tile t, boolean is) {
+    List <Route> atTile = tileRoutes.get(t) ;
+    if (atTile == null) tileRoutes.put(t, atTile = new List <Route> ()) ;
+    if (is) atTile.add(route) ;
+    else atTile.remove(route) ;
+    if (atTile.size() == 0) tileRoutes.remove(t) ;
+  }
+  
+  
+  /**  Methods related to physical road construction-
+    */
+  //
+  //  You'll eventually want to replace this with explicit construction of
+  //  roads...
+  public static void clearRoad(Tile path[]) {
+    for (Tile t : path) if (t.owningType() < Element.FIXTURE_OWNS) {
+      if (t.owner() != null) t.owner().exitWorld() ;
+    }
+  }
+  
+  
+  
+  /**  Methods related to distribution of provisional goods-
+    */
+  //
+  //  TODO:  You will need to re-implement provision-distribution, which will
+  //  require an internal Junction class.  (You probably need one anyways.)
+  class Junction {
+    Target source ;
+    Tile tile ;
+    Stack <Route> routes = new Stack <Route> () ;
+  }
+  
+  
+  private Tile[] junctionsReached(Base base, Tile init) {
+    final Batch <Tile> reached = new Batch <Tile> () ;
+    final Stack <Tile> working = new Stack <Tile> () ;
+    
+    working.add(init) ;
+    reached.add(init) ;
+    init.flagWith(reached) ;
+    
+    while (working.size() > 0) {
+      Tile next = working.removeFirst() ;
+      for (Route r : tileRoutes.get(next)) {
+        Tile toAdd = r.start == next ? r.end : r.start ;
+        if (toAdd.flaggedWith() != null) continue ;
+        working.add(toAdd) ;
+        reached.add(toAdd) ;
+        toAdd.flagWith(reached) ;
+      }
+    }
+    
+    for (Tile t : reached) t.flagWith(null) ;
+    return reached.toArray(Tile.class) ;
   }
 }
 
 
 
+
+/*
+  public void distribute(Item.Type toDeliver[]) {
+    Batch <Junction[]> allCovered = new Batch <Junction[]> () ;
+    for (Object o : base.servicesNear(base, base.world.tileAt(0, 0), -1)) {
+      if (! (o instanceof Venue)) continue ;
+      final Venue venue = (Venue) o ;
+      if (venue.flaggedWith() == allCovered) continue ;
+      final Junction init = junctionAt(venue.mainEntrance()) ;
+      if (init == null) continue ;
+      final Junction reached[] = reachedFrom(init) ;
+      distributeTo(reached, toDeliver) ;
+      for (Junction j : reached) j.parent.flagWith(allCovered) ;
+      allCovered.add(reached) ;
+    }
+    for (Junction covered[] : allCovered) for (Junction j : covered) {
+      j.parent.flagWith(null) ;
+    }
+  }
+  
+  
+  private Junction[] reachedFrom(Junction init) {
+    final JunctionPathSearch search = new JunctionPathSearch(this, init, null) ;
+    search.doSearch() ;
+    final Junction reached[] = search.allSearched(Junction.class) ;
+    return reached ;
+  }
+  
+  
+  private void distributeTo(Junction reached[], Item.Type toDeliver[]) {
+    float
+      supply[] = new float[toDeliver.length],
+      demand[] = new float[toDeliver.length] ;
+    for (Junction j : reached) {
+      if (! (j.parent instanceof Venue)) continue ;
+      final Venue venue = (Venue) j.parent ;
+      for (int i = toDeliver.length ; i-- > 0 ;) {
+        final Item.Type type = toDeliver[i] ;
+        supply[i] += venue.stocks.amountOf(type) ;
+        venue.stocks.clearItems(type) ;
+        demand[i] += venue.orders.requiredShortage(type) ;
+      }
+    }
+    //
+    //  Then top up demand in whole or in part, depending on how much supply
+    //  is available-
+    for (int i = toDeliver.length ; i-- > 0 ;) {
+      final Item.Type type = toDeliver[i] ;
+      final float supplyRatio = Visit.clamp(supply[i] / demand[i], 0, 1) ;
+      for (Junction j : reached) {
+        if (! (j.parent instanceof Venue)) continue ;
+        final Venue venue = (Venue) j.parent ;
+        final float localDemand = venue.orders.requiredShortage(type) ;
+        venue.stocks.addItem(new Item(type, localDemand * supplyRatio)) ;
+      }
+    }
+  }
+
+//*/

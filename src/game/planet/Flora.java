@@ -11,8 +11,6 @@ import src.graphics.cutout.ImageModel ;
 import src.util.* ;
 
 
-//  TODO:  Move that 'fade-in' trick to the element class.  It looks cool.
-
 
 public class Flora extends Element implements TileConstants {
   
@@ -24,7 +22,6 @@ public class Flora extends Element implements TileConstants {
   
   final Habitat habitat ;
   final int varID ;
-  float inceptTime ;
   float growth ;
   
   
@@ -38,7 +35,6 @@ public class Flora extends Element implements TileConstants {
     super(s) ;
     habitat = Habitat.ALL_HABITATS[s.loadInt()] ;
     varID = s.loadInt() ;
-    inceptTime = s.loadFloat() ;
     growth = s.loadFloat() ;
   }
   
@@ -46,30 +42,7 @@ public class Flora extends Element implements TileConstants {
     super.saveState(s) ;
     s.saveInt(habitat.ID) ;
     s.saveInt(varID) ;
-    s.saveFloat(inceptTime) ;
     s.saveFloat(growth) ;
-  }
-  
-  
-  
-  /**  Method overrides-
-    */
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
-    inceptTime = world.currentTime() ;
-  }
-  
-  
-  public void exitWorld() {
-    super.exitWorld() ;
-  }
-  
-  
-  protected void renderFor(Rendering rendering, Base base) {
-    float timeGone = world().currentTime() - inceptTime ;
-    timeGone += PlayLoop.frameTime() / PlayLoop.UPDATES_PER_SECOND ;
-    sprite().colour = Colour.transparency(timeGone) ;
-    super.renderFor(rendering, base) ;
   }
   
   
@@ -77,6 +50,7 @@ public class Flora extends Element implements TileConstants {
   /**  Attempts to seed or grow new flora at the given coordinates.
     */
   public static void tryGrowthAt(int x, int y, World world, boolean init) {
+    if (! init) return ;
     final Tile t = world.tileAt(x, y) ;
     final Habitat h = world.terrain().habitatAt(x, y) ;
     if (h.floraModels == null) return ;
@@ -103,7 +77,7 @@ public class Flora extends Element implements TileConstants {
           f.enterWorldAt(t.x, t.y, world) ;
           if (Rand.num() < growChance * 4) f.incGrowth(MAX_GROWTH - 1, world) ;
           else f.incGrowth(1, world) ;
-          f.inceptTime = -10 ;
+          f.setInceptTime(-10) ;
         }
         else if (Rand.num() < 0.1f) {
           f.enterWorldAt(t.x, t.y, world) ;
@@ -121,7 +95,7 @@ public class Flora extends Element implements TileConstants {
       final int tier = (int) growth ;
       final ImageModel model = habitat.floraModels[varID][tier] ;
       this.attachSprite(model.makeSprite()) ;
-      inceptTime = world.currentTime() ;
+      setInceptTime(world.currentTime()) ;
     }
   }
 }

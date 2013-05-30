@@ -5,9 +5,9 @@
   */
 
 package src.graphics.terrain ;
-import org.lwjgl.opengl.GL11 ;
 import src.graphics.common.* ;
 import src.util.* ;
+import org.lwjgl.opengl.GL11 ;
 
 
 
@@ -72,6 +72,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
   }
   
   
+  
   /**  Generates a mesh from a mask object-
     */
   public static TerrainMesh genMesh(
@@ -79,6 +80,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
     int maxX, int maxY,
     Texture texture,
     final byte heightMap[][],
+    //final byte varsIndex[][],
     TileMask mask
   ) {
     //
@@ -92,13 +94,17 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
       //  We assume the use of inner fringing here, so only masked tiles are
       //  considered-
       if (! mask.maskAt(x, y)) continue ;
+      int numNear = 0 ;
       for (int n : N_INDEX) {
         final int nX = N_X[n] + x ;
         final int nY = N_Y[n] + y ;
         try { nearT[n] = mask.maskAt(nX, nY) ; }
         catch (ArrayIndexOutOfBoundsException e) { nearT[n] = nullsCount ; }
+        if (nearT[n]) numNear++ ;
       }
-      float UVslices[][] = TerrainPattern.innerFringeUV(nearT) ;
+      final float UVslices[][] = (numNear == 8) ?
+        TerrainPattern.extraFringeUV(mask.varID(x, y), false) :
+        TerrainPattern.innerFringeUV(nearT) ;
       //
       //  Get geometry and normals appropriate to this tile, and push them
       //  for each slice (as multiple adjacent tiles might contribute fringing.)
@@ -113,6 +119,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
   }
   
   
+  
   /**  Convenience method for compiling geometry data-
     */
   private static TerrainMesh compiledMesh(int numTiled, Texture texture) {
@@ -125,6 +132,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
     ) ;
     return mesh ;
   }
+  
   
   
   /**  Generates an array of meshes from the given sequence of terrain textures
@@ -150,6 +158,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
   }
   
   
+  
   /**  Generates a single terrain mesh with a particular texture from the given
     *  source.
     */
@@ -173,7 +182,7 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
       //  appropriate.
       float UVslices[][] ;
       if (texID == typeIndex[x][y]) {
-        UVslices = TerrainPattern.extraFringeUV(varsIndex[x][y]) ;
+        UVslices = TerrainPattern.extraFringeUV(varsIndex[x][y], true) ;
       }
       else {
         if (typeIndex[x][y] > texID) continue ;

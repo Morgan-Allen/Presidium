@@ -13,7 +13,9 @@ import src.game.common.* ;
 import src.game.tactical.Patrolling ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.user.BaseUI;
 import src.user.BuildingsTab;
+import src.user.Composite;
 
 
 
@@ -62,8 +64,8 @@ public class Bastion extends Venue {
 
   /**  Rendering and interface methods-
     */
-  public Texture portrait() {
-    return Texture.loadTexture("media/GUI/Buttons/bastion_button.gif") ;
+  public Composite portrait(BaseUI UI) {
+    return new Composite(UI, "media/GUI/Buttons/bastion_button.gif") ;
   }
 
   public String fullName() { return "Bastion" ; }

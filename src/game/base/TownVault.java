@@ -12,14 +12,15 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.user.BuildingsTab;
+import src.user.* ;
 import src.util.* ;
 
 
 
 public class TownVault extends Venue implements VenueConstants {
   
-
+  
+  
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
@@ -200,8 +201,8 @@ public class TownVault extends Venue implements VenueConstants {
   }
   
   
-  public Texture portrait() {
-    return Texture.loadTexture("media/GUI/Buttons/vault_button.gif") ;
+  public Composite portrait(BaseUI UI) {
+    return new Composite(UI, "media/GUI/Buttons/vault_button.gif") ;
   }
   
   

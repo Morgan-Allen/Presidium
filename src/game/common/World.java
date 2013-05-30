@@ -73,6 +73,7 @@ public class World {
     
     terrain = (Terrain) s.loadObject() ;
     terrain.initPatchGrid(SECTION_RESOLUTION) ;
+    ///I.say("FINISHED LOADING TERRAIN") ;
     growth.loadState(s) ;
     s.loadObjects(bases) ;
     for (int n = s.loadInt() ; n-- > 0 ;) {

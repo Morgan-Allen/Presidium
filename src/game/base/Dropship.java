@@ -330,7 +330,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     return "Freighter" ;
   }
   
-  public Texture portrait() {
+  public Composite portrait(BaseUI UI) {
     return null ;
   }
   

@@ -1,18 +1,19 @@
 
 
-
-*  Consider having crops extend flora.
-
 *  Extra critter models:  Gigans and cranial.
 *  Extra humanoid models:  fat/skinny, young/old.
 *  Mutant/primitive/infected textures.
 
-*  Mining implementation-
-  grabbing areas (done... ish.  need to include clusters of fixtures.),
-  mining out areas over time,
-  creating underground tunnels to traverse,
-  smelting stuff on the surface.
 
+*  Facilities, Mag Lines and Shield Walls must be *deletable!*
+*  Mining implementation- creating smelters and openings on the surface?
+*  Actor portraits, full names, and more attention to skins/costumes.
+*  Farming implementation-
+  Need to have a central hub for creating nurseries, and grab areas to
+  cultivate intelligently.  May need to use a mipmap for pathing/reservation.
+  Also need to prioritise different types of crops, for starches/greens/protein
+  or forestry.  Consider having crops extend flora.
+  Also, look into condensors and windtraps/solar arrays.
 
 16 commodity types to cover (everything else is minor)
   foodstuffs (3 types), spice
@@ -38,5 +39,3 @@ What are the tradeoffs involved in this game?
   you send them on at what times.
   The schools you invest in and large-scale politics, which become an
   increasingly binding commitment.
-  
-  

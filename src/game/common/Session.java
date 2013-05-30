@@ -11,6 +11,12 @@ import src.util.* ;
 import src.graphics.common.Model ;
 
 
+//
+//  TODO:  It would be very helpful to include some supplementary information
+//  here along with the save file listing how many bytes of data each save-ID-
+//  tagged object should be reading in after writing out.  That would help to
+//  nail down any discrepancies.
+
 
 /**  NOTE:  Saveable objects ALSO need to implement a public constructor that
   *  takes a Session as it's sole argument, or an exception will occur, AND
@@ -86,6 +92,7 @@ public class Session {
   private Session() {}
   
   public void finish() throws Exception {
+    ///I.say("FINISHING SESSION.") ;
     world = null ;
     saveIDs.clear() ;
     classIDs.clear() ;
@@ -261,7 +268,9 @@ public class Session {
       //*/
       bytesOut = initBytes ;
     }
-    else out.writeInt(saveID) ;
+    else {
+      out.writeInt(saveID) ;
+    }
   }
   
   
@@ -285,17 +294,19 @@ public class Session {
     final int loadID = in.readInt() ;
     if (loadID == -1) return null ;
     //I.say("Loading object of ID: "+loadID) ;
+    
     Saveable loaded = loadIDs.get(loadID) ;
     if (loaded != null) {
       //I.say("Loading existing object: "+loaded) ;
       if (loaded == MARK_LOCK) {
         //  Hopefully this can't happen now...
-        //I.say("MAJOR PROBLEM- LOOP CONDITION.") ;
         I.complain(
           "LOADING HAS HIT A SELF-REFERENTIAL LOOP CONDITION..."
         ) ;
       }
-      return loaded ;
+      else {
+        return loaded ;
+      }
     }
     //
     //  We use the MARK_LOCK Object as a placeholder to check if a given

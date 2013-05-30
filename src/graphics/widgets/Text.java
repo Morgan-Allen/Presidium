@@ -6,18 +6,18 @@
 
 package src.graphics.widgets ;
 import src.graphics.widgets.Alphabet.Letter ;
-import src.user.Description;
+import src.user.Description ;  //  TODO:  Remove out-of-package references?
 import src.util.* ;
 import src.graphics.common.* ;
 import org.lwjgl.opengl.* ;
 import java.awt.event.KeyEvent ;
 
 
+
 /**  A text object that wraps will continue onto subsequent lines when a given
   *  line is filled.  Non-wrapping text will adjust width to match current
   *  entries.
   */
-
 public class Text extends UINode implements Description {
   
   
@@ -29,18 +29,16 @@ public class Text extends UINode implements Description {
     0.2f, 0.6f, 0.8f, 1
   ) ;
   
-
-  public Colour
-    colour = (new Colour()).set(1, 1, 1, 1) ;
-  public float
-    scale = 1.0f ;
+  
+  public Colour colour = (new Colour()).set(1, 1, 1, 1) ;
+  public float scale = 1.0f ;
   
   final protected Alphabet alphabet ;
   private boolean roll ;
   private boolean format = false ;
   private Scrollbar scrollbar ;
   
-  protected List <Box2D> allEntries = new List () ;
+  protected List <Box2D> allEntries = new List <Box2D> () ;
   private Box2D fullSize = new Box2D() ;
   private float oldWide, oldHigh = 0 ;
   
@@ -51,16 +49,23 @@ public class Text extends UINode implements Description {
     *  is true, then text beyond size limits will be hidden, but the last
     *  entries will remain visible.
     */
-  public Text(HUD myHUD, Alphabet a) { this(myHUD, a, "", false) ; }
-  public Text(HUD myHUD, Alphabet a, String s) { this(myHUD, a, s, false) ; }
+  public Text(HUD myHUD, Alphabet a) {
+    this(myHUD, a, "", false) ;
+  }
+  
+  
+  public Text(HUD myHUD, Alphabet a, String s) {
+    this(myHUD, a, s, false) ;
+  }
+  
   
   protected Text(HUD myHUD, Alphabet a, String t, boolean roll) {
     super(myHUD) ;
     alphabet = a ;
     this.roll = roll ;
-    this.shade = -1 ;
     setText(t) ;
   }
+  
   
   //  TODO:  Scrollbars should be possible to associate with arbitrary UI
   //  groups.
@@ -85,11 +90,13 @@ public class Text extends UINode implements Description {
     void whenClicked() ;
   }
   
+  
   static class ImageEntry extends Box2D {
-    Texture graphic ;
+    Image graphic ;
     boolean visible ;
     int wide, high ;
   }
+  
   
   static class TextEntry extends Box2D {
     char key ;
@@ -98,7 +105,8 @@ public class Text extends UINode implements Description {
     Colour colour = null ;
     Clickable link = null ;
   }
-
+  
+  
   
   /**  Various overrides of UINode functionality-
     */
@@ -114,6 +122,7 @@ public class Text extends UINode implements Description {
   }
   
   
+  
   /**  Adds the given String to this text object in association with
     *  the specified selectable.
     */
@@ -122,16 +131,19 @@ public class Text extends UINode implements Description {
     for (int n = 0, l = s.length() ; n < l ; n++)
       addEntry(s.charAt(n), link, c)  ;
   }
+  
 
   public void append(Clickable l, Colour c) {
     if (l == null) append("(none)") ;
     else append(l.fullName(), l, c) ;
   }
   
+  
   public void append(Clickable l) {
     if (l == null) append("(none)") ;
     else append(l.fullName(), l, LINK_COLOUR) ;
   }
+  
   
   public void append(Object o) {
     if (o instanceof Clickable) append((Clickable) o) ;
@@ -139,34 +151,51 @@ public class Text extends UINode implements Description {
     else append("(none)") ;
   }
   
+  
   public void append(String s, Clickable l) { append(s, l, null) ; }
   public void append(String s, Colour c) { append(s, null, c) ; }
   public void append(String s) { append(s, null, null) ; }
   
-  public void appendList(String s, Series l) {
+  
+  public void appendList(String s, Object... l) {
     append(s) ;
     int i = 0 ; for (Object o : l) {
       append(o) ;
-      if (++i < l.size()) append(", ") ;
+      if (++i < l.length) append(", ") ;
     }
   }
+  
+  
+  public void appendList(String s, Series l) {
+    appendList(s, l.toArray()) ;
+  }
+  
   
   
   /**  Adds a single image entry to this text object.  Images are used as
     *  'bullets' to indent and separate text, and this format is retained until
     *  the next carriage return or another image is inserted.
     */
-  public boolean insert(Texture graphic, int maxSize) {
+  public boolean insert(Texture texGraphic, int maxSize) {
+    return insert(new Image(myHUD, texGraphic), maxSize) ;
+  }
+  
+  
+  public boolean insert(Image graphic, int maxSize) {
     if (graphic == null) return false ;
-    float maxDim = Math.max(graphic.maxU(), graphic.maxV()) ;
+    graphic.absBound.set(0, 0, maxSize, maxSize) ;
+    graphic.relBound.set(0, 0, 0, 0) ;
+    graphic.updateRelativeParent() ;
+    graphic.updateAbsoluteBounds() ;
     final ImageEntry entry = new ImageEntry() ;
     entry.graphic = graphic ;
-    entry.wide = (int) (graphic.maxU() * maxSize / maxDim) ;
-    entry.high = (int) (graphic.maxV() * maxSize / maxDim) ;
+    entry.wide = (int) graphic.xdim() ;
+    entry.high = (int) graphic.ydim() ;
     allEntries.add(entry) ;
     format = true ;
     return true ;
   }
+  
   
   
   /**  Adds a single letter entry to this text object.
@@ -185,6 +214,7 @@ public class Text extends UINode implements Description {
   }
   
   
+  
   /**  Sets this text object to the given string.
     */
   public void setText(String s) {
@@ -192,6 +222,7 @@ public class Text extends UINode implements Description {
     append(s, null, null) ;
     format = true ;
   }
+  
   
   
   /**  Gets the string this text object contains.
@@ -207,6 +238,7 @@ public class Text extends UINode implements Description {
     }
     return new String(charS) ;
   }
+  
   
   
   /**  Handles any key press this text is registered to listen for.
@@ -231,11 +263,13 @@ public class Text extends UINode implements Description {
   }
   
   
+  
   /**  Called when edit mode is escaped.
     */
   void escaped() {
     I.say("exiting edit mode...") ;
   }
+  
   
   
   /**  Returns the selectable associated with the currently hovered unit of
@@ -260,6 +294,7 @@ public class Text extends UINode implements Description {
     }
     return null ;
   }
+  
   
   
   /**  Draws this text object.
@@ -295,8 +330,9 @@ public class Text extends UINode implements Description {
     GL11.glScissor((int) xpos(), (int) ypos(), (int) xdim(), (int) ydim()) ;
     GL11.glBegin(GL11.GL_QUADS) ;
     for (Box2D entry : allEntries) {
-      if (entry instanceof TextEntry)
+      if (entry instanceof TextEntry) {
         renderText(textArea, (TextEntry) entry, link) ;
+      }
       else bullets.add((ImageEntry) entry) ;
     }
     GL11.glEnd() ;
@@ -310,20 +346,20 @@ public class Text extends UINode implements Description {
   }
   
   
+  
   /**  Renders an image embedded within the text.
     */
   protected void renderImage(Box2D bounds, ImageEntry entry) {
     if (! entry.intersects(bounds)) return ;
-    entry.graphic.bindTex() ;
-    final float xoff = xpos() - bounds.xpos(), yoff = ypos() - bounds.ypos() ;
-    GL11.glBegin(GL11.GL_QUADS) ;
-    drawQuad(
-      entry.xpos() + xoff, entry.ypos() + yoff,
-      entry.xmax() + xoff, entry.ymax() + yoff,
-      0, 0, entry.graphic.maxU(), entry.graphic.maxV()
-    ) ;
-    GL11.glEnd() ;
+    final Box2D b = entry.graphic.absBound ;
+    b.xpos(entry.xpos() + xpos() - bounds.xpos()) ;
+    b.ypos(entry.ypos() + ypos() - bounds.ypos()) ;
+    entry.graphic.updateRelativeParent() ;
+    entry.graphic.updateAbsoluteBounds() ;
+    
+    entry.graphic.render() ;
   }
+  
   
   
   /**  Renders a single character within the text field, if visible.
@@ -353,6 +389,7 @@ public class Text extends UINode implements Description {
   }
   
   
+  
   /**  Sets this text object to the size it would ideally prefer in order to
     *  accomodate it's text.
     */
@@ -366,10 +403,10 @@ public class Text extends UINode implements Description {
   }
   
   
+  
   /**  Puts all letters in their proper place, allowing for roll/wrap/grow
     *  effects, and, if neccesary, adjusts the bounds of this UIObject
     *  accordingly.
-    *  TODO:  Fix wrapping problems.
     */
   protected void format() {
     ListEntry <Box2D>

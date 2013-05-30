@@ -41,10 +41,10 @@ public class BuildingsTab extends InfoPanel {
     final List <InstallType> types = new List <InstallType> () ;
   }
   
-
+  
   private class InstallType {
-    Texture icon ;
-    String name, description ;
+    Composite icon ;
+    String name, description, category ;
     
     Class <Installation> buildClass ;
     Constructor buildCons ;
@@ -117,20 +117,26 @@ public class BuildingsTab extends InfoPanel {
       try { cons = buildClass.getConstructor(Base.class) ; }
       catch (Exception e) { continue ; }
       //
-      //  Secondly, construct the building type with an appropriate instance-
+      //  Secondly, construct the building type with an appropriate instance.
       final InstallType type = new InstallType() ;
       type.buildClass = buildClass ;
       type.buildCons = cons ;
       refreshInstance(type) ;
-      type.name = type.instanced.fullName() ;
-      type.icon = type.instanced.portrait() ;
-      type.description = type.instanced.helpInfo() ;
-      if (type.name == null || type.icon == null || type.description == null)
+      final Installation instanced = type.instanced ;
+      //
+      //  Thirdly, ensure that this structure has appropriate UI data:
+      if (
+        (type.name        = instanced.fullName()     ) == null ||
+        (type.icon        = instanced.portrait(UI)   ) == null ||
+        (type.description = instanced.helpInfo()     ) == null ||
+        (type.category    = instanced.buildCategory()) == null
+      ) {
+        I.say("UI information missing from "+buildClass.getSimpleName()) ;
         continue ;
+      }
       //
       //  Finally, determine which category this structure belongs to-
-      final String category = type.instanced.buildCategory() ;
-      final Category match = categories.get(category) ;
+      final Category match = categories.get(type.category) ;
       if (match == null) continue ;
       match.types.add(type) ;
     }

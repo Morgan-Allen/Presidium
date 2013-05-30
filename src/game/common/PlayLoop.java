@@ -120,10 +120,14 @@ public abstract class PlayLoop implements Session.Saveable {
   
   /**  Save and load functionality-
     */
+  //  Okay.  I understand the problem now.  This is being initialised too early
+  //  during the loading process.  And it's making indirect references.
   public PlayLoop(Session s) throws Exception {
     this(false) ;
+    ///I.say("  ...CACHING PLAYLOOP INSTANCE: "+this) ;
     s.cacheInstance(this) ;
     world = s.world() ;
+    ///I.say("FINISHED LOADING WORLD") ;
     played = (Base) s.loadObject() ;
     UI = createUI(played, rendering) ;
     if (UI instanceof BaseUI) ((BaseUI) UI).loadState(s) ;
@@ -135,7 +139,7 @@ public abstract class PlayLoop implements Session.Saveable {
     if (UI instanceof BaseUI) ((BaseUI) UI).saveState(s) ;
   }
   
-
+  
   public static void saveGame(String saveFile) {
     if (currentGame == null) return ;
     try { Session.saveSession(world(), currentGame, saveFile) ; }

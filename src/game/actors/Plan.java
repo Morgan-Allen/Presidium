@@ -19,6 +19,7 @@ public abstract class Plan implements Saveable, Behaviour {
     */
   final Saveable signature[] ;
   final int hash ;
+  final float priority = ROUTINE ;
   protected Actor actor ;
   protected Behaviour nextStep = null ;
   
@@ -92,7 +93,7 @@ public abstract class Plan implements Saveable, Behaviour {
     }
     if (nextStep == null || nextStep.complete()) {
       if (valid()) nextStep = getNextStep() ;
-      else { I.say("Plan no longer valid!") ; nextStep = null ; }
+      else { I.say("Plan no longer valid: "+this) ; nextStep = null ; }
     }
     return nextStep ;
   }

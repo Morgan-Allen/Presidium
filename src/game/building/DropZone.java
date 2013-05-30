@@ -10,7 +10,9 @@ import src.game.common.* ;
 import src.game.planet.Planet;
 import src.game.actors.* ;
 import src.graphics.common.* ;
+import src.user.BaseUI;
 import src.user.BuildingsTab;
+import src.user.Composite;
 import src.user.Description;
 import src.util.* ;
 
@@ -97,10 +99,6 @@ public class DropZone extends Venue implements VenueConstants {
     return ALL_ITEM_TYPES ;
   }
   
-  public boolean usesRoads() {
-    return false ;
-  }
-  
   public Behaviour jobFor(Citizen actor) {
     return orders.nextDelivery(actor, goods()) ;
   }
@@ -127,6 +125,7 @@ public class DropZone extends Venue implements VenueConstants {
     return batch ;
   }
   
+  protected void updatePaving(boolean inWorld) {}
   
   public Vehicle landing() {
     return landing ;
@@ -140,8 +139,8 @@ public class DropZone extends Venue implements VenueConstants {
     return "Drop Zone for "+landing.fullName() ;
   }
 
-  public Texture portrait() {
-    return landing.portrait() ;
+  public Composite portrait(BaseUI UI) {
+    return landing.portrait(null) ;
   }
   
   public String helpInfo() {

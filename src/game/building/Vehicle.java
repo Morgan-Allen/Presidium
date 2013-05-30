@@ -141,45 +141,30 @@ public abstract class Vehicle extends Mobile implements
     return fullName() ;
   }
   
+  
   public String[] infoCategories() {
     return null ;  //cargo, passengers, integrity.
   }
-
+  
+  
   public void whenClicked() {
     if (PlayLoop.currentUI() instanceof BaseUI) {
       ((BaseUI) PlayLoop.currentUI()).setSelection(this) ;
     }
   }
-}
-
-
-
-
-
-/*
-//  Strictly speaking, this ought to depend on the vehicle's motion-facing...
-protected Tile entrance() {
-  final Tile o = origin() ;
-  if (o == null) return null ;
-  final int size = (int) Math.ceil(radius() * 2) ;
-  final int coords[] = Spacing.entranceCoords(size, size, entranceFace) ;
-  return world.tileAt(o.x + coords[0], o.y + coords[1]) ;
-}
-
-
-protected void toggleDropPoint(Base base, boolean is) {
-  if (is != (dropPoint != null)) I.complain("Incorrect drop state...") ;
-  if (is) {
-    dropPoint = new DropZone(this, base) ;
-    final Tile e = entrance() ;
-    dropPoint.enterWorldAt(e.x, e.y, world) ;
-  }
-  else {
-    dropPoint.exitWorld() ;
-    dropPoint = null ;
+  
+  
+  public InfoPanel createPanel(BaseUI UI) {
+    return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
   }
 }
-//*/
+
+
+
+
+
+
+
 
 
 

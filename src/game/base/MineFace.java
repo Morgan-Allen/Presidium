@@ -1,4 +1,8 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 package src.game.base ;
 import src.game.common.* ;
@@ -8,7 +12,6 @@ import src.user.* ;
 import src.util.* ;
 
 
-//  Now... I'd like to extend this to cover underground tunnels too.
 
 public class MineFace extends Element implements Boardable, TileConstants {
   
@@ -20,8 +23,7 @@ public class MineFace extends Element implements Boardable, TileConstants {
   MineShaft parent ;
   Stack <Mobile> inside = NONE_INSIDE ;
   
-  protected float promise = 0 ;
-  private float workDone = 0 ;
+  protected float promise = 0, workDone = 0 ;
   
   
   
@@ -83,7 +85,7 @@ public class MineFace extends Element implements Boardable, TileConstants {
     final Tile o = origin() ;
     int i = 0 ; for (int n : N_ADJACENT) {
       final Tile tN = o.world.tileAt(o.x + N_X[n], o.y + N_Y[n]) ;
-      final MineFace near = parent.openingAt(tN) ;
+      final MineFace near = parent.faceAt(tN) ;
       if (near == null) continue ;
       batch[i++] = near ;
     }

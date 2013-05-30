@@ -22,6 +22,7 @@ public interface Description {
   public void append(Object o) ;
   
   public void appendList(String s, Series l) ;
+  public void appendList(String s, Object... l) ;
   
   public boolean insert(Texture graphic, int maxSize) ;
   

@@ -13,7 +13,7 @@ import src.util.* ;
 
 
 public class MagLineNode extends Element implements
-  TileConstants, Paving.Hub, Schedule.Updates
+  TileConstants, Schedule.Updates
 {
   
   
@@ -23,7 +23,7 @@ public class MagLineNode extends Element implements
   private int facing ;
   private boolean isHub = false ;
   private Tile around[] = new Tile[9] ;
-  private Paving paving ;
+  //private Paving paving ;
   
   
   MagLineNode(Base base) {
@@ -37,10 +37,6 @@ public class MagLineNode extends Element implements
     this.facing = s.loadInt() ;
     this.base = (Base) s.loadObject() ;
     this.isHub = s.loadBool() ;
-    if (isHub) {
-      paving = new Paving(this) ;
-      paving.loadState(s) ;
-    }
   }
   
   
@@ -49,7 +45,6 @@ public class MagLineNode extends Element implements
     s.saveInt(facing) ;
     s.saveObject(base) ;
     s.saveBool(isHub) ;
-    if (isHub) paving.saveState(s) ;
   }
   
   
@@ -60,16 +55,20 @@ public class MagLineNode extends Element implements
     super.enterWorldAt(x, y, world) ;
     world.terrain().maskAsPaved(origin().vicinity(around), true) ;
     if (isHub) {
-      paving.onWorldEntry() ;
-      world.schedule.scheduleForUpdates(this) ;
+      base.paving.updateJunction(origin(), true) ;
+      //base.paving.toggleJunction(this, origin(), true) ;
+      //paving.onWorldEntry() ;
+      //world.schedule.scheduleForUpdates(this) ;
     }
   }
 
 
   public void exitWorld() {
     if (isHub) {
-      paving.onWorldExit() ;
-      world.schedule.unschedule(this) ;
+      base.paving.updateJunction(origin(), false) ;
+      //base.paving.toggleJunction(this, origin(), false) ;
+      //paving.onWorldExit() ;
+      //world.schedule.unschedule(this) ;
     }
     world.terrain().maskAsPaved(origin().vicinity(around), false) ;
     super.exitWorld() ;
@@ -84,7 +83,7 @@ public class MagLineNode extends Element implements
   public void updateAsScheduled(int numUpdates) {
   }
   
-  
+  /*
   public Tile mainEntrance() {
     return origin() ;
   }
@@ -99,7 +98,6 @@ public class MagLineNode extends Element implements
     return true ;
   }
   
-  
   public Tile[] surrounds() {
     return origin().vicinity(around) ;
   }
@@ -113,6 +111,7 @@ public class MagLineNode extends Element implements
   public Box2D area() {
     return area(null) ;
   }
+  //*/
   
   
   public int pathType() {
@@ -154,9 +153,6 @@ public class MagLineNode extends Element implements
   //  process better.
   void updateFacing() {
     final Model model = updateModel() ;
-    if (model == NODE_MODEL_CENTRE || model == NODE_MODEL_FLAT) {
-      paving = new Paving(this) ;
-    }
     attachSprite(model.makeSprite()) ;
   }
   

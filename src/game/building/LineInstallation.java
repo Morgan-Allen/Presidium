@@ -60,7 +60,7 @@ public abstract class LineInstallation implements Installation, TileConstants {
     final boolean allowNulls, final Class... exceptions
   ) {
     if (from == null || to == null) return null ;
-    final RouteSearch search = new RouteSearch(from, to, Element.VENUE_OWNS) {
+    final RoadSearch search = new RoadSearch(from, to, Element.VENUE_OWNS) {
       protected boolean canEnter(Tile t) {
         if (t == null) return false ;
         for (Tile n : t.vicinity(tempB)) {
@@ -116,7 +116,7 @@ public abstract class LineInstallation implements Installation, TileConstants {
   
   public void doPlace(Tile from, Tile to) {
     if (toClear == null || toPlace == null) return ;
-    Paving.clearRoute((Tile[]) toClear.toArray(Tile.class)) ;
+    Paving.clearRoad((Tile[]) toClear.toArray(Tile.class)) ;
     for (Element e : toPlace) {
       final Tile o = e.origin() ;
       if (o.owner() != null) o.owner().exitWorld() ;

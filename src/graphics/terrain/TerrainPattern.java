@@ -243,7 +243,7 @@ public class TerrainPattern implements TileConstants {
     *  texture-
     */
   final public static float
-    FRINGE_EXTRAS_INDEX[][] = {
+    OUTER_EXTRAS_INDEX[][] = {
       {1, 4},
       {1, 4},
       {1, 4},
@@ -251,16 +251,32 @@ public class TerrainPattern implements TileConstants {
       {4, 4},
       {4, 5}
     },
-    FRINGE_EXTRAS_UV[][] = shrinkUVMap(FRINGE_EXTRAS_INDEX, 6) ;
+    OUTER_EXTRAS_UV[][] = shrinkUVMap(OUTER_EXTRAS_INDEX, 6),
+    INNER_EXTRAS_INDEX[][] = {
+      {5, 6},
+      {6, 6},
+      {7, 6},
+      {5, 5},
+      {6, 5},
+      {7, 5}
+    },
+    INNER_EXTRAS_UV[][] = shrinkUVMap(INNER_EXTRAS_INDEX, 8) ;
   
   
-  protected static float[][] extraFringeUV(int varID) {
-    varID %= FRINGE_EXTRAS_INDEX.length ;
-    innerUV[0] = FRINGE_EXTRAS_UV[varID] ;
+  protected static float[][] extraFringeUV(int varID, boolean outer) {
+    final float UV[][] = outer ? OUTER_EXTRAS_UV : INNER_EXTRAS_UV ;
+    varID %= UV.length ;
+    innerUV[0] = UV[varID] ;
     innerUV[1] = null ;
     return innerUV ;
   }
 }
+
+
+
+
+
+
 
 
 

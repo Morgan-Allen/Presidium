@@ -32,10 +32,13 @@ public class Outcrop extends Fixture {
     this.mineral = mineral ;
     
     Model model = null ;
-    if (type == TYPE_MESA) {
-      if (mineral == 0) {
-        boolean tall = (size > 1) && (Rand.index(5) == 0) ;
-        model = Habitat.SPIRE_MODELS[Rand.index(3)][tall ? 0 : 1] ;
+    if (size == 1 && type != TYPE_DUNE) {
+      model = Habitat.SPIRE_MODELS[Rand.index(3)][2] ;
+    }
+    else if (type == TYPE_MESA) {
+      if (mineral == 0 || Rand.yes()) {
+        int highID = Rand.yes() ? 1 : (3 - size) ;// (Rand.index(3) == 0) ? 0 : 1 ;
+        model = Habitat.SPIRE_MODELS[Rand.index(3)][highID] ;
       }
       else {
         model = Habitat.ROCK_LODE_MODELS[mineral - 1] ;
@@ -45,13 +48,13 @@ public class Outcrop extends Fixture {
       model = Habitat.DUNE_MODELS[Rand.index(3)] ;
     }
     else if (type == TYPE_DEPOSIT) {
-      model = Habitat.ROCK_LODE_MODELS[mineral - 1] ;
-      //model = Habitat.MINERAL_MODELS[mineral - 1] ;
+      //model = Habitat.ROCK_LODE_MODELS[mineral - 1] ;
+      model = Habitat.MINERAL_MODELS[mineral - 1] ;
     }
     else I.complain("NOT A VALID OUTCROP TYPE!") ;
     
     final Sprite s = model.makeSprite() ;
-    s.scale = size / 2f ;
+    if (size > 1 || type == TYPE_DUNE) s.scale = size / 2f ;
     attachSprite(s) ;
   }
   
@@ -60,7 +63,7 @@ public class Outcrop extends Fixture {
     super(s) ;
     type = s.loadInt() ;
     mineral = s.loadInt() ;
-    sprite().scale = xdim() / 2f ;
+    if (size > 1 || type == TYPE_DUNE) sprite().scale = size / 2f ;
   }
   
   
@@ -83,8 +86,16 @@ public class Outcrop extends Fixture {
   }
   
   
+  public void enterWorldAt(int x, int y, World world) {
+    super.enterWorldAt(x, y, world) ;
+    setInceptTime(-10) ;
+  }
+  
+  
   public int owningType() {
-    return type == TYPE_DUNE ? Element.ENVIRONMENT_OWNS : Element.VENUE_OWNS ;
+    return type == TYPE_DUNE ?
+      Element.ENVIRONMENT_OWNS :
+      Element.TERRAIN_OWNS ;
   }
   
   

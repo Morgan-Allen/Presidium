@@ -35,6 +35,8 @@ public interface TileConstants {
   
   public abstract static class TileMask {
     public abstract boolean maskAt(final int x, final int y) ;
+    
+    public byte varID(int x, int y) { return 0 ; }
     public boolean nullsCount() { return false ; }
     
     /*

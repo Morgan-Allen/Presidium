@@ -19,17 +19,17 @@ import src.util.* ;
 public class Farming extends Plan implements VenueConstants {
   
   
-  final Nursery nursery ;
+  final BotanicalStation nursery ;
   
   
-  Farming(Actor actor, Nursery nursery) {
+  Farming(Actor actor, BotanicalStation nursery) {
     super(actor, nursery) ;
     this.nursery = nursery ;
   }
   
   public Farming(Session s) throws Exception {
     super(s) ;
-    nursery = (Nursery) s.loadObject() ;
+    nursery = (BotanicalStation) s.loadObject() ;
   }
   
   public void saveState(Session s) throws Exception {
@@ -131,10 +131,13 @@ public class Farming extends Plan implements VenueConstants {
       return false ;
     }
     if (t.owner() != null) t.owner().exitWorld() ;
-    final Crop crop = new Crop(nursery, Rand.index(4)) ;
+    //
+    //  Get a species for the crop and plant it-
+    final int varID = BotanicalStation.pickSpecies(t, nursery) ;
+    final Crop crop = new Crop(nursery, varID) ;
     crop.enterWorldAt(t.x, t.y, actor.world()) ;
-    crop.health = actor.training.test(CULTIVATION, 10, 1) ? 2 : 1 ;
-    crop.health += actor.training.test(HARD_LABOUR, 5, 1) ? 1 : 0 ;
+    crop.health = actor.traits.test(CULTIVATION, 10, 1) ? 2 : 1 ;
+    crop.health += actor.traits.test(HARD_LABOUR, 5, 1) ? 1 : 0 ;
     nursery.toPlant.remove(t) ;
     nursery.planted.addLast(crop) ;
     return true ;
@@ -174,8 +177,7 @@ public class Farming extends Plan implements VenueConstants {
   public boolean actionHarvest(Actor actor, Crop crop) {
     if (! crop.inWorld()) return false ;
     final float yield = crop.health ;
-    actor.equipment.addItem(STARCHES, yield / 2) ;
-    actor.equipment.addItem(GREENS, yield / 2) ;
+    actor.equipment.addItem(BotanicalStation.speciesYield(crop.varID), yield) ;
     crop.exitWorld() ;
     actionPlant(actor, crop.origin()) ;
     return true ;

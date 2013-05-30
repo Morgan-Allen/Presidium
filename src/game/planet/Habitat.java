@@ -47,7 +47,8 @@ public class Habitat {
     //  Finally, mineral outcrop models-
     OUTCROP_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
-      Texture.loadTexture(TERRAIN_PATH+"all_outcrops.png"),
+      Texture.loadTexture(TERRAIN_PATH+"all_deposits.png"),
+      //Texture.loadTexture(TERRAIN_PATH+"all_outcrops.png"),
       3, 3, 2.0f
     ),
     DUNE_MODELS[]    = OUTCROP_MODELS[2],
@@ -55,8 +56,10 @@ public class Habitat {
     ROCK_LODE_MODELS[] = OUTCROP_MODELS[0],
     SPIRE_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
-      Texture.loadTexture(TERRAIN_PATH+"all_spires.png"),
-      3, 2, 2.0f
+      Texture.loadTexture(TERRAIN_PATH+"all_outcrops_new.png"),
+      3, 3, 2.0f
+      //Texture.loadTexture(TERRAIN_PATH+"all_spires.png"),
+      //3, 2, 2.0f
     ) ;
   
   final private static String
@@ -136,6 +139,10 @@ public class Habitat {
       -1, false, MOISTURE, 1, INSOLATION, 5, MINERALS, 5,
       IS_WASTE
     ),
+    //  Bordering on Mesa and Cratered terrain, are what I'm looking for here.
+    //  Replace the next two with those.  That should be everything required,
+    //  aside from Tundra habitats...
+    
     BLACK_WASTES = new Habitat("Mesa",
       "black_wastes_ground.gif", WASTES_FLORA_MODELS,
       -1, true, MOISTURE, 3, INSOLATION, 3, MINERALS, 7,

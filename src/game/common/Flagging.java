@@ -25,7 +25,7 @@ public class Flagging implements Session.Saveable {
   private Vec3D temp = new Vec3D() ;
   
   
-  Flagging(World world, Object key) {
+  public Flagging(World world, Object key) {
     this.world = world ;
     this.root = new Node(world.sections.root) ;
     //

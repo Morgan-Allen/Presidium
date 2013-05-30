@@ -22,20 +22,32 @@ public class WorldSections implements TileConstants {
   
   //  NOTE:  x and y coordinates are relative to position in hierarchy, not to
   //  tile coordinates.
-  static class Section {
+  public static class Section {
     
     private boolean updateBounds = true ;
+    ///private int pathingChangeHash = 0 ;
     
-    final Box3D bounds = new Box3D() ;
-    final Box2D area = new Box2D() ;
+    final public Box3D bounds = new Box3D() ;
+    final public Box2D area = new Box2D() ;
     final public int x, y, depth ;
     protected Section kids[], parent ;
+    
     
     Section(int x, int y, int d) {
       this.x = x ;
       this.y = y ;
       this.depth = d ;
     }
+  }
+  
+  
+  public static Section loadSection(Session s) throws Exception {
+    return s.world().sections.sectionAt(s.loadInt(), s.loadInt()) ;
+  }
+  
+  public static void saveSection(Section sS, Session s) throws Exception {
+    s.saveInt((int) (sS.area.xpos() + 1)) ;
+    s.saveInt((int) (sS.area.ypos() + 1)) ;
   }
   
   
@@ -92,8 +104,8 @@ public class WorldSections implements TileConstants {
   
   
   public Section[] neighbours(Section section, Section[] batch) {
-    if (batch == null) batch = new Section[4] ;
-    int i = 0 ; for (int n : N_ADJACENT) {
+    if (batch == null) batch = new Section[8] ;
+    int i = 0 ; for (int n : N_INDEX) {
       try {
         final int x = section.x + N_X[n], y = section.y + N_Y[n] ;
         final Section s = hierarchy[section.depth][x][y] ;

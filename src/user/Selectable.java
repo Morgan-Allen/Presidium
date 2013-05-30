@@ -5,9 +5,9 @@
   */
 
 package src.user ;
-import src.util.* ;
+//import src.util.* ;
 import src.game.common.* ;
-import src.graphics.common.* ;
+//import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 
 
@@ -15,11 +15,12 @@ import src.graphics.widgets.* ;
 public interface Selectable extends Text.Clickable, Target {
   
   String fullName() ;
-  Texture portrait() ;
   String helpInfo() ;
   
   String[] infoCategories() ;
+  Composite portrait(BaseUI UI) ;
   void writeInformation(Description description, int categoryID) ;
   
   void whenClicked() ;
+  InfoPanel createPanel(BaseUI UI) ;
 }

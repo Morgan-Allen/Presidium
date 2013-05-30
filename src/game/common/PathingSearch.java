@@ -24,6 +24,10 @@ public class PathingSearch extends Search <Boardable> {
   private Boardable batch[] = new Boardable[8] ;
   private Mobile client = null ;
   
+  private Boardable closest ;
+  private float closestDist ;
+  //  TODO:  Incorporate the Places-search constraint code here?
+  
   
   public PathingSearch(Boardable init, Boardable dest, boolean safe) {
     super(init, safe ? ((Spacing.outerDistance(init, dest) * 10) + 10) : -1) ;
@@ -31,6 +35,8 @@ public class PathingSearch extends Search <Boardable> {
       I.complain("NO DESTINATION!") ;
     }
     this.destination = dest ;
+    this.closest = init ;
+    this.closestDist = Spacing.distance(init, dest) ;
     if (destination instanceof Venue) {
       aimPoint = ((Venue) destination).mainEntrance() ;
     }
@@ -51,12 +57,22 @@ public class PathingSearch extends Search <Boardable> {
     super.doSearch() ;
     if (verbose) {
       if (success()) I.say("  Success!") ;
-      else I.say("Failed.") ;
+      else I.say("  Failed.") ;
     }
     return this ;
   }
   
   
+  protected void tryEntry(Boardable spot, Boardable prior, float cost) {
+    final float spotDist = Spacing.distance(spot, destination) ;
+    if (spotDist < closestDist) {
+      closest = spot ;
+      closestDist = spotDist ;
+    }
+    super.tryEntry(spot, prior, cost) ;
+  }
+
+
   protected void setEntry(Boardable spot, Entry flag) {
     spot.flagWith(flag) ;
   }
@@ -95,8 +111,8 @@ public class PathingSearch extends Search <Boardable> {
   
   
   protected float estimate(Boardable spot) {
-    final float dist = Spacing.distance(spot, aimPoint) ;
-    //if (init.pathType() == Tile.PATH_ROAD) return dist * 0.55f ;
+    float dist = Spacing.distance(spot, aimPoint) ;
+    dist += Spacing.distance(closest, spot) / 3.0f ;
     return dist * 1.1f ;
   }
   
@@ -105,5 +121,8 @@ public class PathingSearch extends Search <Boardable> {
     return best == destination ;
   }
 }
+
+
+
 
 

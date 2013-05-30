@@ -171,6 +171,10 @@ public class BaseUI extends HUD {
     task = null ;
   }
   
+  public UITask currentTask() {
+    return task ;
+  }
+  
   public void pushMessage(String message) {
     //if (messages == null) return ;
     //messages.addMessage(message) ;
@@ -239,7 +243,9 @@ public class BaseUI extends HUD {
         selected = s ;
         camera.lockOn(selected) ;
       }
-      newPanel = new InfoPanel(this, s, InfoPanel.DEFAULT_TOP_MARGIN) ;
+      newPanel = s.createPanel(this) ;
+      //if (s instanceof Actor) newPanel = new ActorPanel(this, (Actor) s) ;
+      //else newPanel = new InfoPanel(this, s, InfoPanel.DEFAULT_TOP_MARGIN) ;
     }
     else if (selected != null) {
       camera.lockOn(selected = null) ;

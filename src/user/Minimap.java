@@ -37,15 +37,12 @@ public class Minimap extends UINode {
     this.UI = UI ;
     this.world = world ;
     this.base = realm  ;
-    //
-    final int texSize = world.size ;
-    mapImage = Texture.createTexture(texSize, texSize) ;
-    updateImage(mapImage) ;
   }
   
   
-  private void updateImage(Texture image) {
+  private void updateMapImage() {
     final int texSize = world.size ;
+    mapImage = Texture.createTexture(texSize, texSize) ;
     byte RGBA[] = new byte[texSize * texSize * 4] ;
     for (int y = 0, m = 0 ; y < texSize ; y++) {
       for (int x = 0 ; x < texSize ; x++) {
@@ -56,7 +53,7 @@ public class Minimap extends UINode {
         RGBA[m - 1] = (byte) 0xff ;
       }
     }
-    image.putBytes(RGBA) ;
+    mapImage.putBytes(RGBA) ;
   }
   
   
@@ -101,6 +98,7 @@ public class Minimap extends UINode {
   
   
   protected void render() {
+    if (mapImage == null) updateMapImage() ;
     //if (oldFade > FADE_DELAY || newImage == null) {
     //  mapImage = newImage ;
     //  final int texSize = world.size ;

@@ -15,6 +15,10 @@ import src.util.Sorting.* ;
   *  they occur.  The schedule using the last recorded current time from
   *  schedule advancement for calculating the proper time for new events.
   *  Consequently, the shedule should be advanced at regular intervals.
+  *  
+  *  (The purpose of this class is, essentially, to allow potentially processor-
+  *  intensive tasks to be either time-sliced or deferred so as not to disrupt
+  *  normal graphical framerate or simulation updates.)
   */
 public class Schedule {
   

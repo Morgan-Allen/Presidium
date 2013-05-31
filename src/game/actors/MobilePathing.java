@@ -83,7 +83,7 @@ public class MobilePathing {
     }
     else {
       path = mobile.assignedBase().pathingCache.getLocalPath(
-        location(mobile), location(target)
+        location(mobile), location(target), MAX_PATH_SCAN * 2
       ) ;
       stepIndex = 0 ;
     }
@@ -109,6 +109,7 @@ public class MobilePathing {
       if (index >= path.length) break ;
       final Target t = path[index] ;
       if ((t instanceof Tile) && ((Tile) t).blocked()) blocked = true ;
+      else if (! t.inWorld()) blocked = true ;
       if (t == dest) nearTarget = true ;
     }
     doRefresh = blocked || path == null || pathTarget != dest ;
@@ -118,11 +119,6 @@ public class MobilePathing {
     if (path != null && ! nearTarget) {
       final Target last = path[path.length - 1] ;
       final int dist = Spacing.outerDistance(location, last) ;
-      //
-      //  TODO:  Try checking if you're in the same Region instead...
-      //  TODO:  That.  The actor has a tendency to repeatedly query their
-      //         path every 1/10th second otherwise, once they near the end of
-      //         the short-term path.
       if (dist < World.SECTION_RESOLUTION / 2) {
         doRefresh = true ;
       }

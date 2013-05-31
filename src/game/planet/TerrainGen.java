@@ -349,15 +349,13 @@ public class TerrainGen implements TileConstants {
   
   
   //  TODO:  CLEAN THIS UP
-  
   //
-  //  ...You might want to move some of this to the Outcrop class itself.
-  //  ...You'll also want to *average* mineral content over a broader area to
-  //  determine the Lode content of an outcrop.  The current system is way too
-  //  random.
-  
   //  Put the various tiles for processing in different batches and treat 'em
   //  that way?
+  
+  //
+  //  The current system still looks a little too random, though it has
+  //  improved...
   public void setupOutcrops(final World world) {
     final Terrain terrain = world.terrain() ;
     final int seedSize = (mapSize / DETAIL_RESOLUTION) + 1 ;
@@ -378,47 +376,30 @@ public class TerrainGen implements TileConstants {
         rockAmount *= rockAmount ;
         
         if ((rockAmount * 11) > (10 - habitat.minerals)) {
-          byte mineral = terrain.mineralType(location) ;
-          if (Rand.index(10) >= terrain.mineralsAt(location, mineral)) {
-            mineral = 0 ;
-          }
-          int maxSize = Visit.clamp((int) (habitat.minerals * 1.5f / 3), 4) ;
-          int rockType = Outcrop.TYPE_MESA ;
-          if (maxSize < 2) {
-            if (mineral == 0) return ;
-            rockType = Outcrop.TYPE_DEPOSIT ;
-            maxSize = 3 ;// Rand.yes() ? 3 : 2 ;
-          }
+        //if (true) {
           //
           //  If placement was successful, 'paint' the perimeter with suitable
           //  habitat types-
           final Outcrop o = tryOutcrop(
-            rockType, mineral, location, maxSize, 1
+            Outcrop.TYPE_MESA, location, 3, 1
           ) ;
-          //*
           if (o != null) {
-            //final boolean mesa = rockType == Outcrop.TYPE_MESA ;
-            //*
             for (Tile t : Spacing.perimeter(o.area(), world)) {
               if (t == null || t.habitat().ID > Habitat.BARRENS.ID) continue ;
               if (Rand.index(4) == 0) terrain.setHabitat(t, Habitat.BARRENS) ;
             }
-            //*/
-            //*
             for (Tile t : world.tilesIn(o.area(), false)) {
               if (Rand.index(4) > 0) terrain.setHabitat(t, Habitat.BARRENS) ;
               else terrain.setHabitat(t, Habitat.MESA) ;
             }
-            //*/
           }
-          //*/
         }
         
         if (habitat == Habitat.DESERT) {
           desertTiles.add(location) ;
         }
         else if (habitat == Habitat.BARRENS && Rand.index(10) == 0) {
-          tryOutcrop(Outcrop.TYPE_DUNE, 0, location, 1, 1) ;
+          tryOutcrop(Outcrop.TYPE_DUNE, location, 1, 1) ;
         }
       }
     } ;
@@ -426,18 +407,18 @@ public class TerrainGen implements TileConstants {
     //
     //  Desert tiles get special treatment-
     for (Tile t : desertTiles) if (Rand.num() < 0.1f) {
-      tryOutcrop(Outcrop.TYPE_DUNE, 0, t, 3, 3) ;
+      tryOutcrop(Outcrop.TYPE_DUNE, t, 3, 3) ;
     }
-    for (Tile t : desertTiles) tryOutcrop(Outcrop.TYPE_DUNE, 0, t, 2, 2) ;
-    for (Tile t : desertTiles) tryOutcrop(Outcrop.TYPE_DUNE, 0, t, 1, 1) ;
+    for (Tile t : desertTiles) tryOutcrop(Outcrop.TYPE_DUNE, t, 2, 2) ;
+    for (Tile t : desertTiles) tryOutcrop(Outcrop.TYPE_DUNE, t, 1, 1) ;
   }
   
   
   private Outcrop tryOutcrop(
-    int type, int mineral, Tile t, int maxSize, int minSize
+    int type, Tile t, int maxSize, int minSize
   ) {
     for (int size = maxSize ; size >= minSize ; size--) {
-      final Outcrop o = new Outcrop(size, 1, type, mineral) ;
+      final Outcrop o = new Outcrop(size, 1, type) ;
       o.setPosition(t.x, t.y, t.world) ;
       if (Spacing.perimeterFits(o) && o.canPlace()) {
         o.enterWorld() ;

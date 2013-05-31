@@ -27,8 +27,8 @@ public abstract class Search <T> {
   
   
   protected class Entry {
-    float priorCost, ETA, total ;
     T refers ;
+    float priorCost, ETA, total ;
     Entry prior ;
     private Object agendaRef ;
   }
@@ -135,9 +135,19 @@ public abstract class Search <T> {
   protected abstract Entry entryFor(T spot) ;
   
   
-  /**  Returns a list of all the nodes along the path back from the last node
-    *  searched (which is presumed to be the 'best' result found.)
+  
+  /**  Public and utility methods for getting the final path, area covered,
+    *  total cost, etc. associated with the search.
     */
+  protected int pathLength(T t) {
+    int length = 0 ;
+    for (Entry entry = entryFor(t) ; entry != null ; entry = entry.prior) {
+      length++ ;
+    }
+    return length ;
+  }
+  
+  
   public T[] bestPath(Class pathClass) {
     if (bestEntry == null) return null ;
     final Batch <T> pathTiles = new Batch <T> () ;

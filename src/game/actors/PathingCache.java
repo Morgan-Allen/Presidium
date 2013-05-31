@@ -78,19 +78,24 @@ public class PathingCache {
     *  arbitrary destinations on the map- and a few other utility methods for
     *  diagnosis of bugs...
     */
-  public Boardable[] getLocalPath(Boardable initB, Boardable destB) {
-    final Boardable path[] = tryLocalPath(initB, destB) ;
-    if (path != null) return path ;
-    I.say("Attempting to obtain path via open search.") ;
-    final PathingSearch search = new PathingSearch(initB, destB) ;
-    search.doSearch() ;
-    return search.fullPath(Boardable.class) ;
+  private Tile tilePosition(Boardable b) {
+    if (b == null) return null ;
+    if (b instanceof Venue) return ((Venue) b).mainEntrance() ;
+    if (b instanceof Boardable) {
+      for (Boardable e : ((Boardable) b).canBoard(null)) {
+        if (e instanceof Tile) return (Tile) e ;
+      }
+      return null ;
+    }
+    if (b instanceof Tile) {
+      final Tile t = (Tile) b ;
+      return t.blocked() ? null : t ;
+    }
+    return Spacing.nearestOpenTile(world.tileAt(b), b) ;
   }
   
   
-  private Boardable[] tryLocalPath(Boardable initB, Boardable destB) {
-    //
-    //  First, we need to ensure that the given Boardables are even accessible-
+  private Place[] placesBetween(Boardable initB, Boardable destB) {
     final Tile
       initT = tilePosition(initB),
       destT = tilePosition(destB) ;
@@ -100,24 +105,46 @@ public class PathingCache {
       destP = placeFor(destT) ;
     if (initP == null || destP == null) return null ;
     final Place placesPath[] = placesPath(initP, destP) ;
-    if (placesPath == null) return null ;
-    //
-    //  If the two tiles in question are very close, just use a conventional
-    //  pathing search.  Otherwise, cordon the search to the initial stages of
-    //  the journey, and return the result:
-    if (placesPath.length < 2) {
+    if (placesPath == null || placesPath.length < 1) {
+      I.say("NO PLACES PATH!") ;
+      return null ;
+    }
+    if (! verifyPlacesPath(placesPath)) {
+      I.say("BROKEN PLACES PATH") ;
+      return null ;
+    }
+    return placesPath ;
+  }
+  
+  
+  public Object placesPathRef(Boardable initB, Boardable destB) {
+    return (Object) placesBetween(initB, destB) ;
+  }
+  
+  
+  public Boardable[] getLocalPath(
+    Boardable initB, Boardable destB, int maxLength
+  ) {
+    final Place placesPath[] = placesBetween(initB, destB) ;
+    if (placesPath == null) {
+      I.say("Attempting to obtain full path via open search.") ;
+      final PathingSearch search = new PathingSearch(initB, destB) ;
+      search.doSearch() ;
+      return search.fullPath(Boardable.class) ;
+    }
+    else if (placesPath.length < 3) {
       I.say("Obtaining full path via cordoned search.") ;
       final PathingSearch search = cordonedSearch(
-        initB, destB, initP.caching.section, initP.caching.section
+        initB, destB, placesPath[0].caching.section,
+        placesPath[placesPath.length - 1].caching.section
       ) ;
       search.doSearch() ;
       return search.fullPath(Boardable.class) ;
     }
     else {
       I.say("Obtaining partial path via cordoned search.") ;
-      final Place headed = placesPath[1] ;
-      final PathingSearch search = cordonedSearch(
-        initB, headed.core, initP.caching.section, headed.caching.section
+      final PathingSearch search = fullPathSearch(
+        initB, destB, placesPath, maxLength
       ) ;
       search.doSearch() ;
       return search.fullPath(Boardable.class) ;
@@ -126,32 +153,23 @@ public class PathingCache {
   
   //
   //  TODO:  Fold the method below in with the method above, maybe with a few
-  //  public convenience methods to simplify parameters.
+  //  public convenience methods to simplify parameters?
   
   public PathingSearch fullPathSearch(
-    final Boardable initB, final Boardable destB
+    final Boardable initB, final Boardable destB,
+    Object placesPathRef, final int maxLength
   ) {
-    //
-    //  First, ensure that finding a path is even possible-
-    final Tile
-      initT = tilePosition(initB),
-      destT = tilePosition(destB) ;
-    if (initT == null || destT == null) return null ;
-    final Place
-      initP = placeFor(initT),
-      destP = placeFor(destT) ;
-    if (initP == null || destP == null) return null ;
-    
-    //
-    //  TODO:  Problem- when the places along the route get refreshed, routes
-    //  are being deleted without being reliably restored.
-    final Place placesPath[] = placesPath(initP, destP) ;
-    if (placesPath == null || placesPath.length < 1) {
-      I.say("NO PLACES PATH!") ;
+    if (placesPathRef != null && ! (placesPathRef instanceof Place[])) {
+      I.complain("PATH REF IS NOT A PLACE ARRAY!") ;
       return null ;
     }
-    if (! verifyPlacesPath(placesPath)) {
-      I.say("BROKEN PLACES PATH") ;
+    final Place placesPath[] ;
+    if (placesPathRef instanceof Place[]) {
+      placesPath = (Place[]) placesPathRef ;
+    }
+    else {
+      placesPath = placesBetween(initB, destB) ;
+      if (placesPath == null) return null ;
     }
     //
     //  We create a specialised form of pathing-search that always aims toward
@@ -159,6 +177,7 @@ public class PathingCache {
     //
     //  TODO:  Put this in a dedicated class lower down, or possibly even move
     //  to the PathingSearch class itself?
+    final Tile initT = tilePosition(initB) ;
     
     final PathingSearch search = new PathingSearch(initB, destB, false) {
       
@@ -187,6 +206,11 @@ public class PathingCache {
         return super.stepSearch() ;
       }
       
+      protected boolean endSearch(Boardable best) {
+        if (maxLength > 0 && pathLength(best) >= maxLength) return true ;
+        return super.endSearch(best) ;
+      }
+
       protected float estimate(Boardable spot) {
         float dist = Spacing.distance(spot, heading) ;
         final float closestDist = Spacing.distance(closest, heading) ;
@@ -204,7 +228,6 @@ public class PathingCache {
         if (spot instanceof Tile) {
           final Tile tile = (Tile) spot ;
           final Place
-            //under = tilePlaces[tile.x][tile.y],
             curr = placesPath[PPI],
             next = placesPath[Visit.clamp(PPI + 1, PPL)],
             last = placesPath[Visit.clamp(PPI - 1, PPL)] ;
@@ -244,17 +267,6 @@ public class PathingCache {
       }
     }
     return true ;
-  }
-  
-  
-  private Tile tilePosition(Boardable b) {
-    if (b == null) return null ;
-    if (b instanceof Venue) return ((Venue) b).mainEntrance() ;
-    if (b instanceof Tile) {
-      final Tile t = (Tile) b ;
-      return t.blocked() ? null : t ;
-    }
-    return Spacing.nearestOpenTile(world.tileAt(b), b) ;
   }
   
   

@@ -12,50 +12,87 @@ import src.util.* ;
 public class Outcrop extends Fixture {
   
   
-  /**  Field definitions, constructors and save/load methods-
+  /**  These are utility methods intended to determine the type and appearance
+    *  of an outcrop based on underlying terrain type and mineral content.
     */
   //
-  //  What type of outcrop are you?  Dune?  Spire?  Lode?  Deposit?
-  //  And what minerals do you contain?
-  
+  //  TODO:  In a later version, you might want to have different outcrop types
+  //  for different forms of terrain...
   final public static int
     TYPE_MESA   = -1,
     TYPE_DUNE    =  0,
     TYPE_DEPOSIT =  2 ;
   
-  int type, mineral ;
+  
+  static float rubbleFor(Outcrop outcrop, World world) {
+    float rubble = 0, sum = 0 ; ;
+    for (Tile t : outcrop.surrounds()) if (t != null) {
+      rubble += t.habitat().minerals ;
+      sum++ ;
+    }
+    return rubble * 0.1f / sum ;
+  }
   
   
-  public Outcrop(int size, int high, int type, int mineral) {
+  static int mineralTypeFor(Outcrop outcrop, World world) {
+    ///if (true) return 3 ;
+    float amounts[] = new float[4] ;
+    int numTiles = 0 ;
+    for (Tile t : outcrop.surrounds()) if (t != null) {
+      final byte type = world.terrain().mineralType(t) ;
+      final float amount = world.terrain().mineralsAt(t, type) ;
+      amounts[type] += amount ;
+      amounts[0] += t.habitat().minerals ;
+      numTiles++ ;
+    }
+    amounts[0] *= Rand.num() / 4f ;
+    
+    float maxAmount = 0.99f ;
+    int pickType = 0 ;
+    int type = 0 ; for (float f : amounts) {
+      f /= numTiles ;
+      if (f > maxAmount) { maxAmount = f ; pickType = type ; }
+      type++ ;
+    }
+    return pickType ;
+  }
+  
+  
+  static Model modelFor(Outcrop outcrop, World world) {
+    
+    final int mineral = mineralTypeFor(outcrop, world) ;
+    final float rubble = rubbleFor(outcrop, world) ;
+    outcrop.mineral = mineral ;
+    final int size = outcrop.size, type = outcrop.type ;
+    
+    if (size == 1 && type != TYPE_DUNE) {
+      return Habitat.SPIRE_MODELS[Rand.index(3)][2] ;
+    }
+    if (type == TYPE_DUNE) {
+      return Habitat.DUNE_MODELS[Rand.index(3)] ;
+    }
+    if (mineral == 0 || size != 3) {
+      int highID = Rand.yes() ? 1 : (3 - size) ;
+      return Habitat.SPIRE_MODELS[Rand.index(3)][highID] ;
+    }
+    else {
+      return Rand.num() < rubble ?
+        Habitat.ROCK_LODE_MODELS[mineral - 1] :
+        Habitat.MINERAL_MODELS[mineral - 1] ;
+    }
+  }
+  
+  
+  
+  /**  Data fields, constructors and save/load methods-
+    */
+  final int type ;
+  int mineral = -1 ;
+  
+  
+  public Outcrop(int size, int high, int type) {
     super(size, high * size) ;
     this.type = type ;
-    this.mineral = mineral ;
-    
-    Model model = null ;
-    if (size == 1 && type != TYPE_DUNE) {
-      model = Habitat.SPIRE_MODELS[Rand.index(3)][2] ;
-    }
-    else if (type == TYPE_MESA) {
-      if (mineral == 0 || Rand.yes()) {
-        int highID = Rand.yes() ? 1 : (3 - size) ;// (Rand.index(3) == 0) ? 0 : 1 ;
-        model = Habitat.SPIRE_MODELS[Rand.index(3)][highID] ;
-      }
-      else {
-        model = Habitat.ROCK_LODE_MODELS[mineral - 1] ;
-      }
-    }
-    else if (type == TYPE_DUNE) {
-      model = Habitat.DUNE_MODELS[Rand.index(3)] ;
-    }
-    else if (type == TYPE_DEPOSIT) {
-      //model = Habitat.ROCK_LODE_MODELS[mineral - 1] ;
-      model = Habitat.MINERAL_MODELS[mineral - 1] ;
-    }
-    else I.complain("NOT A VALID OUTCROP TYPE!") ;
-    
-    final Sprite s = model.makeSprite() ;
-    if (size > 1 || type == TYPE_DUNE) s.scale = size / 2f ;
-    attachSprite(s) ;
   }
   
   
@@ -75,8 +112,8 @@ public class Outcrop extends Fixture {
   
 
   public boolean canPlace() {
-    //  This only gets called just before the constructor, so I think I can
-    //  put it here.  TODO:  Move the location-verification code from the
+    //  This only gets called just before entering thw rodl, so I think I can
+    //  put this here.  TODO:  Move the location-verification code from the
     //  TerrainGen class to here?  ...Might be neater.
     final World world = origin().world ;
     for (Tile t : world.tilesIn(area(), false)) {
@@ -88,6 +125,10 @@ public class Outcrop extends Fixture {
   
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
+    final Model model = modelFor(this, world) ;
+    final Sprite s = model.makeSprite() ;
+    if (size > 1 || type == TYPE_DUNE) s.scale = size / 2f ;
+    attachSprite(s) ;
     setInceptTime(-10) ;
   }
   

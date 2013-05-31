@@ -61,7 +61,7 @@ public class PathingDebug extends PlayLoop {
     */
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(
-      128, 0.2f,
+      64, 0.2f,
       Habitat.OCEAN  , 0.33f,
       Habitat.ESTUARY, 0.25f,
       Habitat.MEADOW , 0.5f,
@@ -219,7 +219,7 @@ public class PathingDebug extends PlayLoop {
     if (picked != null && hovered != null) {
       
       final PathingSearch search = (! GameSettings.freePath) ?
-        played().pathingCache.fullPathSearch(picked, hovered) :
+        played().pathingCache.fullPathSearch(picked, hovered, null, 16) :
         new PathingSearch(picked, hovered) ;
       
       if (search != null) {

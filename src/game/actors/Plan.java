@@ -19,9 +19,13 @@ public abstract class Plan implements Saveable, Behaviour {
     */
   final Saveable signature[] ;
   final int hash ;
-  final float priority = ROUTINE ;
   protected Actor actor ;
   protected Behaviour nextStep = null ;
+  
+  //
+  //  These can be returned by default, or overridden if required.
+  private float priority = -1 ;
+  private String description = null ;
   
   
   protected Plan(Actor actor, Saveable... signature) {

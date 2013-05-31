@@ -25,8 +25,8 @@ public class Terrain implements TileConstants, Session.Saveable {
     GROWTH_INTERVAL = Planet.DAY_LENGTH ;
   
   final public static byte
-    TYPE_CARBONS  = 1,
-    TYPE_METALS   = 2,
+    TYPE_METALS   = 1,
+    TYPE_CARBONS  = 2,
     TYPE_ISOTOPES = 3,
     TYPE_NOTHING  = 0,
     DEGREE_SPARSE = 1,

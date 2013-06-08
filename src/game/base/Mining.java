@@ -10,7 +10,6 @@ import src.game.common.* ;
 import src.game.building.* ;
 import src.game.planet.* ;
 import src.game.actors.* ;
-import src.graphics.common.Model ;
 import src.user.* ;
 import src.util.* ;
 
@@ -60,7 +59,7 @@ public class Mining extends Plan implements VenueConstants {
     return new Action(
       actor, face,
       this, "actionMine",
-      Model.AnimNames.BUILD, "mining at "+face.origin()
+      Action.BUILD, "mining at "+face.origin()
     ) ;
   }
   
@@ -87,7 +86,7 @@ public class Mining extends Plan implements VenueConstants {
         case (Terrain.TYPE_ISOTOPES) : itemType = ISOTOPES ; break ;
       }
       final Item mined = new Item(itemType, amount) ;
-      actor.equipment.addItem(mined) ;
+      actor.gear.addItem(mined) ;
       face.parent.openFace(face) ;
       return true ;
     }
@@ -97,9 +96,9 @@ public class Mining extends Plan implements VenueConstants {
   
   private float oresCarried(Actor actor) {
     float total = 0 ;
-    total += actor.equipment.amountOf(CARBONS ) ;
-    total += actor.equipment.amountOf(METALS  ) ;
-    total += actor.equipment.amountOf(ISOTOPES) ;
+    total += actor.gear.amountOf(CARBONS ) ;
+    total += actor.gear.amountOf(METALS  ) ;
+    total += actor.gear.amountOf(ISOTOPES) ;
     return total ;
   }
   
@@ -109,16 +108,16 @@ public class Mining extends Plan implements VenueConstants {
     return new Action(
       actor, face.parent,
       this, "actionDeliverOres",
-      Model.AnimNames.REACH_DOWN, "returning ores"
+      Action.REACH_DOWN, "returning ores"
     ) ;
   }
   
   
   public boolean actionDeliverOres(Actor actor, MineShaft shaft) {
     I.say("Delivering ores to shaft...") ;
-    actor.equipment.transfer(CARBONS , shaft) ;
-    actor.equipment.transfer(METALS  , shaft) ;
-    actor.equipment.transfer(ISOTOPES, shaft) ;
+    actor.gear.transfer(CARBONS , shaft) ;
+    actor.gear.transfer(METALS  , shaft) ;
+    actor.gear.transfer(ISOTOPES, shaft) ;
     return true ;
   }
   

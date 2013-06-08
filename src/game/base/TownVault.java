@@ -102,7 +102,7 @@ public class TownVault extends Venue implements VenueConstants {
     */
   private Holding findHousingSite(Citizen citizen, Venue works) {
     
-    final int maxRange = Planet.SECTOR_SIZE ;
+    final int maxRange = World.DEFAULT_SECTOR_SIZE ;
     final Holding holding = new Holding(base(), this) ;
     
     Vec3D midPos = idealSite(citizen, works) ;

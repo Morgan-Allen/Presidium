@@ -19,15 +19,15 @@ public class Outcrop extends Fixture {
   //  TODO:  In a later version, you might want to have different outcrop types
   //  for different forms of terrain...
   final public static int
-    TYPE_MESA   = -1,
-    TYPE_DUNE    =  0,
+    TYPE_MESA    =  0,
+    TYPE_DUNE    =  1,
     TYPE_DEPOSIT =  2 ;
   
   
   static float rubbleFor(Outcrop outcrop, World world) {
     float rubble = 0, sum = 0 ; ;
     for (Tile t : outcrop.surrounds()) if (t != null) {
-      rubble += t.habitat().minerals ;
+      rubble += t.habitat().rockiness ;
       sum++ ;
     }
     return rubble * 0.1f / sum ;
@@ -35,23 +35,32 @@ public class Outcrop extends Fixture {
   
   
   static int mineralTypeFor(Outcrop outcrop, World world) {
-    ///if (true) return 3 ;
+    //
+    //  First, we sum up the total for each mineral type in the surrounding
+    //  area (including the rockiness of the terrain.)
     float amounts[] = new float[4] ;
     int numTiles = 0 ;
     for (Tile t : outcrop.surrounds()) if (t != null) {
       final byte type = world.terrain().mineralType(t) ;
       final float amount = world.terrain().mineralsAt(t, type) ;
       amounts[type] += amount ;
-      amounts[0] += t.habitat().minerals ;
+      amounts[0] += t.habitat().rockiness ;
       numTiles++ ;
     }
-    amounts[0] *= Rand.num() / 4f ;
-    
-    float maxAmount = 0.99f ;
+    amounts[0] *= Rand.num() / 2f ;
+    //
+    //  Then perform a weighted pick from the range of types (having tweaked
+    //  the odds a little...)
+    float sumAmounts = 0 ;
+    for (int i = 4 ; i-- > 0 ;) {
+      final float a = amounts[i] ;
+      sumAmounts += (amounts[i] = (a + (a * a)) / 2) ;
+    }
+    float pickRoll = Rand.num() * sumAmounts ;
     int pickType = 0 ;
     int type = 0 ; for (float f : amounts) {
-      f /= numTiles ;
-      if (f > maxAmount) { maxAmount = f ; pickType = type ; }
+      if (pickRoll < f) { pickType = type ; break ; }
+      pickRoll -= f ;
       type++ ;
     }
     return pickType ;
@@ -73,6 +82,7 @@ public class Outcrop extends Fixture {
     }
     if (mineral == 0 || size != 3) {
       int highID = Rand.yes() ? 1 : (3 - size) ;
+      //int highID = (size == 3) ? 0 : 1 ;
       return Habitat.SPIRE_MODELS[Rand.index(3)][highID] ;
     }
     else {

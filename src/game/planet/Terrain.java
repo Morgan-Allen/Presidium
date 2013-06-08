@@ -18,21 +18,27 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   final public static int
     SECTOR_SIZE     = 16,
-    SMOOTH_MARGIN   = 2,
+    SMOOTH_MARGIN   = 2 ,
     MAX_INSOLATION  = 10,
     MAX_MOISTURE    = 10,
     MAX_RADIATION   = 10,
-    GROWTH_INTERVAL = Planet.DAY_LENGTH ;
+    GROWTH_INTERVAL = World.DEFAULT_DAY_LENGTH ;
   
   final public static byte
     TYPE_METALS   = 1,
     TYPE_CARBONS  = 2,
     TYPE_ISOTOPES = 3,
     TYPE_NOTHING  = 0,
-    DEGREE_SPARSE = 1,
+    
+    DEGREE_TRACE  = 1,
     DEGREE_COMMON = 2,
     DEGREE_HEAVY  = 3,
     DEGREE_TAKEN  = 0,
+    
+    AMOUNT_TRACE    = 1,
+    AMOUNT_COMMON   = 3,
+    AMOUNT_HEAVY    = 9,
+    
     NUM_TYPES = 4,
     NUM_DEGREES = 4,
     MAX_MINERAL_AMOUNT = 10 ;
@@ -172,9 +178,9 @@ public class Terrain implements TileConstants, Session.Saveable {
     if (m == 0) return 0 ;
     if (m / NUM_TYPES != type) return 0 ;
     switch (m % NUM_TYPES) {
-      case (DEGREE_SPARSE) : return 2 ;
-      case (DEGREE_COMMON) : return 5 ;
-      case (DEGREE_HEAVY ) : return 9 ;
+      case (DEGREE_TRACE)  : return AMOUNT_TRACE  ;
+      case (DEGREE_COMMON) : return AMOUNT_COMMON ;
+      case (DEGREE_HEAVY ) : return AMOUNT_HEAVY  ;
     }
     return 0 ;
   }

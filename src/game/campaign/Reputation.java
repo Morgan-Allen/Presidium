@@ -49,7 +49,6 @@ public class Reputation {
   //    The Jovians value Knowledge and Tradition.
   
   
-  
   float rateKnowledge(Base base) {
     float rating = 0 ;
     //  Bonus for area of map uncovered.
@@ -67,18 +66,18 @@ public class Reputation {
     //  on map.)
     //  Bonus for low levels of disease, malnutrition or dissaffection.
     //  Bonus for access to:  Detention Bloc, Sickbay and Town Vault.
-    //  Bonus for prevalance of Empathic and Pacifist traits.
+    //  Bonus for prevalance of Empathic, Pacifist and Melded traits.
     return rating ;
   }
   
   
   float ratePlanet(Base base) {
     float rating = 0 ;
-    //  Bonus for area of map left totally unbuilt on (i.e, wild, with only a
+    //  Bonus for area of map left totally unbuilt on (i.e, wild, with a
     //  partial bonus around Flesh Stills, Plantations and Arcology.)
-    //  Bonus for diversity of animal species.
     //  Bonus for low levels of squalor and strong access to Life Support.
     //  Bonus for low reliance on foreign trade (especially offworld.)
+    //  Bonus for diversity of animal species.
     return rating ;
   }
   

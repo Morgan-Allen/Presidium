@@ -81,7 +81,7 @@ public interface VenueConstants extends ActorConstants {
       Artificer.class, TRICKY_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
     ),
     
-    PITCHES_TO_PLASTICS = new Conversion(
+    CARBONS_TO_PLASTICS = new Conversion(
       2, CARBONS, TO, 1, PLASTICS,
       Fabricator.class, TRICKY_DC, CHEMISTRY, SIMPLE_DC, GRAPHIC_MEDIA
     ),

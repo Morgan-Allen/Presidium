@@ -4,6 +4,7 @@
   *  for now, feel free to poke around for non-commercial purposes.
   */
 
+
 package src.game.actors ;
 import src.game.common.* ;
 import src.util.* ;
@@ -17,8 +18,16 @@ public class ActorTraits implements ActorConstants {
   
   /**  Common fields, constructors, and save/load methods-
     */
+  final static int 
+    DNA_SIZE = 16,
+    DNA_LETTERS = 26,
+    MUTATION_PERCENT = 5 ;
+  
   final Actor actor ;
-  final private Table <Trait, Level> levels = new Table <Trait, Level> () ;
+  private String DNA = null ;
+  private int geneHash = -1 ;
+  private Table <Trait, Level> levels = new Table <Trait, Level> () ;
+  
   
   
   private static class Level {
@@ -32,6 +41,8 @@ public class ActorTraits implements ActorConstants {
   
   
   public void loadState(Session s) throws Exception {
+    DNA = s.loadString() ;
+    geneHash = s.loadInt() ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Trait type = ALL_TRAIT_TYPES[s.loadInt()] ;
       final Level level = new Level() ;
@@ -42,12 +53,62 @@ public class ActorTraits implements ActorConstants {
   
   
   public void saveState(Session s) throws Exception {
+    s.saveString(DNA) ;
+    s.saveInt(geneHash) ;
     s.saveInt(levels.size()) ;
     for (Trait type : levels.keySet()) {
       s.saveInt(type.traitID) ;
       final Level level = levels.get(type) ;
       s.saveFloat(level.value) ;
     }
+  }
+  
+  
+  
+  /**  Methods for dealing with DNA, used as a random seed for certain
+    *  cosmetic or inherited traits, along with checks for inbreeding.
+    */
+  public void initDNA(int mutationMod, Actor... parents) {
+    //
+    //  First, if required, we sample the genetic material of the parents-
+    final boolean free = parents == null || parents.length == 0 ;
+    final char material[][] ;
+    if (free) material = null ;
+    else {
+      material = new char[parents.length][] ;
+      for (int n = parents.length ; n-- > 0 ;) {
+        material[n] = parents[n].traits.DNA.toCharArray() ;
+      }
+    }
+    //
+    //  Then, we merge the source material along with a certain mutation rate.
+    final StringBuffer s = new StringBuffer() ;
+    for (int i = 0 ; i < DNA_SIZE ; i++) {
+      if (free || Rand.index(100) < (MUTATION_PERCENT + mutationMod)) {
+        s.append((char) ('a' + Rand.index(DNA_LETTERS))) ;
+      }
+      else {
+        s.append(material[Rand.index(parents.length)][i]) ;
+      }
+    }
+    DNA = s.toString() ;
+    geneHash = DNA.hashCode() ;
+  }
+  
+  
+  public float inbreedChance(Actor a, Actor b) {
+    final char[]
+      mA = a.traits.DNA.toCharArray(),
+      mB = b.traits.DNA.toCharArray() ;
+    int matches = 0 ;
+    for (int n = DNA_SIZE ; n-- > 0 ;) if (mA[n] == mB[n]) matches++ ;
+    return matches * 1f / DNA_SIZE ;
+  }
+  
+  
+  public int geneValue(String gene, int range) {
+    final int value = (gene.hashCode() + geneHash) % range ;
+    return (value > 0) ? value : (0 - value) ;
   }
   
   
@@ -70,6 +131,11 @@ public class ActorTraits implements ActorConstants {
       else i++ ;
     }
     return false ;
+  }
+  
+  
+  public String levelDesc(Trait type) {
+    return Trait.descriptionFor(type, level(type)) ;
   }
   
   
@@ -111,28 +177,33 @@ public class ActorTraits implements ActorConstants {
   
   
   public Batch <Trait> personality() {
-    return getMatches(null, ActorConstants.ALL_PERSONALITY_TRAITS) ;
+    return getMatches(null, ActorConstants.PERSONALITY_TRAITS) ;
   }
   
   
   public Batch <Trait> physique() {
-    return getMatches(null, ActorConstants.ALL_PHYSICAL_TRAITS) ;
+    return getMatches(null, ActorConstants.PHYSICAL_TRAITS) ;
   }
   
   
   public Batch <Skill> attributes() {
-    return (Batch) getMatches(null, ActorConstants.ALL_ATTRIBUTES) ;
+    return (Batch) getMatches(null, ActorConstants.ATTRIBUTES) ;
   }
   
   
   public Batch <Skill> skillSet() {
     final Batch <Trait> matches = new Batch <Trait> () ;
-    getMatches(matches, ActorConstants.ALL_INSTINCTS ) ;
-    getMatches(matches, ActorConstants.ALL_PHYSICAL  ) ;
-    getMatches(matches, ActorConstants.ALL_SENSITIVE ) ;
-    getMatches(matches, ActorConstants.ALL_COGNITIVE ) ;
-    getMatches(matches, ActorConstants.ALL_PYSONIC   ) ;
+    getMatches(matches, ActorConstants.INSTINCT_SKILLS ) ;
+    getMatches(matches, ActorConstants.PHYSICAL_SKILLS ) ;
+    getMatches(matches, ActorConstants.SENSITIVE_SKILLS) ;
+    getMatches(matches, ActorConstants.COGNITIVE_SKILLS) ;
+    getMatches(matches, ActorConstants.PYSONIC_SKILLS  ) ;
     return (Batch) matches ;
+  }
+  
+  
+  public Batch <Condition> conditions() {
+    return (Batch) getMatches(null, ActorConstants.CONDITIONS) ;
   }
   
   

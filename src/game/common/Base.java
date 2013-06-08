@@ -29,8 +29,7 @@ public class Base implements Session.Saveable, Schedule.Updates {
   final public Paving paving ;
   
   Texture fogMap ;  //Create a dedicated fogmap later.
-  //final public PathingCache pathingCache ;
-  final public PathingCache pathingCache ;// = new PathingCache(this) ;
+  final public PathingCache pathingCache ;
   
   
   

@@ -8,7 +8,7 @@
 package src.game.actors ;
 import src.game.common.* ;
 import src.graphics.common.* ;
-import src.user.Description;
+import src.user.* ;
 import src.util.* ;
 import java.lang.reflect.* ;
 
@@ -253,6 +253,7 @@ public class Action implements Behaviour, Model.AnimNames {
   
   
   String animName() {
+    ///I.say("In range? "+inRange) ;
     if (inRange == 1) return animName ;
     if (inRange == 0) {
       final int moveType = actor.health.moveType() ;

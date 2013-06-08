@@ -8,9 +8,14 @@
 package src.game.actors ;
 
 
+
 //
-//  TODO:  Perhaps conditions should extend Traits instead?
-public interface Condition {
+//  Consider folding these into the Trait class.
+public class Condition extends Trait {
   
-  void affect(Actor a) ;
+  
+  
+  public Condition(String... names) {
+    super(ActorConstants.CONDITION, names) ;
+  }
 }

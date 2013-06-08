@@ -19,7 +19,7 @@ public interface Selectable extends Text.Clickable, Target {
   
   String[] infoCategories() ;
   Composite portrait(BaseUI UI) ;
-  void writeInformation(Description description, int categoryID) ;
+  void writeInformation(Description description, int categoryID, BaseUI UI) ;
   
   void whenClicked() ;
   InfoPanel createPanel(BaseUI UI) ;

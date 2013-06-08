@@ -81,10 +81,11 @@ public abstract class Mobile extends Element
    */
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
-    I.say("mobile entering world at: "+x+" "+y) ;
+    ///I.say("mobile entering world at: "+x+" "+y) ;
     world().schedule.scheduleForUpdates(this) ;
     origin().setInside(this, true) ;
     world().toggleActive(this, true) ;
+    ///onTileChange(null, origin()) ;
   }
   
   void setEntry(ListEntry <Mobile> e) { entry = e ; }
@@ -96,6 +97,8 @@ public abstract class Mobile extends Element
     world.toggleActive(this, false) ;
     if (aboard != null) aboard.setInside(this, false) ;
     world().schedule.unschedule(this) ;
+    ///onTileChange(origin(), null) ;
+    ///I.say("mobile exiting world...") ;
     super.exitWorld() ;
   }
   
@@ -220,9 +223,15 @@ public abstract class Mobile extends Element
     return ! t.blocked() ;
   }
   
+  
+  protected void onTileChange(Tile oldTile, Tile newTile) {
+    world.mobilesMap.toggleMember(this, oldTile, false) ;
+    world.mobilesMap.toggleMember(this, newTile, true ) ;
+  }
+  
+  
   protected void onMotionBlock(Tile t) {}
   
-  protected void onTileChange(Tile oldTile, Tile newTile) {}
   
   public abstract void pathingAbort() ;
   

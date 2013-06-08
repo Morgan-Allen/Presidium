@@ -51,7 +51,7 @@ public class DropZone extends Venue implements VenueConstants {
     //  Then, spread out to try and find a decent landing site-
     final TileSpread spread = new TileSpread(init) {
       protected boolean canAccess(Tile t) {
-        if (Spacing.distance(t, init) > Planet.SECTOR_SIZE) return false ;
+        if (Spacing.distance(t, init) > World.DEFAULT_SECTOR_SIZE) return false ;
         return ! t.blocked() ;
       }
       protected boolean canPlaceAt(Tile t) {
@@ -147,8 +147,8 @@ public class DropZone extends Venue implements VenueConstants {
     return landing.helpInfo() ;
   }
   
-  public void writeInformation(Description d, int categoryID) {
-    landing.writeInformation(d, categoryID) ;
+  public void writeInformation(Description d, int categoryID, BaseUI UI) {
+    landing.writeInformation(d, categoryID, null) ;
   }
   
   public String buildCategory() {

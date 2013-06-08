@@ -121,8 +121,3 @@ public class PathingSearch extends Search <Boardable> {
     return best == destination ;
   }
 }
-
-
-
-
-

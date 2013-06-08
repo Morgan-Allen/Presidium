@@ -181,7 +181,7 @@ public class Habitat {
   final public boolean pathClear ;
   
   final int biosphere ;
-  float moisture, insolation, minerals ;
+  float moisture, insolation, rockiness ;
   boolean isOcean, isWaste ;
   
   
@@ -208,7 +208,7 @@ public class Habitat {
     this.pathClear = pathClear ;
     for (int i = 0 ; i < traits.length ; i++) {
       if (traits[i] == MOISTURE  ) moisture   = (Integer) traits[i + 1] ;
-      if (traits[i] == MINERALS  ) minerals   = (Integer) traits[i + 1] ;
+      if (traits[i] == MINERALS  ) rockiness   = (Integer) traits[i + 1] ;
       if (traits[i] == INSOLATION) insolation = (Integer) traits[i + 1] ;
       if (traits[i] == IS_OCEAN) isOcean = true ;
       if (traits[i] == IS_WASTE) isWaste = true ;
@@ -217,7 +217,7 @@ public class Habitat {
   
   public float moisture() { return moisture ; }
   public float insolation() { return insolation ; }
-  public float minerals() { return minerals ; }
+  public float minerals() { return rockiness ; }
   public boolean isOcean() { return isOcean ; }
   public boolean isWaste() { return isWaste ; }
   

@@ -6,6 +6,7 @@
 
 package src.game.planet ;
 import src.game.common.* ;
+//import src.game.common.WorldSections.Section;
 import java.io.* ;
 import src.util.* ;
 
@@ -196,42 +197,60 @@ public class MipMap implements TileConstants {
   
   /**  Returns a list of all actors within range of the given point.
     */
-  /*
-  public Coord nearestFullFrom(Vec2D pos) {
-    int x = 0, y = 0, h = high ;
-    //  TODO:  You'll have to use flagging or sections for this instead.
-    return null ;
-  }
-  //*/
-  //  TODO:  ADAPT THE FOLLOWING-
-  /*
-  public Batch <Actor> allNear(final Target t, final float radius) {
-    final Batch <Actor> near = new Batch <Actor> () ;
-    final Descent down = new Descent() {
-      protected void quadEntered(WorldQuad q, WorldQuad parent) {}
-      
-      protected boolean enterQuad(WorldQuad q) {
-        if (World.distance(q, t) > radius) return false ;
-        return presence.getTotalAt(q.quadX(), q.quadY(), q.quadHeight()) > 0 ;
-      }
-      
-      protected boolean enterTile(Tile tile) {
-        if (World.distance(tile, t) > radius) return false ;
-        return presence.getTotalAt(tile.x, tile.y, 0) > 0 ;
-      }
-
-      protected void tileEntered(Tile t, WorldQuad parent) {
-        for (Element e : t.elements())
-          if (e.elementType() == Element.TYPE_ACTOR) {
-            //I.say(e+" is nearby!") ;
-            near.add((Actor) e) ;
-          }
+  public Batch <Coord> allNear(
+    final World world, final Target t, final float radius
+  ) {
+    final Batch <Coord> near = new Batch <Coord> () ;
+    final Vec3D tP = t.position(null) ;
+    class Bound extends Box2D { float proximity ; }
+    final Bound first = new Bound() ;
+    first.set(-0.5f, -0.5f, size, size) ;
+    first.proximity = first.distance(tP.x, tP.y) ;
+    
+    final Sorting <Bound> sorting = new Sorting <Bound> () {
+      public int compare(Bound a, Bound b) {
+        if (a == b) return 0 ;
+        return a.proximity > b.proximity ? 1 : -1 ;
       }
     } ;
-    down.applyTo(world) ;
+    sorting.add(first) ; while (sorting.size() > 0) {
+      final Object closestRef = sorting.leastRef() ;
+      final Bound closest = sorting.refValue(closestRef) ;
+      sorting.deleteRef(closestRef) ;
+      
+      if (closest.proximity > radius) continue ;
+      if (closest.xdim() < 2) {
+        near.add(new Coord(
+          (int) (closest.xpos() + 1),
+          (int) (closest.ypos() + 1)
+        )) ;
+        continue ;
+      }
+      
+      final float
+        xp = closest.xpos(),
+        yp = closest.ypos(),
+        hw = closest.xdim() / 2f,
+        hh = closest.ydim() / 2f ;
+      final Bound
+        kidA = new Bound(), kidB = new Bound(),
+        kidC = new Bound(), kidD = new Bound() ;
+      
+      kidA.set(xp, yp, hw, hh) ;
+      kidB.set(xp + hw, yp, hw, hh) ;
+      kidC.set(xp, yp + hh, hw, hh) ;
+      kidD.set(xp + hw, yp + hh, hw, hh) ;
+      kidA.proximity = kidA.distance(tP.x, tP.y) ;
+      kidB.proximity = kidB.distance(tP.x, tP.y) ;
+      kidC.proximity = kidC.distance(tP.x, tP.y) ;
+      kidD.proximity = kidD.distance(tP.x, tP.y) ;
+      sorting.add(kidA) ;
+      sorting.add(kidB) ;
+      sorting.add(kidC) ;
+      sorting.add(kidD) ;
+    }
     return near ;
   }
-  //*/
   
   
   

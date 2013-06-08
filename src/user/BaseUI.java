@@ -55,7 +55,7 @@ public class BaseUI extends HUD {
   private Tile pickTile ;
   private Fixture pickFixture ;
   private Mobile pickMobile ;
-  private Selectable hovered, selected ;
+  private Selectable hovered, picked ;
   
   private UITask task ;
   private UIGroup selectInfo, newPanel ;
@@ -118,7 +118,7 @@ public class BaseUI extends HUD {
     s.saveObject(played) ;
     homePos.saveTo(s.output()) ;
     camera.saveState(s) ;
-    s.saveTarget((Target) selected) ;
+    s.saveTarget((Target) picked) ;
   }
   
   
@@ -185,7 +185,7 @@ public class BaseUI extends HUD {
   /**  Here, we put various utility methods for selection of world elements-
     */
   public Selectable playerHovered() { return hovered  ; }
-  public Selectable playerSelection() { return selected ; }
+  public Selectable playerSelection() { return picked ; }
   public Tile    pickedTile   () { return pickTile    ; }
   public Fixture pickedFixture() { return pickFixture ; }
   public Mobile  pickedMobile () { return pickMobile  ; }
@@ -240,15 +240,15 @@ public class BaseUI extends HUD {
   public void setSelection(Selectable s) {
     if (s != null) {
       if ((s instanceof Element) && ((Element) s).inWorld()) {
-        selected = s ;
-        camera.lockOn(selected) ;
+        picked = s ;
+        camera.lockOn(picked) ;
       }
       newPanel = s.createPanel(this) ;
       //if (s instanceof Actor) newPanel = new ActorPanel(this, (Actor) s) ;
       //else newPanel = new InfoPanel(this, s, InfoPanel.DEFAULT_TOP_MARGIN) ;
     }
-    else if (selected != null) {
-      camera.lockOn(selected = null) ;
+    else if (picked != null) {
+      camera.lockOn(picked = null) ;
       newPanel = null ;
     }
   }
@@ -259,7 +259,7 @@ public class BaseUI extends HUD {
   public void setPanel(InfoPanel panel) {
     //I.say("Setting panel: "+panel) ;
     newPanel = panel ;
-    selected = null ;
+    picked = null ;
   }
   
   
@@ -281,6 +281,18 @@ public class BaseUI extends HUD {
     */
   UIGroup currentPanel() {
     return selectInfo ;
+  }
+  
+  
+  public static boolean isPicked(Object o) {
+    final HUD hud = PlayLoop.currentUI() ;
+    if (! (hud instanceof BaseUI)) return false ;
+    return (o == null) || ((BaseUI) hud).picked == o ;
+  }
+  
+  
+  public static void logFor(Object o, String log) {
+    if (isPicked(o)) I.say(System.currentTimeMillis()+": "+log) ;
   }
 }
 

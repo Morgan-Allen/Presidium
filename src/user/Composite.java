@@ -14,7 +14,8 @@ public class Composite extends Image {
   
   
   public Composite(HUD myHUD) {
-    this(myHUD, Texture.WHITE_TEX.name()) ;
+    super(myHUD, Texture.BLACK_TEX) ;
+    addLayer(this.texture, 0, 0, 1, 1) ;
   }
   
   

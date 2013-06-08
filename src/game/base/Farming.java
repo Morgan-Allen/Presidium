@@ -113,7 +113,7 @@ public class Farming extends Plan implements VenueConstants {
       final Action plantAction = new Action(
         actor, nearest,
         this, "actionPlant",
-        Model.AnimNames.REACH_DOWN, "Planting"
+        Action.REACH_DOWN, "Planting"
       ) ;
       plantAction.setMoveTarget(Spacing.nearestOpenTile(nearest, actor)) ;
       return plantAction ;
@@ -163,7 +163,7 @@ public class Farming extends Plan implements VenueConstants {
       final Action harvestAction = new Action(
         actor, nearest,
         this, "actionHarvest",
-        Model.AnimNames.REACH_DOWN, "Harvesting"
+        Action.REACH_DOWN, "Harvesting"
       ) ;
       harvestAction.setMoveTarget(Spacing.nearestOpenTile(
         nearest.origin(), actor
@@ -177,7 +177,7 @@ public class Farming extends Plan implements VenueConstants {
   public boolean actionHarvest(Actor actor, Crop crop) {
     if (! crop.inWorld()) return false ;
     final float yield = crop.health ;
-    actor.equipment.addItem(BotanicalStation.speciesYield(crop.varID), yield) ;
+    actor.gear.addItem(BotanicalStation.speciesYield(crop.varID), yield) ;
     crop.exitWorld() ;
     actionPlant(actor, crop.origin()) ;
     return true ;
@@ -192,15 +192,15 @@ public class Farming extends Plan implements VenueConstants {
     final Action returnAction = new Action(
       actor, nursery,
       this, "actionReturnHarvest",
-      Model.AnimNames.REACH_DOWN, "Returning Harvest"
+      Action.REACH_DOWN, "Returning Harvest"
     ) ;
     return returnAction;
   }
   
   
   public boolean actionReturnHarvest(Actor actor, Venue depot) {
-    actor.equipment.transfer(STARCHES, depot) ;
-    actor.equipment.transfer(GREENS, depot) ;
+    actor.gear.transfer(STARCHES, depot) ;
+    actor.gear.transfer(GREENS, depot) ;
     return true ;
   }
 }

@@ -124,9 +124,7 @@ public class Tile implements Target, TileConstants, Boardable {
   
   
   public boolean blocked() {
-    return
-      (owner != null && owner.pathType() == PATH_BLOCKS) ||
-      (! habitat().pathClear) ;
+    return pathType() >= PATH_BLOCKS ;
   }
   
   
@@ -255,6 +253,7 @@ public class Tile implements Target, TileConstants, Boardable {
   public Stack <Mobile> inside() {
     return inside ;
   }
+  
   
   
   /**  Interface and media-

@@ -109,7 +109,7 @@ public class MagLine extends LineInstallation {
   
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_COMMERCE ;
+    return BuildingsTab.TYPE_HIDDEN ;
   }
 }
 

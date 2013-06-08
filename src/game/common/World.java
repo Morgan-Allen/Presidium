@@ -7,9 +7,7 @@
 
 package src.game.common ;
 import src.game.planet.* ;
-import src.game.campaign.* ;
 import src.game.actors.* ;
-//import src.game.building.* ;
 import src.game.common.WorldSections.* ;
 import src.graphics.widgets.* ;
 import src.graphics.common.* ;
@@ -19,10 +17,16 @@ import src.util.* ;
 
 public class World {
   
+  
   /**  Common fields, default constructors, and save/load methods-
     */
   final public static int
-    SECTION_RESOLUTION = 8 ;
+    
+    SECTION_RESOLUTION  = 8,
+    DEFAULT_SECTOR_SIZE = 16,
+    
+    DEFAULT_DAY_LENGTH  = 300,
+    DEFAULT_YEAR_LENGTH = DEFAULT_DAY_LENGTH * 60 ;
   
   
   final public int size ;
@@ -36,7 +40,9 @@ public class World {
   private List <Base> bases = new List <Base> () ;
   private List <Mobile> mobiles = new List <Mobile> () ;
   private float currentTime ;
+  
   final public Activities activities ;
+  final public Flagging mobilesMap ;
   
   
   
@@ -59,6 +65,7 @@ public class World {
       protected void scanAt(int x, int y) { growthAt(x, y) ; }
     } ;
     activities = new Activities(this) ;
+    mobilesMap = new Flagging(this, Mobile.class) ;
   }
   
   
@@ -171,9 +178,11 @@ public class World {
   protected void toggleActive(Mobile m, boolean is) {
     if (is) {
       m.setEntry(mobiles.addLast(m)) ;
+      mobilesMap.toggleMember(m, m.origin(), true ) ;
     }
     else {
       mobiles.removeEntry(m.entry()) ;
+      mobilesMap.toggleMember(m, m.origin(), false) ;
     }
   }
   

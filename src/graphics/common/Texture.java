@@ -122,7 +122,7 @@ final public class Texture {
       I.add(
         "PROBLEM LOADING TEXTURE. "+pathName+" / "+alphaName
       ) ;
-      e.printStackTrace() ;
+      ///e.printStackTrace() ;
       return WHITE_TEX ;
     }
     //
@@ -140,12 +140,15 @@ final public class Texture {
   public final static Texture
     CLEAR_TEX = new Texture(),
     GRAYS_TEX = new Texture(),
+    BLACK_TEX = new Texture(),
     WHITE_TEX = Texture.loadTexture("media/Terrain/blank_white.png") ;
   static {
     CLEAR_TEX.setup(1, 1) ;
     CLEAR_TEX.buffer.putInt(0x00000000) ;
     GRAYS_TEX.setup(1, 1) ;
     GRAYS_TEX.buffer.putInt(0x99999999) ;
+    BLACK_TEX.setup(1, 1) ;
+    BLACK_TEX.buffer.putInt(0xff000000) ;
   }
   
   public static Texture createTexture(int w, int h) {

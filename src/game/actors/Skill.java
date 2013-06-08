@@ -9,6 +9,8 @@ package src.game.actors ;
 
 
 
+//
+//  Consider folding these into the Trait class.
 public class Skill extends Trait {
   
   final public String name ;

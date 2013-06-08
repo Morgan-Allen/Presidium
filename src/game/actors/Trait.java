@@ -10,7 +10,7 @@ import src.util.* ;
 
 
 
-public class Trait implements Condition, ActorConstants {
+public class Trait implements ActorConstants {
   
   
   
@@ -46,6 +46,7 @@ public class Trait implements Condition, ActorConstants {
   final int descValues[] ;
   
   
+  
   protected Trait(int type, String... descriptors) {
     this.traitID = nextID++ ;
     this.type = type ;
@@ -70,10 +71,14 @@ public class Trait implements Condition, ActorConstants {
   }
   
   
+  public void affect(Actor a) {
+  }
+  
+  
+  
   /**  Returns the appropriate description for the given trait-level.
     */
   public static String descriptionFor(Trait trait, float level) {
-    //for (int i = 0 ; i < trait.descriptors.length ; i++) {
     String bestDesc = null ;
     float minDiff = Float.POSITIVE_INFINITY ;
     int i = 0 ; for (String s : trait.descriptors) {
@@ -82,23 +87,12 @@ public class Trait implements Condition, ActorConstants {
       i++ ;
     }
     return bestDesc ;
-    /*
-    String topDesc = null ;
-    for (int i = trait.descriptors.length ; i-- > 0 ;) {
-      topDesc = trait.descriptors[i] ;
-      if (trait.descValues[i] == level) return topDesc ;
-    }
-    return topDesc ;
-    //*/
   }
   
   
   public String toString() {
     return descriptionFor(this, 2) ;
   }
-  
-
-  public void affect(Actor a) {}
 }
 
 

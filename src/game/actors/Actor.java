@@ -14,15 +14,17 @@ import src.util.* ;
 
 
 
-public abstract class Actor extends Mobile implements Inventory.Owner {
-  
+public abstract class Actor extends Mobile implements
+  Inventory.Owner, Accountable
+{
   
   
   /**  Field definitions, constructors and save/load functionality-
     */
   final public ActorHealth health = new ActorHealth(this) ;
+  final public ActorPsyche psyche = new ActorPsyche(this) ;
   final public ActorTraits traits = new ActorTraits(this) ;
-  final public ActorEquipment equipment = new ActorEquipment(this) ;
+  final public ActorGear   gear   = new ActorGear  (this) ;
   
   final public MobilePathing pathing = new MobilePathing(this) ;
   private Action action ;
@@ -37,11 +39,13 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   
   public Actor(Session s) throws Exception {
     super(s) ;
+    
     health.loadState(s) ;
+    psyche.loadState(s) ;
     traits.loadState(s) ;
+    gear.loadState(s) ;
+    
     pathing.loadState(s) ;
-    equipment.loadState(s) ;
-
     action = (Action) s.loadObject() ;
     s.loadObjects(behaviourStack) ;
     base = (Base) s.loadObject() ;
@@ -56,11 +60,13 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    
     health.saveState(s) ;
+    psyche.saveState(s) ;
     traits.saveState(s) ;
+    gear.saveState(s) ;
+    
     pathing.saveState(s) ;
-    equipment.saveState(s) ;
-
     s.saveObject(action) ;
     s.saveObjects(behaviourStack) ;
     s.saveObject(base) ;
@@ -71,7 +77,7 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   }
   
   
-  public ActorEquipment inventory() { return equipment ; }
+  public ActorGear inventory() { return gear ; }
   
   
   
@@ -80,15 +86,18 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   public void assignBehaviour(Behaviour behaviour) {
     if (behaviour == null) I.complain("CANNOT ASSIGN NULL BEHAVIOUR.") ;
     assignAction(null) ;
-    behaviourStack.clear() ;
+    cancelBehaviour(rootBehaviour()) ;
+    psyche.planBegun(behaviour) ;
     behaviourStack.addFirst(behaviour) ;
   }
   
   
   public void cancelBehaviour(Behaviour b) {
+    if (b == null) return ;
     if (! behaviourStack.includes(b)) I.complain("Behaviour not active.") ;
     while (behaviourStack.size() > 0) {
       final Behaviour top = behaviourStack.removeFirst() ;
+      psyche.planEnded(top) ;
       if (top == b) break ;
     }
   }
@@ -102,7 +111,7 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   
   
   protected abstract Behaviour nextBehaviour() ;
-  protected abstract boolean switchBehaviour(Behaviour next, Behaviour last) ;
+  public abstract boolean couldSwitch(Behaviour next, Behaviour last) ;
   
   
   private Action getNextAction() {
@@ -112,7 +121,7 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
       final Behaviour
         last = behaviourStack.getLast(),
         next = nextBehaviour() ;
-      if (switchBehaviour(next, last)) assignBehaviour(next) ;
+      if (couldSwitch(last, next)) assignBehaviour(next) ;
     }
     //
     //  Otherwise, drill down through the set of behaviours to get a concrete
@@ -122,14 +131,17 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
       if (behaviourStack.size() == 0) {
         step = nextBehaviour() ;
         if (step == null) return null ;
+        psyche.planBegun(step) ;
         behaviourStack.add(step) ;
       }
       final Behaviour current = behaviourStack.getFirst() ;
       if (current.complete() || (step = current.nextStepFor(this)) == null) {
+        psyche.planEnded(current) ;
         behaviourStack.removeFirst() ;
       }
       else {
         behaviourStack.addFirst(step) ;
+        psyche.planBegun(step) ;
         if (step instanceof Action) return (Action) step ;
       }
     }
@@ -139,6 +151,7 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   public void pathingAbort() {
     if (action == null) return ;
     I.say(this+" aborting action...") ;
+    psyche.planEnded(behaviourStack.getFirst()) ;
     behaviourStack.removeFirst() ;
     action = null ;
     behaviourStack.getFirst().abortStep() ;
@@ -153,6 +166,11 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   
   public Behaviour topBehaviour() {
     return behaviourStack.getFirst() ;
+  }
+  
+  
+  public Behaviour rootBehaviour() {
+    return behaviourStack.getLast() ;
   }
   
   
@@ -187,14 +205,13 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
   
   protected void updateAsMobile() {
     super.updateAsMobile() ;
-    
     if (! health.conscious()) return ;
     if (action != null) action.updateAction() ;
   }
   
   
   public void updateAsScheduled(int numUpdates) {
-    //super.updateAsScheduled(numUpdates) ;
+    health.updateHealth(numUpdates) ;
     if (! health.conscious()) return ;
     //
     //  We check every 10 seconds to see if a more compelling behaviour has
@@ -203,9 +220,9 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
     //  regular intervals-
     if (numUpdates % 10 == 0 && behaviourStack.size() > 0) {
       final Behaviour
-        last = behaviourStack.getLast(),
+        last = rootBehaviour(),
         next = nextBehaviour() ;
-      if (switchBehaviour(next, last)) assignBehaviour(next) ;
+      if (couldSwitch(last, next)) assignBehaviour(next) ;
     }
     if (action == null || action.complete()) {
       assignAction(getNextAction()) ;
@@ -221,9 +238,10 @@ public abstract class Actor extends Mobile implements Inventory.Owner {
     if (indoors()) return ;
     final Sprite s = sprite() ;
     if (action != null) {
+      ///I.say("Name/progress "+action.animName()+"/"+action.animProgress()) ;
       s.setAnimation(action.animName(), action.animProgress()) ;
     }
-    else s.setAnimation(Model.AnimNames.STAND, 0) ;
+    else s.setAnimation(Action.STAND, 0) ;
     super.renderFor(rendering, base) ;
   }
   

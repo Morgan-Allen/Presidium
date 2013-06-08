@@ -77,7 +77,7 @@ public class Crop extends Element {
   
   
   public int owningType() {
-    return Element.ENVIRONMENT_OWNS ;
+    return Element.FIXTURE_OWNS ;
   }
 }
 

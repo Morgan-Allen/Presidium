@@ -132,7 +132,7 @@ public class ShieldWall extends LineInstallation {
   
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_MILITARY ;
+    return BuildingsTab.TYPE_HIDDEN ;
   }
 }
 

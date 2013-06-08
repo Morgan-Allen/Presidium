@@ -247,7 +247,7 @@ public class BotanicalStation extends Venue implements VenueConstants {
   }
   
   
-  public void writeInformation(Description d, int categoryID) {
+  public void writeInformation(Description d, int categoryID, BaseUI UI) {
     
     d.append(new Description.Link("\n[Grow Starches]") {
       public void whenClicked() {
@@ -268,7 +268,7 @@ public class BotanicalStation extends Venue implements VenueConstants {
     }, growProtein ? Colour.GREEN : Colour.RED) ;
     d.append("\n\n") ;
     
-    super.writeInformation(d, categoryID) ;
+    super.writeInformation(d, categoryID, UI) ;
   }
 }
 

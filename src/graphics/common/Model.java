@@ -193,6 +193,7 @@ public abstract class Model {
   
   
   public void loadAnimRanges(XML anims) {
+    if (anims == null) return ;
     //
     //  If neccesary, initialise the table of valid animation names-
     if (validAnimNames == null) {
@@ -243,6 +244,7 @@ public abstract class Model {
   
   
   public void loadAttachPoints(XML points) {
+    if (points == null) return ;
     for (XML point : points.children()) {
       final AttachPoint newPoint = new AttachPoint(
         point.value("function"), point.value("joint")

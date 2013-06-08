@@ -11,8 +11,4 @@ package src.game.planet ;
 public class Planet {
   
   
-  final public static int
-    DAY_LENGTH = 300,
-    YEAR_LENGTH = DAY_LENGTH * 60,
-    SECTOR_SIZE = 16 ;
 }

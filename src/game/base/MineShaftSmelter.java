@@ -11,9 +11,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.user.BaseUI;
-import src.user.BuildingsTab ;
-import src.user.Composite;
+import src.user.* ;
 import src.util.* ;
 
 
@@ -144,14 +142,14 @@ public class MineShaftSmelter extends Venue implements VenueConstants {
       return new Action(
         actor, this,
         this, "actionDrill",
-        Model.AnimNames.BUILD, "Drilling for "+mined.name
+        Action.BUILD, "Drilling for "+mined.name
       ) ;
     }
     if (allFull) {
       return new Action(
         actor, this,
         this, "actionCollect",
-        Model.AnimNames.BUILD, "Collecting "+mined.name
+        Action.BUILD, "Collecting "+mined.name
       ) ;
     }
     

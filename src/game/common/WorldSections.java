@@ -16,16 +16,15 @@ public class WorldSections implements TileConstants {
   /**  Common fields, constructors and utility methods.
     */
   final World world ;
-  final int resolution, depth ;
+  final public int resolution, depth ;
   final Section hierarchy[][][], root ;
   
-  
+  //
   //  NOTE:  x and y coordinates are relative to position in hierarchy, not to
   //  tile coordinates.
   public static class Section {
     
     private boolean updateBounds = true ;
-    ///private int pathingChangeHash = 0 ;
     
     final public Box3D bounds = new Box3D() ;
     final public Box2D area = new Box2D() ;

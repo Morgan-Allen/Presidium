@@ -254,7 +254,7 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
   }
   
   
-  public void writeInformation(Description d, int categoryID) {
+  public void writeInformation(Description d, int categoryID, BaseUI UI) {
     
     d.append(new Description.Link("\n[Seek Carbons]") {
       public void whenClicked() {
@@ -279,7 +279,7 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
     
     d.append("\n\n") ;
     
-    super.writeInformation(d, categoryID) ;
+    super.writeInformation(d, categoryID, UI) ;
   }
 }
 

@@ -71,7 +71,7 @@ public class MobilePathing {
   
   
   private void refreshPath() {
-    I.say(mobile+" refreshing path...") ;
+    ///I.say(mobile+" refreshing path...") ;
     if (mobile.assignedBase() == null || GameSettings.freePath) {
       final PathingSearch search = new PathingSearch(
         location(mobile), location(target)

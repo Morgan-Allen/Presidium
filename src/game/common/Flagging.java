@@ -22,6 +22,13 @@ public class Flagging implements Session.Saveable {
   final Object key ;
   final World world ;
   final Node root ;
+  
+  static class Node extends List {
+    final Section section ;
+    int population = 0 ;
+    Node(Section s) { this.section = s ; }
+  }
+  
   private Vec3D temp = new Vec3D() ;
   
   
@@ -111,17 +118,15 @@ public class Flagging implements Session.Saveable {
   
   /**  Inserting and deleting members-
     */
-  static class Node extends List {
-    final Section section ;
-    int population = 0 ;
-    Node(Section s) { this.section = s ; }
+  public void toggleMember(Target t, boolean is) {
+    t.position(temp) ;
+    toggleAt(root, (int) temp.x, (int) temp.y, t, is) ;
   }
   
   
-  public void toggleMember(Target t, boolean is) {
-    t.position(temp) ;
-    final int x = (int) temp.x, y = (int) temp.y ;
-    toggleAt(root, x, y, t, is) ;
+  public void toggleMember(Target t, Tile at, boolean is) {
+    if (at == null) return ;
+    toggleAt(root, at.x, at.y, t, is) ;
   }
   
   

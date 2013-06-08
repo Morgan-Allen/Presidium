@@ -114,7 +114,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
       final Action boardAction = new Action(
         actor, dropPoint,
         this, "actionBoard",
-        Model.AnimNames.STAND, "boarding "+this
+        Action.STAND, "boarding "+this
       ) ;
       boardAction.setPriority(Behaviour.URGENT) ;
       return boardAction ;
@@ -338,7 +338,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     return null ;
   }
   
-  public void writeInformation(Description description, int categoryID) {
+  public void writeInformation(Description description, int categoryID, BaseUI UI) {
   }
 }
 

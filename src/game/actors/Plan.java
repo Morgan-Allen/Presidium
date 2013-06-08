@@ -7,7 +7,8 @@
 
 package src.game.actors ;
 import src.game.common.* ;
-import src.game.common.Session.Saveable ;
+import src.game.common.Session.Saveable;
+import src.user.Description ;
 import src.util.* ;
 
 
@@ -25,10 +26,17 @@ public abstract class Plan implements Saveable, Behaviour {
   //
   //  These can be returned by default, or overridden if required.
   private float priority = -1 ;
-  private String description = null ;
+  private String description ;
   
   
   protected Plan(Actor actor, Saveable... signature) {
+    this(actor, ROUTINE, null, signature) ;
+  }
+  
+  protected Plan(
+    Actor actor, float priority, String desc,
+    Saveable... signature
+  ) {
     this.actor = actor ;
     this.signature = signature ;
     this.hash = Table.hashFor((Object[]) signature) ;
@@ -122,6 +130,16 @@ public abstract class Plan implements Saveable, Behaviour {
   
   public Actor actor() {
     return actor ;
+  }
+  
+  
+  public float priorityFor(Actor actor) {
+    return priority ;
+  }
+
+
+  public void describeBehaviour(Description d) {
+    if (description != null) d.append(description) ;
   }
   
   

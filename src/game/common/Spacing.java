@@ -167,7 +167,6 @@ public final class Spacing implements TileConstants {
   
   /**  Promity methods-
     */
-  
   public static Target nearest(
     Series <? extends Target> targets, Target client
   ) {
@@ -180,16 +179,10 @@ public final class Spacing implements TileConstants {
     return nearest ;
   }
   
-  
-  //
-  //  You may need a different type of check for environmental elements like
-  //  rocks and flora than you would for venues and other artificial fixtures,
-  //  owing to the different construction methods.  (e.g, one depends on
-  //  reservation, the other on blockage.)  In fact, it might be simplest to
-  //  just make sure the perimeter is clear, or use other local knowledge.
-  
 
-  public static Tile nearestOpenTile(Box2D area, Target client, World world) {
+  public static Tile nearestOpenTile(
+    Box2D area, Target client, World world
+  ) {
     final Vec3D p = client.position(pA) ;
     final Tile o = world.tileAt(p.x, p.y) ;
     float minDist = Float.POSITIVE_INFINITY ;
@@ -198,7 +191,7 @@ public final class Spacing implements TileConstants {
     while (nearest == null && numTries++ < (CLUSTER_SIZE / 2)) {
       for (Tile t : perimeter(area, world)) {
         //I.say("  Trying tile: "+t) ;
-        if (t == null || t.blocked()) continue ;
+        if (t == null || t.blocked() || t.inside().size() > 0) continue ;
         final float dist = distance(o, t) ;
         if (dist < minDist) { minDist = dist ; nearest = t ; }
       }

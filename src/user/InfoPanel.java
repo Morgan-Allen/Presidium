@@ -99,7 +99,7 @@ public class InfoPanel extends UIGroup {
       }
     }
     detailText.setText("") ;
-    selected.writeInformation(detailText, categoryID) ;
+    selected.writeInformation(detailText, categoryID, UI) ;
   }
 }
 

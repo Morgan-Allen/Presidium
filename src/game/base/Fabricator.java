@@ -23,12 +23,12 @@ public class Fabricator extends Venue implements VenueConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    Fabricator.class, "media/Buildings/aesthete aura/fabricator.png", 3, 2
+    Fabricator.class, "media/Buildings/aesthete aura/fabricator.png", 4, 2
   ) ;
   
   
   public Fabricator(Base base) {
-    super(3, 2, ENTRANCE_EAST, base) ;
+    super(4, 2, ENTRANCE_EAST, base) ;
     attachSprite(MODEL.makeSprite()) ;
   }
   
@@ -65,7 +65,7 @@ public class Fabricator extends Venue implements VenueConstants {
   
   
   protected Conversion[] conversions() {
-    return new Conversion[] { PITCHES_TO_PLASTICS } ;
+    return new Conversion[] { CARBONS_TO_PLASTICS } ;
   }
   
   

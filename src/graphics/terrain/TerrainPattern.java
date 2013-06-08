@@ -245,8 +245,8 @@ public class TerrainPattern implements TileConstants {
   final public static float
     OUTER_EXTRAS_INDEX[][] = {
       {1, 4},
-      {1, 4},
-      {1, 4},
+      //{1, 4},
+      //{1, 4},
       {4, 3},
       {4, 4},
       {4, 5}

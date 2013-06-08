@@ -9,7 +9,6 @@
 package src.game.building ;
 import src.game.common.* ;
 import src.game.actors.* ;
-import src.graphics.common.Model ;
 import src.util.* ;
 import src.user.* ;
 
@@ -86,7 +85,7 @@ public class Delivery extends Plan {
       final Action pickup = new Action(
         actor, origin,
         this, "actionPickup",
-        Model.AnimNames.REACH_DOWN, "Picking up goods"
+        Action.REACH_DOWN, "Picking up goods"
       ) ;
       I.say(actor+" Scheduling new pickup...") ;
       return pickup ;
@@ -96,7 +95,7 @@ public class Delivery extends Plan {
       final Action dropoff = new Action(
         actor, destination,
         this, "actionDropoff",
-        Model.AnimNames.REACH_DOWN, "Dropping off goods"
+        Action.REACH_DOWN, "Dropping off goods"
       ) ;
       //  If the destination isn't complete, drop off at the entrance.
       return dropoff ;
@@ -117,7 +116,7 @@ public class Delivery extends Plan {
   public boolean actionDropoff(Actor actor, Venue target) {
     if (stage != STAGE_DROPOFF) return false ;
     I.say(actor+" Performing dropoff...") ;
-    for (Item i : items) actor.equipment.transfer(i, target) ;
+    for (Item i : items) actor.gear.transfer(i, target) ;
     stage = STAGE_DONE ;
     return true ;
   }

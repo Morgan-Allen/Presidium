@@ -79,7 +79,7 @@ public class Vocation implements ActorConstants {
     HIGH_BIRTH = new Vocation(
       "High Birth", "highborn_male_skin.gif", null, RULER_CLASS
     ),
-    ALL_CLASSES[] = { NATIVE_BIRTH, PYON_BIRTH, CITIZEN_BIRTH } ;
+    ALL_CLASSES[] = { PYON_BIRTH, CITIZEN_BIRTH } ;
   
   
   

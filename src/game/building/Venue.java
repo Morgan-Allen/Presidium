@@ -319,7 +319,7 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  public void writeInformation(Description d, int categoryID) {
+  public void writeInformation(Description d, int categoryID, BaseUI UI) {
     d.append("PERSONNEL:") ;
     
     final Vocation c[] = careers() ;
@@ -335,8 +335,10 @@ public abstract class Venue extends Fixture implements
         }
       }) ;
     }
+    
     for (Actor a : personnel.workers()) {
       d.append("\n  ") ;
+      d.insert(a.portrait(UI), 25) ;
       d.append(a) ;
     }
     

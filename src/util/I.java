@@ -55,33 +55,6 @@ public class I {
   
   
   
-
-  
-  /*
-  public static boolean amHeld(Object o) {
-    final PlayerUI UI = GameLoop.currentUI() ;
-    return UI.playerSelection() == o || UI.playerHovered() == o ;
-  }
-
-  
-  public static void append(String prefix, Series s, Description d) {
-    if (s == null) return ;
-    append(prefix, s.toArray(), d) ;
-  }
-  
-  public static void append(String prefix, Object[] s, Description d) {
-    if (s.length == 0) return ;
-    d.append(prefix) ;
-    for (int i = 0 ; i < s.length ;) {
-      d.append(s[i++]) ;
-      if (i < s.length) d.append(", ") ;
-    }
-  }
-  //*/
-  
-  
-  
-  
   
   
   private final static int

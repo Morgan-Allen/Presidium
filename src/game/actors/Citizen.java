@@ -8,12 +8,10 @@
 package src.game.actors ;
 import src.game.common.* ;
 import src.game.building.* ;
+import src.game.social.* ;
 import src.game.tactical.* ;
-import src.game.campaign.* ;
 import src.graphics.common.* ;
-//import src.graphics.cutout.* ;
 import src.graphics.jointed.* ;
-//import src.graphics.widgets.* ;
 import src.user.* ;
 import src.util.* ;
 
@@ -192,6 +190,7 @@ public class Citizen extends Actor implements ActorConstants {
     e.setWorker(this, true) ;
   }
   
+  
   public void removeEmployer(Employment e) {
     employment.remove(e) ;
     e.setWorker(this, false) ;
@@ -214,23 +213,36 @@ public class Citizen extends Actor implements ActorConstants {
   
   /**  Behaviour implementation-
     */
-  public boolean switchBehaviour(Behaviour next, Behaviour last) {
+  //  TODO:  MOVE THESE TO THE ACTORPSYCHE CLASS.
+  
+  public boolean couldSwitch(Behaviour last, Behaviour next) {
+    if (next == null) return false ;
+    if (last == null) return true ;
     return next.priorityFor(this) >= (last.priorityFor(this) + 2) ;
   }
   
   
   public Behaviour nextBehaviour() {
     final Citizen actor = this ;
-    //  TODO:  Use a choice for this.
+    final Choice choice = new Choice(this) ;
+    //
+    //  Find all nearby items or actors and consider reacting to them.
+    final Tile o = origin() ;
+    final int sightRange = health.sightRange() ;
+    final Box2D bound = new Box2D().set(o.x, o.y, 0, 0) ;
+    for (Tile t : world.tilesIn(bound.expandBy(sightRange), true)) {
+      if (Spacing.distance(t, o) > sightRange) continue ;
+      for (Mobile m : t.inside()) addReactions(m, choice) ;
+    }
+    //
+    //  Find the next jobs waiting for you at work or home.
     for (Employment work : employment) {
-    //if (work != null) {
-      //I.say("Getting next work step...") ;
       Behaviour atWork = work.jobFor(actor) ;
-      if (atWork != null) return atWork ;
+      if (atWork != null) choice.add(atWork) ;
     }
     if (home != null) {
       Behaviour atHome = home.jobFor(actor) ;
-      if (atHome != null) return atHome ;
+      if (atHome != null) choice.add(atHome) ;
     }
     //
     //  If you've no other business to attend to, try and find any untaken job
@@ -238,8 +250,24 @@ public class Citizen extends Actor implements ActorConstants {
     
     //
     //  Try a range of other spontaneous behaviours, include relaxation and
-    //  wandering-
-    return new Patrolling(actor, actor, 5) ;
+    //  spontaneous missions-
+    final Action wander = (Action) new Patrolling(actor, actor, 5).nextStep() ;
+    wander.setPriority(Plan.IDLE) ;
+    choice.add(wander) ;
+    //
+    //  Finally, return whatever activity seems most urgent or appealing.
+    return choice.weightedPick() ;
+  }
+  
+  //
+  //  TODO:  Pass a Choice object here instead, and add all possibilities...
+  protected void addReactions(Mobile m, Choice choice) {
+    if (m instanceof Actor) {
+      final Actor other = (Actor) m ;
+      if (Dialogue.canTalk(other, this)) {
+        choice.add(new Dialogue(this, other)) ;
+      }
+    }
   }
   
   
@@ -260,45 +288,119 @@ public class Citizen extends Actor implements ActorConstants {
   }
   
   
+  
+  
+  //
+  //  TODO:  You need to to break up this information into more categories.
+  //
+  //  Condition, injury/fatigue/stress, vocation and present activity.
+  //  Attributes, skills and psyonic abilities.
+  //  Equipment, carried items, encumbrance and physique.
+  //  Background, personality, relationships and family.
+  
   public String[] infoCategories() {
-    return null ;
+    return new String[] { "STATUS", "OUTFIT", "SKILLS", "PSYCH" } ;
   }
   
   
-  public void writeInformation(Description d, int categoryID) {
+  public void writeInformation(Description d, int categoryID, BaseUI UI) {
+    if (categoryID == 0) describeStatus(d, UI) ;
+    if (categoryID == 1) describeOutfit(d, UI) ;
+    if (categoryID == 2) describeSkills(d, UI) ;
+    if (categoryID == 3) describePsych(d, UI) ;
+  }
+  
+  
+  private void describeStatus(Description d, BaseUI UI) {
     //
-    //  Health, activity, home and work venues.
-    //  Current inventory.
-    //  Traits and skills.
-    
-    d.append("\n\nCurrent Activity:") ;
-    int indent = 0 ; for (Behaviour b : currentBehaviours()) {
-      d.append("\n") ;
-      for (int i = ++indent ; i-- > 0 ;) d.append("  ") ;
-      b.describeBehaviour(d) ;
-    }
-    d.append("\n") ;
+    //  Describe your job, place of work, and current residence:
+    //  TODO:  Allow a single employer and mission.
+    d.append("Vocation: ") ;
+    d.append(career.vocation()) ;
     if (employment.size() > 0) {
       d.appendList("Works at: ", employment) ;
     }
     else d.append("\nUnemployed") ;
     if (home != null) { d.append("\nHome: ") ; d.append(home) ; }
     else d.append("\nHomeless") ;
-    
-    if (! equipment.empty()) {
-      d.append("\n\nInventory:") ;
-      equipment.writeInformation(d) ;
+    //
+    //  Describe your current health, outlook, or special FX.
+    d.append("\n\nCondition: ") ;
+    final Batch <Condition> conditions = traits.conditions() ;
+    if (conditions.size() == 0) d.append("\n  Okay") ;
+    else for (Condition c : conditions) {
+      d.append("\n  ") ;
+      d.append(traits.levelDesc(c)) ;
     }
-    
-    d.append("\n\nSkills and Traits:") ;
-    traits.writeInformation(d) ;
+    //
+    //  Describe your current assignment or undertaking.
+    d.append("\n\nCurrently:") ;
+    final Behaviour rootB = rootBehaviour() ;
+    if (rootB != null) {
+      d.append("\n  ") ;
+      rootB.describeBehaviour(d) ;
+    }
+    else d.append("\n  Idle") ;
   }
   
   
-  public void describeBehaviour(Description d) {
-    d.append(fullName()) ;
+  private void describeOutfit(Description d, BaseUI UI) {
+    //
+    //  Describe your overall appearance and physique.
+    
+    //
+    //  Describe your current weapon or implement, and armour or dress.  Rate
+    //  your current encumbrance, and any other special bonuses or effects.
+    
+    //
+    //  Finally, describe any other items you're carrying, rations, and both
+    //  taxed and untaxed credits.
+  }
+  
+  
+  private void describeSkills(Description d, BaseUI UI) {
+    
+  }
+  
+  
+  private void describePsych(Description d, BaseUI UI) {
+    
   }
 }
+
+
+
+/*
+//
+//  Health, activity, home and work venues.
+//  Current inventory.
+//  Traits and skills.
+
+d.append("\n\nCurrent Activity:") ;
+int indent = 0 ; for (Behaviour b : currentBehaviours()) {
+  d.append("\n") ;
+  for (int i = ++indent ; i-- > 0 ;) d.append("  ") ;
+  b.describeBehaviour(d) ;
+}
+d.append("\n") ;
+if (employment.size() > 0) {
+  d.appendList("Works at: ", employment) ;
+}
+else d.append("\nUnemployed") ;
+if (home != null) { d.append("\nHome: ") ; d.append(home) ; }
+else d.append("\nHomeless") ;
+
+if (! gear.empty()) {
+  d.append("\n\nInventory:") ;
+  gear.writeInformation(d) ;
+}
+
+d.append("\n\nSkills and Traits:") ;
+traits.writeInformation(d) ;
+//*/
+
+
+
 
 
 /*

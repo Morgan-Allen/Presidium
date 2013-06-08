@@ -8,27 +8,29 @@ import src.util.*  ;
 
 
 
-public class Career {
+public class Career implements ActorConstants {
   
   
-  Actor bound ;
+  Actor subject ;
   Vocation vocation, birth, homeworld ;
-  String fullName = "" ;
+  String fullName = null ;
   
   
   Career() {
   }
   
+  
   public void loadState(Session s) throws Exception {
-    bound = (Actor) s.loadObject() ;
+    subject = (Actor) s.loadObject() ;
     vocation = Vocation.ALL_VOCATIONS[s.loadInt()] ;
     birth = Vocation.ALL_VOCATIONS[s.loadInt()] ;
     homeworld = Vocation.ALL_VOCATIONS[s.loadInt()] ;
     fullName = s.loadString() ;
   }
   
+  
   public void saveState(Session s) throws Exception {
-    s.saveObject(bound) ;
+    s.saveObject(subject) ;
     s.saveInt(vocation.ID) ;
     s.saveInt(birth.ID) ;
     s.saveInt(homeworld.ID) ;
@@ -55,9 +57,10 @@ public class Career {
   /**  TODO:  Make this the constructor?
     */
   protected void genCareer(Vocation root, Citizen actor) {
-    bound = actor ;
+    subject = actor ;
+    //
+    //  Firstly, determine a basic background suitable to the root vocation-
     vocation = root ;
-    
     Batch <Float> weights = new Batch <Float> () ;
     for (Vocation v : Vocation.ALL_CLASSES) {
       weights.add(rateSimilarity(root, v)) ;
@@ -72,28 +75,53 @@ public class Career {
     homeworld = (Vocation) Rand.pickFrom(
       Vocation.ALL_PLANETS, weights.toArray()
     ) ;
-    
     applyVocation(homeworld, actor) ;
     applyVocation(birth    , actor) ;
     applyVocation(vocation , actor) ;
-    
+    //
+    //  TODO:  Try adding 1 - 3 family members, possibly as potential migrants?
+    actor.traits.initDNA(0) ;
     //
     //  For now, we apply gender at random, though this might be tweaked a bit
-    //  later.  We also assign some random personality or physical traits.
+    //  later.  We also assign some random personality and/or physical traits.
     while (true) {
       final int numP = actor.traits.personality().size() ;
       if (numP >= 5) break ;
-      final Trait t = (Trait) Rand.pickFrom(Trait.ALL_PERSONALITY_TRAITS) ;
+      final Trait t = (Trait) Rand.pickFrom(PERSONALITY_TRAITS) ;
       actor.traits.setLevel(t, Rand.range(-2, 2)) ;
       if (numP >= 3 && Rand.yes()) break ;
     }
-    actor.traits.setLevel(Trait.HANDSOME, Rand.rangeAvg(-2, 4, 2)) ;
-    actor.traits.setLevel(Trait.TALL    , Rand.rangeAvg(-3, 3, 2)) ;
-    actor.traits.setLevel(Trait.STOUT   , Rand.rangeAvg(-4, 2, 2)) ;
-    actor.traits.setLevel(Trait.GENDER, Rand.yes() ? "Female" : "Male") ;
-    
-    for (String name : Naming.namesFor(actor)) fullName+=" "+name ;
+    actor.traits.setLevel(HANDSOME, Rand.rangeAvg(-2, 4, 2)) ;
+    actor.traits.setLevel(TALL    , Rand.rangeAvg(-3, 3, 2)) ;
+    actor.traits.setLevel(STOUT   , Rand.rangeAvg(-4, 2, 2)) ;
+    applySex(actor) ;
+    //
+    //  Finally, specify name and (TODO:) a few other details of appearance.
+    for (String name : Naming.namesFor(actor)) {
+      if (fullName == null) fullName = name ;
+      else fullName+=" "+name ;
+    }
     I.say("Full name: "+fullName) ;
+  }
+  
+  
+  private void applySex(Citizen actor) {
+    //
+    //  TODO:  Some of these traits need to be rendered 'dormant' in younger
+    //  citizens...
+    if (Rand.yes()) {
+      actor.traits.setLevel(GENDER, "Female") ;
+      actor.traits.setLevel(FEMININE, Rand.rangeAvg(-1, 3, 2)) ;
+    }
+    else {
+      actor.traits.setLevel(GENDER, "Male") ;
+      actor.traits.setLevel(FEMININE, Rand.rangeAvg(-3, 1, 2)) ;
+    }
+    actor.traits.setLevel(
+      ORIENTATION,
+      Rand.index(10) != 0 ? "Heterosexual" :
+      (Rand.yes() ? "Homosexual" : "Bisexual")
+    ) ;
   }
   
   

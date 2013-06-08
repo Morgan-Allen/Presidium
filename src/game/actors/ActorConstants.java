@@ -3,8 +3,6 @@
   *  I intend to slap on some kind of open-source license here in a while, but
   *  for now, feel free to poke around for non-commercial purposes.
   */
-
-
 package src.game.actors ;
 
 
@@ -47,7 +45,7 @@ public interface ActorConstants {
     INTELLECT = new Skill("Intellect", FORM_NATURAL, null),
     WILL      = new Skill("Will"     , FORM_NATURAL, null),
     
-    ALL_ATTRIBUTES[] = Trait.skillsSoFar() ;
+    ATTRIBUTES[] = Trait.skillsSoFar() ;
   
   final public static Skill
     SCENTING     = new Skill("Scenting"    , FORM_INSTINCT, INSIGHT),
@@ -55,7 +53,7 @@ public interface ActorConstants {
     NESTING      = new Skill("Nesting"     , FORM_INSTINCT, INSIGHT),
     MIMESIS      = new Skill("Mimesis"     , FORM_INSTINCT, REFLEX ),
     
-    ALL_INSTINCTS[] = Trait.skillsSoFar() ;
+    INSTINCT_SKILLS[] = Trait.skillsSoFar() ;
   
   final public static Skill
     CULTIVATION    = new Skill("Cultivation"   , FORM_COGNITIVE, INTELLECT),
@@ -78,7 +76,7 @@ public interface ActorConstants {
     SUBSTANTIATION = new Skill("Substantiation", FORM_COGNITIVE, WILL     ),
     ANCIENT_LORE   = new Skill("Ancient Lore"  , FORM_COGNITIVE, WILL     ),
     
-    ALL_COGNITIVE[] = Trait.skillsSoFar() ;
+    COGNITIVE_SKILLS[] = Trait.skillsSoFar() ;
   
   final public static Skill
     COMMAND           = new Skill("Command"          , FORM_SENSITIVE, INSIGHT),
@@ -95,7 +93,7 @@ public interface ActorConstants {
     
     GRAPHIC_MEDIA     = new Skill("Graphic Media"    , FORM_SENSITIVE, WILL   ),
     
-    ALL_SENSITIVE[] = Trait.skillsSoFar() ;
+    SENSITIVE_SKILLS[] = Trait.skillsSoFar() ;
   
   final public static Skill
     MARKSMANSHIP      = new Skill("Marksmanship"     , FORM_PHYSICAL, REFLEX),
@@ -113,7 +111,7 @@ public interface ActorConstants {
     HARD_LABOUR       = new Skill("Hard Labour"      , FORM_PHYSICAL, WILL  ),
     DOMESTIC_SERVICE  = new Skill("Domestic Service" , FORM_PHYSICAL, WILL  ),
     
-    ALL_PHYSICAL[] = Trait.skillsSoFar() ;
+    PHYSICAL_SKILLS[] = Trait.skillsSoFar() ;
   
   final public static Skill
     SUGGESTION   = new Skill("Suggestion"  , FORM_PSYONIC, WILL),
@@ -123,12 +121,24 @@ public interface ActorConstants {
     PROJECTION   = new Skill("Projection"  , FORM_PSYONIC, WILL),
     PREMONITION  = new Skill("Premonition" , FORM_PSYONIC, WILL),
     
-    ALL_PYSONIC[] = Trait.skillsSoFar() ;
+    PYSONIC_SKILLS[] = Trait.skillsSoFar() ;
   
   
   
   public static Trait
     
+    //
+    //  These are the listings of personality traits.  These can be modified
+    //  over time based on experience, peer pressure or conditioning.  Genetic
+    //  factors also influence their expression.  (TODO:  Implement that.)
+    //
+    //  I've divided these into 3 main categories-
+    //    Basic Impulses (emotional drives or physical needs)
+    //    Meta-Decisional (modify the general process of plan-selection)
+    //    Cultural/Ethical (overall social priorities)
+    
+    //
+    //  BASIC IMPULSES-
     NERVOUS = new Trait(PERSONALITY,
       "Cowardly",
       "Nervous",
@@ -157,36 +167,35 @@ public interface ActorConstants {
       "Callous"
     ),
     OPTIMISTIC = new Trait(PERSONALITY,
-      "Blind to Danger",
+      "Blithe",
       "Optimistic",
-      "Hopeful",
+      "Cheerful",
       null,
       "Doubtful",
       "Pessimistic",
       "Morose"
     ),
-    INQUISITIVE = new Trait(PERSONALITY,
-      "Hunger for Knowledge",
-      "Inquisitive",
-      "Curious",
+    DEBAUCHED = new Trait(PERSONALITY,
+      "Debauched",
+      "Lusty",
+      "Fun",
       null,
-      "Dull",
-      "Disinterested",
-      "No Imagination"
+      "Temperate",
+      "Abstinent",
+      "Frigid"
     ),
-    //
-    //  TODO:  Dispose of this and create a separate 'creativity' trait?
-    HUNGRY = new Trait(PERSONALITY,
+    APPETITE = new Trait(PERSONALITY,
       "Gluttonous",
-      "Hungry",
       "Big Appetite",
+      "Gourmand",
       null,
       "Frugal",
-      "No Appetite",
-      "Wasting Away"
+      "Small Appetite",
+      "No Appetite"
     ),
     
-    
+    //
+    //  META-DECISIONAL-
     STUBBORN = new Trait(PERSONALITY,
       "Obstinate",
       "Stubborn",
@@ -195,6 +204,15 @@ public interface ActorConstants {
       "Spontaneous",
       "Impulsive",
       "Fickle"
+    ),
+    INQUISITIVE = new Trait(PERSONALITY,
+      "Bookworm",
+      "Inquisitive",
+      "Curious",
+      null,
+      "Stolid",
+      "Disinterested",
+      "Dull"
     ),
     SOCIABLE = new Trait(PERSONALITY,
       "Gregarious",
@@ -205,21 +223,12 @@ public interface ActorConstants {
       "Solitary",
       "Withdrawn"
     ),
-    ACQUISITIVE = new Trait(PERSONALITY,
-      "Avaricious",
-      "Acquisitive",
-      "Thrifty",
-      null,
-      "Generous",
-      "Extravagant",
-      "Profligate"
-    ),
     DUTIFUL = new Trait(PERSONALITY,
       "Obedient",
       "Dutiful",
-      "Deferential",
+      "Respectful",
       null,
-      "Defiant",
+      "Assured",
       "Rebellious",
       "Anarchist"
     ),
@@ -242,7 +251,8 @@ public interface ActorConstants {
       "On Edge"
     ),
     
-    
+    //
+    //  CULTURAL/ETHICAL-
     TRADITIONAL = new Trait(PERSONALITY,
       "Hidebound",
       "Traditional",
@@ -261,23 +271,14 @@ public interface ActorConstants {
       "Industrialist",
       "Radical Industrialist"
     ),
-    HONOURABLE = new Trait(PERSONALITY,
-      "Unimpeachable",
-      "Honourable",
-      "Trustworthy",
+    ACQUISITIVE = new Trait(PERSONALITY,
+      "Avaricious",
+      "Thrifty",
+      "Prudent",
       null,
-      "Sly",
-      "Dishonest",
-      "Manipulative"
-    ),
-    EMPATHIC = new Trait(PERSONALITY,
-      "Martyr Complex",
-      "Compassionate",
-      "Soft",
-      null,
-      "Cruel",
-      "Sadistic",
-      "Monstrous"
+      "Generous",
+      "Extravagant",
+      "Profligate"
     ),
     AMBITIOUS = new Trait(PERSONALITY,
       "Narcissist",
@@ -288,17 +289,31 @@ public interface ActorConstants {
       "Humble",
       "Complacent"
     ),
-    DEBAUCHED = new Trait(PERSONALITY,
-      "Debauched",
-      "Lusty",
-      "Fun",
+    HONOURABLE = new Trait(PERSONALITY,
+      "Unimpeachable",
+      "Honourable",
+      "Trustworthy",
       null,
-      "Temperate",
-      "Abstinent",
-      "Frigid"
+      "Sly",
+      "Dishonest",
+      "Manipulative"
     ),
-    ALL_PERSONALITY_TRAITS[] = Trait.traitsSoFar(),
+    EMPATHIC = new Trait(PERSONALITY,
+      "Martyr",
+      "Compassionate",
+      "Soft",
+      null,
+      "Tough",
+      "Hard",
+      "Cruel"
+    ),
+    PERSONALITY_TRAITS[] = Trait.traitsSoFar(),
     
+    
+    //
+    //  These are the listings for physical traits.  Physical traits cannot be
+    //  modified (except perhaps surgically), but may be considered 'dormant'
+    //  in younger actors.  They are primarily determined at birth.
     
     FEMININE = new Trait(PHYSICAL,
       "Pneumatic",
@@ -312,13 +327,15 @@ public interface ActorConstants {
     ORIENTATION = new Trait(PHYSICAL,
       "Heterosexual",
       "Bisexual",
-      "Homosexual"
+      "Homosexual",
+      null
     ),
     GENDER = new Trait(PHYSICAL,
       "Female",
       null,
       "Male"
     ),
+    
     HANDSOME = new Trait(PHYSICAL,
       "Beautiful",
       "Handsome",
@@ -330,23 +347,22 @@ public interface ActorConstants {
     ),
     TALL = new Trait(PHYSICAL,
       "Towering",
-      "Very Tall",
+      "Looming",
       "Tall",
       null,
       "Short",
-      "Very Short",
-      "Dwarfish"
+      "Small",
+      "Diminutive"
     ),
     STOUT = new Trait(PHYSICAL,
       "Rotund",
-      "Stocky",
       "Stout",
+      "Sturdy",
       null,
       "Lithe",
       "Lean",
       "Gaunt"
     ),
-    
     
     DESERT_BLOOD = new Trait(PHYSICAL,
       "Desert Blood",
@@ -380,7 +396,39 @@ public interface ActorConstants {
       "Gifted",
       null
     ),
-    ALL_PHYSICAL_TRAITS[] = Trait.traitsSoFar()
+    PHYSICAL_TRAITS[] = Trait.traitsSoFar(),
+    
+    
+    //
+    //  Finally, listings for various conditions that might beset the actor-
+    //  Boredom?  Malaise?
+    INJURY = new Condition(
+      "Critical Injury",
+      "Serious Injury",
+      "Slight Injury",
+      null
+    ),
+    FATIGUE = new Condition(
+      "Extreme Fatigue",
+      "Heavy Fatigue",
+      "Mild Fatigue",
+      null
+    ),
+    STRESS = new Condition(
+      "Terrible Morale",
+      "Bad Morale",
+      "Weak Morale",
+      null,
+      "Good Morale",
+      "Strong Morale",
+      "Superb Morale"
+    ),
+    
+    POISONED  = new Condition("Poisoned" ),
+    DISEASE   = new Condition("Disease"  ),
+    INFECTION = new Condition("Infection"),
+    
+    CONDITIONS[] = Trait.traitsSoFar()
   ;
   
   final public static Trait
@@ -401,5 +449,6 @@ public interface ActorConstants {
   //  The three non-humanoid species also have a dedicated life-cycle-
   //    Sessile/Changeling/Blossom Node, Larva/Worker/Soldier/Queen, Jovian.
 //*/
+
 
 

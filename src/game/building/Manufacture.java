@@ -7,9 +7,7 @@
 
 package src.game.building ;
 import src.game.actors.* ;
-import src.game.building.* ;
 import src.game.common.* ;
-import src.graphics.common.* ;
 import src.user.Description ;
 import src.util.* ;
 
@@ -62,7 +60,7 @@ public class Manufacture extends Plan implements Behaviour {
     return new Action(
       actor, venue,
       this, "actionMake",
-      Model.AnimNames.REACH_DOWN, "Working"
+      Action.REACH_DOWN, "Working"
     ) ;
   }
   

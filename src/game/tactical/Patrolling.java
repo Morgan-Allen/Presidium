@@ -8,7 +8,6 @@
 package src.game.tactical ;
 import src.game.common.* ;
 import src.game.actors.* ;
-import src.graphics.common.Model ;
 import src.user.Description ;
 import src.util.* ;
 
@@ -98,7 +97,7 @@ public class Patrolling extends Plan {
     return new Action(
       actor, goes,
       this, "actionPatrol",
-      Model.AnimNames.LOOK, "Patrolling"
+      Action.LOOK, "Patrolling"
     ) ;
   }
   

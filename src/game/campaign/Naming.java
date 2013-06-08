@@ -68,7 +68,7 @@ public class Naming implements ActorConstants {
   public static String[] namesFor(Citizen actor) {
     final Batch <String> names = new Batch <String> () ;
     final int standing = actor.career.birth().standing ;
-    final boolean female = actor.traits.level(GENDER) > 0 ;
+    final boolean female = actor.traits.hasTrait(GENDER, "Female") ;
     switch (standing) {
       case (Vocation.SLAVE_CLASS) : {
         final String pick[] = female ? NATIVE_FN : NATIVE_MN ;

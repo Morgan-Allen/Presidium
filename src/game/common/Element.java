@@ -41,8 +41,7 @@ public abstract class Element implements Target, Session.Saveable {
     world = s.loadBool() ? s.world() : null ;
     location = (Tile) s.loadTarget() ;
     inceptTime = s.loadFloat() ;
-    final Model model = Model.loadModel(s.input()) ;
-    if (model != null) attachSprite(model.makeSprite()) ;
+    sprite = Model.loadSprite(s.input()) ;
   }
   
   
@@ -50,7 +49,7 @@ public abstract class Element implements Target, Session.Saveable {
     s.saveBool(world != null) ;
     s.saveTarget(location) ;
     s.saveFloat(inceptTime) ;
-    Model.saveModel(sprite, s.output()) ;
+    Model.saveSprite(sprite, s.output()) ;
   }
   
   
@@ -63,6 +62,7 @@ public abstract class Element implements Target, Session.Saveable {
     return true ;
   }
   
+  
   public void enterWorldAt(int x, int y, World world) {
     if (inWorld()) I.complain("Already in world...") ;
     setPosition(x, y, world) ;
@@ -71,56 +71,59 @@ public abstract class Element implements Target, Session.Saveable {
     if (owningType() != NOTHING_OWNS) location.setOwner(this) ;
   }
   
+  
   public void exitWorld() {
     if (! inWorld()) I.complain("Never entered world...") ;
     if (owningType() != NOTHING_OWNS) location.setOwner(null) ;
     this.world = null ;
   }
   
+  
   public void setPosition(float x, float y, World world) {
     this.location = world.tileAt(x, y) ;
     if (location == null) I.complain("Bad location for element: "+x+" "+y) ;
   }
+  
   
   public void enterWorld() {
     if (location == null) I.complain("Position never set!") ;
     enterWorldAt(location.x, location.y, location.world) ;
   }
   
+  
   public boolean inWorld() {
     return world != null ;
   }
+  
   
   public World world() {
     return world ;
   }
   
+  
   public int owningType() {
     return ENVIRONMENT_OWNS ;
   }
+  
   
   public int pathType() {
     return Tile.PATH_BLOCKS ;
   }
   
+  
   public void flagWith(Object f) {
-    /*
-    if (f != null && flagged != null) {
-      I.complain("PREVIOUS FLAGGING WAS NOT CLEARED- "+f+" "+flagged) ;
-    }
-    if (f == null && flagged == null) {
-      I.complain("PREVIOUS FLAGGING ALREADY CLEARED!") ;
-    }
-    //*/
     flagged = f ;
   }
+  
   
   public Object flaggedWith() {
     return flagged ;
   }
   
+  
   protected void onGrowth() {
   }
+  
   
   protected void setInceptTime(float t) {
     inceptTime = t ;
@@ -133,9 +136,11 @@ public abstract class Element implements Target, Session.Saveable {
     return location ;
   }
   
+  
   public int xdim() { return 1 ; }
   public int ydim() { return 1 ; }
   public int zdim() { return 1 ; }
+  
   
   public Box2D area(Box2D put) {
     if (put == null) put = new Box2D() ;
@@ -145,13 +150,16 @@ public abstract class Element implements Target, Session.Saveable {
     ) ;
   }
   
+  
   public Vec3D position(Vec3D v) {
     return location.position(v) ;
   }
   
+  
   public float radius() {
     return 0.5f ;
   }
+  
   
   public float height() {
     return 1 ;
@@ -166,9 +174,11 @@ public abstract class Element implements Target, Session.Saveable {
     return v ;
   }
   
+  
   protected boolean visibleTo(Base base) {
     return true ;
   }
+  
   
   protected void renderFor(Rendering rendering, Base base) {
     float timeGone = world().currentTime() - inceptTime ;
@@ -178,9 +188,11 @@ public abstract class Element implements Target, Session.Saveable {
     rendering.addClient(sprite) ;
   }
   
+  
   protected void attachSprite(Sprite sprite) {
     this.sprite = sprite ;
   }
+  
   
   public Sprite sprite() {
     return sprite ;

@@ -86,6 +86,46 @@ public class Item implements VenueConstants {
   }
   
   
+  /**  Qualities are used to annotate personal effects, such as weapons and
+    *  outfits.
+    */
+  public static class Quality implements Session.Saveable {
+    final int level ;
+    private Quality(int level) {
+      this.level = level ;
+    }
+    public Quality(Session s) throws Exception {
+      s.cacheInstance(this) ;
+      this.level = s.loadInt() ;
+    }
+    public void saveState(Session s) throws Exception {
+      s.saveInt(level) ;
+    }
+    
+    public String toString() { return QUAL_NAMES[level] ; }
+  }
+  
+  final static String QUAL_NAMES[] = {
+    "Crude", "Basic", "Standard", "Quality", "Luxury"
+  } ;
+  
+  final public static Quality
+    CRUDE_QUALITY    = new Quality(0),
+    BASIC_QUALITY    = new Quality(1),
+    STANDARD_QUALITY = new Quality(2),
+    HIGH_QUALITY     = new Quality(3),
+    LUXURY_QUALITY   = new Quality(4),
+    QUALITIES[] = {
+      CRUDE_QUALITY,
+      BASIC_QUALITY,
+      STANDARD_QUALITY,
+      HIGH_QUALITY,
+      LUXURY_QUALITY 
+    } ;
+  public static Quality quality(int level) {
+    return QUALITIES[Visit.clamp(level, 5)] ;
+  }
+  
   
   /**  Field definitions, standard constructors and save/load functionality-
     */
@@ -104,11 +144,13 @@ public class Item implements VenueConstants {
     this.refers = refers ;
   }
   
+  
   public static Item loadFrom(Session s) throws Exception {
     final int typeID = s.loadInt() ;
     if (typeID == -1) return null ;
     return new Item(ALL_ITEM_TYPES[typeID], s.loadFloat(), s.loadObject()) ;
   }
+  
   
   public static void saveTo(Session s, Item item) throws Exception {
     if (item == null) { s.saveInt(-1) ; return ; }
@@ -117,17 +159,21 @@ public class Item implements VenueConstants {
     s.saveObject(item.refers) ;
   }
   
+  
   public Item(Item item) {
     this(item.type, item.amount, item.refers) ;
   }
+  
 
   public Item(Item item, float amount) {
     this(item.type, amount, item.refers) ;
   }
   
+  
   public Item(Type type) {
     this(type, 1) ;
   }
+  
   
   public Item(Type type, float amount) {
     this(type, amount > 0 ? amount : ANY, null) ;
@@ -157,14 +203,24 @@ public class Item implements VenueConstants {
     return true ;
   }
   
+  
   public boolean matches(Item item) {
     if (item == null) return false ;
     if (amount != ANY && item.amount < this.amount) return false ;
     return matchKind(item) ;
   }
   
+  
   public boolean isMatch() {
     return amount == ANY ;
+  }
+  
+  
+  public int quality() {
+    if (refers instanceof Quality) {
+      return ((Quality) refers).level ;
+    }
+    return -1 ;
   }
   
   

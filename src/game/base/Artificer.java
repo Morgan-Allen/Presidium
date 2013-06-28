@@ -11,9 +11,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.user.BaseUI;
-import src.user.BuildingsTab;
-import src.user.Composite;
+import src.user.* ;
 
 
 
@@ -59,7 +57,7 @@ public class Artificer extends Venue implements VenueConstants {
   }
   
   
-  public Behaviour jobFor(Citizen actor) {
+  public Behaviour jobFor(Actor actor) {
     
     final Delivery d = orders.nextDelivery(actor, goods()) ;
     if (d != null) return d ;

@@ -28,7 +28,7 @@ public class MobilePathing {
   boolean closeEnough ;
   
   
-  MobilePathing(Mobile a) {
+  protected MobilePathing(Mobile a) {
     this.mobile = a ;
   }
   
@@ -70,22 +70,25 @@ public class MobilePathing {
   }
   
   
-  private void refreshPath() {
+  public boolean refreshPath() {
+    path = refreshPath(location(mobile), location(target)) ;
+    stepIndex = 0 ;
+    return path != null ;
+  }
+  
+  
+  protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
     ///I.say(mobile+" refreshing path...") ;
     if (mobile.assignedBase() == null || GameSettings.freePath) {
-      final PathingSearch search = new PathingSearch(
-        location(mobile), location(target)
-      ) ;
+      final PathingSearch search = new PathingSearch(initB, destB) ;
       //search.verbose = true ;
       search.doSearch() ;
-      path = search.fullPath(Boardable.class) ;
-      stepIndex = 0 ;
+      return search.fullPath(Boardable.class) ;
     }
     else {
-      path = mobile.assignedBase().pathingCache.getLocalPath(
-        location(mobile), location(target), MAX_PATH_SCAN * 2
+      return mobile.assignedBase().pathingCache.getLocalPath(
+        initB, destB, MAX_PATH_SCAN * 2
       ) ;
-      stepIndex = 0 ;
     }
   }
   
@@ -94,6 +97,10 @@ public class MobilePathing {
     //
     //  Firstly, check to see if the actual path target has been changed-
     this.target = target ;
+    if (target instanceof Element && Spacing.distance(mobile, target) <= 0) {
+      closeEnough = true ;
+      return ;
+    }
     final Boardable location = location(mobile), dest = location(target) ;
     ///I.say(mobile+" location: "+location+", dest: "+dest+" ("+target+")") ;
     if (location == dest) {
@@ -107,8 +114,8 @@ public class MobilePathing {
     if (nextStep() != null) for (int i = 0 ; i < MAX_PATH_SCAN ; i++) {
       final int index = stepIndex + i ;
       if (index >= path.length) break ;
-      final Target t = path[index] ;
-      if ((t instanceof Tile) && ((Tile) t).blocked()) blocked = true ;
+      final Boardable t = path[index] ;
+      if (! mobile.canEnter(t)) blocked = true ;
       else if (! t.inWorld()) blocked = true ;
       if (t == dest) nearTarget = true ;
     }
@@ -129,7 +136,7 @@ public class MobilePathing {
       pathTarget = dest ;
       refreshPath() ;
       if (path == null) {
-        I.say("COULDN'T FIND PATH TO: "+pathTarget) ;
+        ///I.say("COULDN'T FIND PATH TO: "+pathTarget) ;
         mobile.pathingAbort() ;
         stepIndex = -1 ;
         return ;

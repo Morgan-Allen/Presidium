@@ -28,7 +28,7 @@ public class TownVault extends Venue implements VenueConstants {
   ) ;
   
   List <Holding> holdings = new List <Holding> () ;
-  List <Citizen> toHouse  = new List <Citizen> () ;
+  List <Actor> toHouse  = new List <Actor> () ;
   
   
   
@@ -79,8 +79,8 @@ public class TownVault extends Venue implements VenueConstants {
     
     for (Object t : base().servicesNear(base(), this, 32)) {
       final Venue v = (Venue) t ;
-      for (Citizen citizen : v.personnel.workers()) {
-        if (citizen.home() != null) continue ;
+      for (Actor citizen : v.personnel.workers()) {
+        if (citizen.psyche.home() != null) continue ;
         I.say("Attempting to find housing for: "+citizen) ;
         Holding holding = findHousingSite(citizen, v) ;
         if (holding != null) {
@@ -88,7 +88,7 @@ public class TownVault extends Venue implements VenueConstants {
           final Tile o = holding.origin() ;
           holding.clearSurrounds() ;
           holding.enterWorldAt(o.x, o.y, world) ;
-          citizen.setHomeVenue(holding) ;
+          citizen.psyche.setHomeVenue(holding) ;
           toHouse.remove(citizen) ;
           holdings.add(holding) ;
         }
@@ -100,7 +100,7 @@ public class TownVault extends Venue implements VenueConstants {
   /**  Obtaining and rating housing sites-
     *    Consider making this static within the Holding class.
     */
-  private Holding findHousingSite(Citizen citizen, Venue works) {
+  private Holding findHousingSite(Actor citizen, Venue works) {
     
     final int maxRange = World.DEFAULT_SECTOR_SIZE ;
     final Holding holding = new Holding(base(), this) ;
@@ -141,7 +141,7 @@ public class TownVault extends Venue implements VenueConstants {
   }
   
   
-  private Vec3D idealSite(Citizen citizen, Venue works) {
+  private Vec3D idealSite(Actor citizen, Venue works) {
     Vec3D midPos = works.position(null) ;
     midPos.add(this.position(null)).scale(0.5f) ;
     return midPos ;
@@ -160,7 +160,7 @@ public class TownVault extends Venue implements VenueConstants {
 
   /**  Implementing construction, upgrades, downgrades and salvage-
     */
-  public Behaviour jobFor(Citizen actor) {
+  public Behaviour jobFor(Actor actor) {
     for (Holding h : holdings) for (Item i : h.goodsNeeded().raw) {
       final Delivery d = deliveryFor(i, h) ;
       if (d != null) return d ;

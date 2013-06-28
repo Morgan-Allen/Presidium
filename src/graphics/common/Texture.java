@@ -119,7 +119,7 @@ final public class Texture {
     //
     //  If something goes wrong, report the problem and return a blank texture-
     catch(IOException e) {
-      I.add(
+      I.say(
         "PROBLEM LOADING TEXTURE. "+pathName+" / "+alphaName
       ) ;
       ///e.printStackTrace() ;

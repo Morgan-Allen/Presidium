@@ -6,21 +6,22 @@
 
 
 package src.graphics.common ;
-import src.util.*;
-
+import src.util.* ;
 import java.nio.* ;
 import org.lwjgl.opengl.* ;
 import org.lwjgl.BufferUtils ;
 
 
+
 /**  A particular lighting state specified in terms of type, direction,
   *  intensity, specularity, etc.  Applied cumulatively to objects in a given
   *  tile.
- */
+  */
 public class Lighting {
   
+  
   final public static Vec3D
-    DEFAULT_ANGLE = new Vec3D(0.75f, 0.25f, 1.0f) ;
+    DEFAULT_ANGLE = new Vec3D(0.5f, -0.0f, 1.0f).normalise() ;
   
   
   protected float[]
@@ -32,6 +33,7 @@ public class Lighting {
     difBuffer = BufferUtils.createFloatBuffer(4),
     posBuffer = BufferUtils.createFloatBuffer(4) ;
   private float r, g, b ;
+  
   
   
   /**  Initialises this light based on expected rgb values, ambience ratio,
@@ -66,6 +68,7 @@ public class Lighting {
     ambience[3] = diffused[3] = (global) ? 0 : 1 ;
   }
   
+  
   public float r() { return r ; }
   public float g() { return g ; }
   public float b() { return b ; }
@@ -73,6 +76,7 @@ public class Lighting {
   
   final static FloatBuffer
     DARK = BufferUtils.createFloatBuffer(4) ;
+  
   
   /**  Binds this light to the GL11 light register specified (between 0 to 8).
     */
@@ -89,6 +93,7 @@ public class Lighting {
     GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, DARK) ;
   }
   
+  
   /**  Sets this Lighting to function as a directional, rather than local,
     *  light source, with the argument vector to orient itself.
     */
@@ -97,6 +102,7 @@ public class Lighting {
     place(dirVec) ;
     position[3] = 0 ;  //zero indicates a directional light.
   }
+  
   
   /**  Sets the lighting to act as a positional light of given placement, as
     *  supplied by the argument vector.

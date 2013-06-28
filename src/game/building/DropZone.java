@@ -99,7 +99,7 @@ public class DropZone extends Venue implements VenueConstants {
     return ALL_ITEM_TYPES ;
   }
   
-  public Behaviour jobFor(Citizen actor) {
+  public Behaviour jobFor(Actor actor) {
     return orders.nextDelivery(actor, goods()) ;
   }
   

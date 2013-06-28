@@ -7,113 +7,215 @@
 
 package src.game.actors ;
 import src.game.common.* ;
-//import src.game.planet.Planet;
+//import src.user.BaseUI;
 import src.util.* ;
 
+
+//  Is motion type a property of an action, or a property of health?
+//  ...I think the action makes more sense.
 
 
 public class ActorHealth implements ActorConstants {
   
   
+  
   /**  Fields, constructors, and save/load methods-
     */
   final public static int
-    MOVE_WALK  = 0,
-    MOVE_RUN   = 1,
-    MOVE_SNEAK = 2 ;
+    STATE_ACTIVE   = 0,
+    STATE_RESTING  = 1,
+    STATE_SUSPEND  = 2,
+    STATE_DEAD     = 3,
+    STATE_DECOMP   = 4 ;
+  //  TODO:  Also provide state descriptor strings.
+  final public static int
+    AGE_JUVENILE = 0,
+    AGE_ADULT    = 1,
+    AGE_MATURE   = 2,
+    AGE_SENIOR   = 3,
+    AGE_MAX      = 4 ;
+  final static String AGING_DESC[] = {
+    "Juvenile",
+    "Adult",
+    "Mature",
+    "Senior"
+  } ;
   
   final static float
     DEFAULT_PRIME    = 25,
-    DEFAULT_LIFESPAN = 60,
+    DEFAULT_LIFESPAN = 60,  //In years.
     LIFE_EXTENDS     = 0.1f,
 
     DEFAULT_HEALTH = 10,
-    MAX_INJURY  = 1.0f,
-    MAX_FATIGUE = 1.5f,
+    MAX_DIGEST = 0.2f,
+    STARVE_INTERVAL = World.DEFAULT_DAY_LENGTH * 5,
+    
+    DEFAULT_BULK  = 1.0f,
+    DEFAULT_SPEED = 1.0f,
+    DEFAULT_SIGHT = 8.0f,
+    
+    MAX_INJURY  = 1.5f,
+    MAX_FATIGUE = 1.0f,
     MAX_STRESS  = 0.5f,
     
-    DEFAULT_SIGHT_RANGE = 8 ;
-  
+    FATIGUE_GROW_PER_DAY = 10,
+    STRESS_DECAY_PER_DAY = 0.5f,
+    INJURY_REGEN_PER_DAY = 0.2f ;
   
   final Actor actor ;
-  
+
   private float
-    birthDate,
-    lifespan ;
+    baseBulk  = DEFAULT_BULK,
+    baseSpeed = DEFAULT_SPEED,
+    baseSight = DEFAULT_SIGHT ;
+  
+  //  Age and lifespan are in years.
+  private float
+    lifespan    = DEFAULT_LIFESPAN,
+    currentAge  = 0,
+    lifeExtend  = 0,
+    calories    = DEFAULT_HEALTH / 2,
+    nutrition   = 0.5f,
+    ageMultiple = 1.0f ;
   
   private float
     maxHealth = DEFAULT_HEALTH,
-    injury,  //Add bleeding.
-    fatigue, //Add sleep.
-    stress ; //Add life-satisfaction.
-  private float
-    energy,
-    nutrition,
-    bulk ;
-  private boolean
-    isDead = false ;
+    injury    = 0,  //Add bleeding.
+    fatigue   = 0,  //Add sleep.
+    stress    = 0 ; //Add life-satisfaction.
   
   private int
-    moveType = MOVE_WALK ;
-  private float
-    baseSpeed = 1,
-    sightRange = 1 ;
+    state    = STATE_ACTIVE ;
   
   
   
   ActorHealth(Actor actor) {
     this.actor = actor ;
-    //  These are defaults I'm using for now.  Will be more individualised
-    //  later.  TODO:  THAT
-    birthDate = 0 - DEFAULT_PRIME ;
-    lifespan = DEFAULT_LIFESPAN * (1 + Rand.range(0, LIFE_EXTENDS)) ;
   }
   
   
   void loadState(Session s) throws Exception {
-    birthDate = s.loadFloat() ;
-    lifespan = s.loadFloat() ;
+    baseBulk = s.loadFloat() ;
+    baseSpeed = s.loadFloat() ;
+    baseSight = s.loadFloat() ;
     
+    lifespan = s.loadFloat() ;
+    currentAge = s.loadFloat() ;
+    lifeExtend = s.loadFloat() ;
+    calories = s.loadFloat() ;
+    nutrition = s.loadFloat() ;
+    ageMultiple = s.loadFloat() ;
+    
+    maxHealth = s.loadFloat() ;
     injury  = s.loadFloat() ;
     fatigue = s.loadFloat() ;
     stress  = s.loadFloat() ;
     
-    moveType = s.loadInt() ;
-    baseSpeed = s.loadFloat() ;
+    ///moveType = s.loadInt() ;
+    state = s.loadInt() ;
   }
   
   
   void saveState(Session s) throws Exception {
-    s.saveFloat(birthDate) ;
-    s.saveFloat(lifespan) ;
+    s.saveFloat(baseBulk ) ;
+    s.saveFloat(baseSpeed) ;
+    s.saveFloat(baseSight) ;
     
+    s.saveFloat(lifespan) ;
+    s.saveFloat(currentAge) ;
+    s.saveFloat(lifeExtend) ;
+    s.saveFloat(calories) ;
+    s.saveFloat(nutrition) ;
+    s.saveFloat(ageMultiple) ;
+    
+    s.saveFloat(maxHealth) ;
     s.saveFloat(injury ) ;
     s.saveFloat(fatigue) ;
     s.saveFloat(stress ) ;
     
-    s.saveInt(moveType) ;
-    s.saveFloat(baseSpeed) ;
+    ///s.saveInt(moveType) ;
+    s.saveInt(state) ;
   }
+  
+  
+  
+  /**  Supplementary setup/calibration methods-
+    */
+  public void initStats(
+    int lifespan,
+    float baseBulk,
+    float baseSight,
+    float baseSpeed
+  ) {
+    this.lifespan = lifespan ;
+    this.baseBulk  = baseBulk  * DEFAULT_BULK  ;
+    this.baseSight = baseSight * DEFAULT_SIGHT ;
+    this.baseSpeed = baseSpeed * DEFAULT_SPEED ;
+    ///I.say(actor+" has base bulk: "+baseBulk) ;
+  }
+  
+  
+  public void setupHealth(
+    float currentAge,
+    float overallHealth,
+    float accidentChance
+  ) {
+    this.currentAge = lifespan * currentAge ;
+    updateHealth(-1) ;
+    
+    calories = ((Rand.num() + 0.1f) * overallHealth) * maxHealth ;
+    calories = Visit.clamp(calories, 0, maxHealth) ;
+    nutrition = Rand.num() * overallHealth * 2 ;
+    nutrition = Visit.clamp(nutrition, 0, 1) ;
+    
+    fatigue = Rand.num() * (1 - (calories / maxHealth)) * maxHealth ;
+    stress = Rand.num() * accidentChance * maxHealth / 2f ;
+    injury = Rand.num() * accidentChance * maxHealth / 2f ;
+  }
+  
   
   
   /**  Methods related to growth, reproduction, aging and death.
     */
   public void takeSustenance(float amount, float quality) {
-    final float MAX_ENERGY = 10, MAX_INTAKE = 1 ;
-    amount = Visit.clamp(amount, 0, MAX_INTAKE) ;
-    amount = Visit.clamp(amount, 0, MAX_ENERGY - energy) ;
-    nutrition = (nutrition * (energy / MAX_ENERGY)) + (quality * amount) ;
-    energy += amount ;
+    amount = Visit.clamp(amount, 0, (maxHealth * (1 + MAX_DIGEST)) - calories) ;
+    nutrition = (nutrition * (calories / maxHealth)) + (quality * amount) ;
+    calories += amount ;
   }
   
   
   public int agingStage() {
-    return 1 ;
-    /*
-    final float time = actor.world().currentTime() / World.DEFAULT_YEAR_LENGTH ;
-    final float age = (time - birthDate) / lifespan ;
-    return (int) (age * 4) ;
-    //*/
+    final float age = currentAge * 1f / lifespan ;
+    ///I.say("Current age "+currentAge+", relative: "+age) ;
+    return Visit.clamp((int) (age * 4), 4) ;
+  }
+  
+  
+  public String agingDesc() {
+    return AGING_DESC[agingStage()] ;
+  }
+  
+  
+  private float calcAgeMultiple() {
+    final float stage = agingStage() ;
+    if (actor.species() != null) {  //Make this more precise.  Use Traits.
+      return 0.5f + (stage * 0.25f) ;
+    }
+    if (stage == 0) return 0.70f ;
+    if (stage == 1) return 1.00f ;
+    if (stage == 2) return 0.85f ;
+    if (stage == 3) return 0.65f ;
+    return -1 ;
+  }
+  
+  
+  public float ageMultiple() {
+    return ageMultiple ;
+  }
+  
+  
+  public float energyLevel() {
+    return calories / maxHealth ;
   }
   
   
@@ -122,28 +224,15 @@ public class ActorHealth implements ActorConstants {
     */
   public float moveRate() {
     float rate = baseSpeed ;
-    //  You also have to account for the effects of fatigue and encumbrance...
-    switch (moveType) {
-      case (MOVE_SNEAK) : rate *= 0.50f ; break ;
-      case (MOVE_WALK ) : rate *= 1.25f ; break ;
-      case (MOVE_RUN  ) : rate *= 2.00f ; break ;
-    }
-    final int pathType = actor.origin().pathType() ;
-    switch (pathType) {
-      case (Tile.PATH_HINDERS) : rate *= 0.8f ; break ;
-      case (Tile.PATH_CLEAR  ) : rate *= 1.0f ; break ;
-      case (Tile.PATH_ROAD   ) : rate *= 1.2f ; break ;
-    }
-    return rate ;
+    return rate * (float) Math.sqrt(ageMultiple) ;
   }
   
-  
-  public int moveType() { return moveType ; }
+  ///public int moveType() { return moveType ; }
   
   
   public int sightRange() {
-    final float range = 1 + (actor.traits.level(SURVEILLANCE) / 20f) ;
-    return (int) (sightRange * range * DEFAULT_SIGHT_RANGE) ;
+    final float range = 1 + (actor.traits.trueLevel(SURVEILLANCE) / 20f) ;
+    return (int) (baseSight * range * (float) Math.sqrt(ageMultiple)) ;
   }
   
   
@@ -151,9 +240,24 @@ public class ActorHealth implements ActorConstants {
   /**  Modifying and querying stress factors-
     */
   public void takeInjury(float taken) {
-    injury += taken ;
+    ///I.say(actor+" taking "+taken+" injury, prior total: "+injury) ;
     final float max = maxHealth * MAX_INJURY ;
-    if (injury > max) injury = max ;
+    if (injury >= max) {
+      injury += taken ;
+      /*
+      if (injury > max * 2) {
+        injury = max * 2 ;
+      }
+      //*/
+    }
+    else {
+      injury += taken ;
+      if (injury > max) {
+        injury = max ;
+      }
+      //  TODO:  Begin bleeding?
+    }
+    ///I.say("Subsequent ttotal: "+injury) ;
   }
   
   
@@ -163,8 +267,8 @@ public class ActorHealth implements ActorConstants {
   }
   
   
-  public float injury() {
-    return injury ;
+  public float injuryLevel() {
+    return injury / (maxHealth * MAX_INJURY) ;
   }
   
   
@@ -181,8 +285,8 @@ public class ActorHealth implements ActorConstants {
   }
   
   
-  public float fatigue() {
-    return fatigue ;
+  public float fatigueLevel() {
+    return fatigue / (maxHealth * MAX_FATIGUE) ;
   }
   
   
@@ -199,42 +303,139 @@ public class ActorHealth implements ActorConstants {
   }
   
   
-  public float stress() {
-    return stress ;
+  public float stressLevel() {
+    return stress / (maxHealth * MAX_STRESS) ;
   }
   
   
   public boolean conscious() {
-    return skillPenalty() < 1 ;
+    return state == STATE_ACTIVE ;
+  }
+  
+  
+  public boolean isDead() {
+    return state == STATE_DEAD ;
+  }
+  
+  
+  public boolean decomposed() {
+    return state == STATE_DECOMP ;
   }
   
   
   public float skillPenalty() {
     float sum = Visit.clamp((stress + fatigue + injury) / maxHealth, 0, 1) ;
-    return sum * sum ;
+    final float hunger = 1 - (calories / maxHealth) ;
+    if (hunger > 0.5f) sum += hunger - 0.5f ;
+    return Visit.clamp((sum * sum) - 0.5f, 0, 1) ;
+  }
+  
+  
+  public void setState(int state) {
+    this.state = state ;
+  }
+  
+  
+  public float maxHealth() {
+    return maxHealth ;
   }
   
   
   void updateHealth(int numUpdates) {
-    maxHealth = DEFAULT_HEALTH +
-      (actor.traits.level(VIGOUR) / 2f) +
-      (actor.traits.level(BRAWN ) / 2f) ;
     //
-    //  Decrease energy.  If you have some left, alleviate injury, fatigue and
-    //  stress.
+    //  Define primary attributes-
+    ageMultiple = calcAgeMultiple() ;
+    maxHealth = baseBulk * ageMultiple * (DEFAULT_HEALTH +
+      (actor.traits.trueLevel(VIGOUR) / 3f) +
+      (actor.traits.trueLevel(BRAWN ) / 3f)
+    ) ;
+    if (numUpdates < 0) {
+      ///I.say(actor+" has max. health: "+maxHealth+" AM: "+ageMultiple) ;
+      return ;
+    }
+    //
+    //  Deal with injury, fatigue and stress.
+    final int oldState = state ;
+    checkStateChange() ;
+    updateStresses() ;
+    //
+    //  Once per day, advance the organism's current age and check for disease
+    //  or sudden death due to senescence.
+    if ((numUpdates + 1) % World.DEFAULT_DAY_LENGTH == 0) {
+      advanceAge() ;
+    }
+    if (oldState != state && state == STATE_DEAD) actor.enterStateKO() ;
   }
   
   
-  /*
-  void updateOnGrowth() {
+  private void checkStateChange() {
     //
-    //  Check for disease.  Try healing injury.
-    //  If you have enough food, convert some of it into growth.
-    //  If you've reached maximum size, convert growth into offspring (for
-    //  animals.)
-    //  ...Also, check for aging.
+    //  Check for state effects-
+    if (state == STATE_SUSPEND) return ;
+    if (state == STATE_DEAD) {
+      injury++ ;
+      if (injury > maxHealth * MAX_INJURY * 2) {
+        state = STATE_DECOMP ;
+      }
+      return ;
+    }
+    if (fatigue + injury >= maxHealth) {
+      state = STATE_RESTING ;
+    }
+    if (injury >= maxHealth * MAX_INJURY) {
+      I.say(actor+" has died of injury.") ;
+      state = STATE_DEAD ;
+    }
+    //
+    //  Deplete your current calories stockpile-
+    calories -= (1f * maxHealth) / STARVE_INTERVAL ;
+    calories = Visit.clamp(calories, 0, maxHealth) ;
+    if (calories <= 0) {
+      I.say(actor+" has died of hunger.") ;
+      state = STATE_DEAD ;
+    }
   }
-  //*/
+  
+  
+  private void updateStresses() {
+    if (state >= STATE_SUSPEND) return ;
+    final float DL = World.DEFAULT_DAY_LENGTH ;
+    float SM = 1, FM = 1, IM = 1 ;
+    if (state == STATE_RESTING) {
+      if (fatigue <= 0) state = STATE_ACTIVE ;
+      FM = 2 ;
+      IM = 2 ;
+      SM = 2 ;
+    }
+    else if (state == STATE_ACTIVE) {
+      IM = -1 ;
+    }
+    fatigue -= FATIGUE_GROW_PER_DAY * FM / DL ;
+    stress *= (1 - (STRESS_DECAY_PER_DAY * SM / DL)) ;
+    injury -= INJURY_REGEN_PER_DAY * IM / DL ;
+    fatigue = Visit.clamp(fatigue, 0, MAX_FATIGUE) ;
+    stress  = Visit.clamp(stress , 0, MAX_STRESS ) ;
+    injury  = Visit.clamp(injury , 0, MAX_INJURY ) ;
+    
+    actor.traits.setLevel(INJURY , injury  * INJURY .maxVal / MAX_INJURY ) ;
+    actor.traits.setLevel(FATIGUE, fatigue * FATIGUE.maxVal / MAX_FATIGUE) ;
+    actor.traits.setLevel(STRESS , stress  * STRESS .maxVal / MAX_STRESS ) ;
+  }
+  
+  
+  private void advanceAge() {
+    currentAge += World.DEFAULT_DAY_LENGTH * 1f / World.DEFAULT_YEAR_LENGTH ;
+    if (currentAge > lifespan * (1 + (lifeExtend / 10))) {
+      float deathDC = ROUTINE_DC * (1 + lifeExtend) ;
+      if (actor.traits.test(VIGOUR, deathDC, 0)) {
+        lifeExtend++ ;
+      }
+      else {
+        I.say(actor+" has died of old age.") ;
+        state = STATE_DEAD ;
+      }
+    }
+  }
 }
 
 

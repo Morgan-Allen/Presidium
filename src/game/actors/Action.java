@@ -20,16 +20,24 @@ public class Action implements Behaviour, Model.AnimNames {
   
   /**  Field definitions, constants and constructors-
     */
+  final public static int
+    QUICK   = 1,
+    CAREFUL = 2,
+    STEADY  = 4 ;
+  
   final public Actor actor ;
   final Session.Saveable basis ;
   final Method toCall ;
-  private float priority ;
   
+  private float priority ;
+
+  private int properties ;
   private byte inRange = -1 ;
   private Target actionTarget, moveTarget ;
+  private float progress, oldProgress ;
   
-  private float progress, oldProgress, duration ;
   final String animName, description ;
+  
   
   
   public Action(
@@ -44,7 +52,7 @@ public class Action implements Behaviour, Model.AnimNames {
     this.toCall = namedMethodFor(basis, methodName) ;
     this.priority = ROUTINE ;
     this.actionTarget = this.moveTarget = target ;
-    this.duration = 1.0f ;
+    //this.duration = 1.0f ;
     this.animName = animName ;
     this.description = description ;
   }
@@ -58,13 +66,14 @@ public class Action implements Behaviour, Model.AnimNames {
     toCall = namedMethodFor(basis, s.loadString()) ;
     priority = s.loadFloat() ;
     
+    properties = s.loadInt() ;
     inRange = (byte) s.loadInt() ;
     actionTarget = s.loadTarget() ;
     moveTarget = s.loadTarget() ;
     
     progress = s.loadFloat() ;
     oldProgress = s.loadFloat() ;
-    duration = s.loadFloat() ;
+    ///duration = s.loadFloat() ;
     animName = s.loadString() ;
     description = s.loadString() ;
   }
@@ -77,13 +86,14 @@ public class Action implements Behaviour, Model.AnimNames {
     s.saveString(toCall.getName()) ;
     s.saveFloat(priority) ;
     
+    s.saveInt(properties) ;
     s.saveInt(inRange) ;
     s.saveTarget(actionTarget) ;
     s.saveTarget(moveTarget) ;
     
     s.saveFloat(progress) ;
     s.saveFloat(oldProgress) ;
-    s.saveFloat(duration) ;
+    ///s.saveFloat(duration) ;
     s.saveString(animName) ;
     s.saveString(description) ;
   }
@@ -101,11 +111,16 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
+  public void setProperties(int p) {
+    this.properties = p ;
+  }
+  
+  /*
   public void setDuration(float d) {
     if (d <= 0) I.complain("DURATION MUST BE POSITIVE.") ;
     this.duration = d ;
   }
-  
+  //*/
   
   public Target target() {
     return actionTarget ;
@@ -144,17 +159,52 @@ public class Action implements Behaviour, Model.AnimNames {
   public void abortStep() {
     progress = -1 ;
     inRange = -1 ;
-    actor.cancelBehaviour(this) ;
+    actor.psyche.cancelBehaviour(this) ;
   }
   
   
 
   /**  Actual execution of associated behaviour-
     */
+  protected float duration() {
+    float duration = 1 ;
+    if ((properties & QUICK) != 0) duration /= 2 ;
+    if ((properties & CAREFUL) != 0) duration *= 2 ;
+    return duration ;
+  }
+  
+  
+  protected float moveRate() {
+    float rate = actor.health.moveRate() ;
+    //  You also have to account for the effects of fatigue and encumbrance...
+    if ((properties & QUICK  ) != 0) rate *= 2 ;
+    if ((properties & CAREFUL) != 0) rate /= 2 ;
+    /*
+    switch (moveType) {
+      case (MOVE_SNEAK) : rate *= 0.50f ; break ;
+      case (MOVE_WALK ) : rate *= 1.25f ; break ;
+      case (MOVE_RUN  ) : rate *= 2.00f ; break ;
+    }
+    //*/
+    final int pathType = actor.origin().pathType() ;
+    switch (pathType) {
+      case (Tile.PATH_HINDERS) : rate *= 0.8f ; break ;
+      case (Tile.PATH_CLEAR  ) : rate *= 1.0f ; break ;
+      case (Tile.PATH_ROAD   ) : rate *= 1.2f ; break ;
+    }
+    return rate ;
+  }
+  
+  
   protected float progressPerUpdate() {
-    if (inRange == 1) return 1f / (duration * PlayLoop.UPDATES_PER_SECOND) ;
+    if (inRange == 1) {
+      return 1f / (duration() * PlayLoop.UPDATES_PER_SECOND) ;
+    }
     if (inRange == 0) {
-      return actor.health.moveRate() / PlayLoop.UPDATES_PER_SECOND ;
+      return
+        actor.health.moveRate() *
+        actor.moveAnimStride() /
+        PlayLoop.UPDATES_PER_SECOND ;
     }
     return 0 ;
   }
@@ -199,6 +249,7 @@ public class Action implements Behaviour, Model.AnimNames {
     //  behaviour.
     if (actor.pathing.closeEnough()) {
       progress = Visit.clamp(progress, 0, 1) ;
+      final float duration = duration() ;
       final float contact = (duration - 0.5f) / duration ;
       if (oldProgress <= contact && progress > contact) try {
         toCall.invoke(basis, actor, actionTarget) ;
@@ -220,7 +271,7 @@ public class Action implements Behaviour, Model.AnimNames {
   > actionMethods = new Table <
     Class <? extends Object>,
     Table <String, Method>
-  > (100) ;
+  > (1000) ;
   
   
   private static Method namedMethodFor(Object plans, String methodName) {
@@ -253,15 +304,14 @@ public class Action implements Behaviour, Model.AnimNames {
   
   
   String animName() {
-    ///I.say("In range? "+inRange) ;
-    if (inRange == 1) return animName ;
-    if (inRange == 0) {
-      final int moveType = actor.health.moveType() ;
-      if (moveType == ActorHealth.MOVE_WALK ) return MOVE       ;
-      if (moveType == ActorHealth.MOVE_RUN  ) return MOVE_FAST  ;
-      if (moveType == ActorHealth.MOVE_SNEAK) return MOVE_SNEAK ;
+    if (inRange == 1) {
+      return animName ;
     }
-    return STAND ;
+    else {
+      if ((properties & QUICK  ) != 0) return MOVE_FAST  ;
+      if ((properties & CAREFUL) != 0) return MOVE_SNEAK ;
+      return MOVE ;
+    }
   }
   
   

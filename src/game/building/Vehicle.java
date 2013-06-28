@@ -7,6 +7,7 @@
 
 package src.game.building ;
 import src.game.actors.* ;
+import src.game.base.* ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.user.* ;
@@ -19,7 +20,7 @@ import src.util.* ;
 
 
 public abstract class Vehicle extends Mobile implements
-  Boardable, Inventory.Owner, Citizen.Employment
+  Boardable, Inventory.Owner, CitizenPsyche.Employment
 {
   
   
@@ -27,7 +28,7 @@ public abstract class Vehicle extends Mobile implements
     */
   final public Inventory cargo = new Inventory(this) ;
   final protected List <Mobile> inside = new List <Mobile> () ;
-  final protected List <Citizen> crew = new List <Citizen> () ;
+  final protected List <Actor> crew = new List <Actor> () ;
   
   protected Venue dropPoint ;
   protected float entranceFace = Venue.ENTRANCE_NONE ;
@@ -65,18 +66,18 @@ public abstract class Vehicle extends Mobile implements
   
   /**  Assigning jobs to crew members-
     */
-  public Behaviour jobFor(Citizen actor) {
+  public Behaviour jobFor(Actor actor) {
     return null ;
   }
   
   
-  public void setWorker(Citizen actor, boolean is) {
+  public void setWorker(Actor actor, boolean is) {
     if (is) crew.include(actor) ;
     else crew.remove(actor) ;
   }
   
   
-  public List <Citizen> crew() {
+  public List <Actor> crew() {
     return crew ;
   }
   

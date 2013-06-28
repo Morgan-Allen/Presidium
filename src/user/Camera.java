@@ -106,14 +106,14 @@ public class Camera {
     //
     //  Ascertain the difference between the current camera position and the
     //  the target's position.
-    //final Vec3D lockOff = new Vec3D().set(lockX, lockY, 0) ;
-    //port.flatToIso(lockOff).scale(-1f / port.screenScale()) ;
+    final Vec3D lockOff = new Vec3D().set(lockX, lockY, 0) ;
+    port.flatToIso(lockOff).scale(-1f / port.screenScale()) ;
     final Vec3D
       lockPos = (lockTarget instanceof Element) ?
         ((Element) lockTarget).viewPosition(null) :
         lockTarget.position(null),
       viewPos = port.cameraPosition,
-      targPos = new Vec3D().setTo(lockPos),//.add(lockOff),
+      targPos = new Vec3D().setTo(lockPos).add(lockOff),
       displace = targPos.sub(viewPos, new Vec3D()) ;
     final float distance = displace.length() ;
     //

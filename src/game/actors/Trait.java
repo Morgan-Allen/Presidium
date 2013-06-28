@@ -54,18 +54,17 @@ public class Trait implements ActorConstants {
     this.descValues = new int[descriptors.length] ;
     
     int zeroIndex = 0, min = 100, max = 0, val ;
-    for (String s : descriptors) {
-      if (s == null) break ;
-      else zeroIndex++ ;
-    }
+    for (String s : descriptors) { if (s == null) break ; else zeroIndex++ ; }
     for (int i = descriptors.length ; i-- > 0 ;) {
-      val = descValues[i] = descriptors.length - (i + zeroIndex + 1) ;
+      val = descValues[i] = zeroIndex - i ;
+      
+      //val = descValues[i] = descriptors.length - (i + zeroIndex + 1) ;
       if (val > max) max = val ;
       if (val < min) min = val ;
     }
     this.minVal = min ;
     this.maxVal = max ;
-
+    ///I.say("Min/max: "+min+"/"+max+" for "+descriptors[0]) ;
     traitsSoFar.add(this) ;
     allTraits.add(this) ;
   }

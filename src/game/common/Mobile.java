@@ -8,6 +8,7 @@
 package src.game.common ;
 import src.game.building.* ;
 import src.graphics.common.* ;
+import src.user.BaseUI;
 import src.user.Selectable ;
 import src.util.* ;
 
@@ -81,26 +82,25 @@ public abstract class Mobile extends Element
    */
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
-    ///I.say("mobile entering world at: "+x+" "+y) ;
+    ///I.say(this+" entering world at: "+x+" "+y) ;
     world().schedule.scheduleForUpdates(this) ;
     origin().setInside(this, true) ;
     world().toggleActive(this, true) ;
-    ///onTileChange(null, origin()) ;
   }
-  
-  void setEntry(ListEntry <Mobile> e) { entry = e ; }
   
   
   public void exitWorld() {
-    world().toggleActive(this, false) ;
-    origin().setInside(this, false) ;
     world.toggleActive(this, false) ;
+    origin().setInside(this, false) ;
     if (aboard != null) aboard.setInside(this, false) ;
     world().schedule.unschedule(this) ;
-    ///onTileChange(origin(), null) ;
-    ///I.say("mobile exiting world...") ;
+    ///I.say(this+" exiting world...") ;
     super.exitWorld() ;
   }
+  
+  
+  void setEntry(ListEntry <Mobile> e) { entry = e ; }
+  
   
   ListEntry <Mobile> entry() { return entry ; }
   
@@ -136,7 +136,6 @@ public abstract class Mobile extends Element
   
   
   public void setHeading(Target target, float speed) {
-    ///I.say("Projecting motion toward: "+target) ;
     //
     //  Determine the appropriate offset and angle for this target-
     final Vec3D p = target.position(null) ;
@@ -145,12 +144,20 @@ public abstract class Mobile extends Element
       p.y - position.y
     ) ;
     final float dist = disp.length() ;
-    final float angle = dist == 0 ? 0 : disp.normalise().toAngle() ;
-    //facing.setTo(disp) ;
+    float angle = dist == 0 ? 0 : disp.normalise().toAngle() ;
+    float moveRate = speed / PlayLoop.UPDATES_PER_SECOND ;
     //
-    //  Determine how far one can move this update.  (Later on, this might need
-    //  doing for rotation as well?)
-    final float moveRate = speed / PlayLoop.UPDATES_PER_SECOND ;
+    //  Determine how far one can move this update, including limits on
+    //  maximum rotation-
+    final float maxRotate = speed * 90 / PlayLoop.UPDATES_PER_SECOND ;
+    final float
+      angleDif = Vec2D.degreeDif(angle, rotation),
+      absDif   = Math.abs(angleDif) ;
+    if (absDif > maxRotate) {
+      angle = rotation + (maxRotate * (angleDif > 0 ? 1 : -1)) ;
+      angle = (angle + 360) % 360 ;
+      moveRate *= (180 - absDif) / 180 ;
+    }
     disp.scale(Math.min(moveRate, dist)) ;
     disp.x += position.x ;
     disp.y += position.y ;
@@ -171,7 +178,7 @@ public abstract class Mobile extends Element
       }
     }
     if (boarding == null) {
-      if ((speed <= 0) || checkTileClear(comingTile)) {
+      if ((speed <= 0) || canEnter(comingTile)) {
         boarding = comingTile ;
       }
     }
@@ -189,6 +196,7 @@ public abstract class Mobile extends Element
     }
     if (boarding == null || boarding instanceof Tile) {
       nextPosition.z = world.terrain().trueHeight(disp.x, disp.y) ;
+      nextPosition.z += aboveGroundHeight() ;
     }
     else nextPosition.z = boarding.position(p).z ;
     //*/
@@ -196,11 +204,18 @@ public abstract class Mobile extends Element
   
   
   protected void updateAsMobile() {
-    
     final Tile
       oldTile = origin(),
       newTile = world().tileAt(nextPosition.x, nextPosition.y) ;
-    if (oldTile != newTile) onTileChange(oldTile, newTile) ;
+    /*
+    if (BaseUI.isPicked(this)) {
+      I.say("Updating mobile- "+this) ;
+      I.say("  Aboard: "+aboard) ;
+      I.say("  Boarding: "+boarding) ;
+      I.say("  Old/new position: "+position+"/"+nextPosition) ;
+      I.say("  Origin: "+origin()) ;
+    }
+    //*/
     //
     //  ...There's a problem here.  You need to have some kind of emergency
     //  fallback in the event that you can't follow your specified path.
@@ -216,11 +231,14 @@ public abstract class Mobile extends Element
     }
     position.setTo(nextPosition) ;
     rotation = nextRotation ;
+    super.setPosition(position.x, position.y, world) ;
+    if (oldTile != newTile) onTileChange(oldTile, newTile) ;
   }
   
   
-  protected boolean checkTileClear(Tile t) {
-    return ! t.blocked() ;
+  public boolean canEnter(Boardable t) {
+    if (t instanceof Tile) return ! ((Tile) t).blocked() ;
+    return true ;
   }
   
   
@@ -230,7 +248,9 @@ public abstract class Mobile extends Element
   }
   
   
-  protected void onMotionBlock(Tile t) {}
+  protected void onMotionBlock(Tile t) {
+    pathingAbort() ;
+  }
   
   
   public abstract void pathingAbort() ;
@@ -244,6 +264,11 @@ public abstract class Mobile extends Element
   }
   
   
+  protected float aboveGroundHeight() {
+    return 0 ;
+  }
+  
+  
   
   /**  Rendering and interface methods-
     */
@@ -252,7 +277,7 @@ public abstract class Mobile extends Element
     final float alpha = PlayLoop.frameTime() ;
     v.setTo(position).scale(1 - alpha) ;
     v.add(nextPosition, alpha, v) ;
-    v.z += height() ;
+    ///v.z += height() + moveAnimHeight() ;
     return v ;
   }
   
@@ -262,6 +287,7 @@ public abstract class Mobile extends Element
     final float alpha = PlayLoop.frameTime() ;
     s.position.setTo(position).scale(1 - alpha) ;
     s.position.add(nextPosition, alpha, s.position) ;
+    ///s.position.z += moveAnimHeight() ;
     final float rotateChange = Vec2D.degreeDif(nextRotation, rotation) ;
     s.rotation = (rotation + (rotateChange * alpha) + 360) % 360 ;
     ///I.say("sprite position/rotation: "+s.position+" "+s.rotation) ;

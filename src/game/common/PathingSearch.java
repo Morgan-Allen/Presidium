@@ -21,11 +21,11 @@ public class PathingSearch extends Search <Boardable> {
     */
   final protected Boardable destination ;
   private Target aimPoint = null ;
-  private Boardable batch[] = new Boardable[8] ;
   private Mobile client = null ;
   
   private Boardable closest ;
   private float closestDist ;
+  private Boardable batch[] = new Boardable[8] ;
   //  TODO:  Incorporate the Places-search constraint code here?
   
   

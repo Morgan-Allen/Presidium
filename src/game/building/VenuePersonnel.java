@@ -6,6 +6,7 @@
 
 
 package src.game.building ;
+import src.game.base.* ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.util.* ;
@@ -15,14 +16,12 @@ import src.util.* ;
 public class VenuePersonnel {
   
   
-  
-  /**
-    * Fields, constructors, and save/load methods-
+  /**  Fields, constructors, and save/load methods-
     */
   final Venue venue ;
-  final List <Citizen>
-    workers   = new List <Citizen> (),
-    residents = new List <Citizen> () ;
+  final List <Actor>
+    workers   = new List <Actor> (),
+    residents = new List <Actor> () ;
   
   
   VenuePersonnel(Venue venue) {
@@ -42,12 +41,12 @@ public class VenuePersonnel {
   }
   
   
-  public List<Citizen> workers() {
+  public List <Actor> workers() {
     return workers ;
   }
   
   
-  public List<Citizen> residents() {
+  public List <Actor> residents() {
     return residents ;
   }
   
@@ -65,18 +64,18 @@ public class VenuePersonnel {
   
   
   protected void onWorldExit() {
-    for (Citizen c : workers()) c.removeEmployer(venue) ;
-    for (Citizen c : residents()) c.setHomeVenue(null) ;
+    for (Actor c : workers()) c.psyche.setEmployer(null) ;
+    for (Actor c : residents()) c.psyche.setHomeVenue(null) ;
   }
   
   
-  public void setWorker(Citizen c, boolean is) {
+  public void setWorker(Actor c, boolean is) {
     if (is) workers.include(c) ;
     else workers.remove(c) ;
   }
   
   
-  public void setResident(Citizen c, boolean is) {
+  public void setResident(Actor c, boolean is) {
     if (is) residents.include(c) ;
     else residents.include(c) ;
   }
@@ -86,24 +85,20 @@ public class VenuePersonnel {
     //
     // You also need to determine the worker's home planet environment, full
     // name, and maybe links to family or one or two past career events.
-    final Citizen citizen = new Citizen(v, venue.base()) ;
-    citizen.addEmployer(venue) ;
-    // citizen.setWorkVenue(venue) ;
+    final Career career = new Career(v) ;
+    final Human citizen = new Human(career, venue.base()) ;
+    citizen.psyche.setEmployer(venue) ;
     if (GameSettings.hireFree) {
       final Tile t = venue.mainEntrance() ;
       citizen.enterWorldAt(t.x, t.y, venue.world()) ;
     }
     else venue.base.offworld.addImmigrant(citizen) ;
-    // final Tile t = venue.entrances()[0] ;
-    // citizen.enterWorldAt(t.x, t.y, venue.world()) ;
-    // I.say("Recruited "+citizen+" at: "+t) ;
-    // ((BaseUI) PlayLoop.currentUI()).setSelection(citizen) ;
   }
   
   
   public int numPositions(Vocation... match) {
-    int num = 0 ; for (Citizen c : workers) {
-      for (Vocation v : match) if (c.career.vocation() == v) num++ ;
+    int num = 0 ; for (Actor c : workers) {
+      for (Vocation v : match) if (c.vocation() == v) num++ ;
     }
     return num ;
   }

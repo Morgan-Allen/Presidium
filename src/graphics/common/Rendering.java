@@ -6,6 +6,7 @@
 
 package src.graphics.common ;
 import org.lwjgl.opengl.* ;
+
 import src.util.* ;
 import src.graphics.widgets.HUD ;
 
@@ -59,11 +60,10 @@ public class Rendering {
     port = new Viewport() ;
     lighting = new Lighting() ;
     lighting.setup(1.0f, 1.0f, 1.0f, true, true) ;
-    //lighting.setup(1.0f, 0.95f, 0.85f, true, true) ;
-    lighting.direct(Lighting.DEFAULT_ANGLE) ;
+    lighting.direct(Lighting.DEFAULT_ANGLE.normalise()) ;
   }
   
-
+  
   /**  A generalised interface for stuff that wants to be rendered-
     */
   void initSettings() {
@@ -74,10 +74,12 @@ public class Rendering {
     GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY) ;
     GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY) ;
     
+    GL11.glEnable(GL11.GL_NORMALIZE) ;  //  IF MISSING, COLOURS ARE TOO BRIGHT.
     GL11.glEnable(GL11.GL_DEPTH_TEST) ;
     GL11.glDepthFunc(GL11.GL_LEQUAL)  ;
     GL11.glDepthMask(true) ;
     GL11.glEnable(GL11.GL_CULL_FACE)  ;
+    GL11.glCullFace(GL11.GL_BACK) ;
     
     GL11.glEnable(GL11.GL_BLEND) ;
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA) ;
@@ -146,7 +148,6 @@ public class Rendering {
     for (Client client : clients) {
       GL11.glColor4f(1, 1, 1, 1) ;
       GL11.glMatrixMode(GL11.GL_MODELVIEW) ;
-      //GL11.glEnable(GL11.GL_LIGHTING) ;
       final int disabled[] = client.GL_disables() ;
       if (disabled != null) for (int d : disabled) GL11.glDisable(d) ;
       client.renderTo(this) ;

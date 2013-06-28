@@ -108,7 +108,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   }
   
   
-  public Behaviour jobFor(Citizen actor) {
+  public Behaviour jobFor(Actor actor) {
     ///I.say("dropship getting job for: "+actor) ;
     if (stage == STAGE_BOARDING) {
       final Action boardAction = new Action(
@@ -141,7 +141,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   public boolean allBoarded() {
     boolean all = true ;
-    for (Citizen c : crew) {
+    for (Actor c : crew) {
       if (c.aboard() != this && c.aboard() != dropPoint) all = false ;
     }
     return all ;
@@ -258,7 +258,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     }
   }
   
-  protected boolean checkTileClear(Tile t) {
+  protected boolean checkEnter(Tile t) {
     return true ;
   }
   

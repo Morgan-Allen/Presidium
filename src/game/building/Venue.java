@@ -7,6 +7,7 @@
 
 package src.game.building ;
 import src.game.actors.* ;
+import src.game.base.* ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.* ;
@@ -15,13 +16,9 @@ import src.util.* ;
 
 
 
-//
-//  Get rid of the entrances() and isEntrance() methods.  Just use the
-//  Boardable interface and equivalents within.
-
 public abstract class Venue extends Fixture implements
   Schedule.Updates, Boardable, Installation,
-  Inventory.Owner, Citizen.Employment,// Paving.Hub,
+  Inventory.Owner, CitizenPsyche.Employment,
   Selectable
 {
   
@@ -244,22 +241,17 @@ public abstract class Venue extends Fixture implements
     }
   }
   
-  /*
-  public boolean usesRoads() {
-    return true ;
-  }
-  //*/
   
   
-
   /**  Recruiting staff and assigning manufacturing tasks-
     */
-  public void setWorker(Citizen actor, boolean is) {
+  public void setWorker(Actor actor, boolean is) {
     personnel.setWorker(actor, is) ;
   }
   
   protected abstract Vocation[] careers() ;
   protected abstract Item.Type[] goods() ;
+  
   
   public Object[] services() {
     return goods() ;

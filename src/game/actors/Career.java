@@ -1,22 +1,35 @@
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 
 
 package src.game.actors ;
-import src.game.campaign.Naming;
+import src.game.base.* ;
+import src.game.campaign.* ;
 import src.game.common.* ;
-import src.util.*  ;
+import src.util.* ;
 
 
 
 public class Career implements ActorConstants {
   
   
-  Actor subject ;
-  Vocation vocation, birth, homeworld ;
-  String fullName = null ;
+  
+  private Actor subject ;
+  private Vocation vocation, birth, homeworld ;
+  private String fullName = null ;
   
   
-  Career() {
+  public Career(Vocation root) {
+    vocation = root ;
+  }
+  
+  
+  public Career(Actor subject) {
+    this.subject = subject ;
   }
   
   
@@ -52,15 +65,20 @@ public class Career implements ActorConstants {
     return homeworld ;
   }
   
+  public String fullName() {
+    return fullName ;
+  }
   
   
-  /**  TODO:  Make this the constructor?
+  
+  /**  Binds this career to a specific in-world actor and configures their
+    *  physique, aptitudes and motivations:
     */
-  protected void genCareer(Vocation root, Citizen actor) {
+  public void applyCareer(Human actor) {
     subject = actor ;
+    Vocation root = vocation ;
     //
     //  Firstly, determine a basic background suitable to the root vocation-
-    vocation = root ;
     Batch <Float> weights = new Batch <Float> () ;
     for (Vocation v : Vocation.ALL_CLASSES) {
       weights.add(rateSimilarity(root, v)) ;
@@ -78,9 +96,16 @@ public class Career implements ActorConstants {
     applyVocation(homeworld, actor) ;
     applyVocation(birth    , actor) ;
     applyVocation(vocation , actor) ;
+    setupAttributes(actor) ;
+    //
+    //  We top up basic attributes to match.
     //
     //  TODO:  Try adding 1 - 3 family members, possibly as potential migrants?
     actor.traits.initDNA(0) ;
+    actor.health.setupHealth(
+      Visit.clamp(Rand.num(), 0.26f, 0.94f),
+      Visit.clamp(Rand.num(), 0.5f, 1), 0
+    ) ;
     //
     //  For now, we apply gender at random, though this might be tweaked a bit
     //  later.  We also assign some random personality and/or physical traits.
@@ -88,12 +113,12 @@ public class Career implements ActorConstants {
       final int numP = actor.traits.personality().size() ;
       if (numP >= 5) break ;
       final Trait t = (Trait) Rand.pickFrom(PERSONALITY_TRAITS) ;
-      actor.traits.setLevel(t, Rand.range(-2, 2)) ;
+      actor.traits.incLevel(t, Rand.range(-2, 2)) ;
       if (numP >= 3 && Rand.yes()) break ;
     }
-    actor.traits.setLevel(HANDSOME, Rand.rangeAvg(-2, 4, 2)) ;
-    actor.traits.setLevel(TALL    , Rand.rangeAvg(-3, 3, 2)) ;
-    actor.traits.setLevel(STOUT   , Rand.rangeAvg(-4, 2, 2)) ;
+    actor.traits.incLevel(HANDSOME, Rand.rangeAvg(-2, 4, 2)) ;
+    actor.traits.incLevel(TALL    , Rand.rangeAvg(-3, 3, 2)) ;
+    actor.traits.incLevel(STOUT   , Rand.rangeAvg(-4, 2, 2)) ;
     applySex(actor) ;
     //
     //  Finally, specify name and (TODO:) a few other details of appearance.
@@ -105,7 +130,37 @@ public class Career implements ActorConstants {
   }
   
   
-  private void applySex(Citizen actor) {
+  private void setupAttributes(Actor actor) {
+    for (Skill s : actor.traits.skillSet()) {
+      final float level = actor.traits.trueLevel(s) ;
+      actor.traits.raiseLevel(s.parent, level + Rand.index(10) - 5) ;
+      if (s.form == FORM_COGNITIVE) {
+        actor.traits.raiseLevel(INTELLECT, 5 + Rand.index(10)) ;
+        actor.traits.raiseLevel(WILL     , 5 + Rand.index(10)) ;
+      }
+      if (s.form == FORM_SENSITIVE) {
+        actor.traits.raiseLevel(REFLEX   , 5 + Rand.index(10)) ;
+        actor.traits.raiseLevel(INSIGHT  , 5 + Rand.index(10)) ;
+      }
+      if (s.form == FORM_PHYSICAL) {
+        actor.traits.raiseLevel(VIGOUR   , 5 + Rand.index(10)) ;
+        actor.traits.raiseLevel(BRAWN    , 5 + Rand.index(10)) ;
+      }
+    }
+    for (int i = 0 ; i < ATTRIBUTES.length ; i++) {
+      final Skill att = ATTRIBUTES[i] ;
+      actor.traits.incLevel(att, Rand.index(10) - 5) ;
+      final float minVal = Math.max(
+        actor.traits.trueLevel(ATTRIBUTES[(i + 1) % 6]),
+        actor.traits.trueLevel(ATTRIBUTES[(i + 5) % 6])
+      ) / 2f ;
+      actor.traits.raiseLevel(att, minVal) ;
+      actor.traits.raiseLevel(att, 5 + Rand.index(10)) ;
+    }
+  }
+  
+  
+  private void applySex(Human actor) {
     //
     //  TODO:  Some of these traits need to be rendered 'dormant' in younger
     //  citizens...
@@ -158,7 +213,7 @@ public class Career implements ActorConstants {
     
     for (Skill s : v.baseSkills.keySet()) {
       final int level = v.baseSkills.get(s) ;
-      actor.traits.setLevel(s, level + (Rand.num() * 5)) ;
+      actor.traits.raiseLevel(s, level + (Rand.num() * 5)) ;
     }
     
     for (Trait t : v.traitChances.keySet()) {

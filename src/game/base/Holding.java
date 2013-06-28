@@ -147,7 +147,7 @@ public class Holding extends Venue implements VenueConstants {
   }
   
   
-  public Behaviour jobFor(Citizen actor) {
+  public Behaviour jobFor(Actor actor) {
     return null ;
   }
   

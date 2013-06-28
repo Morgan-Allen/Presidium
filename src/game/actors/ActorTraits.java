@@ -22,17 +22,14 @@ public class ActorTraits implements ActorConstants {
     DNA_SIZE = 16,
     DNA_LETTERS = 26,
     MUTATION_PERCENT = 5 ;
+
+  private static class Level { float value ; }
+  private Table <Trait, Level> levels = new Table <Trait, Level> () ;
   
   final Actor actor ;
   private String DNA = null ;
   private int geneHash = -1 ;
-  private Table <Trait, Level> levels = new Table <Trait, Level> () ;
   
-  
-  
-  private static class Level {
-    float value ;
-  }
   
   
   protected ActorTraits(Actor actor) {
@@ -61,6 +58,16 @@ public class ActorTraits implements ActorConstants {
       final Level level = levels.get(type) ;
       s.saveFloat(level.value) ;
     }
+  }
+  
+  
+  public void initAtts(float physical, float sensitive, float cognitive) {
+    actor.traits.setLevel(BRAWN    , physical ) ;
+    actor.traits.setLevel(VIGOUR   , physical ) ;
+    actor.traits.setLevel(REFLEX   , sensitive) ;
+    actor.traits.setLevel(INSIGHT  , sensitive) ;
+    actor.traits.setLevel(INTELLECT, cognitive) ;
+    actor.traits.setLevel(WILL     , cognitive) ;
   }
   
   
@@ -115,9 +122,33 @@ public class ActorTraits implements ActorConstants {
   
   /**  Methods for querying and modifying the levels of assorted traits-
     */
-  public float level(Trait type) {
-    Level level = levels.get(type) ;
-    return (level == null) ? 0 : level.value ;
+  public float trueLevel(Trait type) {
+    final Level level = levels.get(type) ;
+    if (level == null) return 0 ;
+    return Visit.clamp(level.value, type.minVal, type.maxVal) ;
+  }
+  
+  
+  public float useLevel(Trait type) {
+    final float level = trueLevel(type) ;
+    if (type.type == PHYSICAL) {
+      return level * actor.health.ageMultiple() ;
+    }
+    if (type.type == SKILL) {
+      final Skill skill = (Skill) type ;
+      if (skill.parent == null) {
+        return level * actor.health.ageMultiple() ;
+      }
+    }
+    return level ;
+  }
+  
+  
+  public float scaleLevel(Trait type) {
+    final float scale = Visit.clamp(
+      (trueLevel(type) - type.minVal) / (type.maxVal - type.minVal), 0, 1
+    ) ;
+    return (float) Math.pow(2, (scale * 2) - 1) ;
   }
   
   
@@ -125,8 +156,8 @@ public class ActorTraits implements ActorConstants {
     int i = 0 ; for (String s : type.descriptors) {
       if (desc.equals(s)) {
         final float value = type.descValues[i] ;
-        if (value > 0) return level(type) >= value ;
-        else return level(type) <= value ;
+        if (value > 0) return trueLevel(type) >= value ;
+        else return trueLevel(type) <= value ;
       }
       else i++ ;
     }
@@ -135,7 +166,7 @@ public class ActorTraits implements ActorConstants {
   
   
   public String levelDesc(Trait type) {
-    return Trait.descriptionFor(type, level(type)) ;
+    return Trait.descriptionFor(type, trueLevel(type)) ;
   }
   
   
@@ -151,6 +182,13 @@ public class ActorTraits implements ActorConstants {
     if (level == null) levels.put(type, level = new Level()) ;
     level.value += boost ;
     return level.value ;
+  }
+  
+  
+  public void raiseLevel(Trait type, float toLevel) {
+    Level level = levels.get(type) ;
+    if (level == null) levels.put(type, level = new Level()) ;
+    level.value = Math.max(toLevel, level.value) ;
   }
   
   
@@ -186,6 +224,11 @@ public class ActorTraits implements ActorConstants {
   }
   
   
+  public Batch <Trait> characteristics() {
+    return getMatches(null, ActorConstants.CATEGORIC_TRAITS) ;
+  }
+  
+  
   public Batch <Skill> attributes() {
     return (Batch) getMatches(null, ActorConstants.ATTRIBUTES) ;
   }
@@ -216,9 +259,9 @@ public class ActorTraits implements ActorConstants {
     Actor b, Skill opposed,
     float bonus
   ) {
-    float bonusA = level(checked) + Math.max(0, bonus) ;
+    float bonusA = trueLevel(checked) + Math.max(0, bonus) ;
     float bonusB = 0 - Math.min(0, bonus) ;
-    if (b != null) bonusB += b.traits.level(opposed) ;
+    if (b != null) bonusB += b.traits.trueLevel(opposed) ;
     final float chance = Visit.clamp(bonusA + 10 - bonusB, 0, 20) / 20 ;
     ///I.say("Test chance for "+actor+" is: "+chance) ;
     return chance ;
@@ -256,7 +299,7 @@ public class ActorTraits implements ActorConstants {
   
   
   public void practice(Skill skillType, float practice) {
-    incLevel(skillType, practice / (level(skillType) + 1)) ;
+    incLevel(skillType, practice / (trueLevel(skillType) + 1)) ;
     if (skillType.parent != null) practice(skillType.parent, practice) ;
   }
   
@@ -266,19 +309,19 @@ public class ActorTraits implements ActorConstants {
     */
   public void writeInformation(Description d) {
     for (Skill s : attributes()) {
-      d.append("\n  "+s.name+" "+((int) level(s))) ;
+      d.append("\n  "+s.name+" "+((int) trueLevel(s))) ;
     }
     d.append("\n") ;
     for (Skill s : skillSet()) {
-      d.append("\n  "+s.name+" "+((int) level(s))) ;
+      d.append("\n  "+s.name+" "+((int) trueLevel(s))) ;
     }
     d.append("\n") ;
     for (Trait t : personality()) {
-      d.append("\n  "+Trait.descriptionFor(t, level(t))) ;
+      d.append("\n  "+Trait.descriptionFor(t, trueLevel(t))) ;
     }
     d.append("\n") ;
     for (Trait t : physique()) {
-      d.append("\n  "+Trait.descriptionFor(t, level(t))) ;
+      d.append("\n  "+Trait.descriptionFor(t, trueLevel(t))) ;
     }
   }
 }

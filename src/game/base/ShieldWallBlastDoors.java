@@ -72,7 +72,7 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
   }
   
   
-  public Behaviour jobFor(Citizen actor) {
+  public Behaviour jobFor(Actor actor) {
     return null ;
   }
   

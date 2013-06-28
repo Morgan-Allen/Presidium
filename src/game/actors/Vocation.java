@@ -46,19 +46,19 @@ public class Vocation implements ActorConstants {
     //  replaced by more detailed planetary descriptors, including gravity,
     //  culture, ruling house, local factional interests, et cetera.
     PLANET_ASRA_NOVI = new Vocation(
-      "Planet Asra Novi"  , null, null, -1,
+      "Asra Novi"  , null, null, -1,
       ALWAYS, DESERT_BLOOD
     ),
     PLANET_PAREM_V = new Vocation(
-      "Planet Parem V"  , null, null, -1,
+      "Parem V"  , null, null, -1,
       ALWAYS, WASTES_BLOOD
     ),
     PLANET_HALIBAN = new Vocation(
-      "Planet Theta Rho", null, null, -1,
+      "Theta Rho", null, null, -1,
       ALWAYS, FOREST_BLOOD
     ),
     PLANET_AXIS_NOVENA = new Vocation(
-      "Planet Axis Novena", null, null, -1,
+      "Axis Novena", null, null, -1,
       ALWAYS, TUNDRA_BLOOD
     ),
     ALL_PLANETS[] = {
@@ -261,6 +261,9 @@ public class Vocation implements ActorConstants {
   }
   
   
+  public String toString() {
+    return name ;
+  }
 }
 
 

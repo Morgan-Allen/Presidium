@@ -26,7 +26,9 @@ public class World {
     DEFAULT_SECTOR_SIZE = 16,
     
     DEFAULT_DAY_LENGTH  = 300,
-    DEFAULT_YEAR_LENGTH = DEFAULT_DAY_LENGTH * 60 ;
+    DEFAULT_YEAR_LENGTH = DEFAULT_DAY_LENGTH * 60,
+    
+    GROWTH_INTERVAL = DEFAULT_DAY_LENGTH ;
   
   
   final public int size ;
@@ -160,8 +162,8 @@ public class World {
     if (! GameSettings.frozen) {
       currentTime += 1f / PlayLoop.UPDATES_PER_SECOND ;
       schedule.advanceSchedule(currentTime) ;
-      float growIndex = (currentTime % Terrain.GROWTH_INTERVAL) ;
-      growIndex *= size * size * 1f / Terrain.GROWTH_INTERVAL ;
+      float growIndex = (currentTime % GROWTH_INTERVAL) ;
+      growIndex *= size * size * 1f / GROWTH_INTERVAL ;
       growth.scanThroughTo((int) growIndex) ;
       for (Mobile m : mobiles) m.updateAsMobile() ;
     }
@@ -286,23 +288,14 @@ public class World {
   
   
   public Mobile pickedMobile(final HUD UI, final Viewport port) {
-    final Tile t = pickedTile(UI, port) ;
-    if (t == null) return null ;
-    
-    Batch <Element> near = new Batch <Element> () ;
-    for (Element e : t.inside()) near.add(e) ;
-    for (Tile n : t.allAdjacent(null)) if (n != null) {
-      for (Element e : n.inside()) near.add(e) ;
-    }
-    
+    //
+    //  You may want to use some pre-emptive culling here in future.
     Mobile nearest = null ;
     float minDist = Float.POSITIVE_INFINITY ;
-    for (Element e : near) if (e instanceof Mobile) {
-      final Mobile m = (Mobile) e ;
+    for (Mobile m : mobiles) {
       if (m.indoors()) continue ;
       final float selRad = (m.height() + m.radius()) / 2 ;
-      final Vec3D selPos = m.position(null) ;
-      selPos.z += m.height() / 2 ;
+      final Vec3D selPos = m.viewPosition(null) ;
       if (! port.mouseIntersects(selPos, selRad, UI)) continue ;
       final float dist = port.isoToFlat(selPos).z ;
       if (dist < minDist) { nearest = m ; minDist = dist ; }

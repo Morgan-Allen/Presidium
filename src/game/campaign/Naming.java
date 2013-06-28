@@ -3,6 +3,7 @@
 
 package src.game.campaign ;
 import src.game.actors.* ;
+import src.game.base.Human;
 import src.util.* ;
 
 
@@ -65,9 +66,9 @@ public class Naming implements ActorConstants {
   
   
   
-  public static String[] namesFor(Citizen actor) {
+  public static String[] namesFor(Human actor) {
     final Batch <String> names = new Batch <String> () ;
-    final int standing = actor.career.birth().standing ;
+    final int standing = actor.career().birth().standing ;
     final boolean female = actor.traits.hasTrait(GENDER, "Female") ;
     switch (standing) {
       case (Vocation.SLAVE_CLASS) : {
@@ -86,7 +87,7 @@ public class Naming implements ActorConstants {
       case (Vocation.RULER_CLASS) : {
         final String pick[] = female ? HIGHBORN_FN : HIGHBORN_MN ;
         names.add((String) Rand.pickFrom(pick)) ;
-        names.add("of "+actor.career.homeworld()) ;
+        names.add("of "+actor.career().homeworld()) ;
       } break ;
     }
     return names.toArray(String.class) ;

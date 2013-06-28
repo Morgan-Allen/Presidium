@@ -31,9 +31,14 @@ public class Session {
   private PlayLoop playLoop = null ;
   private World world = null ;
   
+  
+  
   final static int
     CLASS_CAPACITY  = 200,
     OBJECT_CAPACITY = 50000 ;
+  
+  private Table <Class, Vars.Int> classCounts = new Table(CLASS_CAPACITY) ;
+  
   final Table               < Saveable, Integer>
     saveIDs  = new Table    < Saveable, Integer> (OBJECT_CAPACITY) ;
   final Table               < Class <Object>, Integer >
@@ -70,6 +75,13 @@ public class Session {
     s.playLoop = loop ;
     s.saveObject(s.playLoop) ;
     s.finish() ;
+    
+    I.say("\nDISPLAYING TOTAL SAVE COUNTS:") ;
+    for (Class CC : s.classCounts.keySet()) {
+      final Vars.Int count = s.classCounts.get(CC) ;
+      I.say("  Saved "+count.val+" of "+CC.getSimpleName()) ;
+    }
+    
     return s ;
   }
   
@@ -254,6 +266,10 @@ public class Session {
     if (s == null) { out.writeInt(-1) ; return ; }
     final Integer saveID = saveIDs.get(s) ;
     if (saveID == null) {
+      Vars.Int count = classCounts.get(s.getClass()) ;
+      if (count == null) classCounts.put(s.getClass(), count = new Vars.Int()) ;
+      count.val++ ;
+      
       //I.say("Saving new object, class- "+s.getClass().getName()) ;
       saveIDs.put(s, nextObjectID) ;
       out.writeInt(nextObjectID++) ;

@@ -1,22 +1,25 @@
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 
 
 package src.game.actors ;
+import src.game.building.* ;
 import src.game.common.* ;
+import src.game.social.Relation;
 import src.util.* ;
 
 
-
-//
-//  TODO:  Consider creating a dedicated subclass of this, just for Citizens?
-//
-//  Also TODO:  Consider moving the behaviour stack to this class?  Yeah.
 
 public class ActorPsyche implements ActorConstants {
   
   
   /**  Field definitions, constructor, save/load methods-
     */
+  //  TODO:  Vary these values based on the intellect of the organism.
   final static int
     MAX_MEMORIES  = 100,
     MAX_RELATIONS = 100,
@@ -30,58 +33,222 @@ public class ActorPsyche implements ActorConstants {
   }
   
   
-  final Actor actor ;
-  final List <Memory> memories = new List <Memory> () ;
-  final Table <Actor, Relation> relations = new Table <Actor, Relation> () ;
+  final protected Actor actor ;
+  
+  protected Stack <Behaviour> behaviourStack = new Stack <Behaviour> () ;
+  protected Table <Element, Element> seen = new Table <Element, Element> () ;
+  
+  protected Venue home ;
+  protected Employment work ;
+  
+  //  TODO:  You need to save and load memories.
+  //  TODO:  Just remember plans instead?  More direct, certainly.  ...Maybe.
+  protected List <Memory> memories = new List <Memory> () ;
+  protected Table <Actor, Relation> relations = new Table <Actor, Relation> () ;
   
   
-  ActorPsyche(Actor actor) {
+  protected ActorPsyche(Actor actor) {
     this.actor = actor ;
   }
   
-  public void loadState(Session s) throws Exception {
+  
+  protected void loadState(Session s) throws Exception {
+    s.loadObjects(behaviourStack) ;
+    for (int n = s.loadInt() ; n-- > 0 ;) {
+      final Element e = (Element) s.loadObject() ;
+      seen.put(e, e) ;
+    }
+    
+    home = (Venue) s.loadObject() ;
+    work = (Employment) s.loadObject() ;
+    
+    for (int n = s.loadInt() ; n-- > 0 ;) {
+      final Relation r = Relation.loadFrom(s) ;
+      relations.put((Actor) r.subject, r) ;
+    }
   }
   
-  public void saveState(Session s) throws Exception {
+  
+  protected void saveState(Session s) throws Exception {
+    s.saveObjects(behaviourStack) ;
+    s.saveInt(seen.size()) ;
+    for (Element e : seen.keySet()) s.saveObject(e) ;
+    
+    s.saveObject(home) ;
+    s.saveObject(work) ;
+    
+    s.saveInt(relations.size()) ;
+    for (Relation r : relations.values()) Relation.saveTo(s, r) ;
   }
+  
+  
+  
+  /**  Dealing with seen objects and reactions to them-
+    *  TODO:  This needs to handle stealth effects and the like.  And implement
+    *         the rest of it.
+    */
+  public boolean awareOf(Element e) {
+    return actor.health.sightRange() >= Spacing.distance(actor, e) ;
+    //Fix later.  Refer to stuff in local records.
+  }
+  
+  
+  /**  Setting home and work venues-
+    */
+  public static interface Employment extends Session.Saveable {
+    Behaviour jobFor(Actor actor) ;
+    void setWorker(Actor actor, boolean is) ;
+  }
+  
+  
+  public void setEmployer(Employment e) {
+    if (work != null) work.setWorker(actor, false) ;
+    work = e ;
+    if (work != null) work.setWorker(actor, true) ;
+  }
+  
+  
+  public Employment work() {
+    return work ;
+  }
+  
+  
+  public void setHomeVenue(Venue home) {
+    final Venue old = this.home ;
+    if (old != null) old.personnel.setResident(actor, false) ;
+    this.home = home ;
+    if (home != null) home.personnel.setResident(actor, true) ;
+  }
+  
+  
+  public Venue home() {
+    return home ;
+  }
+  
+  
+  
+  /**  Methods related to behaviours-
+    */
+  public boolean couldSwitchTo(Behaviour next) {
+    return couldSwitch(rootBehaviour(), next) ;
+  }
+  
+  
+  public boolean couldSwitch(Behaviour last, Behaviour next) {
+    if (next == null) return false ;
+    if (last == null) return true ;
+    return next.priorityFor(actor) >= (last.priorityFor(actor) + 2) ;
+  }
+  
+  
+  public Behaviour topBehaviour() {
+    return behaviourStack.getFirst() ;
+  }
+  
+  
+  public Behaviour rootBehaviour() {
+    return behaviourStack.getLast() ;
+  }
+  
+  
+  private void pushBehaviour(Behaviour b) {
+    behaviourStack.addFirst(b) ;
+    actor.world().activities.toggleActive(b, true) ;
+    if (! (b instanceof Plan)) return ;
+    //
+    //  Create a memory of this plan, along with the starting time, etc.
+    final Plan plan = (Plan) b ;
+    final Memory memory = new Memory() ;
+    memory.planClass = plan.getClass() ;
+    memory.signature = plan.signature ;
+    memory.timeBegun = actor.world().currentTime() ;
+    memories.addFirst(memory) ;
+    if (memories.size() > MAX_MEMORIES) memories.removeLast() ;
+  }
+  
+  
+  private Behaviour popBehaviour() {
+    final Behaviour b = behaviourStack.removeFirst() ;
+    actor.world().activities.toggleActive(b, false) ;
+    if (! (b instanceof Plan)) return b ;
+    //
+    //  Find the corresponding memory of this plan, and note the ending time.
+    final Plan plan = (Plan) b ;
+    for (Memory memory : memories) {
+      if (memory.equals(plan)) {
+        memory.timeEnded = actor.world().currentTime() ;
+        break ;
+      }
+    }
+    return b ;
+  }
+  
+  
+  protected Action getNextAction() {
+    //
+    //  Drill down through the set of behaviours to get a concrete action-
+    while (true) {
+      Behaviour step = null ;
+      if (behaviourStack.size() == 0) {
+        step = nextBehaviour() ;
+        if (step == null) return null ;
+        pushBehaviour(step) ;
+      }
+      final Behaviour current = topBehaviour() ;
+      if (current.complete() || (step = current.nextStepFor(actor)) == null) {
+        popBehaviour() ;
+      }
+      else {
+        pushBehaviour(step) ;
+        if (step instanceof Action) return (Action) step ;
+      }
+    }
+  }
+  
+  
+  public void assignBehaviour(Behaviour behaviour) {
+    if (behaviour == null) I.complain("CANNOT ASSIGN NULL BEHAVIOUR.") ;
+    actor.assignAction(null) ;
+    cancelBehaviour(rootBehaviour()) ;
+    pushBehaviour(behaviour) ;
+  }
+  
+  
+  public void cancelBehaviour(Behaviour b) {
+    if (b == null) return ;
+    if (! behaviourStack.includes(b)) I.complain("Behaviour not active.") ;
+    while (behaviourStack.size() > 0) {
+      final Behaviour top = popBehaviour() ;
+      if (top == b) break ;
+    }
+  }
+  
+  
+  public Stack <Behaviour> currentBehaviours() {
+    return behaviourStack ;
+  }
+  
+  
+  protected Behaviour nextBehaviour() {
+    return null ;
+  }
+  
+  
+  protected void updatePsyche(int numUpdates) {
+    if (numUpdates % 10 == 0 && behaviourStack.size() > 0) {
+      final Behaviour
+        last = rootBehaviour(),
+        next = nextBehaviour() ;
+      if (couldSwitch(last, next)) assignBehaviour(next) ;
+    }
+    for (Behaviour b : behaviourStack) if (b.monitor(actor)) break ;
+  }
+  
   
   
   
   /**  Methods related to relationships-
     */
-  public float attraction(Actor other) {
-    //
-    //  For now, we assume that both need to be the same species-
-    //  TODO:  Create/re-locate/use species traits.
-    if (actor instanceof Citizen && other instanceof Citizen) ;
-    else return 0 ;
-    //
-    //  TODO:  Create exceptions based on age and kinship modifiers.
-    //
-    //  First, we establish a few facts about each actor's sexual identity:
-    float actorG = 0, otherG = 0 ;
-    if (actor.traits.hasTrait(GENDER, "Male"  )) actorG = -1 ;
-    if (actor.traits.hasTrait(GENDER, "Female")) actorG =  1 ;
-    if (other.traits.hasTrait(GENDER, "Male"  )) otherG = -1 ;
-    if (other.traits.hasTrait(GENDER, "Female")) otherG =  1 ;
-    float attraction = other.traits.level(HANDSOME) * 3.33f ;
-    attraction += otherG * other.traits.level(FEMININE) * 3.33f ;
-    //
-    //  Then compute attraction based on orientation-
-    final String descO = actor.traits.levelDesc(ORIENTATION) ;
-    float matchO = 0 ;
-    if (descO.equals("Heterosexual")) {
-      matchO = (actorG * otherG < 0) ? 1 : 0.33f ;
-    }
-    else if (descO.equals("Bisexual")) {
-      matchO = 0.66f ;
-    }
-    else if (descO.equals("Homosexual")) {
-      matchO = (actorG * otherG > 0) ? 1 : 0.33f ;
-    }
-    return attraction * matchO ;
-  }
-  
   
   public float relationTo(Actor other) {
     Relation r = relations.get(other) ;
@@ -97,33 +264,16 @@ public class ActorPsyche implements ActorConstants {
   }
   
   
+  public Batch <Relation> relations() {
+    final Batch <Relation> all = new Batch <Relation> () ;
+    for (Relation r : relations.values()) all.add(r) ;
+    return all ;
+  }
+  
+  
   
   /**  Methods related to memories-
     */
-  protected void planBegun(Behaviour planB) {
-    if (! (planB instanceof Plan)) return ;
-    final Plan plan = (Plan) planB ;
-    //
-    //  Create a memory of this plan...
-    final Memory memory = new Memory() ;
-    memory.planClass = plan.getClass() ;
-    memory.signature = plan.signature ;
-    memory.timeBegun = actor.world().currentTime() ;
-    memories.addFirst(memory) ;
-    if (memories.size() > MAX_MEMORIES) memories.removeLast() ;
-  }
-  
-  
-  protected void planEnded(Behaviour planB) {
-    if (! (planB instanceof Plan)) return ;
-    final Plan plan = (Plan) planB ;
-    for (Memory memory : memories) {
-      if (memory.equals(plan)) {
-        memory.timeEnded = actor.world().currentTime() ;
-        return ;
-      }
-    }
-  }
   
   
   public float curiosity(Class planClass, Session.Saveable... assoc) {
@@ -147,7 +297,7 @@ public class ActorPsyche implements ActorConstants {
     //  this type.
     
     
-    float curiosity = actor.traits.level(INQUISITIVE) ;
+    float curiosity = actor.traits.trueLevel(INQUISITIVE) ;
     if (match == null) {
       curiosity += 5 ;
     }

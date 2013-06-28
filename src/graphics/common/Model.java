@@ -41,12 +41,10 @@ public abstract class Model {
   
   
   public static void saveModel(
-    Sprite sprite,
+    Model model,
     DataOutputStream out
   ) throws Exception {
-    if (sprite == null) { out.writeInt(-1) ; return ; }
-    final Model model = sprite.model() ;
-    if (model == null) I.complain("Sprite must have model!") ;
+    if (model == null) { out.writeInt(-1) ; return ; }
     final Integer modelID = modelIDs.get(model) ;
     if (modelID != null) { out.writeInt(modelID) ; return ; }
     final int newID = counterID++ ;
@@ -72,6 +70,30 @@ public abstract class Model {
       I.complain("MODEL NO LONGER DEFINED IN SPECIFIED CLASS.") ;
     IDModels.put(modelID, loaded) ;
     return loaded ;
+  }
+  
+  
+
+  public static void saveSprite(
+    Sprite sprite,
+    DataOutputStream out
+  ) throws Exception {
+    if (sprite == null) { saveModel(null, out) ; return ; }
+    final Model model = sprite.model() ;
+    if (model == null) I.complain("Sprite must have model!") ;
+    saveModel(model, out) ;
+    sprite.saveTo(out) ;
+  }
+  
+  
+  public static Sprite loadSprite(
+    DataInputStream in
+  ) throws Exception {
+    final Model model = loadModel(in) ;
+    if (model == null) return null ;
+    final Sprite sprite = model.makeSprite() ;
+    sprite.loadFrom(in) ;
+    return sprite ;
   }
   
   
@@ -162,6 +184,14 @@ public abstract class Model {
     public AnimRange(String n, float s, float e, float d) {
       name = n ; start = s ; end = e ; duration = d ;
     }
+  }
+  
+  
+  public AnimRange rangeWithName(String name) {
+    for (AnimRange range : animRanges) {
+      if (range.name.equals(name)) return range ;
+    }
+    return null ;
   }
   
   

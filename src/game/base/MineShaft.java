@@ -221,7 +221,7 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
   }
   
   
-  public Behaviour jobFor(Citizen actor) {
+  public Behaviour jobFor(Actor actor) {
     final MineFace opening = findNextFace() ;
     if (opening != null) return new Mining(actor, opening) ;
     return null ;

@@ -32,6 +32,10 @@ public interface VenueConstants extends ActorConstants {
     PROTEIN  = new Item.Type(C, COMMODITY, "Protein" , 20 ),
     GREENS   = new Item.Type(C, COMMODITY, "Greens"  , 30 ),
     
+    TIMBER   = new Item.Type(C, COMMODITY, "Timber"  , 40 ),
+    STONE    = new Item.Type(C, COMMODITY, "Stone"   , 70 ),
+    HIDES    = new Item.Type(C, COMMODITY, "Hides"   , 150),
+    
     METALS   = new Item.Type(C, COMMODITY, "Metals"  , 15 ),
     CARBONS  = new Item.Type(C, COMMODITY, "Carbons" , 35 ),
     ISOTOPES = new Item.Type(C, COMMODITY, "Isotopes", 60 ),
@@ -71,10 +75,113 @@ public interface VenueConstants extends ActorConstants {
     ALL_ITEM_TYPES[] = Item.Type.allTypes() ;
   
   
+  final public static int
+    NONE     = 0,
+    //
+    //  These are properties of equipped weapons-
+    MELEE    = 1,
+    RANGED   = 2,
+    ENERGY   = 4,
+    PHYSICAL = 8,
+    STUN     = 16,
+    POISON   = 32,
+    //
+    //  These are properties of natural weapons or armour-
+    GRAPPLE      = 64,
+    CAUSTIC      = 128,
+    TRANSMORPHIC = 256,
+    ENERGY_DRAIN = 512 ;
+
+  
+  final public static DeviceType
+    MANIPLES = new DeviceType(C, "Maniples",
+      2, GRAPPLE | MELEE | PHYSICAL, 10,
+      new Conversion(3, PARTS, 10, ASSEMBLY),
+      "maniples"
+    ),
+    MODUS_LUTE = new DeviceType(C, "Modus Lute",
+      0, RANGED | STUN, 40,
+      new Conversion(2, PARTS, 15, ASSEMBLY),
+      "modus lute"
+    ),
+    CARVED_SPEAR = new DeviceType(C, "Carved Spear",
+      10, RANGED | PHYSICAL, 5,
+      new Conversion(2, TIMBER, 5, ASSEMBLY),
+      "spear"
+    ),
+    SHOCK_STAFF = new DeviceType(C, "Shock Staff",
+      10, MELEE | PHYSICAL | RANGED | ENERGY, 40,
+      new Conversion(3, PARTS, 10, ASSEMBLY),
+      "staff"
+    ),
+    PHASE_PISTOL = new DeviceType(C, "Phase Pistol",
+      5, RANGED | ENERGY | STUN, 25,
+      new Conversion(3, PARTS, 10, ASSEMBLY),
+      "pistol"
+    ),
+    KONOCHE = new DeviceType(C, "Konoche",
+      20, MELEE | PHYSICAL, 45,
+      new Conversion(2, PARTS, 5, ASSEMBLY),
+      "heavy blade"
+    ) ;
+  final public static Item.Type
+    ALL_IMPLEMENTS[] = Item.Type.typesSoFar() ;
+  
+  //
+  //  TODO:  Should have skins associated with these?
+  final public static OutfitType
+    //  TODO:  Add 'Primitive Garb' and 'Overalls'?  What about costume?
+    
+    FINERY         = new OutfitType(
+      C, "Finery"        , 2 , 100,
+      new Conversion(3, PLASTICS, Fabricator.class, 15, GRAPHIC_MEDIA)
+    ),
+    CAMOUFLAGE     = new OutfitType(
+      C, "Camouflage"    , 3 , 35,
+      new Conversion(2, PLASTICS, Fabricator.class, 10, GRAPHIC_MEDIA)
+    ),
+    SEALSUIT       = new OutfitType(
+      C, "Sealsuit"      , 4 , 75,
+      new Conversion(2, PLASTICS, 2, PARTS, Fabricator.class, 15, ASSEMBLY)
+    ),
+    SHIELD_BELT = new OutfitType(
+      C, "Shield Belt"   , 5 , 50,
+      new Conversion(2, PARTS, Artificer.class, 10, ASSEMBLY)
+    ),
+    BODY_ARMOUR    = new OutfitType(
+      C, "Body Armour"   , 10, 75,
+      new Conversion(5, PARTS, Artificer.class, 15, ASSEMBLY)
+    ),
+    GOLEM_ARMOUR   = new OutfitType(
+      C, "Golem Armour"  , 20, 150,
+      new Conversion(12, PARTS, Artificer.class, 20, ASSEMBLY)
+    ) ;
+  final public static Item.Type
+    ALL_OUTFITS[] = Item.Type.typesSoFar() ;
+  
+  
+  
   
   final public static Object TO = new Object() ;
   
   final public static Conversion
+    
+    /*
+    TIMBER_TO_CARBONS = new Conversion(
+      1, TIMBER, TO, 2, CARBONS,
+      CuringShed.class, SIMPLE_DC, CHEMISTRY
+    ),
+    
+    STARCHES_TO_CARBONS = new Conversion(
+      1, STARCHES, TO, 1, CARBONS,
+      CuringShed.class, SIMPLE_DC, CHEMISTRY
+    ),
+    
+    ISOTOPES_TO_POWER = new Conversion(
+      1, ISOTOPES, TO, 100, POWER,
+      Reactor.class, DIFFICULT_DC, CHEMISTRY, ROUTINE_DC, FIELD_THEORY
+    ),
+    //*/
     
     METALS_TO_PARTS = new Conversion(
       2, METALS, TO, 1, PARTS,
@@ -91,6 +198,7 @@ public interface VenueConstants extends ActorConstants {
       CultureVats.class, ROUTINE_DC, CHEMISTRY, ROUTINE_DC, PHARMACY
     ) ;
 }
+
 
 
 

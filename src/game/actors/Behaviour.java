@@ -21,8 +21,10 @@ public interface Behaviour extends Session.Saveable {
     CRITICAL = 9 ;
   
   Behaviour nextStepFor(Actor actor) ;
-  float priorityFor(Actor actor) ;
   boolean monitor(Actor actor) ;
+  void setPriority(float priority) ;
+  
+  float priorityFor(Actor actor) ;
   boolean complete() ;  //specify actor?
   void abortStep() ;    //specify actor?
   //boolean viable() ; ?

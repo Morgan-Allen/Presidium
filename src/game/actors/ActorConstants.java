@@ -13,8 +13,8 @@ public interface ActorConstants {
   final public static int
     PERSONALITY = 0,
     PHYSICAL    = 1,
-    ARTIFICIAL  = 2,
-    CATEGORIC   = 3,
+    CATEGORIC   = 2,
+    ARTIFICIAL  = 3,
     SKILL       = 4,
     CONDITION   = 5 ;
   
@@ -135,7 +135,7 @@ public interface ActorConstants {
     //  I've divided these into 3 main categories-
     //    Basic Impulses (emotional drives or physical needs)
     //    Meta-Decisional (modify the general process of plan-selection)
-    //    Cultural/Ethical (overall social priorities)
+    //    Cultural/Ethical (overall social values)
     
     //
     //  BASIC IMPULSES-
@@ -299,9 +299,9 @@ public interface ActorConstants {
       "Manipulative"
     ),
     EMPATHIC = new Trait(PERSONALITY,
-      "Martyr",
+      "Martyr Complex",
       "Compassionate",
-      "Soft",
+      "Sympathetic",
       null,
       "Tough",
       "Hard",
@@ -311,31 +311,20 @@ public interface ActorConstants {
     
     
     //
-    //  These are the listings for physical traits.  Physical traits cannot be
-    //  modified (except perhaps surgically), but may be considered 'dormant'
-    //  in younger actors.  They are primarily determined at birth.
+    //  These are the listings for physical traits.  Physical traits are
+    //  determined at birth and cannot be modified (except perhaps surgically),
+    //  but do wax and wane based on aging, in a fashion similar to basic
+    //  attributes.  TODO:  Implement that.
     
     FEMININE = new Trait(PHYSICAL,
       "Pneumatic",
       "Curvaceous",
       "Feminine",
       null,
-      "Manly",
-      "Bearded",
+      "Masculine",
+      "Hairy",
       "Hirsute"
     ),
-    ORIENTATION = new Trait(PHYSICAL,
-      "Heterosexual",
-      "Bisexual",
-      "Homosexual",
-      null
-    ),
-    GENDER = new Trait(PHYSICAL,
-      "Female",
-      null,
-      "Male"
-    ),
-    
     HANDSOME = new Trait(PHYSICAL,
       "Beautiful",
       "Handsome",
@@ -363,33 +352,6 @@ public interface ActorConstants {
       "Lean",
       "Gaunt"
     ),
-    
-    DESERT_BLOOD = new Trait(PHYSICAL,
-      "Desert Blood",
-      null
-    ),
-    TUNDRA_BLOOD = new Trait(PHYSICAL,
-      "Tundra Blood",
-      null
-    ),
-    FOREST_BLOOD = new Trait(PHYSICAL,
-      "Forest Blood",
-      null
-    ),
-    WASTES_BLOOD = new Trait(PHYSICAL,
-      "Wastes Blood",
-      null
-    ),
-    BLOOD_TRAITS[] = {
-      DESERT_BLOOD, TUNDRA_BLOOD, FOREST_BLOOD, WASTES_BLOOD
-    },
-    
-    MUTATION = new Trait(PHYSICAL,
-      "Severe Mutation",
-      "Major Mutation",
-      "Slight Mutation",
-      null
-    ),
     GIFTED = new Trait(PHYSICAL,
       "Prodigiously Gifted",
       "Highly Gifted",
@@ -398,10 +360,48 @@ public interface ActorConstants {
     ),
     PHYSICAL_TRAITS[] = Trait.traitsSoFar(),
     
+    //
+    //  Categoric traits are qualitative physical traits unaffected by aging.
+    ORIENTATION = new Trait(CATEGORIC,
+      "Heterosexual",
+      "Bisexual",
+      "Homosexual",
+      null
+    ),
+    GENDER = new Trait(CATEGORIC,
+      "Female",
+      null,
+      "Male"
+    ),
+    DESERT_BLOOD = new Trait(CATEGORIC,
+      "Desert Blood",
+      null
+    ),
+    TUNDRA_BLOOD = new Trait(CATEGORIC,
+      "Tundra Blood",
+      null
+    ),
+    FOREST_BLOOD = new Trait(CATEGORIC,
+      "Forest Blood",
+      null
+    ),
+    WASTES_BLOOD = new Trait(CATEGORIC,
+      "Wastes Blood",
+      null
+    ),
+    BLOOD_TRAITS[] = {
+      DESERT_BLOOD, TUNDRA_BLOOD, FOREST_BLOOD, WASTES_BLOOD
+    },
+    MUTATION = new Trait(CATEGORIC,
+      "Severe Mutation",
+      "Major Mutation",
+      "Slight Mutation",
+      null
+    ),
+    CATEGORIC_TRAITS[] = Trait.traitsSoFar(),
     
     //
     //  Finally, listings for various conditions that might beset the actor-
-    //  Boredom?  Malaise?
     INJURY = new Condition(
       "Critical Injury",
       "Serious Injury",
@@ -424,9 +424,46 @@ public interface ActorConstants {
       "Superb Morale"
     ),
     
-    POISONED  = new Condition("Poisoned" ),
-    DISEASE   = new Condition("Disease"  ),
-    INFECTION = new Condition("Infection"),
+    
+    POISONED = new Condition(
+      "Heavily Poisoned",
+      "Badly Poisoned",
+      "Poisoned",
+      null
+    ),
+    
+    ILLNESS = new Condition(
+      "Terminal Illness",
+      "Serious Illness",
+      "Mild Illness",
+       null
+    ),
+    
+    CANCER = new Condition(
+      "Terminal Cancer",
+      "Advanced Cancer",
+      "Early Cancer",
+      null
+    ),
+    
+    
+    SPYCE_ADDICTION = new Condition(
+      "Complete Addiction",
+      "Heavy Addiction",
+      "Mild Addiction",
+      null
+    ),
+    
+    RAGE_INFECTION = new Condition(
+      "Infection Frenzy",
+      "Infection Atavism",
+      "Infection Onset",
+      null
+    ),
+    
+    PART_CYBORG = new Condition(
+      "Part Cyborg"
+    ),
     
     CONDITIONS[] = Trait.traitsSoFar()
   ;

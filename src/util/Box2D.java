@@ -146,14 +146,14 @@ public class Box2D {
   }
   
 
-  /**  Returns whether this box contains the given point.
+  /**  Returns whether this box contains the given point (bounds inclusive.)
     */
   public boolean contains(float xp, float yp) {
     return
       (xpos <= xp) &&
       (ypos <= yp) &&
-      (xmax >  xp) &&
-      (ymax >  yp) ;
+      (xmax >= xp) &&
+      (ymax >= yp) ;
   }
   
   

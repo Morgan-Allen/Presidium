@@ -18,11 +18,16 @@ public class Composite extends Image {
     addLayer(this.texture, 0, 0, 1, 1) ;
   }
   
+
+  public Composite(HUD myHUD, Texture tex) {
+    super(myHUD, tex) ;
+    addLayer(this.texture, 0, 0, 1, 1) ;
+  }
+  
   
   public Composite(HUD myHUD, String backName) {
     super(myHUD, backName) ;
     addLayer(this.texture, 0, 0, 1, 1) ;
-    ///I.say("New composite, background: "+texture.name()) ;
   }
   
   

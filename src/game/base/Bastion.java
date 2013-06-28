@@ -48,7 +48,7 @@ public class Bastion extends Venue {
   
   /**  Implementation of employee behaviour-
     */
-  public Behaviour jobFor(Citizen actor) {
+  public Behaviour jobFor(Actor actor) {
     return new Patrolling(actor, this, this.radius()) ;
   }
   

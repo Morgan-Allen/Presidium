@@ -7,6 +7,7 @@
 
 package src.graphics.common ;
 import src.util.* ;
+import java.io.* ;
 
 
 
@@ -23,13 +24,6 @@ public abstract class Sprite implements Rendering.Client {
   
   
   protected Model.AnimRange rangeFor(String animName) {
-    /*
-    for (Model.AnimRange range : model().animRanges()) {
-      if (range.name == animName) {
-        return range ;
-      }
-    }
-    //*/
     for (Model.AnimRange range : model().animRanges()) {
       if (range.name.equals(animName)) return range ;
     }
@@ -37,7 +31,26 @@ public abstract class Sprite implements Rendering.Client {
   }
   
   
+  public void saveTo(DataOutputStream out) throws Exception {
+  }
+  
+  
+  public void loadFrom(DataInputStream in) throws Exception {
+  }
+  
+  
+  public void update() {
+  }
+  
+  
   public Colour averageHue() {
     return model().averageHue() ;
   }
 }
+
+
+
+
+
+
+

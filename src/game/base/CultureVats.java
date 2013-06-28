@@ -53,7 +53,7 @@ public class CultureVats extends Venue implements VenueConstants {
   }
   
   
-  public Behaviour jobFor(Citizen actor) {
+  public Behaviour jobFor(Actor actor) {
     
     final Delivery d = orders.nextDelivery(actor, goods()) ;
     if (d != null) return d ;

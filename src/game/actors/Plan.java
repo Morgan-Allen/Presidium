@@ -93,8 +93,8 @@ public abstract class Plan implements Saveable, Behaviour {
   
 
   public void abortStep() {
-    I.say("Aborting plan! "+this) ;
-    actor.cancelBehaviour(this) ;
+    ///I.say("Aborting plan! "+this) ;
+    actor.psyche.cancelBehaviour(this) ;
   }
   
   
@@ -105,7 +105,10 @@ public abstract class Plan implements Saveable, Behaviour {
     }
     if (nextStep == null || nextStep.complete()) {
       if (valid()) nextStep = getNextStep() ;
-      else { I.say("Plan no longer valid: "+this) ; nextStep = null ; }
+      else {
+        ///I.say("Plan no longer valid: "+this) ;
+        nextStep = null ;
+      }
     }
     return nextStep ;
   }
@@ -130,6 +133,11 @@ public abstract class Plan implements Saveable, Behaviour {
   
   public Actor actor() {
     return actor ;
+  }
+  
+  
+  public void setPriority(float priority) {
+    this.priority = priority ;
   }
   
   

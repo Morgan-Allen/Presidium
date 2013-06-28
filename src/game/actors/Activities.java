@@ -11,8 +11,6 @@ import src.util.* ;
 
 
 
-
-
 public class Activities {
   
   
@@ -31,7 +29,6 @@ public class Activities {
   
   
   public void loadState(Session s) throws Exception {
-    //*
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Target t = s.loadTarget() ;
       final List <Action> l = new List <Action> () ;
@@ -42,17 +39,18 @@ public class Activities {
       final Behaviour b = (Behaviour) s.loadObject() ;
       behaviours.put(b, b) ;
     }
-    //*/
   }
   
   
   public void saveState(Session s) throws Exception {
     s.saveInt(actions.size()) ;
+    ///I.say("Saving "+actions.size()+" actions in activity table.") ;
     for (Target t : actions.keySet()) {
       s.saveTarget(t) ;
       s.saveObjects(actions.get(t)) ;
     }
     s.saveInt(behaviours.size()) ;
+    ///I.say("Saving "+behaviours.size()+" behaviours in behaviour table.") ;
     for (Behaviour b : behaviours.keySet()) {
       s.saveObject(b) ;
     }
@@ -62,14 +60,19 @@ public class Activities {
   
   /**  Asserting and asking after action registrations-
     */
-  private void toggleActive(Behaviour b, boolean is) {
+  public void toggleActive(Behaviour b, boolean is) {
     if (is) behaviours.put(b, b) ;
     else behaviours.remove(b) ;
   }
   
+  
+  public boolean includes(Behaviour b) {
+    return behaviours.get(b) != null ;
+  }
+  
+  
   public void toggleActive(Action a, boolean is) {
     if (a == null) return ;
-    for (Behaviour b : a.actor.currentBehaviours()) toggleActive(b, is) ;
     final Target t = a.target() ;
     List <Action> forT = actions.get(t) ;
     if (is) {
@@ -96,74 +99,68 @@ public class Activities {
   public boolean includes(Target t, Class behaviourClass) {
     final List <Action> onTarget = actions.get(t) ;
     if (onTarget == null) return false ;
-    for (Action a : onTarget) for (Behaviour b : a.actor.currentBehaviours()) {
-      if (b.getClass() == behaviourClass) return true ;
-    }
-    return false ;
-  }
-  
-  
-  public boolean includes(Behaviour b) {
-    return behaviours.get(b) != null ;
-  }
-  
-  
-  /*
-  public boolean assigned(Target t, String methodName) {
-    final List <Action> onTarget = actions.get(t) ;
-    if (onTarget == null) return false ;
     for (Action a : onTarget) {
-      if (a.methodName().equals(methodName)) return true ;
+      for (Behaviour b : a.actor.psyche.currentBehaviours()) {
+        if (b.getClass() == behaviourClass) return true ;
+      }
     }
     return false ;
   }
-  
-  
-  public Batch <Action> matches(Target t, String methodName) {
-    final Batch <Action> found = new Batch <Action> () ;
-    final List <Action> onTarget = actions.get(t) ;
-    if (onTarget != null) for (Action a : onTarget) {
-      if (a.methodName().equals(methodName)) found.add(a) ;
-    }
-    return found ;
-  }
-  
-
-  public boolean assigned(Target t, Behaviour behaviour) {
-    final List <Action> onTarget = actions.get(t) ;
-    if (onTarget == null) return false ;
-    for (Action a : onTarget) for (Behaviour b : a.actor.currentBehaviours()) {
-      if (b.equals(behaviour)) return true ;
-    }
-    return false ;
-  }
-  
-  
-  public boolean contains(Target t, Class behaviourClass) {
-    final List <Action> onTarget = actions.get(t) ;
-    if (onTarget == null) return false ;
-    for (Action a : onTarget) for (Behaviour b : a.actor.currentBehaviours()) {
-      if (b.getClass() == behaviourClass) return true ;
-    }
-    return false ;
-  }
-  
-  
-  public Batch <Behaviour> matches(Target t, Class behaviourClass) {
-    final Batch <Behaviour> found = new Batch <Behaviour> () ;
-    final List <Action> onTarget = actions.get(t) ;
-    if (onTarget == null) return found ;
-    for (Action a : onTarget) for (Behaviour b : a.actor.currentBehaviours()) {
-      if (b.getClass() == behaviourClass) found.add(b) ;
-    }
-    return found ;
-  }
-  //*/
 }
 
 
 
+/*
+public boolean assigned(Target t, String methodName) {
+  final List <Action> onTarget = actions.get(t) ;
+  if (onTarget == null) return false ;
+  for (Action a : onTarget) {
+    if (a.methodName().equals(methodName)) return true ;
+  }
+  return false ;
+}
 
+
+public Batch <Action> matches(Target t, String methodName) {
+  final Batch <Action> found = new Batch <Action> () ;
+  final List <Action> onTarget = actions.get(t) ;
+  if (onTarget != null) for (Action a : onTarget) {
+    if (a.methodName().equals(methodName)) found.add(a) ;
+  }
+  return found ;
+}
+
+
+public boolean assigned(Target t, Behaviour behaviour) {
+  final List <Action> onTarget = actions.get(t) ;
+  if (onTarget == null) return false ;
+  for (Action a : onTarget) for (Behaviour b : a.actor.currentBehaviours()) {
+    if (b.equals(behaviour)) return true ;
+  }
+  return false ;
+}
+
+
+public boolean contains(Target t, Class behaviourClass) {
+  final List <Action> onTarget = actions.get(t) ;
+  if (onTarget == null) return false ;
+  for (Action a : onTarget) for (Behaviour b : a.actor.currentBehaviours()) {
+    if (b.getClass() == behaviourClass) return true ;
+  }
+  return false ;
+}
+
+
+public Batch <Behaviour> matches(Target t, Class behaviourClass) {
+  final Batch <Behaviour> found = new Batch <Behaviour> () ;
+  final List <Action> onTarget = actions.get(t) ;
+  if (onTarget == null) return found ;
+  for (Action a : onTarget) for (Behaviour b : a.actor.currentBehaviours()) {
+    if (b.getClass() == behaviourClass) found.add(b) ;
+  }
+  return found ;
+}
+//*/
 
 
 

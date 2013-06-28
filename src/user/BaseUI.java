@@ -24,7 +24,9 @@ public class BaseUI extends HUD {
   final public static String
     BUTTONS_PATH = "media/GUI/Buttons/" ;
   final public static Texture
-    LIT_TEX = Texture.loadTexture("media/GUI/iconLit.gif") ;
+    ICON_LIT_TEX  = Texture.loadTexture("media/GUI/iconLit.gif"),
+    SELECT_CIRCLE = Texture.loadTexture("media/GUI/selectCircle.png"),
+    SELECT_SQUARE = Texture.loadTexture("media/GUI/selectSquare.png") ;
   final public static Alphabet INFO_FONT = new Alphabet(
     "media/GUI/", "FontVerdana.gif", "FontVerdana.gif",
     "FontVerdana.map", 8, 16
@@ -57,6 +59,7 @@ public class BaseUI extends HUD {
   private Mobile pickMobile ;
   private Selectable hovered, picked ;
   
+  private Text infoText ;
   private UITask task ;
   private UIGroup selectInfo, newPanel ;
   
@@ -93,6 +96,11 @@ public class BaseUI extends HUD {
     minimap.relBound.set(1, 1, 0, 0) ;
     minimap.absBound.set(-210, -210, 200, 200) ;
     minimap.attachTo(this) ;
+    
+    this.infoText = new Text(this, INFO_FONT) ;
+    infoText.relBound.set(0.3f, 1, 0.3f, 0) ;
+    infoText.absBound.set(0, -40, 0, 40) ;
+    infoText.attachTo(this) ;
   }
   
   
@@ -145,7 +153,26 @@ public class BaseUI extends HUD {
       if (KeyInput.isKeyDown(Keyboard.KEY_ESCAPE)) task.cancelTask() ;
       else task.doTask() ;
     }
+    //
     //  You need to add the selection overlays as clients here.
+    if (hovered instanceof Element && hovered != picked) {
+      renderSelectFX((Element) hovered, Colour.transparency(0.5f)) ;
+    }
+    if (picked instanceof Element) {
+      renderSelectFX((Element) picked, Colour.WHITE) ;
+    }
+  }
+  
+  
+  private void renderSelectFX(Element element, Colour c) {
+    if (element.sprite() == null) return ;
+    final Texture ringTex = (element instanceof Fixture) ?
+      SELECT_SQUARE :
+      SELECT_CIRCLE ;
+    final PlaneFX hoverRing = new PlaneFX(ringTex, element.radius() * 2) ;
+    hoverRing.colour = c ;
+    hoverRing.position.setTo(element.sprite().position) ;
+    rendering.addClient(hoverRing) ;
   }
   
   
@@ -157,6 +184,8 @@ public class BaseUI extends HUD {
     //
     //  NOTE:  We have to wait until after HUD rendering for this, to ensure
     //  that the info-panel's bounds have been correctly updated.
+    infoText.setText("Days: "+(world.currentTime() / World.DEFAULT_DAY_LENGTH)) ;
+    
     if (selectInfo != null) camera.setLockOffset(selectInfo.xdim() / 2, 0) ;
     else camera.setLockOffset(0, 0) ;
     camera.updateCamera() ;

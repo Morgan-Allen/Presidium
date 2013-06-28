@@ -19,10 +19,12 @@ public class Flora extends Element implements TileConstants {
     */
   final static int
     MAX_GROWTH = 4 ;
+  final static float
+    GROWTH_PER_UPDATE = 0.25f ;
   
   final Habitat habitat ;
   final int varID ;
-  float growth ;
+  float growth = 0 ;
   
   
   
@@ -50,53 +52,77 @@ public class Flora extends Element implements TileConstants {
   /**  Attempts to seed or grow new flora at the given coordinates.
     */
   public static void tryGrowthAt(int x, int y, World world, boolean init) {
-    if (! init) return ;
     final Tile t = world.tileAt(x, y) ;
     final Habitat h = world.terrain().habitatAt(x, y) ;
     if (h.floraModels == null) return ;
     final float growChance = h.moisture / (10f * 4) ;
-    
-    if ((! init) && t.owner() instanceof Flora) {
-      final Flora f = (Flora) t.owner() ;
-      f.incGrowth(Rand.num() * 2 * 0.1f, world) ;
+    //
+    //  Check to see how many neighbours this flora would have-
+    int numBlocked = 0 ;
+    for (int i : N_INDEX) {
+      final Tile n = world.tileAt(t.x + N_X[i], t.y + N_Y[i]) ;
+      if (n == null || n.blocked()) numBlocked++ ;
+      if (n != null && n.owningType() > Element.ENVIRONMENT_OWNS) {
+        numBlocked = 8 ;
+        break ;
+      }
     }
     
-    else if ((! t.blocked()) && Rand.num() < growChance) {
-      int numBlocked = 0 ;
-      for (int i : N_INDEX) {
-        final Tile n = world.tileAt(t.x + N_X[i], t.y + N_Y[i]) ;
-        if (n == null || n.blocked()) numBlocked++ ;
-        if (n != null && n.owningType() > Element.ENVIRONMENT_OWNS) {
-          numBlocked = 8 ;
-          break ;
-        }
+    if (t.owner() instanceof Flora) {
+      final Flora f = (Flora) t.owner() ;
+      if (Rand.num() < (growChance * 4 * GROWTH_PER_UPDATE)) {
+        f.incGrowth(1, world, false) ;
       }
+    }
+    else if ((! t.blocked()) && Rand.num() < growChance) {
+      //
+      //  If the place isn't too crowded, introduce a new specimen-
       if (numBlocked < 2) {
         final Flora f = new Flora(h) ;
         if (init) {
           f.enterWorldAt(t.x, t.y, world) ;
-          if (Rand.num() < growChance * 4) f.incGrowth(MAX_GROWTH - 1, world) ;
-          else f.incGrowth(1, world) ;
+          float stage = 0.5f ;
+          for (int n = MAX_GROWTH ; n-- > 0 ;) {
+            if (Rand.num() < growChance * 4) stage++ ;
+          }
+          stage = Visit.clamp(stage, 0, MAX_GROWTH - 0.5f) ;
+          f.incGrowth(stage, world, true) ;
           f.setInceptTime(-10) ;
         }
-        else if (Rand.num() < 0.1f) {
+        else if (Rand.num() < GROWTH_PER_UPDATE) {
           f.enterWorldAt(t.x, t.y, world) ;
-          f.incGrowth(0.5f, world) ;
+          f.incGrowth(0.5f, world, false) ;
         }
       }
     }
   }
   
   
-  protected void incGrowth(float inc, World world) {
+  protected void incGrowth(
+    float inc, World world, boolean init
+  ) {
     growth += inc ;
-    if (growth < 0 || growth >= MAX_GROWTH) exitWorld() ;
-    else {
-      final int tier = (int) growth ;
-      final ImageModel model = habitat.floraModels[varID][tier] ;
-      this.attachSprite(model.makeSprite()) ;
-      setInceptTime(world.currentTime()) ;
+    if (! init) {
+      final float moisture = origin().habitat().moisture / 10f ;
+      final int minGrowth = (int) ((moisture * moisture * MAX_GROWTH) + 1f) ;
+      final float dieChance = 1 - moisture ;
+      if (
+        (growth < 0) || (growth >= MAX_GROWTH * 2) ||
+        (growth > minGrowth && Rand.num() < dieChance)
+      ) {
+        exitWorld() ;
+        return ;
+      }
     }
+    final int tier = Visit.clamp((int) growth, MAX_GROWTH) ;
+    final ImageModel model = habitat.floraModels[varID][tier] ;
+    this.attachSprite(model.makeSprite()) ;
+    setInceptTime(world.currentTime()) ;
+  }
+  
+  
+  public int growStage() {
+    return Visit.clamp((int) growth, MAX_GROWTH) ;
   }
 }
 

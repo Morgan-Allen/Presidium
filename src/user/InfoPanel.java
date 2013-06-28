@@ -4,17 +4,15 @@
   *  for now, feel free to poke around for non-commercial purposes.
   */
 
+
 package src.user ;
 import src.util.* ;
 import src.graphics.common.* ;
-import src.graphics.widgets.Bordering;
-import src.graphics.widgets.Text;
-import src.graphics.widgets.UIGroup;
-import src.graphics.widgets.Text.Clickable;
+import src.graphics.widgets.* ;
+///import src.graphics.widgets.Text.Clickable ;
 
 
-/*   I'll also need multiple tabs for different forms of information.
- */
+
 public class InfoPanel extends UIGroup {
   
   
@@ -24,7 +22,7 @@ public class InfoPanel extends UIGroup {
   final public static int
     DEFAULT_TOP_MARGIN = 50,
     MARGIN_WIDTH = 10,
-    HEADER_HEIGHT = 25 ;
+    HEADER_HEIGHT = 50 ;
   
   
   final protected BaseUI UI ;
@@ -83,6 +81,7 @@ public class InfoPanel extends UIGroup {
     updateText() ;
     super.updateState() ;
   }
+  
   
   protected void updateText() {
     if (selected == null) return ;

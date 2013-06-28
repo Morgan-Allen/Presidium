@@ -22,15 +22,14 @@ public abstract class Actor extends Mobile implements
   /**  Field definitions, constructors and save/load functionality-
     */
   final public ActorHealth health = new ActorHealth(this) ;
-  final public ActorPsyche psyche = new ActorPsyche(this) ;
   final public ActorTraits traits = new ActorTraits(this) ;
   final public ActorGear   gear   = new ActorGear  (this) ;
   
-  final public MobilePathing pathing = new MobilePathing(this) ;
-  private Action action ;
-  private Stack <Behaviour> behaviourStack = new Stack <Behaviour> () ;
+  final public MobilePathing pathing = initPathing() ;
+  final public ActorPsyche psyche = initPsyche() ;
+  
+  private Action actionTaken, reflexAction ;
   private Base base ;
-  Table <Element, Element> seen = new Table <Element, Element> () ;
   
   
   public Actor() {
@@ -41,20 +40,14 @@ public abstract class Actor extends Mobile implements
     super(s) ;
     
     health.loadState(s) ;
-    psyche.loadState(s) ;
     traits.loadState(s) ;
     gear.loadState(s) ;
     
     pathing.loadState(s) ;
-    action = (Action) s.loadObject() ;
-    s.loadObjects(behaviourStack) ;
-    base = (Base) s.loadObject() ;
+    psyche.loadState(s) ;
     
-    //if (true) return ;
-    for (int n = s.loadInt() ; n-- > 0 ;) {
-      final Element e = (Element) s.loadObject() ;
-      seen.put(e, e) ;
-    }
+    actionTaken = (Action) s.loadObject() ;
+    base = (Base) s.loadObject() ;
   }
   
   
@@ -62,120 +55,62 @@ public abstract class Actor extends Mobile implements
     super.saveState(s) ;
     
     health.saveState(s) ;
-    psyche.saveState(s) ;
     traits.saveState(s) ;
     gear.saveState(s) ;
     
     pathing.saveState(s) ;
-    s.saveObject(action) ;
-    s.saveObjects(behaviourStack) ;
+    psyche.saveState(s) ;
+    
+    s.saveObject(actionTaken) ;
     s.saveObject(base) ;
-
-    //if (true) return ;
-    s.saveInt(seen.size()) ;
-    for (Element e : seen.keySet()) s.saveObject(e) ;
   }
   
   
+  protected ActorPsyche initPsyche() { return new ActorPsyche(this) ; }
+  
+  protected MobilePathing initPathing() { return new MobilePathing(this) ; }
+  
   public ActorGear inventory() { return gear ; }
+  
+  public Vocation vocation() { return null ; }
+  
+  public Object species() { return null ; }
+  
+  
+  //  TODO:  Should this be moved to the Psyche class?
+  public float attraction(Actor otherA) {
+    return 0 ;
+  }
   
   
   
   /**  Assigning behaviours and actions-
     */
-  public void assignBehaviour(Behaviour behaviour) {
-    if (behaviour == null) I.complain("CANNOT ASSIGN NULL BEHAVIOUR.") ;
-    assignAction(null) ;
-    cancelBehaviour(rootBehaviour()) ;
-    psyche.planBegun(behaviour) ;
-    behaviourStack.addFirst(behaviour) ;
-  }
-  
-  
-  public void cancelBehaviour(Behaviour b) {
-    if (b == null) return ;
-    if (! behaviourStack.includes(b)) I.complain("Behaviour not active.") ;
-    while (behaviourStack.size() > 0) {
-      final Behaviour top = behaviourStack.removeFirst() ;
-      psyche.planEnded(top) ;
-      if (top == b) break ;
-    }
-  }
-  
-  
-  protected void assignAction(Action action) {
-    world.activities.toggleActive(this.action, false) ;
-    this.action = action ;
+  public void assignAction(Action action) {
+    world.activities.toggleActive(this.actionTaken, false) ;
+    this.actionTaken = action ;
     world.activities.toggleActive(action, true) ;
   }
   
   
-  protected abstract Behaviour nextBehaviour() ;
-  public abstract boolean couldSwitch(Behaviour next, Behaviour last) ;
-  
-  
-  private Action getNextAction() {
-    //
-    //  Firstly, check to see if a more compelling behaviour is due-
-    if (behaviourStack.size() > 0) {
-      final Behaviour
-        last = behaviourStack.getLast(),
-        next = nextBehaviour() ;
-      if (couldSwitch(last, next)) assignBehaviour(next) ;
-    }
-    //
-    //  Otherwise, drill down through the set of behaviours to get a concrete
-    //  action-
-    while (true) {
-      Behaviour step = null ;
-      if (behaviourStack.size() == 0) {
-        step = nextBehaviour() ;
-        if (step == null) return null ;
-        psyche.planBegun(step) ;
-        behaviourStack.add(step) ;
-      }
-      final Behaviour current = behaviourStack.getFirst() ;
-      if (current.complete() || (step = current.nextStepFor(this)) == null) {
-        psyche.planEnded(current) ;
-        behaviourStack.removeFirst() ;
-      }
-      else {
-        behaviourStack.addFirst(step) ;
-        psyche.planBegun(step) ;
-        if (step instanceof Action) return (Action) step ;
-      }
-    }
+  protected void onMotionBlock() {
+    final boolean canRoute = pathing.refreshPath() ;
+    if (! canRoute) pathingAbort() ;
   }
   
   
   public void pathingAbort() {
-    if (action == null) return ;
-    I.say(this+" aborting action...") ;
-    psyche.planEnded(behaviourStack.getFirst()) ;
-    behaviourStack.removeFirst() ;
-    action = null ;
-    behaviourStack.getFirst().abortStep() ;
-    assignAction(getNextAction()) ;
+    if (actionTaken == null) return ;
+    ///I.say(this+" aborting actionTaken...") ;
+    psyche.cancelBehaviour(psyche.topBehaviour()) ;
+    final Behaviour top = psyche.topBehaviour() ;
+    if (top != null) top.abortStep() ;
+    assignAction(psyche.getNextAction()) ;
   }
   
   
   public Action currentAction() {
-    return action ;
-  }
-  
-  
-  public Behaviour topBehaviour() {
-    return behaviourStack.getFirst() ;
-  }
-  
-  
-  public Behaviour rootBehaviour() {
-    return behaviourStack.getLast() ;
-  }
-  
-  
-  public Stack <Behaviour> currentBehaviours() {
-    return behaviourStack ;
+    return actionTaken ;
   }
   
   
@@ -198,36 +133,42 @@ public abstract class Actor extends Mobile implements
   
   
   public void exitWorld() {
-    world.activities.toggleActive(action, false) ;
+    world.activities.toggleActive(actionTaken, false) ;
+    psyche.cancelBehaviour(psyche.topBehaviour()) ;
     super.exitWorld() ;
   }
   
   
   protected void updateAsMobile() {
     super.updateAsMobile() ;
-    if (! health.conscious()) return ;
-    if (action != null) action.updateAction() ;
+    if (actionTaken != null) actionTaken.updateAction() ;
+    //if (health.conscious()) {
+    //}
   }
   
   
   public void updateAsScheduled(int numUpdates) {
     health.updateHealth(numUpdates) ;
-    if (! health.conscious()) return ;
-    //
-    //  We check every 10 seconds to see if a more compelling behaviour has
-    //  come up.  We also query new actions whenever the current action is
-    //  missing or expires, and allow behaviours to monitor the actor at
-    //  regular intervals-
-    if (numUpdates % 10 == 0 && behaviourStack.size() > 0) {
-      final Behaviour
-        last = rootBehaviour(),
-        next = nextBehaviour() ;
-      if (couldSwitch(last, next)) assignBehaviour(next) ;
+    if (health.conscious()) {
+      psyche.updatePsyche(numUpdates) ;
+      if (actionTaken == null || actionTaken.complete()) {
+        assignAction(psyche.getNextAction()) ;
+      }
     }
-    if (action == null || action.complete()) {
-      assignAction(getNextAction()) ;
-    }
-    for (Behaviour b : behaviourStack) if (b.monitor(this)) break ;
+    else if (health.decomposed()) exitWorld() ;
+  }
+  
+  
+  protected void enterStateKO() {
+    final Action falling = new Action(
+      this, this, this, "actionFall", Action.FALL, "Stricken"
+    ) ;
+    this.assignAction(falling) ;
+  }
+  
+  
+  public boolean actionFall(Actor actor, Actor fallen) {
+    return true ;
   }
   
   
@@ -236,13 +177,53 @@ public abstract class Actor extends Mobile implements
     */
   protected void renderFor(Rendering rendering, Base base) {
     if (indoors()) return ;
+    final float scale = spriteScale() ;
     final Sprite s = sprite() ;
-    if (action != null) {
-      ///I.say("Name/progress "+action.animName()+"/"+action.animProgress()) ;
-      s.setAnimation(action.animName(), action.animProgress()) ;
+    //
+    //  Render your shadow, either on the ground or on top of occupants-
+    final float R2 = (float) Math.sqrt(2) ;
+    final PlaneFX shadow = new PlaneFX(
+      PlaneFX.GROUND_SHADOW, radius() * scale * R2
+    ) ;
+    final Vec3D p = s.position ;
+    shadow.position.setTo(p) ;
+    shadow.position.z = shadowHeight(p) ;
+    rendering.addClient(shadow) ;
+    //
+    //  In either case, set the sprite's scale factor and animations correctly-
+    //
+    //  ...Maybe include equipment/costume configuration here as well?
+    s.scale = scale ;
+    if (actionTaken != null) {
+      s.setAnimation(actionTaken.animName(), actionTaken.animProgress()) ;
     }
     else s.setAnimation(Action.STAND, 0) ;
     super.renderFor(rendering, base) ;
+  }
+  
+  
+  protected float spriteScale() {
+    return 1 ;
+  }
+  
+  
+  protected float shadowHeight(Vec3D p) {
+    return world.terrain().trueHeight(p.x, p.y) ;
+  }
+  
+  //
+  //  Basically, you want to be able to control the default animation that plays
+  //  when the actor is 'paused for thought', and the pace of the move
+  //  animation, and possibly sync the progress of the two in some cases.
+  
+  //  ...In that case, you're going to need a separate move animation to loop
+  //  over and over again.
+  
+  
+  //  TODO:  You might want to replace this with an 'enterMoveState' method
+  //  instead, or a 'defaultAction' method.
+  protected float moveAnimStride() {
+    return 1 ;
   }
   
   
@@ -252,7 +233,7 @@ public abstract class Actor extends Mobile implements
 
   
   public InfoPanel createPanel(BaseUI UI) {
-    return new ActorPanel(UI, this) ;
+    return new ActorPanel(UI, this, true) ;
   }
   
   
@@ -260,12 +241,6 @@ public abstract class Actor extends Mobile implements
     return fullName() ;
   }
 }
-
-
-
-
-
-
 
 
 

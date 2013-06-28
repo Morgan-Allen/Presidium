@@ -8,6 +8,7 @@
 package src.game.social ;
 import src.game.common.* ;
 import src.game.actors.* ;
+import src.game.base.* ;
 import src.game.building.* ;
 import src.user.* ;
 import src.util.* ;
@@ -31,6 +32,7 @@ public class Dialogue extends Plan implements ActorConstants {
   
   final Actor other ;
   protected Boardable location = null ;
+  
   
   //  TODO:  Introduce various stages (above) instead.
   boolean finished = false ;
@@ -68,15 +70,15 @@ public class Dialogue extends Plan implements ActorConstants {
   public static boolean canTalk(Actor actor, Actor other) {
     if (actor == other) return false ;
     if (isListening(actor, other)) return true ;
-    return actor.couldSwitch(
-      actor.rootBehaviour(), new Dialogue(actor, other)
+    return actor.psyche.couldSwitch(
+      actor.psyche.rootBehaviour(), new Dialogue(actor, other)
     ) ;
   }
   
   //
   //  Returns whether Actor is listening to Other.
   static boolean isListening(Actor actor, Actor other) {
-    final Behaviour root = actor.rootBehaviour() ;
+    final Behaviour root = actor.psyche.rootBehaviour() ;
     if (! (root instanceof Dialogue)) return false ;
     return ((Dialogue) root).other == other ;
   }
@@ -92,8 +94,8 @@ public class Dialogue extends Plan implements ActorConstants {
   
   
   static Skill mannersFor(Actor actor) {
-    if (actor instanceof Citizen) {
-      final Vocation birth = ((Citizen) actor).career.birth() ;
+    if (actor instanceof Human) {
+      final Vocation birth = ((Human) actor).career().birth() ;
       if (birth == Vocation.NATIVE_BIRTH) return NATIVE_TABOO ;
       if (birth == Vocation.HIGH_BIRTH) return NOBLE_ETIQUETTE ;
       return COMMON_CUSTOM ;
@@ -109,16 +111,16 @@ public class Dialogue extends Plan implements ActorConstants {
     float impression = -10 * Rand.num() ;
     if (other.traits.test(mannersFor(other), ROUTINE_DC, 1)) impression += 10 ;
     if (other.traits.test(SUASION, ROUTINE_DC, 1)) impression += 10 ;
-    impression += actor.psyche.attraction(other) * Rand.avgNums(2) ;
+    impression += actor.attraction(other) * Rand.avgNums(2) ;
     return impression ;
   }
   
   
   public float priorityFor(Actor actor) {
     float priority = ROUTINE / 4f ;
-    priority += actor.psyche.attraction(other) / 4f ;
+    priority += actor.attraction(other) / 4f ;
     priority += actor.psyche.relationTo(other) / 2f ;
-    priority += actor.traits.level(SOCIABLE) ;
+    priority += actor.traits.trueLevel(SOCIABLE) ;
     
     priority += actor.psyche.curiosity(Dialogue.class, actor, other) * 5 ;
     I.say(actor+" priority for dialogue with "+other+" is "+priority) ;
@@ -175,14 +177,14 @@ public class Dialogue extends Plan implements ActorConstants {
       forOther.location = Spacing.nearestOpenTile((Tile) location, other) ;
     }
     else forOther.location = location ;
-    other.assignBehaviour(forOther) ;
+    other.psyche.assignBehaviour(forOther) ;
   }
 
   
   private void finishDialogue() {
     BaseUI.logFor(actor, actor+" finished dialogue.") ;
     this.finished = true ;
-    final Behaviour root = other.rootBehaviour() ;
+    final Behaviour root = other.psyche.rootBehaviour() ;
     if (root instanceof Dialogue) {
       final Dialogue d = ((Dialogue) root) ;
       if (d.other == actor) d.finished = true ;
@@ -210,22 +212,20 @@ public class Dialogue extends Plan implements ActorConstants {
       return false ;
     }
 
-    /*
+    //*
     I.say(actor+" talking to "+other) ;
     final float attLevel = other.psyche.relationTo(actor) / Relation.MAX_ATT ;
     float success = 0 ;
     if (actor.traits.test(mannersFor(actor), ROUTINE_DC, 1)) success += 5 ;
     if (actor.traits.test(SUASION, attLevel * -20, 1)) success += 5 ;
-    
-    success += other.psyche.attraction(actor) * Rand.num() ;
-    success += (other.psyche.relationTo(other) / Relation.MAX_ATT) * Rand.num() ;
+    ///success += other.psyche.attraction(actor) * Rand.num() ;
+    //success += (other.psyche.relationTo(other) / Relation.MAX_ATT) * Rand.num() ;
     success /= 2 ;
     
     other.psyche.incRelation(actor, success) ;
     actor.health.liftStress(success / 5f) ;
     //*/
-    
-    float success = 0.9f ;
+    //float success = 0.9f ;
     
     if (Rand.num() < FINISH_CHANCE && Rand.index(10) > success) {
       finishDialogue() ;

@@ -34,7 +34,7 @@ public class Button extends Image {
     this(
       myHUD,
       Texture.loadTexture(norm),
-      BaseUI.LIT_TEX,
+      BaseUI.ICON_LIT_TEX,
       infoS
     ) ;
   }

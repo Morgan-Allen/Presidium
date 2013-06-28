@@ -47,7 +47,8 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
     */
   final static int GL_DISABLES[] = new int[] {
     GL11.GL_CULL_FACE,
-    GL11.GL_ALPHA_TEST
+    GL11.GL_ALPHA_TEST,
+    ///GL11.GL_LIGHTING
   } ;
   public int[] GL_disables() { return GL_DISABLES ; }
   

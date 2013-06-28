@@ -5,13 +5,15 @@
   */
 
 package src.game.planet ;
-//import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.graphics.jointed.* ;
 
 
+//
+//  TODO:  Get rid of the habitat preferences.  That most likely needs to be
+//  specified on a per-map level.
 
-public class Species {
+public abstract class Species {
   
   
   /**  Type, instance and media definitions-
@@ -22,41 +24,61 @@ public class Species {
   
   public static enum Type {
     BROWSER,
-    PREDATOR,
-    OMNIVORE
+    PREDATOR
   }
+  
   
   final public static Species
     
+  
     QUUD = new Species(
-      "Quud", "QudPortrait.png", MS3DModel.loadMS3D(
+      "Quud",
+      "Quud are placid, slow-moving, vegetarian browsers that rely on their "+
+      "dense, leathery hides and intractable grip on the ground to protect "+
+      "themselves from most predators.",
+      "QuudPortrait.png",
+      MS3DModel.loadMS3D(
         Species.class, FILE_DIR, "Quud.ms3d", 0.025f
       ).loadXMLInfo(XML_PATH, "Quud"),
       Type.BROWSER,
-      Habitat.MEADOW, 1.0f,
-      Habitat.SWAMPLANDS, 0.5f,
-      Habitat.BARRENS, 0.5f
-    ),
-    
-    VAREEN = new Species(
-      "Vareen", "VareenPortrait.png", MS3DModel.loadMS3D(
-        Species.class, FILE_DIR, "Vareen.ms3d", 0.025f
-      ).loadXMLInfo(XML_PATH, "Vareen"),
-      Type.OMNIVORE,
       Habitat.MEADOW, 0.5f,
       Habitat.SWAMPLANDS, 1.0f,
       Habitat.ESTUARY, 0.5f
-    ),
+    ) { Organism newSpecimen() { return new Quud() ; } },
     
-    MICOVORE = new Species(
-      "Micovore", "MicovorePortrait.png", MS3DModel.loadMS3D(
-        Species.class, FILE_DIR, "Micovore.ms3d", 0.025f
-      ).loadXMLInfo(XML_PATH, "Micovore"),
-      Type.PREDATOR,
+    
+    VAREEN = new Species(
+      "Vareen",
+      "Vareen are sharp-eyed aerial omnivores active by day, with a twinned "+
+      "pair of wings that makes them highly maneuverable flyers.  Their "+
+      "diet includes fruit, nuts, insects and carrion, but photosynthetic "+
+      "algae in their skin allow them to subsist directly on sunlight.",
+      "VareenPortrait.png",
+      MS3DModel.loadMS3D(
+        Species.class, FILE_DIR, "Vareen.ms3d", 0.025f
+      ).loadXMLInfo(XML_PATH, "Vareen"),
+      Type.BROWSER,
       Habitat.DESERT, 0.5f,
       Habitat.BARRENS, 1.0f,
       Habitat.MEADOW, 0.5f
-    ),
+    ) { Organism newSpecimen() { return new Vareen() ; } },
+    
+    
+    MICOVORE = new Species(
+      "Micovore",
+      "The Micovore is an imposing bipedal obligate carnivore capable of "+
+      "substantial bursts of speed and tackling even the most stubborn prey. "+
+      "They defend established nest sites where they tend their young, using "+
+      "scented middens, rich in spice, to mark the limits of their territory.",
+      "MicovorePortrait.png",
+      MS3DModel.loadMS3D(
+        Species.class, FILE_DIR, "Micovore.ms3d", 0.025f
+      ).loadXMLInfo(XML_PATH, "Micovore"),
+      Type.PREDATOR,
+      Habitat.MEADOW, 1.0f,
+      Habitat.SWAMPLANDS, 0.5f,
+      Habitat.BARRENS, 0.5f
+    ) { Organism newSpecimen() { return new Micovore() ; } },
     
     ALL_SPECIES[] = { QUUD, VAREEN, MICOVORE }
     ;
@@ -65,7 +87,7 @@ public class Species {
   
   /**  Fields and constructors.
     */
-  final String name ;
+  final String name, info ;
   final Texture portrait ;
   final Model model ;
   
@@ -78,10 +100,11 @@ public class Species {
   
   
   Species(
-    String name, String portraitTex, Model model,
+    String name, String info, String portraitTex, Model model,
     Type type, Object... prefs
   ) {
     this.name = name ;
+    this.info = info ;
     this.portrait = Texture.loadTexture(FILE_DIR+portraitTex) ;
     this.model = model ;
     
@@ -102,7 +125,13 @@ public class Species {
     }
     return 0 ;
   }
+  
+  
+  abstract Organism newSpecimen() ;
+  //abstract Fixture newLair() ;
 }
+
+
 
 /*
 final public static Model

@@ -21,8 +21,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     SMOOTH_MARGIN   = 2 ,
     MAX_INSOLATION  = 10,
     MAX_MOISTURE    = 10,
-    MAX_RADIATION   = 10,
-    GROWTH_INTERVAL = World.DEFAULT_DAY_LENGTH ;
+    MAX_RADIATION   = 10 ;
   
   final public static byte
     TYPE_METALS   = 1,

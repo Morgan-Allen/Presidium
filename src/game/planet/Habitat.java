@@ -28,11 +28,13 @@ public class Habitat {
     DESERT_FLORA_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
       Texture.loadTexture(TERRAIN_PATH+"old_flora_resize.png"),
+      //Texture.loadTexture(TERRAIN_PATH+"desert_flora.png"),
       4, 4, 1.9f
     ),
     FOREST_FLORA_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
       Texture.loadTexture(TERRAIN_PATH+"old_flora_resize.png"),
+      //Texture.loadTexture(TERRAIN_PATH+"forest_flora.png"),
       4, 4, 1.9f
     ),
     WASTES_FLORA_MODELS[][] = ImageModel.fromTextureGrid(
@@ -48,7 +50,6 @@ public class Habitat {
     OUTCROP_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
       Texture.loadTexture(TERRAIN_PATH+"all_deposits.png"),
-      //Texture.loadTexture(TERRAIN_PATH+"all_outcrops.png"),
       3, 3, 2.0f
     ),
     DUNE_MODELS[]    = OUTCROP_MODELS[2],
@@ -58,8 +59,6 @@ public class Habitat {
       Habitat.class,
       Texture.loadTexture(TERRAIN_PATH+"all_outcrops_new.png"),
       3, 3, 2.0f
-      //Texture.loadTexture(TERRAIN_PATH+"all_spires.png"),
-      //3, 2, 2.0f
     ) ;
   
   final private static String
@@ -131,6 +130,7 @@ public class Habitat {
       0, true, MOISTURE, 1, INSOLATION, 9, MINERALS, 5
     ),
     DESERT_HABITATS[] = { DESERT, BARRENS, SAVANNAH },
+    
     //
     //  Waste habitats, which have special rules governing their introduction,
     //  related to extreme temperature, slope, pollution or volcanism-

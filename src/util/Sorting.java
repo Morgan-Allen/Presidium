@@ -226,7 +226,7 @@ public abstract class Sorting <K> implements Series <K> {
       }
       //
       //  Finally, propagate the change as a signal up the tree structure,
-      //  rebalancing as required, and return the original node.
+      //  rebalancing as pledgeMade, and return the original node.
       flagForUpdate(i) ;
       updateHeight(i.parent) ;
       balanceFrom(i.parent.parent) ;

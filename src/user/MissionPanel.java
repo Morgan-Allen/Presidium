@@ -4,7 +4,9 @@
 package src.user ;
 import src.game.common.* ;
 import src.game.actors.* ;
+import src.game.social.* ;
 import src.util.* ;
+
 
 
 
@@ -12,15 +14,26 @@ import src.util.* ;
 public class MissionPanel extends InfoPanel {
   
   
+  final static int
+    TYPE_ROUTINE   = 0,
+    TYPE_URGENT    = 1,
+    TYPE_CRITICAL  = 2,
+    //TYPE_VOLUNTEER = 3,
+    //TYPE_COVERT    = 4,
+    //TYPE_BOUNTY    = 5,
+    NUM_TYPES = 3 ;
+  final static String TYPE_DESC[] = {
+    "Routine", "Urgent", "Critical",
+    //"Volunteer", "Covert", "Bounty"
+  } ;
   
-  float missionPriority ;
+  int missionType = TYPE_ROUTINE ;
+  
   
   class Role {
     Actor applicant ;
-    int roleType ;
-    
-    Object reward = null ;
-    int rewardAmount = -1 ;
+    //int roleType ;
+    Pledge pledgeMade ;
     boolean approved ;
   }
   
@@ -39,7 +52,7 @@ public class MissionPanel extends InfoPanel {
     //
     //  You need the ability to set overall urgency, see volunteers, and screen
     //  those who seem suitable.  
-    detailText.append("Priority: "+Behaviour.descFor(missionPriority)) ;
+    detailText.append("Type: "+TYPE_DESC[missionType]) ;
     //
     //  Here, you can approve the mission, cancel the mission, or visit your
     //  personnel listings (full household.)
@@ -49,11 +62,11 @@ public class MissionPanel extends InfoPanel {
     for (Role role : roles) {
       detailText.append("\n\n  ") ;
       detailText.append(role.applicant) ;
-      if (role.reward != null) {
-        String response = Voicelines.response(role.applicant, role.reward) ;
+      if (role.pledgeMade != null) {
+        String response = Wording.response(role.applicant, role.pledgeMade) ;
         detailText.append("\n  "+response) ;
         detailText.append("\n  ") ;
-        detailText.append(role.reward) ;
+        detailText.append(role.pledgeMade) ;
       }
       //
       //  You can approve, reject, or negotiate over the offer.

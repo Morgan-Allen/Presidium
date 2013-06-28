@@ -28,7 +28,7 @@ public abstract class RandomScan {
   
   
   /**  Sets up the growth map and calculates the bit-depth of the random seeds
-    *  required (matching the power of the size of the world.)
+    *  pledgeMade (matching the power of the size of the world.)
     */
   public RandomScan(int size) {
     this.size = size ;

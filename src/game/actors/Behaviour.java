@@ -10,8 +10,8 @@ import src.game.common.* ;
 import src.user.* ;
 
 
+
 public interface Behaviour extends Session.Saveable {
-  
   
   final public static float
     IDLE     = 1,
@@ -19,6 +19,7 @@ public interface Behaviour extends Session.Saveable {
     ROUTINE  = 5,
     URGENT   = 7,
     CRITICAL = 9 ;
+  
   
   Behaviour nextStepFor(Actor actor) ;
   boolean monitor(Actor actor) ;
@@ -32,3 +33,13 @@ public interface Behaviour extends Session.Saveable {
   
   void describeBehaviour(Description d) ;
 }
+
+
+
+
+
+
+
+
+
+

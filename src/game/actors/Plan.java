@@ -24,7 +24,7 @@ public abstract class Plan implements Saveable, Behaviour {
   protected Behaviour nextStep = null ;
   
   //
-  //  These can be returned by default, or overridden if required.
+  //  These can be returned by default, or overridden if pledgeMade.
   private float priority = -1 ;
   private String description ;
   

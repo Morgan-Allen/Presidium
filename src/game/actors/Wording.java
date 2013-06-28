@@ -1,22 +1,21 @@
 
 
 
-package src.game.campaign ;
-import src.game.actors.* ;
-import src.game.base.Human;
+package src.game.actors ;
+import src.game.base.* ;
+import src.game.social.* ;
 import src.util.* ;
 
 
 
 
-public class Naming implements ActorConstants {
+public class Wording implements ActorConstants {
   
   
   
-  /**  Here is functionality used to generate first and last names for a given
-    *  actor-
-    *  TODO:  Agglomerate into a single function that returns an array of
-    *  Strings (first, middle, last name, official title, nickname, etc.)
+  /**  Todo:  You need to follow the generation-descriptions a little more
+    *  closely.
+    *  These methods generate names for new actors.
     */
   final static String
     //
@@ -92,46 +91,22 @@ public class Naming implements ActorConstants {
     }
     return names.toArray(String.class) ;
   }
-}
-
-  /*
-  private static int standingOf(ActorProfile actor) {
-    final Vocation birth = actor.birth() ;
-    if (birth == null) return SLAVE_CLASS ;
-    if (birth == HIGHBORN) return RULER_CLASS ;
-    else return Math.min(UPPER_CLASS, (Integer) birth.standing) ;
-  }
   
-  private static String pickQuality(ActorProfile actor) {
-    return ((Trait) Rand.pickFrom(actor.allTraits())).name ;
-  }
   
-  public static String firstNameFor(ActorProfile actor) {
-    final int standing = standingOf(actor) ;
-    final String[] names = actor.hasTrait(FEMALE) ?
-       ALL_FEMALE_NAMES[standing] : ALL_MALE_NAMES[standing] ;
-    return (String) Rand.pickFrom(names) ;
-  }
-
-  public static String lastNameFor(ActorProfile actor) {
-    final int standing = standingOf(actor) ;
-    final boolean female = actor.hasTrait(FEMALE) ;
-    switch (standing) {
-      case (SLAVE_CLASS) :
-      case (LOWER_CLASS) :
-        return "" ;
-      case (UPPER_CLASS) :
-        return " "+Rand.pickFrom(CITIZEN_LAST_NAMES) ;
-      case (RULER_CLASS) :
-        System birthPlace = null ;
-        for (Vocation v : actor.career()) if (v.type == Vocation.Type.SYSTEM) {
-          birthPlace = (System) v ; break ;
-        }
-        return " of "+birthPlace.rulers.name ;
-    }
+  
+  /**  These methods return actors' voiceline responses to a variety of
+    *  situations-
+    */
+  
+  public static String response(Actor actor, Pledge pledgeMade) {
     return null ;
   }
-  //*/
+}
+
+
+
+
+
 
 
 

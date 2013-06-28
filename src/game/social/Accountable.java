@@ -1,7 +1,7 @@
 
 
 
-package src.game.actors ;
+package src.game.social ;
 
 
 public interface Accountable {

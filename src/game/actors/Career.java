@@ -122,7 +122,7 @@ public class Career implements ActorConstants {
     applySex(actor) ;
     //
     //  Finally, specify name and (TODO:) a few other details of appearance.
-    for (String name : Naming.namesFor(actor)) {
+    for (String name : Wording.namesFor(actor)) {
       if (fullName == null) fullName = name ;
       else fullName+=" "+name ;
     }

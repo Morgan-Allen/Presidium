@@ -77,7 +77,7 @@ public class ActorTraits implements ActorConstants {
     */
   public void initDNA(int mutationMod, Actor... parents) {
     //
-    //  First, if required, we sample the genetic material of the parents-
+    //  First, if pledgeMade, we sample the genetic material of the parents-
     final boolean free = parents == null || parents.length == 0 ;
     final char material[][] ;
     if (free) material = null ;

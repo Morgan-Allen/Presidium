@@ -8,6 +8,7 @@
 package src.game.actors ;
 import src.game.building.* ;
 import src.game.common.* ;
+import src.game.social.Accountable;
 import src.graphics.common.* ;
 import src.user.* ;
 import src.util.* ;

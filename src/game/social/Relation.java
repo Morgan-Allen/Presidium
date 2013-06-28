@@ -7,7 +7,6 @@
 
 
 package src.game.social ;
-import src.game.actors.Accountable;
 import src.game.common.* ;
 import src.util.* ;
 

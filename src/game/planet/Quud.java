@@ -12,7 +12,7 @@ import src.util.* ;
 
 
 
-public class Quud extends Organism {
+public class Quud extends Fauna {
   
   
   
@@ -40,12 +40,12 @@ public class Quud extends Organism {
   protected void initStats() {
     traits.initAtts(5, 2, 1) ;
     health.initStats(
-      5,    //lifespan
+      1,    //lifespan
       1,     //bulk bonus
       0.35f, //sight range
       0.15f  //speed rate
     ) ;
-    gear.setDamage(0) ;
+    gear.setDamage(2) ;
     gear.setArmour(15) ;
   }
   
@@ -101,18 +101,33 @@ public class Quud extends Organism {
     if (t.owner() instanceof Flora) {
       final Flora f = (Flora) t.owner() ;
       eaten = 1 ;
-      f.exitWorld() ;
+      f.incGrowth(-0.25f, world, false) ;
     }
     else {
-      eaten = t.habitat().moisture() / 4 ;
+      eaten = t.habitat().moisture() / (100f) ;
     }
-    health.takeSustenance(eaten / 4, 1) ;
+    health.takeSustenance(eaten, 1) ;
     return true ;
   }
   
   
   protected Target findRestPoint() {
     return origin() ;
+  }
+  
+  
+  /*
+  protected void onTileChange(Tile oldTile, Tile newTile) {
+    super.onTileChange(oldTile, newTile) ;
+  }
+  //*/
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    if (health.conscious() && numUpdates % 10 == 0) {
+      actionBrowse(this, origin()) ;
+    }
   }
 
 

@@ -119,7 +119,7 @@ public class DebugBehaviour extends PlayLoop {
     prey.enterWorldAt(8, 8, world) ;
     
     hunter.psyche.assignBehaviour(
-      new Hunting(hunter, prey, Hunting.TYPE_FEEDING)
+      new Hunting(hunter, prey, Hunting.TYPE_FEEDS)
     ) ;
     hunter.assignAction(null) ;
     ((BaseUI) HUD).setSelection(hunter) ;

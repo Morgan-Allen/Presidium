@@ -13,7 +13,7 @@ import src.util.* ;
 
 
 
-public class Vareen extends Organism {
+public class Vareen extends Fauna {
   
   
   
@@ -46,8 +46,8 @@ public class Vareen extends Organism {
   protected void initStats() {
     traits.initAtts(10, 20, 3) ;
     health.initStats(
-      2,    //lifespan
-      0.5f,     //bulk bonus
+      5,    //lifespan
+      0.5f, //bulk bonus
       1.0f, //sight range
       1.5f  //speed rate
     ) ;
@@ -74,7 +74,7 @@ public class Vareen extends Organism {
     //  feed from it.
     Tile pick = null ;
     for (int numTries = 3 ; numTries-- > 0 ;) {
-      Tile seen = randomSeenTile() ;
+      final Tile seen = randomTileInRange(health.sightRange()) ;
       if (seen == null || ! (seen.owner() instanceof Flora)) continue ;
       pick = seen ;
       break ;
@@ -116,6 +116,7 @@ public class Vareen extends Organism {
     if (! (location.owner() instanceof Flora)) return false ;
     final Flora f = (Flora) location.owner() ;
     health.takeSustenance(f.growStage() * 0.25f / Flora.MAX_GROWTH, 1.0f) ;
+    f.incGrowth(-0.25f / 4, world, false) ;
     return true ;
   }
   

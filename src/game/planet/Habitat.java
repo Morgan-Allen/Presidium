@@ -140,7 +140,7 @@ public class Habitat {
       IS_WASTE
     ),
     //  Bordering on Mesa and Cratered terrain, are what I'm looking for here.
-    //  Replace the next two with those.  That should be everything pledgeMade,
+    //  Replace the next two with those.  That should be everything required,
     //  aside from Tundra habitats...
     
     BLACK_WASTES = new Habitat("Mesa",

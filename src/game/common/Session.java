@@ -369,7 +369,7 @@ public class Session {
   
   /**  These methods allow Saveable objects to import/export their internal
     *  data, and permit direct access to the data input/output streams if
-    *  pledgeMade.
+    *  required.
     */
   public boolean saving() { return saving ; }
   

@@ -50,7 +50,7 @@ public abstract class ViewLoop {
     while (loop) {
       lastTime = System.currentTimeMillis() ;
       //
-      //  Perform the actual loop updates, as pledgeMade:
+      //  Perform the actual loop updates, as required:
       rendering.updateViews() ;
       HUD.updateInput() ;
       final Viewport port = rendering.port ;

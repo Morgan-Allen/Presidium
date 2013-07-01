@@ -33,17 +33,17 @@ public class EcologyGen {
   
   
   protected float sampleCrowding(
-    Organism specimen, World world, Tile around, float range
+    Fauna specimen, World world, Tile around, float range
   ) {
-    float sumSamples = 1 ;
-    int numSamples = 10 ;
+    float sumSamples = 0 ;
+    final int numSamples = 1 ;
     Tile bestEntry = null ;
     float minSample = Float.POSITIVE_INFINITY ;
     ///specimen.setPosition(around.x, around.y, world) ;
     //
     //  Sample various points within the sector to get a reading of how crowded
     //  the place is.
-    while (numSamples-- > 0) {
+    for (int n = numSamples ; n-- > 0 ;) {
       final Tile sampled = world.tileAt(
         Visit.clamp(around.x + Rand.range(-range, range), 0, world.size - 1),
         Visit.clamp(around.y + Rand.range(-range, range), 0, world.size - 1)
@@ -56,7 +56,7 @@ public class EcologyGen {
       final Tile free = Spacing.nearestOpenTile(bestEntry, bestEntry) ;
       if (free != null) specimen.setPosition(free.x, free.y, world) ;
     }
-    return sumSamples / 10 ;
+    return sumSamples / numSamples ;
   }
   
   
@@ -68,11 +68,11 @@ public class EcologyGen {
       final Tile midTile = world.tileAt(c.x + (RS / 2), c.y + (RS / 2)) ;
       
       while (true) {
-        Organism picked = null ;
+        Fauna picked = null ;
         float minCrowding = 1.0f ;
         
         for (int n = species.length ; n-- > 0 ;) {
-          final Organism specimen = species[n].newSpecimen() ;
+          final Fauna specimen = species[n].newSpecimen() ;
           float crowding = sampleCrowding(specimen, world, midTile, RS / 2) ;
           
           if (specimen.origin() != null && crowding < minCrowding) {
@@ -139,12 +139,12 @@ public void populateFauna(World world) {
     //
     //  Then, introduce species based on those preferences, up to the area's
     //  biomass limit.
-    int numBrowsers = (int) (Organism.BROWSER_DENSITY * avgMoisture) ;
+    int numBrowsers = (int) (Fauna.BROWSER_DENSITY * avgMoisture) ;
     while (numBrowsers-- > 0) {
       final Species picked = (Species) Rand.pickFrom(ecology, weights) ;
       if (picked.type != Species.Type.BROWSER) continue ;
       
-      final Organism creature = picked.newSpecimen() ;
+      final Fauna creature = picked.newSpecimen() ;
       Tile entry = world.tileAt(c.x + Rand.index(SS), c.y + Rand.index(SS)) ;
       entry = Spacing.nearestOpenTile(entry, entry) ;
       if (entry == null) continue ;

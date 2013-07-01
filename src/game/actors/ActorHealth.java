@@ -156,11 +156,11 @@ public class ActorHealth implements ActorConstants {
   
   
   public void setupHealth(
-    float currentAge,
+    float agingFactor,
     float overallHealth,
     float accidentChance
   ) {
-    this.currentAge = lifespan * currentAge ;
+    this.currentAge = lifespan * (agingFactor * agingFactor) ;
     updateHealth(-1) ;
     
     calories = ((Rand.num() + 0.1f) * overallHealth) * maxHealth ;
@@ -184,10 +184,18 @@ public class ActorHealth implements ActorConstants {
   }
   
   
+  public void loseSustenance(float fraction) {
+    calories -= fraction * maxHealth ;
+  }
+  
+  
   public int agingStage() {
-    final float age = currentAge * 1f / lifespan ;
-    ///I.say("Current age "+currentAge+", relative: "+age) ;
-    return Visit.clamp((int) (age * 4), 4) ;
+    return Visit.clamp((int) (ageLevel() * 4), 4) ;
+  }
+  
+  
+  public float ageLevel() {
+    return currentAge * 1f / lifespan ;
   }
   
   

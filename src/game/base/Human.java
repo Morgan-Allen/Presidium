@@ -10,7 +10,9 @@ import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.social.* ;
-import src.game.tactical.* ;
+import src.game.planet.* ;
+//import src.game.tactical.* ;
+
 import src.graphics.common.* ;
 import src.graphics.jointed.* ;
 import src.user.* ;
@@ -136,6 +138,9 @@ public class Human extends Actor implements ActorConstants {
   public Vocation vocation() { return career.vocation() ; }
   
   public Career career() { return career ; }
+  
+  public Object species() { return Species.HUMAN ; }
+  
   
   
   /**  Supplementary methods for behaviour-

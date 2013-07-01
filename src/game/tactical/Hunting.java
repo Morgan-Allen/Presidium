@@ -18,7 +18,7 @@ public class Hunting extends Plan implements ActorConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static int
-    TYPE_FEEDING = 0,
+    TYPE_FEEDS = 0,
     TYPE_HARVEST = 1,
     TYPE_SAMPLED = 2,
     
@@ -58,13 +58,17 @@ public class Hunting extends Plan implements ActorConstants {
     */
   protected Behaviour getNextStep() {
     if (numAttempts > MAX_ATTEMPTS) {
+      I.say(actor+" abandoning hunt of "+prey) ;
       return null ;
     }
     //
     //  If the prey is dead, either feed or harvest the meat.
     if (prey.health.isDead()) {
-      if (type == TYPE_FEEDING) {
-        if (actor.health.energyLevel() >= 1) return null ;
+      if (type == TYPE_FEEDS) {
+        if (actor.health.energyLevel() >= 1) {
+          I.say(actor+" has eaten their fill of "+prey) ;
+          return null ;
+        }
         final Action feeding = new Action(
           actor, prey,
           this, "actionFeed",
@@ -98,6 +102,13 @@ public class Hunting extends Plan implements ActorConstants {
   }
   
   
+  protected void onceInvalid() {
+    if (! prey.inWorld()) {
+      I.say(actor+" has finished the carcasse of "+prey+"?") ;
+    }
+  }
+  
+  
   public boolean monitor(Actor actor) {
     //
     //  If you're in the middle of tracking and you catch sight of the prey,
@@ -125,7 +136,7 @@ public class Hunting extends Plan implements ActorConstants {
     //  Outsource this to the Combat class, using specified offensive and
     //  defensive skills.
     if (prey.health.isDead()) return false ;
-    if (type == TYPE_FEEDING) {
+    if (type == TYPE_FEEDS) {
       Combat.performStrike(actor, prey, REFLEX, REFLEX) ;
     }
     else I.complain("UNSUPPORTED HUNTING TYPE.") ;
@@ -137,13 +148,13 @@ public class Hunting extends Plan implements ActorConstants {
   public boolean actionFeed(Actor actor, Actor prey) {
     //
     //  Inflict injury, extract meat, fill your belly.
-    actor.health.takeSustenance(actor.health.maxHealth(), 1) ;
-    /*
+    //actor.health.takeSustenance(actor.health.maxHealth(), 1) ;
+    //*
     final float damage = actor.gear.attackDamage() * (Rand.num() + 0.5f) / 2 ;
     final float before = prey.health.injuryLevel() ;
     prey.health.takeInjury(damage) ;
     float taken = prey.health.injuryLevel() - before ;
-    taken *= prey.health.maxHealth() ;
+    taken *= prey.health.maxHealth() * 4 ;
     ///I.say("Eaten: "+taken+" calories from "+prey) ;
     actor.health.takeSustenance(taken, 1) ;
     //*/

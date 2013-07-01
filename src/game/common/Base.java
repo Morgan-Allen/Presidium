@@ -104,7 +104,7 @@ public class Base implements Session.Saveable, Schedule.Updates {
   }
   
   
-  /**  Locating goods and services on offer or pledgeMade-
+  /**  Locating goods and services on offer or required-
     */
   public void toggleBelongs(Venue venue, boolean is) {
     toggleForService(venue, this, is) ;

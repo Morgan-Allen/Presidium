@@ -212,7 +212,7 @@ public class Action implements Behaviour, Model.AnimNames {
   
   protected void adjustMotion() {
     //
-    //  Update the actor's pathing and current heading as pledgeMade.
+    //  Update the actor's pathing and current heading as required.
     ///I.say(actor+" move target is: "+moveTarget) ;
     actor.pathing.updateWithTarget(moveTarget) ;
     if (actor.pathing.closeEnough()) {

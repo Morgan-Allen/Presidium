@@ -24,13 +24,34 @@ public abstract class Species {
   
   public static enum Type {
     BROWSER,
-    PREDATOR
+    PREDATOR,
+    HUMANOID,
   }
   
   
   final public static Species
     
-  
+    
+    HUMAN = new Species(
+      "Human",
+      "Humans are the most common intelligent space-faring species in the "+
+      "known systems of the local cluster.  According to homeworld records, "+
+      "they owe their excellent visual perception, biped gait and manual "+
+      "dexterity to arboreal ancestry, but morphology and appearance vary "+
+      "considerably in response to a system's climate and gravity, sexual "+
+      "dimorphism, mutagenic factors and history of eugenic practices. "+
+      "Generally omnivorous, they make capable endurance hunters, but most "+
+      "populations have shifted to agriponics and vats-culture to sustain "+
+      "their numbers.  Though inquisitive and gregarious, human cultures are "+
+      "riven by clannish instincts and long-running traditions of feudal "+
+      "governance, spurring conflicts that may threaten their ultimate "+
+      "survival.",
+      null,
+      null,
+      Type.HUMANOID
+    ) { Fauna newSpecimen() { return null ; } } ,
+    
+    
     QUUD = new Species(
       "Quud",
       "Quud are placid, slow-moving, vegetarian browsers that rely on their "+
@@ -44,15 +65,15 @@ public abstract class Species {
       Habitat.MEADOW, 0.5f,
       Habitat.SWAMPLANDS, 1.0f,
       Habitat.ESTUARY, 0.5f
-    ) { Organism newSpecimen() { return new Quud() ; } },
+    ) { Fauna newSpecimen() { return new Quud() ; } },
     
     
     VAREEN = new Species(
       "Vareen",
       "Vareen are sharp-eyed aerial omnivores active by day, with a twinned "+
       "pair of wings that makes them highly maneuverable flyers.  Their "+
-      "diet includes fruit, nuts, insects and carrion, but photosynthetic "+
-      "algae in their skin allow them to subsist directly on sunlight.",
+      "diet includes fruit, nuts, insects and carrion, but symbiotic algae "+
+      "in their skin also allow them to subsist partially on sunlight.",
       "VareenPortrait.png",
       MS3DModel.loadMS3D(
         Species.class, FILE_DIR, "Vareen.ms3d", 0.025f
@@ -61,7 +82,7 @@ public abstract class Species {
       Habitat.DESERT, 0.5f,
       Habitat.BARRENS, 1.0f,
       Habitat.MEADOW, 0.5f
-    ) { Organism newSpecimen() { return new Vareen() ; } },
+    ) { Fauna newSpecimen() { return new Vareen() ; } },
     
     
     MICOVORE = new Species(
@@ -78,9 +99,9 @@ public abstract class Species {
       Habitat.MEADOW, 1.0f,
       Habitat.SWAMPLANDS, 0.5f,
       Habitat.BARRENS, 0.5f
-    ) { Organism newSpecimen() { return new Micovore() ; } },
+    ) { Fauna newSpecimen() { return new Micovore() ; } },
     
-    ALL_SPECIES[] = { QUUD, VAREEN, MICOVORE }
+    ALL_SPECIES[] = { HUMAN, QUUD, VAREEN, MICOVORE }
     ;
   
   
@@ -127,7 +148,7 @@ public abstract class Species {
   }
   
   
-  abstract Organism newSpecimen() ;
+  abstract Fauna newSpecimen() ;
   //abstract Fixture newLair() ;
 }
 

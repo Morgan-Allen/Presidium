@@ -24,7 +24,7 @@ public abstract class Plan implements Saveable, Behaviour {
   protected Behaviour nextStep = null ;
   
   //
-  //  These can be returned by default, or overridden if pledgeMade.
+  //  These can be returned by default, or overridden if required.
   private float priority = -1 ;
   private String description ;
   
@@ -106,6 +106,7 @@ public abstract class Plan implements Saveable, Behaviour {
     if (nextStep == null || nextStep.complete()) {
       if (valid()) nextStep = getNextStep() ;
       else {
+        onceInvalid() ;
         ///I.say("Plan no longer valid: "+this) ;
         nextStep = null ;
       }
@@ -113,6 +114,9 @@ public abstract class Plan implements Saveable, Behaviour {
     return nextStep ;
   }
   
+  
+  protected void onceInvalid() {
+  }
   
   protected abstract Behaviour getNextStep() ;
   

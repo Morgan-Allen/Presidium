@@ -134,7 +134,7 @@ public class TerrainGen implements TileConstants {
       sorting.add(v) ;
     }
     //
-    //  We then determine how many sectors of each habitat are pledgeMade,
+    //  We then determine how many sectors of each habitat are required,
     //  compile the IDs sequentially by height, and assign to their sectors.
     float sumAmounts = 0, sumToNext = 0 ;
     for (int i = habitats.length ; i-- > 0 ;) sumAmounts += habitatAmounts[i] ;

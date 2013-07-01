@@ -14,7 +14,7 @@ import src.util.* ;
 
 
 
-public class Micovore extends Organism {
+public class Micovore extends Fauna {
   
   
   
@@ -64,12 +64,48 @@ public class Micovore extends Organism {
     //
     //  Find the nearest prey specimen, run it down, and eat it.
     //  ...That may require multiple actions.  So, use a plan.
-    final Actor prey = nearestSpecimen(
-      origin(), PREDATOR_RANGE, null, Species.Type.BROWSER
+    
+    final Batch <Fauna> prey = specimens(
+      origin(), PEER_SAMPLE_RANGE, null, Species.Type.BROWSER, 10
     ) ;
-    if (prey == null) return null ;
-    final Hunting hunting = new Hunting(this, prey, Hunting.TYPE_FEEDING) ;
+    if (prey.size() == 0) return null ;
+    
+    Fauna pickedPrey = null ;
+    float bestRating = Float.NEGATIVE_INFINITY ;
+    for (Fauna f : prey) {
+      //  Choose closer, younger, less heavily armed/armoured targets.
+      float danger = f.gear.armourRating() + f.gear.attackDamage() ;
+      danger *= f.health.maxHealth() / 100 ;
+      float dist = Spacing.distance(f, this) / PEER_SAMPLE_RANGE ;
+      float rating = (1 - dist) / danger ;
+      if (rating > bestRating) { pickedPrey = f ; bestRating = rating ; }
+    }
+    
+    if (pickedPrey == null) return null ;
+    final Hunting hunting = new Hunting(this, pickedPrey, Hunting.TYPE_FEEDS) ;
     return hunting ;
+  }
+  
+  
+  protected void fightWith(Fauna competes) {
+    final Hunting fight = new Hunting(this, competes, Hunting.TYPE_FEEDS) ;
+    fight.setPriority(Plan.CRITICAL) ;
+    if (psyche.couldSwitchTo(fight)) {
+      psyche.assignBehaviour(fight) ;
+    }
+  }
+  
+
+  protected float rateMigratePoint(Tile point) {
+    float rating = super.rateMigratePoint(point) ;
+    final Batch <Fauna> nearPrey = specimens(
+      point, PEER_SAMPLE_RANGE, null, Species.Type.BROWSER, 3
+    ) ;
+    if (nearPrey.size() == 0) return rating ;
+    float avgDistance = 0 ;
+    for (Fauna f : nearPrey) avgDistance += Spacing.distance(point, f) ;
+    avgDistance /= nearPrey.size() * PEER_SAMPLE_RANGE ;
+    return rating * (2 - avgDistance) ;
   }
   
   

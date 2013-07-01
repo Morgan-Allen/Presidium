@@ -224,7 +224,7 @@ public class PathingCache {
   
   private boolean refreshPlaces(Section section) {
     //
-    //  First of all, check to ensure that an update is pledgeMade.  If so,
+    //  First of all, check to ensure that an update is required.  If so,
     //  generate new places for underlying tiles:
     if (section == null) return false ;
     final float time = world.currentTime() ;

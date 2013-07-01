@@ -263,7 +263,7 @@ public class VenueOrders {
     }
     for (Demand demand : demands.values()) {
       d.append("\n  Demand for: "+demand.type.name) ;
-      d.append("\n    ("+(int) demand.required+" pledgeMade)") ;
+      d.append("\n    ("+(int) demand.required+" required)") ;
       d.append("\n    ("+(int) demand.received+" received)") ;
       d.append("\n    ("+(int) demand.balance +" balance)" ) ;
     }

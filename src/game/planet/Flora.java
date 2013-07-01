@@ -102,7 +102,8 @@ public class Flora extends Element implements TileConstants {
     float inc, World world, boolean init
   ) {
     growth += inc ;
-    if (! init) {
+    if (growth <= 0) { exitWorld() ; return ; }
+    if (inc > 0 && ! init) {
       final float moisture = origin().habitat().moisture / 10f ;
       final int minGrowth = (int) ((moisture * moisture * MAX_GROWTH) + 1f) ;
       final float dieChance = 1 - moisture ;

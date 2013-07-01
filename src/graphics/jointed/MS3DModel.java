@@ -13,7 +13,7 @@ import java.io.* ;
 
 
 /**  ...Loads a model from the MS3D file-format.
-  *  The format is little-endian, so specialised loading routines are pledgeMade.
+  *  The format is little-endian, so specialised loading routines are required.
   */
 public class MS3DModel extends JointModel {
   
@@ -276,7 +276,7 @@ public class MS3DModel extends JointModel {
     loadLEFloat(input) ;  //current animation frame, also unused...
     animLength = loadLEInt(input) ;  //-total frames of animation...
     //
-    //  Last- but by no means least- the joint data, pledgeMade for animation:
+    //  Last- but by no means least- the joint data, required for animation:
     final int numJ = loadLEShort(input) ;
     joints = new Joint[numJ + 1] ;  //(plus root.)
     String namePJ[] = new String[joints.length] ;  //parent joint names...

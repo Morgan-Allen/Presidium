@@ -197,7 +197,7 @@ public class TerrainPattern implements TileConstants {
     //  First, clear the data-
     for (int n = 4 ; n-- > 0 ;) outerIndices[n] = -1 ;
     //
-    //  Check to see what main combination is pledgeMade...
+    //  Check to see what main combination is required...
     int pI = 0 ;  //piece index.
     int comboIndex = 0 ;
     for (int n = 4 ; n-- > 0 ;) if (near[2 * n]) comboIndex |= (1 << n) ;

@@ -7,9 +7,10 @@
 
 package src.game.actors ;
 import src.game.common.* ;
-import src.game.common.Session.Saveable;
-import src.user.Description ;
+import src.game.common.Session.Saveable ;
+import src.user.* ;
 import src.util.* ;
+import java.lang.reflect.* ;
 
 
 public abstract class Plan implements Saveable, Behaviour {
@@ -26,12 +27,13 @@ public abstract class Plan implements Saveable, Behaviour {
   //
   //  These can be returned by default, or overridden if required.
   private float priority = -1 ;
-  private String description ;
+  private String description = null ;
   
   
   protected Plan(Actor actor, Saveable... signature) {
     this(actor, ROUTINE, null, signature) ;
   }
+  
   
   protected Plan(
     Actor actor, float priority, String desc,
@@ -158,9 +160,41 @@ public abstract class Plan implements Saveable, Behaviour {
   
   /**  Rendering and interface methods-
     */
+  
+  
+  
+  /**  Validation methods, intended to ensure that Plans can be stored
+    *  compactly as memories-
+    */
+  private static Table <Class, Boolean> validations = new Table(100) ;
+  
+  
+  private static boolean validatePlanClass(Class planClass) {
+    final Boolean valid = validations.get(planClass) ;
+    if (valid != null) return valid ;
+    
+    final String name = planClass.getSimpleName() ;
+    boolean okay = true ;
+    int dataSize = 0 ;
+    
+    for (Field field : planClass.getFields()) {
+      final Class type = field.getType() ;
+      if (type.isPrimitive()) dataSize += 4 ;
+      else if (Saveable.class.isAssignableFrom(type)) dataSize += 4 ;
+      else {
+        I.complain(name+" contains non-saveable data: "+field.getName()) ;
+        okay = false ;
+      }
+    }
+    if (dataSize > 40) {
+      I.complain(name+" has too many data fields.") ;
+      okay = false ;
+    }
+    
+    validations.put(planClass, okay) ;
+    return okay ;
+  }
 }
-
-
 
 
 

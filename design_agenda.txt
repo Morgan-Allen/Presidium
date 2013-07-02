@@ -4,16 +4,17 @@
 *  Extra humanoid models:  fat/skinny, young/old.
 *  Mutant/primitive/infected textures.
 
-
-*  Facilities, Mag Lines and Shield Walls must be *deletable!*
-*  Mining implementation- creating smelters and openings on the surface?
 *  Actor portraits, full names, and more attention to skins/costumes.
-*  Farming implementation-
-  Need to have a central hub for creating nurseries, and grab areas to
-  cultivate intelligently.  May need to use a mipmap for pathing/reservation.
-  Also need to prioritise different types of crops, for starches/greens/protein
-  or forestry.  Consider having crops extend flora.
-  Also, look into condensors and windtraps/solar arrays.
+
+//
+//  Resting also needs to be tested out.  And self-defence.  And co-existence
+//  with human structures (or humanoids themselves.)
+
+//
+//  Finally, you need to make the various flaggings part of the world, not the
+//  base.  And you need to either eliminate island effects, or make pathing-
+//  distance calculations cheap over long intervals.  (and the PathingMap must
+//  be part of the world as well.)
 
 16 commodity types to cover (everything else is minor)
   foodstuffs (3 types), spice

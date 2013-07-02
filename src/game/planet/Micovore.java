@@ -20,9 +20,6 @@ public class Micovore extends Fauna {
   
   /**  Constructors, setup and save/load methods-
     */
-  
-  
-  
   public Micovore() {
     super(Species.MICOVORE) ;
   }
@@ -60,11 +57,6 @@ public class Micovore extends Fauna {
   /**  Behaviour implementation-
     */
   protected Behaviour nextFeeding() {
-    ///if (true) return null ;
-    //
-    //  Find the nearest prey specimen, run it down, and eat it.
-    //  ...That may require multiple actions.  So, use a plan.
-    
     final Batch <Fauna> prey = specimens(
       origin(), PEER_SAMPLE_RANGE, null, Species.Type.BROWSER, 10
     ) ;

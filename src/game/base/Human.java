@@ -21,58 +21,6 @@ import src.util.* ;
 
 
 
-//OUTLINE FOR DECISION-MAKING:
-/*
-*  Is there a pressing, life-threatening emergency?
-   Running from an enemy, or raising an alarm.
-   Treating/sheltering/defending someone injured or attacked.
-   Getting food and sleep.
-
-*  Have you been assigned or embarked on a mission?
-   (Embarking on said missions, or accepting the rewards involved.)
-   (Might be specified by player, or started spontaneously.)
-   Strike Team.
-   Security Team.
-   Recovery Team.
-   Recon Team.
-   Contact Team.
-   Covert Team.
-   Accepting a promotion/ceremonial honours/license to marry.
-
-*  Do you have work assigned by your employer?
-   (Derived from home or work venues.)
-   Seeding & Harvest.
-   Excavation or Drilling.
-   Hunting.
-   Transport.
-   Manufacture.
-   Construction & Salvage.
-   Patrolling/Enforcement.
-   Treatment & Sick Leave.
-   Entertainment.
-
-*  Do you have spare time?
-   (Procreation, Relaxation, Self-improvement, Helping out.)
-   Relaxation/conversation/sex in public, at home, or at the Cantina.
-   Matches/debates/spectation at the Arena or Senate Chamber.
-   Learning new skills through apprenticeship or research at the Archives.
-//*/
-
-
-
-/*
-public boolean monitor(Actor actor) {
-//  Get the next step regardless every 2 seconds or so, compare priority
-//  with the actor's current plan, and switch if the difference is big
-//  enough.
-//  TODO:  Consider checking after every discrete action?  That might be
-//  more granular.
-return true ;
-}
-//*/
-
-
-
 public class Human extends Actor implements ActorConstants {
   
   

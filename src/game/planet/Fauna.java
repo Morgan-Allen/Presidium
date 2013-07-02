@@ -22,6 +22,7 @@ import src.util.* ;
 //    getDefence()
 //    fightWith()
 
+
 //
 //  For some reason, actual population densities seem to be about 50% higher
 //  than they should be after initialisation.  Probably has to do with average
@@ -422,7 +423,6 @@ public abstract class Fauna extends Actor {
     d.append(species.info) ;
   }
 }
-
 
 
 

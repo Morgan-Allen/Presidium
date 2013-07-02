@@ -13,6 +13,12 @@ import src.game.social.Relation;
 import src.util.* ;
 
 
+//
+//  TODO:  You need to include a list of Plans to-do and already done
+//  (memories.)  Have an internal check to ensure plans don't take up too many
+//  bytes.
+//  TODO:  Implement reactions (and missions?)
+
 
 public class ActorPsyche implements ActorConstants {
   
@@ -249,7 +255,6 @@ public class ActorPsyche implements ActorConstants {
   
   /**  Methods related to relationships-
     */
-  
   public float relationTo(Actor other) {
     Relation r = relations.get(other) ;
     if (r == null) return 0 ;
@@ -274,7 +279,8 @@ public class ActorPsyche implements ActorConstants {
   
   /**  Methods related to memories-
     */
-  
+  //  TODO:  This may be too complicated, particularly for larger settlements.
+  //         Just make Dialogue something of Idle priority.
   
   public float curiosity(Class planClass, Session.Saveable... assoc) {
     //

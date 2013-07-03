@@ -10,11 +10,11 @@ import src.game.common.* ;
 import src.util.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
-import java.lang.reflect.Constructor ;
+import java.lang.reflect.* ;
 
 
 
-public class BuildingsTab extends InfoPanel {
+public class InstallTab extends InfoPanel {
   
   
   /**  Constant definitions, data fields and constructors-
@@ -56,11 +56,14 @@ public class BuildingsTab extends InfoPanel {
   Button categoryButtons[] ;
   
   final Table <String, Category> categories = new Table <String, Category> () ;
+  final Batch <InstallType> allTypes = new Batch <InstallType> () ;
+  boolean instanced = false ;
+  
   InstallType helpShown = null, listShown = null ;
   Category currentCategory = null, hoveredCategory = null ;
   
   
-  BuildingsTab(BaseUI UI) {
+  InstallTab(BaseUI UI) {
     super(UI, null, BUTTONS_HEIGHT * 2) ;
     this.UI = UI ;
     setupCategories() ;
@@ -121,24 +124,7 @@ public class BuildingsTab extends InfoPanel {
       final InstallType type = new InstallType() ;
       type.buildClass = buildClass ;
       type.buildCons = cons ;
-      refreshInstance(type) ;
-      final Installation instanced = type.instanced ;
-      //
-      //  Thirdly, ensure that this structure has appropriate UI data:
-      if (
-        (type.name        = instanced.fullName()     ) == null ||
-        (type.icon        = instanced.portrait(UI)   ) == null ||
-        (type.description = instanced.helpInfo()     ) == null ||
-        (type.category    = instanced.buildCategory()) == null
-      ) {
-        I.say("UI information missing from "+buildClass.getSimpleName()) ;
-        continue ;
-      }
-      //
-      //  Finally, determine which category this structure belongs to-
-      final Category match = categories.get(type.category) ;
-      if (match == null) continue ;
-      match.types.add(type) ;
+      allTypes.add(type) ;
     }
   }
   
@@ -147,7 +133,42 @@ public class BuildingsTab extends InfoPanel {
     try {
       type.instanced = (Installation) type.buildCons.newInstance(UI.played()) ;
     }
-    catch (Exception e) { I.report(e) ; }
+    catch (Exception e) {
+      I.say("PROBLEM REFRESHING INSTANCE OF: "+type.buildCons.getName()) ;
+      I.report(e) ;
+    }
+  }
+  
+  
+  protected void updateState() {
+    //  TODO:  Refresh this every frame, or when the current base changes?
+    if (! instanced) {
+      //I.say("Refreshing build-type instances...") ;
+      for (InstallType type : allTypes) {
+        refreshInstance(type) ;
+        //I.say("Checking build type: "+type.buildClass.getSimpleName()) ;
+        final Installation instanced = type.instanced ;
+        //
+        //  Thirdly, ensure that this structure has appropriate UI data:
+        if (
+          (type.name        = instanced.fullName()     ) == null ||
+          (type.icon        = instanced.portrait(UI)   ) == null ||
+          (type.description = instanced.helpInfo()     ) == null ||
+          (type.category    = instanced.buildCategory()) == null
+        ) {
+          I.say("UI information missing: "+type.buildClass.getSimpleName()) ;
+          continue ;
+        }
+        else I.say("Adding build type: "+type.buildClass.getSimpleName()) ;
+        //
+        //  Finally, determine which category this structure belongs to-
+        final Category match = categories.get(type.category) ;
+        if (match == null) continue ;
+        match.types.add(type) ;
+      }
+      instanced = true ;
+    }
+    super.updateState() ;
   }
   
   
@@ -215,7 +236,7 @@ public class BuildingsTab extends InfoPanel {
   
   Batch <Installation> listInstalled(InstallType type) {
     Batch <Installation> installed = new Batch <Installation> () ;
-    final Tile zero = UI.world.tileAt(0, 0) ;
+    final Tile zero = UI.world().tileAt(0, 0) ;
     for (Object o : UI.played().servicesNear(type.buildClass, zero, -1)) {
       if (! (o instanceof Installation)) continue ;
       installed.add((Installation) o) ;
@@ -230,7 +251,7 @@ public class BuildingsTab extends InfoPanel {
     ///I.say("Beginning build task...") ;
     final InstallTask task = new InstallTask() ;
     task.toInstall = type.instanced ;
-    UI.setTask(task) ;
+    UI.beginTask(task) ;
     refreshInstance(type) ;
   }
   
@@ -244,7 +265,7 @@ public class BuildingsTab extends InfoPanel {
     
     
     public void doTask() {
-      final Tile picked = UI.pickedTile() ;
+      final Tile picked = UI.selection.pickedTile() ;
       
       if (hasPressed) {
         if (picked != null) to = picked ;
@@ -259,7 +280,7 @@ public class BuildingsTab extends InfoPanel {
       
       if (canPlace && hasPressed && ! UI.mouseDown()) {
         toInstall.doPlace(from, to) ;
-        UI.endTask() ;
+        UI.endCurrentTask() ;
       }
       else {
         UI.rendering.clearDepth() ;
@@ -268,7 +289,7 @@ public class BuildingsTab extends InfoPanel {
     }
     
     public void cancelTask() {
-      UI.endTask() ;
+      UI.endCurrentTask() ;
     }
     
     public Texture cursorImage() {

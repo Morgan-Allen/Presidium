@@ -32,7 +32,7 @@ public class MineShaftSmelter extends Venue implements VenueConstants {
     ),
     ALL_MOLD_MODELS[][] = ImageModel.fromTextureGrid(
       MineShaftSmelter.class, Texture.loadTexture(IMG_DIR+"all_molds.png"),
-      4, 5, 1
+      4, 5, 1, ImageModel.TYPE_FLAT
     ) ;
   final static int
     MOLD_COORDS[] = {
@@ -247,7 +247,7 @@ public class MineShaftSmelter extends Venue implements VenueConstants {
   
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_ARTIFICER ;
+    return InstallTab.TYPE_ARTIFICER ;
   }
 }
 

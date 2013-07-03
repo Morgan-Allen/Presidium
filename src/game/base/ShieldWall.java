@@ -10,7 +10,7 @@ import src.game.building.* ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.user.BaseUI;
-import src.user.BuildingsTab;
+import src.user.InstallTab;
 import src.user.Composite;
 import src.util.* ;
 
@@ -132,7 +132,7 @@ public class ShieldWall extends LineInstallation {
   
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_HIDDEN ;
+    return InstallTab.TYPE_HIDDEN ;
   }
 }
 

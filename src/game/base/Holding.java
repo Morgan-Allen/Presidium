@@ -12,7 +12,7 @@ import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.user.BaseUI;
-import src.user.BuildingsTab;
+import src.user.InstallTab;
 import src.user.Composite;
 import src.util.Rand;
 import src.util.Visit;
@@ -32,7 +32,7 @@ public class Holding extends Venue implements VenueConstants {
   final static String IMG_DIR = "media/Buildings/vendor aura/" ;
   final static Model MODELS[][] = ImageModel.fromTextureGrid(
     Holding.class, Texture.loadTexture(IMG_DIR+"all_housing.gif"),
-    4, 2
+    4, 4, 2, ImageModel.TYPE_POPPED_BOX
   ) ;
   
   final static Conversion construction[] = {
@@ -181,7 +181,7 @@ public class Holding extends Venue implements VenueConstants {
   
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_COMMERCE ;
+    return InstallTab.TYPE_COMMERCE ;
   }
 }
 

@@ -105,6 +105,7 @@ public class HUD extends UIGroup {
     return (selected == node) && (mouseState == state) ;
   }
   
+  
   public Vec2D mousePos() { return mousePos ; }
   public Vec2D dragOrigin() { return dragMP ; }
   public int mouseX() { return (int) mousePos.x ; }
@@ -116,25 +117,32 @@ public class HUD extends UIGroup {
   public boolean mouseDragged() { return isMouseState(DRAGGED) ; }
   public boolean mousePressed() { return isMouseState(PRESSED) ; }
   
+  
   public boolean isMouseState(final byte state) {
     return mouseState == state ;
   }
+  
   
   public UINode selected() {
     return selected ;
   }
   
+  
   public Box2D screenBounds() {
     return bounds ;
   }
   
+  
+  /*
   public void addUIGroup(UIGroup group) {
     if (group != null) group.attachTo(this) ;
   }
   
+  
   public void detachUIGroup(UIGroup group) {
     if (group != null) group.detach() ;
   }
+  //*/
 }
 
 

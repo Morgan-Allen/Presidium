@@ -51,7 +51,8 @@ public class Camera {
       target == null
     ) {
       lockTarget = null ;
-      UI.voidSelection() ;
+      //UI.selection.setSelected(null) ;
+      //UI.voidSelection() ;
     }
     else {
       if (
@@ -62,19 +63,23 @@ public class Camera {
     }
   }
   
+  
   protected void setLockOffset(float lX, float lY) {
     lockX = lX ;
     lockY = lY ;
   }
   
+  
   Target lockTarget() {
     return lockTarget ;
   }
   
+  
   void pushCamera(int x, int y) {
     port.cameraPosition.x += x ;
     port.cameraPosition.y += y ;
-    UI.setSelection(null) ;
+    //UI.setSelected(null) ;
+    UI.selection.setSelected(null) ;
     lockTarget = null ;
   }
   

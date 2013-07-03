@@ -29,18 +29,18 @@ public class Habitat {
       Habitat.class,
       Texture.loadTexture(TERRAIN_PATH+"old_flora_resize.png"),
       //Texture.loadTexture(TERRAIN_PATH+"desert_flora.png"),
-      4, 4, 1.9f
+      4, 4, 1.9f, ImageModel.TYPE_FLAT
     ),
     FOREST_FLORA_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
       Texture.loadTexture(TERRAIN_PATH+"old_flora_resize.png"),
       //Texture.loadTexture(TERRAIN_PATH+"forest_flora.png"),
-      4, 4, 1.9f
+      4, 4, 1.9f, ImageModel.TYPE_FLAT
     ),
     WASTES_FLORA_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
       Texture.loadTexture(TERRAIN_PATH+"wastes_flora.png"),
-      4, 4, 2.0f
+      4, 4, 2.0f, ImageModel.TYPE_FLAT
     ),
     PLANKTON_MODELS[][] = null,
     ANNUALS_MODELS[][]  = null,
@@ -50,7 +50,7 @@ public class Habitat {
     OUTCROP_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
       Texture.loadTexture(TERRAIN_PATH+"all_deposits.png"),
-      3, 3, 2.0f
+      3, 3, 2.0f, ImageModel.TYPE_FLAT
     ),
     DUNE_MODELS[]    = OUTCROP_MODELS[2],
     MINERAL_MODELS[] = OUTCROP_MODELS[1],
@@ -58,7 +58,7 @@ public class Habitat {
     SPIRE_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
       Texture.loadTexture(TERRAIN_PATH+"all_outcrops_new.png"),
-      3, 3, 2.0f
+      3, 3, 2.0f, ImageModel.TYPE_FLAT
     ) ;
   
   final private static String

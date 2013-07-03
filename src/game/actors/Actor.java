@@ -229,7 +229,7 @@ public abstract class Actor extends Mobile implements
   
   
   public void whenClicked() {
-    ((BaseUI) PlayLoop.currentUI()).setSelection(this) ;
+    ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
   }
 
   

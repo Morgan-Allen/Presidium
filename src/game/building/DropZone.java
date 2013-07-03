@@ -11,7 +11,7 @@ import src.game.planet.Planet;
 import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.user.BaseUI;
-import src.user.BuildingsTab;
+import src.user.InstallTab;
 import src.user.Composite;
 import src.user.Description;
 import src.util.* ;
@@ -152,7 +152,7 @@ public class DropZone extends Venue implements VenueConstants {
   }
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_HIDDEN ;
+    return InstallTab.TYPE_HIDDEN ;
   }
 }
 

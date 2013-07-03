@@ -94,7 +94,9 @@ public class PathingSearch extends Search <Boardable> {
   protected float cost(Boardable prior, Boardable spot) {
     if (spot == null) return -1 ;
     //  TODO:  If this spot is fogged, return a low nonzero value.
-    //  TODO:  Incorporate sector-based danger values.
+    //  TODO:  Incorporate sector-based danger values, and stay out of hostile
+    //         bases' line of sight when sneaking.
+    //  TODO:  If the spot has other actors in it, increase the perceived cost.
     float baseCost = Spacing.distance(prior, spot) ;
     switch (spot.pathType()) {
       case (Tile.PATH_CLEAR  ) : return 1.0f * baseCost ;

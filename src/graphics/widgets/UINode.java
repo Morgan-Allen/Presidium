@@ -113,6 +113,8 @@ public abstract class UINode {
   protected boolean amDragged() { return myHUD.amSelected(this, DRAGGED) ; }
   
   
+  /**  Utility methods for drawing/graphic display:
+    */
   final protected void drawQuad(
     float xmin, float ymin,
     float xmax, float ymax,
@@ -132,4 +134,21 @@ public abstract class UINode {
     GL11.glTexCoord2f(umax, vmax) ;
     GL11.glVertex3f(xmax, ymin, absDepth) ;
   }
+  
+  //
+  //  TODO:  You need another method for direct bitmap display, rather than
+  //  using texture coordinates.  Use glDrawPixels and glPixelZoom.
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

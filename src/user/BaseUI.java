@@ -1,48 +1,249 @@
-/**  
-  *  Written by Morgan Allen.
-  *  I intend to slap on some kind of open-source license here in a while, but
-  *  for now, feel free to poke around for non-commercial purposes.
-  */
+
 
 
 package src.user ;
+import org.lwjgl.input.Keyboard;
+
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.util.* ;
-import org.lwjgl.input.Keyboard ;
-import java.io.* ;
+
+
+/*
+ *  Main View Screen:
+ *    Minimap.  Starcharts.  Career & Legislation.
+ *    Stardate, Credits, Reputation and Psych Readout.
+ *    Quickbar (for Powers, Mission Types, and hotkeyed Actors or Venues.)
+ *    Logs and Active Missions.
+ *    
+ *  Information Panels:
+ *    Info on Actors/Missions/Venues (Selectables.)
+ *    Guilds/Construction.
+ *    Missions/Personnel.
+ *    Game Powers/Settings/Seat of Power.
+ */
 
 
 
-/**  This class is intended to initialise GUI functions for the player once the
-  *  world is initialised.
-  */
-public class BaseUI extends HUD {
+public class BaseUI extends HUD implements UIConstants {
   
   
-  final public static String
-    BUTTONS_PATH = "media/GUI/Buttons/" ;
-  final public static Texture
-    ICON_LIT_TEX  = Texture.loadTexture("media/GUI/iconLit.gif"),
-    SELECT_CIRCLE = Texture.loadTexture("media/GUI/selectCircle.png"),
-    SELECT_SQUARE = Texture.loadTexture("media/GUI/selectSquare.png") ;
-  final public static Alphabet INFO_FONT = new Alphabet(
-    "media/GUI/", "FontVerdana.gif", "FontVerdana.gif",
-    "FontVerdana.map", 8, 16
-  ) ;
+  
+  /**  Core field definitions, constructors, and save/load methods-
+    */
+  private World world ;
+  private Base played ;
+  
+  private UITask currentTask ;
+  final public Selection selection = new Selection(this) ;
+  private InfoPanel selectPanel, newPanel ;
+  
+  final Rendering rendering ;
+  final Camera camera ;
+  
+  
+  
+  public BaseUI(World world, Rendering rendering) {
+    this.world = world ;
+    this.rendering = rendering ;
+    this.camera = new Camera((BaseUI) (Object) this, rendering.port) ;
+    configLayout() ;
+  }
+  
+  
+  public void assignBaseSetup(Base played, Vec3D homePos) {
+    this.played = played ;
+    rendering.port.cameraPosition.setTo(homePos) ;
+    minimap.setBase(played) ;
+  }
+  
+  
+  public void loadState(Session s) throws Exception {
+    final Base played = (Base) s.loadObject() ;
+    assignBaseSetup(played, null) ;
+    camera.loadState(s) ;
+    selection.loadState(s) ;
+  }
+  
+  
+  public void saveState(Session s) throws Exception {
+    s.saveObject(played) ;
+    camera.saveState(s) ;
+    selection.saveState(s) ;
+  }
+  
+  
+  public Base played() { return played ; }
+  public World world() { return world  ; }
+  
+  
+  
+  /**  Construction of the default interface layout-
+    */
+  Minimap minimap ;
+  Button chartsButton, careerButton, logsButton ;
+  UIGroup activeMissions, quickBar, readout ;
+  
+  //  TODO:  Solve this first.
+  UIGroup helpText ;
+  UIGroup infoPanel ;
+  Button installButton, missionsButton, powersButton ;
+  
+  
+  private void configLayout() {
+    
+    this.minimap = new Minimap(this, world, null) ;
+    minimap.relBound.setTo(MINI_BOUNDS) ;
+    minimap.absBound.setTo(MINI_INSETS) ;
+    minimap.attachTo(this) ;
+    
+    
+    infoPanel = new UIGroup(this) ;
+    infoPanel.relBound.setTo(INFO_BOUNDS) ;
+    infoPanel.attachTo(this) ;
+    
+    installButton = buttonFor(
+      TABS_PATH+"install_button.gif",
+      "Open the installations tab",
+      new InstallTab(this), 0
+    ) ;
+    /*
+    missionsButton = buttonFor(
+      TABS_PATH+"missions_button.gif",
+      "Open the missions tab",
+      new MissionsTab(this), 1
+    ) ;
+    powersButton = buttonFor(
+      TABS_PATH+"powers_button.gif",
+      "Open the powers tab",
+      new PowersTab(this), 2
+    ) ;
+    //*/
+    
+    helpText = new Tooltips(this, INFO_FONT, TIPS_TEX, TIPS_INSETS) ;
+    helpText.attachTo(this) ;
+  }
+  
+  
+  private Button buttonFor(
+    String img, String help, final InfoPanel panel, final int index
+  ) {
+    final BaseUI UI = this ;
+    final Button button = new Button(this, img, help) {
+      protected void whenClicked() {
+        if (UI.selectPanel == panel) {
+          UI.setPanel(null) ;
+        }
+        else {
+          UI.selection.setSelected(null) ;
+          UI.setPanel(panel) ;
+        }
+      }
+    } ;
+    
+    button.relBound.setTo(TABS_BOUNDS) ;
+    final float step = TABS_BOUNDS.xdim() / NUM_TABS ;
+    button.relBound.xpos(step * index) ;
+    button.relBound.xdim(step) ;
+
+    button.stretch = false ;
+    button.attachTo(infoPanel) ;
+    return button ;
+  }
+  
+  
+  
+  /**  Modifying the interface layout-
+    */
+  public void setPanel(InfoPanel panel) {
+    newPanel = panel ;
+  }
+  
+  
+  
+  /**  Core update and rendering methods, in order of execution per-frame.
+    */
+  public void updateInput() {
+    super.updateInput() ;
+    if (newPanel != selectPanel) {
+      if (selectPanel != null) selectPanel.detach() ;
+      if (newPanel   != null) newPanel.attachTo(infoPanel) ;
+      selectPanel = newPanel ;
+    }
+    if (selection.updateSelection(world, rendering.port, infoPanel)) {
+      if (mouseClicked() && currentTask == null) {
+        selection.setSelected(selection.hovered()) ;
+      }
+    }
+  }
+  
+  
+  public void renderWorldFX() {
+    selection.renderWorldFX(rendering) ;
+    if (currentTask != null) {
+      if (KeyInput.isKeyDown(Keyboard.KEY_ESCAPE)) currentTask.cancelTask() ;
+      else currentTask.doTask() ;
+    }
+  }
+  
+  
+  public void renderHUD(Box2D bounds) {
+    super.renderHUD(bounds) ;
+    if (selection.selected() != null) {
+      camera.setLockOffset(infoPanel.xdim() / -2, 0) ;
+    }
+    else {
+      camera.setLockOffset(0, 0) ;
+    }
+    camera.updateCamera() ;
+  }
+  
+  
+  
+  /**  Handling task execution (Outsource this to the HUD class.)-
+    *  TODO:  That
+    */
+  public UITask currentTask() {
+    return currentTask ;
+  }
+  
+  
+  public void beginTask(UITask task) {
+    currentTask = task ;
+  }
+  
+  
+  public void endCurrentTask() {
+    currentTask = null ;
+  }
+  
+
+  
+  
+  public static boolean isPicked(Object o) {
+    final HUD hud = PlayLoop.currentUI() ;
+    if (! (hud instanceof BaseUI)) return false ;
+    return (o == null) || ((BaseUI) hud).selection.selected() == o ;
+  }
+  
+  
+  public static void logFor(Object o, String log) {
+    if (isPicked(o)) I.say(System.currentTimeMillis()+": "+log) ;
+  }
+}
+
+
+
+
+
+
+/*
+public class BaseUI extends HUD implements UIConstants {
 
   
   /**  This class implements rendering of a selection-overlay for currently
     *  hovered and picked objects.
-    */
-  
-  /*
-  final SelectOverlay
-    HOVER_OVERLAY  = new SelectOverlay(),
-    PICKED_OVERLAY = new SelectOverlay() ;
-  //*/
-  
   final World world ;
   final Rendering rendering ;
   
@@ -78,11 +279,11 @@ public class BaseUI extends HUD {
       "Open the installations panel"
     ) {
       protected void whenClicked() {
-        if (UI.currentPanel() instanceof BuildingsTab) {
+        if (UI.currentPanel() instanceof InstallTab) {
           UI.setPanel(null) ;
         }
         else {
-          final BuildingsTab tab = new BuildingsTab(UI) ;
+          final InstallTab tab = new InstallTab(UI) ;
           UI.setPanel(tab) ;
         }
       }
@@ -134,7 +335,6 @@ public class BaseUI extends HUD {
   
 
   /**  This should be called every frame immediately prior to world rendering.
-    */
   public void updateInput() {
     super.updateInput() ;
     //if (true) return ;
@@ -147,7 +347,6 @@ public class BaseUI extends HUD {
   
   
   /**  This should be called every frame immediately following world rendering.
-    */
   public void renderWorldFX() {
     if (task != null) {
       if (KeyInput.isKeyDown(Keyboard.KEY_ESCAPE)) task.cancelTask() ;
@@ -176,9 +375,9 @@ public class BaseUI extends HUD {
   }
   
   
+  
   /**  Whereas this is called to render the HUD itself, which occurs once all
     *  terrain, sprites, SFX etc. have been rendered-
-    */
   public void renderHUD(Box2D bounds) {
     super.renderHUD(bounds) ;
     //
@@ -212,7 +411,6 @@ public class BaseUI extends HUD {
   
   
   /**  Here, we put various utility methods for selection of world elements-
-    */
   public Selectable playerHovered() { return hovered  ; }
   public Selectable playerSelection() { return picked ; }
   public Tile    pickedTile   () { return pickTile    ; }
@@ -222,7 +420,6 @@ public class BaseUI extends HUD {
   
   
   /**  Updates the current selection of items in the world-
-    */
   void updateSelection() {
     //
     //  If the new selection differs from the old, we can think about adding or
@@ -265,7 +462,6 @@ public class BaseUI extends HUD {
   
   
   /**  Sets the current selection to the given argument.
-    */
   public void setSelection(Selectable s) {
     if (s != null) {
       if ((s instanceof Element) && ((Element) s).inWorld()) {
@@ -284,7 +480,6 @@ public class BaseUI extends HUD {
   
   
   /**  Tells the UI to present the given info panel.
-    */
   public void setPanel(InfoPanel panel) {
     //I.say("Setting panel: "+panel) ;
     newPanel = panel ;
@@ -293,7 +488,6 @@ public class BaseUI extends HUD {
   
   
   /**  Ensures that nothing is selected at the moment-
-    */
   void voidSelection() {
     pickTile = null ;
     pickMobile = null ;
@@ -307,7 +501,6 @@ public class BaseUI extends HUD {
   
   
   /**  Returns the current information panel.
-    */
   UIGroup currentPanel() {
     return selectInfo ;
   }
@@ -325,120 +518,6 @@ public class BaseUI extends HUD {
   }
 }
 
-
-
-
-
-
-
-
-
-/*
-buildingsButton = new Button(
-  this, "media/GUI/Tabs/install_button.gif",
-  "Open the installations panel"
-) {
-  protected void whenClicked() {
-    if (UI.currentPanel() instanceof BuildingsTab) {
-      UI.setPanel(null) ;
-      return ;
-    }
-    final BuildingsTab tab = new BuildingsTab(UI) ;
-    UI.setPanel(tab) ;
-  }
-} ;
-buildingsButton.stretch = false ;
-buildingsButton.absBound.set(10, 10, 40, 40) ;
-buildingsButton.relBound.set(0, 0, 0, 0) ;
-buildingsButton.attachTo(this) ;
-
-creditText = new Text(this, INFO_FONT, "", false) ;
-creditText.absBound.set(10, -50, 100, 40) ;
-creditText.relBound.set(0.33f, 1, 0, 0) ;
-creditText.attachTo(this) ;
-
-minimap = new Minimap(this, world, realm) ;
-minimap.relBound.set(1, 1, 0, 0) ;
-minimap.absBound.set(-210, -210, 200, 200) ;
-minimap.attachTo(this) ;
-//*/
-/*
-messages = new MessageFeed(this) ;
-messages.relBound.set(0.33f, 0.9f, 0.33f, 0.1f) ;
-messages.absBound.set(0, -10, 0, 0) ;
-messages.attachTo(this) ;
 //*/
 
 
-
-/**  Used to distinguish the outline/radius/boundary of a given structure,
-  *  element or actor currently under selection.
-  */
-//  TODO:  Just use a single texture, for fuck's sake.
-/*
-private class SelectOverlay {
-  
-  final Box2D area = new Box2D() ;
-  
-  //  These are used in the case of a ficture being selected-
-  final Box2D fixtureArea = new Box2D() ;
-  //final Vars.Ref <Fixture> fixRef = new Vars.Ref <Fixture> () ;
-  
-  
-  final Texture
-    SELECT_CIRCLE = Texture.loadTexture("media/GUI/selectCircle.gif") ;
-  final SFX
-    overMobile = new RingFX(SELECT_CIRCLE, 1) ;
-  //
-  //  TODO:  Move this to the view.terrain package?
-  final TileOverlay
-    overActor = new TileOverlay(SELECT_CIRCLE, area) {
-      protected boolean maskedAt(Terrain t, int x, int y) {
-        return true ;
-      }
-    },
-    overBuilding = new TileOverlay(
-      Texture.loadTexture("media/GUI/selection_tiles.gif"),
-      TileOverlay.PATTERN_OUTER_FRINGE
-    ) {
-      protected boolean maskedAt(Terrain t, int x, int y) {
-        if (! fixtureArea.contains(x, y)) return false ;
-        if (world.tileAt(x, y) == null) return false ;
-        return true ;
-      } 
-    }
-  ;
-  
-  void draw(Selectable selects, Viewport view) {
-    if (selects == null) {
-      return ;
-    }
-    if (selects instanceof Fixture) {
-      final Fixture fixture = (Fixture) selects ;
-      ///I.say("Fixture selected- "+fixture) ;
-      area.setTo(fixtureArea.setTo(fixture.area())) ;
-      area.xpos(area.xpos() - 1) ;
-      area.ypos(area.ypos() - 1) ;
-      area.xmax(area.xmax() + 2) ;
-      area.ymax(area.ymax() + 2) ;
-      overBuilding.setArea(area) ;
-      world.terrain().drawOverlay(overBuilding) ;
-    }
-    else if (selects instanceof Mobile) {
-      if (selects instanceof Actor) {
-        final Actor actor = (Actor) selects ;
-        if(actor.indoors()) return ;
-        final float r = actor.targRadius() + 0.25f ;
-        final Vec3D p = actor.selectPos() ;
-        overActor.setArea(area.set(p.x - r, p.y - r, r * 2, r * 2)) ;
-        world.terrain().drawOverlay(overActor) ;
-      }
-    }
-    else if (selects instanceof Flag) {
-      final Flag flag = (Flag) selects ;
-      final Target target = flag.mission.subject() ;
-      if (target instanceof Selectable) draw((Selectable) target, view) ;
-    }
-  }
-}
-//*/

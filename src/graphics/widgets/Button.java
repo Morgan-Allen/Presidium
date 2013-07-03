@@ -55,7 +55,10 @@ public class Button extends Image {
   }
   
   
-  protected String info() { return info ; }
+  protected String info() {
+    return info ;
+  }
+  
   
   protected void render() {
     super.render() ;
@@ -75,3 +78,4 @@ public class Button extends Image {
     texture = realTex ;
   }
 }
+

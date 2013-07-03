@@ -34,7 +34,7 @@ public class BotanicalStation extends Venue implements VenueConstants {
     CROP_MODELS[][] = ImageModel.fromTextureGrid(
       BotanicalStation.class,
       Texture.loadTexture(IMG_DIR+"all_crops.png"),
-      4, 4, 1
+      4, 4, 1, ImageModel.TYPE_FLAT
     ),
     GRUB_BOX_MODEL = ImageModel.asIsometricModel(
       BotanicalStation.class, IMG_DIR+"grub_box.png", 1, 1
@@ -243,7 +243,7 @@ public class BotanicalStation extends Venue implements VenueConstants {
   
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_ECOLOGIST ;
+    return InstallTab.TYPE_ECOLOGIST ;
   }
   
   

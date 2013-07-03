@@ -6,16 +6,13 @@
 
 package src.graphics.widgets ;
 import src.util.* ;
+import org.lwjgl.opengl.GL11 ;
 
 
 public class UIGroup extends UINode {
   
   
-  
   final List <UINode> kids = new List <UINode> () ;
-  protected float alpha = 1.0f ;
-  //protected Texture texture ;
-  protected int margin ;
   
   
   public UIGroup(HUD myHUD) {
@@ -23,12 +20,14 @@ public class UIGroup extends UINode {
     if (myHUD == null && ! (this instanceof HUD)) I.complain("No HUD!") ;
   }
   
-  //Box2D fullBounds() { return childBounds ; }
   
   public void render() {
-    //Test.report("border position " + xpos + " " + ypos) ;
-    for (UINode kid : kids) if (! kid.hidden) kid.render() ;
+    for (UINode kid : kids) if (! kid.hidden) {
+      GL11.glColor4f(1, 1, 1, 1) ;
+      kid.render() ;
+    }
   }
+  
   
   protected UINode selectionAt(Vec2D mousePos) {
     UINode selected = null ;
@@ -47,15 +46,18 @@ public class UIGroup extends UINode {
     updateAbsoluteBounds(bound) ;
   }
   
+  
   protected void updateState() {
     super.updateState() ;
     for (UINode kid : kids) kid.updateState() ;
   }
-
+  
+  
   void updateRelativeParent(Box2D base) {
     super.updateRelativeParent(base) ;
     for (UINode kid : kids) if (! kid.hidden) kid.updateRelativeParent() ;
   }
+  
   
   void updateAbsoluteBounds(Box2D base) {
     super.updateAbsoluteBounds(base) ;
@@ -64,6 +66,8 @@ public class UIGroup extends UINode {
 }
 
 
+//protected float alpha = 1.0f ;
+//protected int margin ;
 
 /*
 if (centreX) bounds.xpos(bounds.xpos() +

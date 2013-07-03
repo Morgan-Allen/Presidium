@@ -159,7 +159,7 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
   
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_MILITARY ;
+    return InstallTab.TYPE_MILITARY ;
   }
 }
 

@@ -349,7 +349,7 @@ public abstract class Venue extends Fixture implements
   
   
   public void whenClicked() {
-    ((BaseUI) PlayLoop.currentUI()).setSelection(this) ;
+    ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
   }
   
   

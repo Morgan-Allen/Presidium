@@ -114,13 +114,15 @@ public class ImageModel extends Model {
     Class modelClass,
     Texture tex, int gridSize, float tileSize
   ) {
-    return fromTextureGrid(modelClass, tex, gridSize, gridSize, tileSize) ;
+    return fromTextureGrid(
+      modelClass, tex, gridSize, gridSize, tileSize, TYPE_FLAT
+    ) ;
   }
   
   
   public static ImageModel[][] fromTextureGrid(
     Class modelClass,
-    Texture tex, int gridX, int gridY, float tileSize
+    Texture tex, int gridX, int gridY, float tileSize, int type
   ) {
     final String gridName = "IMAGE-MODEL-GRID-"+tex.name() ;
     Object cached = LoadService.getResource(gridName) ;
@@ -132,7 +134,7 @@ public class ImageModel extends Model {
         final String modelName = "IMAGE-MODEL-"+tex.name()+"-GRID-"+x+"|"+y ;
         ImageModel model = new ImageModel(
           modelName, modelClass, tex,
-          tileSize, tileSize * gridX * 1f / gridY, TYPE_FLAT
+          tileSize, tileSize * gridX * 1f / gridY, type
         ) ;
         model.translateUV(x, y, gridX, gridY) ;
         cols[x][gridY - (y + 1)] = model ;

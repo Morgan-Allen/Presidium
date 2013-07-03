@@ -12,7 +12,7 @@ import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.user.BaseUI;
-import src.user.BuildingsTab;
+import src.user.InstallTab;
 import src.user.Composite;
 
 
@@ -96,7 +96,7 @@ public class CultureVats extends Venue implements VenueConstants {
   }
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_ARTIFICER ;
+    return InstallTab.TYPE_ARTIFICER ;
   }
 }
 

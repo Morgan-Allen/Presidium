@@ -61,7 +61,7 @@ public class Lair extends Venue {
   }
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_HIDDEN ;
+    return InstallTab.TYPE_HIDDEN ;
   }
 }
 

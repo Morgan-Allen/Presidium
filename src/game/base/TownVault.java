@@ -213,7 +213,7 @@ public class TownVault extends Venue implements VenueConstants {
   
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_MILITARY ;
+    return InstallTab.TYPE_MILITARY ;
   }
 }
 

@@ -5,9 +5,7 @@ package src.game.base ;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
-import src.user.BaseUI;
-import src.user.BuildingsTab;
-import src.user.Composite;
+import src.user.* ;
 import src.util.* ;
 
 
@@ -109,7 +107,7 @@ public class MagLine extends LineInstallation {
   
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_HIDDEN ;
+    return InstallTab.TYPE_HIDDEN ;
   }
 }
 

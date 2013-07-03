@@ -13,7 +13,7 @@ import src.graphics.widgets.* ;
 
 
 
-public class InfoPanel extends UIGroup {
+public class InfoPanel extends UIGroup implements UIConstants {
   
   
   final public Texture BORDER_TEX = Texture.loadTexture(
@@ -37,11 +37,9 @@ public class InfoPanel extends UIGroup {
   public InfoPanel(BaseUI UI, Selectable selected, int topMargin) {
     super(UI) ;
     this.UI = UI ;
-    //
-    //  TODO:  These bounds have to exported to the BaseUI class,
-    //         template-wise...
-    this.relBound.set(0.00f, 0.0f, 0.33f, 1.0f) ;
-    this.absBound.set(20, 70, -40, -90) ;
+    this.relBound.setTo(PANE_BOUNDS) ;
+    //  TODO:  Make the insets part of the constants as well?
+    this.absBound.set(20, 30, -40, -50) ;
     final int MW = MARGIN_WIDTH, HH = HEADER_HEIGHT ;
     
     this.border = new Bordering(UI, BORDER_TEX) ;
@@ -75,7 +73,8 @@ public class InfoPanel extends UIGroup {
         "SELECTION IS NO LONGER IN WORLD... "+
         selected+" "+selected.getClass().getName()
       ) ;
-      UI.setSelection(null) ;
+      //UI.selection.voidSelection() ;
+      UI.selection.setSelected(null) ;
       return ;
     }
     updateText() ;

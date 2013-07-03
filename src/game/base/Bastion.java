@@ -14,7 +14,7 @@ import src.game.tactical.Patrolling ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.user.BaseUI;
-import src.user.BuildingsTab;
+import src.user.InstallTab;
 import src.user.Composite;
 
 
@@ -77,7 +77,7 @@ public class Bastion extends Venue {
   }
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_MILITARY ;
+    return InstallTab.TYPE_MILITARY ;
   }
 }
 

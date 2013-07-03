@@ -122,7 +122,7 @@ public class DebugBehaviour extends PlayLoop {
       new Hunting(hunter, prey, Hunting.TYPE_FEEDS)
     ) ;
     hunter.assignAction(null) ;
-    ((BaseUI) HUD).setSelection(hunter) ;
+    ((BaseUI) HUD).selection.setSelected(hunter) ;
   }
   
   
@@ -132,7 +132,7 @@ public class DebugBehaviour extends PlayLoop {
       other = new Human(Vocation.MILITANT , base) ;
     actor.enterWorldAt(5, 5, world) ;
     other.enterWorldAt(8, 8, world) ;
-    ((BaseUI) HUD).setSelection(actor) ;
+    ((BaseUI) HUD).selection.setSelected(actor) ;
   }
 }
 

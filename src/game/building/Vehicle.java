@@ -150,7 +150,7 @@ public abstract class Vehicle extends Mobile implements
   
   public void whenClicked() {
     if (PlayLoop.currentUI() instanceof BaseUI) {
-      ((BaseUI) PlayLoop.currentUI()).setSelection(this) ;
+      ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
     }
   }
   

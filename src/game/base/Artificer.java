@@ -100,7 +100,7 @@ public class Artificer extends Venue implements VenueConstants {
   }
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_ARTIFICER ;
+    return InstallTab.TYPE_ARTIFICER ;
   }
 }
 

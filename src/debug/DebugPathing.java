@@ -155,7 +155,7 @@ public class DebugPathing extends PlayLoop {
     if (free == null) return ;
     citizen = new Human(Vocation.ARTIFICER, played()) ;
     citizen.enterWorldAt(free.x, free.y, world()) ;
-    ((BaseUI) currentUI()).setSelection(citizen) ;
+    ((BaseUI) currentUI()).selection.setSelected(citizen) ;
   }
   
   
@@ -183,7 +183,7 @@ public class DebugPathing extends PlayLoop {
   /**  Debugging pathfinding and region-caching-
     */
   private void highlightPlace() {
-    final Tile t = ((BaseUI) currentUI()).pickedTile() ;
+    final Tile t = ((BaseUI) currentUI()).selection.pickedTile() ;
     if (t == null) return ;
     final Tile placeTiles[] = played().pathingCache.placeTiles(t) ;
     final Tile placeRoutes[][] = played().pathingCache.placeRoutes(t) ;
@@ -267,7 +267,7 @@ public class DebugPathing extends PlayLoop {
   
   
   private Boardable hovered(BaseUI UI) {
-    final Tile t = UI.pickedTile() ;
+    final Tile t = UI.selection.pickedTile() ;
     if (t != null && t.owner() instanceof Venue) {
       return (Venue) t.owner() ;
     }

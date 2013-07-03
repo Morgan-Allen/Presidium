@@ -250,7 +250,7 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
 
   
   public String buildCategory() {
-    return BuildingsTab.TYPE_ARTIFICER ;
+    return InstallTab.TYPE_ARTIFICER ;
   }
   
   

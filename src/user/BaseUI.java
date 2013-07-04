@@ -2,12 +2,12 @@
 
 
 package src.user ;
-import org.lwjgl.input.Keyboard;
-
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.util.* ;
+import org.lwjgl.input.* ;
+
 
 
 /*
@@ -54,7 +54,7 @@ public class BaseUI extends HUD implements UIConstants {
   
   public void assignBaseSetup(Base played, Vec3D homePos) {
     this.played = played ;
-    rendering.port.cameraPosition.setTo(homePos) ;
+    if (homePos != null) rendering.port.cameraPosition.setTo(homePos) ;
     minimap.setBase(played) ;
   }
   
@@ -98,28 +98,25 @@ public class BaseUI extends HUD implements UIConstants {
     minimap.absBound.setTo(MINI_INSETS) ;
     minimap.attachTo(this) ;
     
-    
     infoPanel = new UIGroup(this) ;
     infoPanel.relBound.setTo(INFO_BOUNDS) ;
     infoPanel.attachTo(this) ;
     
     installButton = buttonFor(
-      TABS_PATH+"install_button.gif",
+      TABS_PATH+"edicts_tab.png",  //  TODO:  Replace this soon.
       "Open the installations tab",
       new InstallTab(this), 0
     ) ;
-    /*
     missionsButton = buttonFor(
-      TABS_PATH+"missions_button.gif",
+      TABS_PATH+"missions_tab.png",
       "Open the missions tab",
       new MissionsTab(this), 1
     ) ;
     powersButton = buttonFor(
-      TABS_PATH+"powers_button.gif",
+      TABS_PATH+"powers_tab.png",
       "Open the powers tab",
       new PowersTab(this), 2
     ) ;
-    //*/
     
     helpText = new Tooltips(this, INFO_FONT, TIPS_TEX, TIPS_INSETS) ;
     helpText.attachTo(this) ;

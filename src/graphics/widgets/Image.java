@@ -17,7 +17,6 @@ import org.lwjgl.opengl.* ;
 public class Image extends UINode {
   
   
-  public float alpha = 1.0f ;
   public boolean stretch = false ;
   protected Texture texture ;
   

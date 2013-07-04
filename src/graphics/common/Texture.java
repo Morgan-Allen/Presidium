@@ -6,12 +6,12 @@
 
 package src.graphics.common ;
 import src.util.* ;
-import java.awt.image.BufferedImage ;
+import java.awt.image.* ;
 import java.io.* ;
 import java.nio.* ;
-import javax.imageio.ImageIO ;
+import javax.imageio.* ;
 import org.lwjgl.opengl.* ;
-import org.lwjgl.BufferUtils ;
+import org.lwjgl.* ;
 
 
 
@@ -87,6 +87,9 @@ final public class Texture {
   }
   
   
+  
+  /**  The main loading method used by most external classes-
+    */
   public static Texture loadTexture(String pathName, String alphaName) {
     //
     //  Firstly, check to see if the texture in question has already been
@@ -110,7 +113,7 @@ final public class Texture {
       int alphaP[] = null ;
       if (alphaName != null && alphaName.length() > 0) {
         alphaName = LoadService.safePath(alphaName) ;
-        BufferedImage mask  = ImageIO.read(new File(pathName)) ;
+        BufferedImage mask = ImageIO.read(new File(alphaName)) ;
         alphaP = new int[xdim * ydim] ;
         mask.getRGB(0, 0, xdim, ydim, alphaP, 0, xdim) ;
       }
@@ -134,6 +137,9 @@ final public class Texture {
   }
   
   
+  private Texture() {}
+  
+  
   
   /**  A few basic utility textures for general use.
     */
@@ -151,11 +157,13 @@ final public class Texture {
     BLACK_TEX.buffer.putInt(0xff000000) ;
   }
   
+  
   public static Texture createTexture(int w, int h) {
     final Texture tex = new Texture() ;
     tex.setup(w, h) ;
     return tex ;
   }
+  
   
   private void setup(int w, int h) {
     xdim = w ; ydim = h ;
@@ -165,15 +173,18 @@ final public class Texture {
     vRange = ((float) ydim) / trueSize ;
     buffer = BufferUtils.createByteBuffer(trueSize * trueSize * 4) ;
   }
+  
 
   public Colour averaged() {
     return this.averaged ;
   }
   
+  
   public void putBytes(byte vals[]) {
     buffer.clear() ;
     buffer.put(vals) ;
   }
+  
   
   public void putColour(Colour c, int x, int y) {
     c.storeByteValue(tempRGBA, 0) ;
@@ -185,6 +196,7 @@ final public class Texture {
     buffer.position(limit) ;
     cached = false ;
   }
+  
   
   /*
   public void putColour(int tU, int tV, Colour colour) {
@@ -200,8 +212,6 @@ final public class Texture {
     cached = false ;
   }
   //*/
-  
-  protected Texture() {}
   
   
   /**  Internal method used to combine colour and alpha channels (which may be
@@ -240,7 +250,7 @@ final public class Texture {
     //  We must average rgb values.
     float aR = 0, aB = 0, aG = 0 ;
     float sumWeights = 0 ;
-    int yp = 0, xp, ind, alpha, pixel, v = 0, r, g, b ;
+    int yp = 0, xp, ind, alpha, pixel, v = 0, r, g, b, a ;
     //
     //  We also need to convert from ARGB to RGBA-
     for(; yp < high ; yp++) {
@@ -249,22 +259,20 @@ final public class Texture {
       for(xp = 0 ; xp < len ; xp++) {
         alpha = mask[ind]   ;
         pixel = fill[ind++] ;
-        //
-        //  weight the average by alpha.
-        final float w = ((alpha >> shiftA) & 0xff) / 255f ;
         r = (pixel >> 16) & 0xff ;
         g = (pixel >> 8 ) & 0xff ;
         b = (pixel >> 0 ) & 0xff ;
-        if (w > 0) {
+        a = (alpha >> shiftA) & 0xff ;
+        //
+        //  weight the average by alpha, and insert the bytes into the array:
+        final float w = a / 255f ; if (w > 0) {
           sumWeights += w ;
           aR += r * w ; aG += g * w ; aB += b * w ;
         }
-        //
-        //  Insert the bytes into the array.
         vals[v++] = (byte) r ;
         vals[v++] = (byte) g ;
         vals[v++] = (byte) b ;
-        vals[v++] = (byte) (alpha >> shiftA) ;
+        vals[v++] = (byte) a ;
       }
     }
     //
@@ -297,6 +305,7 @@ final public class Texture {
     if (! cached) cacheTex() ;
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, glID) ;
   }
+  
   
   public static void setDefaultTexParams() {
     GL11.glTexParameteri(

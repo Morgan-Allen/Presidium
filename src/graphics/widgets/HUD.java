@@ -15,6 +15,29 @@ import org.lwjgl.input.Mouse ;
 /**  This is the 'master' UI class.
   */
 public class HUD extends UIGroup {
+
+  
+  
+  final private static float
+    DRAG_DIST = 3.0f,
+    HOVER_DELAY = 0.5f ;
+  
+  private long
+    hoverStart = -1 ;
+  private Vec2D
+    nextMP = new Vec2D(),
+    dragMP = new Vec2D() ;
+  private boolean
+    nextMB ;
+  
+  private UINode
+    selected ;
+  private boolean
+    mouseB ;
+  private byte
+    mouseState = HOVERED ;
+  private Vec2D
+    mousePos = new Vec2D() ;
   
   
   public HUD() {
@@ -29,7 +52,9 @@ public class HUD extends UIGroup {
     nextMP.x = Mouse.getX() ;
     nextMP.y = Mouse.getY() ;
     
-    if (mouseB && (! nextMB)) mouseState = HOVERED ;
+    if (mouseB && (! nextMB)) {
+      mouseState = HOVERED ;
+    }
     if ((! mouseB) && nextMB) {
       mouseState = CLICKED ;
       dragMP.setTo(nextMP) ;
@@ -54,8 +79,15 @@ public class HUD extends UIGroup {
     absBound.set(0, 0, 0, 0) ;
     updateAsBase(bounds) ;
     
+    final UINode oldSelect = selected ;
     if ((selected == null) || (mouseState != DRAGGED)) {
       selected = selectionAt(mousePos) ;
+    }
+    if (mouseState != HOVERED) {
+      hoverStart = System.currentTimeMillis() ;
+    }
+    else if (selected != null && selected != oldSelect) {
+      hoverStart = System.currentTimeMillis() ;
     }
     if (selected != null) switch (mouseState) {
       case (HOVERED) : selected.whenHovered() ; break ;
@@ -81,35 +113,26 @@ public class HUD extends UIGroup {
   }
   
   
-  final private static float
-    DRAG_DIST = 3.0f ;
   
-  private Vec2D
-    nextMP = new Vec2D(),
-    dragMP = new Vec2D() ;
-  private boolean
-    nextMB ;
-  
-  private UINode
-    selected ;
-  private boolean
-    mouseB ;
-  private byte
-    mouseState = HOVERED ;
-  private Vec2D
-    mousePos = new Vec2D() ;
-  
-  
-  
-  boolean amSelected(UINode node, byte state) {
+  public boolean amSelected(UINode node, byte state) {
     return (selected == node) && (mouseState == state) ;
   }
   
   
+  public float timeHovered() {
+    if (mouseState != HOVERED) return -1 ;
+    final long time = System.currentTimeMillis() - hoverStart ;
+    return time / 1000f ;
+  }
+  
+  
+  
   public Vec2D mousePos() { return mousePos ; }
   public Vec2D dragOrigin() { return dragMP ; }
+  
   public int mouseX() { return (int) mousePos.x ; }
   public int mouseY() { return (int) mousePos.y ; }
+  
   
   public boolean mouseDown() { return mouseB ;  }
   public boolean mouseClicked() { return isMouseState(CLICKED) ; }
@@ -131,18 +154,6 @@ public class HUD extends UIGroup {
   public Box2D screenBounds() {
     return bounds ;
   }
-  
-  
-  /*
-  public void addUIGroup(UIGroup group) {
-    if (group != null) group.attachTo(this) ;
-  }
-  
-  
-  public void detachUIGroup(UIGroup group) {
-    if (group != null) group.detach() ;
-  }
-  //*/
 }
 
 

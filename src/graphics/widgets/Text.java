@@ -30,12 +30,12 @@ public class Text extends UINode implements Description {
   ) ;
   
   
-  public Colour colour = (new Colour()).set(1, 1, 1, 1) ;
+  //public Colour colour = (new Colour()).set(1, 1, 1, 1) ;
   public float scale = 1.0f ;
   
   final protected Alphabet alphabet ;
-  private boolean roll ;
-  private boolean format = false ;
+  //private boolean roll ;
+  private boolean needsFormat = false ;
   private Scrollbar scrollbar ;
   
   protected List <Box2D> allEntries = new List <Box2D> () ;
@@ -50,25 +50,19 @@ public class Text extends UINode implements Description {
     *  entries will remain visible.
     */
   public Text(HUD myHUD, Alphabet a) {
-    this(myHUD, a, "", false) ;
+    this(myHUD, a, "") ;
   }
   
   
   public Text(HUD myHUD, Alphabet a, String s) {
-    this(myHUD, a, s, false) ;
-  }
-  
-  
-  protected Text(HUD myHUD, Alphabet a, String t, boolean roll) {
     super(myHUD) ;
     alphabet = a ;
-    this.roll = roll ;
-    setText(t) ;
+    setText(s) ;
   }
   
   
   //  TODO:  Scrollbars should be possible to associate with arbitrary UI
-  //  groups.
+  //  groups.  In fact, they should probably be a group type unto themselves.
   public Scrollbar getScrollBar() {
     final Scrollbar bar = new Scrollbar(
       myHUD, Scrollbar.SCROLL_TEX, fullSize, true
@@ -113,12 +107,12 @@ public class Text extends UINode implements Description {
   protected void updateAbsoluteBounds() {
     super.updateAbsoluteBounds() ;
     if ((oldWide != xdim()) || (oldHigh != ydim())) {
-      format = true ;
+      needsFormat = true ;
       oldWide = xdim() ;
       oldHigh = ydim() ;
     }
-    if (format && (allEntries.size() > 0)) format() ;
-    format = false ;
+    if (needsFormat && (allEntries.size() > 0)) format(xdim()) ;
+    //needsFormat = false ;
   }
   
   
@@ -173,7 +167,7 @@ public class Text extends UINode implements Description {
   
   
   /**  Adds a single image entry to this text object.  Images are used as
-    *  'bullets' to indent and separate text, and this format is retained until
+    *  'bullets' to indent and separate text, and this needsFormat is retained until
     *  the next carriage return or another image is inserted.
     */
   public boolean insert(Texture texGraphic, int maxSize) {
@@ -192,7 +186,7 @@ public class Text extends UINode implements Description {
     entry.wide = (int) graphic.xdim() ;
     entry.high = (int) graphic.ydim() ;
     allEntries.add(entry) ;
-    format = true ;
+    needsFormat = true ;
     return true ;
   }
   
@@ -209,7 +203,7 @@ public class Text extends UINode implements Description {
     entry.colour = c ;
     entry.link = links ;
     allEntries.addLast(entry) ;
-    format = true ;
+    needsFormat = true ;
     return true ;
   }
   
@@ -220,7 +214,7 @@ public class Text extends UINode implements Description {
   public void setText(String s) {
     allEntries.clear() ;
     append(s, null, null) ;
-    format = true ;
+    needsFormat = true ;
   }
   
   
@@ -249,7 +243,7 @@ public class Text extends UINode implements Description {
       case(KeyEvent.VK_DELETE)     :
         if (allEntries.size() > 0) {
           allEntries.removeLast() ;  //delete last letter.
-          format = true ;
+          needsFormat = true ;
         }
         break ;
       case(KeyEvent.VK_ESCAPE) :
@@ -305,13 +299,15 @@ public class Text extends UINode implements Description {
     //  First, determine a 'viewing window' for the text, if larger than the
     //  visible pane-
     final Box2D textArea = new Box2D().set(0, 0, xdim(), ydim()) ;
+    /*
     //
     //  If the text is meant to roll, shift the text area to fit over the last
     //  characters.  Otherwise, check on what our scrollbar says.
     if (roll && fullSize.xdim() > xdim()) {
       textArea.xpos(fullSize.xdim() - xdim()) ;
     }
-    if (scrollbar != null && ! roll) {
+    //*/
+    if (scrollbar != null) {
       textArea.ypos(
         0 - (fullSize.ydim() - ydim()) *
         (1 - scrollbar.scrollPos())
@@ -325,7 +321,7 @@ public class Text extends UINode implements Description {
     //
     //  Begin the rendering pass...
     alphabet.fontTex.bindTex() ;
-    colour.bindColour() ;
+    ///colour.bindColour() ;
     GL11.glEnable(GL11.GL_SCISSOR_TEST) ;
     GL11.glScissor((int) xpos(), (int) ypos(), (int) xdim(), (int) ydim()) ;
     GL11.glBegin(GL11.GL_QUADS) ;
@@ -336,7 +332,7 @@ public class Text extends UINode implements Description {
       else bullets.add((ImageEntry) entry) ;
     }
     GL11.glEnd() ;
-    GL11.glColor4f(1, 1, 1, 1) ;
+    //GL11.glColor4f(1, 1, 1, alpha) ;
     for (ImageEntry entry : bullets) {
       renderImage(textArea, entry) ;
     }
@@ -352,6 +348,7 @@ public class Text extends UINode implements Description {
   protected void renderImage(Box2D bounds, ImageEntry entry) {
     if (! entry.intersects(bounds)) return ;
     final Box2D b = entry.graphic.absBound ;
+    entry.graphic.alpha = this.alpha ;
     b.xpos(entry.xpos() + xpos() - bounds.xpos()) ;
     b.ypos(entry.ypos() + ypos() - bounds.ypos()) ;
     entry.graphic.updateRelativeParent() ;
@@ -373,8 +370,8 @@ public class Text extends UINode implements Description {
       GL11.glColor3f(1, 1, 0) ;
     }
     else {
-      final Colour c = entry.colour != null ? entry.colour : this.colour ;
-      GL11.glColor4f(c.r, c.g, c.b, c.a) ;
+      final Colour c = entry.colour != null ? entry.colour : Colour.WHITE ;
+      GL11.glColor4f(c.r, c.g, c.b, c.a * alpha) ;
     }
     final float xoff = xpos() - area.xpos(), yoff = ypos() - area.ypos() ;
     //
@@ -393,13 +390,17 @@ public class Text extends UINode implements Description {
   /**  Sets this text object to the size it would ideally prefer in order to
     *  accomodate it's text.
     */
-  public void setToPreferredSize() {
-    roll = true ;
-    format() ;
+  public void setToPreferredSize(float maxWidth) {
+    format(maxWidth) ;
     relBound.xdim(0) ;
     relBound.ydim(0) ;
     absBound.xdim(fullSize.xdim()) ;
     absBound.ydim(fullSize.ydim()) ;
+  }
+  
+  
+  public Box2D preferredSize() {
+    return fullSize ;
   }
   
   
@@ -408,7 +409,7 @@ public class Text extends UINode implements Description {
     *  effects, and, if neccesary, adjusts the bounds of this UIObject
     *  accordingly.
     */
-  protected void format() {
+  protected void format(float maxWidth) {
     ListEntry <Box2D>
       open = allEntries,
       wordOpen = open,
@@ -419,13 +420,11 @@ public class Text extends UINode implements Description {
       newWord,
       newLine ;
     float
-      xpos = 0, ypos = 0,
-      entryW = 0, entryH = 0 ;
+      xpos = 0,
+      ypos = 0 ;
     final float
       lineHigh = alphabet.map[' '].height * scale,
-      charWide = alphabet.map[' '].width  * scale,
-      boundW = xdim(),
-      boundH = ydim() ;
+      charWide = alphabet.map[' '].width  * scale ;
     //
     //  Here's the main loop for determining entry positions...
     while ((open = open.nextEntry()) != allEntries) {
@@ -462,7 +461,7 @@ public class Text extends UINode implements Description {
           default:
             entry.set(
               xpos, ypos,
-              entry.letter.width * scale,
+              entry.letter.width  * scale,
               entry.letter.height * scale
             ) ;
             xpos += entry.xdim() ;
@@ -470,8 +469,9 @@ public class Text extends UINode implements Description {
             //  If the width of the current line exceeds the space allowed, you
             //  need to go back to that start of the current word and jump to
             //  the next line.
-            if ((! roll) && (xpos > boundW) && (wordOpen != lineOpen))
+            if ((maxWidth > 0) && (xpos > maxWidth) && (wordOpen != lineOpen)) {
               newLine = true ;
+            }
         }
       }
       //
@@ -483,28 +483,16 @@ public class Text extends UINode implements Description {
         ypos -= lineHigh ;
         open = lineOpen = wordOpen ;
       }
-      else if (xpos > entryW)
-        entryW = xpos ;
     }
     //
-    //  We now reposition entries to fit the window, and cache the string.
-    entryH = (0 - ypos) + lineHigh ;
-    xpos = ypos = 0 ;
-    ypos = boundH - lineHigh ;
-    if (roll) {
-      xpos = (entryW > boundW) ? (boundW - entryW) : xpos ;
-      ypos = (entryH > boundH) ? (boundH - entryH) : ypos ;
-    }
-    //
-    //  Move characters up to the top of the virtual area...
-    fullSize.set(0, 0, boundW, lineHigh) ;
+    //  We now reposition entries to fit the window, and update the full bounds.
+    fullSize.set(0, 0, 0, 0) ;
+    final float heightAdjust = ydim() - lineHigh ;
     for (Box2D entry : allEntries) {
       fullSize.include(entry) ;
-      entry.ypos(entry.ypos() + boundH - lineHigh) ;
-      //if (entry == allEntries.last().refers) I.say("Last entry: "+entry) ;
+      entry.ypos(entry.ypos() + heightAdjust) ;
     }
-    //I.say("Full size is: "+fullSize) ;
-    format = false ;
+    needsFormat = false ;
   }
 }
 

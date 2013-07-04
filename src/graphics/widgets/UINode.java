@@ -5,14 +5,15 @@
   */
 
 package src.graphics.widgets ;
-import src.util.*;
-
+import src.util.* ;
 import org.lwjgl.opengl.* ;
 
 
 public abstract class UINode {
   
   
+  /**  Data fields, constructors and accessor methods-
+    */
   final public static byte
     HOVERED = 0,
     CLICKED = 1,
@@ -22,11 +23,16 @@ public abstract class UINode {
   final public Box2D
     relBound = new Box2D(),
     absBound = new Box2D() ;
-  public float relDepth = 0, absDepth = 0 ;
+  public float
+    relDepth = 0,
+    absDepth = 0 ;
   final protected Box2D
     bounds = new Box2D() ;
+  public float
+    alpha = 1 ;
   public boolean
     hidden = false ;
+  
   
   final protected HUD myHUD ;
   private UIGroup parent ;
@@ -37,20 +43,24 @@ public abstract class UINode {
     this.myHUD = myHUD ;
   }
   
-  protected abstract void render() ;
-  
-  protected String info() { return null ; }
   
   protected UINode selectionAt(Vec2D mousePos) {
     return (bounds.contains(mousePos.x, mousePos.y)) ? this : null ;
   }
   
+  
   public float xpos() { return bounds.xpos() ; }
   public float ypos() { return bounds.ypos() ; }
   public float xdim() { return bounds.xdim() ; }
   public float ydim() { return bounds.ydim() ; }
-  
   Box2D fullBounds() { return bounds ; }
+  
+  
+  
+  /**  Methods intended for implementation by subclasses-
+    */
+  protected abstract void render() ;
+  protected String info() { return null ; }
   
   
   
@@ -76,12 +86,14 @@ public abstract class UINode {
   }
   
   
+  
   /**  Sets the absolute size and relative (to parent) position of this node.
     */
   protected void updateRelativeParent() {
     if (parent == null) updateRelativeParent(new Box2D()) ;
     else updateRelativeParent(parent.bounds) ;
   }
+  
   
   void updateRelativeParent(Box2D base) {
     bounds.xdim(absBound.xdim() + (base.xdim() * relBound.xdim())) ;
@@ -90,12 +102,15 @@ public abstract class UINode {
     bounds.ypos(absBound.ypos()) ;
   }
   
+  
+  
   /**  Sets the absolute position and bounds of this node.
     */
   protected void updateAbsoluteBounds() {
     if (parent == null) updateAbsoluteBounds(new Box2D()) ;
     else updateAbsoluteBounds(parent.bounds) ;
   }
+  
   
   void updateAbsoluteBounds(Box2D base) {
     bounds.xpos(bounds.xpos() + base.xpos() + (relBound.xpos() * base.xdim())) ;
@@ -111,6 +126,7 @@ public abstract class UINode {
   protected boolean amClicked() { return myHUD.amSelected(this, CLICKED) ; }
   protected boolean amPressed() { return myHUD.amSelected(this, PRESSED) ; }
   protected boolean amDragged() { return myHUD.amSelected(this, DRAGGED) ; }
+  
   
   
   /**  Utility methods for drawing/graphic display:

@@ -91,7 +91,7 @@ public class CultureVats extends Venue implements VenueConstants {
   
   public String helpInfo() {
     return
-      "The Culture Vats manufacture soma, medicines, tissue cultures and even "+
+      "The Culture Vats manufacture soma, medicines, tissue cultures and "+
       "basic foodstuffs." ;
   }
   

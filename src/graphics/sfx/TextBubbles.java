@@ -46,7 +46,7 @@ public class TextBubbles extends UIGroup {
       
       b.text.absBound.set(0, 0, maxWidth, lineHeight) ;
       b.text.setText(p) ;
-      b.text.setToPreferredSize() ;
+      b.text.setToPreferredSize(100) ;
       b.absBound.setTo(b.text.absBound) ;
       b.absBound.ypos(down) ;
       down += b.absBound.ydim() ;

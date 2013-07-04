@@ -14,7 +14,8 @@ import src.util.* ;
 
 public class Vocation implements ActorConstants {
   
-
+  
+  
   final public static Float
     ALWAYS    =  1.0f,
     OFTEN     =  0.6f,

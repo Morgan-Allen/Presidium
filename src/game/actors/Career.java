@@ -196,7 +196,7 @@ public class Career implements ActorConstants {
     rating /= 1 + next.baseSkills.size() + prior.baseSkills.size() ;
     //
     //  Favour transition to more presitigous vocations-
-    if (next.standing < prior.standing) return 0 ;
+    if (next.standing < prior.standing) return rating / 10f ;
     //if (next.standing == prior.standing) rating /= 5 ;
     return rating ;
   }
@@ -210,6 +210,7 @@ public class Career implements ActorConstants {
   
   
   private void applyVocation(Vocation v, Actor actor) {
+    I.say("Applying vocation: "+v) ;
     
     for (Skill s : v.baseSkills.keySet()) {
       final int level = v.baseSkills.get(s) ;

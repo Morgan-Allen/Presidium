@@ -15,7 +15,7 @@ public class Bordering extends UINode {
   
   final Texture borderTex ;
   final public Box2D
-    texInset = new Box2D().set(0.25f, 0.25f, 0.5f, 0.5f),
+    texInset = new Box2D().set(0.33f, 0.33f, 0.33f, 0.33f),
     drawInset = new Box2D().set(-10, -10, 20, 20) ;
   
   
@@ -52,6 +52,7 @@ public class Bordering extends UINode {
     }
     
     borderTex.bindTex() ;
+    GL11.glColor4f(1, 1, 1, alpha) ;
     GL11.glBegin(GL11.GL_QUADS) ;
     for (int x = 3 ; x-- > 0 ;) for (int y = 3 ; y-- > 0 ;) {
       drawQuad(

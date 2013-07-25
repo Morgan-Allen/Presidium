@@ -114,17 +114,21 @@ public class Box2D {
     return set(xpos - e, ypos - e, xdim + (e * 2), ydim + (e * 2)) ;
   }
   
+  
   public float minSide() {
     return (ydim < xdim) ? ydim : xdim ;
   }
+  
   
   public float maxSide() {
     return (ydim > xdim) ? ydim : xdim ;
   }
   
+  
   public float area() {
     return xdim * ydim ;
   }
+  
   
   public void clipToMultiple(int m) {
     int xm = 0, ym = 0 ;
@@ -132,6 +136,11 @@ public class Box2D {
     while (ym + m < ydim) ym += m ;
     xdim(xm) ;
     ydim(ym) ;
+  }
+  
+  
+  public Vec2D centre() {
+    return new Vec2D().set((xpos + xmax) / 2, (ypos + ymax) / 2) ;
   }
   
   

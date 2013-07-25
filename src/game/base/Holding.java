@@ -157,7 +157,7 @@ public class Holding extends Venue implements VenueConstants {
   }
   
   
-  protected Item.Type[] goods() {
+  protected Item.Type[] services() {
     return new Item.Type[0] ;
   }
   
@@ -181,7 +181,7 @@ public class Holding extends Venue implements VenueConstants {
   
   
   public String buildCategory() {
-    return InstallTab.TYPE_COMMERCE ;
+    return InstallTab.TYPE_MERCHANT ;
   }
 }
 

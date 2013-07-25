@@ -203,25 +203,29 @@ public class WorldSections implements TileConstants {
   
   /**  Returns a list of all static elements visible to the given viewport.
     */
+  //
+  //  TODO:  This might be moved to the rendering method of the World instead?
   public void compileVisible(
     final Viewport port, final Base base,
     final Batch <Section> visibleSections,
-    final List <Element> visibleFixtures
+    final List <World.Visible> visibleFixtures
   ) {
     final Box3D tempBounds = new Box3D() ;
     final Descent compile = new Descent() {
+      
       public boolean descendTo(Section s) {
-        //I.say("Section bounds: "+s.bounds) ;
         return port.intersects(s.bounds) ;
       }
+      
       public void afterChildren(Section s) {
         if (s.depth > 0) return ;
-        //I.say("Section visible: "+s.area) ;
         visibleSections.add(s) ;
-        for (Element e : world.fixturesFrom(s.area)) {
-          if (e.sprite() == null) continue ;
-          if (! port.intersects(boundsFrom(e, tempBounds))) continue ;
-          if (e.visibleTo(base)) visibleFixtures.add(e) ;
+        if (visibleFixtures != null) {
+          for (Element e : world.fixturesFrom(s.area)) {
+            if (e.sprite() == null) continue ;
+            if (! port.intersects(boundsFrom(e, tempBounds))) continue ;
+            if (base == null || e.visibleTo(base)) visibleFixtures.add(e) ;
+          }
         }
       }
     } ;

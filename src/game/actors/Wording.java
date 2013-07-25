@@ -95,7 +95,7 @@ public class Wording implements ActorConstants {
   
   
   /**  These methods return actors' voiceline responses to a variety of
-    *  situations-
+    *  situations.
     */
   
   public static String response(Actor actor, Pledge pledgeMade) {

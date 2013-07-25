@@ -124,11 +124,11 @@ public class VenueOrders {
   public Delivery nextDelivery(Actor actor, Item.Type types[]) {
     float maxUrgency = 0 ;
     Delivery picked = null ;
-    final Base base = venue.base ;
+    final Presences presences = venue.base().world.presences ;
     //
     //  We iterate over every nearby venue, and see if they need what we're
     //  selling, so to speak.
-    for (Object o : base.servicesNear(base, venue, SEARCH_RADIUS)) {
+    for (Object o : presences.matchesNear(venue.base(), venue, SEARCH_RADIUS)) {
       final Venue client = (Venue) o ;
       final float distFactor = (SEARCH_RADIUS + Spacing.distance(
         venue, client
@@ -221,6 +221,7 @@ public class VenueOrders {
   
   public void updateOrders() {
     //for (Demand d : demands.values()) d.reserved = 0 ;
+    final Presences presences = venue.base().world.presences ;
     //
     //  Remove any orders which have expired, and calculate what goods are
     //  being held in reserve.
@@ -244,7 +245,7 @@ public class VenueOrders {
       //
       //  TODO:  Search a little more thoroughly, and favour suppliers that are
       //  closer, less busy and/or have larger existing stocks.
-      final Venue supplies = venue.base.randomServiceNear(
+      final Venue supplies = presences.randomMatchNear(
         d.type, venue, SEARCH_RADIUS
       ) ;
       if (supplies == null) continue ;

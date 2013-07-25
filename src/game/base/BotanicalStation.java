@@ -198,7 +198,7 @@ public class BotanicalStation extends Venue implements VenueConstants {
   }
   
   
-  protected Item.Type[] goods() {
+  protected Item.Type[] services() {
     return new Item.Type[] { STARCHES, GREENS, PROTEIN } ;
   }
   
@@ -211,7 +211,7 @@ public class BotanicalStation extends Venue implements VenueConstants {
   
 
   public Behaviour jobFor(Actor actor) {
-    final Delivery d = orders.nextDelivery(actor, goods()) ;
+    final Delivery d = orders.nextDelivery(actor, services()) ;
     if (d != null) return d ;
     
     //if (true) return null ;

@@ -77,7 +77,7 @@ public class TownVault extends Venue implements VenueConstants {
       ///I.say("Adding demand for: "+holding.fullName()) ;
     }
     
-    for (Object t : base().servicesNear(base(), this, 32)) {
+    for (Object t : world.presences.matchesNear(base(), this, 32)) {
       final Venue v = (Venue) t ;
       for (Actor citizen : v.personnel.workers()) {
         if (citizen.psyche.home() != null) continue ;
@@ -188,7 +188,7 @@ public class TownVault extends Venue implements VenueConstants {
   }
   
   
-  protected Item.Type[] goods() {
+  protected Item.Type[] services() {
     return new Item.Type[0] ;
   }
   
@@ -213,7 +213,7 @@ public class TownVault extends Venue implements VenueConstants {
   
   
   public String buildCategory() {
-    return InstallTab.TYPE_MILITARY ;
+    return InstallTab.TYPE_MILITANT ;
   }
 }
 

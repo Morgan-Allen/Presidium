@@ -23,7 +23,7 @@ public class Alphabet {
     XML info = (XML.load(path + mmlFile)).child(0) ;
     String
       texFile = info.value("texture"),
-      alphaFile = info.value("alpha"),
+      alphaFile = info.value("relAlpha"),
       mapFile = info.value("mapping") ;
     final int
       numLines = Integer.parseInt(info.value("lines")),
@@ -64,7 +64,7 @@ public class Alphabet {
     //
     //  This is where the actual scanning is done.  A single texture is used for
     //  all characters to avoid frequent texture re-bindings during rendering.
-    //  The procedure looks for 'gaps' in the initial texture alpha as cues for
+    //  The procedure looks for 'gaps' in the initial texture relAlpha as cues for
     //  where to demarcate individual letters.
     final int trueSize = fontTex.trueSize() ;
     int x, y, ind, line = 0, maxMap = 0 ;
@@ -76,7 +76,7 @@ public class Alphabet {
       y = lineHigh * line ;
       ind = (y * trueSize) + (x = 0) ;
       for( ; x < fontTex.xdim() ; x++, ind++) {
-        if((mask[ind] & 0xff000000) != 0) {  //alpha value of pixel is nonzero.
+        if((mask[ind] & 0xff000000) != 0) {  //relAlpha value of pixel is nonzero.
           if(scan) {
             scan = false ;  //a letter starts here.
             

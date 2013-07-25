@@ -216,7 +216,7 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
   }
   
   
-  protected Item.Type[] goods() {
+  protected Item.Type[] services() {
     return new Item.Type[] { CARBONS, METALS, ISOTOPES } ;
   }
   

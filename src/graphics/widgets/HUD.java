@@ -84,7 +84,7 @@ public class HUD extends UIGroup {
       selected = selectionAt(mousePos) ;
     }
     if (mouseState != HOVERED) {
-      hoverStart = System.currentTimeMillis() ;
+      //hoverStart = System.currentTimeMillis() ;
     }
     else if (selected != null && selected != oldSelect) {
       hoverStart = System.currentTimeMillis() ;
@@ -120,7 +120,7 @@ public class HUD extends UIGroup {
   
   
   public float timeHovered() {
-    if (mouseState != HOVERED) return -1 ;
+    //if (mouseState != HOVERED) return -1 ;
     final long time = System.currentTimeMillis() - hoverStart ;
     return time / 1000f ;
   }

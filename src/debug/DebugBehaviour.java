@@ -10,7 +10,7 @@ import src.game.actors.* ;
 import src.game.base.* ;
 import src.game.common.* ;
 import src.game.planet.* ;
-import src.game.tactical.Hunting;
+import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.user.* ;
@@ -122,7 +122,7 @@ public class DebugBehaviour extends PlayLoop {
       new Hunting(hunter, prey, Hunting.TYPE_FEEDS)
     ) ;
     hunter.assignAction(null) ;
-    ((BaseUI) HUD).selection.setSelected(hunter) ;
+    ///((BaseUI) HUD).selection.setSelected(hunter) ;
   }
   
   

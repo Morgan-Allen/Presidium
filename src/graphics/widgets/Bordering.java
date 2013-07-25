@@ -52,7 +52,7 @@ public class Bordering extends UINode {
     }
     
     borderTex.bindTex() ;
-    GL11.glColor4f(1, 1, 1, alpha) ;
+    GL11.glColor4f(1, 1, 1, absAlpha) ;
     GL11.glBegin(GL11.GL_QUADS) ;
     for (int x = 3 ; x-- > 0 ;) for (int y = 3 ; y-- > 0 ;) {
       drawQuad(

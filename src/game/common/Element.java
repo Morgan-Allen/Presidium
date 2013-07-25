@@ -11,7 +11,9 @@ import src.util.* ;
 
 
 
-public abstract class Element implements Target, Session.Saveable {
+public abstract class Element implements
+  Target, Session.Saveable, World.Visible
+{
   
   
   /**  Common fields, basic constructors, and save/load methods
@@ -22,6 +24,11 @@ public abstract class Element implements Target, Session.Saveable {
     FIXTURE_OWNS     = 2,
     VENUE_OWNS       = 3,
     TERRAIN_OWNS     = 4 ;
+  
+  final protected static int
+    PROP_IN_WORLD  = 1 << 0,
+    PROP_DESTROYED = 1 << 2 ;
+  
 
   private Sprite sprite ;
   private Object flagged ;
@@ -29,6 +36,7 @@ public abstract class Element implements Target, Session.Saveable {
   protected World world ;
   private Tile location ;
   private float inceptTime ;
+  private int properties ;
   
   
   
@@ -66,15 +74,25 @@ public abstract class Element implements Target, Session.Saveable {
   public void enterWorldAt(int x, int y, World world) {
     if (inWorld()) I.complain("Already in world...") ;
     setPosition(x, y, world) ;
+    this.toggleProperty(PROP_IN_WORLD, true) ;
     this.world = world ;
     this.inceptTime = world.currentTime() ;
     if (owningType() != NOTHING_OWNS) location.setOwner(this) ;
   }
   
   
+  public void setAsDestroyed() {
+    if (! inWorld()) I.complain("Never entered world...") ;
+    this.toggleProperty(PROP_DESTROYED, true) ;
+    world.ephemera.addGhost(origin(), radius() * 2, sprite) ;
+    exitWorld() ;
+  }
+  
+  
   public void exitWorld() {
     if (! inWorld()) I.complain("Never entered world...") ;
     if (owningType() != NOTHING_OWNS) location.setOwner(null) ;
+    this.toggleProperty(PROP_IN_WORLD, false) ;
     this.world = null ;
   }
   
@@ -91,6 +109,11 @@ public abstract class Element implements Target, Session.Saveable {
   }
   
   
+  public boolean destroyed() {
+    return hasProperty(PROP_DESTROYED) ;
+  }
+  
+  
   public boolean inWorld() {
     return world != null ;
   }
@@ -101,6 +124,9 @@ public abstract class Element implements Target, Session.Saveable {
   }
   
   
+  
+  /**  Properties, both hard-wired and custom.
+    */
   public int owningType() {
     return ENVIRONMENT_OWNS ;
   }
@@ -108,6 +134,17 @@ public abstract class Element implements Target, Session.Saveable {
   
   public int pathType() {
     return Tile.PATH_BLOCKS ;
+  }
+  
+  
+  protected void toggleProperty(int prop, boolean has) {
+    if (has) properties |= prop ;
+    else properties &= ~prop ;
+  }
+  
+  
+  protected boolean hasProperty(int prop) {
+    return (properties & prop) == prop ;
   }
   
   
@@ -121,12 +158,16 @@ public abstract class Element implements Target, Session.Saveable {
   }
   
   
+  
+  /**  Timing-associated methods-
+    */
   protected void onGrowth() {
   }
   
   
-  protected void setInceptTime(float t) {
-    inceptTime = t ;
+  protected void setAsGrown(boolean isGrown) {
+  	  if (isGrown) inceptTime = -10 ;
+  	  else inceptTime = world.currentTime() ;
   }
   
   
@@ -166,6 +207,7 @@ public abstract class Element implements Target, Session.Saveable {
   }
   
   
+  
   /**  Rendering and interface methods-
     */
   public Vec3D viewPosition(Vec3D v) {
@@ -180,10 +222,11 @@ public abstract class Element implements Target, Session.Saveable {
   }
   
   
-  protected void renderFor(Rendering rendering, Base base) {
+  public void renderFor(Rendering rendering, Base base) {
     float timeGone = world().currentTime() - inceptTime ;
     timeGone += PlayLoop.frameTime() / PlayLoop.UPDATES_PER_SECOND ;
-    sprite.colour = Colour.transparency(timeGone) ;
+    if (timeGone < 1) sprite.colour = Colour.transparency(timeGone) ;
+    else sprite.colour = null ;
     position(sprite.position) ;
     rendering.addClient(sprite) ;
   }

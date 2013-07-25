@@ -310,7 +310,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   /**  Rendering and interface methods-
     */
-  protected void renderFor(Rendering rendering, Base base) {
+  public void renderFor(Rendering rendering, Base base) {
     final Sprite s = this.sprite() ;
     float progress = 1 ;
     if (stage == STAGE_DESCENT || stage == STAGE_ASCENT) {

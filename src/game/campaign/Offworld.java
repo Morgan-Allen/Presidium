@@ -105,7 +105,8 @@ public class Offworld {
   
   Inventory summariseDemand(Base base) {
     final Inventory summary = new Inventory(null) ;
-    for (Object o : base.servicesNear(base, base.world.tileAt(0, 0), -1)) {
+    final World world = base.world ;
+    for (Object o : world.presences.matchesNear(base, world.tileAt(0, 0), -1)) {
       if (! (o instanceof Venue)) continue ;
       final Venue venue = (Venue) o ;
       for (Item item : venue.orders.shortages(true)) {

@@ -305,8 +305,9 @@ public abstract class Fauna extends Actor {
     final Box2D limit = new Box2D().set(point.x, point.y, 0, 0) ;
     limit.expandBy(range).cropBy(new Box2D().set(0, 0, WS, WS)) ;
     
+    final PresenceMap mobilesMap = point.world.presences.mapFor(Mobile.class) ;
     float numPeers = 0, numPrey = 0, numHunters = 0 ;
-    for (Target t : point.world.mobilesMap.visitNear(point, -1, limit)) {
+    for (Target t : mobilesMap.visitNear(point, -1, limit)) {
       if (! (t instanceof Actor)) continue ;
       final Actor f = (Actor) t ;
       final Species s = (Species) f.species() ;
@@ -351,9 +352,10 @@ public abstract class Fauna extends Actor {
   protected  Batch <Fauna> specimens(
     Tile point, float range, Species species, Species.Type type, int maxNum
   ) {
+    final PresenceMap mobilesMap = point.world.presences.mapFor(Mobile.class) ;
     final Batch <Fauna> specimens = new Batch <Fauna> () ;
     int numTries = 0 ;
-    for (Target t : point.world.mobilesMap.visitNear(point, -1, null)) {
+    for (Target t : mobilesMap.visitNear(point, -1, null)) {
       if (t == this) continue ;
       if (type != null || species != null) {
         if (! (t instanceof Fauna)) continue ;

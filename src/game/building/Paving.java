@@ -26,14 +26,14 @@ public class Paving {
   final static int PATH_RANGE = World.SECTION_RESOLUTION * 2 ;
   
   final World world ;
-  final Flagging junctions ;
+  final PresenceMap junctions ;
   final Table <Tile, List <Route>> tileRoutes = new Table(1000) ;
   final Table <Route, Route> allRoutes = new Table(1000) ;
   
   
   public Paving(World world) {
     this.world = world ;
-    junctions = new Flagging(world, Paving.class) ;
+    junctions = new PresenceMap(world, Paving.class) ;
   }
   
   //
@@ -44,6 +44,9 @@ public class Paving {
   
   /**  Methods related to installation, updates and deletion of junctions-
     */
+  //  TODO:  You need to add a method for encircling the perimeter of a
+  //  venue as well.
+  
   public void updateJunction(Tile t, boolean isMember) {
     junctions.toggleMember(t, isMember) ;
     if (isMember) {
@@ -135,9 +138,6 @@ public class Paving {
   
   /**  Methods related to distribution of provisional goods-
     */
-  //
-  //  TODO:  You will need to re-implement provision-distribution, which will
-  //  require an internal Junction class.  (You probably need one anyways.)
   class Junction {
     Target source ;
     Tile tile ;

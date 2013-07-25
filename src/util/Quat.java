@@ -168,7 +168,7 @@ public class Quat {
   
   
   /**  Performs a spherical linear (or great circle) interpolation between this
-    *  quaternion and the first argument quaternion, using alpha to determine the
+    *  quaternion and the first argument quaternion, using relAlpha to determine the
     *  extent of change, and storing the new values in the result quaternion.
     *  (If this argument is null, a new Quat is initialised and then returned.)
     *  NOTE:  Functions properly only with unit quaternions.
@@ -210,7 +210,7 @@ public class Quat {
   
   
   /**  Performs a normalised linear interpolation toward the first argument
-    *  quaternion, with the alpha argument determining weight of averaging.
+    *  quaternion, with the relAlpha argument determining weight of averaging.
     *  The result is commutative and computationally cheaper than great circle
     *  interpolation, but lacks a constant velocity.  Final values are stored in
     *  the third argument (which, if  null, is initialised as a new Quat, and

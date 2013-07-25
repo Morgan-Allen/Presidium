@@ -291,7 +291,7 @@ public class Session {
   
   
   /**  This method is intended to help avoid self-referential loop conditions by
-    *  being called by instanced objects IMMEDIATELY after being initialised and
+    *  being called by setupDone objects IMMEDIATELY after being initialised and
     *  BEFORE any member fields or variables have been loaded.  (NOTE:  This
     *  does not apply to objects created by a static loadConstant() method...)
     */

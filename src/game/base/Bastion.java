@@ -9,8 +9,7 @@ package src.game.base ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
-import src.game.common.* ;
-import src.game.tactical.Patrolling ;
+import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.user.BaseUI;
@@ -19,7 +18,7 @@ import src.user.Composite;
 
 
 
-public class Bastion extends Venue {
+public class Bastion extends Venue implements VenueConstants {
   
   
   /**  Fields, constructors, and save/load methods-
@@ -57,18 +56,22 @@ public class Bastion extends Venue {
     return new Vocation[] {} ;
   }
   
-  protected Item.Type[] goods() {
-    return new Item.Type[] {} ;
+  
+  protected Item.Type[] services() {
+    return new Item.Type[] { SERVICE_ADMIN } ;
   }
-
-
+  
+  
+  
   /**  Rendering and interface methods-
     */
   public Composite portrait(BaseUI UI) {
     return new Composite(UI, "media/GUI/Buttons/bastion_button.gif") ;
   }
-
+  
+  
   public String fullName() { return "Bastion" ; }
+  
   
   public String helpInfo() {
     return
@@ -76,8 +79,9 @@ public class Bastion extends Venue {
       "whole." ;
   }
   
+  
   public String buildCategory() {
-    return InstallTab.TYPE_MILITARY ;
+    return InstallTab.TYPE_MILITANT ;
   }
 }
 

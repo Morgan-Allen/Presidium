@@ -37,14 +37,12 @@ public class Tooltips extends UIGroup {
 
 
   protected void updateState() {
-    //  It would also be nice to have the alpha fade in gradually.
-    final float HOVER_TIME = 0.75f, HOVER_FADE = 0.25f ;
+    final float HOVER_TIME = 1.25f, HOVER_FADE = 0.25f ;
     final int MAX_TIPS_WIDTH = 200 ;
     hidden = true ;
     final HUD UI = myHUD ;
     if (
       UI.selected() != null &&
-      UI.isMouseState(HUD.HOVERED) &&
       UI.timeHovered() > HOVER_TIME
     ) {
       final String info = UI.selected().info() ;
@@ -53,8 +51,9 @@ public class Tooltips extends UIGroup {
           (UI.timeHovered() - HOVER_TIME) / HOVER_FADE, 0, 1
         ) ;
         hidden = false ;
-        infoText.alpha = alpha ;
-        bordering.alpha = alpha ;
+        this.relAlpha = alpha ;
+        //infoText.relAlpha = alpha ;
+        //bordering.relAlpha = alpha ;
         infoText.setText(info) ;
         infoText.setToPreferredSize(MAX_TIPS_WIDTH) ;
         //

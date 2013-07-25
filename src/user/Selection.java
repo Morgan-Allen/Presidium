@@ -1,7 +1,12 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 package src.user ;
 import src.game.common.* ;
+import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 
@@ -18,6 +23,7 @@ public class Selection implements UIConstants {
   private Tile pickTile ;
   private Fixture pickFixture ;
   private Mobile pickMobile ;
+  private Mission pickMission ;
   
   private Selectable hovered, selected ;
   
@@ -63,11 +69,15 @@ public class Selection implements UIConstants {
     //  being hovered over are-
     hovered = null ;
     pickTile = world.pickedTile(UI, port) ;
-    pickMobile = world.pickedMobile(UI, port) ;
     pickFixture = world.pickedFixture(UI, port) ;
+    pickMobile = world.pickedMobile(UI, port) ;
+    pickMission = UI.played().pickedMission(UI, port) ;
     //
     //  Then, we see which type is given priority-
-    if (pickMobile != null) {
+    if (pickMission != null) {
+      hovered = pickMission ;
+    }
+    else if (pickMobile != null) {
       hovered = pickMobile ;
     }
     else if (pickFixture instanceof Selectable) {
@@ -86,11 +96,11 @@ public class Selection implements UIConstants {
         selected = s ;
         UI.camera.lockOn(selected) ;
       }
-      UI.setPanel(s.createPanel(UI)) ;
+      UI.setInfoPanel(s.createPanel(UI)) ;
     }
     else if (selected != null) {
       UI.camera.lockOn(selected = null) ;
-      UI.setPanel(null) ;  //  Use default panel instead?
+      UI.setInfoPanel(null) ;  //  Use default panel instead?
     }
   }
   

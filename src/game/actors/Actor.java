@@ -156,7 +156,7 @@ public abstract class Actor extends Mobile implements
         assignAction(psyche.getNextAction()) ;
       }
     }
-    else if (health.decomposed()) exitWorld() ;
+    else if (health.decomposed()) setAsDestroyed() ;
   }
   
   
@@ -176,7 +176,7 @@ public abstract class Actor extends Mobile implements
   
   /**  Rendering and interface methods-
     */
-  protected void renderFor(Rendering rendering, Base base) {
+  public void renderFor(Rendering rendering, Base base) {
     if (indoors()) return ;
     final float scale = spriteScale() ;
     final Sprite s = sprite() ;

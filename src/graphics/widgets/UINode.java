@@ -29,7 +29,8 @@ public abstract class UINode {
   final protected Box2D
     bounds = new Box2D() ;
   public float
-    alpha = 1 ;
+    relAlpha = 1,
+    absAlpha = 1 ;
   public boolean
     hidden = false ;
   
@@ -83,6 +84,7 @@ public abstract class UINode {
   
   protected void updateState() {
     absDepth = relDepth + (parent == null ? 0 : parent.absDepth) ;
+    absAlpha = relAlpha * (parent == null ? 1 : parent.absAlpha) ;
   }
   
   
@@ -108,7 +110,9 @@ public abstract class UINode {
     */
   protected void updateAbsoluteBounds() {
     if (parent == null) updateAbsoluteBounds(new Box2D()) ;
-    else updateAbsoluteBounds(parent.bounds) ;
+    else {
+      updateAbsoluteBounds(parent.bounds) ;
+    }
   }
   
   
@@ -137,10 +141,6 @@ public abstract class UINode {
     float umin, float vmin,
     float umax, float vmax
   ) {
-    //I.say("\nquad bounds: " + xmin + " " + ymin + " " + xmax + " " + ymax);
-    //GL rGL = UI.renderGL ;
-    //if (absShade != -1)
-      //GL11.glColor3f(absShade, absShade, absShade) ;
     GL11.glTexCoord2f(umin, vmax) ;
     GL11.glVertex3f(xmin, ymin, absDepth) ;
     GL11.glTexCoord2f(umin, vmin) ;

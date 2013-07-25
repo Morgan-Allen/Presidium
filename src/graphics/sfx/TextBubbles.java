@@ -40,7 +40,7 @@ public class TextBubbles extends UIGroup {
     for (Bubble b : bubbles) b.detach() ;
     bubbles.clear() ;
     //
-    //  TODO:  Apply an alpha effect to fade out older lines.
+    //  TODO:  Apply an relAlpha effect to fade out older lines.
     int down = 0 ; for (String p : phrases) {
       final Bubble b = new Bubble(myHUD, p) ;
       

@@ -5,11 +5,11 @@
   */
 
 package src.game.common ;
-import jlibs.core.lang.RuntimeUtil ;
 import src.graphics.widgets.* ;
 import src.util.* ;
 import src.graphics.common.* ;
-import src.user.BaseUI ;
+import src.user.* ;
+//import jlibs.core.lang.RuntimeUtil ;
 
 
 
@@ -26,6 +26,11 @@ public abstract class PlayLoop implements Session.Saveable {
   public final static int
     UPDATES_PER_SECOND = 10,
     FRAMES_PER_SECOND  = 25,
+    
+    DEFAULT_WIDTH  = 600,
+    DEFAULT_HEIGHT = 600,
+    DEFAULT_HERTZ  = 60,
+    
     SLEEP_MARGIN = 2 ;
   final public static String
     SAVE_PATH = "saves/test_session.rep" ;
@@ -77,7 +82,9 @@ public abstract class PlayLoop implements Session.Saveable {
   /**  Overall loop setup, control, and execution.
     */
   protected PlayLoop(boolean setup) {
-    if (rendering == null) rendering = new Rendering(1000, 500, 60, false) ;
+    if (rendering == null) rendering = new Rendering(
+    	  DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_HERTZ, false
+    	) ;
     currentGame = this ;
     LoadService.loadClassesInDir("src/", "src") ;
     if (setup) gameSetup() ;
@@ -96,7 +103,7 @@ public abstract class PlayLoop implements Session.Saveable {
     played = null ;
     UI = null ;
     rendering.clearAll() ;
-    RuntimeUtil.gc() ;
+    //RuntimeUtil.gc() ;  //  TODO:  RESTORE THIS.
   }
   
   
@@ -169,6 +176,7 @@ public abstract class PlayLoop implements Session.Saveable {
   
   protected void renderGameGraphics() {
     world.renderFor(rendering, played) ;
+    played.renderFor(rendering) ;
     UI.renderWorldFX() ;
   }
   

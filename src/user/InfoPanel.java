@@ -67,6 +67,7 @@ public class InfoPanel extends UIGroup implements UIConstants {
   
   
   protected void updateState() {
+    /*
     if (selected != null && ! selected.inWorld()) {
       //if (true) throw new RuntimeException("Huh?") ;
       I.say(
@@ -77,12 +78,15 @@ public class InfoPanel extends UIGroup implements UIConstants {
       UI.selection.setSelected(null) ;
       return ;
     }
-    updateText() ;
+    //*/
+    updateText(UI, headerText, detailText) ;
     super.updateState() ;
   }
   
   
-  protected void updateText() {
+  protected void updateText(
+    BaseUI UI, Text headerText, Text detailText
+  ) {
     if (selected == null) return ;
     headerText.setText(selected.fullName()) ;
     final String cats[] = selected.infoCategories() ;

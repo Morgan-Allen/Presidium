@@ -143,7 +143,7 @@ public class MipMap implements TileConstants {
       maxY = (minY == range) ? minY : (minY + 1) ;
       aX = pX - minX ;
       aY = pY - minY ;
-      //if (aX < 0 || aY < 0) I.complain("Negative alpha values! "+aX+" "+aY) ;
+      //if (aX < 0 || aY < 0) I.complain("Negative relAlpha values! "+aX+" "+aY) ;
       final float blend =
         (getTotalAt(minX, minY, h) * (1 - aX) * (1 - aY)) +
         (getTotalAt(maxX, minY, h) *      aX  * (1 - aY)) +

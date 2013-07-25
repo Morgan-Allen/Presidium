@@ -66,7 +66,7 @@ public class UIGroup extends UINode {
 }
 
 
-//protected float alpha = 1.0f ;
+//protected float relAlpha = 1.0f ;
 //protected int margin ;
 
 /*
@@ -85,10 +85,10 @@ public boolean
 //return (bounds.contains(mousePos.x, mousePos.y)) ? this : null ;
 //boolean bordered = false ;
 /*
-public void setBordered(int margin, Texture t, float alpha) {
+public void setBordered(int margin, Texture t, float relAlpha) {
   //bordered = true ;
   texture = t ;
-  this.margin = margin ; this.alpha = alpha ;
+  this.margin = margin ; this.alpha = relAlpha ;
 }
 //*/
 /*
@@ -118,7 +118,7 @@ if (bordered) {
   Y_SEQ[3] = childBounds.ymax() ;
   
   texture.bindTex() ;
-  GL11.glColor4f(1, 1, 1, alpha) ;
+  GL11.glColor4f(1, 1, 1, relAlpha) ;
   GL11.glBegin(GL11.GL_QUADS) ;
   for (int y = 0, x ; y < 3 ; y++)
     for (x = 0 ; x < 3 ; x++) {

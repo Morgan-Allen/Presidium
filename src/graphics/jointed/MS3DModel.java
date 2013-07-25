@@ -255,7 +255,7 @@ public class MS3DModel extends JointModel {
         materials[n].opacity = loadLEFloat(input) ;
         input.read() ;  //group mode.  useless information.
         textF = loadMS3DString(input, 128)  ;  //colour data file,
-        alphF = loadMS3DString(input, 128)  ;  //...and optional alpha data.
+        alphF = loadMS3DString(input, 128)  ;  //...and optional relAlpha data.
         if (alphF.length() > 0) { //two different loading procedures are used:
           materials[n].texture = Texture.loadTexture(
             pathName+textF, pathName+alphF

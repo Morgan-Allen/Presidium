@@ -115,7 +115,7 @@ public class MineShaftSmelter extends Venue implements VenueConstants {
   }
 
 
-  protected Item.Type[] goods() {
+  protected Item.Type[] services() {
     return new Item.Type[] { mined } ;
   }
   
@@ -127,7 +127,7 @@ public class MineShaftSmelter extends Venue implements VenueConstants {
   
   public Behaviour jobFor(Actor actor) {
 
-    final Delivery d = orders.nextDelivery(actor, goods()) ;
+    final Delivery d = orders.nextDelivery(actor, services()) ;
     if (d != null) return d ;
     
     if (stocks.amountOf(mined) > 50) return null ;
@@ -213,7 +213,7 @@ public class MineShaftSmelter extends Venue implements VenueConstants {
   }
   
   
-  protected void renderFor(Rendering rendering, Base base) {
+  public void renderFor(Rendering rendering, Base base) {
     final GroupSprite s = (GroupSprite) sprite() ;
     for (int i = 0 ; i < NUM_MOLDS ; i++) {
       final ImageSprite module = (ImageSprite) s.atIndex(i + 1) ;

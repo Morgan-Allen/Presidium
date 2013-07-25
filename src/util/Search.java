@@ -114,7 +114,7 @@ public abstract class Search <T> {
     newEntry.refers = spot ;
     newEntry.prior = priorEntry ;
     //
-    //  Finally, flag the tile as assessed-
+    //  Finally, flagSprite the tile as assessed-
     setEntry(spot, newEntry) ;
     newEntry.agendaRef = agenda.insert(spot) ;
     if (oldEntry == null) flagged.add(spot) ;

@@ -7,17 +7,15 @@
 
 
 package src.game.actors ;
-import src.game.building.* ;
 import src.game.common.* ;
-import src.game.social.Relation;
+import src.game.building.* ;
+import src.game.social.* ;
+import src.game.tactical.* ;
 import src.util.* ;
 
 
-//
-//  TODO:  You need to include a list of Plans to-do and already done
-//  (memories.)  Have an internal check to ensure plans don't take up too many
-//  bytes.
-//  TODO:  Implement reactions (and missions?)
+
+
 
 
 public class ActorPsyche implements ActorConstants {
@@ -25,7 +23,6 @@ public class ActorPsyche implements ActorConstants {
   
   /**  Field definitions, constructor, save/load methods-
     */
-  //  TODO:  Vary these values based on the intellect of the organism.
   final static int
     MAX_MEMORIES  = 100,
     MAX_RELATIONS = 100,
@@ -44,12 +41,10 @@ public class ActorPsyche implements ActorConstants {
   protected Stack <Behaviour> behaviourStack = new Stack <Behaviour> () ;
   protected Table <Element, Element> seen = new Table <Element, Element> () ;
   
+  protected Mission mission ;
   protected Venue home ;
   protected Employment work ;
   
-  //  TODO:  You need to save and load memories.
-  //  TODO:  Just remember plans instead?  More direct, certainly.  ...Maybe.
-  protected List <Memory> memories = new List <Memory> () ;
   protected Table <Actor, Relation> relations = new Table <Actor, Relation> () ;
   
   
@@ -135,6 +130,14 @@ public class ActorPsyche implements ActorConstants {
   
   /**  Methods related to behaviours-
     */
+  public void assignMission(Mission mission) {
+    this.mission = mission ;
+    for (Mission m : actor.assignedBase().allMissions()) {
+      m.setApplicant(actor, false) ;
+    }
+  }
+  
+  
   public boolean couldSwitchTo(Behaviour next) {
     return couldSwitch(rootBehaviour(), next) ;
   }
@@ -168,8 +171,6 @@ public class ActorPsyche implements ActorConstants {
     memory.planClass = plan.getClass() ;
     memory.signature = plan.signature ;
     memory.timeBegun = actor.world().currentTime() ;
-    memories.addFirst(memory) ;
-    if (memories.size() > MAX_MEMORIES) memories.removeLast() ;
   }
   
   
@@ -180,12 +181,6 @@ public class ActorPsyche implements ActorConstants {
     //
     //  Find the corresponding memory of this plan, and note the ending time.
     final Plan plan = (Plan) b ;
-    for (Memory memory : memories) {
-      if (memory.equals(plan)) {
-        memory.timeEnded = actor.world().currentTime() ;
-        break ;
-      }
-    }
     return b ;
   }
   
@@ -279,50 +274,6 @@ public class ActorPsyche implements ActorConstants {
   
   /**  Methods related to memories-
     */
-  //  TODO:  This may be too complicated, particularly for larger settlements.
-  //         Just make Dialogue something of Idle priority.
-  
-  public float curiosity(Class planClass, Session.Saveable... assoc) {
-    //
-    //  Firstly, see if an existing memory/s match this one-
-    Memory match = null ;
-    for (Memory memory : memories) {
-      if (memory.planClass != planClass) continue ;
-      boolean matches = true ;
-      for (int i = 0 ; i < assoc.length ; i++) {
-        if (assoc[i] != memory.signature[i]) { matches = false ; break ; }
-      }
-      if (matches) { match = memory ; break ; }
-    }
-    //
-    //  Then, calculate how curious about it the actor would be, based on how
-    //  recently/often this event occured-
-    
-    //  More inquisitive actors have a higher initial attraction to novel
-    //  stimuli, but take longer to recharge interest since the last event of
-    //  this type.
-    
-    
-    float curiosity = actor.traits.trueLevel(INQUISITIVE) ;
-    if (match == null) {
-      curiosity += 5 ;
-    }
-    else {
-      final float timeGap = actor.world().currentTime() - match.timeEnded ;
-      curiosity -= INQUISITIVE.maxVal ;
-      curiosity += (timeGap * 2f / World.DEFAULT_DAY_LENGTH) ;
-    }
-    return Visit.clamp(curiosity / 10f, 0, 1) ;
-  }
-  
-  
-  public Class[] recentActivities() {
-    final Class recent[] = new Class[memories.size()] ;
-    int n = 0 ; for (Memory memory : memories) {
-      recent[n++] = memory.planClass ;
-    }
-    return recent ;
-  }
 }
 
 
@@ -332,4 +283,69 @@ public class ActorPsyche implements ActorConstants {
 
 
 
+//memories.addFirst(memory) ;
+//if (memories.size() > MAX_MEMORIES) memories.removeLast() ;
+/*
+for (Memory memory : memories) {
+  if (memory.equals(plan)) {
+    memory.timeEnded = actor.world().currentTime() ;
+    break ;
+  }
+}
+//*/
+
+/*
+//  TODO:  You need to save and load memories.
+//  TODO:  Just remember plans instead?  More direct, certainly.  ...Maybe.
+protected List <Memory> memories = new List <Memory> () ;
+//*/
+
+
+
+//  TODO:  This may be too complicated, particularly for larger settlements.
+//         Just make Dialogue something of Idle priority.
+/*
+public float curiosity(Class planClass, Session.Saveable... assoc) {
+  //
+  //  Firstly, see if an existing memory/s match this one-
+  Memory match = null ;
+  for (Memory memory : memories) {
+    if (memory.planClass != planClass) continue ;
+    boolean matches = true ;
+    for (int i = 0 ; i < assoc.length ; i++) {
+      if (assoc[i] != memory.signature[i]) { matches = false ; break ; }
+    }
+    if (matches) { match = memory ; break ; }
+  }
+  //
+  //  Then, calculate how curious about it the actor would be, based on how
+  //  recently/often this event occured-
+  
+  //  More inquisitive actors have a higher initial attraction to novel
+  //  stimuli, but take longer to recharge interest since the last event of
+  //  this type.
+  
+  
+  float curiosity = actor.traits.trueLevel(INQUISITIVE) ;
+  if (match == null) {
+    curiosity += 5 ;
+  }
+  else {
+    final float timeGap = actor.world().currentTime() - match.timeEnded ;
+    curiosity -= INQUISITIVE.maxVal ;
+    curiosity += (timeGap * 2f / World.DEFAULT_DAY_LENGTH) ;
+  }
+  return Visit.clamp(curiosity / 10f, 0, 1) ;
+}
+//*/
+
+/*
+public Class[] recentActivities() {
+  final Class recent[] = new Class[memories.size()] ;
+  int n = 0 ; for (Memory memory : memories) {
+    recent[n++] = memory.planClass ;
+  }
+  return recent ;
+}
+//*/
 

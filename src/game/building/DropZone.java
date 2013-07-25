@@ -35,7 +35,7 @@ public class DropZone extends Venue implements VenueConstants {
     //  Firstly, determine a reasonable starting position-
     final World world = base.world ;
     final Tile midTile = world.tileAt(world.size / 2, world.size / 2) ;
-    final Target nearest = base.randomServiceNear(base, midTile, -1) ;
+    final Target nearest = world.presences.randomMatchNear(base, midTile, -1) ;
     if (nearest == null) return null ;
     final Tile init = Spacing.nearestOpenTile(world.tileAt(nearest), midTile) ;
     if (init == null) return null ;
@@ -95,12 +95,12 @@ public class DropZone extends Venue implements VenueConstants {
     return new Vocation[0] ;
   }
   
-  protected Item.Type[] goods() {
+  protected Item.Type[] services() {
     return ALL_ITEM_TYPES ;
   }
   
   public Behaviour jobFor(Actor actor) {
-    return orders.nextDelivery(actor, goods()) ;
+    return orders.nextDelivery(actor, services()) ;
   }
   
   

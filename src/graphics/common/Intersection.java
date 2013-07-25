@@ -102,7 +102,7 @@ public class Intersection {
           foundInfo(c2, c3, c1) ||
           foundInfo(c3, c1, c2)
         )
-        //&& (alphaTest ? (alpha.getA(foundU, foundV) > 0.5f) : true)
+        //&& (alphaTest ? (relAlpha.getA(foundU, foundV) > 0.5f) : true)
         && (foundD > depth)
       ) {
         depth = foundD ;

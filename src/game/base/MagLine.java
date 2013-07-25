@@ -22,7 +22,7 @@ public class MagLine extends LineInstallation {
   
   
   public MagLine(Base base) {
-    super(base.world) ;
+    super() ;
     this.base = base ;
   }
   

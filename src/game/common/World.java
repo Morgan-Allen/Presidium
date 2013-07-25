@@ -8,10 +8,10 @@
 package src.game.common ;
 import src.game.planet.* ;
 import src.game.actors.* ;
-import src.game.common.WorldSections.* ;
 import src.graphics.widgets.* ;
 import src.graphics.common.* ;
 import src.util.* ;
+import src.game.common.WorldSections.Section ;
 
 
 
@@ -37,14 +37,15 @@ public class World {
   final public Schedule schedule ;
   
   private Terrain terrain ;
-  private RandomScan growth ;
+  private RandomScan growth ;  //Move to the Planet or Terrain class...
   
   private List <Base> bases = new List <Base> () ;
-  private List <Mobile> mobiles = new List <Mobile> () ;
   private float currentTime ;
+  private List <Mobile> mobiles = new List <Mobile> () ;  //This may be dispensible?
   
   final public Activities activities ;
-  final public Flagging mobilesMap ;
+  final public Presences presences ;
+  final public Ephemera ephemera ;
   
   
   
@@ -67,7 +68,9 @@ public class World {
       protected void scanAt(int x, int y) { growthAt(x, y) ; }
     } ;
     activities = new Activities(this) ;
-    mobilesMap = new Flagging(this, Mobile.class) ;
+    presences = new Presences(this) ;
+    //mobilesMap = new PresenceMap(this, Mobile.class) ;
+    ephemera = new Ephemera(this) ;
   }
   
   
@@ -83,12 +86,15 @@ public class World {
     terrain = (Terrain) s.loadObject() ;
     terrain.initPatchGrid(SECTION_RESOLUTION) ;
     ///I.say("FINISHED LOADING TERRAIN") ;
+    
     growth.loadState(s) ;
     s.loadObjects(bases) ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
       toggleActive((Mobile) s.loadObject(), true) ;
     }
     activities.loadState(s) ;
+    presences.loadState(s) ;
+    ephemera.loadState(s) ;
   }
   
   
@@ -107,6 +113,8 @@ public class World {
     s.saveInt(mobiles.size()) ;
     for (Mobile m : mobiles) s.saveObject(m) ;
     activities.saveState(s) ;
+    presences.saveState(s) ;
+    ephemera.saveState(s) ;
   }
   
   
@@ -180,11 +188,11 @@ public class World {
   protected void toggleActive(Mobile m, boolean is) {
     if (is) {
       m.setEntry(mobiles.addLast(m)) ;
-      mobilesMap.toggleMember(m, m.origin(), true ) ;
+      presences.togglePresence(m, m.origin(), true ) ;
     }
     else {
       mobiles.removeEntry(m.entry()) ;
-      mobilesMap.toggleMember(m, m.origin(), false) ;
+      presences.togglePresence(m, m.origin(), false) ;
     }
   }
   
@@ -219,22 +227,35 @@ public class World {
   }
   
   
+  public static interface Visible {
+    void renderFor(Rendering r, Base b) ;
+    Sprite sprite() ;
+  }
+  
+  
+  public Batch <Section> visibleSections(Rendering rendering) {
+    final Batch <Section> visibleSections = new Batch <Section> () ;
+    sections.compileVisible(rendering.port, null, visibleSections, null) ;
+    return visibleSections ;
+  }
+  
+  
   public void renderFor(Rendering rendering, Base base) {
     //
     //  First, we obtain lists of all current visible fixtures, actors, and
     //  terrain sections.
-    List <Element> visibleElements = new List <Element> () {
-      protected float queuePriority(Element e) {
+    final Batch <Section> visibleSections = new Batch <Section> () ;
+    final List <Visible> allVisible = new List <Visible> () {
+      protected float queuePriority(Visible e) {
         return e.sprite().depth ;
       }
     } ;
-    Batch <Section> visibleSections = new Batch <Section> () ;
     sections.compileVisible(
       rendering.port, base,
-      visibleSections, visibleElements
+      visibleSections, allVisible
     ) ;
     //
-    //  We also render visible mobiles-
+    //  We also render visible mobiles and ghosted SFX-
     Vec3D viewPos = new Vec3D() ;
     float viewRad = -1 ;
     for (Mobile active : this.mobiles) {
@@ -242,8 +263,11 @@ public class World {
       active.viewPosition(viewPos) ;
       viewRad = (active.height() / 2) + active.radius() ;
       if (rendering.port.intersects(viewPos, viewRad)) {
-        visibleElements.add(active) ;
+        allVisible.add(active) ;
       }
+    }
+    for (Visible ghost : ephemera.visibleFor(rendering)) {
+      allVisible.add(ghost) ;
     }
     //
     //  Then we register their associated media for rendering, in the correctly
@@ -256,25 +280,32 @@ public class World {
     }
     rendering.clearDepth() ;
     Vec3D deep = new Vec3D() ;
-    for (Element fixture : visibleElements) {
+    for (Visible fixture : allVisible) {
       final Sprite sprite = fixture.sprite() ;
       rendering.port.viewMatrix(deep.setTo(sprite.position)) ;
       sprite.depth = 0 - deep.z ;
     }
-    visibleElements.queueSort() ;
-    for (Element fixture : visibleElements) {
+    allVisible.queueSort() ;
+    for (Visible fixture : allVisible) {
       fixture.renderFor(rendering, base) ;
     }
   }
   
   
-  
-  public Tile pickedTile(final HUD UI, final Viewport port) {
+  public Vec3D pickedGroundPoint(final HUD UI, final Viewport port) {
+    //
+    //  Here, we find the point of intersection between the line-of-sight
+    //  underneath the mouse cursor, and the plane of the ground-
     final Vec3D origin = new Vec3D(UI.mouseX(), UI.mouseY(), 0) ;
     port.screenToIso(origin) ;
     final Vec3D vector = new Vec3D(0, 0, 1) ;
     port.viewInvert(vector) ;
-    final Vec3D onGround = origin.add(vector, 0 - origin.z / vector.z, null) ;
+    return origin.add(vector, 0 - origin.z / vector.z, null) ;
+  }
+  
+  
+  public Tile pickedTile(final HUD UI, final Viewport port) {
+    final Vec3D onGround = pickedGroundPoint(UI, port) ;
     return tileAt(onGround.x, onGround.y) ;
   }
   

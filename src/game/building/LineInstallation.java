@@ -15,7 +15,7 @@ public abstract class LineInstallation implements Installation, TileConstants {
   /**  Fields, constructors, and interface contract-
     */
   
-  final World world ;
+  //final World world ;
   protected Batch <Tile> toClear ;
   protected Batch <Element> toPlace ;
   
@@ -23,8 +23,8 @@ public abstract class LineInstallation implements Installation, TileConstants {
   private Tile tempB[] = new Tile[9] ;
   
   
-  protected LineInstallation(World world) {
-    this.world = world ;
+  protected LineInstallation() {
+    //this.world = world ;
   }
   
   
@@ -130,6 +130,7 @@ public abstract class LineInstallation implements Installation, TileConstants {
     boolean canPlace, Rendering rendering, Tile from, Tile to
   ) {
     if (toClear == null || toPlace == null) return ;
+    final World world = from.world ;
     final TerrainMesh overlay = world.terrain().createOverlay(
       world, (Tile[]) toClear.toArray(Tile.class), true, Texture.WHITE_TEX
     ) ;

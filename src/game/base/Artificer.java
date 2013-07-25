@@ -18,6 +18,7 @@ import src.user.* ;
 public class Artificer extends Venue implements VenueConstants {
   
   
+  
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
@@ -50,7 +51,7 @@ public class Artificer extends Venue implements VenueConstants {
     super.updateAsScheduled(numUpdates) ;
     //
     //  TODO:  This is a temporary measure.  Remove later.
-    for (Item.Type good : goods()) {
+    for (Item.Type good : services()) {
       if (orders.receivedShortage(good) < 10) orders.receiveDemand(good, 10) ;
     }
     orders.translateDemands(conversions()) ;
@@ -59,7 +60,7 @@ public class Artificer extends Venue implements VenueConstants {
   
   public Behaviour jobFor(Actor actor) {
     
-    final Delivery d = orders.nextDelivery(actor, goods()) ;
+    final Delivery d = orders.nextDelivery(actor, services()) ;
     if (d != null) return d ;
     
     final Manufacture m = orders.nextManufacture(actor, conversions()) ;
@@ -74,7 +75,7 @@ public class Artificer extends Venue implements VenueConstants {
   }
   
   
-  protected Item.Type[] goods() {
+  protected Item.Type[] services() {
     return new Item.Type[] { PARTS } ;
   }
   

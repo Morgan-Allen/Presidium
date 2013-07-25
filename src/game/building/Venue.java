@@ -39,11 +39,11 @@ public abstract class Venue extends Fixture implements
   
   Base base ;
   List <Mobile> inside = new List <Mobile> () ;
-  //final public Paving paving = new Paving(this) ;
   
   final public Inventory stocks = new Inventory(this) ;
   final public VenuePersonnel personnel = new VenuePersonnel(this) ;
   final public VenueOrders orders = new VenueOrders(this) ;
+  
   
   
   public Venue(int size, int high, int entranceFace, Base base) {
@@ -97,12 +97,6 @@ public abstract class Venue extends Fixture implements
     return base ;
   }
   
-  /*
-  public Paving paving() {
-    return paving ;
-  }
-  //*/
-  
   
   
   /**  Installation and positioning-
@@ -133,8 +127,9 @@ public abstract class Venue extends Fixture implements
   
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
+    world.presences.togglePresence(this, true , services()) ;
     if (base != null) {
-      base.toggleBelongs(this, true) ;
+      //base.toggleBelongs(this, true) ;
       updatePaving(true) ;
     }
     world.schedule.scheduleForUpdates(this) ;
@@ -144,8 +139,9 @@ public abstract class Venue extends Fixture implements
   
   
   public void exitWorld() {
+    world.presences.togglePresence(this, false, services()) ;
     if (base != null) {
-      base.toggleBelongs(this, false) ;
+      //base.toggleBelongs(this, false) ;
       updatePaving(false) ;
     }
     world.schedule.unschedule(this) ;
@@ -200,6 +196,14 @@ public abstract class Venue extends Fixture implements
   }
   
   
+  public Box2D area(Box2D put) {
+    if (put == null) put = new Box2D() ;
+    final Tile o = origin() ;
+    put.set(o.x - 0.5f, o.y - 0.5f, size, size) ;
+    return put ;
+  }
+  
+  
   public Boardable[] canBoard(Boardable batch[]) {
     if (batch == null) batch = new Boardable[1] ;
     else for (int i = batch.length ; i-- > 1 ;) batch[i] = null ;
@@ -215,14 +219,6 @@ public abstract class Venue extends Fixture implements
   
   public boolean allowsEntry(Mobile m) {
     return m.assignedBase() == base ;
-  }
-  
-  
-  public Box2D area(Box2D put) {
-    if (put == null) put = new Box2D() ;
-    final Tile o = origin() ;
-    put.set(o.x - 0.5f, o.y - 0.5f, size, size) ;
-    return put ;
   }
   
   
@@ -250,12 +246,7 @@ public abstract class Venue extends Fixture implements
   }
   
   protected abstract Vocation[] careers() ;
-  protected abstract Item.Type[] goods() ;
-  
-  
-  public Object[] services() {
-    return goods() ;
-  }
+  protected abstract Item.Type[] services() ;
   
   
   

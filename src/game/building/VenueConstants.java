@@ -63,6 +63,9 @@ public interface VenueConstants extends ActorConstants {
     //  Plants (young/mature- species?  Flora or animal remains?  Dead/alive?)
     //  Housing.
     
+    SERVICE_ADMIN = new Item.Type(C, SERVICE, "Admin", 0),
+    //  Also housing, refuge, storage, et cetera.
+    
     /*
     OUTFITS  = new Item.Type(C, UNIQUE, "Outfits", 0),
     DEVICES  = new Item.Type(C, UNIQUE, "Devices", 0),

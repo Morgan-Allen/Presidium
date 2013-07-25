@@ -30,11 +30,9 @@ public class Text extends UINode implements Description {
   ) ;
   
   
-  //public Colour colour = (new Colour()).set(1, 1, 1, 1) ;
   public float scale = 1.0f ;
   
   final protected Alphabet alphabet ;
-  //private boolean roll ;
   private boolean needsFormat = false ;
   private Scrollbar scrollbar ;
   
@@ -60,7 +58,7 @@ public class Text extends UINode implements Description {
     setText(s) ;
   }
   
-  
+  //
   //  TODO:  Scrollbars should be possible to associate with arbitrary UI
   //  groups.  In fact, they should probably be a group type unto themselves.
   public Scrollbar getScrollBar() {
@@ -191,6 +189,11 @@ public class Text extends UINode implements Description {
   }
   
   
+  public void cancelBullet() {
+    //  TODO:  Get rid of the indent effect associated with the last image?
+  }
+  
+  
   
   /**  Adds a single letter entry to this text object.
     */
@@ -299,18 +302,11 @@ public class Text extends UINode implements Description {
     //  First, determine a 'viewing window' for the text, if larger than the
     //  visible pane-
     final Box2D textArea = new Box2D().set(0, 0, xdim(), ydim()) ;
-    /*
-    //
-    //  If the text is meant to roll, shift the text area to fit over the last
-    //  characters.  Otherwise, check on what our scrollbar says.
-    if (roll && fullSize.xdim() > xdim()) {
-      textArea.xpos(fullSize.xdim() - xdim()) ;
-    }
-    //*/
     if (scrollbar != null) {
+      final float lineHigh = 0 ;// alphabet.map[' '].height * scale ;
       textArea.ypos(
-        0 - (fullSize.ydim() - ydim()) *
-        (1 - scrollbar.scrollPos())
+        (0 - lineHigh) -
+        (fullSize.ydim() - ydim()) * (1 - scrollbar.scrollPos())
       ) ;
     }
     //
@@ -321,7 +317,6 @@ public class Text extends UINode implements Description {
     //
     //  Begin the rendering pass...
     alphabet.fontTex.bindTex() ;
-    ///colour.bindColour() ;
     GL11.glEnable(GL11.GL_SCISSOR_TEST) ;
     GL11.glScissor((int) xpos(), (int) ypos(), (int) xdim(), (int) ydim()) ;
     GL11.glBegin(GL11.GL_QUADS) ;
@@ -332,7 +327,6 @@ public class Text extends UINode implements Description {
       else bullets.add((ImageEntry) entry) ;
     }
     GL11.glEnd() ;
-    //GL11.glColor4f(1, 1, 1, alpha) ;
     for (ImageEntry entry : bullets) {
       renderImage(textArea, entry) ;
     }
@@ -348,9 +342,10 @@ public class Text extends UINode implements Description {
   protected void renderImage(Box2D bounds, ImageEntry entry) {
     if (! entry.intersects(bounds)) return ;
     final Box2D b = entry.graphic.absBound ;
-    entry.graphic.alpha = this.alpha ;
+    entry.graphic.relAlpha = this.absAlpha ;
     b.xpos(entry.xpos() + xpos() - bounds.xpos()) ;
     b.ypos(entry.ypos() + ypos() - bounds.ypos()) ;
+    entry.graphic.updateState() ;
     entry.graphic.updateRelativeParent() ;
     entry.graphic.updateAbsoluteBounds() ;
     
@@ -367,11 +362,11 @@ public class Text extends UINode implements Description {
     //  If this text links to something, we may need to colour the text (and
     //  possibly select it's link target if clicked.)
     if (link != null && entry.link == link) {
-      GL11.glColor3f(1, 1, 0) ;
+      GL11.glColor4f(1, 1, 0, absAlpha) ;
     }
     else {
       final Colour c = entry.colour != null ? entry.colour : Colour.WHITE ;
-      GL11.glColor4f(c.r, c.g, c.b, c.a * alpha) ;
+      GL11.glColor4f(c.r, c.g, c.b, c.a * absAlpha) ;
     }
     final float xoff = xpos() - area.xpos(), yoff = ypos() - area.ypos() ;
     //
@@ -429,7 +424,8 @@ public class Text extends UINode implements Description {
     //  Here's the main loop for determining entry positions...
     while ((open = open.nextEntry()) != allEntries) {
       newLine = newWord = false ;
-      
+      //
+      //  In the case of an image entry...
       if (open.refers instanceof ImageEntry) {
         if (lastBullet != null) {
           final float minY = lastBullet.ypos() - (lineHigh * 1.5f) ;
@@ -444,6 +440,8 @@ public class Text extends UINode implements Description {
         xpos = entry.wide ;
         lastBullet = entry ;
       }
+      //
+      //  In the case of a text entry...
       else {
         final TextEntry entry = (TextEntry) open.refers ;
         entry.visible = true ;
@@ -486,7 +484,7 @@ public class Text extends UINode implements Description {
     }
     //
     //  We now reposition entries to fit the window, and update the full bounds.
-    fullSize.set(0, 0, 0, 0) ;
+    fullSize.set(0, 0, 0, lineHigh) ;
     final float heightAdjust = ydim() - lineHigh ;
     for (Box2D entry : allEntries) {
       fullSize.include(entry) ;
@@ -495,4 +493,7 @@ public class Text extends UINode implements Description {
     needsFormat = false ;
   }
 }
+
+
+
 

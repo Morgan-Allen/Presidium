@@ -198,26 +198,40 @@ final public class Texture {
   }
   
   
-  /*
-  public void putColour(int tU, int tV, Colour colour) {
-    I.say("Size of buffer is: "+buffer.capacity()) ;
-    //if (true) return ;
-    //final int coord = (int) ((((tV * trueSize) + tU) * trueSize) * 4) ;
-    final int coord = (int) (((tV * trueSize) + tU) * 4) ;
-    colour.storeByteValue(tempRGBA, 0) ;
-    buffer.put(coord + 0, tempRGBA[0]) ;
-    buffer.put(coord + 1, tempRGBA[1]) ;
-    buffer.put(coord + 2, tempRGBA[2]) ;
-    buffer.put(coord + 3, tempRGBA[3]) ;
-    cached = false ;
+  
+  /**  Helper methods for accessing RGBA values at relative texture UV or pixel
+    *  coordinates.
+    */
+  public Colour getColour(float tU, float tV) {
+    final int
+      tX = (int) ((tU * trueSize) * uRange),
+      tY = (int) (((1 - tV) * trueSize) * vRange) ;
+    
+    final int pixVal = getPixelVal(
+      Visit.clamp(tX, trueSize),
+      Visit.clamp(tY, trueSize)
+    ) ;
+    final Colour c = new Colour() ;
+    c.r = ((pixVal >> 24) & 0xff) / 255f ;
+    c.g = ((pixVal >> 16) & 0xff) / 255f ;
+    c.b = ((pixVal >> 8 ) & 0xff) / 255f ;
+    c.a = ((pixVal >> 0 ) & 0xff) / 255f ;
+    ///I.say("colour obtained at "+tX+" "+tY+" is: \n"+c) ;
+    return c ;
   }
-  //*/
   
   
-  /**  Internal method used to combine colour and alpha channels (which may be
+  public int getPixelVal(int tX, int tY) {
+    //tY = trueSize - (tY + 1) ;
+    return buffer.getInt(((tY * trueSize) + tX) * 4) ;
+  }
+  
+  
+  
+  /**  Internal method used to combine colour and relAlpha channels (which may be
     *  stored seperately,) to create a texture from a portion of a given
     *  composite image.
-    *  @param fill  the alpha channel data.
+    *  @param fill  the relAlpha channel data.
     *  @param pix  the colour channel data.
     *  @param wide  the width of the total sample image used.
     *  @param high  the height of the total samples image used.
@@ -239,7 +253,7 @@ final public class Texture {
     vRange = ((float) ydim) / trueSize ;
     //
     //  If a separate mask texture isn't provided, use the base texture for
-    //  alpha values.
+    //  relAlpha values.
     final int shiftA ; if (mask == null) {
       mask = fill ;
       shiftA = 24 ;
@@ -264,7 +278,7 @@ final public class Texture {
         b = (pixel >> 0 ) & 0xff ;
         a = (alpha >> shiftA) & 0xff ;
         //
-        //  weight the average by alpha, and insert the bytes into the array:
+        //  weight the average by relAlpha, and insert the bytes into the array:
         final float w = a / 255f ; if (w > 0) {
           sumWeights += w ;
           aR += r * w ; aG += g * w ; aB += b * w ;
@@ -290,7 +304,6 @@ final public class Texture {
     //  Create the byte buffer and store contents-
     buffer = BufferUtils.createByteBuffer(vals.length) ;
     totalBytesUsed += buffer.capacity() ;
-    //
     //I.say("Total bytes allocated to textures: "+totalBytesUsed) ;
     //I.say("Creating texture of size in KB: "+(buffer.capacity() / 1000)) ;
     buffer.put(vals) ;

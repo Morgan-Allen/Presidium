@@ -24,36 +24,47 @@ public class Pledge implements Session.Saveable {
   
   
   public static enum Type {
-    CASH,   //this.
-    GOODS,
-    PERSONNEL,
-    LEGISLATION,  //this.
     
-    JOIN_MISSION,
+    PAYMENT,
+    PROMOTION,
+    ALLOW_MARRIAGE,
+    SUPPORT_BILL,
     
-    ALLOW_MARRIAGE,  //this.
-    ANNUL_MARRIAGE,
-    PROMOTION,  //this.
-    DEMOTION,
-    PARDON,  //this.
-    ARREST,
-    VENDETTA,
     TRUCE,
     ALLIANCE,
+    PATRONAGE,
     FEALTY
   }
   
   
   final Type type ;
-  final float amount ;  //  What about term/duration?
+  final float amount ;
   final Session.Saveable refers ;
   final Accountable madeTo ;
+
+  
+
+  public Pledge(Type type, Accountable madeTo) {
+    this(type, -1, null, madeTo) ;
+  }
   
   
   public Pledge(Type type, float amount, Accountable madeTo) {
+    this(type, amount, null, madeTo) ;
+  }
+  
+
+  public Pledge(Type type, Session.Saveable refers, Accountable madeTo) {
+    this(type, -1, refers, madeTo) ;
+  }
+  
+  
+  protected Pledge(
+    Type type, float amount, Session.Saveable refers, Accountable madeTo
+  ) {
     this.type = type ;
     this.amount = amount ;
-    this.refers = null ;
+    this.refers = refers ;
     this.madeTo = madeTo ;
   }
   
@@ -73,6 +84,12 @@ public class Pledge implements Session.Saveable {
     s.saveObject(refers) ;
     s.saveObject((Session.Saveable) madeTo) ;
   }
+  
+  
+  
+  /**  UI and interface methods-
+    */
+  
 }
 
 

@@ -117,6 +117,8 @@ public class Dialogue extends Plan implements ActorConstants {
   
   
   public float priorityFor(Actor actor) {
+    return IDLE ;
+    /*
     float priority = ROUTINE / 4f ;
     priority += actor.attraction(other) / 4f ;
     priority += actor.psyche.relationTo(other) / 2f ;
@@ -126,6 +128,7 @@ public class Dialogue extends Plan implements ActorConstants {
     I.say(actor+" priority for dialogue with "+other+" is "+priority) ;
     
     return Visit.clamp(priority, 0, ROUTINE) ;
+    //*/
   }
   
   

@@ -9,8 +9,11 @@ package src.game.common ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.campaign.* ;
+import src.game.tactical.* ;
 import src.graphics.common.* ;
+import src.user.* ;
 import src.util.* ;
+///import src.game.common.WorldSections.Section ;
 
 
 
@@ -21,15 +24,20 @@ public class Base implements Session.Saveable, Schedule.Updates {
   /**  Fields, constructors, and save/load methods-
     */
   final public World world ;
-  final public Offworld offworld = new Offworld(this) ;
-  Actor ruler ;
+  final public Offworld offworld = new Offworld(this) ;  //Move to world.
   
-  final List <Actor> personnel = new List <Actor> () ;
-  final Table <Object, Flagging> services = new Table <Object, Flagging> () ;
+  Actor ruler ;
+  Venue commandPost ;
+  //final List <Venue> venues = new List <Venue> () ;
+  //final List <Actor> personnel = new List <Actor> () ;
+  
+  //
+  //  Move each of these to the world-
+  final public PathingCache pathingCache ;
   final public Paving paving ;
   
   Texture fogMap ;  //Create a dedicated fogmap later.
-  final public PathingCache pathingCache ;
+  final List <Mission> missions = new List <Mission> () ;
   
   
   
@@ -37,8 +45,6 @@ public class Base implements Session.Saveable, Schedule.Updates {
     this.world = world ;
     pathingCache = new PathingCache(world) ;
     paving = new Paving(world) ;
-    //paving = new Paving2(this) ;
-    
     initFog() ;
   }
   
@@ -50,32 +56,18 @@ public class Base implements Session.Saveable, Schedule.Updates {
     offworld.loadState(s) ;
     ruler = (Actor) s.loadObject() ;
     
-    s.loadObjects(personnel) ;
-    for (int n = s.loadInt() ; n-- > 0 ;) {
-      final Flagging f = (Flagging) s.loadObject() ;
-      services.put(f.key, f) ;
-    }
+    //s.loadObjects(personnel) ;
     paving = new Paving(world) ;
-    //paving = new Paving2(this) ;
-    //paving.loadState(s) ;
     
     initFog() ;
     pathingCache = new PathingCache(world) ;
-    //pathingCache.loadState(s) ;
   }
   
   
   public void saveState(Session s) throws Exception {
-    
     offworld.saveState(s) ;
     s.saveObject(ruler) ;
-    
-    s.saveObjects(personnel) ;
-    s.saveInt(services.size()) ;
-    for (Flagging f : services.values()) s.saveObject(f) ;
-    //paving.saveState(s) ;
-    
-    //pathingCache.saveState(s) ;
+    //s.saveObjects(personnel) ;
   }
   
   
@@ -92,69 +84,83 @@ public class Base implements Session.Saveable, Schedule.Updates {
   }
   
   
+  
+  /**  Dealing with missions amd personnel-
+    */
+  public List <Mission> allMissions() {
+    return missions ;
+  }
+  
+  
+  public void addMission(Mission t) {
+    missions.include(t) ;
+  }
+  
+  
+  public void removeMission(Mission t) {
+    missions.remove(t) ;
+  }
+  
+  
+  
+  
+  /**  Dealing with venues and the command post-
+    */
+  
+  
+  
+  
   /**  Regular updates-
     */
   public float scheduledInterval() {
     return 10 ;
   }
   
+  
   public void updateAsScheduled(int numUpdates) {
     offworld.updateEvents() ;
+    for (Mission mission : missions) {
+      mission.updateMission() ;
+    }
     //paving.distribute(VenueConstants.ALL_PROVISIONS) ;
   }
   
   
-  /**  Locating goods and services on offer or required-
+  
+  /**  Rendering and interface methods-
     */
-  public void toggleBelongs(Venue venue, boolean is) {
-    toggleForService(venue, this, is) ;
-    toggleForService(venue, venue.getClass(), is) ;
-    final Object s[] = venue.services() ;
-    if (s != null) for (Object service : s) {
-      toggleForService(venue, service, is) ;
+  public void renderFor(Rendering rendering) {
+    final Viewport port = rendering.port ;
+    
+    for (Mission mission : missions) {
+      final Sprite flag = mission.flagSprite() ;
+      if (! port.intersects(flag.position, 2)) continue ;
+      rendering.addClient(flag) ;
     }
   }
   
   
-  public void toggleForService(Target target, Object service, boolean is) {
-    ///I.say("Toggling "+target+" for service "+service+": "+is) ;
-    Flagging flagged = services.get(service) ;
-    if (flagged == null) {
-      services.put(service, flagged = new Flagging(world, service)) ;
+  public Mission pickedMission(BaseUI UI, Viewport port) {
+    Mission closest = null ;
+    float minDist = Float.POSITIVE_INFINITY ;
+    for (Mission mission : missions) {
+      final Sprite flag = mission.flagSprite() ;
+      float dist = port.isoToScreen(new Vec3D().setTo(flag.position)).z ;
+      if (port.mouseIntersects(flag.position, 0.5f, UI)) {
+        if (dist < minDist) { minDist = dist ; closest = mission ; }
+      }
     }
-    if (is) {
-      flagged.toggleMember(target, true) ;
-    }
-    else {
-      flagged.toggleMember(target, false) ;
-      if (flagged.population() == 0) services.remove(service) ;
-    }
-  }
-  
-  
-  public Iterable servicesNear(Object service, Target client, float range) {
-    Flagging flagged = services.get(service) ;
-    if (flagged == null) return new Stack() ;
-    return flagged.visitNear(client, range, null) ;
-  }
-  
-  public Iterable servicesNear(Object service, Target client, Box2D area) {
-    Flagging flagged = services.get(service) ;
-    if (flagged == null) return new Stack() ;
-    return flagged.visitNear(client, -1, area) ;
-  }
-  
-  public Venue nearestService(Object service, Target client, float range) {
-    for (Object o : servicesNear(service, client, range)) return (Venue) o ;
-    return null ;
-  }
-  
-  public Venue randomServiceNear(Object service, Target client, float range) {
-    Flagging flagged = services.get(service) ;
-    if (flagged == null) return null ;
-    return (Venue) flagged.pickRandomAround(client, range) ;
+    return closest ;
   }
 }
+
+
+
+
+
+
+
+
 
 
 

@@ -42,7 +42,7 @@ public class Image extends UINode {
       bounds.xdim() / texture.xdim(),
       bounds.ydim() / texture.ydim()
     ) ;
-    GL11.glColor4f(1, 1, 1, alpha) ;
+    GL11.glColor4f(1, 1, 1, absAlpha) ;
     
     final Box2D drawn = new Box2D().set(
       area.xpos(), area.ypos(),

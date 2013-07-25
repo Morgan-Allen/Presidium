@@ -67,7 +67,7 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
   }
   
   
-  protected Item.Type[] goods() {
+  protected Item.Type[] services() {
     return new Item.Type[] {} ;
   }
   
@@ -159,7 +159,7 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
   
   
   public String buildCategory() {
-    return InstallTab.TYPE_MILITARY ;
+    return InstallTab.TYPE_MILITANT ;
   }
 }
 

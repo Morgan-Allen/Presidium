@@ -176,6 +176,16 @@ public class Box3D {
       zd = (zp < zpos) ? (zpos - zp) : ((zp > zmax) ? (zp - zmax) : 0) ;
     return (float) Math.sqrt((xd * xd) + (yd * yd) + (zd * zd)) ;
   }
+  
+  
+  public Vec3D centre() {
+    return new Vec3D().set(
+      (xpos + xmax) / 2,
+      (ypos + ymax) / 2,
+      (zpos + zmax) / 2
+    ) ;
+  }
+  
 
   /**  Expands this box to include a given radius about the given vector point.
     */

@@ -14,184 +14,124 @@ import java.lang.reflect.* ;
 
 
 
+
 public class InstallTab extends InfoPanel {
+
   
-  
-  /**  Constant definitions, data fields and constructors-
+  /**  Field, constant and internal class definitions-
     */
-  final public static String
-    TYPE_MILITARY  = "military",
-    TYPE_COMMERCE  = "commerce",
-    TYPE_AESTHETE  = "aesthete",
-    TYPE_ARTIFICER = "artificer",
-    TYPE_ECOLOGIST = "ecologist",
-    TYPE_PHYSICIAN = "physician",
-    
-    TYPE_SCHOOL    = "school",
-    TYPE_PRESERVE  = "preserve",
-    
-    TYPE_HIDDEN    = "hidden" ;
-  final static int
-    BUTTONS_ACROSS = 3,
-    BUTTONS_HEIGHT = 40 ;
+  static class InstallType {
+    Class <Installation> buildClass ;
+    Constructor buildCons ;
+    Installation sample ;
+  }
   
   
-  private class Category {
+  static class Category {
     String name ;
     final List <InstallType> types = new List <InstallType> () ;
   }
   
-  
-  private class InstallType {
-    Composite icon ;
-    String name, description, category ;
-    
-    Class <Installation> buildClass ;
-    Constructor buildCons ;
-    Installation instanced ;
-  }
-  
-  
-  final BaseUI UI ;
-  Button categoryButtons[] ;
-  
-  final Table <String, Category> categories = new Table <String, Category> () ;
-  final Batch <InstallType> allTypes = new Batch <InstallType> () ;
-  boolean instanced = false ;
-  
-  InstallType helpShown = null, listShown = null ;
-  Category currentCategory = null, hoveredCategory = null ;
-  
-  
-  InstallTab(BaseUI UI) {
-    super(UI, null, BUTTONS_HEIGHT * 2) ;
-    this.UI = UI ;
-    setupCategories() ;
-    setupInstallTypes() ;
-  }
-  
 
+  static Table <String, Category> categories = new Table <String, Category> () ;
+  static Batch <InstallType> allTypes = new Batch <InstallType> () ;
+  static boolean setupDone = false ;
   
-  /**  Compiling the list of all building types-
+  
+  
+  /**  Initial background setup-
     */
-  void setupCategories() {
-    categoryButtons = new Button[] {
-      buttonFor(TYPE_MILITARY , "military_category_button" , 0, 0),
-      buttonFor(TYPE_COMMERCE , "commerce_category_button" , 1, 0),
-      buttonFor(TYPE_AESTHETE , "aesthete_category_button" , 2, 0),
-      buttonFor(TYPE_ARTIFICER, "artificer_category_button", 0, 1),
-      buttonFor(TYPE_ECOLOGIST, "ecologist_category_button", 1, 1),
-      buttonFor(TYPE_PHYSICIAN, "physician_category_button", 2, 1)
-    } ;
-  }
-  
-  
-  private Button buttonFor(final String typeID, String img, int a, int d) {
-    final String IMG_DIR = "media/GUI/Buttons/" ;
-    final Button button = new Button(UI, IMG_DIR+img+".png", typeID) {
-      protected void whenClicked() {
-        currentCategory = categories.get(typeID) ;
-      }
-      protected void whenHovered() {
-        hoveredCategory = categories.get(typeID) ;
-      }
-    } ;
-    button.relBound.set(a * 1f / BUTTONS_ACROSS, 1, 1f / BUTTONS_ACROSS, 0) ;
-    button.absBound.set(0, (d + 1) * -BUTTONS_HEIGHT, 0, BUTTONS_HEIGHT) ;
-    button.attachTo(this) ;
-    button.stretch = true ;
-    final Category category = new Category() ;
-    category.name = typeID ;
-    categories.put(typeID, category) ;
-    return button ;
-  }
-  
-  
-  void setupInstallTypes() {
-    final Batch <Class> buildClasses = LoadService.loadClassesInDir(
+  protected static void setupTypes() {
+    initCategory(TYPE_MILITANT ) ;
+    initCategory(TYPE_MERCHANT ) ;
+    initCategory(TYPE_AESTHETE ) ;
+    initCategory(TYPE_ARTIFICER) ;
+    initCategory(TYPE_ECOLOGIST) ;
+    initCategory(TYPE_PHYSICIAN) ;
+    final Batch <Class> baseClasses = LoadService.loadClassesInDir(
       "src/game/base", "src.game.base"
     ) ;
-    for (Class buildClass : buildClasses) {
+    for (Class baseClass : baseClasses) {
       //
       //  Firstly, we need to ensure that the class refers to a type of venue
       //  and has an appropriate constructor.
-      if (! Installation.class.isAssignableFrom(buildClass)) continue ;
+      if (! Installation.class.isAssignableFrom(baseClass)) continue ;
       final Constructor cons ;
-      try { cons = buildClass.getConstructor(Base.class) ; }
+      try { cons = baseClass.getConstructor(Base.class) ; }
       catch (Exception e) { continue ; }
       //
       //  Secondly, construct the building type with an appropriate instance.
       final InstallType type = new InstallType() ;
-      type.buildClass = buildClass ;
+      type.buildClass = baseClass ;
       type.buildCons = cons ;
+      refreshSample(type, null) ;
       allTypes.add(type) ;
+      final String catName = type.sample.buildCategory() ;
+      final Category category = categories.get(catName) ;
+      if (category != null) category.types.add(type) ;
     }
+    setupDone = true ;
   }
   
   
-  void refreshInstance(InstallType type) {
+  private static void initCategory(String typeID) {
+    final Category category = new Category() ;
+    category.name = typeID ;
+    categories.put(typeID, category) ;
+  }
+  
+  
+  private static void refreshSample(InstallType type, Base base) {
     try {
-      type.instanced = (Installation) type.buildCons.newInstance(UI.played()) ;
+      type.sample = (Installation) type.buildCons.newInstance(base) ;
     }
     catch (Exception e) {
-      I.say("PROBLEM REFRESHING INSTANCE OF: "+type.buildCons.getName()) ;
+      I.say("PROBLEM REFRESHING SAMPLE OF: "+type.buildCons.getName()) ;
       I.report(e) ;
     }
   }
   
   
-  protected void updateState() {
-    //  TODO:  Refresh this every frame, or when the current base changes?
-    if (! instanced) {
-      //I.say("Refreshing build-type instances...") ;
-      for (InstallType type : allTypes) {
-        refreshInstance(type) ;
-        //I.say("Checking build type: "+type.buildClass.getSimpleName()) ;
-        final Installation instanced = type.instanced ;
-        //
-        //  Thirdly, ensure that this structure has appropriate UI data:
-        if (
-          (type.name        = instanced.fullName()     ) == null ||
-          (type.icon        = instanced.portrait(UI)   ) == null ||
-          (type.description = instanced.helpInfo()     ) == null ||
-          (type.category    = instanced.buildCategory()) == null
-        ) {
-          I.say("UI information missing: "+type.buildClass.getSimpleName()) ;
-          continue ;
-        }
-        else I.say("Adding build type: "+type.buildClass.getSimpleName()) ;
-        //
-        //  Finally, determine which category this structure belongs to-
-        final Category match = categories.get(type.category) ;
-        if (match == null) continue ;
-        match.types.add(type) ;
-      }
-      instanced = true ;
-    }
-    super.updateState() ;
+  protected static List <InstallType> typesForCategory(String typeID) {
+    return categories.get(typeID).types ;
   }
   
   
   
+
+  
   /**  Interface presented-
     */
-  protected void updateText() {
+  final MainPanel parent ;
+  final Category category ;
+  private InstallType helpShown = null, listShown = null ;
+  
+  
+  InstallTab(MainPanel parent, String catName) {
+    super(parent.UI, null, DEFAULT_TOP_MARGIN) ;
+    this.parent = parent ;
+    this.category = categories.get(catName) ;
+  }
+  
+  
+  
+  protected void updateText(
+    final BaseUI UI, Text headerText, Text detailText
+  ) {
     detailText.setText("") ;
     headerText.setText("") ;
-    if (! Visit.arrayIncludes(categoryButtons, UI.selected())) {
-      hoveredCategory = null ;
-    }
-    if (currentCategory == null) return ;
-    
-    final String name = currentCategory.name.toUpperCase() ;
+    final String name = category.name.toUpperCase() ;
     headerText.setText(name+" STRUCTURES") ;
-    
-    for (final InstallType type : currentCategory.types) {
-      detailText.insert(type.icon, 40) ;
-      detailText.append("  "+type.name) ;
+    for (final InstallType type : category.types) {
+      final Composite icon = type.sample.portrait(UI) ;
+      final String typeName = type.sample.fullName() ;
+      final String typeDesc = type.sample.helpInfo() ;
+      
+      detailText.insert(icon, 40) ;
+      detailText.append("  "+typeName) ;
       
       detailText.append(new Text.Clickable() {
-        public void whenClicked() { initInstallTask(type) ; }
+        public void whenClicked() { initInstallTask(UI, type) ; }
         public String fullName() { return "\n  (BUILD)" ; }
       }) ;
       detailText.append(new Text.Clickable() {
@@ -211,11 +151,11 @@ public class InstallTab extends InfoPanel {
       
       if (helpShown == type) {
         detailText.append("\n") ;
-        detailText.append(type.description) ;
+        detailText.append(typeDesc) ;
         detailText.append("\n") ;
       }
       if (listShown == type) {
-        final Batch <Installation> installed = listInstalled(type) ;
+        final Batch <Installation> installed = listInstalled(UI, type) ;
         int ID = 0 ;
         if (installed.size() == 0) {
           detailText.append("\n  (no current installations)") ;
@@ -228,16 +168,16 @@ public class InstallTab extends InfoPanel {
         }
         detailText.append("\n") ;
       }
-      
       detailText.append("\n") ;
     }
   }
   
   
-  Batch <Installation> listInstalled(InstallType type) {
+  Batch <Installation> listInstalled(BaseUI UI, InstallType type) {
     Batch <Installation> installed = new Batch <Installation> () ;
     final Tile zero = UI.world().tileAt(0, 0) ;
-    for (Object o : UI.played().servicesNear(type.buildClass, zero, -1)) {
+    final Presences presences = UI.world().presences ;
+    for (Object o : presences.matchesNear(type.buildClass, zero, -1)) {
       if (! (o instanceof Installation)) continue ;
       installed.add((Installation) o) ;
     }
@@ -245,20 +185,23 @@ public class InstallTab extends InfoPanel {
   }
   
   
+  
   /**  Actual placement of buildings-
     */
-  void initInstallTask(InstallType type) {
-    ///I.say("Beginning build task...") ;
+  static void initInstallTask(BaseUI UI, InstallType type) {
+    refreshSample(type, UI.played()) ;
     final InstallTask task = new InstallTask() ;
-    task.toInstall = type.instanced ;
+    task.UI = UI ;
+    task.toInstall = type.sample ;
     UI.beginTask(task) ;
-    refreshInstance(type) ;
+    refreshSample(type, null) ;
   }
   
   
-  class InstallTask implements UITask {
+  static class InstallTask implements UITask {
     
     
+    BaseUI UI ;
     Installation toInstall ;
     private boolean hasPressed = false ;
     Tile from, to ;
@@ -297,11 +240,5 @@ public class InstallTab extends InfoPanel {
     }
   }
 }
-
-
-
-
-
-
 
 

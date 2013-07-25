@@ -87,7 +87,8 @@ public class Flora extends Element implements TileConstants {
           }
           stage = Visit.clamp(stage, 0, MAX_GROWTH - 0.5f) ;
           f.incGrowth(stage, world, true) ;
-          f.setInceptTime(-10) ;
+          f.setAsGrown(true) ;
+          ///f.setInceptTime(-10) ;
         }
         else if (Rand.num() < GROWTH_PER_UPDATE) {
           f.enterWorldAt(t.x, t.y, world) ;
@@ -102,7 +103,7 @@ public class Flora extends Element implements TileConstants {
     float inc, World world, boolean init
   ) {
     growth += inc ;
-    if (growth <= 0) { exitWorld() ; return ; }
+    if (growth <= 0) { setAsDestroyed() ; return ; }
     if (inc > 0 && ! init) {
       final float moisture = origin().habitat().moisture / 10f ;
       final int minGrowth = (int) ((moisture * moisture * MAX_GROWTH) + 1f) ;
@@ -111,20 +112,34 @@ public class Flora extends Element implements TileConstants {
         (growth < 0) || (growth >= MAX_GROWTH * 2) ||
         (growth > minGrowth && Rand.num() < dieChance)
       ) {
-        exitWorld() ;
+        setAsDestroyed() ;
         return ;
       }
     }
     final int tier = Visit.clamp((int) growth, MAX_GROWTH) ;
     final ImageModel model = habitat.floraModels[varID][tier] ;
-    this.attachSprite(model.makeSprite()) ;
-    setInceptTime(world.currentTime()) ;
+    final Sprite oldSprite = this.sprite() ;
+    attachSprite(model.makeSprite()) ;
+    setAsGrown(false) ;
+    world.ephemera.addGhost(origin(), radius() * 2, oldSprite) ;
   }
   
   
   public int growStage() {
     return Visit.clamp((int) growth, MAX_GROWTH) ;
   }
+  
+  
+	public void enterWorldAt(int x, int y, World world) {
+		super.enterWorldAt(x, y, world) ;
+		world.presences.togglePresence(this, true ) ;
+	}
+	
+	
+	public void exitWorld() {
+		world.presences.togglePresence(this, false) ;
+		super.exitWorld() ;
+	}
 }
 
 

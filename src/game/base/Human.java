@@ -393,7 +393,7 @@ public class Human extends Actor implements ActorConstants {
       d.append(r.subject) ;
       d.append(" ("+r.descriptor()+")") ;
     }
-    
+    /*
     d.append("\n\nMemories: ") ;
     //  TODO:  Refer to Memories directly, so you can reconstruct the plan
     //  from the signature, and link to affected targets/subjects.
@@ -402,6 +402,7 @@ public class Human extends Actor implements ActorConstants {
       d.append("\n  "+planClass.getSimpleName()) ;
       if (++numM >= 5) break ;
     }
+    //*/
   }
 }
 

@@ -243,8 +243,8 @@ public abstract class Mobile extends Element
   
   
   protected void onTileChange(Tile oldTile, Tile newTile) {
-    world.mobilesMap.toggleMember(this, oldTile, false) ;
-    world.mobilesMap.toggleMember(this, newTile, true ) ;
+    world.presences.togglePresence(this, oldTile, false) ;
+    world.presences.togglePresence(this, newTile, true ) ;
   }
   
   
@@ -282,7 +282,7 @@ public abstract class Mobile extends Element
   }
   
   
-  protected void renderFor(Rendering rendering, Base base) {
+  public void renderFor(Rendering rendering, Base base) {
     final Sprite s = this.sprite() ;
     final float alpha = PlayLoop.frameTime() ;
     s.position.setTo(position).scale(1 - alpha) ;

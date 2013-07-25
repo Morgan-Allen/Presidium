@@ -8,10 +8,8 @@
 package src.game.base ;
 import src.game.building.* ;
 import src.game.common.* ;
-import src.graphics.common.* ;
-import src.user.BaseUI;
-import src.user.InstallTab;
-import src.user.Composite;
+//import src.graphics.common.* ;
+import src.user.* ;
 import src.util.* ;
 
 
@@ -25,7 +23,7 @@ public class ShieldWall extends LineInstallation {
   
   
   public ShieldWall(Base base) {
-    super(base.world) ;
+    super() ;
     this.base = base ;
   }
   

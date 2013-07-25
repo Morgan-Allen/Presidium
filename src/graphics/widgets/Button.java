@@ -5,14 +5,21 @@
   */
 
 package src.graphics.widgets ;
-import src.user.BaseUI;
 import src.util.* ;
 import src.graphics.common.* ;
 import org.lwjgl.opengl.* ;
 
 
+
+
 public class Button extends Image {
   
+  /**  
+    */
+  final public static Texture
+    ICON_LIT_TEX     = Texture.loadTexture("media/GUI/iconLit.gif"),
+    TRIANGLE_LIT_TEX = Texture.loadTexture("media/GUI/triangle_tab_glow.png"),
+    TRI_INV_LIT_TEX  = Texture.loadTexture("media/GUI/tri_inv_tab_glow.png") ;
   
   //  selection modes.
   final public static byte
@@ -28,13 +35,14 @@ public class Button extends Image {
   
   protected Texture highlit ;
   protected String info ;
+  //private float litAlpha = 0 ;
   
   
   public Button(HUD myHUD, String norm, String infoS) {
     this(
       myHUD,
       Texture.loadTexture(norm),
-      BaseUI.ICON_LIT_TEX,
+      ICON_LIT_TEX,
       infoS
     ) ;
   }
@@ -55,27 +63,60 @@ public class Button extends Image {
   }
   
   
+  public void setHighlight(Texture h) {
+    highlit = h ;
+  }
+  
+  
   protected String info() {
     return info ;
   }
   
   
+  
+  /**  UI method overrides/implementations-
+    */
+  protected UINode selectionAt(Vec2D mousePos) {
+    if (super.selectionAt(mousePos) == null) return null ;
+    if (selectMode == MODE_BOUNDS) {
+      return this ;
+    }
+    if (selectMode == MODE_RADIUS) {
+      final float radius = Math.max(bounds.xdim(), bounds.ydim()) / 2 ;
+      return (bounds.centre().pointDist(mousePos) < radius) ? this : null ;
+    }
+    if (selectMode == MODE_ALPHA) {
+      final float
+        tU = ((mousePos.x - bounds.xpos()) / bounds.xdim()),
+        tV = ((mousePos.y - bounds.ypos()) / bounds.ydim()) ;
+      final Colour texSample = texture.getColour(tU, tV) ;
+      return (texSample.a > 0.5f) ? this : null ;
+    }
+    return null ;
+  }
+  
+
   protected void render() {
+    final float FADE_TIME = 0.25f ;
     super.render() ;
     final Texture realTex = texture ;
-    final float realAlpha = alpha ;
-    
+    final float realAlpha = absAlpha ;
     texture = highlit ;
     if (amPressed() || amDragged() || amClicked()) {
-      alpha *= pressLit ;
+      absAlpha *= pressLit ;
       super.render() ;
     }
     if (amHovered()) {
-      alpha *= hoverLit ;
+      absAlpha *= hoverLit ;
+      absAlpha *= Visit.clamp(myHUD.timeHovered() / FADE_TIME, 0, 1) ;
       super.render() ;
     }
-    alpha = realAlpha ;
+    absAlpha = realAlpha ;
     texture = realTex ;
   }
 }
+
+
+
+
 

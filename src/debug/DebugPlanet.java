@@ -45,7 +45,7 @@ public class DebugPlanet extends PlayLoop {
     */
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(
-      64, 0.33f,
+      32, 0.33f,
       Habitat.OCEAN  , 0.33f,
       Habitat.ESTUARY, 0.25f,
       Habitat.MEADOW , 0.5f,
@@ -59,8 +59,10 @@ public class DebugPlanet extends PlayLoop {
     
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;
+    /*
     EG.populateFauna(world, 16, Species.QUUD, Species.VAREEN) ;
     EG.populateFauna(world, 32, Species.MICOVORE) ;
+    //*/
     
     return world ;
   }
@@ -84,7 +86,7 @@ public class DebugPlanet extends PlayLoop {
   
   
   protected void updateGameState() {
-    PlayLoop.setGameSpeed(100.0f) ;
+    PlayLoop.setGameSpeed(1.0f) ;
     super.updateGameState() ;
   }
   

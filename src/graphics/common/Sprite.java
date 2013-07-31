@@ -17,6 +17,7 @@ public abstract class Sprite implements Rendering.Client {
   final public Vec3D position = new Vec3D() ;
   public float scale = 1, rotation = 0 ;
   public float depth ;
+  public float fog = 1 ;
   public Colour colour = null ;
   
   public abstract Model model() ;

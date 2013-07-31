@@ -27,6 +27,9 @@ public class MissionsTab extends InfoPanel {
   final public static ImageModel
     STRIKE_MODEL = ImageModel.asFlatModel(
       MissionsTab.class, STRIKE_ICON, 1, 1
+    ),
+    RECON_MODEL = ImageModel.asFlatModel(
+      MissionsTab.class, RECON_ICON, 1, 1
     ) ;
   
   
@@ -51,7 +54,6 @@ public class MissionsTab extends InfoPanel {
     }) ;
     detailText.append("\n") ;
     //  TODO:  You also need to list similar missions, and give info.
-    
     
     detailText.insert(RECON_ICON, 40) ;
     detailText.append(" Recon Mission\n") ;
@@ -84,25 +86,19 @@ public class MissionsTab extends InfoPanel {
   
   
   
-  //
-  //  TODO:  A lot of this will have functionality in common with the
-  //  InstallTask class and other mission placements.  Consider factoring it
-  //  out.
   
-  private void previewFlag(Sprite flagSprite, Target picked, boolean valid) {
+  private void previewFlag(Sprite flag, Target picked, boolean valid) {
     if (! valid) {
       final World world = UI.world() ;
       final Vec3D onGround = world.pickedGroundPoint(UI, UI.rendering.port) ;
-      flagSprite.position.setTo(onGround) ;
-      flagSprite.colour = Colour.RED ;
+      flag.position.setTo(onGround) ;
+      flag.colour = Colour.RED ;
     }
     else {
-      final Element e = (Element) picked ;
-      flagSprite.position.setTo(e.viewPosition(null)) ;
-      flagSprite.position.z += e.height() ;
-      flagSprite.colour = Colour.GREEN ;
+      Mission.placeFlag(flag, picked) ;
+      flag.colour = Colour.GREEN ;
     }
-    UI.rendering.addClient(flagSprite) ;
+    UI.rendering.addClient(flag) ;
   }
   
   
@@ -119,13 +115,32 @@ public class MissionsTab extends InfoPanel {
       }
       
       void performAt(Target picked) {
-        UI.played().addMission(new StrikeMission(picked)) ;
+        UI.played().addMission(new StrikeMission(UI.played(), picked)) ;
       }
     }) ;
   }
   
   
   protected void initReconTask() {
+    final Sprite flagSprite = RECON_MODEL.makeSprite() ;
+    UI.beginTask(new TargetTask(UI, RECON_ICON) {
+      
+      boolean validPick(Target pick) {
+        if (! (pick instanceof Tile)) return false ;
+        final Tile tile = (Tile) pick ;
+        if (UI.played().intelMap.fogAt(tile) == 0) return true ;
+        if (! tile.habitat().pathClear) return false ;
+        return true ;
+      }
+      
+      void previewAt(Target picked, boolean valid) {
+        previewFlag(flagSprite, picked, valid) ;
+      }
+      
+      void performAt(Target picked) {
+        UI.played().addMission(new ReconMission(UI.played(), (Tile) picked)) ;
+      }
+    }) ;
   }
   
   

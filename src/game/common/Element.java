@@ -165,9 +165,9 @@ public abstract class Element implements
   }
   
   
-  protected void setAsGrown(boolean isGrown) {
-  	  if (isGrown) inceptTime = -10 ;
-  	  else inceptTime = world.currentTime() ;
+  public void setAsGrown(boolean isGrown) {
+    if (isGrown) inceptTime = -10 ;
+    else inceptTime = world.currentTime() ;
   }
   
   
@@ -223,6 +223,11 @@ public abstract class Element implements
   
   
   public void renderFor(Rendering rendering, Base base) {
+    if (base != null) {
+      float fog = base.intelMap.fogAt(origin()) ;
+      if (fog == 0) return ;
+      else sprite.fog = fog ;
+    }
     float timeGone = world().currentTime() - inceptTime ;
     timeGone += PlayLoop.frameTime() / PlayLoop.UPDATES_PER_SECOND ;
     if (timeGone < 1) sprite.colour = Colour.transparency(timeGone) ;

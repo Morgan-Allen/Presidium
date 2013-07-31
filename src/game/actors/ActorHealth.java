@@ -160,7 +160,7 @@ public class ActorHealth implements ActorConstants {
     float overallHealth,
     float accidentChance
   ) {
-    this.currentAge = lifespan * (agingFactor * agingFactor) ;
+    this.currentAge = lifespan * agingFactor ;
     updateHealth(-1) ;
     
     calories = ((Rand.num() + 0.1f) * overallHealth) * maxHealth ;
@@ -168,7 +168,7 @@ public class ActorHealth implements ActorConstants {
     nutrition = Rand.num() * overallHealth * 2 ;
     nutrition = Visit.clamp(nutrition, 0, 1) ;
     
-    fatigue = Rand.num() * (1 - (calories / maxHealth)) * maxHealth ;
+    fatigue = Rand.num() * (1 - (calories / maxHealth)) * maxHealth / 2f ;
     stress = Rand.num() * accidentChance * maxHealth / 2f ;
     injury = Rand.num() * accidentChance * maxHealth / 2f ;
   }
@@ -196,6 +196,11 @@ public class ActorHealth implements ActorConstants {
   
   public float ageLevel() {
     return currentAge * 1f / lifespan ;
+  }
+  
+  
+  public int exactAge() {
+    return (int) currentAge ;
   }
   
   
@@ -249,6 +254,8 @@ public class ActorHealth implements ActorConstants {
     */
   public void takeInjury(float taken) {
     ///I.say(actor+" taking "+taken+" injury, prior total: "+injury) ;
+    injury += taken ;
+    /*
     final float max = maxHealth * MAX_INJURY ;
     if (injury >= max) {
       injury += taken ;
@@ -257,6 +264,7 @@ public class ActorHealth implements ActorConstants {
         injury = max * 2 ;
       }
       //*/
+    /*
     }
     else {
       injury += taken ;
@@ -265,6 +273,7 @@ public class ActorHealth implements ActorConstants {
       }
       //  TODO:  Begin bleeding?
     }
+    //*/
     ///I.say("Subsequent ttotal: "+injury) ;
   }
   
@@ -321,8 +330,8 @@ public class ActorHealth implements ActorConstants {
   }
   
   
-  public boolean isDead() {
-    return state == STATE_DEAD ;
+  public boolean deceased() {
+    return state == STATE_DEAD || state == STATE_DECOMP ;
   }
   
   
@@ -411,23 +420,26 @@ public class ActorHealth implements ActorConstants {
     float SM = 1, FM = 1, IM = 1 ;
     if (state == STATE_RESTING) {
       if (fatigue <= 0) state = STATE_ACTIVE ;
-      FM = 2 ;
-      IM = 2 ;
-      SM = 2 ;
+      FM = -2 ;
+      IM =  2 ;
+      SM =  2 ;
     }
     else if (state == STATE_ACTIVE) {
-      IM = -1 ;
     }
-    fatigue -= FATIGUE_GROW_PER_DAY * FM / DL ;
+    
+    fatigue += FATIGUE_GROW_PER_DAY * FM / DL ;
     stress *= (1 - (STRESS_DECAY_PER_DAY * SM / DL)) ;
     injury -= INJURY_REGEN_PER_DAY * IM / DL ;
-    fatigue = Visit.clamp(fatigue, 0, MAX_FATIGUE) ;
-    stress  = Visit.clamp(stress , 0, MAX_STRESS ) ;
-    injury  = Visit.clamp(injury , 0, MAX_INJURY ) ;
+    fatigue = Visit.clamp(fatigue, 0, MAX_FATIGUE * maxHealth) ;
+    stress  = Visit.clamp(stress , 0, MAX_STRESS  * maxHealth) ;
+    injury  = Visit.clamp(injury , 0, MAX_INJURY  * maxHealth) ;
     
-    actor.traits.setLevel(INJURY , injury  * INJURY .maxVal / MAX_INJURY ) ;
-    actor.traits.setLevel(FATIGUE, fatigue * FATIGUE.maxVal / MAX_FATIGUE) ;
-    actor.traits.setLevel(STRESS , stress  * STRESS .maxVal / MAX_STRESS ) ;
+    SM = stress  * STRESS .maxVal / (maxHealth * MAX_STRESS ) ;
+    FM = fatigue * FATIGUE.maxVal / (maxHealth * MAX_FATIGUE) ;
+    IM = injury  * INJURY .maxVal / (maxHealth * MAX_INJURY ) ;
+    actor.traits.setLevel(STRESS , SM) ;
+    actor.traits.setLevel(FATIGUE, FM) ;
+    actor.traits.setLevel(INJURY , IM) ;
   }
   
   

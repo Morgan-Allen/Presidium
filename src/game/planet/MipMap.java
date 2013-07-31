@@ -6,7 +6,6 @@
 
 package src.game.planet ;
 import src.game.common.* ;
-//import src.game.common.WorldSections.Section;
 import java.io.* ;
 import src.util.* ;
 
@@ -17,8 +16,9 @@ import src.util.* ;
   */
 public class MipMap implements TileConstants {
   
-  //
-  // TODO:  Consider setting a maximum value of 100 or so?
+  
+  /**  Fields and basic accessors-
+    */
   final byte baseLevels[][] ;
   final int quadLevels[][][] ;
   final int high, size ;
@@ -166,33 +166,6 @@ public class MipMap implements TileConstants {
   
   
   
-  /**  Performs a gradient descent to the nearest local minimum or maximum from
-    *  the given x/y coordinates, using blended mipmap values.
-    */
-  //
-  //  Results at the moment are a bit disappointing.  Try restricting the
-  //  search to higher-level sampling, and work your way down?
-  public Coord doBlendDescent(int x, int y, float stepFade, boolean seekMax) {
-    Coord best = new Coord(x, y), tried = new Coord(), found = new Coord(best) ;
-    float bestVal = blendValAt(x, y, stepFade) ;
-    
-    while (true) {
-      for (int n : N_INDEX) {
-        tried.x = Visit.clamp(best.x + N_X[n], size) ;
-        tried.y = Visit.clamp(best.y + N_Y[n], size) ;
-        final float val = blendValAt(tried.x, tried.y, stepFade) ;
-        if (seekMax ? (val > bestVal) : (val < bestVal)) {
-          bestVal = val ;
-          found.setTo(tried) ;
-        }
-      }
-      if (found.matches(best)) break ;
-      else best.setTo(found) ;
-    }
-    return best ;
-  }
-  
-  
   
   
   /**  Returns a list of all actors within range of the given point.
@@ -281,16 +254,6 @@ public class MipMap implements TileConstants {
       I.present(greyVals, "mipmap blend", shownSize, shownSize) ;
     }
     I.say("Average time to process (in ms): "+(totalTaken / numRuns)) ;
-    /*
-    final int sampleX = Rand.index(size), sampleY = Rand.index(size) ;
-    I.say("Sampling at: "+sampleX+"|"+sampleY) ;
-    drawCross(new Coord(sampleX, sampleY), greyVals, 4) ;
-    final Coord minimum = testMap.doBlendDescent(
-      sampleX, sampleY, fuzz, false
-    ) ;
-    I.say("Local minimum found: "+minimum) ;
-    drawCross(minimum, greyVals, 16) ;
-    //*/
   }
   
   
@@ -305,6 +268,46 @@ public class MipMap implements TileConstants {
 }
 
 
+
+
+/*
+final int sampleX = Rand.index(size), sampleY = Rand.index(size) ;
+I.say("Sampling at: "+sampleX+"|"+sampleY) ;
+drawCross(new Coord(sampleX, sampleY), greyVals, 4) ;
+final Coord minimum = testMap.doBlendDescent(
+  sampleX, sampleY, fuzz, false
+) ;
+I.say("Local minimum found: "+minimum) ;
+drawCross(minimum, greyVals, 16) ;
+//*/
+
+/**  Performs a gradient descent to the nearest local minimum or maximum from
+  *  the given x/y coordinates, using blended mipmap values.
+  */
+/*
+//
+//  Results at the moment are a bit disappointing.  Try restricting the
+//  search to higher-level sampling, and work your way down?
+public Coord doBlendDescent(int x, int y, float stepFade, boolean seekMax) {
+  Coord best = new Coord(x, y), tried = new Coord(), found = new Coord(best) ;
+  float bestVal = blendValAt(x, y, stepFade) ;
+  
+  while (true) {
+    for (int n : N_INDEX) {
+      tried.x = Visit.clamp(best.x + N_X[n], size) ;
+      tried.y = Visit.clamp(best.y + N_Y[n], size) ;
+      final float val = blendValAt(tried.x, tried.y, stepFade) ;
+      if (seekMax ? (val > bestVal) : (val < bestVal)) {
+        bestVal = val ;
+        found.setTo(tried) ;
+      }
+    }
+    if (found.matches(best)) break ;
+    else best.setTo(found) ;
+  }
+  return best ;
+}
+//*/
 
 
 

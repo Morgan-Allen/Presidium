@@ -75,7 +75,7 @@ public interface VenueConstants extends ActorConstants {
     NEURAL_SCAN = new Item.Type(C, UNIQUE, "Neural Scan", 500),
     TROPHY      = new Item.Type(C, UNIQUE, "Trophy"     , 250)
     //*/
-    ALL_ITEM_TYPES[] = Item.Type.allTypes() ;
+    CARRIED_ITEM_TYPES[] = Item.Type.typesSoFar() ;
   
   
   final public static int
@@ -161,6 +161,9 @@ public interface VenueConstants extends ActorConstants {
     ) ;
   final public static Item.Type
     ALL_OUTFITS[] = Item.Type.typesSoFar() ;
+  
+  final public static Item.Type
+    ALL_ITEM_TYPES[] = Item.Type.allTypes() ;
   
   
   

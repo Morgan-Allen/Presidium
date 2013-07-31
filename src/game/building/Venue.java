@@ -169,7 +169,6 @@ public abstract class Venue extends Fixture implements
       orders.updateOrders() ;
       updatePaving(true) ;
     }
-    //if (usesRoads() && numUpdates % 10 == 0) paving.updateRoutes() ;
   }
 
   
@@ -305,6 +304,7 @@ public abstract class Venue extends Fixture implements
   public void writeInformation(Description d, int categoryID, BaseUI UI) {
     d.append("PERSONNEL:") ;
     
+    /*
     final Vocation c[] = careers() ;
     if (c != null) for (final Vocation v : c) {
       d.append(new UserOption() {
@@ -318,10 +318,11 @@ public abstract class Venue extends Fixture implements
         }
       }) ;
     }
+    //*/
     
     for (Actor a : personnel.workers()) {
       d.append("\n  ") ;
-      d.insert(a.portrait(UI), 25) ;
+      //d.insert(a.portrait(UI), 25) ;
       d.append(a) ;
     }
     

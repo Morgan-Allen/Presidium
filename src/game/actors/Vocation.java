@@ -12,7 +12,7 @@ import src.util.* ;
 
 
 
-public class Vocation implements ActorConstants {
+public class Vocation implements VenueConstants {
   
   
   
@@ -187,12 +187,13 @@ public class Vocation implements ActorConstants {
     
     //  Volunteer, Mercenary, Mech Trooper, etc.
     
-    MILITANT = new Vocation(  //  Rename to Veteran.
+    MILITANT = new Vocation(  //  Rename to Veteran?
       "Militant", "militant_skin.gif", "militant_portrait.png",
       UPPER_CLASS,
       EXPERT, CLOSE_COMBAT, PRACTICED, MARKSMANSHIP, SURVEILLANCE,
       BATTLE_TACTICS, NOVICE, HARD_LABOUR, COMMAND,
-      OFTEN, DUTIFUL, SOMETIMES, STUBBORN, AMBITIOUS
+      OFTEN, DUTIFUL, SOMETIMES, STUBBORN, AMBITIOUS,
+      SHOCK_STAFF, BODY_ARMOUR
     ) ;
   
   

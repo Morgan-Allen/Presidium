@@ -185,8 +185,8 @@ public class DebugPathing extends PlayLoop {
   private void highlightPlace() {
     final Tile t = ((BaseUI) currentUI()).selection.pickedTile() ;
     if (t == null) return ;
-    final Tile placeTiles[] = played().pathingCache.placeTiles(t) ;
-    final Tile placeRoutes[][] = played().pathingCache.placeRoutes(t) ;
+    final Tile placeTiles[] = world().pathingCache.placeTiles(t) ;
+    final Tile placeRoutes[][] = world().pathingCache.placeRoutes(t) ;
     
     if (placeTiles == null || placeTiles.length < 1) return ;
     final TerrainMesh placeMesh = world().terrain().createOverlay(
@@ -221,7 +221,7 @@ public class DebugPathing extends PlayLoop {
     if (picked != null && hovered != null) {
       
       final PathingSearch search = (! GameSettings.freePath) ?
-        played().pathingCache.fullPathSearch(picked, hovered, null, 16) :
+        world().pathingCache.fullPathSearch(picked, hovered, null, 16) :
         new PathingSearch(picked, hovered) ;
       
       if (search != null) {

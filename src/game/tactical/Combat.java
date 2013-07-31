@@ -7,18 +7,125 @@
 
 package src.game.tactical ;
 import src.game.actors.* ;
+import src.game.common.Session;
 import src.util.* ;
 
 
 
-public class Combat {
+//
+//  Merge this with the hunting class.
+public class Combat extends Plan implements ActorConstants {
+  
+  
+  /**  
+    */
+  final Actor target ;
+  
+  
+  public Combat(Actor actor, Actor target) {
+    super(actor, target) ;
+    this.target = target ;
+  }
+  
+  
+  public Combat(Session s) throws Exception {
+    super(s) ;
+    this.target = (Actor) s.loadObject() ;
+  }
+  
+  
+  public void saveState(Session s) throws Exception {
+    super.saveState(s) ;
+    s.saveObject(target) ;
+  }
+  
+  
+  protected Behaviour getNextStep() {
+    //
+    //  This might need to be tweaked in cases of self-defence, where you just
+    //  want to see off an attacker.
+    if (target.health.deceased()) return null ;
+    final Action strike = new Action(
+      actor, target,
+      this, "actionStrike",
+      Action.STRIKE, "Striking at "+target
+    ) ;
+    strike.setProperties(Action.QUICK) ;
+    return strike ;
+  }
+  
+  
+  public boolean actionStrike(Actor actor, Actor target) {
+    if (target.health.deceased()) return false ;
+    //
+    //  You may want a separate category for animals.
+    if (actor.gear.meleeWeapon()) {
+      performStrike(actor, target, CLOSE_COMBAT, CLOSE_COMBAT) ;
+    }
+    else {
+      performStrike(actor, target, MARKSMANSHIP, STEALTH_AND_COVER) ;
+    }
+    return true ;
+  }
+  
+  
+  
+  /**  Gauging the relative strength of combatants, odds of success, and how
+    *  (un)appealing an engagement would be.
+    */
+  public static float combatPriority(
+    Actor actor, Actor enemy, float winReward, float lossCost
+  ) {
+    final float
+      actorStrength = combatStrength(actor, enemy),
+      enemyStrength = combatStrength(enemy, actor),
+      chance = actorStrength / (actorStrength + enemyStrength) ;
+    I.say(
+      "Actor/enemy strength, chance: "+actorStrength+"/"+enemyStrength+
+      ", "+chance
+    ) ;
+    float appeal = 0 ;
+    appeal += winReward * chance ;
+    appeal -= (1 - chance) * lossCost ;
+    I.say("Final appeal: "+appeal) ;
+    
+    //
+    //final float distance = Spacing.distance(enemy, actor) ;
+    //  You also need to incorporate an estimate of dangers en-route,
+    //  and subtract this (relative to the actor's combat strength.)
+    //...Some of this should be moved to the general Mission class.
+    //appeal /= Math.max(1, distance / Terrain.SECTOR_SIZE) ;
+    return appeal ;
+  }
+  
+  
+  public static float combatStrength(Actor actor, Actor enemy) {
+    float strength = 0 ;
+    strength += actor.gear.armourRating() + actor.gear.attackDamage() ;
+    strength *= actor.health.maxHealth() / 100 ;
+    strength *= actor.traits.trueLevel(REFLEX) / 10 ;
+    //
+    //  You also need to include modifiers for ranged and melee attack skill,
+    //  plus reflex and shields.
+    //  Work this out later.
+    /*
+    if (enemy != null) {
+      if (enemy.gear.meleeWeapon()) {
+        strength *= enemy.traits.chance(CLOSE_COMBAT, actor, CLOSE_COMBAT, 0) ;
+      }
+      else {
+        strength *= enemy.traits.chance(, actor, MARKSMANSHIP, 0) ;
+      }
+    }
+    //*/
+    return strength ;
+  }
   
   
   
   
-  //
-  //  How do you measure the damage dealt by wild animals?
-  
+  /**  Actual behaviour implementation-
+    */
   static void performStrike(
     Actor actor, Actor target,
     Skill offence, Skill defence

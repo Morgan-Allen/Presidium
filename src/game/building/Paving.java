@@ -12,10 +12,6 @@ import src.game.planet.* ;
 import src.util.* ;
 
 
-//
-//  This has a good deal in common with the PathingCache class, and the supply/
-//  demand code.
-
 
 public class Paving {
   
@@ -26,9 +22,10 @@ public class Paving {
   final static int PATH_RANGE = World.SECTION_RESOLUTION * 2 ;
   
   final World world ;
-  final PresenceMap junctions ;
-  final Table <Tile, List <Route>> tileRoutes = new Table(1000) ;
-  final Table <Route, Route> allRoutes = new Table(1000) ;
+  
+  PresenceMap junctions ;
+  Table <Tile, List <Route>> tileRoutes = new Table(1000) ;
+  Table <Route, Route> allRoutes = new Table <Route, Route> (1000) ;
   
   
   public Paving(World world) {
@@ -36,8 +33,24 @@ public class Paving {
     junctions = new PresenceMap(world, Paving.class) ;
   }
   
-  //
-  //  TODO:  Implement save/load methods-
+  
+  public void loadState(Session s) throws Exception {
+    junctions = (PresenceMap) s.loadObject() ;
+    int numR = s.loadInt() ;
+    for (int n = numR ; n-- > 0 ;) {
+      final Route r = Route.loadRoute(s) ;
+      allRoutes.put(r, r) ;
+      toggleRoute(r, r.start, true) ;
+      toggleRoute(r, r.end, true) ;
+    }
+  }
+  
+  
+  public void saveState(Session s) throws Exception {
+    s.saveObject(junctions) ;
+    s.saveInt(allRoutes.size()) ;
+    for (Route r : allRoutes.keySet()) Route.saveRoute(r, s) ;
+  }
   
   
   

@@ -28,24 +28,17 @@ public class Base implements Session.Saveable, Schedule.Updates {
   
   Actor ruler ;
   Venue commandPost ;
-  //final List <Venue> venues = new List <Venue> () ;
-  //final List <Actor> personnel = new List <Actor> () ;
-  
-  //
-  //  Move each of these to the world-
-  final public PathingCache pathingCache ;
-  final public Paving paving ;
-  
-  Texture fogMap ;  //Create a dedicated fogmap later.
   final List <Mission> missions = new List <Mission> () ;
+  
+  final public Paving paving ;
+  final public IntelMap intelMap = new IntelMap(this) ;
   
   
   
   public Base(World world) {
     this.world = world ;
-    pathingCache = new PathingCache(world) ;
     paving = new Paving(world) ;
-    initFog() ;
+    intelMap.initFog(world) ;
   }
   
   
@@ -55,32 +48,23 @@ public class Base implements Session.Saveable, Schedule.Updates {
 
     offworld.loadState(s) ;
     ruler = (Actor) s.loadObject() ;
+    s.loadObjects(missions) ;
     
-    //s.loadObjects(personnel) ;
     paving = new Paving(world) ;
-    
-    initFog() ;
-    pathingCache = new PathingCache(world) ;
+    paving.loadState(s) ;
+    intelMap.initFog(world) ;
+    intelMap.loadState(s) ;
   }
   
   
   public void saveState(Session s) throws Exception {
+    
     offworld.saveState(s) ;
     s.saveObject(ruler) ;
-    //s.saveObjects(personnel) ;
-  }
-  
-  
-  private void initFog() {
-    final int size = world.size ;
-    fogMap = Texture.createTexture(size, size) ;
-    byte vals[] = new byte[size * size * 4] ;
-    fogMap.putBytes(vals) ;
-  }
-  
-  
-  public Texture fogMap() {
-    return fogMap ;
+    s.saveObjects(missions) ;
+    
+    paving.saveState(s) ;
+    intelMap.saveState(s) ;
   }
   
   
@@ -103,10 +87,8 @@ public class Base implements Session.Saveable, Schedule.Updates {
   
   
   
-  
   /**  Dealing with venues and the command post-
     */
-  
   
   
   

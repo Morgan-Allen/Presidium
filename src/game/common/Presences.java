@@ -28,7 +28,7 @@ public class Presences {
   	allMaps = new Table <Object, PresenceMap> () ;
   	floraMap = new PresenceMap(world, Flora.class) ;
   	mobilesMap = new PresenceMap(world, Mobile.class) ;
-  	allMaps.put(Flora.class, floraMap) ;
+  	allMaps.put(Flora.class , floraMap  ) ;
   	allMaps.put(Mobile.class, mobilesMap) ;
   	
   	nullMap = new PresenceMap(world, "nothing") {

@@ -69,12 +69,10 @@ public class InfoPanel extends UIGroup implements UIConstants {
   protected void updateState() {
     /*
     if (selected != null && ! selected.inWorld()) {
-      //if (true) throw new RuntimeException("Huh?") ;
       I.say(
         "SELECTION IS NO LONGER IN WORLD... "+
         selected+" "+selected.getClass().getName()
       ) ;
-      //UI.selection.voidSelection() ;
       UI.selection.setSelected(null) ;
       return ;
     }

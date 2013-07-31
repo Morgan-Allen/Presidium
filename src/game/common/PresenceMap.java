@@ -85,7 +85,6 @@ public class PresenceMap implements Session.Saveable {
   }
   
   
-  
   private void loadMember(Session s) throws Exception {
     final int pX = s.loadInt(), pY = s.loadInt() ;
     final Target t = s.loadTarget() ;

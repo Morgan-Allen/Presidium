@@ -115,8 +115,10 @@ public class Minimap extends UINode {
     //newImage.bindTex() ;
     //renderTex() ;
     if (base != null) {
-      base.fogMap().bindTex() ;
+      GL11.glColor4f(0, 0, 0, 1) ;
+      base.intelMap.fogTex().bindTex() ;
       renderTex() ;
+      GL11.glColor4f(1, 1, 1, 1) ;
     }
   }
   

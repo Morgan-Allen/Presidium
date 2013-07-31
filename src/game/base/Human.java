@@ -135,19 +135,20 @@ public class Human extends Actor implements ActorConstants {
   //  portraits image specified- do not modify without close inspection.
   final static int
     CHILD_FACE_OFF[] = {2, 0},
-    UGLYS_FACE_OFF[] = {2, 1},
+    ELDER_FACE_OFF[] = {2, 1},
     F_AVG_FACE_OFF[] = {1, 1},
     F_HOT_FACE_OFF[] = {0, 1},
     M_AVG_FACE_OFF[] = {1, 0},
     M_HOT_FACE_OFF[] = {0, 0} ;
   
   final static int
-    M_HAIR_OFF[][] = {{0, 5}, {1, 5}, {2, 5}, {3, 5}, {4, 5}, {5, 5}},
-    F_HAIR_OFF[][] = {{0, 4}, {1, 4}, {2, 4}, {3, 4}, {4, 4}, {5, 4}} ;
+    M_HAIR_OFF[][] = {{5, 5}, {4, 5}, {3, 5}, {3, 4}, {4, 4}, {5, 4}},
+    F_HAIR_OFF[][] = {{2, 5}, {1, 5}, {0, 5}, {0, 4}, {1, 4}, {2, 4}} ;
   
   final static int BLOOD_FACE_OFFSETS[][] = {
     {3, 4}, {0, 4}, {3, 2}, {0, 2}
   } ;
+  final static int BLOOD_TONE_SHADES[] = { 3, 1, 2, 0 } ;
   
   
   private static int bloodID(Human c) {
@@ -172,14 +173,11 @@ public class Human extends Actor implements ActorConstants {
     int faceOff[], bloodOff[] = BLOOD_FACE_OFFSETS[bloodID] ;
     if (ageStage == 0) faceOff = CHILD_FACE_OFF ;
     else {
-      int looks = (int) c.traits.trueLevel(Trait.HANDSOME) + 1 - ageStage ;
-      //int looks = 2 ;
+      int looks = (int) c.traits.trueLevel(Trait.HANDSOME) + 2 - ageStage ;
       if (looks > 0) faceOff = male ? M_HOT_FACE_OFF : F_HOT_FACE_OFF ;
       else if (looks == 0) faceOff = male ? M_AVG_FACE_OFF : F_AVG_FACE_OFF ;
-      else faceOff = UGLYS_FACE_OFF ;
+      else faceOff = ELDER_FACE_OFF ;
     }
-    //
-    //  TODO:  You may want a layer for the back of the costume or hairdo.
     
     final int UV[] = new int[] {
       0 + (faceOff[0] + bloodOff[0]),
@@ -187,19 +185,20 @@ public class Human extends Actor implements ActorConstants {
     } ;
     composite.addLayer(BASE_FACES, UV[0], UV[1], 6, 6) ;
     
-    if (ageStage > 0) {
-      int hairID = c.traits.geneValue("hair", 3) ;
+    if (ageStage > ActorHealth.AGE_JUVENILE) {
+      int hairID = c.traits.geneValue("hair", 6) ;
       if (hairID < 0) hairID *= -1 ;
-      if (ageStage >= 2) hairID = 2 ;
-      boolean haveBeard = c.traits.hasTrait(FEMININE, "Bearded") ;
-      if (! male) haveBeard = false ;
-      int fringeOff[] = (haveBeard ? M_HAIR_OFF : F_HAIR_OFF)[hairID] ;
+      hairID = Visit.clamp(hairID + BLOOD_TONE_SHADES[bloodID], 6) ;
+      
+      if (ageStage >= ActorHealth.AGE_SENIOR) hairID = 5 ;
+      else if (hairID == 5) hairID-- ;
+      int fringeOff[] = (male ? M_HAIR_OFF : F_HAIR_OFF)[hairID] ;
       composite.addLayer(BASE_FACES, fringeOff[0], fringeOff[1], 6, 6) ;
+      
+      Texture portrait = c.career.vocation().portrait ;
+      if (portrait == null) portrait = c.career.birth().portrait ;
+      composite.addLayer(portrait, 0, 0, 1, 1) ;
     }
-    
-    Texture portrait = c.career.vocation().portrait ;
-    if (portrait == null) portrait = c.career.birth().portrait ;
-    composite.addLayer(portrait, 0, 0, 1, 1) ;
     
     return composite ;
   }
@@ -305,31 +304,28 @@ public class Human extends Actor implements ActorConstants {
       rootB.describeBehaviour(d) ;
     }
     else d.append("\n  Idle") ;
+    
+    d.append("\n  Age: "+health.exactAge()) ;
   }
   
   
   private void describeOutfit(Description d, BaseUI UI) {
     //
-    //  Describe your overall appearance and physique.
-    d.append("Physique: ") ;
-    d.append("\n  "+health.agingDesc()) ;
-    for (Trait t : traits.physique()) {
-      d.append("\n  ") ;
-      d.append(traits.levelDesc(t)) ;
-    }
-    d.append("\n  "+BLOOD_TRAITS[bloodID(this)]) ;
     //
     //  Describe your current weapon or implement, and armour or dress.  Rate
     //  your current encumbrance, and any other special bonuses or effects.
-    d.append("\nInventory: ") ;
-    d.append("\n") ;
+    d.append("Inventory: ") ;
+
     final Item device = gear.deviceEquipped() ;
-    if (device != null) d.append("  Equipped: "+device) ;
-    else d.append("  Nothing equipped") ;
-    d.append("\n") ;
+    if (device != null) d.append("\n  "+device) ;
+    else d.append("\n  No device") ;
+    d.append(" ("+((int) gear.attackDamage())+")") ;
+    
     final Item outfit = gear.outfitEquipped() ;
-    if (outfit != null) d.append("  Wearing: "+outfit) ;
-    else d.append("  Nothing worn") ;
+    if (outfit != null) d.append("\n  "+outfit) ;
+    else d.append("\n  Nothing worn") ;
+    d.append(" ("+((int) gear.armourRating())+")") ;
+    
     d.append("\n") ;
     final Batch <Item> carried = gear.allItems() ;
     if (carried.size() > 0) {
@@ -339,11 +335,21 @@ public class Human extends Actor implements ActorConstants {
       }
     }
     else d.append("  Nothing carried") ;
+    
+    d.append("\n  "+((int) gear.credits())+" Credits") ;
     /*
-    d.append("\n  Credits: "+((int) gear.credits())) ;
     d.append("\n  Fuel Cells: "+((int) gear.fuelCells)) ;
     d.append("\n  Rations: "+((int) gear.currentRations)) ;
     //*/
+    
+    //  Describe your overall appearance and physique.
+    d.append("\n\nPhysique: ") ;
+    d.append("\n  "+health.agingDesc()) ;
+    for (Trait t : traits.physique()) {
+      d.append("\n  ") ;
+      d.append(traits.levelDesc(t)) ;
+    }
+    d.append("\n  "+BLOOD_TRAITS[bloodID(this)]) ;
   }
   
   
@@ -393,6 +399,7 @@ public class Human extends Actor implements ActorConstants {
       d.append(r.subject) ;
       d.append(" ("+r.descriptor()+")") ;
     }
+    
     /*
     d.append("\n\nMemories: ") ;
     //  TODO:  Refer to Memories directly, so you can reconstruct the plan
@@ -405,5 +412,12 @@ public class Human extends Actor implements ActorConstants {
     //*/
   }
 }
+
+
+
+
+
+
+
 
 

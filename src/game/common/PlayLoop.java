@@ -27,7 +27,7 @@ public abstract class PlayLoop implements Session.Saveable {
     UPDATES_PER_SECOND = 10,
     FRAMES_PER_SECOND  = 25,
     
-    DEFAULT_WIDTH  = 600,
+    DEFAULT_WIDTH  = 1000,
     DEFAULT_HEIGHT = 600,
     DEFAULT_HERTZ  = 60,
     

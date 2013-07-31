@@ -6,6 +6,7 @@
 
 package src.user ;
 import src.game.common.* ;
+import src.game.building.* ;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
@@ -49,6 +50,7 @@ public class Selection implements UIConstants {
   public Tile    pickedTile   () { return pickTile    ; }
   public Fixture pickedFixture() { return pickFixture ; }
   public Mobile  pickedMobile () { return pickMobile  ; }
+  public Mission pickedMission() { return pickMission ; }
   
   
   
@@ -92,7 +94,7 @@ public class Selection implements UIConstants {
 
   public void setSelected(Selectable s) {
     if (s != null) {
-      if ((s instanceof Element) && ((Element) s).inWorld()) {
+      if ((s instanceof Target) && ((Target) s).inWorld()) {
         selected = s ;
         UI.camera.lockOn(selected) ;
       }
@@ -109,31 +111,38 @@ public class Selection implements UIConstants {
   /**  Rendering FX-
     */
   void renderWorldFX(Rendering rendering) {
-    if (hovered instanceof Element && hovered != selected) {
-      renderSelectFX((Element) hovered, Colour.transparency(0.5f), rendering) ;
+    Target HE = null, SE = null ;
+    if (hovered instanceof Element) HE = hovered ;
+    if (hovered instanceof Mission) HE = ((Mission) hovered).subject() ;
+
+    if (selected instanceof Element) SE = selected ;
+    if (selected instanceof Mission) SE = ((Mission) selected).subject() ;
+    
+    if (HE instanceof Element && HE != SE) {
+      renderSelectFX(HE, Colour.transparency(0.5f), rendering) ;
     }
-    if (selected instanceof Element) {
-      renderSelectFX((Element) selected, Colour.WHITE, rendering) ;
+    if (SE instanceof Element) {
+      renderSelectFX(SE, Colour.WHITE, rendering) ;
     }
   }
   
   
-  private void renderSelectFX(Element element, Colour c, Rendering r) {
-    if (element.sprite() == null) return ;
+  private void renderSelectFX(Target element, Colour c, Rendering r) {
     final Texture ringTex = (element instanceof Fixture) ?
       SELECT_SQUARE :
       SELECT_CIRCLE ;
-    final PlaneFX hoverRing = new PlaneFX(ringTex, element.radius() * 2) ;
+    final float radius = (element instanceof Venue) ?
+      ((((Venue) element).xdim() / 2f) + 1) :
+      element.radius() * 2 ;
+    final PlaneFX hoverRing = new PlaneFX(ringTex, radius) ;
     hoverRing.colour = c ;
-    hoverRing.position.setTo(element.sprite().position) ;
+    if (element instanceof Mobile) {
+      hoverRing.position.setTo(((Mobile) element).viewPosition(null)) ;
+    }
+    else hoverRing.position.setTo(element.position(null)) ;
     r.addClient(hoverRing) ;
   }
 }
-
-
-
-
-
 
 
 

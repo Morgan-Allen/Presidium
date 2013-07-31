@@ -63,7 +63,7 @@ public class Hunting extends Plan implements ActorConstants {
     }
     //
     //  If the prey is dead, either feed or harvest the meat.
-    if (prey.health.isDead()) {
+    if (prey.health.deceased()) {
       if (type == TYPE_FEEDS) {
         if (actor.health.energyLevel() >= 1) {
           I.say(actor+" has eaten their fill of "+prey) ;
@@ -135,7 +135,7 @@ public class Hunting extends Plan implements ActorConstants {
     //
     //  Outsource this to the Combat class, using specified offensive and
     //  defensive skills.
-    if (prey.health.isDead()) return false ;
+    if (prey.health.deceased()) return false ;
     if (type == TYPE_FEEDS) {
       Combat.performStrike(actor, prey, REFLEX, REFLEX) ;
     }

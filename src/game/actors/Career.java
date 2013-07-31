@@ -8,7 +8,9 @@
 
 package src.game.actors ;
 import src.game.base.* ;
-import src.game.campaign.* ;
+import src.game.building.* ;
+import src.game.actors.* ;
+//import src.game.campaign.* ;
 import src.game.common.* ;
 import src.util.* ;
 
@@ -103,7 +105,7 @@ public class Career implements ActorConstants {
     //  TODO:  Try adding 1 - 3 family members, possibly as potential migrants?
     actor.traits.initDNA(0) ;
     actor.health.setupHealth(
-      Visit.clamp(Rand.num(), 0.26f, 0.94f),
+      Visit.clamp(Rand.avgNums(2), 0.26f, 0.94f),
       Visit.clamp(Rand.num(), 0.5f, 1), 0
     ) ;
     //
@@ -127,6 +129,9 @@ public class Career implements ActorConstants {
       else fullName+=" "+name ;
     }
     I.say("Full name: "+fullName) ;
+    //
+    //  Along with current wealth and equipment-
+    applyGear(vocation, actor) ;
   }
   
   
@@ -226,7 +231,26 @@ public class Career implements ActorConstants {
       else actor.traits.incLevel(t, chance * Rand.num()) ;
     }
   }
+  
+  
+  private void applyGear(Vocation v, Actor actor) {
+    for (Item.Type gear : v.gear) {
+      if (gear instanceof DeviceType) {
+        actor.gear.equipDevice(new Item(gear, Item.quality(2))) ;
+      }
+      else if (gear instanceof OutfitType) {
+        actor.gear.equipOutfit(new Item(gear, Item.quality(2))) ;
+      }
+      else actor.gear.addItem(new Item(gear)) ;
+    }
+  }
 }
+
+
+
+
+
+
 
 
 

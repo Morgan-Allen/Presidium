@@ -179,13 +179,7 @@ public class Action implements Behaviour, Model.AnimNames {
     //  You also have to account for the effects of fatigue and encumbrance...
     if ((properties & QUICK  ) != 0) rate *= 2 ;
     if ((properties & CAREFUL) != 0) rate /= 2 ;
-    /*
-    switch (moveType) {
-      case (MOVE_SNEAK) : rate *= 0.50f ; break ;
-      case (MOVE_WALK ) : rate *= 1.25f ; break ;
-      case (MOVE_RUN  ) : rate *= 2.00f ; break ;
-    }
-    //*/
+    
     final int pathType = actor.origin().pathType() ;
     switch (pathType) {
       case (Tile.PATH_HINDERS) : rate *= 0.8f ; break ;
@@ -225,7 +219,7 @@ public class Action implements Behaviour, Model.AnimNames {
     else {
       final Target nextStep = actor.pathing.nextStep() ;
       if (nextStep == null) return ;
-      actor.setHeading(nextStep, actor.health.moveRate()) ;
+      actor.setHeading(nextStep, moveRate()) ;
       if (inRange != 0) {
         inRange = 0 ;
         progress = oldProgress = 0 ;
@@ -318,7 +312,8 @@ public class Action implements Behaviour, Model.AnimNames {
   public String toString() {
     return description ;
   }
-
+  
+  
   public void describeBehaviour(Description d) {
     d.append(description) ;
   }

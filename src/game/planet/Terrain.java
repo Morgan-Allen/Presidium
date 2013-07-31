@@ -339,6 +339,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     if (fog == null )I.say("FOG IS NULL!") ;
     if (patches == null) I.complain("PATCHES MUST BE INITIALISED FIRST!") ;
     for (MeshPatch patch : patchesUnder(area)) {
+      patch.fogMesh.colour = Colour.BLACK ;
       patch.fogMesh.assignTexture(fog) ;
       rendering.addClient(patch.fogMesh) ;
     }

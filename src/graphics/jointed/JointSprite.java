@@ -235,8 +235,9 @@ public class JointSprite extends Sprite {
     public void renderTo(Rendering rendering) {
       rendering.port.setIsoMode() ;
       final Colour c = sprite.colour ;
-      if (c == null) GL11.glColor4f(1, 1, 1, 1) ;
-      else GL11.glColor4f(c.r, c.g, c.b, c.a) ;
+      final float f = sprite.fog ;
+      if (c == null) GL11.glColor4f(f, f, f, 1) ;
+      else GL11.glColor4f(c.r * f, c.g * f, c.b * f, c.a) ;
       MeshBuffer.render(
         sprite.scale * sprite.model.scale(), 0, sprite.position,
         vertB, normB, textB, -1

@@ -143,8 +143,11 @@ public abstract class Actor extends Mobile implements
   protected void updateAsMobile() {
     super.updateAsMobile() ;
     if (actionTaken != null) actionTaken.updateAction() ;
-    //if (health.conscious()) {
-    //}
+    if (health.conscious()) {
+      if (actionTaken == null || actionTaken.complete()) {
+        assignAction(psyche.getNextAction()) ;
+      }
+    }
   }
   
   
@@ -152,8 +155,8 @@ public abstract class Actor extends Mobile implements
     health.updateHealth(numUpdates) ;
     if (health.conscious()) {
       psyche.updatePsyche(numUpdates) ;
-      if (actionTaken == null || actionTaken.complete()) {
-        assignAction(psyche.getNextAction()) ;
+      if (assignedBase() != null) {
+        assignedBase().intelMap.liftFogAround(this, health.sightRange()) ;
       }
     }
     else if (health.decomposed()) setAsDestroyed() ;
@@ -177,9 +180,16 @@ public abstract class Actor extends Mobile implements
   /**  Rendering and interface methods-
     */
   public void renderFor(Rendering rendering, Base base) {
+    //
+    //  Make a few basic sanity checks for visibility-
     if (indoors()) return ;
     final float scale = spriteScale() ;
     final Sprite s = sprite() ;
+    if (base != null) {
+      float fog = base.intelMap.fogAt(origin()) ;
+      if (fog == 0) return ;
+      else s.fog = fog ;
+    }
     //
     //  Render your shadow, either on the ground or on top of occupants-
     final float R2 = (float) Math.sqrt(2) ;
@@ -216,7 +226,7 @@ public abstract class Actor extends Mobile implements
   //  Basically, you want to be able to control the default animation that plays
   //  when the actor is 'paused for thought', and the pace of the move
   //  animation, and possibly sync the progress of the two in some cases.
-  
+  //
   //  ...In that case, you're going to need a separate move animation to loop
   //  over and over again.
   

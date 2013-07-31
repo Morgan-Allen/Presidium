@@ -21,7 +21,8 @@ import src.graphics.common.Model ;
 /**  NOTE:  Saveable objects ALSO need to implement a public constructor that
   *  takes a Session as it's sole argument, or an exception will occur, AND
   *  the object must call cacheInstance() as soon as possible once initialised,
-  *  or an exception will occur.
+  *  or an exception will occur.  Alternatively, they may implement a static
+  *  loadConstant method taking the Session as it's argument.
   *  
   *  The Saveable interface is accessible from within the Session class.
   */

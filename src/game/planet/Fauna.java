@@ -418,7 +418,7 @@ public abstract class Fauna extends Actor {
     if (currentAction() != null) {
       currentAction().describeBehaviour(d) ;
     }
-    else if (health.isDead()) d.append("Dead") ;
+    else if (health.deceased()) d.append("Dead") ;
     else d.append("Resting") ;
     
     d.append("\n\n") ;

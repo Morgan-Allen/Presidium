@@ -124,7 +124,7 @@ public class BaseUI extends HUD implements UIConstants {
     if (infoPanel == currentPanel) return ;
     newPanel = infoPanel ;
     if (newPanel == null) {
-      ///newPanel = mainPanel ;
+      newPanel = mainPanel ;
     }
     if (newPanel != null) {
       newPanel.attachTo(infoArea) ;

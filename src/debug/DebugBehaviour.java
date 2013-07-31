@@ -8,6 +8,7 @@
 package src.debug ;
 import src.game.actors.* ;
 import src.game.base.* ;
+import src.game.building.* ;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.tactical.* ;
@@ -75,7 +76,9 @@ public class DebugBehaviour extends PlayLoop {
   
   
   protected void configureScenario(World world, Base base, HUD HUD) {
-    natureScenario(world, base, HUD) ;
+    GameSettings.hireFree = true ;
+    missionScenario(world, base, HUD) ;
+    //natureScenario(world, base, HUD) ;
     //
     //  Create two actors and have them talk to eachother...
     //socialScenario(world, base, HUD) ;
@@ -122,17 +125,37 @@ public class DebugBehaviour extends PlayLoop {
       new Hunting(hunter, prey, Hunting.TYPE_FEEDS)
     ) ;
     hunter.assignAction(null) ;
-    ///((BaseUI) HUD).selection.setSelected(hunter) ;
   }
   
   
-  private void socialScenario(World world, Base base, HUD HUD) {
+  private void missionScenario(World world, Base base, HUD UI) {
+    /*
+    final Actor target = new Quud() ;
+    target.health.setupHealth(0.5f, 1, 0) ;
+    target.enterWorldAt(5, 5, world) ;
+    
+    final Mission mission = new StrikeMission(base, target) ;
+    base.addMission(mission) ;
+    ((BaseUI) UI).selection.setSelected(mission) ;
+    //*/
+    
+    final Mission mission = new ReconMission(base, world.tileAt(20, 20)) ;
+    base.addMission(mission) ;
+    ((BaseUI) UI).selection.setSelected(mission) ;
+    
+    final Venue garrison = new Garrison(base) ;
+    garrison.enterWorldAt(8, 8, world) ;
+    garrison.setAsGrown(true) ;
+  }
+  
+  
+  private void socialScenario(World world, Base base, HUD UI) {
     final Actor
       actor = new Human(Vocation.PHYSICIAN, base),
       other = new Human(Vocation.MILITANT , base) ;
     actor.enterWorldAt(5, 5, world) ;
     other.enterWorldAt(8, 8, world) ;
-    ((BaseUI) HUD).selection.setSelected(actor) ;
+    ((BaseUI) UI).selection.setSelected(actor) ;
   }
 }
 

@@ -28,24 +28,25 @@ public class ActorPsyche implements ActorConstants {
     MAX_RELATIONS = 100,
     MAX_VALUES    = 100 ;
   
-  
+  /*
   static class Memory {
     Class planClass ;
     Session.Saveable signature[] ;
     float timeBegun, timeEnded ;
   }
+  //*/
   
   
   final protected Actor actor ;
   
   protected Stack <Behaviour> behaviourStack = new Stack <Behaviour> () ;
   protected Table <Element, Element> seen = new Table <Element, Element> () ;
+  protected Table <Actor, Relation> relations = new Table <Actor, Relation> () ;
   
   protected Mission mission ;
   protected Venue home ;
   protected Employment work ;
   
-  protected Table <Actor, Relation> relations = new Table <Actor, Relation> () ;
   
   
   protected ActorPsyche(Actor actor) {
@@ -60,6 +61,7 @@ public class ActorPsyche implements ActorConstants {
       seen.put(e, e) ;
     }
     
+    mission = (Mission) s.loadObject() ;
     home = (Venue) s.loadObject() ;
     work = (Employment) s.loadObject() ;
     
@@ -75,6 +77,7 @@ public class ActorPsyche implements ActorConstants {
     s.saveInt(seen.size()) ;
     for (Element e : seen.keySet()) s.saveObject(e) ;
     
+    s.saveObject(mission) ;
     s.saveObject(home) ;
     s.saveObject(work) ;
     
@@ -132,7 +135,9 @@ public class ActorPsyche implements ActorConstants {
     */
   public void assignMission(Mission mission) {
     this.mission = mission ;
-    for (Mission m : actor.assignedBase().allMissions()) {
+    //
+    //  This might have to be done with all bases.
+    for (Mission m : actor.assignedBase().allMissions()) if (m != mission) {
       m.setApplicant(actor, false) ;
     }
   }
@@ -163,6 +168,7 @@ public class ActorPsyche implements ActorConstants {
   private void pushBehaviour(Behaviour b) {
     behaviourStack.addFirst(b) ;
     actor.world().activities.toggleActive(b, true) ;
+    /*
     if (! (b instanceof Plan)) return ;
     //
     //  Create a memory of this plan, along with the starting time, etc.
@@ -171,17 +177,21 @@ public class ActorPsyche implements ActorConstants {
     memory.planClass = plan.getClass() ;
     memory.signature = plan.signature ;
     memory.timeBegun = actor.world().currentTime() ;
+    //*/
   }
   
   
   private Behaviour popBehaviour() {
     final Behaviour b = behaviourStack.removeFirst() ;
     actor.world().activities.toggleActive(b, false) ;
+    return b ;
+    /*
     if (! (b instanceof Plan)) return b ;
     //
     //  Find the corresponding memory of this plan, and note the ending time.
     final Plan plan = (Plan) b ;
     return b ;
+    //*/
   }
   
   
@@ -189,6 +199,7 @@ public class ActorPsyche implements ActorConstants {
     //
     //  Drill down through the set of behaviours to get a concrete action-
     while (true) {
+      ///I.say("Getting next action for "+actor) ;
       Behaviour step = null ;
       if (behaviourStack.size() == 0) {
         step = nextBehaviour() ;
@@ -272,9 +283,33 @@ public class ActorPsyche implements ActorConstants {
   
   
   
-  /**  Methods related to memories-
+  /**  Methods related to the value system-
+    *  Fear.  Love/Hate.  Aggression.
+    *  Greed.  Curiosity.  Restlessness.
+    *  Sociability.  Loyalty.  Stubbornness.
+    *  
+    *  These should all return values centred around 1.0f, 1 being typical,
+    *  zero being low, 2.0f or more being high.  Obvious enough.  Point being
+    *  it's a scalar operation.
     */
+  public float greedFor(int credits) {
+    float val = credits / 100f ;
+    val = (float) Math.sqrt(val) ;
+    val *= actor.traits.scaleLevel(ACQUISITIVE) ;
+    
+    //
+    //  Cut this down based on how many thousand credits the actor has ATM.
+    float reserves = actor.gear.credits() / 1000f ;
+    reserves /= actor.traits.scaleLevel(ACQUISITIVE) ;
+    val /= (0.5f + reserves) ;
+    
+    I.say("Greed value: "+val) ;
+    return val ;
+  }
 }
+
+
+
 
 
 

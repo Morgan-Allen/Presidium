@@ -8,7 +8,6 @@ import src.util.* ;
 public class Route {
   
   
-  //Junction from, to ;  //TODO:  Make these final.
   final public Tile start, end ;
   final private int hash ;
   
@@ -16,16 +15,30 @@ public class Route {
   public float cost ;
   
   
-  /*
-  public Route(Junction a, Junction b) {
-    this(a.core, b.core) ;
-    from = a ;
-    to   = b ;
+  public static void saveRoute(Route r, Session s) throws Exception {
+    s.saveTarget(r.start) ;
+    s.saveTarget(r.end) ;
+    s.saveInt(r.hash) ;
+    s.saveTargetArray(r.path) ;
+    s.saveFloat(r.cost) ;
   }
-  //*/
+
+  
+  private Route(Session s) throws Exception {
+    start = (Tile) s.loadTarget() ;
+    end = (Tile) s.loadTarget() ;
+    hash = s.loadInt() ;
+    path = (Tile[]) s.loadTargetArray(Tile.class) ;
+    cost = s.loadFloat() ;
+  }
   
   
-  //  TODO:  Delete this constructor later.
+  public static Route loadRoute(Session s) throws Exception {
+    return new Route(s) ;
+  }
+  
+  
+  
   //
   //  We have to ensure a consistent ordering here so that the results of
   //  pathing searches between the two points remain stable.

@@ -92,33 +92,37 @@ public class CitizenPsyche extends ActorPsyche {
 
   /**  Behaviour implementation-
     */
-  
-  
   public Behaviour nextBehaviour() {
     final Choice choice = new Choice(actor) ;
-    
     addReactions(choice) ;
     
-    if (mission == null || ! mission.begun()) {
+    if (mission != null && mission.active()) {
+      choice.add(mission) ;
+    }
+    if (mission != null && mission.complete()) {
+      I.say("Mission completed: "+mission.fullName()) ;
+      mission = null ;
+    }
+    if (mission == null) {
   	  addWork(choice) ;
   	  addLeisure(choice) ;
     }
-    else {
-    	choice.add(mission.nextStepFor(actor)) ;
-    	///if (mission.complete()) mission = null ;
-    }
     
     final Behaviour chosen = choice.weightedPick() ;
-    if (mission == null && actor.assignedBase() != null) {
-      for (Mission mission : actor.assignedBase().allMissions()) {
-        if (mission.covert()) continue ;
-        if (couldSwitch(chosen, mission)) {
-          mission.setApplicant(actor, true) ;
-        }
-        else mission.setApplicant(actor, false) ;
-      }
-    }
+    applyForMissions(chosen) ;
     return chosen ;
+  }
+  
+  
+  protected void applyForMissions(Behaviour chosen) {
+    if (mission != null || actor.assignedBase() == null) return ;
+    for (Mission mission : actor.assignedBase().allMissions()) {
+      if (! mission.open()) continue ;
+      if (couldSwitch(chosen, mission)) {
+        mission.setApplicant(actor, true) ;
+      }
+      else mission.setApplicant(actor, false) ;
+    }
   }
   
   

@@ -14,11 +14,13 @@ import src.user.* ;
 public interface Behaviour extends Session.Saveable {
   
   final public static float
+    
     IDLE     = 1,
     CASUAL   = 3,
     ROUTINE  = 5,
     URGENT   = 7,
-    CRITICAL = 9 ;
+    CRITICAL = 9,
+    PARAMOUNT = 10 ;
   
   
   Behaviour nextStepFor(Actor actor) ;

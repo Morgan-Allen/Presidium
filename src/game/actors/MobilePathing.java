@@ -78,15 +78,13 @@ public class MobilePathing {
   
   
   protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
-    ///I.say(mobile+" refreshing path...") ;
-    if (mobile.assignedBase() == null || GameSettings.freePath) {
+    if (GameSettings.freePath) {
       final PathingSearch search = new PathingSearch(initB, destB) ;
-      //search.verbose = true ;
       search.doSearch() ;
       return search.fullPath(Boardable.class) ;
     }
     else {
-      return mobile.assignedBase().pathingCache.getLocalPath(
+      return mobile.world().pathingCache.getLocalPath(
         initB, destB, MAX_PATH_SCAN * 2
       ) ;
     }

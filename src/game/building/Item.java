@@ -90,14 +90,23 @@ public class Item implements VenueConstants {
     *  outfits.
     */
   public static class Quality implements Session.Saveable {
+    
     final int level ;
+    
     private Quality(int level) {
       this.level = level ;
     }
+    /*
     public Quality(Session s) throws Exception {
       s.cacheInstance(this) ;
       this.level = s.loadInt() ;
     }
+    //*/
+    public static Session.Saveable loadConstant(Session s) throws Exception {
+      return QUALITIES[s.loadInt()] ;
+    }
+    
+    
     public void saveState(Session s) throws Exception {
       s.saveInt(level) ;
     }
@@ -170,6 +179,11 @@ public class Item implements VenueConstants {
   }
   
   
+  public Item(Type type, Quality quality) {
+    this(type, 1, quality) ;
+  }
+  
+  
   public Item(Type type) {
     this(type, 1) ;
   }
@@ -227,9 +241,16 @@ public class Item implements VenueConstants {
   /**  Rendering/interface functions-
     */
   public String toString() {
-    return ((int) amount)+" "+type ;
+    if (refers != null) {
+      return refers+" "+type ;
+    }
+    else return ((int) amount)+" "+type ;
   }
 }
+
+
+
+
 
 
 

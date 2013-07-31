@@ -44,6 +44,8 @@ public class World {
   private List <Mobile> mobiles = new List <Mobile> () ;  //This may be dispensible?
   
   final public Activities activities ;
+  final public PathingCache pathingCache ;
+  //final public Paving paving ;
   final public Presences presences ;
   final public Ephemera ephemera ;
   
@@ -68,6 +70,7 @@ public class World {
       protected void scanAt(int x, int y) { growthAt(x, y) ; }
     } ;
     activities = new Activities(this) ;
+    pathingCache = new PathingCache(this) ;
     presences = new Presences(this) ;
     //mobilesMap = new PresenceMap(this, Mobile.class) ;
     ephemera = new Ephemera(this) ;
@@ -275,19 +278,19 @@ public class World {
     for (Section section : visibleSections) {
       terrain.renderFor(section.area, rendering, currentTime) ;
       if (! GameSettings.noFog) {
-        terrain.renderFogFor(section.area, base.fogMap(), rendering) ;
+        terrain.renderFogFor(section.area, base.intelMap.fogTex(), rendering) ;
       }
     }
     rendering.clearDepth() ;
     Vec3D deep = new Vec3D() ;
-    for (Visible fixture : allVisible) {
-      final Sprite sprite = fixture.sprite() ;
+    for (Visible visible : allVisible) {
+      final Sprite sprite = visible.sprite() ;
       rendering.port.viewMatrix(deep.setTo(sprite.position)) ;
       sprite.depth = 0 - deep.z ;
     }
     allVisible.queueSort() ;
-    for (Visible fixture : allVisible) {
-      fixture.renderFor(rendering, base) ;
+    for (Visible visible : allVisible) {
+      visible.renderFor(rendering, base) ;
     }
   }
   

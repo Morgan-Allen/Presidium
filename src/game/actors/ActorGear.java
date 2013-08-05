@@ -17,6 +17,10 @@ import src.util.* ;
 
 
 
+//
+//  You need to generate Special Effects for weapon-beams, shield bursts, and
+//  acquisitions of credits and loot.
+
 
 
 public class ActorGear extends Inventory implements VenueConstants {
@@ -37,8 +41,6 @@ public class ActorGear extends Inventory implements VenueConstants {
   Item device = null ;
   Item outfit = null ;
   float fuelCells, currentShields ;
-  //float foodTypes, currentRations ;
-  //private ShieldFX shieldFX = null ;
   
   
   public ActorGear(Actor actor) {

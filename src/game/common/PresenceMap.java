@@ -13,13 +13,13 @@ import java.util.Iterator ;
 
 
 
-public class PresenceMap implements Session.Saveable {
+public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
   
   
   
   /**  Fields, constructors, and save/load methods-
     */
-  final Object key ;
+  final Object key ;  //  Move this stuff to the Presences class.
   final World world ;
   final Node root ;
   
@@ -30,6 +30,7 @@ public class PresenceMap implements Session.Saveable {
   }
   
   private Vec3D temp = new Vec3D() ;
+  
   
   
   public PresenceMap(World world, Object key) {
@@ -53,13 +54,15 @@ public class PresenceMap implements Session.Saveable {
     
     final int keyType = s.loadInt() ;
     if (keyType == 0) key = s.loadClass() ;
-    else if (keyType == 1) key = s.loadString() ;
+    else if (keyType == 1) {
+      key = s.loadString() ;
+      ///I.say("Loading presence map with key: "+key) ;
+    }
     else key = s.loadObject() ;
     //
     //  Load the root node from disk-
     root = new Node(world.sections.root) ;
     final int numLoad = s.loadInt() ;
-    ///I.say(numLoad+" members to load for key: "+key) ;
     for (int n = numLoad ; n-- > 0 ;) loadMember(s) ;
   }
   
@@ -72,6 +75,7 @@ public class PresenceMap implements Session.Saveable {
     if (key instanceof String) {
       s.saveInt(1) ;
       s.saveString((String) key) ;
+      ///I.say("Saving presence map with key: "+key) ;
     }
     if (key instanceof Session.Saveable) {
       s.saveInt(2) ;
@@ -80,7 +84,6 @@ public class PresenceMap implements Session.Saveable {
     //
     //  Save the root node to disk-
     s.saveInt(root.population) ;
-    ///I.say(root.population+" members to load for key: "+key) ;
     saveNode(root, s) ;
   }
   
@@ -88,7 +91,6 @@ public class PresenceMap implements Session.Saveable {
   private void loadMember(Session s) throws Exception {
     final int pX = s.loadInt(), pY = s.loadInt() ;
     final Target t = s.loadTarget() ;
-    ///I.say("Loaded target: "+t) ;
     toggleAt(root, pX, pY, t, true) ;
   }
   
@@ -102,7 +104,6 @@ public class PresenceMap implements Session.Saveable {
         s.saveInt((int) temp.x) ;
         s.saveInt((int) temp.y) ;
         s.saveTarget(t) ;
-        ///I.say("Saving target: "+t) ;
       }
       else saveNode((Node) k, s) ;
     }
@@ -131,9 +132,10 @@ public class PresenceMap implements Session.Saveable {
   
   private void toggleAt(Node n, int x, int y, Target t, boolean is) {
     if (n.section.depth == 0) {
+      final int oldPop = n.size() ;
       if (is) n.include(t) ;
       else n.remove(t) ;
-      n.population += is ? 1 : -1 ;
+      n.population += n.size() - oldPop ;
     }
     else {
       Section worldKid = null ; for (Section k : n.section.kids) {

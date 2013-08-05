@@ -5,11 +5,16 @@
   */
 
 
-package src.graphics.common ;
+package src.graphics.sfx ;
+import src.graphics.common.Colour;
+import src.graphics.common.Model;
+import src.graphics.common.Rendering;
+import src.graphics.common.Sprite;
+import src.graphics.common.Texture;
 import src.util.* ;
 import java.io.* ;
 
-import org.lwjgl.opengl.GL11;
+//import org.lwjgl.opengl.GL11;
 
 
 
@@ -22,11 +27,7 @@ public class PlaneFX extends SFX {
     "plane_fx_model", PlaneFX.class
   ) {
     public Sprite makeSprite() { return new PlaneFX() ; }
-    public Colour averageHue() { return Colour.NONE ; }
   } ;
-  
-  final public static Texture
-    GROUND_SHADOW = Texture.loadTexture("media/SFX/ground_shadow.png") ;
   
   
   Texture image ;

@@ -10,6 +10,10 @@ import src.graphics.cutout.* ;
 import src.user.* ;
 import src.util.* ;
 
+//
+//  The delay after completion is too long.  Also, actors don't seem to be
+//  switching over to the mission fast enough.
+
 
 
 public abstract class Mission implements
@@ -162,7 +166,10 @@ public abstract class Mission implements
   protected void beginMission() {
     for (Role role : roles) {
       if (! role.approved) roles.remove(role) ;
-      else role.applicant.psyche.assignMission(this) ;
+      else {
+        role.applicant.psyche.assignMission(this) ;
+        role.applicant.psyche.assignBehaviour(this) ;
+      }
     }
     begun = true ;
   }
@@ -194,23 +201,11 @@ public abstract class Mission implements
   
   
   
-  /**  Targeting/position methods.  (Some are essentially unused.)
-    */
-  public boolean inWorld() { return subject.inWorld() ; }
-  public Vec3D position(Vec3D v) { return subject.position(v) ; }
-  
-  public float height() { return 1 ; }
-  public float radius() { return 0 ; }
-  
-  public void flagWith(Object f) {}
-  public Object flaggedWith() { return null ; }
-  
-  
-  
   /**  Rendering and interface methods-
     */
   public String fullName() { return description ; }
   public String helpInfo() { return description ; }
+  public String toString() { return description ; }
   
   
   public Composite portrait(BaseUI UI) {
@@ -242,25 +237,12 @@ public abstract class Mission implements
         }, type == rewardType ? Colour.GREEN : Colour.BLUE) ;
       }
       d.append("\n") ;
-      d.append("\n("+REWARD_AMOUNTS[rewardType]+" CREDITS OFFERED)\n") ;
+      d.append("\n("+REWARD_AMOUNTS[rewardType]+" CREDITS OFFERED)") ;
       
-      if (numApproved() > 0) d.append(new Description.Link("(APPROVE TEAM)") {
-        public void whenClicked() {
-          beginMission() ;
-        }
-      }) ;
-      else d.append("(APPROVE)", Colour.GREY) ;
     }
     else {
-      d.append("\n("+REWARD_AMOUNTS[rewardType]+" CREDITS OFFERED)\n") ;
+      d.append("\n("+REWARD_AMOUNTS[rewardType]+" CREDITS OFFERED)") ;
     }
-    d.append(new Description.Link("(ABORT)") {
-      public void whenClicked() {
-        if (begun) endMission(true) ;
-        else endMission(false) ;
-        UI.selection.setSelected(null) ;
-      }
-    }, Colour.RED) ;
     
     
     if (begun) d.append("\n\nTEAM MEMBERS:") ;
@@ -291,7 +273,24 @@ public abstract class Mission implements
         }
       }) ;
     }
-    if (numApplied() == 0) d.append("\n  (No Applicants)") ;
+    if (numApplied() == 0) d.append("\n  (None)") ;
+    
+    d.append("\n\n") ;
+    if (! begun && numApproved() > 0) {
+      d.append(new Description.Link("(APPROVE) ") {
+        public void whenClicked() {
+          beginMission() ;
+        }
+      }) ;
+    }
+    else d.append("(APPROVE) ", Colour.GREY) ;
+    d.append(new Description.Link("(ABORT)") {
+      public void whenClicked() {
+        if (begun) endMission(true) ;
+        else endMission(false) ;
+        UI.selection.setSelected(null) ;
+      }
+    }, Colour.RED) ;
   }
   
 
@@ -303,6 +302,11 @@ public abstract class Mission implements
   public InfoPanel createPanel(BaseUI UI) {
     //  Have a dedicated MissionPanel?
     return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
+  }
+  
+  
+  public Texture flagTex() {
+    return flagTex ;
   }
   
   
@@ -321,14 +325,21 @@ public abstract class Mission implements
     }
     else {
       flag.position.setTo(subject.position(null)) ;
-      flag.position.z += 0.5f ;
+      flag.position.z += 1.5f ;
       flag.scale = 0.5f ;
     }
   }
   
   
-  public Texture flagTex() {
-    return flagTex ;
+  public void renderSelection(Rendering rendering, boolean hovered) {
+    final Vec3D pos = (subject instanceof Mobile) ?
+      ((Mobile) subject).viewPosition(null) :
+      subject.position(null) ;
+    Selection.renderPlane(
+      rendering, pos, subject.radius() + 0.5f,
+      hovered ? Colour.transparency(0.5f) : Colour.WHITE,
+      Selection.SELECT_CIRCLE
+    ) ;
   }
 }
 
@@ -337,5 +348,15 @@ public abstract class Mission implements
 
 
 
+/**  Targeting/position methods.  (Some are essentially unused.)
+public boolean inWorld() { return subject.inWorld() ; }
+public Vec3D position(Vec3D v) { return subject.position(v) ; }
+
+public float height() { return 1 ; }
+public float radius() { return 0 ; }
+
+public void flagWith(Object f) {}
+public Object flaggedWith() { return null ; }
+//*/
 
 

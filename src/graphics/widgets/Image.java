@@ -57,7 +57,8 @@ public class Image extends UINode {
       drawn.xpos(), drawn.ypos(),
       drawn.xmax(), drawn.ymax(),
       UV.xpos(), UV.ypos(),
-      UV.xmax(), UV.ymax()
+      UV.xmax(), UV.ymax(),
+      absDepth
     ) ;
     GL11.glEnd() ;
   }

@@ -5,14 +5,13 @@
   */
 
 package src.user ;
-//import src.util.* ;
 import src.game.common.* ;
-//import src.graphics.common.* ;
+import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 
 
 
-public interface Selectable extends Text.Clickable, Target {
+public interface Selectable extends Text.Clickable, Session.Saveable {
   
   String fullName() ;
   String helpInfo() ;
@@ -23,4 +22,6 @@ public interface Selectable extends Text.Clickable, Target {
   
   void whenClicked() ;
   InfoPanel createPanel(BaseUI UI) ;
+  Target subject() ;
+  void renderSelection(Rendering rendering, boolean hovered) ;
 }

@@ -211,11 +211,22 @@ final public class Texture {
       Visit.clamp(tX, trueSize),
       Visit.clamp(tY, trueSize)
     ) ;
+    
+    //
+    //  TODO:  This requires different treatment on different platforms.  Shoot.
+    //         See if there's any way to detect that.
+    
     final Colour c = new Colour() ;
+    c.r = ((pixVal >> 16) & 0xff) / 255f ;
+    c.g = ((pixVal >> 8 ) & 0xff) / 255f ;
+    c.b = ((pixVal >> 0 ) & 0xff) / 255f ;
+    c.a = ((pixVal >> 24) & 0xff) / 255f ;
+    /*
     c.r = ((pixVal >> 24) & 0xff) / 255f ;
     c.g = ((pixVal >> 16) & 0xff) / 255f ;
     c.b = ((pixVal >> 8 ) & 0xff) / 255f ;
     c.a = ((pixVal >> 0 ) & 0xff) / 255f ;
+    //*/
     ///I.say("colour obtained at "+tX+" "+tY+" is: \n"+c) ;
     return c ;
   }

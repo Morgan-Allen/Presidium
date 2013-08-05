@@ -11,7 +11,11 @@ import src.util.* ;
 //  TODO:  Just make this a general 'Feeding' plan?
 
 
-public class Hunting extends Plan implements ActorConstants {
+//  Merge this with the combat class.
+
+
+//*
+public class Hunting extends Combat implements ActorConstants {
   
   
   
@@ -27,7 +31,7 @@ public class Hunting extends Plan implements ActorConstants {
   
   final int type ;
   final Actor prey ;
-  int numAttempts = 0 ;
+  //int numAttempts = 0 ;
   
   
   public Hunting(Actor actor, Actor prey, int type) {
@@ -41,7 +45,7 @@ public class Hunting extends Plan implements ActorConstants {
     super(s) ;
     prey = (Actor) s.loadObject() ;
     type = s.loadInt() ;
-    numAttempts = s.loadInt() ;
+    //numAttempts = s.loadInt() ;
   }
   
   
@@ -49,7 +53,7 @@ public class Hunting extends Plan implements ActorConstants {
     super.saveState(s) ;
     s.saveObject(prey) ;
     s.saveInt(type) ;
-    s.saveInt(numAttempts) ;
+    //s.saveInt(numAttempts) ;
   }
   
   
@@ -57,10 +61,6 @@ public class Hunting extends Plan implements ActorConstants {
   /**  Actual implementation-
     */
   protected Behaviour getNextStep() {
-    if (numAttempts > MAX_ATTEMPTS) {
-      I.say(actor+" abandoning hunt of "+prey) ;
-      return null ;
-    }
     //
     //  If the prey is dead, either feed or harvest the meat.
     if (prey.health.deceased()) {
@@ -80,68 +80,7 @@ public class Hunting extends Plan implements ActorConstants {
         I.complain("NON-FEEDING HUNTING BEHAVIOUR NOT IMPLEMENTED YET!") ;
       }
     }
-    //
-    //  If you're close to the prey, attack it.
-    if (actor.psyche.awareOf(prey)) {
-      final Action strike = new Action(
-        actor, prey,
-        this, "actionStrike",
-        Action.STRIKE, "Striking at "+prey
-      ) ;
-      strike.setProperties(Action.QUICK) ;
-      return strike ;
-    }
-    //
-    //  If the prey is out of range, track it down.
-    final Action tracking = new Action(
-      actor, prey,
-      this, "actionTrack",
-      Action.LOOK, "Tracking "+prey
-    ) ;
-    return tracking ;
-  }
-  
-  
-  protected void onceInvalid() {
-    if (! prey.inWorld()) {
-      I.say(actor+" has finished the carcasse of "+prey+"?") ;
-    }
-  }
-  
-  
-  public boolean monitor(Actor actor) {
-    //
-    //  If you're in the middle of tracking and you catch sight of the prey,
-    //  cancel the action.
-    final Action current = actor.currentAction() ;
-    if (current == null) return true ;
-    if (current.methodName().equals("actionTrack")) {
-      if (actor.psyche.awareOf(prey)) {
-        actor.psyche.cancelBehaviour(current) ;
-        
-      }
-    }
-    return false ;
-  }
-
-
-  public boolean actionTrack(Actor actor, Actor prey) {
-    numAttempts++ ;
-    return true ;
-  }
-  
-  
-  public boolean actionStrike(Actor actor, Actor prey) {
-    //
-    //  Outsource this to the Combat class, using specified offensive and
-    //  defensive skills.
-    if (prey.health.deceased()) return false ;
-    if (type == TYPE_FEEDS) {
-      Combat.performStrike(actor, prey, REFLEX, REFLEX) ;
-    }
-    else I.complain("UNSUPPORTED HUNTING TYPE.") ;
-    numAttempts++ ;
-    return true ;
+    return super.nextStepFor(actor) ;
   }
   
   
@@ -157,9 +96,70 @@ public class Hunting extends Plan implements ActorConstants {
     taken *= prey.health.maxHealth() * 4 ;
     ///I.say("Eaten: "+taken+" calories from "+prey) ;
     actor.health.takeSustenance(taken, 1) ;
-    //*/
     return true ;
   }
+}
+
+
+
+
+/*
+if (numAttempts > MAX_ATTEMPTS) {
+  I.say(actor+" abandoning hunt of "+prey) ;
+  return null ;
+}
+//*/
+
+/*
+//
+//  If you're close to the prey, attack it.
+if (actor.psyche.awareOf(prey)) {
+  final Action strike = new Action(
+    actor, prey,
+    this, "actionStrike",
+    Action.STRIKE, "Striking at "+prey
+  ) ;
+  strike.setProperties(Action.QUICK) ;
+  return strike ;
+}
+//
+//  If the prey is out of range, track it down.
+final Action tracking = new Action(
+  actor, prey,
+  this, "actionTrack",
+  Action.LOOK, "Tracking "+prey
+) ;
+return tracking ;
+//*/
+
+/*
+protected void onceInvalid() {
+  if (! prey.inWorld()) {
+    I.say(actor+" has finished the carcasse of "+prey+"?") ;
+  }
+}
+
+
+public boolean monitor(Actor actor) {
+  //
+  //  If you're in the middle of tracking and you catch sight of the prey,
+  //  cancel the action.
+  final Action current = actor.currentAction() ;
+  if (current == null) return true ;
+  if (current.methodName().equals("actionTrack")) {
+    if (actor.psyche.awareOf(prey)) {
+      actor.psyche.cancelBehaviour(current) ;
+    }
+  }
+  return false ;
+}
+
+
+public boolean actionTrack(Actor actor, Actor prey) {
+  numAttempts++ ;
+  return true ;
+}
+//*/
   
   
   /*
@@ -172,9 +172,24 @@ public class Hunting extends Plan implements ActorConstants {
     return true ;
   }
   //*/
+//}
+
+
+
+/*
+public boolean actionStrike(Actor actor, Actor prey) {
+  //
+  //  Outsource this to the Combat class, using specified offensive and
+  //  defensive skills.
+  if (prey.health.deceased()) return false ;
+  if (type == TYPE_FEEDS) {
+    Combat.performStrike(actor, prey, REFLEX, REFLEX) ;
+  }
+  else I.complain("UNSUPPORTED HUNTING TYPE.") ;
+  numAttempts++ ;
+  return true ;
 }
-
-
+//*/
 
 
 

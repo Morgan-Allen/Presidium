@@ -77,11 +77,9 @@ public class DebugBehaviour extends PlayLoop {
   
   protected void configureScenario(World world, Base base, HUD HUD) {
     GameSettings.hireFree = true ;
-    missionScenario(world, base, HUD) ;
+    //missionScenario(world, base, HUD) ;
     //natureScenario(world, base, HUD) ;
-    //
-    //  Create two actors and have them talk to eachother...
-    //socialScenario(world, base, HUD) ;
+    socialScenario(world, base, HUD) ;
   }
   
   
@@ -111,7 +109,7 @@ public class DebugBehaviour extends PlayLoop {
   
   /**  Various scenarios to execute:
     */
-  private void natureScenario(World world, Base base, HUD HUD) {
+  private void natureScenario(World world, Base base, HUD UI) {
     final Actor
       hunter = new Micovore(),
       prey = new Quud() ;
@@ -121,14 +119,19 @@ public class DebugBehaviour extends PlayLoop {
     prey.health.setupHealth(Rand.num(), 1, 0) ;
     prey.enterWorldAt(8, 8, world) ;
     
+    //*
     hunter.psyche.assignBehaviour(
       new Hunting(hunter, prey, Hunting.TYPE_FEEDS)
     ) ;
     hunter.assignAction(null) ;
+    //*/
   }
   
   
   private void missionScenario(World world, Base base, HUD UI) {
+    //
+    //  You'll also want to ensure that actors get visible payment for their
+    //  efforts...
     /*
     final Actor target = new Quud() ;
     target.health.setupHealth(0.5f, 1, 0) ;
@@ -139,9 +142,11 @@ public class DebugBehaviour extends PlayLoop {
     ((BaseUI) UI).selection.setSelected(mission) ;
     //*/
     
+    //*
     final Mission mission = new ReconMission(base, world.tileAt(20, 20)) ;
     base.addMission(mission) ;
     ((BaseUI) UI).selection.setSelected(mission) ;
+    ((BaseUI) UI).camera.zoomNow(mission.subject()) ;
     
     final Venue garrison = new Garrison(base) ;
     garrison.enterWorldAt(8, 8, world) ;
@@ -155,7 +160,15 @@ public class DebugBehaviour extends PlayLoop {
       other = new Human(Vocation.MILITANT , base) ;
     actor.enterWorldAt(5, 5, world) ;
     other.enterWorldAt(8, 8, world) ;
-    ((BaseUI) UI).selection.setSelected(actor) ;
+    ((BaseUI) UI).selection.setSelected(other) ;
+
+    base.intelMap.liftFogAround(other, 10) ;
+    other.health.takeInjury(other.health.maxHealth()) ;
+    //other.health.takeFatigue(other.health.maxHealth()) ;
+    //  Okay... Now injure that sucker.  See if his compatriot responds!
+    
+    //
+    //  Then introduce a hospice, and see if he's taken there.
   }
 }
 
@@ -163,10 +176,12 @@ public class DebugBehaviour extends PlayLoop {
 
 
 
+//*/
 
-
-
-
-
-
-
+/*
+final Actor citizen = new Human(Vocation.MILITANT, base) ;
+citizen.enterWorldAt(5, 5, world) ;
+//final Plan explores = new Exploring(citizen, base, world.tileAt(12, 12)) ;
+//citizen.psyche.assignBehaviour(explores) ;
+((BaseUI) UI).selection.setSelected(citizen) ;
+//*/

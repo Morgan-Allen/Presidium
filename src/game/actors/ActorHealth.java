@@ -7,12 +7,8 @@
 
 package src.game.actors ;
 import src.game.common.* ;
-//import src.user.BaseUI;
 import src.util.* ;
 
-
-//  Is motion type a property of an action, or a property of health?
-//  ...I think the action makes more sense.
 
 
 public class ActorHealth implements ActorConstants {
@@ -83,6 +79,9 @@ public class ActorHealth implements ActorConstants {
     injury    = 0,  //Add bleeding.
     fatigue   = 0,  //Add sleep.
     stress    = 0 ; //Add life-satisfaction.
+  private boolean bleeds = false ;
+  private float needSleep = 0 ;
+  private float satisfaction ;
   
   private int
     state    = STATE_ACTIVE ;
@@ -240,70 +239,39 @@ public class ActorHealth implements ActorConstants {
     return rate * (float) Math.sqrt(ageMultiple) ;
   }
   
-  ///public int moveType() { return moveType ; }
-  
   
   public int sightRange() {
-    final float range = 1 + (actor.traits.trueLevel(SURVEILLANCE) / 20f) ;
-    return (int) (baseSight * range * (float) Math.sqrt(ageMultiple)) ;
+    final float range = 0.5f + (actor.traits.useLevel(SURVEILLANCE) / 10f) ;
+    return (int) (baseSight * (float) Math.sqrt(range * ageMultiple)) ;
   }
   
   
   
-  /**  Modifying and querying stress factors-
+  /**  State modifications-
     */
   public void takeInjury(float taken) {
-    ///I.say(actor+" taking "+taken+" injury, prior total: "+injury) ;
     injury += taken ;
-    /*
-    final float max = maxHealth * MAX_INJURY ;
-    if (injury >= max) {
-      injury += taken ;
-      /*
-      if (injury > max * 2) {
-        injury = max * 2 ;
-      }
-      //*/
-    /*
-    }
-    else {
-      injury += taken ;
-      if (injury > max) {
-        injury = max ;
-      }
-      //  TODO:  Begin bleeding?
-    }
-    //*/
-    ///I.say("Subsequent ttotal: "+injury) ;
+    if (Rand.num() * maxHealth < injury) bleeds = true ;
   }
   
   
   public void liftInjury(float lifted) {
     injury -= lifted ;
+    if (Rand.num() > injuryLevel()) bleeds = false ;
     if (injury < 0) injury = 0 ;
-  }
-  
-  
-  public float injuryLevel() {
-    return injury / (maxHealth * MAX_INJURY) ;
   }
   
   
   public void takeFatigue(float taken) {
     fatigue += taken ;
-    final float max = maxHealth * MAX_FATIGUE ;
-    if (fatigue > max) fatigue = max ;
+    //final float max = maxHealth * MAX_FATIGUE ;
+    //if (fatigue > max) fatigue = max ;
   }
   
   
   public void liftFatigue(float lifted) {
     fatigue -= lifted ;
     if (fatigue < 0) fatigue = 0 ;
-  }
-  
-  
-  public float fatigueLevel() {
-    return fatigue / (maxHealth * MAX_FATIGUE) ;
   }
   
   
@@ -320,8 +288,32 @@ public class ActorHealth implements ActorConstants {
   }
   
   
+  public void setState(int state) {
+    this.state = state ;
+  }
+  
+  
+  
+  
+  /**  State queries-
+    */
+  public float injuryLevel() {
+    return injury / (maxHealth * MAX_INJURY) ;
+  }
+  
+  
+  public float fatigueLevel() {
+    return fatigue / (maxHealth * MAX_FATIGUE) ;
+  }
+  
+  
   public float stressLevel() {
     return stress / (maxHealth * MAX_STRESS) ;
+  }
+  
+  
+  public boolean bleeding() {
+    return bleeds ;
   }
   
   
@@ -346,12 +338,6 @@ public class ActorHealth implements ActorConstants {
     if (hunger > 0.5f) sum += hunger - 0.5f ;
     return Visit.clamp((sum * sum) - 0.5f, 0, 1) ;
   }
-  
-  
-  public void setState(int state) {
-    this.state = state ;
-  }
-  
   
   public float maxHealth() {
     return maxHealth ;
@@ -381,7 +367,10 @@ public class ActorHealth implements ActorConstants {
     if ((numUpdates + 1) % World.DEFAULT_DAY_LENGTH == 0) {
       advanceAge() ;
     }
-    if (oldState != state && state == STATE_DEAD) actor.enterStateKO() ;
+    if (oldState != state && state != STATE_ACTIVE) {
+      I.say(actor+" has entered a non-active state: "+state) ;
+      actor.enterStateKO() ;
+    }
   }
   
   
@@ -429,17 +418,26 @@ public class ActorHealth implements ActorConstants {
     
     fatigue += FATIGUE_GROW_PER_DAY * FM / DL ;
     stress *= (1 - (STRESS_DECAY_PER_DAY * SM / DL)) ;
-    injury -= INJURY_REGEN_PER_DAY * IM / DL ;
+    if (bleeds) {
+      injury++ ;
+      if (actor.traits.test(VIGOUR, 10, 1) && Rand.num() < 0.2f) {
+        bleeds = false ;
+      }
+    }
+    else {
+      injury -= INJURY_REGEN_PER_DAY * IM / DL ;
+    }
     fatigue = Visit.clamp(fatigue, 0, MAX_FATIGUE * maxHealth) ;
     stress  = Visit.clamp(stress , 0, MAX_STRESS  * maxHealth) ;
     injury  = Visit.clamp(injury , 0, MAX_INJURY  * maxHealth) ;
-    
+    /*
     SM = stress  * STRESS .maxVal / (maxHealth * MAX_STRESS ) ;
     FM = fatigue * FATIGUE.maxVal / (maxHealth * MAX_FATIGUE) ;
     IM = injury  * INJURY .maxVal / (maxHealth * MAX_INJURY ) ;
     actor.traits.setLevel(STRESS , SM) ;
     actor.traits.setLevel(FATIGUE, FM) ;
     actor.traits.setLevel(INJURY , IM) ;
+    //*/
   }
   
   
@@ -464,5 +462,26 @@ public class ActorHealth implements ActorConstants {
 
 
 
+///I.say(actor+" taking "+taken+" injury, prior total: "+injury) ;
+/*
+final float max = maxHealth * MAX_INJURY ;
+if (injury >= max) {
+  injury += taken ;
+  /*
+  if (injury > max * 2) {
+    injury = max * 2 ;
+  }
+  //*/
+/*
+}
+else {
+  injury += taken ;
+  if (injury > max) {
+    injury = max ;
+  }
+  //  TODO:  Begin bleeding?
+}
+//*/
+///I.say("Subsequent ttotal: "+injury) ;
 
 

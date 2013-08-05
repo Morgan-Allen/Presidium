@@ -74,7 +74,12 @@ public class Rendering {
     GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY) ;
     GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY) ;
     
+    //
+    //  Consider having most sprites ignore the depth test and depth-mask
+    //  functions.  Then you can just sort them manually.
+    
     GL11.glEnable(GL11.GL_NORMALIZE) ;  //  IF MISSING, COLOURS ARE TOO BRIGHT.
+    //GL11.glDisable(GL11.GL_DEPTH_TEST) ;
     GL11.glEnable(GL11.GL_DEPTH_TEST) ;
     GL11.glDepthFunc(GL11.GL_LEQUAL)  ;
     GL11.glDepthMask(true) ;
@@ -83,8 +88,11 @@ public class Rendering {
     
     GL11.glEnable(GL11.GL_BLEND) ;
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA) ;
+    GL11.glDisable(GL11.GL_ALPHA_TEST) ;
+    /*
     GL11.glEnable(GL11.GL_ALPHA_TEST) ;
     GL11.glAlphaFunc(GL11.GL_GREATER, 0.1f) ;
+    //*/
     GL11.glEnable(GL11.GL_COLOR_MATERIAL) ;
     GL11.glColorMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_AMBIENT_AND_DIFFUSE) ;
   }

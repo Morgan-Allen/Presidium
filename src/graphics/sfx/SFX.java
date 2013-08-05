@@ -5,9 +5,11 @@
   */
 
 
-package src.graphics.common ;
+package src.graphics.sfx ;
 import java.io.* ;
+
 import org.lwjgl.opengl.GL11 ;
+
 import src.util.* ;
 import src.graphics.common.* ;
 

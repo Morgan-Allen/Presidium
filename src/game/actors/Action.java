@@ -13,6 +13,9 @@ import src.util.* ;
 import java.lang.reflect.* ;
 
 
+//
+//  ALLOW FOR RANGED ACTIONS.
+
 
 public class Action implements Behaviour, Model.AnimNames {
   
@@ -23,7 +26,8 @@ public class Action implements Behaviour, Model.AnimNames {
   final public static int
     QUICK   = 1,
     CAREFUL = 2,
-    STEADY  = 4 ;
+    STEADY  = 4,
+    RANGED  = 8 ;
   
   final public Actor actor ;
   final Session.Saveable basis ;
@@ -190,25 +194,14 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-  protected float progressPerUpdate() {
-    if (inRange == 1) {
-      return 1f / (duration() * PlayLoop.UPDATES_PER_SECOND) ;
-    }
-    if (inRange == 0) {
-      return
-        actor.health.moveRate() *
-        actor.moveAnimStride() /
-        PlayLoop.UPDATES_PER_SECOND ;
-    }
-    return 0 ;
-  }
-  
-  
   protected void adjustMotion() {
     //
     //  Update the actor's pathing and current heading as required.
     ///I.say(actor+" move target is: "+moveTarget) ;
-    actor.pathing.updateWithTarget(moveTarget) ;
+    float minDist = 0 ;
+    if ((properties & RANGED) != 0) minDist = actor.health.sightRange() ;
+    actor.pathing.updateWithTarget(moveTarget, minDist) ;
+    
     if (actor.pathing.closeEnough()) {
       actor.setHeading(actionTarget, 0) ;
       if (inRange != 1) {
@@ -228,9 +221,26 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
+  protected float progressPerUpdate() {
+    if (inRange == 1) {
+      return 1f / (duration() * PlayLoop.UPDATES_PER_SECOND) ;
+    }
+    if (inRange == 0) {
+      return
+        actor.health.moveRate() *
+        actor.moveAnimStride() /
+        PlayLoop.UPDATES_PER_SECOND ;
+    }
+    return 0 ;
+  }
+  
+  
+  //  TODO:  Having to include both motion and actual action-updates here is a
+  //  little awkward.  Consider moving some of this to the MobilePathing or
+  //  Actor classes?
   protected void updateAction() {
     if (complete()) {
-      oldProgress = progress ;
+      oldProgress = progress = 1 ;
       return ;
     }
     adjustMotion() ;
@@ -276,7 +286,7 @@ public class Action implements Behaviour, Model.AnimNames {
       for (Method method : plans.getClass().getMethods()) {
         aM.put(method.getName(), method) ;
       }
-      //  TODO:  Check to see if this method has an appropriate argument set?
+      //  TODO:  Check to see if this method has an appropriate argument-set?
       actionMethods.put(plans.getClass(), aM) ;
     }
     final Method method = aM.get(methodName) ;
@@ -293,7 +303,8 @@ public class Action implements Behaviour, Model.AnimNames {
     */
   float animProgress() {
     final float alpha = PlayLoop.frameTime() ;
-    return ((progress * alpha) + (oldProgress * (1 - alpha))) % 1 ;
+    ///I.say("Progress is: "+progress) ;
+    return ((progress * alpha) + (oldProgress * (1 - alpha))) ;
   }
   
   

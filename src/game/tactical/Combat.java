@@ -13,7 +13,10 @@ import src.util.* ;
 
 
 //
-//  Merge this with the hunting class.
+//  Merge this with the hunting class.  No- have this as a subset of the
+//  hunting class!
+
+
 public class Combat extends Plan implements ActorConstants {
   
   
@@ -37,6 +40,14 @@ public class Combat extends Plan implements ActorConstants {
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveObject(target) ;
+  }
+  
+  
+  
+  /**  Behaviour implementation-
+    */
+  public float priorityFor(Actor actor) {
+    return combatPriority(actor, target, ROUTINE, PARAMOUNT) ;
   }
   
   
@@ -67,6 +78,11 @@ public class Combat extends Plan implements ActorConstants {
     }
     return true ;
   }
+  
+  
+  //
+  //  You also need code for minor retreats.
+  
   
   
   

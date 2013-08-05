@@ -26,7 +26,14 @@ public class PathingSearch extends Search <Boardable> {
   private Boardable closest ;
   private float closestDist ;
   private Boardable batch[] = new Boardable[8] ;
-  //  TODO:  Incorporate the Places-search constraint code here?
+  private Tile tileB[] = new Tile[8] ;
+  
+  //
+  //  TODO:  Incorporate the Places-search constraint code here?  Maybe.
+  //  Alternatively, you could discover those places as you go, allowing places
+  //  to be intermixed with tiles.  And fogged tiles can be travelled through
+  //  as standard.  That will solve the destination problem.
+  
   
   
   public PathingSearch(Boardable init, Boardable dest, boolean safe) {
@@ -71,8 +78,8 @@ public class PathingSearch extends Search <Boardable> {
     }
     super.tryEntry(spot, prior, cost) ;
   }
-
-
+  
+  
   protected void setEntry(Boardable spot, Entry flag) {
     spot.flagWith(flag) ;
   }
@@ -81,23 +88,37 @@ public class PathingSearch extends Search <Boardable> {
   protected Entry entryFor(Boardable spot) {
     return (Entry) spot.flaggedWith() ;
   }
-
-
+  
+  
+  
   /**  Actual search-execution methods-
     */
+  private boolean fogged(Boardable spot) {
+    if (client == null || ! (spot instanceof Tile)) return false ;
+    return client.assignedBase().intelMap.fogAt((Tile) spot) == 0 ;
+  }
+  
+  
   protected Boardable[] adjacent(Boardable spot) {
-    //  TODO:  If this spot is fogged, return all adjacent.
+    if (fogged(spot)) {
+      ((Tile) spot).allAdjacent(tileB) ;
+      for (int i : Tile.N_INDEX) batch[i] = tileB[i] ;
+      return batch ;
+    }
     return spot.canBoard(batch) ;
   }
   
   
   protected float cost(Boardable prior, Boardable spot) {
     if (spot == null) return -1 ;
-    //  TODO:  If this spot is fogged, return a low nonzero value.
+    //
     //  TODO:  Incorporate sector-based danger values, and stay out of hostile
     //         bases' line of sight when sneaking.
-    //  TODO:  If the spot has other actors in it, increase the perceived cost.
-    float baseCost = Spacing.distance(prior, spot) ;
+    //
+    //  TODO:  If the area or tile has other actors in it, increase the
+    //         perceived cost.
+    final float baseCost = Spacing.distance(prior, spot) ;
+    if (fogged(spot)) return 2.0f * baseCost ;
     switch (spot.pathType()) {
       case (Tile.PATH_CLEAR  ) : return 1.0f * baseCost ;
       case (Tile.PATH_ROAD   ) : return 0.5f * baseCost ;

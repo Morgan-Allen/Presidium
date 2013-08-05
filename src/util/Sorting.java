@@ -19,7 +19,6 @@ public abstract class Sorting <K> implements Series <K> {
   
   
   
-  
   /**  Private fields, data structures, etc-
     */
   int size ;
@@ -241,6 +240,8 @@ public abstract class Sorting <K> implements Series <K> {
   
   
   public void deleteRef(Object ref) {
+    //
+    //  First, some basic sanity checks, chiefly for the sake of debugging.
     if (ref == null || ref.getClass() != Node.class) {
       I.complain("Invalid reference.") ;
     }
@@ -259,7 +260,7 @@ public abstract class Sorting <K> implements Series <K> {
     else {
       //
       //  Otherwise, we identify the right or left-branching node closest in
-      //  value to the node being deleted (performing a rotation if neccesary
+      //  value to the node being deleted (performing a rotation if necessary
       //  to ensure it is a leaf.  This node is at most height == 1, so only
       //  one rotation should be needed, thanks to balancing guarantees.)
       final int
@@ -426,7 +427,8 @@ public abstract class Sorting <K> implements Series <K> {
     } ;
   }
   
-
+  
+  
   /**  Testing routine.
     */
   public static void main(String args[]) {

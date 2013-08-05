@@ -12,6 +12,9 @@ import src.util.* ;
 
 
 
+//
+//  You need to base proximity tests on spacing/distance, rather than location.
+
 public class MobilePathing {
   
   
@@ -91,11 +94,14 @@ public class MobilePathing {
   }
   
   
-  void updateWithTarget(Target target) {
+  void updateWithTarget(Target target, float minDist) {
     //
     //  Firstly, check to see if the actual path target has been changed-
     this.target = target ;
-    if (target instanceof Element && Spacing.distance(mobile, target) <= 0) {
+    if (
+      ((target instanceof Element) || (target instanceof Tile)) &&
+      Spacing.distance(mobile, target) <= minDist
+    ) {
       closeEnough = true ;
       return ;
     }

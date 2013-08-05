@@ -106,6 +106,7 @@ public class JointSprite extends Sprite {
   
   /**  Default drawing and update methods.
     */
+  ///final int ENABLES[] = { GL11.GL_DEPTH_TEST } ;
   public int[] GL_disables() {
     return null ;
   }

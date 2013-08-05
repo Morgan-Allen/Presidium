@@ -30,24 +30,26 @@ public class Paving {
   
   public Paving(World world) {
     this.world = world ;
-    junctions = new PresenceMap(world, Paving.class) ;
+    junctions = new PresenceMap(world, "junctions") ;
   }
   
   
   public void loadState(Session s) throws Exception {
     junctions = (PresenceMap) s.loadObject() ;
+    
     int numR = s.loadInt() ;
     for (int n = numR ; n-- > 0 ;) {
       final Route r = Route.loadRoute(s) ;
       allRoutes.put(r, r) ;
       toggleRoute(r, r.start, true) ;
-      toggleRoute(r, r.end, true) ;
+      toggleRoute(r, r.end  , true) ;
     }
   }
   
   
   public void saveState(Session s) throws Exception {
     s.saveObject(junctions) ;
+    
     s.saveInt(allRoutes.size()) ;
     for (Route r : allRoutes.keySet()) Route.saveRoute(r, s) ;
   }

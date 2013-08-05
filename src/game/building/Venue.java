@@ -348,6 +348,20 @@ public abstract class Venue extends Fixture implements
   public InfoPanel createPanel(BaseUI UI) {
     return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
   }
+  
+
+  public void renderSelection(Rendering rendering, boolean hovered) {
+    Selection.renderPlane(
+      rendering, position(null), (xdim() / 2f) + 1,
+      hovered ? Colour.transparency(0.5f) : Colour.WHITE,
+      Selection.SELECT_SQUARE
+    ) ;
+  }
+  
+  
+  public Target subject() {
+    return this ;
+  }
 }
 
 

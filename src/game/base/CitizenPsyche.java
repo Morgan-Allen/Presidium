@@ -69,7 +69,7 @@ return true ;
 //*/
 
 
-public class CitizenPsyche extends ActorPsyche {
+public class CitizenPsyche extends ActorPsyche implements ActorConstants {
   
   
   
@@ -129,14 +129,37 @@ public class CitizenPsyche extends ActorPsyche {
   protected void addReactions(Choice choice) {
     //
     //  Find all nearby items or actors and consider reacting to them.
-    final Tile o = actor.origin() ;
-    final int sightRange = actor.health.sightRange() ;
-    final Box2D bound = new Box2D().set(o.x, o.y, 0, 0) ;
-    for (Tile t : actor.world().tilesIn(bound.expandBy(sightRange), true)) {
-      if (Spacing.distance(t, o) > sightRange) continue ;
-      for (Mobile m : t.inside()) addReaction(m, choice) ;
+    
+    //
+    //  ...Use the actor map for this, not just sight range.  That way, an
+    //  actor can react to things outside your immediate range of vision.
+    
+    I.complain("MUST ITERATE OVER MOBILES, NOT ACTORS?") ;
+    
+    final PresenceMap actors = actor.world().presences.mapFor(Actor.class) ;
+    final Batch <Actor> considered = new Batch <Actor> () ;
+    final int reactLimit = (int) (actor.traits.trueLevel(INSIGHT) / 2) ;
+    ///final float range = actor.health.sightRange() ;
+    
+    for (Target t : actors.visitNear(actor, -1, null)) {
+      considered.add((Actor) t) ;
+      if (considered.size() > reactLimit) break ;
     }
+    
+    //
+    //  Consider retreat or surrender based on all nearby actors.
+    
+    //
+    //  Consider defence & treatment of self or others, or dialogue.
+    for (Actor near : considered) {
+      //addReaction(near, choice) ;
+      choice.add(new Treatment(actor, near)) ;
+    }
+    
+    //
+    //  As hobbies, consider hunting, exploration, assistance, and dialogue.
   }
+  
   
   
   protected void addReaction(Mobile m, Choice choice) {

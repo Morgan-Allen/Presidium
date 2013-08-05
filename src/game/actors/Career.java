@@ -243,6 +243,7 @@ public class Career implements ActorConstants {
       }
       else actor.gear.addItem(new Item(gear)) ;
     }
+    actor.gear.incCredits(50 + Rand.index(100)) ;
   }
 }
 

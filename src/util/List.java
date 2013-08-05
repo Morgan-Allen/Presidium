@@ -30,6 +30,7 @@ public class List <T> extends ListEntry <T> implements Series <T> {
     int i = 0 ; for (T t : this) array[i++] = t ;
     return array ;
   }
+  
   final public Object[] toArray() { return toArray(Object.class) ; }
   
   final public void add(final T r) { addLast(r) ; }

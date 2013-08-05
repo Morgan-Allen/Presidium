@@ -43,7 +43,7 @@ public class BaseUI extends HUD implements UIConstants {
   final public Selection selection = new Selection(this) ;
   
   final Rendering rendering ;
-  final Camera camera ;
+  final public Camera camera ;
   
   Minimap minimap ;
   //Button charts, policies, household, futures ;  -for Later.

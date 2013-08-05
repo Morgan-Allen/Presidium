@@ -11,10 +11,9 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.social.* ;
 import src.game.planet.* ;
-//import src.game.tactical.* ;
-
 import src.graphics.common.* ;
 import src.graphics.jointed.* ;
+import src.graphics.sfx.* ;
 import src.user.* ;
 import src.util.* ;
 
@@ -229,6 +228,31 @@ public class Human extends Actor implements ActorConstants {
   
   /**  More usual rendering and interface methods-
     */
+  private TalkFX talkFX ;
+  
+  public void renderFor(Rendering rendering, Base base) {
+    super.renderFor(rendering, base) ;
+    //
+    //  If you don't have a TalkFX already, create one, add dialogue, and
+    //  render it-
+    //  So... this creates a problem.  This should probably be considered a
+    //  form of ephemera.  But this type would need to track the actor.
+    
+    /*
+    if (talkFX == null) talkFX = new TalkFX() ;
+    if (talkFX.numPhrases() == 0) {
+      talkFX.addPhrase("Testing, testing...", false) ;
+      talkFX.addPhrase("Hello World!", true) ;
+      talkFX.addPhrase("(Credits +25)", false) ;
+    }
+    viewPosition(talkFX.position) ;
+    talkFX.position.z += height() ;
+    talkFX.update() ;
+    rendering.addClient(talkFX) ;
+    //*/
+  }
+  
+  
   protected float spriteScale() {
     //
     //  TODO:  make this a general scaling vector, and incorporate other
@@ -238,8 +262,8 @@ public class Human extends Actor implements ActorConstants {
     if (stage == 2) return 0.95f ;
     return 1f ;
   }
-  
-  
+
+
   public String fullName() {
     return career.fullName() ;//+" the "+career.vocation().name ;
   }
@@ -289,12 +313,17 @@ public class Human extends Actor implements ActorConstants {
     //
     //  Describe your current health, outlook, or special FX.
     d.append("\n\nCondition: ") ;
+    d.append("\n  Injury: "+health.injuryLevel()) ;
+    d.append("\n  Fatigue: "+health.fatigueLevel()) ;
+    d.append("\n  Stress: "+health.stressLevel()) ;
+    //*
     final Batch <Condition> conditions = traits.conditions() ;
-    if (conditions.size() == 0) d.append("\n  Okay") ;
-    else for (Condition c : conditions) {
+    //if (conditions.size() == 0) d.append("\n  Okay") ;
+    for (Condition c : conditions) {
       d.append("\n  ") ;
       d.append(traits.levelDesc(c)) ;
     }
+    //*/
     //
     //  Describe your current assignment or undertaking.
     d.append("\n\nCurrently:") ;

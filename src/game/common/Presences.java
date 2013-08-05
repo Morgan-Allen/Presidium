@@ -15,8 +15,8 @@ public class Presences {
     */
 	final World world ;
   final Table <Object, PresenceMap> allMaps ;
-  final public PresenceMap floraMap ;
-  final public PresenceMap mobilesMap ;
+  private PresenceMap floraMap ;
+  private PresenceMap mobilesMap ;
   
   final private PresenceMap nullMap ;
   final private Stack nullStack ;
@@ -45,6 +45,8 @@ public class Presences {
       final PresenceMap f = (PresenceMap) s.loadObject() ;
       allMaps.put(f.key, f) ;
     }
+    floraMap = allMaps.get(Flora.class) ;
+    mobilesMap = allMaps.get(Mobile.class) ;
   }
   
   

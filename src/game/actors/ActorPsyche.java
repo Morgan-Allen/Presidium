@@ -18,7 +18,7 @@ import src.util.* ;
 
 
 
-public class ActorPsyche implements ActorConstants {
+public abstract class ActorPsyche implements ActorConstants {
   
   
   /**  Field definitions, constructor, save/load methods-
@@ -40,6 +40,10 @@ public class ActorPsyche implements ActorConstants {
   final protected Actor actor ;
   
   protected Stack <Behaviour> behaviourStack = new Stack <Behaviour> () ;
+  //  TODO:  CREATE A LIST OF BEHAVIOURS TO GO BACK TO!  USE THAT FOR MISSIONS,
+  //  FARMING, PURCHASES, ET CETERA!
+  protected List <Behaviour> todoList = new List <Behaviour> () ;
+  
   protected Table <Element, Element> seen = new Table <Element, Element> () ;
   protected Table <Actor, Relation> relations = new Table <Actor, Relation> () ;
   
@@ -133,6 +137,41 @@ public class ActorPsyche implements ActorConstants {
   
   /**  Methods related to behaviours-
     */
+  private void pushBehaviour(Behaviour b) {
+    behaviourStack.addFirst(b) ;
+    actor.world().activities.toggleActive(b, true) ;
+  }
+  
+  
+  private Behaviour popBehaviour() {
+    final Behaviour b = behaviourStack.removeFirst() ;
+    actor.world().activities.toggleActive(b, false) ;
+    return b ;
+  }
+  
+  
+  public void assignBehaviour(Behaviour behaviour) {
+    if (behaviour == null) I.complain("CANNOT ASSIGN NULL BEHAVIOUR.") ;
+    I.say("Assigning behaviour "+behaviour+" to "+actor) ;
+    actor.assignAction(null) ;
+    cancelBehaviour(rootBehaviour()) ;
+    pushBehaviour(behaviour) ;
+    //  TODO:  Push unfinished behaviours onto the todoList, and return to them
+    //  later if still valid.
+  }
+  
+  
+  public void cancelBehaviour(Behaviour b) {
+    if (b == null) return ;
+    if (! behaviourStack.includes(b)) I.complain("Behaviour not active.") ;
+    while (behaviourStack.size() > 0) {
+      if (topBehaviour() != b) break ;
+      popBehaviour() ;
+    }
+    ///I.say("Cancelled "+b.getClass()+", remaining: "+behaviourStack.size()) ;
+  }
+  
+  
   public void assignMission(Mission mission) {
     this.mission = mission ;
     //
@@ -151,99 +190,33 @@ public class ActorPsyche implements ActorConstants {
   public boolean couldSwitch(Behaviour last, Behaviour next) {
     if (next == null) return false ;
     if (last == null) return true ;
+    if (! actor.health.conscious()) return false ;
     return next.priorityFor(actor) >= (last.priorityFor(actor) + 2) ;
   }
   
   
-  public Behaviour topBehaviour() {
-    return behaviourStack.getFirst() ;
-  }
   
-  
-  public Behaviour rootBehaviour() {
-    return behaviourStack.getLast() ;
-  }
-  
-  
-  private void pushBehaviour(Behaviour b) {
-    behaviourStack.addFirst(b) ;
-    actor.world().activities.toggleActive(b, true) ;
-    /*
-    if (! (b instanceof Plan)) return ;
-    //
-    //  Create a memory of this plan, along with the starting time, etc.
-    final Plan plan = (Plan) b ;
-    final Memory memory = new Memory() ;
-    memory.planClass = plan.getClass() ;
-    memory.signature = plan.signature ;
-    memory.timeBegun = actor.world().currentTime() ;
-    //*/
-  }
-  
-  
-  private Behaviour popBehaviour() {
-    final Behaviour b = behaviourStack.removeFirst() ;
-    actor.world().activities.toggleActive(b, false) ;
-    return b ;
-    /*
-    if (! (b instanceof Plan)) return b ;
-    //
-    //  Find the corresponding memory of this plan, and note the ending time.
-    final Plan plan = (Plan) b ;
-    return b ;
-    //*/
-  }
-  
-  
+  /**  Updates and queries-
+    */
   protected Action getNextAction() {
-    //
-    //  Drill down through the set of behaviours to get a concrete action-
     while (true) {
-      ///I.say("Getting next action for "+actor) ;
-      Behaviour step = null ;
+      //
+      //  TODO:  You'll have to try getting Behaviours from the todo-list here.
       if (behaviourStack.size() == 0) {
-        step = nextBehaviour() ;
-        if (step == null) return null ;
-        pushBehaviour(step) ;
+        final Behaviour root = nextBehaviour() ;
+        if (root == null) return null ;
+        pushBehaviour(root) ;
       }
       final Behaviour current = topBehaviour() ;
-      if (current.complete() || (step = current.nextStepFor(actor)) == null) {
-        popBehaviour() ;
-      }
-      else {
-        pushBehaviour(step) ;
-        if (step instanceof Action) return (Action) step ;
-      }
+      final Behaviour next = current.nextStepFor(actor) ;
+      if (current.complete() || next == null) popBehaviour() ;
+      else if (current instanceof Action) return (Action) current ;
+      else pushBehaviour(next) ;
     }
   }
   
   
-  public void assignBehaviour(Behaviour behaviour) {
-    if (behaviour == null) I.complain("CANNOT ASSIGN NULL BEHAVIOUR.") ;
-    actor.assignAction(null) ;
-    cancelBehaviour(rootBehaviour()) ;
-    pushBehaviour(behaviour) ;
-  }
-  
-  
-  public void cancelBehaviour(Behaviour b) {
-    if (b == null) return ;
-    if (! behaviourStack.includes(b)) I.complain("Behaviour not active.") ;
-    while (behaviourStack.size() > 0) {
-      final Behaviour top = popBehaviour() ;
-      if (top == b) break ;
-    }
-  }
-  
-  
-  public Stack <Behaviour> currentBehaviours() {
-    return behaviourStack ;
-  }
-  
-  
-  protected Behaviour nextBehaviour() {
-    return null ;
-  }
+  protected abstract Behaviour nextBehaviour() ;
   
   
   protected void updatePsyche(int numUpdates) {
@@ -254,6 +227,21 @@ public class ActorPsyche implements ActorConstants {
       if (couldSwitch(last, next)) assignBehaviour(next) ;
     }
     for (Behaviour b : behaviourStack) if (b.monitor(actor)) break ;
+  }
+  
+  
+  public Stack <Behaviour> currentBehaviours() {
+    return behaviourStack ;
+  }
+  
+  
+  public Behaviour topBehaviour() {
+    return behaviourStack.getFirst() ;
+  }
+  
+  
+  public Behaviour rootBehaviour() {
+    return behaviourStack.getLast() ;
   }
   
   
@@ -302,8 +290,7 @@ public class ActorPsyche implements ActorConstants {
     float reserves = actor.gear.credits() / 1000f ;
     reserves /= actor.traits.scaleLevel(ACQUISITIVE) ;
     val /= (0.5f + reserves) ;
-    
-    I.say("Greed value: "+val) ;
+    ///I.say("Greed value: "+val) ;
     return val ;
   }
 }

@@ -8,7 +8,9 @@
 
 package src.graphics.sfx ;
 import java.io.* ;
+
 import org.lwjgl.opengl.GL11 ;
+
 import src.graphics.common.* ;
 import src.util.* ;
 

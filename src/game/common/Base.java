@@ -29,8 +29,10 @@ public class Base implements Session.Saveable, Schedule.Updates {
   Actor ruler ;
   Venue commandPost ;
   final List <Mission> missions = new List <Mission> () ;
+  float communitySpirit, alertLevel, publicOpinion ;
   
   final public Paving paving ;
+  //  TODO:  also include a map for repairs?
   final public IntelMap intelMap = new IntelMap(this) ;
   
   
@@ -50,9 +52,12 @@ public class Base implements Session.Saveable, Schedule.Updates {
     ruler = (Actor) s.loadObject() ;
     s.loadObjects(missions) ;
     
+    communitySpirit = s.loadFloat() ;
+    alertLevel = s.loadFloat() ;
+    publicOpinion = s.loadFloat() ;
+    
     paving = new Paving(world) ;
     paving.loadState(s) ;
-    intelMap.initFog(world) ;
     intelMap.loadState(s) ;
   }
   
@@ -62,6 +67,10 @@ public class Base implements Session.Saveable, Schedule.Updates {
     offworld.saveState(s) ;
     s.saveObject(ruler) ;
     s.saveObjects(missions) ;
+    
+    s.saveFloat(communitySpirit) ;
+    s.saveFloat(alertLevel) ;
+    s.saveFloat(publicOpinion) ;
     
     paving.saveState(s) ;
     intelMap.saveState(s) ;
@@ -87,7 +96,7 @@ public class Base implements Session.Saveable, Schedule.Updates {
   
   
   
-  /**  Dealing with venues and the command post-
+  /**  Dealing with admin functions-
     */
   
   
@@ -95,7 +104,7 @@ public class Base implements Session.Saveable, Schedule.Updates {
   /**  Regular updates-
     */
   public float scheduledInterval() {
-    return 10 ;
+    return 1 ;
   }
   
   

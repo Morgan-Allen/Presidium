@@ -105,15 +105,18 @@ public class Scrollbar extends UINode {
       maxU = scrollTex.maxU(), maxV = scrollTex.maxV() ;
     drawQuad(
       x, y, x + w, y + DEFAULT_TAB_HEIGHT,
-      0, maxV * DEFAULT_TAB_UV, maxU, 0
+      0, maxV * DEFAULT_TAB_UV, maxU, 0,
+      absDepth
     ) ;
     drawQuad(
       x, y + DEFAULT_TAB_HEIGHT, x + w, y + h - DEFAULT_TAB_HEIGHT, 
-      0, maxV * DEFAULT_TAB_UV, maxU, maxV * 0.5f
+      0, maxV * DEFAULT_TAB_UV, maxU, maxV * 0.5f,
+      absDepth
     ) ;
     drawQuad(
       x, y + h - DEFAULT_TAB_HEIGHT, x + w, y + h,
-      0, 0, maxU, maxV * DEFAULT_TAB_UV
+      0, 0, maxU, maxV * DEFAULT_TAB_UV,
+      absDepth
     ) ;
     GL11.glEnd() ;
   }

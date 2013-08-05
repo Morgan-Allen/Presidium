@@ -9,7 +9,9 @@ import src.game.common.* ;
 import src.game.building.* ;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
+import src.graphics.sfx.* ;
 import src.graphics.widgets.* ;
+import src.util.* ;
 
 
 
@@ -34,13 +36,12 @@ public class Selection implements UIConstants {
   }
 
   public void loadState(Session s) throws Exception {
-    final Target lastSelect = s.loadTarget() ;
-    setSelected((Selectable) lastSelect) ;
+    setSelected((Selectable) s.loadObject()) ;
   }
   
 
   public void saveState(Session s) throws Exception {
-    s.saveTarget((Target) selected) ;
+    s.saveObject(selected) ;
   }
   
   
@@ -94,15 +95,14 @@ public class Selection implements UIConstants {
 
   public void setSelected(Selectable s) {
     if (s != null) {
-      if ((s instanceof Target) && ((Target) s).inWorld()) {
-        selected = s ;
-        UI.camera.lockOn(selected) ;
-      }
+      selected = s ;
+      UI.camera.lockOn(s.subject()) ;
       UI.setInfoPanel(s.createPanel(UI)) ;
     }
     else if (selected != null) {
-      UI.camera.lockOn(selected = null) ;
-      UI.setInfoPanel(null) ;  //  Use default panel instead?
+      selected = null ;
+      UI.camera.lockOn(null) ;
+      UI.setInfoPanel(null) ;
     }
   }
   
@@ -111,39 +111,29 @@ public class Selection implements UIConstants {
   /**  Rendering FX-
     */
   void renderWorldFX(Rendering rendering) {
-    Target HE = null, SE = null ;
-    if (hovered instanceof Element) HE = hovered ;
-    if (hovered instanceof Mission) HE = ((Mission) hovered).subject() ;
-
-    if (selected instanceof Element) SE = selected ;
-    if (selected instanceof Mission) SE = ((Mission) selected).subject() ;
-    
-    if (HE instanceof Element && HE != SE) {
-      renderSelectFX(HE, Colour.transparency(0.5f), rendering) ;
+    final Target
+      HS = (hovered  == null) ? null : hovered .subject(),
+      SS = (selected == null) ? null : selected.subject() ;
+    if (HS != null && HS != SS) {
+      //renderSelectFX(hovered, HS, Colour.transparency(0.5f), rendering) ;
+      hovered.renderSelection(rendering, true) ;
     }
-    if (SE instanceof Element) {
-      renderSelectFX(SE, Colour.WHITE, rendering) ;
+    if (SS != null) {
+      selected.renderSelection(rendering, false) ;
+      //renderSelectFX(selected, SS, Colour.WHITE, rendering) ;
     }
   }
   
   
-  private void renderSelectFX(Target element, Colour c, Rendering r) {
-    final Texture ringTex = (element instanceof Fixture) ?
-      SELECT_SQUARE :
-      SELECT_CIRCLE ;
-    final float radius = (element instanceof Venue) ?
-      ((((Venue) element).xdim() / 2f) + 1) :
-      element.radius() * 2 ;
-    final PlaneFX hoverRing = new PlaneFX(ringTex, radius) ;
-    hoverRing.colour = c ;
-    if (element instanceof Mobile) {
-      hoverRing.position.setTo(((Mobile) element).viewPosition(null)) ;
-    }
-    else hoverRing.position.setTo(element.position(null)) ;
-    r.addClient(hoverRing) ;
+  public static void renderPlane(
+    Rendering r, Vec3D pos, float radius, Colour c, Texture ringTex
+  ) {
+    final PlaneFX ring = new PlaneFX(ringTex, radius) ;
+    ring.colour = c ;
+    ring.position.setTo(pos) ;
+    r.addClient(ring) ;
   }
 }
-
 
 
 

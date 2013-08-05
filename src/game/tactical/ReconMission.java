@@ -1,9 +1,11 @@
 
 
+
 package src.game.tactical ;
 import src.game.common.* ;
-import src.game.planet.Terrain;
+import src.game.planet.* ;
 import src.game.actors.* ;
+import src.graphics.common.* ;
 import src.user.* ;
 import src.util.* ;
 
@@ -12,22 +14,36 @@ import src.util.* ;
 public class ReconMission extends Mission {
   
   
+  
+  /**  Field definitions, constructors and save/load methods-
+    */
+  Tile inRange[] ;
+  boolean done = false ;
+  
+  
   public ReconMission(Base base, Tile subject) {
     super(
       base, subject,
       MissionsTab.RECON_MODEL.makeSprite(),
       "Exploring "+subject.habitat().name+" at "+subject.x+" "+subject.y
     ) ;
+    inRange = Exploring.grabExploreArea(
+      base.intelMap, subject, Terrain.SECTOR_SIZE / 2f
+    ) ;
   }
   
   
   public ReconMission(Session s) throws Exception {
     super(s) ;
+    inRange = (Tile[]) s.loadTargetArray(Tile.class) ;
+    done = s.loadBool() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveTargetArray(inRange) ;
+    s.saveBool(done) ;
   }
   
   
@@ -35,31 +51,57 @@ public class ReconMission extends Mission {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
-    return actor.psyche.greedFor(rewardAmount()) * ROUTINE ;
+    final Tile centre = (Tile) subject ;
+    float reward = actor.psyche.greedFor(rewardAmount()) * ROUTINE ;
+    return Exploring.rateExplorePoint(actor, centre, reward) ;
   }
 
 
   public Behaviour nextStepFor(Actor actor) {
-    final Vec3D pos = subject.position(null) ;
-    Box2D area = new Box2D().set(pos.x, pos.y, 0, 0) ;
-    area.expandBy(Terrain.SECTOR_SIZE / 2) ;
-    return new Exploring(actor, area) ;
+    //
+    //  TODO:  Refresh the list of tiles to explore every 10 seconds or so?
+    final IntelMap map = base.intelMap ;
+    Tile lookedAt = null ;
+    float minFog = 1 ;
+    for (Tile t : inRange) {
+      final float fog = map.fogAt(t) ;
+      if (fog < minFog && ! t.blocked()) {
+        lookedAt = t ;
+        minFog = fog ;
+      }
+    }
+    if (lookedAt == null) {
+      done = true ;
+      return null ;
+    }
+    return new Exploring(actor, base, lookedAt) ;
   }
   
   
   public boolean complete() {
-    return false ;
+    return done ;
   }
   
   
+  
+  /**  Rendering and interface methods-
+    */
   public void describeBehaviour(Description d) {
-    d.append(description) ;
+    d.append("On ") ;
+    d.append("Recon Mission", this) ;
+    final Tile tile = (Tile) subject ;
+    d.append(" around "+tile.habitat().name+" at "+tile.x+" "+tile.y) ;
+  }
+  
+  
+  public void renderSelection(Rendering rendering, boolean hovered) {
+    Selection.renderPlane(
+      rendering, subject.position(null),  Terrain.SECTOR_SIZE / 2f,
+      hovered ? Colour.transparency(0.25f) : Colour.transparency(0.5f),
+      Selection.SELECT_SQUARE
+    ) ;
   }
 }
-
-
-
-
 
 
 

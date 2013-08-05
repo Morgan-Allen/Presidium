@@ -18,11 +18,13 @@ public class ImageModel extends Model {
     TYPE_FLAT = 0,
     TYPE_BOX = 1,
     TYPE_POPPED_BOX = 2 ;
+  /*
   final public static ImageModel
     DEFAULT_FLAT_MODEL = new ImageModel(
       "default_flat_model", ImageModel.class,
       Texture.WHITE_TEX, 1, 1, TYPE_FLAT
     ) ;
+  //*/
   
   final public int type ;
   final Texture texture ;

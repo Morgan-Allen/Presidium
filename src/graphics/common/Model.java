@@ -146,7 +146,10 @@ public abstract class Model {
   }
   
   public abstract Sprite makeSprite() ;
-  public abstract Colour averageHue() ;
+  
+  public Colour averageHue() {
+    return Colour.WHITE ;
+  }
   
   
   

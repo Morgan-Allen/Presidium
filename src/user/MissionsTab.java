@@ -17,6 +17,8 @@ import src.util.* ;
 public class MissionsTab extends InfoPanel {
   
   
+  /**  Constants, field defintions and constructors-
+    */
   final static String
     IMG_DIR = "media/GUI/Missions/" ;
   final public static Texture
@@ -24,12 +26,20 @@ public class MissionsTab extends InfoPanel {
     RECON_ICON    = Texture.loadTexture(IMG_DIR+"mission_recon.png"   ),
     CONTACT_ICON  = Texture.loadTexture(IMG_DIR+"mission_contact.png" ),
     SECURITY_ICON = Texture.loadTexture(IMG_DIR+"mission_security.png") ;
+  //
+  //  These icons need to be worked on a little more...
   final public static ImageModel
-    STRIKE_MODEL = ImageModel.asFlatModel(
-      MissionsTab.class, STRIKE_ICON, 1, 1
+    STRIKE_MODEL = ImageModel.asIsometricModel(
+      MissionsTab.class, IMG_DIR+"flag_strike.gif", 1, 3
     ),
-    RECON_MODEL = ImageModel.asFlatModel(
-      MissionsTab.class, RECON_ICON, 1, 1
+    RECON_MODEL = ImageModel.asIsometricModel(
+      MissionsTab.class, IMG_DIR+"flag_recon.gif", 1, 3
+    ),
+    CONTACT_MODEL = ImageModel.asIsometricModel(
+      MissionsTab.class, IMG_DIR+"flag_contact.gif", 1, 3
+    ),
+    SECURITY_MODEL = ImageModel.asIsometricModel(
+      MissionsTab.class, IMG_DIR+"flag_security.gif", 1, 3
     ) ;
   
   
@@ -115,7 +125,9 @@ public class MissionsTab extends InfoPanel {
       }
       
       void performAt(Target picked) {
-        UI.played().addMission(new StrikeMission(UI.played(), picked)) ;
+        final Mission mission = new StrikeMission(UI.played(), picked) ;
+        UI.played().addMission(mission) ;
+        UI.selection.setSelected(mission) ;
       }
     }) ;
   }
@@ -138,26 +150,21 @@ public class MissionsTab extends InfoPanel {
       }
       
       void performAt(Target picked) {
-        UI.played().addMission(new ReconMission(UI.played(), (Tile) picked)) ;
+        final Mission mission = new ReconMission(UI.played(), (Tile) picked) ;
+        UI.played().addMission(mission) ;
+        UI.selection.setSelected(mission) ;
       }
     }) ;
   }
   
   
-  protected void initContactTask() {
-  }
-  
-  
   protected void initSecurityTask() {
   }
+  
+  
+  protected void initContactTask() {
+  }
 }
-
-
-
-
-
-
-
 
 
 

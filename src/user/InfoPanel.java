@@ -50,12 +50,12 @@ public class InfoPanel extends UIGroup implements UIConstants {
     
     headerText = new Text(UI, BaseUI.INFO_FONT) ;
     headerText.relBound.set(0, 1, 1, 0) ;
-    headerText.absBound.set(MW, -MW - (topMargin + HH), -2 * MW, HH) ;
+    headerText.absBound.set(0, -MW - (topMargin + HH), 0, HH) ;
     headerText.attachTo(this) ;
     
     detailText = new Text(UI, BaseUI.INFO_FONT) ;
     detailText.relBound.set(0, 0, 1, 1) ;
-    detailText.absBound.set(MW, MW, -2 * MW, (-2 * MW) - (topMargin + HH)) ;
+    detailText.absBound.set(0, MW, 0, (-2 * MW) - (topMargin + HH)) ;
     detailText.attachTo(this) ;
     detailText.getScrollBar().attachTo(this) ;
 

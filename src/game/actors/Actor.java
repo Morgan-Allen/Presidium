@@ -8,10 +8,12 @@
 package src.game.actors ;
 import src.game.building.* ;
 import src.game.common.* ;
-import src.game.social.Accountable;
 import src.graphics.common.* ;
 import src.user.* ;
 import src.util.* ;
+import src.game.planet.Terrain;
+import src.game.social.Accountable ;
+import src.graphics.sfx.PlaneFX ;
 
 
 
@@ -22,6 +24,9 @@ public abstract class Actor extends Mobile implements
   
   /**  Field definitions, constructors and save/load functionality-
     */
+  final public static Texture
+    GROUND_SHADOW = Texture.loadTexture("media/SFX/ground_shadow.png") ;
+  
   final public ActorHealth health = new ActorHealth(this) ;
   final public ActorTraits traits = new ActorTraits(this) ;
   final public ActorGear   gear   = new ActorGear  (this) ;
@@ -67,7 +72,7 @@ public abstract class Actor extends Mobile implements
   }
   
   
-  protected ActorPsyche initPsyche() { return new ActorPsyche(this) ; }
+  protected abstract ActorPsyche initPsyche() ;
   
   protected MobilePathing initPathing() { return new MobilePathing(this) ; }
   
@@ -146,6 +151,7 @@ public abstract class Actor extends Mobile implements
     if (health.conscious()) {
       if (actionTaken == null || actionTaken.complete()) {
         assignAction(psyche.getNextAction()) ;
+        I.say(this+" got next action: "+actionTaken) ;
       }
     }
   }
@@ -163,10 +169,22 @@ public abstract class Actor extends Mobile implements
   }
   
   
+  
+  /**  Dealing with state changes-
+    */
+  
+  
   protected void enterStateKO() {
+    //
+    //  TODO:  The actor needs to remain in this state until otherwise
+    //  notified.  But it's a physical, rather than intentional action.
     final Action falling = new Action(
-      this, this, this, "actionFall", Action.FALL, "Stricken"
+      this, this, this, "actionFall",
+      Action.FALL, "Stricken"
     ) ;
+    //Behaviour root = psyche.rootBehaviour() ;
+    //I.say("Root behaviour is: "+root+" "+root.getClass()) ;
+    psyche.cancelBehaviour(psyche.rootBehaviour()) ;
     this.assignAction(falling) ;
   }
   
@@ -194,7 +212,7 @@ public abstract class Actor extends Mobile implements
     //  Render your shadow, either on the ground or on top of occupants-
     final float R2 = (float) Math.sqrt(2) ;
     final PlaneFX shadow = new PlaneFX(
-      PlaneFX.GROUND_SHADOW, radius() * scale * R2
+      GROUND_SHADOW, radius() * scale * R2
     ) ;
     final Vec3D p = s.position ;
     shadow.position.setTo(p) ;
@@ -206,10 +224,14 @@ public abstract class Actor extends Mobile implements
     //  ...Maybe include equipment/costume configuration here as well?
     s.scale = scale ;
     if (actionTaken != null) {
+      ///I.say("Current action: "+actionTaken.methodName()) ;
       s.setAnimation(actionTaken.animName(), actionTaken.animProgress()) ;
     }
     else s.setAnimation(Action.STAND, 0) ;
     super.renderFor(rendering, base) ;
+    //
+    //  TODO:  Last but not least, you need to render any weapon or shield FX
+    //  associated with your gear.
   }
   
   
@@ -218,33 +240,37 @@ public abstract class Actor extends Mobile implements
   }
   
   
-  protected float shadowHeight(Vec3D p) {
-    return world.terrain().trueHeight(p.x, p.y) ;
-  }
-  
-  //
-  //  Basically, you want to be able to control the default animation that plays
-  //  when the actor is 'paused for thought', and the pace of the move
-  //  animation, and possibly sync the progress of the two in some cases.
-  //
-  //  ...In that case, you're going to need a separate move animation to loop
-  //  over and over again.
-  
-  
-  //  TODO:  You might want to replace this with an 'enterMoveState' method
-  //  instead, or a 'defaultAction' method.
   protected float moveAnimStride() {
     return 1 ;
+  }
+  
+  
+  protected float shadowHeight(Vec3D p) {
+    return world.terrain().trueHeight(p.x, p.y) ;
   }
   
   
   public void whenClicked() {
     ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
   }
-
+  
   
   public InfoPanel createPanel(BaseUI UI) {
     return new ActorPanel(UI, this, true) ;
+  }
+  
+  
+  public Target subject() {
+    return this ;
+  }
+  
+  
+  public void renderSelection(Rendering rendering, boolean hovered) {
+    Selection.renderPlane(
+      rendering, viewPosition(null), radius() + 0.5f,
+      hovered ? Colour.transparency(0.5f) : Colour.WHITE,
+      Selection.SELECT_CIRCLE
+    ) ;
   }
   
   
@@ -252,6 +278,4 @@ public abstract class Actor extends Mobile implements
     return fullName() ;
   }
 }
-
-
 

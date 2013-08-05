@@ -13,6 +13,9 @@ import src.util.* ;
 
 
 
+//  Merge this with the Combat class?
+
+
 public class StrikeMission extends Mission {
   
   
@@ -63,7 +66,9 @@ public class StrikeMission extends Mission {
   
   
   public void describeBehaviour(Description d) {
-    d.append("Strike Mission against ") ;
+    d.append("On ") ;
+    d.append("Strike Mission", this) ;
+    d.append(" against ") ;
     d.append(subject) ;
   }
 }

@@ -21,6 +21,10 @@ public class IntelMap {
   float fogVals[][] ;
   MipMap fogMap ;
   
+  //  Note:  Any previously-explored tile will have a minimum fog value of
+  //  0.5, or 0.3, or something.  That way, you still get the 'fadeout' effect
+  //  at the edge of an actor's vision.
+  
   float dangerLevel ;
   //  Create old and new fog maps later on.  Have one fade in completely before
   //  you fade the other out, every half-second or so.
@@ -47,9 +51,10 @@ public class IntelMap {
   
   
   public void loadState(Session s) throws Exception {
-    final int size = world.size ;
-    for (Coord c : Visit.grid(0,  0, size, size, 1)) {
-      fogVals[c.x][c.y] = s.loadFloat() ;
+    initFog(world = s.world()) ;
+    for (Coord c : Visit.grid(0,  0, world.size, world.size, 1)) {
+      final float val = fogVals[c.x][c.y] = s.loadFloat() ;
+      fogTex.putColour(Colour.transparency(1 - val), c.x, c.y) ;
     }
     fogMap.loadFrom(s.input()) ;
   }

@@ -130,7 +130,7 @@ public class ActorTraits implements ActorConstants {
   
   
   public float useLevel(Trait type) {
-    final float level = trueLevel(type) ;
+    float level = trueLevel(type) ;
     if (type.type == PHYSICAL) {
       return level * actor.health.ageMultiple() ;
     }
@@ -138,6 +138,9 @@ public class ActorTraits implements ActorConstants {
       final Skill skill = (Skill) type ;
       if (skill.parent == null) {
         return level * actor.health.ageMultiple() ;
+      }
+      else {
+        level = (level + trueLevel(skill.parent)) / 2f ;
       }
     }
     return level ;

@@ -13,6 +13,8 @@ import src.util.* ;
 import src.user.* ;
 
 
+
+//
 //  You may also want to specify the vehicle employed, and how or if you get
 //  aboard it...
 public class Delivery extends Plan {
@@ -32,6 +34,7 @@ public class Delivery extends Plan {
   public Delivery(Item item, Venue origin, Venue destination) {
     this(new Item[] {item}, origin, destination) ;
   }
+  
   
   public Delivery(Item items[], Venue origin, Venue destination) {
     super(null, origin, destination) ;

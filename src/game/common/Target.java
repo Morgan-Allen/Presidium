@@ -11,12 +11,10 @@ import src.util.* ;
 
 public interface Target {
   
-  
   boolean inWorld() ;
   Vec3D position(Vec3D v) ;
   float height() ;
   float radius() ;
-  
   
   void flagWith(Object f) ;
   Object flaggedWith() ;

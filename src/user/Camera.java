@@ -12,6 +12,7 @@ import src.graphics.widgets.KeyInput ;
 import src.util.* ;
 
 
+
 /**  This class handles camera motion around the world- also allowing for
   *  shifts in field-of-vision when an info-view is displayed.
   */
@@ -42,10 +43,17 @@ public class Camera {
   }
   
   
+  
   /**  Causes the camera to follow a given target and centre on the given
     *  screen coordinates.  If these are null, the screen centre is used by
     *  default.
     */
+  public void zoomNow(Target target) {
+    lockTarget = target ;
+    port.cameraPosition.setTo(target.position(null)) ;
+  }
+  
+  
   protected void lockOn(Target target) {
     if (
       target == null

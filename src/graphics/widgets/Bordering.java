@@ -57,7 +57,8 @@ public class Bordering extends UINode {
     for (int x = 3 ; x-- > 0 ;) for (int y = 3 ; y-- > 0 ;) {
       drawQuad(
         coordX[x], coordY[y], coordX[x + 1], coordY[y + 1],
-        coordU[x], coordV[y + 1], coordU[x + 1], coordV[y]
+        coordU[x], coordV[y + 1], coordU[x + 1], coordV[y],
+        absDepth
       ) ;
     }
     GL11.glEnd() ;

@@ -144,7 +144,7 @@ public class Text extends UINode implements Description {
   }
   
   
-  public void append(String s, Clickable l) { append(s, l, null) ; }
+  public void append(String s, Clickable l) { append(s, l, LINK_COLOUR) ; }
   public void append(String s, Colour c) { append(s, null, c) ; }
   public void append(String s) { append(s, null, null) ; }
   
@@ -375,7 +375,8 @@ public class Text extends UINode implements Description {
       entry.xpos() + xoff, entry.ypos() + yoff,
       entry.xmax() + xoff, entry.ymax() + yoff,
       entry.letter.umin, entry.letter.vmin,
-      entry.letter.umax, entry.letter.vmax
+      entry.letter.umax, entry.letter.vmax,
+      absDepth
     ) ;
     return true ;
   }

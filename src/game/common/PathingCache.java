@@ -12,12 +12,6 @@ import src.util.* ;
 
 
 
-
-//
-//  TODO:  Consider making this a property of the world, rather than any
-//  particular base.  The efficiency savings could be substantial, and you
-//  could still consult the danger-map on a per-sector basis.
-
 //  TODO:  If a places-path search can't find a route, then either the origin
 //  or destination has to be in an isolated zone.  If that's true, you can mark
 //  whatever places were searched accordingly.  ...But how long will they last?

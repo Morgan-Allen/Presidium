@@ -117,18 +117,13 @@ public class Treatment extends Plan implements ActorConstants {
   
   
   
-  
   /**  Rendering and interface methods-
     */
   public void describeBehaviour(Description d) {
-    super.describeBehaviour(d) ;
+    d.append("Treating ") ;
+    d.append(patient) ;
   }
 }
-
-
-
-
-
 
 
 

@@ -9,7 +9,9 @@ package src.game.common ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.user.BaseUI;
+import src.user.InfoPanel;
 import src.user.Selectable ;
+import src.user.Selection;
 import src.util.* ;
 
 
@@ -21,8 +23,6 @@ public abstract class Mobile extends Element
   protected float
     rotation,
     nextRotation ;
-  //protected Vec3D
-    //facing = new Vec3D(1, 0, 0) ;
   protected final Vec3D
     position = new Vec3D(),
     nextPosition = new Vec3D() ;
@@ -108,34 +108,52 @@ public abstract class Mobile extends Element
   
   /**  Dealing with position and motion-
     */
-  public void setPosition(float xp, float yp, World world) {
-    final Tile
-      oldTile = origin(),
-      newTile = world.tileAt(xp, yp) ;
-    super.setPosition(xp, yp, world) ;
-    ///I.say("Setting mobile position") ;
-    nextPosition.setTo(position.set(xp, yp, 0)) ;
-    
-    if (inWorld()) {
-      if (oldTile != newTile) onTileChange(oldTile, newTile) ;
-      final Boardable toBoard = (newTile.owner() instanceof Boardable) ?
-        (Boardable) newTile.owner() :
-        newTile ;
-      if (aboard != toBoard) {
-        if (aboard != null) oldTile.setInside(this, false) ;
-        if (toBoard != null) toBoard.setInside(this, true) ;
-        aboard = toBoard ;
-      }
-    }
-  }
-  
-  
   public Boardable aboard() {
     return aboard ;
   }
   
   
-  public void setHeading(Target target, float speed) {
+  public void goAboard(Boardable toBoard, World world) {
+    if (toBoard == boarding) return ;
+    aboard.setInside(this, false) ;
+    aboard = boarding = toBoard ;
+    aboard.setInside(this, true) ;
+    setHeading(toBoard.position(null), nextRotation, true, world) ;
+  }
+  
+
+  public void setPosition(float xp, float yp, World world) {
+    nextPosition.set(xp, yp, 0) ;
+    setHeading(nextPosition, nextRotation, true, world) ;
+  }
+  
+  
+  public void setHeading(
+    Vec3D pos, float rotation, boolean instant, World world
+  ) {
+    final Tile oldTile = origin(), newTile = world.tileAt(pos.x, pos.y) ;
+    super.setPosition(pos.x, pos.y, world) ;
+    
+    nextPosition.setTo(pos) ;
+    nextRotation = rotation ;
+    if (instant) {
+      this.position.setTo(pos) ;
+      this.rotation = rotation ;
+    }
+    if (instant && inWorld()) {
+      final Boardable toBoard = (newTile.owner() instanceof Boardable) ?
+        (Boardable) newTile.owner() : newTile ;
+      if (aboard != toBoard) {
+        if (aboard != null) oldTile.setInside(this, false) ;
+        if (toBoard != null) toBoard.setInside(this, true) ;
+        aboard = toBoard ;
+      }
+      if (oldTile != newTile) onTileChange(oldTile, newTile) ;
+    }
+  }
+  
+  
+  public void headTowards(Target target, float speed) {
     //
     //  Determine the appropriate offset and angle for this target-
     final Vec3D p = target.position(null) ;
@@ -253,10 +271,8 @@ public abstract class Mobile extends Element
   }
   
   
-  public abstract void pathingAbort() ;
-  
-  
-  public float scheduledInterval() { return 1.0f ; }
+  public void pathingAbort() {
+  }
   
   
   public boolean indoors() {
@@ -267,6 +283,11 @@ public abstract class Mobile extends Element
   protected float aboveGroundHeight() {
     return 0 ;
   }
+  
+  
+  /**  Updates and stuff-
+    */
+  public float scheduledInterval() { return 1.0f ; }
   
   
   
@@ -292,6 +313,42 @@ public abstract class Mobile extends Element
     s.rotation = (rotation + (rotateChange * alpha) + 360) % 360 ;
     ///I.say("sprite position/rotation: "+s.position+" "+s.rotation) ;
     rendering.addClient(s) ;
+  }
+  
+  
+  public InfoPanel createPanel(BaseUI UI) {
+    return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
+  }
+  
+  
+  public Target subject() {
+    return this ;
+  }
+  
+  
+  public void renderSelection(Rendering rendering, boolean hovered) {
+    Selection.renderPlane(
+      rendering, viewPosition(null), radius() + 0.5f,
+      hovered ? Colour.transparency(0.5f) : Colour.WHITE,
+      Selection.SELECT_CIRCLE
+    ) ;
+  }
+  
+
+  public String toString() {
+    return fullName() ;
+  }
+  
+  
+  public String[] infoCategories() {
+    return null ;
+  }
+  
+  
+  public void whenClicked() {
+    if (PlayLoop.currentUI() instanceof BaseUI) {
+      ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
+    }
   }
 }
 

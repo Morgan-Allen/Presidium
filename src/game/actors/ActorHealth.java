@@ -3,8 +3,6 @@
   *  I intend to slap on some kind of open-source license here in a while, but
   *  for now, feel free to poke around for non-commercial purposes.
   */
-
-
 package src.game.actors ;
 import src.game.common.* ;
 import src.util.* ;
@@ -23,6 +21,13 @@ public class ActorHealth implements ActorConstants {
     STATE_SUSPEND  = 2,
     STATE_DEAD     = 3,
     STATE_DECOMP   = 4 ;
+  final static String STATE_DESC[] = {
+    "Active",
+    "Resting",
+    "In Suspended Animation",
+    "Dead",
+    "Decomposed"
+  } ;
   //  TODO:  Also provide state descriptor strings.
   final public static int
     AGE_JUVENILE = 0,
@@ -53,6 +58,7 @@ public class ActorHealth implements ActorConstants {
     MAX_INJURY  = 1.5f,
     MAX_FATIGUE = 1.0f,
     MAX_STRESS  = 0.5f,
+    REVIVE_THRESHOLD = 0.5f,
     
     FATIGUE_GROW_PER_DAY = 10,
     STRESS_DECAY_PER_DAY = 0.5f,
@@ -392,6 +398,12 @@ public class ActorHealth implements ActorConstants {
       I.say(actor+" has died of injury.") ;
       state = STATE_DEAD ;
     }
+    if (
+      state == STATE_RESTING && fatigue <= 0 &&
+      injury < (maxHealth * REVIVE_THRESHOLD)
+    ) {
+      state = STATE_ACTIVE ;
+    }
     //
     //  Deplete your current calories stockpile-
     calories -= (1f * maxHealth) / STARVE_INTERVAL ;
@@ -408,7 +420,6 @@ public class ActorHealth implements ActorConstants {
     final float DL = World.DEFAULT_DAY_LENGTH ;
     float SM = 1, FM = 1, IM = 1 ;
     if (state == STATE_RESTING) {
-      if (fatigue <= 0) state = STATE_ACTIVE ;
       FM = -2 ;
       IM =  2 ;
       SM =  2 ;
@@ -453,6 +464,13 @@ public class ActorHealth implements ActorConstants {
         state = STATE_DEAD ;
       }
     }
+  }
+  
+  
+  /**  Rendering and interface methods-
+    */
+  public String stateName() {
+    return STATE_DESC[state] ;
   }
 }
 

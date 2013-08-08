@@ -29,7 +29,7 @@ public class Base implements Session.Saveable, Schedule.Updates {
   Actor ruler ;
   Venue commandPost ;
   final List <Mission> missions = new List <Mission> () ;
-  float communitySpirit, alertLevel, publicOpinion ;
+  float communitySpirit, alertLevel, crimeLevel ;
   
   final public Paving paving ;
   //  TODO:  also include a map for repairs?
@@ -54,7 +54,7 @@ public class Base implements Session.Saveable, Schedule.Updates {
     
     communitySpirit = s.loadFloat() ;
     alertLevel = s.loadFloat() ;
-    publicOpinion = s.loadFloat() ;
+    crimeLevel = s.loadFloat() ;
     
     paving = new Paving(world) ;
     paving.loadState(s) ;
@@ -70,7 +70,7 @@ public class Base implements Session.Saveable, Schedule.Updates {
     
     s.saveFloat(communitySpirit) ;
     s.saveFloat(alertLevel) ;
-    s.saveFloat(publicOpinion) ;
+    s.saveFloat(crimeLevel) ;
     
     paving.saveState(s) ;
     intelMap.saveState(s) ;

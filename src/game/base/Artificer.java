@@ -45,8 +45,6 @@ public class Artificer extends Venue implements VenueConstants {
   
   /**  Implementation of employee behaviour-
     */
-  
-  
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     //

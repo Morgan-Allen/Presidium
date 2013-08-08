@@ -7,9 +7,11 @@
 
 package src.game.actors ;
 import src.game.common.* ;
+import src.game.common.Session.Saveable;
 import src.graphics.common.* ;
 import src.user.* ;
 import src.util.* ;
+
 import java.lang.reflect.* ;
 
 
@@ -203,7 +205,7 @@ public class Action implements Behaviour, Model.AnimNames {
     actor.pathing.updateWithTarget(moveTarget, minDist) ;
     
     if (actor.pathing.closeEnough()) {
-      actor.setHeading(actionTarget, 0) ;
+      actor.headTowards(actionTarget, 0) ;
       if (inRange != 1) {
         inRange = 1 ;
         progress = oldProgress = 0 ;
@@ -212,7 +214,7 @@ public class Action implements Behaviour, Model.AnimNames {
     else {
       final Target nextStep = actor.pathing.nextStep() ;
       if (nextStep == null) return ;
-      actor.setHeading(nextStep, moveRate()) ;
+      actor.headTowards(nextStep, moveRate()) ;
       if (inRange != 0) {
         inRange = 0 ;
         progress = oldProgress = 0 ;
@@ -285,13 +287,20 @@ public class Action implements Behaviour, Model.AnimNames {
       aM = new Table <String, Method> (20) ;
       for (Method method : plans.getClass().getMethods()) {
         aM.put(method.getName(), method) ;
+        if (method.getName().equals(methodName)) {
+          final Class <? extends Object> params[] = method.getParameterTypes() ;
+          if (
+            params.length != 2 ||
+            ! Actor.class.isAssignableFrom(params[0]) ||
+            ! Target.class.isAssignableFrom(params[1])
+          ) I.complain("METHOD HAS BAD ARGUMENT SET!") ;
+        }
       }
-      //  TODO:  Check to see if this method has an appropriate argument-set?
       actionMethods.put(plans.getClass(), aM) ;
     }
     final Method method = aM.get(methodName) ;
     if (method == null) I.complain(
-      "NO SUCH METHOD! "+methodName+" FOR PLAN: "+plans
+      "NO SUCH METHOD! "+methodName+" FOR CLASS: "+plans
     ) ;
     method.setAccessible(true) ;
     return method ;
@@ -303,8 +312,9 @@ public class Action implements Behaviour, Model.AnimNames {
     */
   float animProgress() {
     final float alpha = PlayLoop.frameTime() ;
-    ///I.say("Progress is: "+progress) ;
-    return ((progress * alpha) + (oldProgress * (1 - alpha))) ;
+    final float AP = ((progress * alpha) + (oldProgress * (1 - alpha))) ;
+    if (AP > 1) return AP % 1 ;
+    return AP ;
   }
   
   

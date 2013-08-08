@@ -165,10 +165,10 @@ public abstract class ActorPsyche implements ActorConstants {
     if (b == null) return ;
     if (! behaviourStack.includes(b)) I.complain("Behaviour not active.") ;
     while (behaviourStack.size() > 0) {
-      if (topBehaviour() != b) break ;
-      popBehaviour() ;
+      final Behaviour popped = popBehaviour() ;
+      if (popped == b) break ;
     }
-    ///I.say("Cancelled "+b.getClass()+", remaining: "+behaviourStack.size()) ;
+    if (behaviourStack.includes(b)) I.complain("Duplicate behaviour!") ;
   }
   
   

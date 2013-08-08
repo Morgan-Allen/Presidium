@@ -8,6 +8,7 @@
 package src.game.tactical ;
 import src.game.actors.* ;
 import src.game.common.Session;
+import src.game.social.Relation;
 import src.util.* ;
 
 
@@ -47,7 +48,12 @@ public class Combat extends Plan implements ActorConstants {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
-    return combatPriority(actor, target, ROUTINE, PARAMOUNT) ;
+    //
+    //  TODO:  Move this evaluation below, to the combatPriority method?
+    float relation = actor.psyche.relationTo(target) ;
+    relation *= PARAMOUNT / Relation.MAX_ATT ;
+    if (actor.assignedBase() == target.assignedBase()) relation += ROUTINE ;
+    return combatPriority(actor, target, 0 - relation, PARAMOUNT) ;
   }
   
   
@@ -92,6 +98,7 @@ public class Combat extends Plan implements ActorConstants {
   public static float combatPriority(
     Actor actor, Actor enemy, float winReward, float lossCost
   ) {
+    if (actor == enemy) return 0 ;
     final float
       actorStrength = combatStrength(actor, enemy),
       enemyStrength = combatStrength(enemy, actor),

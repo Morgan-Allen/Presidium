@@ -77,9 +77,20 @@ public class DebugBehaviour extends PlayLoop {
   
   protected void configureScenario(World world, Base base, HUD HUD) {
     GameSettings.hireFree = true ;
+    
+    //
+    //  You also need to try scenarios between multiple actors, some of them
+    //  hostile, and see how they respond.  Ideally, you don't want actors
+    //  willingly running into situations that they then run away from.
+    
+    //
+    //  For now, though, I want you to implement a simple construction
+    //  protocol.  No materials consumption, just ex-nihilo engineering.
+    
+    baseScenario(world, base, HUD) ;
     //missionScenario(world, base, HUD) ;
     //natureScenario(world, base, HUD) ;
-    socialScenario(world, base, HUD) ;
+    //socialScenario(world, base, HUD) ;
   }
   
   
@@ -109,6 +120,15 @@ public class DebugBehaviour extends PlayLoop {
   
   /**  Various scenarios to execute:
     */
+  private void baseScenario(World world, Base base, HUD UI) {
+    final Artificer artificer = new Artificer(base) ;
+    artificer.enterWorldAt(8, 8, world) ;
+    final Garrison garrison = new Garrison(base) ;
+    garrison.enterWorldAt(2, 6, world) ;
+    garrison.structure.takeDamage(50) ;
+  }
+  
+  
   private void natureScenario(World world, Base base, HUD UI) {
     final Actor
       hunter = new Micovore(),
@@ -163,10 +183,7 @@ public class DebugBehaviour extends PlayLoop {
     ((BaseUI) UI).selection.setSelected(other) ;
 
     base.intelMap.liftFogAround(other, 10) ;
-    other.health.takeInjury(other.health.maxHealth()) ;
-    //other.health.takeFatigue(other.health.maxHealth()) ;
-    //  Okay... Now injure that sucker.  See if his compatriot responds!
-    
+    other.health.takeInjury(other.health.maxHealth() + 1) ;
     //
     //  Then introduce a hospice, and see if he's taken there.
   }

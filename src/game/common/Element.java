@@ -218,16 +218,14 @@ public abstract class Element implements
   
   
   protected boolean visibleTo(Base base) {
+    float fog = base.intelMap.fogAt(origin()) ;
+    if (fog == 0) return false ;
+    else sprite.fog = fog ;
     return true ;
   }
   
   
   public void renderFor(Rendering rendering, Base base) {
-    if (base != null) {
-      float fog = base.intelMap.fogAt(origin()) ;
-      if (fog == 0) return ;
-      else sprite.fog = fog ;
-    }
     float timeGone = world().currentTime() - inceptTime ;
     timeGone += PlayLoop.frameTime() / PlayLoop.UPDATES_PER_SECOND ;
     if (timeGone < 1) sprite.colour = Colour.transparency(timeGone) ;

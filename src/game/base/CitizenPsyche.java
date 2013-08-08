@@ -129,45 +129,41 @@ public class CitizenPsyche extends ActorPsyche implements ActorConstants {
   protected void addReactions(Choice choice) {
     //
     //  Find all nearby items or actors and consider reacting to them.
-    
-    //
-    //  ...Use the actor map for this, not just sight range.  That way, an
-    //  actor can react to things outside your immediate range of vision.
-    
-    I.complain("MUST ITERATE OVER MOBILES, NOT ACTORS?") ;
-    
-    final PresenceMap actors = actor.world().presences.mapFor(Actor.class) ;
-    final Batch <Actor> considered = new Batch <Actor> () ;
+    final PresenceMap
+      mobiles = actor.world().presences.mapFor(Mobile.class),
+      repairs = actor.world().presences.mapFor("damaged") ;
     final int reactLimit = (int) (actor.traits.trueLevel(INSIGHT) / 2) ;
-    ///final float range = actor.health.sightRange() ;
     
-    for (Target t : actors.visitNear(actor, -1, null)) {
-      considered.add((Actor) t) ;
-      if (considered.size() > reactLimit) break ;
+    
+    final Batch <Actor> actorB = new Batch <Actor> () ;
+    int numR = 0 ;
+    for (Target t : mobiles.visitNear(actor, -1, null)) {
+      if (t instanceof Actor) actorB.add((Actor) t) ;
+      if (++numR > reactLimit) break ;
     }
-    
     //
     //  Consider retreat or surrender based on all nearby actors.
-    
+    //choice.add(new Retreat(actor, considered)) ;
     //
     //  Consider defence & treatment of self or others, or dialogue.
-    for (Actor near : considered) {
-      //addReaction(near, choice) ;
+    for (Actor near : actorB) {
+      choice.add(new Combat(actor, near)) ;
       choice.add(new Treatment(actor, near)) ;
+      //choice.add(new Dialogue(actor, near)) ;
     }
-    
     //
-    //  As hobbies, consider hunting, exploration, assistance, and dialogue.
-  }
-  
-  
-  
-  protected void addReaction(Mobile m, Choice choice) {
-    if (m instanceof Actor) {
-      final Actor other = (Actor) m ;
-      if (Dialogue.canTalk(other, actor)) {
-        choice.add(new Dialogue(actor, other)) ;
-      }
+    //  As hobbies, consider hunting, exploration, assistance, and dialogue,
+    //  with one chosen target each.
+    //  ALSO, TRY REPAIRING NEARBY BUILDINGS
+    
+    final Batch <Venue> venueB = new Batch <Venue> () ;
+    numR = 0 ;
+    for (Target t : repairs.visitNear(actor, -1, null)) {
+      if (t instanceof Venue) venueB.add((Venue) t) ;
+      if (++numR > reactLimit) break ;
+    }
+    for (Venue near : venueB) {
+      choice.add(new Building(actor, near)) ;
     }
   }
   
@@ -175,6 +171,8 @@ public class CitizenPsyche extends ActorPsyche implements ActorConstants {
   protected void addWork(Choice choice) {
     //
     //  Find the next jobs waiting for you at work or home.
+    //  TODO:  What about shifts?  Only certain venues need those, but they
+    //  are important.
     if (work != null) {
       Behaviour atWork = work.jobFor(actor) ;
       if (atWork != null) choice.add(atWork) ;
@@ -188,8 +186,8 @@ public class CitizenPsyche extends ActorPsyche implements ActorConstants {
   
   protected void addLeisure(Choice choice) {
     //
-    //  Try a range of other spontaneous behaviours, include relaxation, helping out
-    //  and spontaneous missions-
+    //  Try a range of other spontaneous behaviours, include relaxation,
+    //  helping out and spontaneous missions-
     final Action wander = (Action) new Patrolling(actor, actor, 5).nextStep() ;
     wander.setPriority(Plan.IDLE) ;
     choice.add(wander) ;

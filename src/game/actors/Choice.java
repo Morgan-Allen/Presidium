@@ -53,16 +53,14 @@ public class Choice {
   
   
   public void add(Behaviour plan) {
-    if (! isValid(plan)) return ;
-    plans.add(plan) ;
-    weights.add(plan.priorityFor(actor)) ;
+    add(plan, plan.priorityFor(actor)) ;
   }
   
   
   public void add(Behaviour plan, float weight) {
     if (! isValid(plan)) return ;
     plans.add(plan) ;
-    weights.add(weight) ;
+    weights.add(Visit.clamp(weight, 0, Behaviour.PARAMOUNT)) ;
   }
   
   
@@ -73,6 +71,7 @@ public class Choice {
     final Behaviour picked = (Behaviour) Rand.pickFrom(plans, weights) ;
     return picked ;
   }
+  
   
   public Behaviour pickMostUrgent() {
     float bestPick = 0 ;

@@ -95,6 +95,7 @@ public abstract class Actor extends Mobile implements
   public void assignAction(Action action) {
     world.activities.toggleActive(this.actionTaken, false) ;
     this.actionTaken = action ;
+    actionTaken.updateAction() ;
     world.activities.toggleActive(action, true) ;
   }
   
@@ -172,18 +173,11 @@ public abstract class Actor extends Mobile implements
   
   /**  Dealing with state changes-
     */
-  
-  
   protected void enterStateKO() {
-    //
-    //  TODO:  The actor needs to remain in this state until otherwise
-    //  notified.  But it's a physical, rather than intentional action.
     final Action falling = new Action(
       this, this, this, "actionFall",
       Action.FALL, "Stricken"
     ) ;
-    //Behaviour root = psyche.rootBehaviour() ;
-    //I.say("Root behaviour is: "+root+" "+root.getClass()) ;
     psyche.cancelBehaviour(psyche.rootBehaviour()) ;
     this.assignAction(falling) ;
   }
@@ -224,10 +218,14 @@ public abstract class Actor extends Mobile implements
     //  ...Maybe include equipment/costume configuration here as well?
     s.scale = scale ;
     if (actionTaken != null) {
-      ///I.say("Current action: "+actionTaken.methodName()) ;
+      /*
+      if (BaseUI.isPicked(this)) I.say(
+        this+" action name/progress "+
+        actionTaken.animName()+" "+actionTaken.animProgress()
+      ) ;
+      //*/
       s.setAnimation(actionTaken.animName(), actionTaken.animProgress()) ;
     }
-    else s.setAnimation(Action.STAND, 0) ;
     super.renderFor(rendering, base) ;
     //
     //  TODO:  Last but not least, you need to render any weapon or shield FX
@@ -247,35 +245,6 @@ public abstract class Actor extends Mobile implements
   
   protected float shadowHeight(Vec3D p) {
     return world.terrain().trueHeight(p.x, p.y) ;
-  }
-  
-  
-  public void whenClicked() {
-    ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
-  }
-  
-  
-  public InfoPanel createPanel(BaseUI UI) {
-    return new ActorPanel(UI, this, true) ;
-  }
-  
-  
-  public Target subject() {
-    return this ;
-  }
-  
-  
-  public void renderSelection(Rendering rendering, boolean hovered) {
-    Selection.renderPlane(
-      rendering, viewPosition(null), radius() + 0.5f,
-      hovered ? Colour.transparency(0.5f) : Colour.WHITE,
-      Selection.SELECT_CIRCLE
-    ) ;
-  }
-  
-  
-  public String toString() {
-    return fullName() ;
   }
 }
 

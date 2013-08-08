@@ -11,6 +11,7 @@ import src.game.base.* ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.* ;
+import src.graphics.sfx.* ;
 import src.user.* ;
 import src.util.* ;
 
@@ -43,6 +44,7 @@ public abstract class Venue extends Fixture implements
   final public Inventory stocks = new Inventory(this) ;
   final public VenuePersonnel personnel = new VenuePersonnel(this) ;
   final public VenueOrders orders = new VenueOrders(this) ;
+  final public VenueStructure structure = new VenueStructure(this) ;
   
   
   
@@ -60,11 +62,11 @@ public abstract class Venue extends Fixture implements
     entrance = (Tile) s.loadTarget() ;
     base = (Base) s.loadObject() ;
     s.loadObjects(inside) ;
-    //paving.loadState(s) ;
     
     stocks.loadState(s) ;
     personnel.loadState(s) ;
     orders.loadState(s) ;
+    structure.loadState(s) ;
   }
   
   
@@ -75,11 +77,11 @@ public abstract class Venue extends Fixture implements
     s.saveTarget(entrance) ;
     s.saveObject(base) ;
     s.saveObjects(inside) ;
-    //paving.saveState(s) ;
     
     stocks.saveState(s) ;
     personnel.saveState(s) ;
     orders.saveState(s) ;
+    structure.saveState(s) ;
   }
   
   
@@ -108,6 +110,8 @@ public abstract class Venue extends Fixture implements
     for (Tile t : world.tilesIn(area(), false)) {
       if (t == null || t.owningType() >= owningType()) return false ;
     }
+    //
+    //  ...I'm not sure I remember what's happening here.  Figure out?
     final Boardable tempB[] = new Boardable[4] ;
     final Box2D tempA = new Box2D() ;
     for (Tile n : Spacing.perimeter(area(), world)) {
@@ -128,25 +132,17 @@ public abstract class Venue extends Fixture implements
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
     world.presences.togglePresence(this, true , services()) ;
-    if (base != null) {
-      //base.toggleBelongs(this, true) ;
-      updatePaving(true) ;
-    }
+    if (base != null) updatePaving(true) ;
     world.schedule.scheduleForUpdates(this) ;
     personnel.onWorldEntry() ;
-    //paving.onWorldEntry() ;
   }
   
   
   public void exitWorld() {
     world.presences.togglePresence(this, false, services()) ;
-    if (base != null) {
-      //base.toggleBelongs(this, false) ;
-      updatePaving(false) ;
-    }
+    if (base != null) updatePaving(false) ;
     world.schedule.unschedule(this) ;
     personnel.onWorldExit() ;
-    //paving.onWorldExit() ;
     super.exitWorld() ;
   }
   
@@ -159,15 +155,35 @@ public abstract class Venue extends Fixture implements
   }
   
   
+  
+  /**  Performing regular updates-
+    */
   public float scheduledInterval() {
     return 1 ;
   }
   
   
   public void updateAsScheduled(int numUpdates) {
-    if (base != null && numUpdates % 10 == 0) {
+    if (numUpdates % 10 == 0) {
       orders.updateOrders() ;
-      updatePaving(true) ;
+      if (base != null) updatePaving(true) ;
+    }
+    structure.updateStructure(numUpdates) ;
+  }
+  
+  
+  protected void updatePaving(boolean inWorld) {
+    final Tile perim[] = Spacing.perimeter(area(), world) ;
+    if (inWorld) {
+      base.paving.updateJunction(mainEntrance(), true) ;
+      //base.paving.toggleJunction(this, mainEntrance(), true) ;
+      Paving.clearRoad(perim) ;
+      world.terrain().maskAsPaved(perim, true) ;
+    }
+    else {
+      base.paving.updateJunction(mainEntrance(), false) ;
+      //base.paving.toggleJunction(this, mainEntrance(), true) ;
+      world.terrain().maskAsPaved(perim, false) ;
     }
   }
 
@@ -218,22 +234,6 @@ public abstract class Venue extends Fixture implements
   
   public boolean allowsEntry(Mobile m) {
     return m.assignedBase() == base ;
-  }
-  
-  
-  protected void updatePaving(boolean inWorld) {
-    final Tile perim[] = Spacing.perimeter(area(), world) ;
-    if (inWorld) {
-      base.paving.updateJunction(mainEntrance(), true) ;
-      //base.paving.toggleJunction(this, mainEntrance(), true) ;
-      Paving.clearRoad(perim) ;
-      world.terrain().maskAsPaved(perim, true) ;
-    }
-    else {
-      base.paving.updateJunction(mainEntrance(), false) ;
-      //base.paving.toggleJunction(this, mainEntrance(), true) ;
-      world.terrain().maskAsPaved(perim, false) ;
-    }
   }
   
   
@@ -291,11 +291,24 @@ public abstract class Venue extends Fixture implements
   
   /**  Rendering and interface methods-
     */
-  public String toString() {
-    return fullName() ;
+  public void renderFor(Rendering rendering, Base base) {
+    final Healthbar bar = new Healthbar() ;
+    bar.level = structure.repairLevel() ;
+    bar.size = structure.maxIntegrity() ;
+    bar.colour = Colour.BLUE ;
+    position(bar.position) ;
+    bar.position.z += height() ;
+    rendering.addClient(bar) ;
+    
+    super.renderFor(rendering, base) ;
   }
   
   
+  public String toString() {
+    return fullName() ;
+  }
+
+
   public String[] infoCategories() {
     return null ;
   }

@@ -130,6 +130,7 @@ public abstract class Vehicle extends Mobile implements
   public Inventory inventory() { return cargo ; }
   
   
+  //  Intended for override by subclasses.
   public boolean landed() {
     return true ;
   }
@@ -138,39 +139,8 @@ public abstract class Vehicle extends Mobile implements
   
   /**  Rendering and interface methods-
     */
-  public String toString() {
-    return fullName() ;
-  }
-  
-  
   public String[] infoCategories() {
     return null ;  //cargo, passengers, integrity.
-  }
-  
-  
-  public void whenClicked() {
-    if (PlayLoop.currentUI() instanceof BaseUI) {
-      ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
-    }
-  }
-  
-  
-  public InfoPanel createPanel(BaseUI UI) {
-    return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
-  }
-  
-
-  public void renderSelection(Rendering rendering, boolean hovered) {
-    Selection.renderPlane(
-      rendering, viewPosition(null), radius(),
-      hovered ? Colour.transparency(0.5f) : Colour.WHITE,
-      Selection.SELECT_CIRCLE
-    ) ;
-  }
-  
-  
-  public Target subject() {
-    return this ;
   }
 }
 

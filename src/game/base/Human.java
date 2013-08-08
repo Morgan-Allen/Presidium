@@ -332,7 +332,7 @@ public class Human extends Actor implements ActorConstants {
       d.append("\n  ") ;
       rootB.describeBehaviour(d) ;
     }
-    else d.append("\n  Idle") ;
+    else d.append("\n  "+health.stateName()) ;
     
     d.append("\n  Age: "+health.exactAge()) ;
   }

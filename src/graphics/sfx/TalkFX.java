@@ -144,7 +144,7 @@ public class TalkFX extends SFX {
     final Vec3D flatPoint = new Vec3D(position) ;
     rendering.port.isoToScreen(flatPoint) ;
     float fontScale = LINE_HIGH / FONT.map[' '].height ;
-
+    
     GL11.glDepthMask(false) ;
     rendering.port.setScreenMode() ;
     
@@ -179,8 +179,8 @@ public class TalkFX extends SFX {
     final float
       x = flatPoint.x + bubble.xoff,
       y = flatPoint.y + bubble.yoff,
-      TW = BUBBLE_TEX.xdim(),
-      TH = BUBBLE_TEX.ydim(),
+      //TW = BUBBLE_TEX.xdim(),
+      //TH = BUBBLE_TEX.ydim(),
       
       CAP_LU = 0.25f,
       CAP_RU = 0.75f,

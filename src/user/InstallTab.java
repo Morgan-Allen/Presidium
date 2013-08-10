@@ -7,6 +7,7 @@
 package src.user ;
 import src.game.building.* ;
 import src.game.common.* ;
+import src.game.tactical.* ;
 import src.util.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
@@ -208,7 +209,9 @@ public class InstallTab extends InfoPanel {
     
     
     public void doTask() {
-      final Tile picked = UI.selection.pickedTile() ;
+      final IntelMap map = UI.played().intelMap ;
+      Tile picked = UI.selection.pickedTile() ;
+      //if (picked != null && map.fogAt(picked) == 0) picked = null ;
       
       if (hasPressed) {
         if (picked != null) to = picked ;
@@ -219,7 +222,11 @@ public class InstallTab extends InfoPanel {
           hasPressed = true ;
         }
       }
-      final boolean canPlace = toInstall.pointsOkay(from, to) ;
+      //  TODO:  Consider a different rendering mode for stuck-in-fog.
+      final boolean canPlace =
+        (from == null || map.fogAt(from) > 0) &&
+        (to   == null || map.fogAt(to  ) > 0) &&
+        toInstall.pointsOkay(from, to) ;
       
       if (canPlace && hasPressed && ! UI.mouseDown()) {
         toInstall.doPlace(from, to) ;
@@ -231,9 +238,11 @@ public class InstallTab extends InfoPanel {
       }
     }
     
+    
     public void cancelTask() {
       UI.endCurrentTask() ;
     }
+    
     
     public Texture cursorImage() {
       return null ;

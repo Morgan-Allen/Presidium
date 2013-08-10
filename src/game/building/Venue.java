@@ -11,6 +11,7 @@ import src.game.base.* ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.* ;
+import src.graphics.cutout.* ;
 import src.graphics.sfx.* ;
 import src.user.* ;
 import src.util.* ;
@@ -27,13 +28,15 @@ public abstract class Venue extends Fixture implements
   /**  Field definitions, constants, constructors, and save/load methods.
     */
   final public static int
-    ENTRANCE_NORTH = 0,
-    ENTRANCE_EAST  = 1,
-    ENTRANCE_SOUTH = 2,
-    ENTRANCE_WEST  = 3,
+    ENTRANCE_NORTH =  0,
+    ENTRANCE_EAST  =  1,
+    ENTRANCE_SOUTH =  2,
+    ENTRANCE_WEST  =  3,
     ENTRANCE_NONE  = -1,
-    NUM_SIDES      = 4 ;
+    NUM_SIDES      =  4 ;
   
+  
+  BuildingSprite buildSprite ;
   
   int entranceFace ;
   Tile entrance ;
@@ -57,6 +60,7 @@ public abstract class Venue extends Fixture implements
   
   public Venue(Session s) throws Exception {
     super(s) ;
+    buildSprite = (BuildingSprite) sprite() ;
     
     entranceFace = s.loadInt() ;
     entrance = (Tile) s.loadTarget() ;
@@ -156,39 +160,6 @@ public abstract class Venue extends Fixture implements
   
   
   
-  /**  Performing regular updates-
-    */
-  public float scheduledInterval() {
-    return 1 ;
-  }
-  
-  
-  public void updateAsScheduled(int numUpdates) {
-    if (numUpdates % 10 == 0) {
-      orders.updateOrders() ;
-      if (base != null) updatePaving(true) ;
-    }
-    structure.updateStructure(numUpdates) ;
-  }
-  
-  
-  protected void updatePaving(boolean inWorld) {
-    final Tile perim[] = Spacing.perimeter(area(), world) ;
-    if (inWorld) {
-      base.paving.updateJunction(mainEntrance(), true) ;
-      //base.paving.toggleJunction(this, mainEntrance(), true) ;
-      Paving.clearRoad(perim) ;
-      world.terrain().maskAsPaved(perim, true) ;
-    }
-    else {
-      base.paving.updateJunction(mainEntrance(), false) ;
-      //base.paving.toggleJunction(this, mainEntrance(), true) ;
-      world.terrain().maskAsPaved(perim, false) ;
-    }
-  }
-
-  
-  
   /**  Implementing the Boardable interface-
     */
   public void setInside(Mobile m, boolean is) {
@@ -238,8 +209,62 @@ public abstract class Venue extends Fixture implements
   
   
   
+  /**  Updates and life cycle-
+    */
+  public float scheduledInterval() {
+    return 1 ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    if (numUpdates % 10 == 0) {
+      orders.updateOrders() ;
+      if (base != null) updatePaving(true) ;
+    }
+    structure.updateStructure(numUpdates) ;
+  }
+  
+  
+  protected void updatePaving(boolean inWorld) {
+    final Tile perim[] = Spacing.perimeter(area(), world) ;
+    if (inWorld) {
+      base.paving.updateJunction(mainEntrance(), true) ;
+      //base.paving.toggleJunction(this, mainEntrance(), true) ;
+      Paving.clearRoad(perim) ;
+      world.terrain().maskAsPaved(perim, true) ;
+    }
+    else {
+      base.paving.updateJunction(mainEntrance(), false) ;
+      //base.paving.toggleJunction(this, mainEntrance(), true) ;
+      world.terrain().maskAsPaved(perim, false) ;
+    }
+  }
+  
+  
+  public void setAsEstablished(boolean isDone) {
+    super.setAsEstablished(isDone) ;
+    ///if (isDone) structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+  }
+  
+  
+  protected void onCompletion() {
+    world.ephemera.addGhost(origin(), size, buildSprite.scaffolding()) ;
+    setAsEstablished(false) ;
+  }
+  
+  
+  protected void onDecommission() {
+    world.ephemera.addGhost(origin(), size, buildSprite.baseSprite()) ;
+    setAsEstablished(false) ;
+  }
+  
+  
+  
   /**  Recruiting staff and assigning manufacturing tasks-
     */
+  //
+  //  TODO:  You may want to get rid of or relocate this, since the plan is to
+  //  use upgrades for recruitment.
   public void setWorker(Actor actor, boolean is) {
     personnel.setWorker(actor, is) ;
   }
@@ -252,6 +277,7 @@ public abstract class Venue extends Fixture implements
   /**  Installation interface-
     */
   public boolean pointsOkay(Tile from, Tile to) {
+    //  You have to check for visibility too.  Have a Base argument?
     if (from == null) return false ;
     final Tile t = from ;
     setPosition(t.x, t.y, t.world) ;
@@ -264,6 +290,7 @@ public abstract class Venue extends Fixture implements
     setPosition(t.x, t.y, t.world) ;
     clearSurrounds() ;
     enterWorld() ;
+    structure.setState(VenueStructure.STATE_INSTALL, 0) ;
     if (sprite() != null) sprite().colour = null ;
   }
 
@@ -291,47 +318,50 @@ public abstract class Venue extends Fixture implements
   
   /**  Rendering and interface methods-
     */
+  protected void attachSprite(Sprite sprite) {
+    if (! (sprite instanceof ImageSprite)) {
+      I.complain("VENUES MUST HAVE IMAGE-BASED SPRITES!") ;
+    }
+    buildSprite = new BuildingSprite(sprite, size, high) ;
+    super.attachSprite(buildSprite) ;
+  }
+  
+  
   public void renderFor(Rendering rendering, Base base) {
+    //final Sprite s = sprite() ;
+    position(buildSprite.position) ;
+    buildSprite.updateCondition(structure.repairLevel(), structure.complete()) ;
+    
     final Healthbar bar = new Healthbar() ;
     bar.level = structure.repairLevel() ;
     bar.size = structure.maxIntegrity() ;
-    bar.colour = Colour.BLUE ;
-    position(bar.position) ;
+    bar.matchTo(buildSprite) ;
     bar.position.z += height() ;
     rendering.addClient(bar) ;
     
     super.renderFor(rendering, base) ;
   }
-  
-  
+
+
   public String toString() {
     return fullName() ;
   }
-
-
+  
+  
+  
   public String[] infoCategories() {
+    //  Condition, stocks, personnel and upgrades.  Okay.
     return null ;
   }
   
   
   public void writeInformation(Description d, int categoryID, BaseUI UI) {
-    d.append("PERSONNEL:") ;
     
-    /*
-    final Vocation c[] = careers() ;
-    if (c != null) for (final Vocation v : c) {
-      d.append(new UserOption() {
-        
-        public void whenClicked() {
-          personnel.recruitWorker(v) ;
-        }
-        
-        public String fullName() {
-          return "\n  Hire "+v.name ;
-        }
-      }) ;
-    }
-    //*/
+    d.append("INTEGRITY: ") ;
+    d.append(structure.integrity()+" / "+structure.maxIntegrity()) ;
+    
+    d.append("\n\nPERSONNEL:") ;
+    //  TODO:  List Applicants here as well, whether local or offworld.
     
     for (Actor a : personnel.workers()) {
       d.append("\n  ") ;
@@ -341,9 +371,10 @@ public abstract class Venue extends Fixture implements
     
     if (! stocks.empty()) d.append("\n\nCURRENT STOCKS:") ;
     stocks.writeInformation(d) ;
-    
+    /*
     d.append("\n\nCURRENT ORDERS:") ;
     orders.writeInformation(d) ;
+    //*/
   }
   
   

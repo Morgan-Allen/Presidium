@@ -14,9 +14,16 @@ import src.util.* ;
 public class VenueStructure extends Inventory {
   
   
+  
   /**  Fields, definitions and save/load methods-
     */
-  final static int DEFAULT_INTEGRITY = 100 ;
+  final static int
+    DEFAULT_INTEGRITY = 100 ;
+  final public static int
+    STATE_INSTALL = 0,
+    STATE_INTACT  = 1,
+    STATE_REPAIR  = 2,
+    STATE_SALVAGE = 3 ;
   
   final static int MAX_NUM_UPGRADES = 6 ;
   final static float UPGRADE_HP_BONUSES[] = {
@@ -26,6 +33,7 @@ public class VenueStructure extends Inventory {
   
   
   final Venue venue ;
+  private int state = STATE_INSTALL ;
   private int baseIntegrity = DEFAULT_INTEGRITY ;
   private float integrity = baseIntegrity ;
   //  float armour, shields ;
@@ -40,13 +48,9 @@ public class VenueStructure extends Inventory {
   }
   
   
-  public void setupStats(int base) {
-    integrity = baseIntegrity = base ;
-  }
-  
-  
   public void loadState(Session s) throws Exception {
     super.loadState(s) ;
+    state = s.loadInt() ;
     baseIntegrity = s.loadInt() ;
     integrity = s.loadFloat() ;
   }
@@ -54,29 +58,64 @@ public class VenueStructure extends Inventory {
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveInt(state) ;
     s.saveInt(baseIntegrity) ;
     s.saveFloat(integrity) ;
   }
   
   
+  public void setupStats(int baseIntegrity) {
+    this.integrity = this.baseIntegrity = baseIntegrity ;
+  }
   
-  //  TODO:  You also have to make way for upgrades.
+  
+  //
+  //  TODO:  You also have to make way for upgrades.  And the Building plan
+  //  needs to perform salvage as well as construction.
   /**  Queries and modifications-
     */
   public void repairBy(float repairs) {
     if (repairs < 0) I.complain("NEGATIVE REPAIR!") ;
-    final int max = maxIntegrity() ;
-    integrity += repairs ;
-    if (integrity >= max) { integrity = max ; toggleForRepairs(false) ; }
+    setIntegrity(integrity + repairs) ;
   }
   
   
   public void takeDamage(float damage) {
     if (damage < 0) I.complain("NEGATIVE DAMAGE!") ;
-    final int max = maxIntegrity() ;
-    if (integrity == max && damage > 0) toggleForRepairs(true) ;
-    integrity -= damage ;
-    if (integrity <= 0) integrity = 0 ;
+    setIntegrity(integrity - damage) ;
+  }
+  
+  
+  protected void setIntegrity(float level) {
+    integrity = Visit.clamp(level, -1, maxIntegrity()) ;
+    if (integrity < 0) {
+      toggleForRepairs(false) ;
+      //  TODO:  You need to leave some rubble behind!
+      venue.setAsDestroyed() ;
+    }
+    //
+    //  Toggle for repairs based on difference between current and correct
+    //  integrity!
+    else if (integrity < maxIntegrity()) {
+      toggleForRepairs(true) ;
+      if (state == STATE_INTACT) state = STATE_REPAIR ;
+    }
+    else {
+      toggleForRepairs(false) ;
+      if (state == STATE_INSTALL) venue.onCompletion() ;
+      state = STATE_INTACT ;
+    }
+  }
+  
+  
+  public void setState(int newState, float condition) {
+    final int oldState = newState ;
+    this.state = newState ;
+    if (condition >= 0) setIntegrity(maxIntegrity() * condition) ;
+    if (oldState == STATE_INTACT && newState == STATE_SALVAGE) {
+      toggleForRepairs(true) ;
+      venue.onDecommission() ;
+    }
   }
   
   
@@ -94,7 +133,33 @@ public class VenueStructure extends Inventory {
   
   
   public int maxIntegrity() {
-    return baseIntegrity ;
+    return baseIntegrity ;  //ADD UPGRADE BONUSES
+  }
+  
+  
+  public int integrity() {
+    return (int) integrity ;
+  }
+  
+  
+  public int correctIntegrity() {
+    if (state == STATE_SALVAGE) return -1 ;
+    else return maxIntegrity() ;
+  }
+  
+  
+  protected boolean complete() {
+    return (state != STATE_INSTALL) && (state != STATE_SALVAGE) ;
+  }
+  
+  
+  protected boolean allowsUse() {
+    return complete() && repairLevel() > 0.5f ;
+  }
+  
+  
+  protected int state() {
+    return state ;
   }
   
   
@@ -112,12 +177,10 @@ public class VenueStructure extends Inventory {
     
   }
   //*/
+  
+  //  ...You should also include a method for reducing integrity, so that
+  //  structural materials can be salvaged too.
 }
-
-
-
-
-
 
 
 

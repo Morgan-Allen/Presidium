@@ -121,11 +121,19 @@ public class DebugBehaviour extends PlayLoop {
   /**  Various scenarios to execute:
     */
   private void baseScenario(World world, Base base, HUD UI) {
+    
+    //*
     final Artificer artificer = new Artificer(base) ;
     artificer.enterWorldAt(8, 8, world) ;
+    artificer.setAsEstablished(true) ;
+    artificer.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+    //*/
+    
     final Garrison garrison = new Garrison(base) ;
     garrison.enterWorldAt(2, 6, world) ;
-    garrison.structure.takeDamage(50) ;
+    garrison.setAsEstablished(true) ;
+    garrison.structure.setState(VenueStructure.STATE_INSTALL, 0.1f) ;
+    ((BaseUI) UI).selection.setSelected(garrison) ;
   }
   
   
@@ -139,12 +147,10 @@ public class DebugBehaviour extends PlayLoop {
     prey.health.setupHealth(Rand.num(), 1, 0) ;
     prey.enterWorldAt(8, 8, world) ;
     
-    //*
     hunter.psyche.assignBehaviour(
       new Hunting(hunter, prey, Hunting.TYPE_FEEDS)
     ) ;
     hunter.assignAction(null) ;
-    //*/
   }
   
   
@@ -170,7 +176,7 @@ public class DebugBehaviour extends PlayLoop {
     
     final Venue garrison = new Garrison(base) ;
     garrison.enterWorldAt(8, 8, world) ;
-    garrison.setAsGrown(true) ;
+    garrison.setAsEstablished(true) ;
   }
   
   

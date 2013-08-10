@@ -165,7 +165,7 @@ public abstract class Element implements
   }
   
   
-  public void setAsGrown(boolean isGrown) {
+  public void setAsEstablished(boolean isGrown) {
     if (isGrown) inceptTime = -10 ;
     else inceptTime = world.currentTime() ;
   }
@@ -231,6 +231,7 @@ public abstract class Element implements
     if (timeGone < 1) sprite.colour = Colour.transparency(timeGone) ;
     else sprite.colour = null ;
     position(sprite.position) ;
+    sprite.update() ;
     rendering.addClient(sprite) ;
   }
   

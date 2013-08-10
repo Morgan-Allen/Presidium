@@ -76,10 +76,12 @@ public class GroupSprite extends Sprite {
     return null ;
   }
   
+  
   public void setAnimation(String animName, float progress) {
     for (Sprite module : modules) module.setAnimation(animName, progress) ;
   }
-
+  
+  
   public void renderTo(Rendering r) {
     final Vec3D pos = position ;
     final Iterator <Vec3D> offs = offsets.iterator() ;
@@ -87,6 +89,7 @@ public class GroupSprite extends Sprite {
       final Vec3D off = offs.next() ;
       module.colour = colour ;
       module.scale = scale ;
+      module.fog = fog ;
       module.position.setTo(off.scale(scale)).add(pos) ;
       module.renderTo(r) ;
     }

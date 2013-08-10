@@ -64,7 +64,9 @@ public class Treatment extends Plan implements ActorConstants {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
-    //  ...You need to include distance and danger factors, et cetera.
+    //  ...You need to include distance and danger factors, et cetera.  Also,
+    //  patients not bleeding and indoors are okay.
+    if (patient.indoors() && ! patient.health.bleeding()) return 0 ;
     return patient.health.injuryLevel() * PARAMOUNT ;
   }
   

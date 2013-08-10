@@ -204,6 +204,8 @@ public class Action implements Behaviour, Model.AnimNames {
     if ((properties & RANGED) != 0) minDist = actor.health.sightRange() ;
     actor.pathing.updateWithTarget(moveTarget, minDist) ;
     
+    //  TODO:  The 'Close Enough' test needs to ensure that the actor is facing
+    //  toward to target as well.
     if (actor.pathing.closeEnough()) {
       actor.headTowards(actionTarget, 0) ;
       if (inRange != 1) {

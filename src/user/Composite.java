@@ -1,4 +1,8 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 package src.user ;
 import src.graphics.common.* ;
@@ -48,6 +52,10 @@ public class Composite extends Image {
   
   
   protected void render() {
+    //
+    //  TODO:  You'll have to use render-to-texture functions here?  You'd need
+    //  OpenGL for that, though.  Might want to get some formal technical
+    //  advice on that point.
     for (Layer layer : layers) {
       renderIn(bounds, layer.tex, layer.UV) ;
     }

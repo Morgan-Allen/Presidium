@@ -31,6 +31,7 @@ public class Healthbar extends Sprite {
   
   public float level = 0.5f ;
   public float size = DEFAULT_WIDTH ;
+  public Colour full = Colour.BLUE, empty = Colour.RED ;
   
   
   public Healthbar() {}
@@ -77,16 +78,34 @@ public class Healthbar extends Sprite {
     GL11.glBegin(GL11.GL_QUADS) ;
     //
     //  First, do the background-
-    final float f = (float) Math.sqrt(fog) ;
-    GL11.glColor4f(0.5f * f, 0.5f * f, 0.5f * f, 1) ;
+    final Colour a = full, b = empty ;
+    final Colour c = colour == null ? Colour.WHITE : colour ;
+    final float s = 1 - level, f = fog ;
+    GL11.glColor4f(
+      0.5f * f * c.r,
+      0.5f * f * c.g,
+      0.5f * f * c.b,
+      1 * c.a
+    ) ;
     UINode.drawQuad(
       x, y, x + (int) size, y + BAR_HEIGHT,
       0, 0, 1, 1, base.z
     ) ;
     //
     //  Then, the filled section-
-    final Colour c = colour == null ? Colour.WHITE : colour ;
-    GL11.glColor4f(c.r * f, c.g * f, c.b * f, 1) ;
+    final Colour mix = new Colour().set(
+      (a.r * level) + (b.r * s),
+      (a.g * level) + (b.g * s),
+      (a.b * level) + (b.b * s),
+      1
+    ) ;
+    mix.setValue(1) ;
+    GL11.glColor4f(
+      mix.r * c.r * f,
+      mix.g * c.g * f,
+      mix.b * c.b * f,
+      1 * c.a
+    ) ;
     UINode.drawQuad(
       x, y, x + (int) (size * level), y + BAR_HEIGHT,
       0, 0, 1, 1, base.z

@@ -66,6 +66,22 @@ public class ImageModel extends Model {
   
   /**  Public factory methods for different model types-
     */
+
+  
+  public static ImageModel asPoppedModel(
+    Class modelClass,
+    String texFile, float tileSize, float height
+  ) {
+    final String modelName = "IMAGE-MODEL-"+texFile ;
+    Object cached = LoadService.getResource(modelName) ;
+    if (cached != null) return (ImageModel) cached ;
+    return new ImageModel(
+      modelName, modelClass,
+      Texture.loadTexture(texFile),
+      tileSize, height, TYPE_BOX
+    ) ;
+  }
+  
   
   public static ImageModel asIsometricModel(
     Class modelClass,
@@ -169,7 +185,6 @@ public class ImageModel extends Model {
   
   /**  Generation and translation of coordinates-
     */
-  
   private Vec3D[] genFlatCoordinates(float s, float h) {
     final float
       w = s * (float) Math.sqrt(2),
@@ -316,11 +331,13 @@ public class ImageModel extends Model {
   }
   
   
+  
   /**  Actual sprite production-
     */
   public ImageSprite makeSprite() {
     return new ImageSprite(this) ;
   }
+  
   
   public Colour averageHue() {
     return texture.averaged() ;

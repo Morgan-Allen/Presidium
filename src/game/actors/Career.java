@@ -128,7 +128,7 @@ public class Career implements ActorConstants {
       if (fullName == null) fullName = name ;
       else fullName+=" "+name ;
     }
-    I.say("Full name: "+fullName) ;
+    ///I.say("Full name: "+fullName) ;
     //
     //  Along with current wealth and equipment-
     applyGear(vocation, actor) ;
@@ -215,7 +215,7 @@ public class Career implements ActorConstants {
   
   
   private void applyVocation(Vocation v, Actor actor) {
-    I.say("Applying vocation: "+v) ;
+    ///I.say("Applying vocation: "+v) ;
     
     for (Skill s : v.baseSkills.keySet()) {
       final int level = v.baseSkills.get(s) ;
@@ -225,7 +225,7 @@ public class Career implements ActorConstants {
     for (Trait t : v.traitChances.keySet()) {
       final float chance = v.traitChances.get(t) ;
       if (Rand.num() < Math.abs(chance)) {
-        I.say("Adding trait: "+t) ;
+        ///I.say("Adding trait: "+t) ;
         actor.traits.incLevel(t, chance > 0 ? 1 : -1) ;
       }
       else actor.traits.incLevel(t, chance * Rand.num()) ;

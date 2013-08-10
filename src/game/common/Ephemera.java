@@ -78,11 +78,11 @@ public class Ephemera {
         float timeGone = world.currentTime() - ghost.inceptTime ;
         timeGone += PlayLoop.frameTime() / PlayLoop.UPDATES_PER_SECOND ;
         
-        if (timeGone >= 1) { SG.remove(ghost) ; continue ; }
+        if (timeGone >= 2) { SG.remove(ghost) ; continue ; }
         else {
           final Sprite s = ghost.sprite ;
           if (! port.intersects(s.position, ghost.size)) continue ;
-          s.colour = Colour.transparency(1 - timeGone) ;
+          s.colour = Colour.transparency((2 - timeGone) / 2) ;
           results.add(ghost) ;
         }
       }

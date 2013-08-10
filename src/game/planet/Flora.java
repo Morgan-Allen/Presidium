@@ -87,7 +87,7 @@ public class Flora extends Element implements TileConstants {
           }
           stage = Visit.clamp(stage, 0, MAX_GROWTH - 0.5f) ;
           f.incGrowth(stage, world, true) ;
-          f.setAsGrown(true) ;
+          f.setAsEstablished(true) ;
           ///f.setInceptTime(-10) ;
         }
         else if (Rand.num() < GROWTH_PER_UPDATE) {
@@ -120,7 +120,7 @@ public class Flora extends Element implements TileConstants {
     final ImageModel model = habitat.floraModels[varID][tier] ;
     final Sprite oldSprite = this.sprite() ;
     attachSprite(model.makeSprite()) ;
-    setAsGrown(false) ;
+    setAsEstablished(false) ;
     world.ephemera.addGhost(origin(), radius() * 2, oldSprite) ;
   }
   

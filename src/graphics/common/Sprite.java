@@ -47,6 +47,13 @@ public abstract class Sprite implements Rendering.Client {
   public Colour averageHue() {
     return model().averageHue() ;
   }
+  
+  
+  public void matchTo(Sprite s) {
+    position.setTo(s.position) ;
+    fog = s.fog ;
+    colour = s.colour ;
+  }
 }
 
 

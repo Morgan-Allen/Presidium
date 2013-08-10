@@ -139,7 +139,7 @@ public class Outcrop extends Fixture {
     final Sprite s = model.makeSprite() ;
     if (size > 1 || type == TYPE_DUNE) s.scale = size / 2f ;
     attachSprite(s) ;
-    setAsGrown(true) ;
+    setAsEstablished(true) ;
   }
   
   

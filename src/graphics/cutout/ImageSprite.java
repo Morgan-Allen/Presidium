@@ -31,8 +31,7 @@ public class ImageSprite extends Sprite {
   
   public void setAnimation(String animName, float progress) {
     final Model.AnimRange range = rangeFor(animName) ;
-    progress %= 1 ;
-    animProgress = range.start + ((range.end - range.start) * progress) ;
+    animProgress = range.start + ((range.end - range.start) * (progress % 1)) ;
   }
   
   
@@ -53,7 +52,7 @@ public class ImageSprite extends Sprite {
     //  Obtain the correct set of UV coordinates for the current frame-
     model.texture.bindTex() ;
     final float framesUV[][] = model.framesUV() ;
-    final float texUV[] = framesUV[(int) (framesUV.length * animProgress)] ;
+    final float texUV[] = framesUV[(int) animProgress] ;
     //
     //  TODO:  Consider replacing this with an aggregate method within the
     //  MeshBuffer class?  Re-implement RenderPass, in other words.

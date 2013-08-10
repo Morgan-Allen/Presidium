@@ -262,9 +262,9 @@ public class ActorTraits implements ActorConstants {
     Actor b, Skill opposed,
     float bonus
   ) {
-    float bonusA = trueLevel(checked) + Math.max(0, bonus) ;
+    float bonusA = useLevel(checked) + Math.max(0, bonus) ;
     float bonusB = 0 - Math.min(0, bonus) ;
-    if (b != null) bonusB += b.traits.trueLevel(opposed) ;
+    if (b != null) bonusB += b.traits.useLevel(opposed) ;
     final float chance = Visit.clamp(bonusA + 10 - bonusB, 0, 20) / 20 ;
     ///I.say("Test chance for "+actor+" is: "+chance) ;
     return chance ;

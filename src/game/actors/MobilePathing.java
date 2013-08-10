@@ -140,7 +140,7 @@ public class MobilePathing {
       pathTarget = dest ;
       refreshPath() ;
       if (path == null) {
-        ///I.say("COULDN'T FIND PATH TO: "+pathTarget) ;
+        I.say("COULDN'T FIND PATH TO: "+pathTarget) ;
         mobile.pathingAbort() ;
         stepIndex = -1 ;
         return ;
@@ -158,7 +158,7 @@ public class MobilePathing {
   
   
   Target nextStep() {
-    if (stepIndex == -1) return null ;
+    if (stepIndex == -1 || path == null) return null ;
     return path[stepIndex] ;
   }
 }

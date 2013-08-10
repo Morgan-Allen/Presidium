@@ -13,6 +13,7 @@ import src.user.* ;
 import src.util.* ;
 import src.game.planet.Terrain;
 import src.game.social.Accountable ;
+import src.graphics.sfx.Healthbar;
 import src.graphics.sfx.PlaneFX ;
 
 
@@ -95,7 +96,7 @@ public abstract class Actor extends Mobile implements
   public void assignAction(Action action) {
     world.activities.toggleActive(this.actionTaken, false) ;
     this.actionTaken = action ;
-    actionTaken.updateAction() ;
+    if (action != null) actionTaken.updateAction() ;
     world.activities.toggleActive(action, true) ;
   }
   
@@ -191,17 +192,26 @@ public abstract class Actor extends Mobile implements
   
   /**  Rendering and interface methods-
     */
+  protected boolean visibleTo(Base base) {
+    if (indoors()) return false ;
+    return super.visibleTo(base) ;
+  }
+  
+  
   public void renderFor(Rendering rendering, Base base) {
     //
     //  Make a few basic sanity checks for visibility-
-    if (indoors()) return ;
+    //if (indoors()) return ;
     final float scale = spriteScale() ;
     final Sprite s = sprite() ;
-    if (base != null) {
-      float fog = base.intelMap.fogAt(origin()) ;
-      if (fog == 0) return ;
-      else s.fog = fog ;
-    }
+    
+    final Healthbar bar = new Healthbar() ;
+    bar.level = 1 - health.stressLevel() ;
+    bar.size = health.maxHealth() * 2 ;
+    bar.matchTo(s) ;
+    bar.position.z -= radius() ;
+    rendering.addClient(bar) ;
+    
     //
     //  Render your shadow, either on the ground or on top of occupants-
     final float R2 = (float) Math.sqrt(2) ;

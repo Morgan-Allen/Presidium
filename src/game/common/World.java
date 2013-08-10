@@ -262,7 +262,7 @@ public class World {
     Vec3D viewPos = new Vec3D() ;
     float viewRad = -1 ;
     for (Mobile active : this.mobiles) {
-      if (active.sprite() == null) continue ;
+      if (active.sprite() == null || ! active.visibleTo(base)) continue ;
       active.viewPosition(viewPos) ;
       viewRad = (active.height() / 2) + active.radius() ;
       if (rendering.port.intersects(viewPos, viewRad)) {

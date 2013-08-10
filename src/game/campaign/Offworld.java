@@ -115,7 +115,7 @@ public class Offworld {
     }
     for (Item item : summary.allItems()) {
       final float bump = (float) Math.ceil(item.amount / 5f) * 5 ;
-      I.say(bump+" of "+item.type+" demanded...") ;
+      ///I.say(bump+" of "+item.type+" demanded...") ;
       summary.removeItem(item) ;
       summary.addItem(new Item(item, bump)) ;
     }

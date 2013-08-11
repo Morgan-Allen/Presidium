@@ -25,10 +25,15 @@ public class VenueStructure extends Inventory {
     STATE_REPAIR  = 2,
     STATE_SALVAGE = 3 ;
   
-  final static int MAX_NUM_UPGRADES = 6 ;
+  final static int
+    SMALL_MAX_UPGRADES  = 3,
+    NORMAL_MAX_UPGRADES = 6,
+    BIG_MAX_UPGRADES    = 12 ;
   final static float UPGRADE_HP_BONUSES[] = {
     //0.15f, 0.1f, 0.1f, 0.5f, 0.5f, 0.5f
-    0.15f, 0.25f, 0.35f, 0.4f, 0.45f, 0.5f
+    0.15f, 0.25f, 0.35f,
+    0.4f , 0.45f, 0.5f ,
+    0.5f , 0.55f, 0.55f, 0.6f , 0.6f , 0.65f
   } ;
   
   
@@ -36,6 +41,10 @@ public class VenueStructure extends Inventory {
   private int state = STATE_INSTALL ;
   private int baseIntegrity = DEFAULT_INTEGRITY ;
   private float integrity = baseIntegrity ;
+
+  private int maxUpgrades = NORMAL_MAX_UPGRADES ;
+  private Table <Upgrade, Integer> upgrades = new Table <Upgrade, Integer> () ;
+  
   //  float armour, shields ;
   //  Item materials[] ;
   //  List <Upgrade> upgrades ;
@@ -64,8 +73,9 @@ public class VenueStructure extends Inventory {
   }
   
   
-  public void setupStats(int baseIntegrity) {
+  public void setupStats(int baseIntegrity, int maxUpgrades) {
     this.integrity = this.baseIntegrity = baseIntegrity ;
+    this.maxUpgrades = maxUpgrades ;
   }
   
   
@@ -75,7 +85,12 @@ public class VenueStructure extends Inventory {
   /**  Queries and modifications-
     */
   public void repairBy(float repairs) {
-    if (repairs < 0) I.complain("NEGATIVE REPAIR!") ;
+    //  This can also be used to perform salvage.
+    
+      //  Implement burning, and try to cancel it out?
+      //  if (burning && Rand.num() * baseIntegrity < repairs) burning = false ;
+    
+    //if (repairs < 0) I.complain("NEGATIVE REPAIR!") ;
     setIntegrity(integrity + repairs) ;
   }
   
@@ -119,6 +134,9 @@ public class VenueStructure extends Inventory {
   }
   
   
+  //
+  //  TODO:  You need to toggle the venue as needing repairs whenever correct
+  //  integrity does not match maximum integrity.
   private void toggleForRepairs(boolean needs) {
     final World world = venue.world() ;
     world.presences.togglePresence(
@@ -133,7 +151,8 @@ public class VenueStructure extends Inventory {
   
   
   public int maxIntegrity() {
-    return baseIntegrity ;  //ADD UPGRADE BONUSES
+    final float upBonus = 1 ;// + UPGRADE_HP_BONUSES[upgrades.size() - 1] ;
+    return (int) (baseIntegrity * upBonus) ;
   }
   
   
@@ -144,6 +163,7 @@ public class VenueStructure extends Inventory {
   
   public int correctIntegrity() {
     if (state == STATE_SALVAGE) return -1 ;
+    //  TODO:  Base this on the number on upgrades NOT due for salvage.
     else return maxIntegrity() ;
   }
   
@@ -158,29 +178,65 @@ public class VenueStructure extends Inventory {
   }
   
   
+  protected boolean needsRepair() {
+    return correctIntegrity() != integrity ;
+  }
+  
+  
   protected int state() {
     return state ;
   }
   
   
+  
+  /**  Regular updates-
+    */
   protected void updateStructure(int numUpdates) {
+    //  if (burning) takeDamage(Rand.num() * 5) ;
+    //  TODO:  Structures can also suffer breakdowns due to simple wear and
+    //  tear.  (Ancient or organic structures are immune to this, and the
+    //  latter can actively regenerate damage.)
   }
   
   
-  /*
-  public void beginUpgrade(String name) {
-    
-  }
   
   
-  public void removeUpgrade(String name) {
-    
-  }
-  //*/
-  
+  /**  Handling upgrades-
+    */
+  //
   //  ...You should also include a method for reducing integrity, so that
   //  structural materials can be salvaged too.
+  
+  //  Okay.  You need to check to make sure that upgrades cannot be used while
+  //  construction is underway, or while the venue is badly damaged, in
+  //  proportion to the health bonus involved.
+  
+  public boolean canUse(Upgrade upgrade) {
+    Integer useState = upgrades.get(upgrade) ;
+    if (useState == null || useState != STATE_INTACT) return false ;
+    return true ;
+  }
+  
+  
+  public boolean allows(Upgrade upgrade) {
+    if (upgrades.size() >= maxUpgrades) return false ;
+    if (upgrade.required == null) return true ;
+    if (! upgrades.keySet().contains(upgrade.required)) return false ;
+    return true ;
+  }
+  
+  
+  public void beginUpgrade(Upgrade begun) {
+    upgrades.put(begun, STATE_INSTALL) ;
+  }
+  
+  
+  public void removeUpgrade(Upgrade removed) {
+    ///upgrades.remove(removed) ;  // (Take off a chunk of health?)
+  }
 }
+
+
 
 
 

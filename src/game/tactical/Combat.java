@@ -98,7 +98,7 @@ public class Combat extends Plan implements ActorConstants {
   public static float combatPriority(
     Actor actor, Actor enemy, float winReward, float lossCost
   ) {
-    if (actor == enemy) return 0 ;
+    if (actor == enemy || winReward <= 0) return 0 ;
     final float
       actorStrength = combatStrength(actor, enemy),
       enemyStrength = combatStrength(enemy, actor),

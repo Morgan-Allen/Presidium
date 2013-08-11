@@ -19,6 +19,15 @@ public class VenuePersonnel {
   /**  Fields, constructors, and save/load methods-
     */
   final Venue venue ;
+  
+  static class Opening {
+    Vocation position ;
+    Actor applies ;
+    int salary ;
+  }
+  
+  final List <Opening>
+    applications = new List <Opening> () ;
   final List <Actor>
     workers   = new List <Actor> (),
     residents = new List <Actor> () ;
@@ -52,32 +61,34 @@ public class VenuePersonnel {
   
   
   
-  /**
-    * Life cycle, recruitment and updates-
+  /**  Handling applications and recruitment-
     */
-  protected void onWorldEntry() {
-    // TODO: This is a temporary measure. Abolish later.
-    // Soon, you'll want an explicit process of screening applicants for a
-    // given position.
-    for (Vocation v : venue.careers()) recruitWorker(v) ;
+  public void applyFor(Vocation v, Actor applies) {
+    final Opening a = new Opening() ;
+    a.position = v ;
+    a.applies = applies ;
+    //  TODO:  You might want to vary this a bit, based on the actor's
+    //  personality and how much they like the settlement's reputation.
+    a.salary = ((v.standing + 1) * 100) ;// + Rand.index(100) - 50 ;
   }
   
   
-  protected void onWorldExit() {
+  
+  /**  Life cycle, recruitment and updates-
+    */
+  protected void onCompletion() {
+    //  Soon, you'll want an explicit process of screening applicants for a
+    //  given position.
+    if (GameSettings.hireFree) for (Vocation v : venue.careers()) {
+      int num = venue.numOpenings(v) ;
+      while (num-- > 0) recruitWorker(v) ;
+    }
+  }
+  
+  
+  protected void onDecommission() {
     for (Actor c : workers()) c.psyche.setEmployer(null) ;
     for (Actor c : residents()) c.psyche.setHomeVenue(null) ;
-  }
-  
-  
-  public void setWorker(Actor c, boolean is) {
-    if (is) workers.include(c) ;
-    else workers.remove(c) ;
-  }
-  
-  
-  public void setResident(Actor c, boolean is) {
-    if (is) residents.include(c) ;
-    else residents.include(c) ;
   }
   
   
@@ -92,7 +103,20 @@ public class VenuePersonnel {
       final Tile t = venue.mainEntrance() ;
       citizen.enterWorldAt(t.x, t.y, venue.world()) ;
     }
-    else venue.base.offworld.addImmigrant(citizen) ;
+    else I.complain("SORT OUT THE FREIGHTER.  CRIPES.") ;
+    //else venue.base.offworld.addImmigrant(citizen) ;
+  }
+  
+  
+  public void setWorker(Actor c, boolean is) {
+    if (is) workers.include(c) ;
+    else workers.remove(c) ;
+  }
+  
+  
+  public void setResident(Actor c, boolean is) {
+    if (is) residents.include(c) ;
+    else residents.include(c) ;
   }
   
   

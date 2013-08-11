@@ -24,7 +24,7 @@ public class Base implements Session.Saveable, Schedule.Updates {
   /**  Fields, constructors, and save/load methods-
     */
   final public World world ;
-  final public Offworld offworld = new Offworld(this) ;  //Move to world.
+  ///final public Offworld offworld = new Offworld(this) ;  //Move to world.
   
   Actor ruler ;
   Venue commandPost ;
@@ -48,7 +48,7 @@ public class Base implements Session.Saveable, Schedule.Updates {
     s.cacheInstance(this) ;
     this.world = s.world() ;
 
-    offworld.loadState(s) ;
+    ///offworld.loadState(s) ;
     ruler = (Actor) s.loadObject() ;
     s.loadObjects(missions) ;
     
@@ -64,7 +64,7 @@ public class Base implements Session.Saveable, Schedule.Updates {
   
   public void saveState(Session s) throws Exception {
     
-    offworld.saveState(s) ;
+    ///offworld.saveState(s) ;
     s.saveObject(ruler) ;
     s.saveObjects(missions) ;
     
@@ -109,7 +109,7 @@ public class Base implements Session.Saveable, Schedule.Updates {
   
   
   public void updateAsScheduled(int numUpdates) {
-    offworld.updateEvents() ;
+    ///offworld.updateEvents() ;
     for (Mission mission : missions) {
       mission.updateMission() ;
     }

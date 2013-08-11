@@ -10,6 +10,7 @@ import src.game.planet.* ;
 import src.game.actors.* ;
 import src.graphics.widgets.* ;
 import src.graphics.common.* ;
+import src.user.* ;
 import src.util.* ;
 import src.game.common.WorldSections.Section ;
 
@@ -327,7 +328,7 @@ public class World {
     Mobile nearest = null ;
     float minDist = Float.POSITIVE_INFINITY ;
     for (Mobile m : mobiles) {
-      if (m.indoors()) continue ;
+      if (m.indoors() || ! (m instanceof Selectable)) continue ;
       final float selRad = (m.height() + m.radius()) / 2 ;
       final Vec3D selPos = m.viewPosition(null) ;
       if (! port.mouseIntersects(selPos, selRad, UI)) continue ;

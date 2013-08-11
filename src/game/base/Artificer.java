@@ -43,34 +43,9 @@ public class Artificer extends Venue implements VenueConstants {
   
   
   
-  /**  Implementation of employee behaviour-
+  /**  Economic functions, upgrades and employee behaviour-
     */
-  public void updateAsScheduled(int numUpdates) {
-    super.updateAsScheduled(numUpdates) ;
-    //
-    //  TODO:  This is a temporary measure.  Remove later.
-    for (Item.Type good : services()) {
-      if (orders.receivedShortage(good) < 10) orders.receiveDemand(good, 10) ;
-    }
-    orders.translateDemands(conversions()) ;
-  }
-  
-  
-  public Behaviour jobFor(Actor actor) {
-    
-    final Delivery d = orders.nextDelivery(actor, services()) ;
-    if (d != null) return d ;
-    
-    final Manufacture m = orders.nextManufacture(actor, conversions()) ;
-    if (m != null) return m ;
-    
-    return null ;
-  }
-  
-  
-  protected Conversion[] conversions() {
-    return new Conversion[] { METALS_TO_PARTS } ;
-  }
+  //  TODO:  Include upgrades here.
   
   
   protected Item.Type[] services() {
@@ -79,7 +54,38 @@ public class Artificer extends Venue implements VenueConstants {
   
   
   protected Vocation[] careers() {
-    return new Vocation[] { Vocation.ARTIFICER } ;
+    return new Vocation[] { Vocation.TECHNICIAN, Vocation.ARTIFICER } ;
+  }
+  
+  
+  public int numOpenings(Vocation v) {
+    int num = super.numOpenings(v) ;
+    if (v == Vocation.TECHNICIAN) return num + 2 ;
+    if (v == Vocation.ARTIFICER ) return num + 0 ;
+    return 0 ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    //
+    //  TODO:  This is a temporary measure.  Remove later.
+    for (Item.Type good : services()) {
+      if (orders.receivedShortage(good) < 10) orders.receiveDemand(good, 10) ;
+    }
+    orders.translateDemands(METALS_TO_PARTS) ;
+  }
+  
+  
+  public Behaviour jobFor(Actor actor) {
+    
+    final Delivery d = orders.nextDelivery(actor, services()) ;
+    if (d != null) return d ;
+    
+    final Manufacture m = orders.nextManufacture(actor, METALS_TO_PARTS) ;
+    if (m != null) return m ;
+    
+    return null ;
   }
   
   
@@ -89,7 +95,7 @@ public class Artificer extends Venue implements VenueConstants {
   public Composite portrait(BaseUI UI) {
     return new Composite(UI, "media/GUI/Buttons/artificer_button.gif") ;
   }
-
+  
   public String fullName() { return "Artificer" ; }
   
   public String helpInfo() {

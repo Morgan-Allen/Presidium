@@ -300,7 +300,8 @@ public class Human extends Actor implements ActorConstants {
   private void describeStatus(Description d, BaseUI UI) {
     //
     //  Describe your job, place of work, and current residence:
-    d.append("Occupation: ") ;
+    d.append("Vocation: "+this.vocation().name) ;
+    d.append("\nWorkplace: ") ;
     if (psyche.work() != null) {
       d.append(psyche.work()) ;
     }

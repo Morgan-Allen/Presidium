@@ -7,14 +7,17 @@
 
 package src.game.building ;
 import src.game.common.* ;
-import src.game.planet.Planet;
 import src.game.actors.* ;
-import src.graphics.common.* ;
-import src.user.BaseUI;
-import src.user.InstallTab;
-import src.user.Composite;
-import src.user.Description;
-import src.util.* ;
+//import src.graphics.common.* ;
+import src.user.* ;
+//import src.util.* ;
+
+
+
+//
+//  TODO:  Get rid of this.  It's a mess of ungodly proportions.  Just have
+//  the freighter land, clear the area below, eject the crew, and do any
+//  necessary supply duties by itself.
 
 
 
@@ -72,7 +75,7 @@ public class DropZone extends Venue implements VenueConstants {
   
   
   private static int sizeFor(Vehicle landing) {
-    return (int) Math.ceil(landing.radius() * 2) ;
+    return (int) Math.ceil(landing.radius() * 2) + 2 ;
   }
   
   
@@ -95,9 +98,11 @@ public class DropZone extends Venue implements VenueConstants {
     return new Vocation[0] ;
   }
   
+  
   protected Item.Type[] services() {
     return ALL_ITEM_TYPES ;
   }
+  
   
   public Behaviour jobFor(Actor actor) {
     return orders.nextDelivery(actor, services()) ;
@@ -125,7 +130,9 @@ public class DropZone extends Venue implements VenueConstants {
     return batch ;
   }
   
+  
   protected void updatePaving(boolean inWorld) {}
+  
   
   public Vehicle landing() {
     return landing ;

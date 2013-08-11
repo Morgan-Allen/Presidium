@@ -8,18 +8,16 @@
 package src.game.actors ;
 import src.game.building.* ;
 import src.game.common.* ;
+import src.game.social.* ;
 import src.graphics.common.* ;
+import src.graphics.sfx.* ;
 import src.user.* ;
 import src.util.* ;
-import src.game.planet.Terrain;
-import src.game.social.Accountable ;
-import src.graphics.sfx.Healthbar;
-import src.graphics.sfx.PlaneFX ;
 
 
 
 public abstract class Actor extends Mobile implements
-  Inventory.Owner, Accountable
+  Inventory.Owner, Accountable, Selectable
 {
   
   
@@ -255,6 +253,44 @@ public abstract class Actor extends Mobile implements
   
   protected float shadowHeight(Vec3D p) {
     return world.terrain().trueHeight(p.x, p.y) ;
+  }
+  
+
+  public String[] infoCategories() {
+    return null ;
+  }
+  
+  
+  public InfoPanel createPanel(BaseUI UI) {
+    return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
+  }
+
+  
+  
+  public void renderSelection(Rendering rendering, boolean hovered) {
+    if (indoors()) return ;
+    Selection.renderPlane(
+      rendering, viewPosition(null), radius() + 0.5f,
+      hovered ? Colour.transparency(0.5f) : Colour.WHITE,
+      Selection.SELECT_CIRCLE
+    ) ;
+  }
+  
+  
+  public Target subject() {
+    return this ;
+  }
+  
+
+  public String toString() {
+    return fullName() ;
+  }
+  
+  
+  public void whenClicked() {
+    if (PlayLoop.currentUI() instanceof BaseUI) {
+      ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
+    }
   }
 }
 

@@ -65,14 +65,14 @@ public class Paving {
   public void updateJunction(Tile t, boolean isMember) {
     junctions.toggleMember(t, isMember) ;
     if (isMember) {
-      I.say("Updating road junction "+t) ;
+      ///I.say("Updating road junction "+t) ;
       for (Target o : junctions.visitNear(t, PATH_RANGE, null)) {
         final Tile jT = (Tile) o ;
         routeBetween(t, jT) ;
       }
     }
     else {
-      I.say("Deleting road junction "+t) ;
+      ///I.say("Deleting road junction "+t) ;
       for (Route r : tileRoutes.get(t)) deleteRoute(r) ;
     }
   }

@@ -3,7 +3,9 @@
 package src.game.tactical ;
 import src.game.common.* ;
 import src.game.actors.* ;
-import src.user.Description;
+import src.game.building.* ;
+import src.game.base.* ;
+import src.user.* ;
 
 
 //
@@ -17,20 +19,21 @@ public class Treatment extends Plan implements ActorConstants {
   /**  Constants, field definitions, constructors and save/load methods-
     */
   final public static int
-    FIRST_AID    = 0,
-    MEDICATION   = 1 ;/*,
-    SURGERY      = 2,
-    GENE_THERAPY = 3,
-    CONDITIONING = 4 ;
+    TYPE_FIRST_AID    = 0, FIRST_AID_DC    = 5 , FIRST_AID_XP    = 10,
+    TYPE_MEDICATION   = 1, MEDICATION_DC   = 10, MEDICATION_XP   = 20,
+    TYPE_PSYCH_EVAL   = 2, PSYCH_EVAL_DC   = 15, PSYCH_EVAL_XP   = 40 ;/*,
+    TYPE_SURGERY      = 3, SURGERY_DC      = 20, SURGERY_XP      = 75,
+    TYPE_GENE_THERAPY = 4, GENE_THERAPY_DC = 25, GENE_THERAPY_XP = 150,
+    TYPE_CONDITIONING = 5, CONDITIONING_DC = 30, CONDITIONING_XP = 200 ;
   //*/
   
   final Actor patient ;
   final int type ;
   Trait applied = null ;
   
-
+  
   public Treatment(Actor actor, Actor patient) {
-    this(actor, patient, FIRST_AID, null) ;
+    this(actor, patient, TYPE_FIRST_AID, null) ;
   }
   
   
@@ -80,7 +83,7 @@ public class Treatment extends Plan implements ActorConstants {
   
   protected Behaviour getNextStep() {
     switch (type) {
-      case (FIRST_AID) :
+      case (TYPE_FIRST_AID) :
         if (patient.health.bleeding()) {
           final Action firstAid = new Action(
             actor, patient,
@@ -91,28 +94,25 @@ public class Treatment extends Plan implements ActorConstants {
         }
       break ;
     }
-    /*
-    if ((! patient.health.okay()) && (! patient.indoors())) {
-      Venue shelter = (Venue) actor.realm().nearestService(
-        actor, Economy.HEALTHCARE, -1
-      ) ;
-      if (shelter == null) shelter = actor.AI.home() ;
-      if (shelter != null) {
-        final Delivery transport = new Delivery(patient, shelter) ;
-        transport.bindActor(boundActor()) ;
+    
+    if ((! patient.health.conscious()) && (! patient.indoors())) {
+      Venue haven = Retreat.nearestHaven(actor, Sickbay.class) ;
+      
+      if (haven == null) haven = actor.psyche.home() ;
+      if (haven != null) {
+        final Delivery transport = new Delivery(patient, haven) ;
         return transport ;
       }
     }
-    //*/
     return null ;
   }
   
   
   public boolean actionFirstAid(Actor actor, Actor patient) {
-    float DC = 20 * patient.health.injuryLevel() ;
+    float DC = FIRST_AID_DC + (10 * patient.health.injuryLevel()) ;
     //  IF IN A HOSPITAL, OR HAVE MEDICINE, HALVE THE DIFFICULTY
-    if (actor.traits.test(ANATOMY, DC, 10.0f)) {
-      patient.health.liftInjury(0) ;
+    if (actor.traits.test(ANATOMY, DC, FIRST_AID_XP)) {
+      patient.health.liftInjury(1) ;
     }
     return true ;
   }

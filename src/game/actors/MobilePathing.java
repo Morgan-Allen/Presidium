@@ -15,6 +15,10 @@ import src.util.* ;
 //
 //  You need to base proximity tests on spacing/distance, rather than location.
 
+//
+//  TODO:  Consider merging this with the Mobile class, since things like
+//  missile FX etc. will probably be ephemera instead.
+
 public class MobilePathing {
   
   
@@ -94,18 +98,18 @@ public class MobilePathing {
   }
   
   
-  void updateWithTarget(Target target, float minDist) {
+  void updateWithTarget(Target moveTarget, float minDist) {
     //
     //  Firstly, check to see if the actual path target has been changed-
-    this.target = target ;
+    this.target = moveTarget ;
     if (
-      ((target instanceof Element) || (target instanceof Tile)) &&
-      Spacing.distance(mobile, target) <= minDist
+      (! (moveTarget instanceof Venue)) &&
+      (Spacing.distance(mobile, moveTarget) <= minDist)
     ) {
       closeEnough = true ;
       return ;
     }
-    final Boardable location = location(mobile), dest = location(target) ;
+    final Boardable location = location(mobile), dest = location(moveTarget) ;
     ///I.say(mobile+" location: "+location+", dest: "+dest+" ("+target+")") ;
     if (location == dest) {
       closeEnough = true ;
@@ -152,9 +156,11 @@ public class MobilePathing {
   }
   
   
+  //*
   boolean closeEnough() {
     return closeEnough ;
   }
+  //*/
   
   
   Target nextStep() {

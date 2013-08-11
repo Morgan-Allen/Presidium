@@ -39,22 +39,30 @@ public class Garrison extends Venue implements VenueConstants {
   
   
   
-  /**  Behaviour implementation-
+  /**  Upgrades, economic functions and actor behaviour-
     */
-  public Behaviour jobFor(Actor actor) {
-    //
-    //  Grab a random building nearby and patrol around it.  Especially walls.
-    return null ;
+  protected Vocation[] careers() {
+    return new Vocation[] { Vocation.VOLUNTEER, Vocation.VETERAN } ;
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.MILITANT } ;
+  public int numOpenings(Vocation v) {
+    int num = super.numOpenings(v) ;
+    if (v == Vocation.VOLUNTEER) return num + 2 ;
+    if (v == Vocation.VETERAN  ) return num + 0 ;
+    return 0 ;
   }
   
   
   protected Item.Type[] services() {
     return new Item.Type[] {} ;
+  }
+  
+  
+  public Behaviour jobFor(Actor actor) {
+    //
+    //  Grab a random building nearby and patrol around it.  Especially walls.
+    return null ;
   }
   
   

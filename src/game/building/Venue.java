@@ -37,6 +37,7 @@ public abstract class Venue extends Fixture implements
   
   
   BuildingSprite buildSprite ;
+  Healthbar healthbar ;
   
   int entranceFace ;
   Tile entrance ;
@@ -89,19 +90,10 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  public int owningType() {
-    return VENUE_OWNS ;
-  }
-  
-  
-  public Inventory inventory() {
-    return stocks ;
-  }
-  
-  
-  public Base base() {
-    return base ;
-  }
+  public int owningType() { return VENUE_OWNS ; }
+  public Inventory inventory() { return stocks ; }
+  public Base base() { return base ; }
+  protected Index allUpgrades() { return null ; }
   
   
   
@@ -133,12 +125,19 @@ public abstract class Venue extends Fixture implements
   }
   
   
+  public void setPosition(float x, float y, World world) {
+    super.setPosition(x, y, world) ;
+    final Tile o = origin() ;
+    final int off[] = Spacing.entranceCoords(size, size, entranceFace) ;
+    entrance = world.tileAt(o.x + off[0], o.y + off[1]) ;
+  }
+  
+  
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
     world.presences.togglePresence(this, true , services()) ;
     if (base != null) updatePaving(true) ;
     world.schedule.scheduleForUpdates(this) ;
-    personnel.onWorldEntry() ;
   }
   
   
@@ -146,16 +145,33 @@ public abstract class Venue extends Fixture implements
     world.presences.togglePresence(this, false, services()) ;
     if (base != null) updatePaving(false) ;
     world.schedule.unschedule(this) ;
-    personnel.onWorldExit() ;
     super.exitWorld() ;
   }
   
   
-  public void setPosition(float x, float y, World world) {
-    super.setPosition(x, y, world) ;
-    final Tile o = origin() ;
-    final int off[] = Spacing.entranceCoords(size, size, entranceFace) ;
-    entrance = world.tileAt(o.x + off[0], o.y + off[1]) ;
+  public void setAsEstablished(boolean isDone) {
+    super.setAsEstablished(isDone) ;
+    ///if (isDone) structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+  }
+  
+  
+  public void onCompletion() {
+    world.ephemera.addGhost(origin(), size, buildSprite.scaffolding()) ;
+    setAsEstablished(false) ;
+    personnel.onCompletion() ;
+  }
+  
+  
+  public void onDecommission() {
+    world.ephemera.addGhost(origin(), size, buildSprite.baseSprite()) ;
+    setAsEstablished(false) ;
+    personnel.onDecommission() ;
+  }
+  
+  
+  public void setAsDestroyed() {
+    super.setAsDestroyed() ;
+    personnel.onDecommission() ;
   }
   
   
@@ -241,24 +257,6 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  public void setAsEstablished(boolean isDone) {
-    super.setAsEstablished(isDone) ;
-    ///if (isDone) structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
-  }
-  
-  
-  protected void onCompletion() {
-    world.ephemera.addGhost(origin(), size, buildSprite.scaffolding()) ;
-    setAsEstablished(false) ;
-  }
-  
-  
-  protected void onDecommission() {
-    world.ephemera.addGhost(origin(), size, buildSprite.baseSprite()) ;
-    setAsEstablished(false) ;
-  }
-  
-  
   
   /**  Recruiting staff and assigning manufacturing tasks-
     */
@@ -269,6 +267,17 @@ public abstract class Venue extends Fixture implements
     personnel.setWorker(actor, is) ;
   }
   
+  
+  public int numOpenings(Vocation v) {
+    int num = 0 ;
+    ///for (Upgrade u : structure.upgrades) if (u.refers == v) num++ ;
+    return num ;
+  }
+  
+  
+  //  Careers, services, goods produced, and goods required.  Space has to be
+  //  reserved for both item-orders and service-seating.  And what about shifts
+  //  at work?
   protected abstract Vocation[] careers() ;
   protected abstract Item.Type[] services() ;
   
@@ -286,12 +295,17 @@ public abstract class Venue extends Fixture implements
   
   
   public void doPlace(Tile from, Tile to) {
+    if (sprite() != null) sprite().colour = null ;
     final Tile t = from ;
     setPosition(t.x, t.y, t.world) ;
     clearSurrounds() ;
     enterWorld() ;
-    structure.setState(VenueStructure.STATE_INSTALL, 0) ;
-    if (sprite() != null) sprite().colour = null ;
+    if (GameSettings.buildFree) {
+      structure.setState(VenueStructure.STATE_INTACT , 1) ;
+    }
+    else {
+      structure.setState(VenueStructure.STATE_INSTALL, 0) ;
+    }
   }
 
 
@@ -332,12 +346,12 @@ public abstract class Venue extends Fixture implements
     position(buildSprite.position) ;
     buildSprite.updateCondition(structure.repairLevel(), structure.complete()) ;
     
-    final Healthbar bar = new Healthbar() ;
-    bar.level = structure.repairLevel() ;
-    bar.size = structure.maxIntegrity() ;
-    bar.matchTo(buildSprite) ;
-    bar.position.z += height() ;
-    rendering.addClient(bar) ;
+    if (healthbar == null) healthbar = new Healthbar() ;
+    healthbar.level = structure.repairLevel() ;
+    healthbar.size = structure.maxIntegrity() ;
+    healthbar.matchTo(buildSprite) ;
+    healthbar.position.z += height() ;
+    rendering.addClient(healthbar) ;
     
     super.renderFor(rendering, base) ;
   }

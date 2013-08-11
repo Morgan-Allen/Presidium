@@ -137,6 +137,11 @@ public class BaseUI extends HUD implements UIConstants {
   
   /**  Core update and rendering methods, in order of execution per-frame.
     */
+  //
+  //  TODO:  Don't use the elaborate fade-in/fade-out method here.  Take a
+  //  snapshot of the area around the info-panel, and fade that out over the
+  //  half-second using glBitMap.
+  
   public void updateInput() {
     super.updateInput() ;
     if (newPanel != currentPanel) {

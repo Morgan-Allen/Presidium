@@ -6,7 +6,6 @@
 
 package src.game.common ;
 import src.game.building.* ;
-import src.game.common.* ;
 import src.util.* ;
 
 
@@ -159,17 +158,16 @@ public final class Spacing implements TileConstants {
   
   
   
-  
-  
-  //
-  //  TODO:  You'll need to replace this with a general 'pickBest' method,
-  //  possibly from the Visit class.
-  
-  /**  Promity methods-
+  /**  Proximity methods-
     */
   public static Target nearest(
-    Series <? extends Target> targets, Target client
+    Series <? extends Target> targets, final Target client
   ) {
+    final Visit <Target> v = new Visit <Target> () {
+      public float rate(Target t) { return 0 - distance(t, client) ; }
+    } ;
+    return v.pickBest((Series) targets) ;
+    /*
     Target nearest = null ;
     float minDist = Float.POSITIVE_INFINITY ;
     for (Target t : targets) {
@@ -177,6 +175,7 @@ public final class Spacing implements TileConstants {
       if (dist < minDist) { nearest = t ; minDist = dist ; }
     }
     return nearest ;
+    //*/
   }
   
 
@@ -220,6 +219,40 @@ public final class Spacing implements TileConstants {
       return element.world().tileAt(p.x, p.y) ;
     }
   }
+  
+  
+  
+  /**  Returns a semi-random unblocked tile around the given element.
+    */
+  public static Tile pickFreeTileAround(Target t, Element client) {
+    final Tile perim[] ;
+    if (t instanceof Tile) {
+      perim = ((Tile) t).allAdjacent(null) ;
+    }
+    else if (t instanceof Element) {
+      final Element e = (Element) t ;
+      perim = perimeter(e.area(null), e.world) ;
+    }
+    else return null ;
+    //
+    //  We want to avoid any tiles that are obstructed, including by other
+    //  actors, and probably to stay in the same spot if possible.
+    final Tile l = ((Element) client).origin() ;
+    final boolean inPerim = Visit.arrayIncludes(perim, l) ;
+    ///if (inPerim && Rand.num() > 0.2f) return l ;
+    final Batch <Tile> free = new Batch <Tile> () ;
+    final Batch <Float> weights = new Batch <Float> () ;
+    perimLoop: for (Tile p : perim) {
+      if (p == null || p.blocked()) continue ;
+      if (inPerim && ! Spacing.adjacent(l, client)) continue ;
+      if (p.inside().size() > 0) continue perimLoop ;
+      free.add(p) ;
+      weights.add(1 / (1 + Spacing.distance(p, l))) ;
+    }
+    if (free.size() == 0) return (Tile) Rand.pickFrom(perim) ;
+    return (Tile) Rand.pickFrom(free, weights) ;
+  }
+  
   
   
   /**  Distance calculation methods-

@@ -80,8 +80,8 @@ public class Selection implements UIConstants {
     if (pickMission != null) {
       hovered = pickMission ;
     }
-    else if (pickMobile != null) {
-      hovered = pickMobile ;
+    else if (pickMobile instanceof Selectable) {
+      hovered = (Selectable) pickMobile ;
     }
     else if (pickFixture instanceof Selectable) {
       hovered = (Selectable) pickFixture ;

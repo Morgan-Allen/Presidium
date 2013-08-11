@@ -21,24 +21,34 @@ public class Retreat implements ActorConstants {
   
   
   public static Venue nearestHaven(Actor actor, Class prefClass) {
-    
     final Presences p = actor.world().presences ;
-    //Batch <Venue> considered = new Batch <Venue> () ;
     int numC = (int) (actor.traits.trueLevel(INSIGHT) / 3) ;
     
-    Venue picked = null ;
-    float bestRating = Float.NEGATIVE_INFINITY ;
-    
+    Object picked = null ;
+    float bestRating = 0 ;
+    int numChecked = 0 ;
     
     for (Object t : p.matchesNear(actor.assignedBase(), actor, -1)) {
-      
+      if (numChecked++ > numC) break ;
+      float rating = rateHaven(t, actor, prefClass) ;
+      if (rating > bestRating) { bestRating = rating ; picked = t ; }
     }
-    
-    return null ;
+    numChecked = 0 ;
+    for (Object t : p.matchesNear(prefClass, actor, -1)) {
+      if (numChecked++ > numC) break ;
+      float rating = rateHaven(t, actor, prefClass) ;
+      if (rating > bestRating) { bestRating = rating ; picked = t ; }
+    }
+    return (Venue) picked ;
   }
   
   
-  private static float rateHaven(Venue haven, Actor actor, Class prefClass) {
+  private static float rateHaven(Object t, Actor actor, Class prefClass) {
+    //
+    //  TODO:  Don't pick anything too close by either.  That'll be in a
+    //  dangerous area.
+    if (! (t instanceof Venue)) return -1 ;
+    final Venue haven = (Venue) t ;
     float rating = 1 ;
     if (haven.getClass() == prefClass) rating *= 2 ;
     if (haven.base() == actor.assignedBase()) rating *= 2 ;

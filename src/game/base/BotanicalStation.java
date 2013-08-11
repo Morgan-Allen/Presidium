@@ -191,10 +191,67 @@ public class BotanicalStation extends Venue implements VenueConstants {
   
   
   
-  /**  Economic functions-
+  /**  Handling upgrades and economic functions-
     */
-  public void updateAsScheduled(int numUpdates) {
-    super.updateAsScheduled(numUpdates) ;
+  final static Index
+    ALL_UPGRADES = new Index(BotanicalStation.class, "botanical_upgrades") ;
+  final public static Upgrade
+    CEREAL_LAB = new Upgrade(
+      "Cereal Lab",
+      "Improves cereal yields.  Cereals yield more calories than other crop "+
+      "species, but lack the full range of nutrients required in a healthy "+
+      "diet.",
+      STARCHES, 2,
+      null, ALL_UPGRADES
+    ),
+    BROADLEAF_LAB = new Upgrade(
+      "Broadleaf Lab",
+      "Improves broadleaf yields.  Broadleaves provide a wider range of "+
+      "nutrients, and are valued as luxury exports, but their yield is small.",
+      GREENS, 2,
+      null, ALL_UPGRADES
+    ),
+    FIELD_HAND_QUARTERS = new Upgrade(
+      "Field Hand Quarters",
+      "Hire additional field hands to plant and reap the harvest more "+
+      "quickly, maintain equipment, and bring land under cultivation.",
+      Vocation.FIELD_HAND, 2,
+      null, ALL_UPGRADES
+    ),
+    TREE_FARMING = new Upgrade(
+      "Tree Farming",
+      "Forestry programs assist in terraforming efforts and climate "+
+      "moderation, as well as providing carbons for plastic production.",
+      CARBONS, 1,
+      BROADLEAF_LAB, ALL_UPGRADES
+    ),
+    INSECTRY_LAB = new Upgrade(
+      "Insectry Lab",
+      "Many plantations cultivate colonies of social insects or other "+
+      "invertebrates, both as a source of protein and pollination, pest "+
+      "control, or recycling services.",
+      PROTEIN, 1,
+      BROADLEAF_LAB, ALL_UPGRADES
+    ),
+    BOTANIST_QUARTERS = new Upgrade(
+      "Botanist Quarters",
+      "Botanists are highly-skilled students of plant ecology and gene "+
+      "modification, capable of adapting flora to local climate conditions.",
+      Vocation.BOTANIST, 1,
+      TREE_FARMING, ALL_UPGRADES
+    ) ;
+  
+  
+  protected Index allUpgrades() {
+    return ALL_UPGRADES ;
+  }
+  
+
+  public int numOpenings(Vocation v) {
+    int num = super.numOpenings(v) ;
+    if (v == Vocation.FIELD_HAND) return num + 2 ;
+    if (v == Vocation.BOTANIST  ) return num + 0 ;
+    return 0 ;
   }
   
   
@@ -204,9 +261,7 @@ public class BotanicalStation extends Venue implements VenueConstants {
   
   
   protected Vocation[] careers() {
-    return new Vocation[] {
-      Vocation.BOTANIST, Vocation.FIELD_HAND, Vocation.FIELD_HAND
-    } ;
+    return new Vocation[] { Vocation.BOTANIST, Vocation.FIELD_HAND } ;
   }
   
 
@@ -222,7 +277,9 @@ public class BotanicalStation extends Venue implements VenueConstants {
   }
   
   
-  //protected void updatePaving(boolean inWorld) {}
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+  }
   
   
   

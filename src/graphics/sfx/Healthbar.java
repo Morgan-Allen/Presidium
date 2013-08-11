@@ -24,14 +24,14 @@ public class Healthbar extends Sprite {
   final static int
     BAR_HEIGHT = 3,
     DEFAULT_WIDTH = 40 ;
-  final static Texture BAR_TEX = Texture.loadTexture(
-    "media/SFX/laser_beam.gif"
-  ) ;
-  
+  //
+  //  TODO:  Have the background flash red when at less than half health.
   
   public float level = 0.5f ;
   public float size = DEFAULT_WIDTH ;
   public Colour full = Colour.BLUE, empty = Colour.RED ;
+  
+  private float flash = 0 ;
   
   
   public Healthbar() {}
@@ -82,15 +82,28 @@ public class Healthbar extends Sprite {
     final Colour c = colour == null ? Colour.WHITE : colour ;
     final float s = 1 - level, f = fog ;
     GL11.glColor4f(
-      0.5f * f * c.r,
-      0.5f * f * c.g,
-      0.5f * f * c.b,
+      0.25f * f * c.r,
+      0.25f * f * c.g,
+      0.25f * f * c.b,
       1 * c.a
     ) ;
     UINode.drawQuad(
       x, y, x + (int) size, y + BAR_HEIGHT,
       0, 0, 1, 1, base.z
     ) ;
+    //
+    //  When at less than half health, you need to flash-
+    if (level < 0.5f) {
+      float flashAlpha = 0 ;
+      flashAlpha = (0.5f - level) * 2 ;
+      flash += 0.04f * Math.PI / 2f ;
+      flashAlpha *= f * c.a * Math.abs(Math.sin(flash)) ;
+      GL11.glColor4f(1, 0, 0, flashAlpha) ;
+      UINode.drawQuad(
+        x, y, x + (int) size, y + BAR_HEIGHT,
+        0, 0, 1, 1, base.z
+      ) ;
+    }
     //
     //  Then, the filled section-
     final Colour mix = new Colour().set(

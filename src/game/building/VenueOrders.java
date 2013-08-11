@@ -105,7 +105,7 @@ public class VenueOrders {
   }
   
   
-  public Manufacture nextManufacture(Actor actor, Conversion cons[]) {
+  public Manufacture nextManufacture(Actor actor, Conversion... cons) {
     Manufacture picked = null ;
     float maxUrgency = 0 ;
     for (Conversion c : cons) {
@@ -204,7 +204,7 @@ public class VenueOrders {
   }
   
   
-  public void translateDemands(Conversion cons[]) {
+  public void translateDemands(Conversion... cons) {
     for (Conversion c : cons) {
       for (Item i : c.raw) demandFor(i.type).required = 0 ;
     }
@@ -253,6 +253,7 @@ public class VenueOrders {
       d.received *= 1 - POTENTIAL_INC ;
     }
   }
+  
   
   
   /**  Rendering and interface methods-

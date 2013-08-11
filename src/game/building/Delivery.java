@@ -9,6 +9,7 @@
 package src.game.building ;
 import src.game.common.* ;
 import src.game.actors.* ;
+import src.game.base.* ;
 import src.util.* ;
 import src.user.* ;
 
@@ -26,13 +27,17 @@ public class Delivery extends Plan {
     STAGE_DROPOFF = 1,
     STAGE_DONE = 2 ;
   
-  final public Venue origin, destination ;
+  final public Venue origin, destination ;  //Allow arbitrary Owners instead.
   final public Item items[] ;
-  private byte stage = STAGE_INIT ;
+  final Actor passenger ;
   
-
+  private byte stage = STAGE_INIT ;
+  private Barge barge ;
+  
+  
+  
   public Delivery(Item item, Venue origin, Venue destination) {
-    this(new Item[] {item}, origin, destination) ;
+    this(new Item[] { item }, origin, destination) ;
   }
   
   
@@ -41,6 +46,16 @@ public class Delivery extends Plan {
     this.origin = origin ;
     this.destination = destination ;
     this.items = items ;
+    this.passenger = null ;
+  }
+  
+  
+  public Delivery(Actor passenger, Venue destination) {
+    super(null, passenger, destination) ;
+    this.origin = null ;
+    this.destination = destination ;
+    this.items = new Item[0] ;
+    this.passenger = passenger ;
   }
   
   
@@ -48,9 +63,11 @@ public class Delivery extends Plan {
     super(s) ;
     items = new Item[s.loadInt()] ;
     for (int n = 0 ; n < items.length ;) items[n++] = Item.loadFrom(s) ;
+    passenger = (Actor) s.loadObject() ;
     origin = (Venue) s.loadObject() ;
     destination = (Venue) s.loadObject() ;
     stage = (byte) s.loadInt() ;
+    barge = (Barge) s.loadObject() ;
   }
   
   
@@ -58,9 +75,11 @@ public class Delivery extends Plan {
     super.saveState(s) ;
     s.saveInt(items.length) ;
     for (Item i : items) Item.saveTo(s, i) ;
+    s.saveObject(passenger) ;
     s.saveObject((Session.Saveable) origin) ;
     s.saveObject((Session.Saveable) destination) ;
     s.saveInt(stage) ;
+    s.saveObject(barge) ;
   }
   
   
@@ -81,16 +100,21 @@ public class Delivery extends Plan {
     return ROUTINE ;
   }
   
+  
   public Behaviour getNextStep() {
+    //
     //  Here, you need to check if you have enough of the goods?
     if (stage == STAGE_INIT) {
       stage = STAGE_PICKUP ;
+      //
+      //  Create a barge to follow the actor (which will dispose of itself
+      //  once the behaviour completes.)
+      I.say(actor+" Scheduling new pickup...") ;
       final Action pickup = new Action(
-        actor, origin,
+        actor, (passenger == null) ? origin : passenger,
         this, "actionPickup",
         Action.REACH_DOWN, "Picking up goods"
       ) ;
-      I.say(actor+" Scheduling new pickup...") ;
       return pickup ;
     }
     if (stage == STAGE_PICKUP) {
@@ -100,17 +124,27 @@ public class Delivery extends Plan {
         this, "actionDropoff",
         Action.REACH_DOWN, "Dropping off goods"
       ) ;
-      //  If the destination isn't complete, drop off at the entrance.
+      //
+      //  If the destination isn't complete, drop off at the entrance?
       return dropoff ;
     }
     return null ;
   }
   
 
-  public boolean actionPickup(Actor actor, Venue target) {
+  public boolean actionPickup(Actor actor, Target target) {
     if (stage != STAGE_PICKUP) return false ;
+    final Barge barge = new Barge(actor, this) ;
+    final Tile o = actor.origin() ;
+    barge.enterWorldAt(o.x, o.y, o.world) ;
     I.say(actor+" Performing pickup...") ;
-    for (Item i : items) target.stocks.transfer(i, actor) ;
+    
+    if (target == origin) {
+      for (Item i : items) origin.stocks.transfer(i, actor) ;
+    }
+    if (target == passenger) {
+      barge.passenger = passenger ;
+    }
     stage = STAGE_PICKUP ;
     return true ;
   }
@@ -119,10 +153,14 @@ public class Delivery extends Plan {
   public boolean actionDropoff(Actor actor, Venue target) {
     if (stage != STAGE_DROPOFF) return false ;
     I.say(actor+" Performing dropoff...") ;
+    if (barge != null && barge.inWorld()) barge.exitWorld() ;
+    
     for (Item i : items) actor.gear.transfer(i, target) ;
+    if (passenger != null) passenger.goAboard(target, target.world()) ;
     stage = STAGE_DONE ;
     return true ;
   }
+  
   
   
   /**  Rendering and interface methods-

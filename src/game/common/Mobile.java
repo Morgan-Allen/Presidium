@@ -8,16 +8,12 @@
 package src.game.common ;
 import src.game.building.* ;
 import src.graphics.common.* ;
-import src.user.BaseUI;
-import src.user.InfoPanel;
-import src.user.Selectable ;
-import src.user.Selection;
 import src.util.* ;
 
 
 
 public abstract class Mobile extends Element
-  implements Schedule.Updates, Selectable
+  implements Schedule.Updates
 {
   
   protected float
@@ -115,9 +111,9 @@ public abstract class Mobile extends Element
   
   public void goAboard(Boardable toBoard, World world) {
     if (toBoard == boarding) return ;
-    aboard.setInside(this, false) ;
+    if (aboard != null) aboard.setInside(this, false) ;
     aboard = boarding = toBoard ;
-    aboard.setInside(this, true) ;
+    if (aboard != null) aboard.setInside(this, true) ;
     setHeading(toBoard.position(null), nextRotation, true, world) ;
   }
   
@@ -153,9 +149,30 @@ public abstract class Mobile extends Element
   }
   
   
-  public void headTowards(Target target, float speed) {
+  public boolean indoors() {
+    return aboard != null && ! (aboard instanceof Tile) ;
+  }
+  
+  
+  public boolean facingTarget(Target target) {
+    final Vec3D p = target.position(null) ;
+    final Vec2D disp = new Vec2D(
+      p.x - position.x,
+      p.y - position.y
+    ) ;
+    final float dist = disp.length() ;
+    if (dist == 0) return true ;
+    final float angleDif = Math.abs(Vec2D.degreeDif(
+      disp.normalise().toAngle(), rotation
+    )) ;
+    return angleDif < 30 ;
+  }
+  
+  
+  public void headTowards(Target target, float speed, boolean moves) {
     //
     //  Determine the appropriate offset and angle for this target-
+    if (target == null) return ;
     final Vec3D p = target.position(null) ;
     final Vec2D disp = new Vec2D(
       p.x - position.x,
@@ -163,11 +180,11 @@ public abstract class Mobile extends Element
     ) ;
     final float dist = disp.length() ;
     float angle = dist == 0 ? 0 : disp.normalise().toAngle() ;
-    float moveRate = speed / PlayLoop.UPDATES_PER_SECOND ;
+    float moveRate = moves ? (speed / PlayLoop.UPDATES_PER_SECOND) : 0 ;
     //
     //  Determine how far one can move this update, including limits on
     //  maximum rotation-
-    final float maxRotate = speed * 90 / PlayLoop.UPDATES_PER_SECOND ;
+    final float maxRotate = speed * 90 / PlayLoop.UPDATES_PER_SECOND  ;
     final float
       angleDif = Vec2D.degreeDif(angle, rotation),
       absDif   = Math.abs(angleDif) ;
@@ -275,14 +292,10 @@ public abstract class Mobile extends Element
   }
   
   
-  public boolean indoors() {
-    return aboard != null && ! (aboard instanceof Tile) ;
-  }
-  
-  
   protected float aboveGroundHeight() {
     return 0 ;
   }
+  
   
   
   /**  Updates and stuff-
@@ -313,42 +326,6 @@ public abstract class Mobile extends Element
     s.rotation = (rotation + (rotateChange * alpha) + 360) % 360 ;
     ///I.say("sprite position/rotation: "+s.position+" "+s.rotation) ;
     rendering.addClient(s) ;
-  }
-  
-  
-  public InfoPanel createPanel(BaseUI UI) {
-    return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
-  }
-  
-  
-  public Target subject() {
-    return this ;
-  }
-  
-  
-  public void renderSelection(Rendering rendering, boolean hovered) {
-    Selection.renderPlane(
-      rendering, viewPosition(null), radius() + 0.5f,
-      hovered ? Colour.transparency(0.5f) : Colour.WHITE,
-      Selection.SELECT_CIRCLE
-    ) ;
-  }
-  
-
-  public String toString() {
-    return fullName() ;
-  }
-  
-  
-  public String[] infoCategories() {
-    return null ;
-  }
-  
-  
-  public void whenClicked() {
-    if (PlayLoop.currentUI() instanceof BaseUI) {
-      ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
-    }
   }
 }
 

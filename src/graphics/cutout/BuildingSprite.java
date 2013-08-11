@@ -21,7 +21,7 @@ public class BuildingSprite extends GroupSprite {
   /**  Data fields, static constants, constructors and save/load methods-
     */
   final private static Class <BuildingSprite> C = BuildingSprite.class ;
-  final static Model VENUE_MODEL = new Model("building_model", C) {
+  final static Model BUILDING_MODEL = new Model("building_model", C) {
     public Sprite makeSprite() { return new BuildingSprite() ; }
   } ;
   final static Model BLAST_MODEL = ImageModel.asAnimatedModel(
@@ -57,8 +57,8 @@ public class BuildingSprite extends GroupSprite {
   }
   
   
-  private BuildingSprite() {
-  }
+  private BuildingSprite() {}
+  public Model model() { return BUILDING_MODEL ; }
   
   
   public void loadFrom(DataInputStream in) throws Exception {

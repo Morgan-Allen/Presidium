@@ -8,7 +8,8 @@
 package src.game.building ;
 import src.game.actors.* ;
 import src.game.common.* ;
-import src.user.Description ;
+import src.game.base.* ;
+import src.user.* ;
 import src.util.* ;
 
 
@@ -19,11 +20,15 @@ public class Manufacture extends Plan implements Behaviour {
   
   /**  Fields, constructors, and save/load methods-
     */
+  final static int
+    TIME_PER_UNIT = 10 ;
+  
   final Venue venue ;
   final Conversion conversion ;
   
   private float progress = 0, timeTaken = 0 ;
   private Item[] needed ;
+  
   
   
   public Manufacture(Actor actor, Venue venue, Conversion conversion) {
@@ -32,7 +37,9 @@ public class Manufacture extends Plan implements Behaviour {
     this.conversion = conversion ;
     this.needed = conversion.raw ;
     for (Item made : conversion.out) timeTaken += made.amount ;
+    timeTaken *= TIME_PER_UNIT ;
   }
+  
   
   public Manufacture(Session s) throws Exception {
     super(s) ;
@@ -42,6 +49,7 @@ public class Manufacture extends Plan implements Behaviour {
     timeTaken = s.loadFloat() ;
     this.needed = conversion.raw ;
   }
+  
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
@@ -56,7 +64,10 @@ public class Manufacture extends Plan implements Behaviour {
   /**  Behaviour implementation-
     */
   public Behaviour getNextStep() {
-    if (progress >= 1) return null ;
+    if (progress >= 1) {
+      //  See if the venue has more orders for items of this type.
+      return null ;
+    }
     return new Action(
       actor, venue,
       this, "actionMake",
@@ -113,6 +124,7 @@ public class Manufacture extends Plan implements Behaviour {
   public float priorityFor(Actor actor) {
     return ROUTINE ;
   }
+  
   
   
   /**  Rendering and interface behaviour-

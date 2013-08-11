@@ -126,6 +126,37 @@ public class Visit <T> {
   
   
   
+  /**  Comparison methods-
+    */
+  public float rate(T t) { return 0 ; }
+  
+  
+  public T pickBest(Series <T> series) {
+    T picked = null ;
+    float bestRating = Float.NEGATIVE_INFINITY ;
+    for (T t : series) {
+      final float rating = rate(t) ;
+      if (rating > bestRating) { bestRating = rating ; picked = t ; }
+    }
+    return picked ;
+  }
+  
+  
+  public T pickBest(T... series) {
+    T picked = null ;
+    float bestRating = Float.NEGATIVE_INFINITY ;
+    for (T t : series) {
+      final float rating = rate(t) ;
+      if (rating > bestRating) { bestRating = rating ; picked = t ; }
+    }
+    return picked ;
+  }
+  
+  
+  
+  
+  
+  
   public void visArray(T a[]) {
     for(int n = 0 ; n < a.length ; n++)
       visit(a[n]) ;

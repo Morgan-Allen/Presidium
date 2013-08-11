@@ -7,16 +7,11 @@
 
 package src.game.actors ;
 import src.game.common.* ;
-import src.game.common.Session.Saveable;
 import src.graphics.common.* ;
 import src.user.* ;
 import src.util.* ;
-
 import java.lang.reflect.* ;
 
-
-//
-//  ALLOW FOR RANGED ACTIONS.
 
 
 public class Action implements Behaviour, Model.AnimNames {
@@ -203,25 +198,19 @@ public class Action implements Behaviour, Model.AnimNames {
     float minDist = 0 ;
     if ((properties & RANGED) != 0) minDist = actor.health.sightRange() ;
     actor.pathing.updateWithTarget(moveTarget, minDist) ;
-    
-    //  TODO:  The 'Close Enough' test needs to ensure that the actor is facing
-    //  toward to target as well.
-    if (actor.pathing.closeEnough()) {
-      actor.headTowards(actionTarget, 0) ;
-      if (inRange != 1) {
-        inRange = 1 ;
-        progress = oldProgress = 0 ;
-      }
-    }
-    else {
-      final Target nextStep = actor.pathing.nextStep() ;
-      if (nextStep == null) return ;
-      actor.headTowards(nextStep, moveRate()) ;
-      if (inRange != 0) {
-        inRange = 0 ;
-        progress = oldProgress = 0 ;
-      }
-    }
+    //
+    //  Depending on whether you're currently close enough, and facing the
+    //  target, you enter motion or action mode respectively.
+    final boolean
+      closed = actor.pathing.closeEnough(),
+      facing = actor.facingTarget(actionTarget) ;
+    final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;
+    actor.headTowards(faced, moveRate(), ! closed) ;
+    //
+    //  If there's a change in state, reset progress.
+    final byte oldRange = inRange ;
+    inRange = (byte) ((closed && facing) ? 1 : 0) ;
+    if (inRange != oldRange) progress = oldProgress = 0 ;
   }
   
   
@@ -254,11 +243,12 @@ public class Action implements Behaviour, Model.AnimNames {
     progress += progressPerUpdate() ;
     //
     //  If you're actually in range, check to see if you can deliver the needed
-    //  behaviour.
-    if (actor.pathing.closeEnough()) {
+    //  behaviour.  Delivery is intended to occur a quarter second before the
+    //  action completes.
+    if (inRange == 1) {
       progress = Visit.clamp(progress, 0, 1) ;
       final float duration = duration() ;
-      final float contact = (duration - 0.5f) / duration ;
+      final float contact = (duration - 0.25f) / duration ;
       if (oldProgress <= contact && progress > contact) try {
         toCall.invoke(basis, actor, actionTarget) ;
       }
@@ -281,6 +271,10 @@ public class Action implements Behaviour, Model.AnimNames {
     Table <String, Method>
   > (1000) ;
   
+  /*
+        if (method.getName().equals(methodName)) {
+        }
+  //*/
   
   private static Method namedMethodFor(Object plans, String methodName) {
     if (plans == null || methodName == null) return null ;
@@ -289,14 +283,6 @@ public class Action implements Behaviour, Model.AnimNames {
       aM = new Table <String, Method> (20) ;
       for (Method method : plans.getClass().getMethods()) {
         aM.put(method.getName(), method) ;
-        if (method.getName().equals(methodName)) {
-          final Class <? extends Object> params[] = method.getParameterTypes() ;
-          if (
-            params.length != 2 ||
-            ! Actor.class.isAssignableFrom(params[0]) ||
-            ! Target.class.isAssignableFrom(params[1])
-          ) I.complain("METHOD HAS BAD ARGUMENT SET!") ;
-        }
       }
       actionMethods.put(plans.getClass(), aM) ;
     }
@@ -304,7 +290,16 @@ public class Action implements Behaviour, Model.AnimNames {
     if (method == null) I.complain(
       "NO SUCH METHOD! "+methodName+" FOR CLASS: "+plans
     ) ;
-    method.setAccessible(true) ;
+    if (! method.isAccessible()) {
+      final Class <? extends Object> params[] = method.getParameterTypes() ;
+      if (
+        params.length != 2 ||
+        ! Actor.class.isAssignableFrom(params[0]) ||
+        ! Target.class.isAssignableFrom(params[1])
+      ) I.complain("METHOD HAS BAD ARGUMENT SET!") ;
+      ///else I.say("Method checks out: "+method) ;
+      method.setAccessible(true) ;
+    }
     return method ;
   }
   

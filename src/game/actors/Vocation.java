@@ -186,12 +186,19 @@ public class Vocation implements VenueConstants {
   final public static Vocation
     
     //  Volunteer, Mercenary, Mech Trooper, etc.
-    
-    MILITANT = new Vocation(  //  Rename to Veteran?
-      "Militant", "militant_skin.gif", "militant_portrait.png",
+    VOLUNTEER = new Vocation(
+      "Volunteer", "militant_skin.gif", "militant_portrait.png",
+      LOWER_CLASS,
+      PRACTICED, CLOSE_COMBAT, MARKSMANSHIP, NOVICE, SURVEILLANCE,
+      ASSEMBLY, HARD_LABOUR,
+      SOMETIMES, DUTIFUL, AGGRESSIVE,
+      SHOCK_STAFF, BODY_ARMOUR
+    ),    
+    VETERAN = new Vocation(  //  Rename to Veteran?
+      "Veteran", "militant_skin.gif", "militant_portrait.png",
       UPPER_CLASS,
-      EXPERT, CLOSE_COMBAT, PRACTICED, MARKSMANSHIP, SURVEILLANCE,
-      BATTLE_TACTICS, NOVICE, HARD_LABOUR, COMMAND,
+      EXPERT, CLOSE_COMBAT, MARKSMANSHIP, PRACTICED, SURVEILLANCE,
+      BATTLE_TACTICS, COMMAND,
       OFTEN, DUTIFUL, SOMETIMES, STUBBORN, AMBITIOUS,
       SHOCK_STAFF, BODY_ARMOUR
     ) ;

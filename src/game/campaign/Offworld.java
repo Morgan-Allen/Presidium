@@ -4,7 +4,7 @@
 package src.game.campaign ;
 import src.game.base.* ;
 import src.game.common.* ;
-import src.game.planet.Planet;
+//import src.game.planet.Planet ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.util.* ;
@@ -21,9 +21,11 @@ public class Offworld {
   //  List of goods to buy/sell.
   //  Supply freighter.  Smuggler freighter.  Spacer freighter.
   //  Planetary trade/migration (same as with any other planet.)
+  
   final static float
     SUPPLY_INTERVAL = 10,
     SUPPLY_DURATION = 40 ;
+  
   
   final Base base ;
   
@@ -45,6 +47,7 @@ public class Offworld {
     housePlanets[] ;
   
   
+  
   public Offworld(Base base) {
     this.base = base ;
     homeSupply = new Commerce() ;
@@ -61,19 +64,19 @@ public class Offworld {
   }
   
   
-  private Commerce loadCommerce(Session s) throws Exception {
-    final Commerce c = new Commerce() ;
-    c.ship = (Dropship) s.loadObject() ;
-    c.nextVisitTime = s.loadFloat() ;
-    return c ;
-  }
-  
-  
   public void saveState(Session s) throws Exception {
     s.saveObjects(candidates) ;
     s.saveObjects(migrantsIn) ;
     //s.saveObject(supplyFreighter) ;
     saveCommerce(homeSupply, s) ;
+  }
+  
+  
+  private Commerce loadCommerce(Session s) throws Exception {
+    final Commerce c = new Commerce() ;
+    c.ship = (Dropship) s.loadObject() ;
+    c.nextVisitTime = s.loadFloat() ;
+    return c ;
   }
   
   
@@ -129,9 +132,9 @@ public class Offworld {
     Commerce commerce, Inventory shortages,
     float visitInterval, float stayDuration
   ) {
-    if (true) return ;
+    ///if (true) return ;
     final Dropship ship = commerce.ship ;
-    /*
+    //*
     I.say(
       "  Updating events for: "+ship+
       "\n  Next visit time: "+commerce.nextVisitTime+

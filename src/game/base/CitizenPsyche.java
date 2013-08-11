@@ -57,16 +57,6 @@ import src.util.* ;
 
 
 
-/*
-public boolean monitor(Actor actor) {
-//Get the next step regardless every 2 seconds or so, compare priority
-//with the actor's current plan, and switch if the difference is big
-//enough.
-//TODO:  Consider checking after every discrete action?  That might be
-//more granular.
-return true ;
-}
-//*/
 
 
 public class CitizenPsyche extends ActorPsyche implements ActorConstants {
@@ -144,6 +134,7 @@ public class CitizenPsyche extends ActorPsyche implements ActorConstants {
     //
     //  Consider retreat or surrender based on all nearby actors.
     //choice.add(new Retreat(actor, considered)) ;
+    
     //
     //  Consider defence & treatment of self or others, or dialogue.
     for (Actor near : actorB) {
@@ -152,10 +143,7 @@ public class CitizenPsyche extends ActorPsyche implements ActorConstants {
       //choice.add(new Dialogue(actor, near)) ;
     }
     //
-    //  As hobbies, consider hunting, exploration, assistance, and dialogue,
-    //  with one chosen target each.
-    //  ALSO, TRY REPAIRING NEARBY BUILDINGS
-    
+    //  Consider repairing nearby buildings-
     final Batch <Venue> venueB = new Batch <Venue> () ;
     numR = 0 ;
     for (Target t : repairs.visitNear(actor, -1, null)) {
@@ -191,6 +179,14 @@ public class CitizenPsyche extends ActorPsyche implements ActorConstants {
     final Action wander = (Action) new Patrolling(actor, actor, 5).nextStep() ;
     wander.setPriority(Plan.IDLE) ;
     choice.add(wander) ;
+
+    //
+    //  Consider going home to rest, or finding a recreational facility of
+    //  some kind.
+    
+    //
+    //  As hobbies, consider hunting, exploration, assistance, and dialogue,
+    //  with one chosen target each.
   }
 }
 

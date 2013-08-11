@@ -230,7 +230,7 @@ public abstract class ActorPsyche implements ActorConstants {
   }
   
   
-  public Stack <Behaviour> currentBehaviours() {
+  public Stack <Behaviour> agenda() {
     return behaviourStack ;
   }
   

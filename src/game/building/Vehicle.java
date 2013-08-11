@@ -20,7 +20,7 @@ import src.util.* ;
 
 
 public abstract class Vehicle extends Mobile implements
-  Boardable, Inventory.Owner, CitizenPsyche.Employment
+  Boardable, Inventory.Owner, CitizenPsyche.Employment, Selectable
 {
   
   
@@ -141,6 +141,39 @@ public abstract class Vehicle extends Mobile implements
     */
   public String[] infoCategories() {
     return null ;  //cargo, passengers, integrity.
+  }
+  
+  
+  public InfoPanel createPanel(BaseUI UI) {
+    return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
+  }
+
+  
+  
+  public void renderSelection(Rendering rendering, boolean hovered) {
+    if (indoors()) return ;
+    Selection.renderPlane(
+      rendering, viewPosition(null), radius() + 0.5f,
+      hovered ? Colour.transparency(0.5f) : Colour.WHITE,
+      Selection.SELECT_CIRCLE
+    ) ;
+  }
+  
+  
+  public Target subject() {
+    return this ;
+  }
+  
+
+  public String toString() {
+    return fullName() ;
+  }
+  
+  
+  public void whenClicked() {
+    if (PlayLoop.currentUI() instanceof BaseUI) {
+      ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
+    }
   }
 }
 

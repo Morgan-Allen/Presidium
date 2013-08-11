@@ -98,6 +98,14 @@ public class List <T> extends ListEntry <T> implements Series <T> {
     return null ;
   }
   
+  /**  Return the index of the given entry-
+    */
+  final public int indexOf(T t) {
+    int i = 0 ;
+    for (ListEntry <T> l = this ; (l = l.next) != this ; i++)
+      if (t == l.refers) return i ;
+    return -1 ;
+  }
   
   /**  Removes the specified entry from the list.  (This method has no effect if
     *  the given entry does not belong to the list.)

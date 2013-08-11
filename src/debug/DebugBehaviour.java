@@ -76,16 +76,28 @@ public class DebugBehaviour extends PlayLoop {
   
   
   protected void configureScenario(World world, Base base, HUD HUD) {
-    GameSettings.hireFree = true ;
+    //
+    //  The intrinsic AI functions, and the whole mobile/pathing/action thing,
+    //  need to be sorted out.  Get rid of strict requirements for manufacture.
+    
+    //
+    //  Introduce a hospice in the social scenario, and see if the wounded are
+    //  taken there.  Fix the barge code while you're at it.
     
     //
     //  You also need to try scenarios between multiple actors, some of them
     //  hostile, and see how they respond.  Ideally, you don't want actors
     //  willingly running into situations that they then run away from.
     
-    //
-    //  For now, though, I want you to implement a simple construction
-    //  protocol.  No materials consumption, just ex-nihilo engineering.
+    //  Also, rest/relaxation needs to be re-implemented.  And housing, for
+    //  the sake of food and so forth.  Then, recreation behaviours.
+    
+    //  Item purchases, and possibly sales.  Delivery needs to use barges.
+    
+    //  Last but not least, you need to implement upgrades for the sake of
+    //  research and recruitment.
+    //  There are still problems related to how boarding/unboarding the
+    //  freighter is handled.  Get rid of the DropZone shebang.
     
     baseScenario(world, base, HUD) ;
     //missionScenario(world, base, HUD) ;
@@ -122,11 +134,14 @@ public class DebugBehaviour extends PlayLoop {
     */
   private void baseScenario(World world, Base base, HUD UI) {
     
+    GameSettings.hireFree = true ;
+    
     //*
     final Artificer artificer = new Artificer(base) ;
     artificer.enterWorldAt(8, 8, world) ;
     artificer.setAsEstablished(true) ;
     artificer.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+    artificer.onCompletion() ;
     //*/
     
     final Garrison garrison = new Garrison(base) ;
@@ -134,6 +149,8 @@ public class DebugBehaviour extends PlayLoop {
     garrison.setAsEstablished(true) ;
     garrison.structure.setState(VenueStructure.STATE_INSTALL, 0.1f) ;
     ((BaseUI) UI).selection.setSelected(garrison) ;
+    
+    base.intelMap.liftFogAround(garrison, 16) ;
   }
   
   
@@ -183,15 +200,13 @@ public class DebugBehaviour extends PlayLoop {
   private void socialScenario(World world, Base base, HUD UI) {
     final Actor
       actor = new Human(Vocation.PHYSICIAN, base),
-      other = new Human(Vocation.MILITANT , base) ;
+      other = new Human(Vocation.VETERAN , base) ;
     actor.enterWorldAt(5, 5, world) ;
     other.enterWorldAt(8, 8, world) ;
     ((BaseUI) UI).selection.setSelected(other) ;
 
     base.intelMap.liftFogAround(other, 10) ;
     other.health.takeInjury(other.health.maxHealth() + 1) ;
-    //
-    //  Then introduce a hospice, and see if he's taken there.
   }
 }
 

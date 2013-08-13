@@ -13,16 +13,16 @@ import src.util.* ;
 public class Choice {
   
   
-
-  
+  /**  Data fields, constructors and setup-
+    */
   final Actor actor ;
   final Batch <Behaviour> plans = new Batch <Behaviour> () ;
-  final Batch <Float> weights = new Batch <Float> () ;
   
   
   public Choice(Actor actor) {
     this.actor = actor ;
   }
+  
   
   public Choice(Actor actor, Series <Behaviour> plans) {
     this.actor = actor ;
@@ -30,67 +30,52 @@ public class Choice {
   }
   
   
-  
-  private boolean isValid(Behaviour plan) {
+  public boolean add(Behaviour plan) {
     if (plan == null || plan.complete()) return false ;
     if (plan.nextStepFor(actor) == null) return false ;
+    plans.add(plan) ;
     return true ;
   }
   
-  
-  public void addCurrentBehaviour(Behaviour plan) {
-    if (! isValid(plan)) return ;
-    plans.add(plan) ;
-    weights.add(plan.priorityFor(actor) + 2) ;
-  }
-  
-  
-  public void addOtherBehaviour(Behaviour plan) {
-    if (! isValid(plan)) return ;
-    plans.add(plan) ;
-    weights.add(plan.priorityFor(actor) + (Rand.range(-1, 1) * 1)) ;
-  }
-  
-  
-  public void add(Behaviour plan) {
-    add(plan, plan.priorityFor(actor)) ;
-  }
-  
-  
-  public void add(Behaviour plan, float weight) {
-    if (! isValid(plan)) return ;
-    plans.add(plan) ;
-    weights.add(Visit.clamp(weight, 0, Behaviour.PARAMOUNT)) ;
-  }
   
   
   /**  Picks a plan from those assigned earlier using priorities to weight the
     *  likelihood of their selection.
     */
-  public Behaviour weightedPick() {
-    //  TODO:  You need to modify weights to screen out anything more than 2
-    //  points below the highest choice.  The absence of this feature is
-    //  causing some screwy behaviour.
-    final Behaviour picked = (Behaviour) Rand.pickFrom(plans, weights) ;
-    return picked ;
-  }
-  
-  
-  public Behaviour pickMostUrgent() {
-    float bestPick = 0 ;
+  public Behaviour weightedPick(float maxDiff) {
+    //
+    //  Firstly, acquire the priorities for each plan.  If the permitted range
+    //  of priorities is zero, simply return the most promising.
+    float highestW = 0 ;
+    Behaviour bestP = null ;
+    final float weights[] = new float[plans.size()] ;
+    int i = 0 ;
+    for (Behaviour plan : plans) {
+      final float weight = plan.priorityFor(actor) ;
+      if (weight > highestW) { highestW = weight ; bestP = plan ; }
+      weights[i++] = weight ;
+    }
+    if (maxDiff == 0) return bestP ;
+    //
+    //  Eliminate all weights outside the permitted range, so that only plans
+    //  of comparable attractiveness to the most important are considered-
+    float minPriority = highestW - maxDiff ;
+    float sumWeights = 0 ;
+    for (i = weights.length ; i-- > 0 ;) {
+      weights[i] = Math.max(0, weights[i] - minPriority) ;
+      sumWeights += weights[i] ;
+    }
+    //
+    //  Finally, select a candidate at random using weights based on priority-
     Behaviour picked = null ;
-    final Float weightsA[] = (Float[]) weights.toArray(Float.class) ;
-    final Behaviour plansA[] = (Behaviour[]) plans.toArray(Behaviour.class) ;
-    for (int i = 0 ; i < plansA.length ; i++) {
-      final float w = weightsA[i] ;
-      if (w > bestPick) { bestPick = w ; picked = plansA[i] ; }
+    float randPick = Rand.num() * sumWeights ;
+    i = 0 ;
+    for (Behaviour plan : plans) {
+      final float chance = weights[i] ;
+      if (randPick < chance) { picked = plan ; break ; }
+      else randPick -= chance ;
     }
     return picked ;
   }
 }
-
-
-
-
-
 

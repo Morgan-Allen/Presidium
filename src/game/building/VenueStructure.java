@@ -45,7 +45,7 @@ public class VenueStructure extends Inventory {
   private int maxUpgrades = NORMAL_MAX_UPGRADES ;
   private Table <Upgrade, Integer> upgrades = new Table <Upgrade, Integer> () ;
   
-  //  float armour, shields ;
+  //  int buildCost, armouring, restLevel, moraleLevel, pollutes ;
   //  Item materials[] ;
   //  List <Upgrade> upgrades ;
   
@@ -73,7 +73,12 @@ public class VenueStructure extends Inventory {
   }
   
   
-  public void setupStats(int baseIntegrity, int maxUpgrades) {
+  public void setupStats(
+    int baseIntegrity,
+    int armouring,
+    int buildCost,
+    int maxUpgrades
+  ) {
     this.integrity = this.baseIntegrity = baseIntegrity ;
     this.maxUpgrades = maxUpgrades ;
   }

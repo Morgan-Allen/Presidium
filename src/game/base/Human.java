@@ -80,7 +80,7 @@ public class Human extends Actor implements ActorConstants {
   }
   
   
-  protected ActorAI initAI() { return new CitizenPsyche(this) ; }
+  protected ActorAI initAI() { return new CitizenAI(this) ; }
   
   public Vocation vocation() { return career.vocation() ; }
   

@@ -42,7 +42,7 @@ public class ActorHealth implements ActorConstants {
     "Senior"
   } ;
   
-  final static float
+  final public static float
     DEFAULT_PRIME    = 25,
     DEFAULT_LIFESPAN = 60,  //In years.
     LIFE_EXTENDS     = 0.1f,

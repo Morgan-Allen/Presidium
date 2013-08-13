@@ -122,7 +122,7 @@ public abstract class Fauna extends Actor {
     }
     //
     //  Pick one of the above and initiate the behaviour-
-    return choice.weightedPick() ;
+    return choice.weightedPick(AI.persistance()) ;
   }
   
   

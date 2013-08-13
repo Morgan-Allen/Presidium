@@ -59,13 +59,13 @@ import src.util.* ;
 
 
 
-public class CitizenPsyche extends ActorAI implements ActorConstants {
+public class CitizenAI extends ActorAI implements ActorConstants {
   
   
   
   /**  Constructor and save/load functions-
     */
-  protected CitizenPsyche(Actor actor) {
+  protected CitizenAI(Actor actor) {
     super(actor) ;
   }
   
@@ -98,7 +98,7 @@ public class CitizenPsyche extends ActorAI implements ActorConstants {
   	  addLeisure(choice) ;
     }
     
-    final Behaviour chosen = choice.weightedPick() ;
+    final Behaviour chosen = choice.weightedPick(whimsy()) ;
     applyForMissions(chosen) ;
     return chosen ;
   }
@@ -182,13 +182,18 @@ public class CitizenPsyche extends ActorAI implements ActorConstants {
 
     //
     //  Consider going home to rest, or finding a recreational facility of
-    //  some kind.
+    //  some kind.  That requires iterating over various venues.
+    
     
     //
     //  As hobbies, consider hunting, exploration, assistance, and dialogue,
     //  with one chosen target each.
   }
 }
+
+
+
+
 
 
 

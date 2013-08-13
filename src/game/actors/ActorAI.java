@@ -15,6 +15,8 @@ import src.util.* ;
 
 
 
+//
+//  ...You need to implement the TODO functionality.
 
 
 
@@ -191,7 +193,9 @@ public abstract class ActorAI implements ActorConstants {
     if (next == null) return false ;
     if (last == null) return true ;
     if (! actor.health.conscious()) return false ;
-    return next.priorityFor(actor) >= (last.priorityFor(actor) + 2) ;
+    return
+      next.priorityFor(actor) >=
+      (last.priorityFor(actor) + persistance()) ;
   }
   
   
@@ -292,6 +296,16 @@ public abstract class ActorAI implements ActorConstants {
     val /= (0.5f + reserves) ;
     ///I.say("Greed value: "+val) ;
     return val ;
+  }
+  
+  
+  public float persistance() {
+    return 2 * actor.traits.scaleLevel(STUBBORN) ;
+  }
+  
+  
+  public float whimsy() {
+    return 2 / actor.traits.scaleLevel(STUBBORN) ;
   }
 }
 

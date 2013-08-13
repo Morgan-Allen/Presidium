@@ -78,7 +78,7 @@ public class ShieldWallSection extends Element implements TileConstants {
     */
   final static ImageModel
     SECTION_MODELS[] = ImageModel.loadModels(
-      ShieldWallSection.class, 1, 2.0f, "media/Buildings/military aura/",
+      ShieldWallSection.class, 1, 2.0f, "media/Buildings/military/",
       "wall_segment_left.png",
       "wall_segment_right.png",
       "wall_corner.png",

@@ -24,7 +24,7 @@ public class Treatment extends Plan implements ActorConstants {
     TYPE_PSYCH_EVAL   = 2, PSYCH_EVAL_DC   = 15, PSYCH_EVAL_XP   = 40 ;/*,
     TYPE_SURGERY      = 3, SURGERY_DC      = 20, SURGERY_XP      = 75,
     TYPE_GENE_THERAPY = 4, GENE_THERAPY_DC = 25, GENE_THERAPY_XP = 150,
-    TYPE_CONDITIONING = 5, CONDITIONING_DC = 30, CONDITIONING_XP = 200 ;
+    TYPE_CONDITIONING = 5, CONDITIONING_DC = 30, CONDITIONING_XP = 250 ;
   //*/
   
   final Actor patient ;
@@ -90,14 +90,14 @@ public class Treatment extends Plan implements ActorConstants {
             this, "actionFirstAid",
             Action.BUILD, "Performing first aid"
           ) ;
+          firstAid.setProperties(Action.QUICK) ;
           return firstAid ;
         }
       break ;
     }
     
     if ((! patient.health.conscious()) && (! patient.indoors())) {
-      Venue haven = Retreat.nearestHaven(actor, Sickbay.class) ;
-      
+      Venue haven = Retreat.nearestHaven(actor, Hospice.class) ;
       if (haven == null) haven = actor.AI.home() ;
       if (haven != null) {
         final Delivery transport = new Delivery(patient, haven) ;

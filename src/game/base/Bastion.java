@@ -24,7 +24,7 @@ public class Bastion extends Venue implements VenueConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    Bastion.class, "media/Buildings/military aura/bastion.png", 7, 5
+    Bastion.class, "media/Buildings/military/bastion.png", 7, 5
   ) ;
   
   

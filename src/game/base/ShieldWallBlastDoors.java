@@ -22,7 +22,7 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
   /**  Fields, constants, constructors and save/load methods-
     */
   final static String
-    IMG_DIR = "media/Buildings/military aura/" ;
+    IMG_DIR = "media/Buildings/military/" ;
   final static ImageModel
     DOORS_MODEL_LEFT = ImageModel.asIsometricModel(
       ShieldWallBlastDoors.class, IMG_DIR+"wall_gate_left.png" , 2.5f, 1.5f

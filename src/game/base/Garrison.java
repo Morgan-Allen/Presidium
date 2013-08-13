@@ -18,7 +18,7 @@ public class Garrison extends Venue implements VenueConstants {
     */
   final Model
     MODEL = ImageModel.asIsometricModel(
-      Garrison.class, "media/Buildings/military aura/house_garrison.png", 4, 4
+      Garrison.class, "media/Buildings/military/house_garrison.png", 4, 4
     ) ;
   
   

@@ -204,15 +204,19 @@ public class DebugBehaviour extends PlayLoop {
     actor.enterWorldAt(5, 5, world) ;
     other.enterWorldAt(8, 8, world) ;
     ((BaseUI) UI).selection.setSelected(actor) ;
-
+    
+    //
+    //  TODO:  You also want to see what happens when the actor is diseased.
+    //  ...Maybe you should consider getting them back to the Hospice first?
+    
     base.intelMap.liftFogAround(actor, 10) ;
     other.health.takeInjury(other.health.maxHealth() + 1) ;
     
-    final Sickbay sickbay = new Sickbay(base) ;
-    sickbay.enterWorldAt(8, 8, world) ;
-    sickbay.setAsEstablished(true) ;
-    sickbay.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
-    sickbay.onCompletion() ;
+    final Hospice hospice = new Hospice(base) ;
+    hospice.enterWorldAt(2, 9, world) ;
+    hospice.setAsEstablished(true) ;
+    hospice.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+    hospice.onCompletion() ;
   }
 }
 

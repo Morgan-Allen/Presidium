@@ -175,6 +175,12 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
+  private float contactTime() {
+    final float duration = duration() ;
+    return (duration - 0.25f) / duration ;
+  }
+  
+  
   private float moveRate() {
     float rate = actor.health.moveRate() ;
     //  You also have to account for the effects of fatigue and encumbrance...
@@ -193,6 +199,10 @@ public class Action implements Behaviour, Model.AnimNames {
   
   private void adjustMotion() {
     //
+    //  We don't chase targets which might have been themselves affected by
+    //  the action.
+    if (inRange == 1 && progress > contactTime()) return ;
+    //
     //  Depending on whether you're currently close enough to the move-target,
     //  and facing the action-target, you enter motion or action mode
     //  respectively.
@@ -203,11 +213,6 @@ public class Action implements Behaviour, Model.AnimNames {
       facing = actor.pathing.facingTarget(actionTarget) ;
     if (! closed) actor.pathing.updatePathing(moveTarget, minDist) ;
     final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;
-    /*
-    I.say("Heading toward: "+faced+", action target: "+actionTarget) ;
-    I.say("Closed/facing: "+closed+"/"+facing) ;
-    I.say("Distance to move target: "+Spacing.distance(actor, moveTarget)) ;
-    //*/
     actor.pathing.headTowards(faced, moveRate(), ! closed) ;
     //
     //  Check for state changes-
@@ -233,8 +238,7 @@ public class Action implements Behaviour, Model.AnimNames {
   
   private void advanceAction() {
     progress = Visit.clamp(progress, 0, 1) ;
-    final float duration = duration() ;
-    final float contact = (duration - 0.25f) / duration ;
+    final float contact = contactTime() ;
     if (oldProgress <= contact && progress > contact) try {
       toCall.invoke(basis, actor, actionTarget) ;
     }
@@ -247,6 +251,7 @@ public class Action implements Behaviour, Model.AnimNames {
   
   protected void updateAction() {
     if (complete()) { oldProgress = progress = 1 ; return ; }
+    ///if (progress <= contactTime()) adjustMotion() ;
     adjustMotion() ;
     oldProgress = progress ;
     progress += progressPerUpdate() ;
@@ -265,10 +270,6 @@ public class Action implements Behaviour, Model.AnimNames {
     Table <String, Method>
   > (1000) ;
   
-  /*
-        if (method.getName().equals(methodName)) {
-        }
-  //*/
   
   private static Method namedMethodFor(Object plans, String methodName) {
     if (plans == null || methodName == null) return null ;
@@ -291,7 +292,6 @@ public class Action implements Behaviour, Model.AnimNames {
         ! Actor.class.isAssignableFrom(params[0]) ||
         ! Target.class.isAssignableFrom(params[1])
       ) I.complain("METHOD HAS BAD ARGUMENT SET!") ;
-      ///else I.say("Method checks out: "+method) ;
       method.setAccessible(true) ;
     }
     return method ;

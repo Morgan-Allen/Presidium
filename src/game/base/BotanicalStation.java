@@ -23,7 +23,7 @@ public class BotanicalStation extends Venue implements VenueConstants {
   
   /**  Fields, constructors, and save/load methods-
     */
-  final static String IMG_DIR = "media/Buildings/ecologist aura/" ;
+  final static String IMG_DIR = "media/Buildings/ecologist/" ;
   final static Model
     STATION_MODEL = ImageModel.asIsometricModel(
       BotanicalStation.class, IMG_DIR+"botanical_station.png", 4, 3

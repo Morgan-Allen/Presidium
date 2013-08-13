@@ -29,7 +29,7 @@ public class Holding extends Venue implements VenueConstants {
     MAX_HEIGHT = 4,
     NUM_LEVELS = 4,
     NUM_VARS   = 3 ;
-  final static String IMG_DIR = "media/Buildings/vendor aura/" ;
+  final static String IMG_DIR = "media/Buildings/merchant/" ;
   final static Model MODELS[][] = ImageModel.fromTextureGrid(
     Holding.class, Texture.loadTexture(IMG_DIR+"all_housing.gif"),
     4, 4, 2, ImageModel.TYPE_POPPED_BOX

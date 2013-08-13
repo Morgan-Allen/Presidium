@@ -32,7 +32,7 @@ public class BuildingSprite extends GroupSprite {
     C, Texture.loadTexture("media/GUI/flag_install.gif"),
     1.5f, 1.0f
   ) ;
-  final static String DIR = "media/Buildings/artificer aura/" ;
+  final static String DIR = "media/Buildings/artificer/" ;
   final public static Model SCAFF_MODELS[] = {
     ImageModel.asPoppedModel(C, DIR+"scaff_0.png", 1.0f, 1),
     ImageModel.asPoppedModel(C, DIR+"scaff_1.png", 1.2f, 1),

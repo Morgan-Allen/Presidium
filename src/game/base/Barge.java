@@ -64,6 +64,8 @@ public class Barge extends Mobile {
   
   
   protected void updateAsMobile() {
+    //
+    //  Firstly, check whether you even need to exist any more-
     super.updateAsMobile() ;
     if (
       (! followed.inWorld()) ||
@@ -72,26 +74,35 @@ public class Barge extends Mobile {
       exitWorld() ;
       return ;
     }
-    followed.position(nextPosition) ;
     //
-    //  Update your position so as to follow the actor-
+    //  If so, update your position so as to follow behind the actor-
     final Vec3D FP = followed.position(null) ;
-    final Vec3D pos = new Vec3D(FP) ;
-    pos.sub(this.position).normalise() ;
+    final Vec2D FR = new Vec2D().setFromAngle(followed.rotation()) ;
     final float idealDist = followed.radius() + this.radius() ;
-    final float angle = new Vec2D().setTo(pos).toAngle() ;
-    pos.scale(0 - idealDist).add(FP) ;
-    super.setHeading(pos, angle, false, world) ;
-    /*
+    FR.scale(0 - idealDist) ;
+    FP.x += FR.x ;
+    FP.y += FR.y ;
+    nextPosition.setTo(FP) ;
+    nextPosition.z = aboveGroundHeight() ;
+    nextRotation = followed.rotation() ;
+    //
+    //  And if you have a passenger, update their position.
     if (passenger != null) {
-      passenger.setHeading(nextPosition, nextRotation, false, world) ;
-      passenger.goAboard(followed.aboard(), world) ;
+      if (followed.indoors()) {
+        final Boardable toBoard = followed.aboard() ;
+        passenger.goAboard(followed.aboard(), world) ;
+        passenger.setHeading(toBoard.position(null), 0, false, world) ;
+      }
+      else {
+        final Vec3D raise = new Vec3D(nextPosition) ;
+        raise.z += 0.15f ;
+        passenger.setHeading(raise, nextRotation, false, world) ;
+      }
     }
-    //*/
   }
   
   
-  protected float aboveGroundHeight() { return 0.33f ; }
+  protected float aboveGroundHeight() { return 0.15f ; }
   public float radius() { return 0.0f ; }
   public Base assignedBase() { return null ; }
   
@@ -109,47 +120,3 @@ public class Barge extends Mobile {
 
 
 
-
-/**  Speciality methods for dealing with cargo-
-  */
-/*
-public void enterWorld() {
-  super.enterWorld() ;
-}
-
-
-public void exitWorld() {
-  if (! inWorld()) return ;
-  dropCargoAndExitAt(null) ;
-}
-
-
-public boolean addItemFrom(Item item, Inventory.Owner owner) {
-  if (item.refers instanceof Mobile) {
-    ((Mobile) item.refers).goAboard(this) ;
-    return true ;
-  }
-  else {
-    final float amount = Math.min(
-      owner.inventory().amountOf(item), item.amount
-    ) ;
-    if (amount == 0) return false ;
-    item = new Item(item.type, amount) ;
-    cargo.add(item) ;
-    return true ;
-  }
-}
-
-
-public void dropCargoAndExitAt(Inventory.Owner target) {
-  for (Item carried : cargo) {
-    if (carried.refers instanceof Mobile && target instanceof Boardable) {
-      ((Mobile) carried.refers).goAboard((Boardable) target) ;
-      continue ;
-    }
-    target.inventory().addItem(carried) ;
-  }
-  cargo.clear() ;
-  super.exitWorld() ;
-}
-//*/

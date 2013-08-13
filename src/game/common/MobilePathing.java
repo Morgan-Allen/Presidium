@@ -146,19 +146,24 @@ public class MobilePathing {
   
   /**  Specialty methods for modifying the position/facing of actors-
     */
-  public void headTowards(
-    Target target, float speed, boolean moves
-  ) {
-    //
-    //  Determine the appropriate offset and angle for this target-
-    if (target == null) return ;// false ;
+  private Vec2D displacement(Target target) {
     final Vec3D p = target.position(null) ;
     final Vec2D disp = new Vec2D(
       p.x - mobile.position.x,
       p.y - mobile.position.y
     ) ;
+    return disp ;
+  }
+  
+  
+  public void headTowards(
+    Target target, float speed, boolean moves
+  ) {
+    //
+    //  Determine the appropriate offset and angle for this target-
+    if (target == null) return ;
+    final Vec2D disp = displacement(target) ;
     final float dist = disp.length() ;
-    //closeEnough = dist <= minDist ;
     float angle = dist == 0 ? 0 : disp.normalise().toAngle() ;
     float moveRate = moves ? (speed / PlayLoop.UPDATES_PER_SECOND) : 0 ;
     //
@@ -168,16 +173,18 @@ public class MobilePathing {
     final float
       angleDif = Vec2D.degreeDif(angle, mobile.rotation),
       absDif   = Math.abs(angleDif) ;
-    //facingTarget = absDif < 30 ;
     if (absDif > maxRotate) {
       angle = mobile.rotation + (maxRotate * (angleDif > 0 ? 1 : -1)) ;
       angle = (angle + 360) % 360 ;
       moveRate *= (180 - absDif) / 180 ;
     }
     disp.scale(Math.min(moveRate, dist)) ;
+    //
+    //  Then apply the changes-
     disp.x += mobile.position.x ;
     disp.y += mobile.position.y ;
     mobile.nextPosition.setTo(disp) ;
+    mobile.nextPosition.z = mobile.aboveGroundHeight() ;
     mobile.nextRotation = angle ;
   }
   
@@ -189,83 +196,14 @@ public class MobilePathing {
   
   
   public boolean facingTarget(Target target) {
-    final Vec3D p = target.position(null) ;
-    final Vec2D disp = new Vec2D(
-      p.x - mobile.position.x,
-      p.y - mobile.position.y
-    ) ;
-    final float dist = disp.length() ;
-    if (dist == 0) return true ;
+    final Vec2D disp = displacement(target) ;
+    if (disp.length() == 0) return true ;
     final float angleDif = Math.abs(Vec2D.degreeDif(
       disp.normalise().toAngle(), mobile.rotation
     )) ;
     return angleDif < 30 ;
   }
 }
-
-
-
-/*
-  //
-  //  Determine whether the upcoming target (or, failing that, next tile,) is
-  //  a suitable target for boarding.
-  final Tile comingTile = world().tileAt(disp.x, disp.y) ;
-  boarding = null ;
-  if (target instanceof Boardable) {
-    final Boardable bT = (Boardable) target ;
-    if (bT.area(null).contains(disp.x, disp.y) && bT.isEntrance(aboard)) {
-      boarding = bT ;
-    }
-  }
-  if (boarding == null && aboard != null) {
-    if (aboard.area(null).contains(disp.x, disp.y)) {
-      boarding = aboard ;
-    }
-  }
-  if (boarding == null) {
-    if ((speed <= 0) || canEnter(comingTile)) {
-      boarding = comingTile ;
-    }
-  }
-  //
-  //  If it's possible to board the upcoming tile/target, update heading.
-  //  Otherwise, stay put and raise an alert-
-  if (boarding == null) {
-    onMotionBlock(comingTile) ;
-    nextPosition.setTo(position) ;
-    nextRotation = rotation ;
-  }
-  else {
-    nextPosition.setTo(disp) ;
-    nextRotation = angle ;
-  }
-  if (boarding == null || boarding instanceof Tile) {
-    nextPosition.z = world.terrain().trueHeight(disp.x, disp.y) ;
-    nextPosition.z += aboveGroundHeight() ;
-  }
-  else nextPosition.z = boarding.position(p).z ;
-  return true ;
-}
-//*/
-
-/*
-//*/
-/*
-if (
-  (! (moveTarget instanceof Venue)) &&
-  (Spacing.distance(mobile, moveTarget) <= minDist)
-) {
-  closeEnough = true ;
-  return ;
-}
-if (location == dest) {
-  closeEnough = true ;
-  return ;
-}
-else closeEnough = false ;
-//*/
-
-
 
 
 

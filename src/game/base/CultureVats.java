@@ -24,7 +24,7 @@ public class CultureVats extends Venue implements VenueConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    CultureVats.class, "media/Buildings/physician aura/culture_vats.png", 4, 3
+    CultureVats.class, "media/Buildings/physician/culture_vats.png", 4, 3
   ) ;
   
   

@@ -22,7 +22,7 @@ public class MineShaftSmelter extends Venue implements VenueConstants {
   
   /**  Field definitions, constructors and save/load methods-
     */
-  final static String IMG_DIR = "media/Buildings/artificer aura/" ;
+  final static String IMG_DIR = "media/Buildings/artificer/" ;
   final static Model 
     DRILL_MODELS[] = ImageModel.loadModels(
       MineShaftSmelter.class, 3, 3, IMG_DIR,

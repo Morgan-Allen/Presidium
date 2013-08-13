@@ -22,7 +22,7 @@ public class Artificer extends Venue implements VenueConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    Artificer.class, "media/Buildings/artificer aura/artificer.png", 4, 3
+    Artificer.class, "media/Buildings/artificer/artificer.png", 4, 3
   ) ;
   
   

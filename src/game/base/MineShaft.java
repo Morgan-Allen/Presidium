@@ -23,7 +23,7 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
   /**  Constants, fields, constructors and save/load methods-
     */
   final static String
-    IMG_DIR = "media/Buildings/artificer aura/" ;
+    IMG_DIR = "media/Buildings/artificer/" ;
   final static ImageModel
     SHAFT_MODEL = ImageModel.asIsometricModel(
       MineShaft.class, IMG_DIR+"excavation_shaft.gif", 4, 2

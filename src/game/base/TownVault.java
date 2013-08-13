@@ -24,7 +24,7 @@ public class TownVault extends Venue implements VenueConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    TownVault.class, "media/Buildings/vendor aura/town_vault.png", 4, 3
+    TownVault.class, "media/Buildings/merchant/town_vault.png", 4, 3
   ) ;
   
   List <Holding> holdings = new List <Holding> () ;

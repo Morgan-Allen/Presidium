@@ -73,6 +73,10 @@ public abstract class Mobile extends Element
     return v.setTo(position) ;
   }
   
+  public float rotation() {
+    return rotation ;
+  }
+  
   public float radius() { return 0.25f ; }
   public int pathType() { return Tile.PATH_CLEAR ; }
   public int owningType() { return NOTHING_OWNS ; }
@@ -133,7 +137,7 @@ public abstract class Mobile extends Element
   
 
   public void setPosition(float xp, float yp, World world) {
-    nextPosition.set(xp, yp, 0) ;
+    nextPosition.set(xp, yp, aboveGroundHeight()) ;
     setHeading(nextPosition, nextRotation, true, world) ;
   }
   
@@ -239,175 +243,12 @@ public abstract class Mobile extends Element
     final float alpha = PlayLoop.frameTime() ;
     s.position.setTo(position).scale(1 - alpha) ;
     s.position.add(nextPosition, alpha, s.position) ;
-    ///s.position.z += moveAnimHeight() ;
+    //s.position.z += moveAnimHeight() ;
     final float rotateChange = Vec2D.degreeDif(nextRotation, rotation) ;
     s.rotation = (rotation + (rotateChange * alpha) + 360) % 360 ;
     ///I.say("sprite position/rotation: "+s.position+" "+s.rotation) ;
     rendering.addClient(s) ;
   }
 }
-
-
-
-
-
-/*
-private Boardable
-  aboard = null,
-  boarding = null ;
-//*/
-
-
-
-/*
-if (toBoard == boarding) return ;
-if (aboard != null) aboard.setInside(this, false) ;
-aboard = boarding = toBoard ;
-if (aboard != null) aboard.setInside(this, true) ;
-setHeading(toBoard.position(null), nextRotation, true, world) ;
-//*/
-
-
-
-/*
-//*/
-
-/*
-if (BaseUI.isPicked(this)) {
-  I.say("Updating mobile- "+this) ;
-  I.say("  Aboard: "+aboard) ;
-  I.say("  Boarding: "+boarding) ;
-  I.say("  Old/new position: "+position+"/"+nextPosition) ;
-  I.say("  Origin: "+origin()) ;
-}
-//*/
-//
-//  ...There's a problem here.  You need to have some kind of emergency
-//  fallback in the event that you can't follow your specified path.
-/*
-if ((! checkTileClear(newTile)) && newTile.owner() instanceof Boardable) {
-  boarding = (Boardable) newTile.owner() ;
-}
-//*/
-
-
-
-/*
-private Boardable location(Target t) {
-  if (t instanceof Boardable) return (Boardable) t ;
-  if (t instanceof Mobile) {
-    final Mobile a = (Mobile) t ;
-    if (a.aboard() != null) return a.aboard() ;
-    return a.origin() ;
-  }
-  if (t instanceof Element) {
-    return Spacing.nearestOpenTile((Element) t, this, world) ;
-  }
-  I.complain("CANNOT GET LOCATION FOR: "+t) ;
-  return null ;
-}
-
-
-public boolean refreshPath() {
-  path = refreshPath(location(this), location(target)) ;
-  stepIndex = 0 ;
-  return path != null ;
-}
-
-
-protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
-  if (GameSettings.freePath) {
-    final PathingSearch search = new PathingSearch(initB, destB) ;
-    search.doSearch() ;
-    return search.fullPath(Boardable.class) ;
-  }
-  else {
-    return world.pathingCache.getLocalPath(
-      initB, destB, MAX_PATH_SCAN * 2
-    ) ;
-  }
-}
-
-
-public void updateWithTarget(Target moveTarget, float minDist) {
-  //
-  //  Firstly, check to see if the actual path target has been changed-
-  this.target = moveTarget ;
-  if (
-    (! (moveTarget instanceof Venue)) &&
-    (Spacing.distance(this, moveTarget) <= minDist)
-  ) {
-    closeEnough = true ;
-    return ;
-  }
-  final Boardable location = location(this), dest = location(moveTarget) ;
-  ///I.say(mobile+" location: "+location+", dest: "+dest+" ("+target+")") ;
-  if (location == dest) {
-    closeEnough = true ;
-    return ;
-  }
-  else closeEnough = false ;
-  //
-  //  Check to ensure that subsequent steps along this path are not blocked-
-  boolean blocked = false, nearTarget = false, doRefresh = false ;
-  if (nextStep() != null) for (int i = 0 ; i < MAX_PATH_SCAN ; i++) {
-    final int index = stepIndex + i ;
-    if (index >= path.length) break ;
-    final Boardable t = path[index] ;
-    if (! canEnter(t)) blocked = true ;
-    else if (! t.inWorld()) blocked = true ;
-    if (t == dest) nearTarget = true ;
-  }
-  doRefresh = blocked || path == null || pathTarget != dest ;
-  //
-  //  In the case that the path we're following is only partial, update once
-  //  we're approaching the terminus-
-  if (path != null && ! nearTarget) {
-    final Target last = path[path.length - 1] ;
-    final int dist = Spacing.outerDistance(location, last) ;
-    if (dist < World.SECTION_RESOLUTION / 2) {
-      doRefresh = true ;
-    }
-  }
-  //
-  //  If the path needs refreshment, do so-
-  if (doRefresh) {
-    pathTarget = dest ;
-    refreshPath() ;
-    if (path == null) {
-      I.say("COULDN'T FIND PATH TO: "+pathTarget) ;
-      pathingAbort() ;
-      stepIndex = -1 ;
-      return ;
-    }
-  }
-  if (location == path[stepIndex]) {
-    stepIndex = Visit.clamp(stepIndex + 1, path.length) ;
-  }
-}
-
-
-Target nextStep() {
-  if (stepIndex == -1 || path == null) return null ;
-  return path[stepIndex] ;
-}
-
-
-protected void onMotionBlock(Tile t) {
-  pathingAbort() ;
-}
-//*/
-
-
-/*
-public boolean closeEnough() {
-  return closeEnough ;
-}
-
-
-public boolean facingTarget() {
-  return facingTarget ;
-}
-//*/
 
 

@@ -88,7 +88,7 @@ public class Delivery extends Plan {
   
   public boolean valid() {
     if (! super.valid()) return false ;
-    if (stage >= STAGE_PICKUP) return true ;
+    if (stage >= STAGE_PICKUP || origin == null) return true ;
     return origin.orders.canMeetOrder(this) ;
   }
   
@@ -124,6 +124,7 @@ public class Delivery extends Plan {
         this, "actionDropoff",
         Action.REACH_DOWN, "Dropping off goods"
       ) ;
+      dropoff.setProperties(Action.CARRIES) ;
       //
       //  If the destination isn't complete, drop off at the entrance?
       return dropoff ;

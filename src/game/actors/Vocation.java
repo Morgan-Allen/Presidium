@@ -119,10 +119,16 @@ public class Vocation implements VenueConstants {
   final public static Vocation
     
     VAT_BREEDER = new Vocation(
-      "Vat Breeder", null, null, UPPER_CLASS, new Object[] {
+      "Vat Breeder", null, null, LOWER_CLASS, new Object[] {
       10, GENE_CULTURE, PHARMACY, 5, CHEMISTRY, ASSEMBLY,
-      RARELY, DEBAUCHED
+      RARELY, DEBAUCHED, INDOLENT
     }),
+    
+    MINDER = new Vocation(
+      "Minder", "citizen_skin.gif", null, LOWER_CLASS,
+      PRACTICED, DOMESTIC_SERVICE, SUASION, NOVICE, ANATOMY, PHARMACY,
+      OFTEN, EMPATHIC, SOMETIMES, STUBBORN
+    ),
 
     PHYSICIAN = new Vocation(
       "Physician", "physician_skin.gif", "physician_portrait.png",

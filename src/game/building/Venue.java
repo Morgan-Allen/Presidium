@@ -373,14 +373,17 @@ public abstract class Venue extends Fixture implements
     
     d.append("INTEGRITY: ") ;
     d.append(structure.integrity()+" / "+structure.maxIntegrity()) ;
-    
-    d.append("\n\nPERSONNEL:") ;
+
     //  TODO:  List Applicants here as well, whether local or offworld.
-    
-    for (Actor a : personnel.workers()) {
-      d.append("\n  ") ;
-      //d.insert(a.portrait(UI), 25) ;
-      d.append(a) ;
+    d.append("\n\nPERSONNEL:") ;
+    if (personnel.workers().size() == 0) d.append("\n  No workers.") ;
+    else for (Actor a : personnel.workers()) {
+      d.append("\n  ") ; d.append(a) ;
+    }
+    d.append("\n\nVISITORS:") ;
+    if (inside.size() == 0) d.append("\n  No visitors.") ;
+    else for (Mobile m : inside) if (m instanceof Actor) {
+      d.append("\n  ") ; d.append(m) ;
     }
     
     if (! stocks.empty()) d.append("\n\nCURRENT STOCKS:") ;

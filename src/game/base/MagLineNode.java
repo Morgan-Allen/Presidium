@@ -129,7 +129,7 @@ public class MagLineNode extends Element implements
     */
   final static ImageModel
     NODE_MODELS[] = ImageModel.loadModels(
-      MagLineNode.class, 1, 0.1f, "media/Buildings/vendor aura/",
+      MagLineNode.class, 1, 0.1f, "media/Buildings/merchant/",
       "mag_node_left.png",
       "mag_node_right.png",
       "mag_node_centre.png",

@@ -23,7 +23,7 @@ public class Fabricator extends Venue implements VenueConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    Fabricator.class, "media/Buildings/aesthete aura/fabricator.png", 4, 2
+    Fabricator.class, "media/Buildings/aesthete/fabricator.png", 4, 2
   ) ;
   
   

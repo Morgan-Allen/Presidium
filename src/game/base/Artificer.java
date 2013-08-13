@@ -27,7 +27,7 @@ public class Artificer extends Venue implements VenueConstants {
   
   
   public Artificer(Base base) {
-    super(4, 3, ENTRANCE_EAST, base) ;
+    super(4, 3, ENTRANCE_WEST, base) ;
     this.attachSprite(MODEL.makeSprite()) ;
   }
   

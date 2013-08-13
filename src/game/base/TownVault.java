@@ -80,7 +80,7 @@ public class TownVault extends Venue implements VenueConstants {
     for (Object t : world.presences.matchesNear(base(), this, 32)) {
       final Venue v = (Venue) t ;
       for (Actor citizen : v.personnel.workers()) {
-        if (citizen.psyche.home() != null) continue ;
+        if (citizen.AI.home() != null) continue ;
         I.say("Attempting to find housing for: "+citizen) ;
         Holding holding = findHousingSite(citizen, v) ;
         if (holding != null) {
@@ -88,7 +88,7 @@ public class TownVault extends Venue implements VenueConstants {
           final Tile o = holding.origin() ;
           holding.clearSurrounds() ;
           holding.enterWorldAt(o.x, o.y, world) ;
-          citizen.psyche.setHomeVenue(holding) ;
+          citizen.AI.setHomeVenue(holding) ;
           toHouse.remove(citizen) ;
           holdings.add(holding) ;
         }

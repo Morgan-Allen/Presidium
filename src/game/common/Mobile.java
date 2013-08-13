@@ -16,17 +16,20 @@ public abstract class Mobile extends Element
   implements Schedule.Updates
 {
   
+  final static int
+    MAX_PATH_SCAN = World.DEFAULT_SECTOR_SIZE ;
+  
   protected float
     rotation,
     nextRotation ;
   protected final Vec3D
     position = new Vec3D(),
     nextPosition = new Vec3D() ;
-  private Boardable
-    aboard = null,
-    boarding = null ;
   
+  protected Boardable aboard ;
   private ListEntry <Mobile> entry = null ;
+  final public MobilePathing pathing = initPathing() ;
+  
   
   
   /**  Basic constructors and save/load functionality-
@@ -41,9 +44,9 @@ public abstract class Mobile extends Element
     this.nextRotation = s.loadFloat() ;
     position.    loadFrom(s.input()) ;
     nextPosition.loadFrom(s.input()) ;
-    //facing.loadFrom(s.input()) ;
     aboard = (Boardable) s.loadTarget() ;
-    boarding = (Boardable) s.loadTarget() ;
+    //boarding = (Boardable) s.loadTarget() ;
+    if (pathing != null) pathing.loadState(s) ;
   }
   
   public void saveState(Session s) throws Exception {
@@ -52,10 +55,14 @@ public abstract class Mobile extends Element
     s.saveFloat(nextRotation) ;
     position    .saveTo(s.output()) ;
     nextPosition.saveTo(s.output()) ;
-    //facing.saveTo(s.output()) ;
     s.saveTarget(aboard) ;
-    s.saveTarget(boarding) ;
+    //s.saveTarget(boarding) ;
+    if (pathing != null) pathing.saveState(s) ;
   }
+  
+  
+  public abstract Base assignedBase() ;
+  protected MobilePathing initPathing() { return null ; }
   
   
   
@@ -70,51 +77,58 @@ public abstract class Mobile extends Element
   public int pathType() { return Tile.PATH_CLEAR ; }
   public int owningType() { return NOTHING_OWNS ; }
   
-  public abstract Base assignedBase() ;
-  
   
   
   /**  Called whenever the mobile enters/exits the world...
    */
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
-    ///I.say(this+" entering world at: "+x+" "+y) ;
+    (aboard = origin()).setInside(this, true) ;
     world().schedule.scheduleForUpdates(this) ;
-    origin().setInside(this, true) ;
     world().toggleActive(this, true) ;
   }
   
   
   public void exitWorld() {
     world.toggleActive(this, false) ;
-    origin().setInside(this, false) ;
-    if (aboard != null) aboard.setInside(this, false) ;
     world().schedule.unschedule(this) ;
-    ///I.say(this+" exiting world...") ;
+    if (aboard != null) aboard.setInside(this, false) ;
     super.exitWorld() ;
   }
   
   
   void setEntry(ListEntry <Mobile> e) { entry = e ; }
-  
-  
   ListEntry <Mobile> entry() { return entry ; }
+  public float scheduledInterval() { return 1.0f ; }
   
   
   
-  /**  Dealing with position and motion-
+  /**  Dealing with pathing-
     */
+  protected void pathingAbort() {
+  }
+  
+  
+  protected void onMotionBlock(Tile t) {
+    final boolean canRoute = pathing != null && pathing.refreshPath() ;
+    if (! canRoute) pathingAbort() ;
+  }
+  
+  
   public Boardable aboard() {
     return aboard ;
   }
   
   
   public void goAboard(Boardable toBoard, World world) {
-    if (toBoard == boarding) return ;
     if (aboard != null) aboard.setInside(this, false) ;
-    aboard = boarding = toBoard ;
+    aboard = toBoard ;
     if (aboard != null) aboard.setInside(this, true) ;
-    setHeading(toBoard.position(null), nextRotation, true, world) ;
+    
+    final Vec3D p = this.nextPosition ;
+    if (! aboard.area(null).contains(p.x, p.y)) {
+      setHeading(toBoard.position(null), nextRotation, true, world) ;
+    }
   }
   
 
@@ -129,22 +143,14 @@ public abstract class Mobile extends Element
   ) {
     final Tile oldTile = origin(), newTile = world.tileAt(pos.x, pos.y) ;
     super.setPosition(pos.x, pos.y, world) ;
-    
     nextPosition.setTo(pos) ;
     nextRotation = rotation ;
     if (instant) {
       this.position.setTo(pos) ;
       this.rotation = rotation ;
-    }
-    if (instant && inWorld()) {
-      final Boardable toBoard = (newTile.owner() instanceof Boardable) ?
-        (Boardable) newTile.owner() : newTile ;
-      if (aboard != toBoard) {
-        if (aboard != null) oldTile.setInside(this, false) ;
-        if (toBoard != null) toBoard.setInside(this, true) ;
-        aboard = toBoard ;
+      if (inWorld() && oldTile != newTile) {
+        onTileChange(oldTile, newTile) ;
       }
-      if (oldTile != newTile) onTileChange(oldTile, newTile) ;
     }
   }
   
@@ -154,120 +160,47 @@ public abstract class Mobile extends Element
   }
   
   
-  public boolean facingTarget(Target target) {
-    final Vec3D p = target.position(null) ;
-    final Vec2D disp = new Vec2D(
-      p.x - position.x,
-      p.y - position.y
-    ) ;
-    final float dist = disp.length() ;
-    if (dist == 0) return true ;
-    final float angleDif = Math.abs(Vec2D.degreeDif(
-      disp.normalise().toAngle(), rotation
-    )) ;
-    return angleDif < 30 ;
-  }
-  
-  
-  public void headTowards(Target target, float speed, boolean moves) {
-    //
-    //  Determine the appropriate offset and angle for this target-
-    if (target == null) return ;
-    final Vec3D p = target.position(null) ;
-    final Vec2D disp = new Vec2D(
-      p.x - position.x,
-      p.y - position.y
-    ) ;
-    final float dist = disp.length() ;
-    float angle = dist == 0 ? 0 : disp.normalise().toAngle() ;
-    float moveRate = moves ? (speed / PlayLoop.UPDATES_PER_SECOND) : 0 ;
-    //
-    //  Determine how far one can move this update, including limits on
-    //  maximum rotation-
-    final float maxRotate = speed * 90 / PlayLoop.UPDATES_PER_SECOND  ;
-    final float
-      angleDif = Vec2D.degreeDif(angle, rotation),
-      absDif   = Math.abs(angleDif) ;
-    if (absDif > maxRotate) {
-      angle = rotation + (maxRotate * (angleDif > 0 ? 1 : -1)) ;
-      angle = (angle + 360) % 360 ;
-      moveRate *= (180 - absDif) / 180 ;
-    }
-    disp.scale(Math.min(moveRate, dist)) ;
-    disp.x += position.x ;
-    disp.y += position.y ;
-    //
-    //  Determine whether the upcoming target (or, failing that, next tile,) is
-    //  a suitable target for boarding.
-    final Tile comingTile = world().tileAt(disp.x, disp.y) ;
-    boarding = null ;
-    if (target instanceof Boardable) {
-      final Boardable bT = (Boardable) target ;
-      if (bT.area(null).contains(disp.x, disp.y) && bT.isEntrance(aboard)) {
-        boarding = bT ;
-      }
-    }
-    if (boarding == null && aboard != null) {
-      if (aboard.area(null).contains(disp.x, disp.y)) {
-        boarding = aboard ;
-      }
-    }
-    if (boarding == null) {
-      if ((speed <= 0) || canEnter(comingTile)) {
-        boarding = comingTile ;
-      }
-    }
-    //
-    //  If it's possible to board the upcoming tile/target, update heading.
-    //  Otherwise, stay put and raise an alert-
-    if (boarding == null) {
-      onMotionBlock(comingTile) ;
-      nextPosition.setTo(position) ;
-      nextRotation = rotation ;
-    }
-    else {
-      nextPosition.setTo(disp) ;
-      nextRotation = angle ;
-    }
-    if (boarding == null || boarding instanceof Tile) {
-      nextPosition.z = world.terrain().trueHeight(disp.x, disp.y) ;
-      nextPosition.z += aboveGroundHeight() ;
-    }
-    else nextPosition.z = boarding.position(p).z ;
-    //*/
-  }
-  
   
   protected void updateAsMobile() {
     final Tile
       oldTile = origin(),
       newTile = world().tileAt(nextPosition.x, nextPosition.y) ;
-    /*
-    if (BaseUI.isPicked(this)) {
-      I.say("Updating mobile- "+this) ;
-      I.say("  Aboard: "+aboard) ;
-      I.say("  Boarding: "+boarding) ;
-      I.say("  Old/new position: "+position+"/"+nextPosition) ;
-      I.say("  Origin: "+origin()) ;
-    }
-    //*/
     //
-    //  ...There's a problem here.  You need to have some kind of emergency
-    //  fallback in the event that you can't follow your specified path.
-    /*
-    if ((! checkTileClear(newTile)) && newTile.owner() instanceof Boardable) {
-      boarding = (Boardable) newTile.owner() ;
+    //  If you're not in either your current 'aboard' object, or the area
+    //  corresponding to the next step in pathing, you need to default to the
+    //  nearest clear tile.
+    if (oldTile != newTile || ! aboard.inWorld()) {
+      onTileChange(oldTile, newTile) ;
+      final Box2D area = new Box2D() ;
+      final Boardable next = pathing == null ? null : pathing.nextStep() ;
+      final boolean awry = next != null && Spacing.distance(next, this) > 1 ;
+      final Vec3D p = nextPosition ;
+      if (aboard.area(area).contains(p.x, p.y) && aboard.inWorld()) {
+        //  In this case, you're fine.  Just carry on.
+      }
+      else if (next != null && next.area(area).contains(p.x, p.y)) {
+        aboard.setInside(this, false) ;
+        (aboard = next).setInside(this, true) ;
+      }
+      else if (newTile.blocked()) {
+        onMotionBlock(newTile) ;
+        final Tile free = Spacing.nearestOpenTile(newTile, this) ;
+        if (free == null) I.complain("NO FREE TILE AVAILABLE!") ;
+        setPosition(free.x, free.y, world) ;
+        return ;
+      }
+      else {
+        if (awry) onMotionBlock(newTile) ;
+        aboard.setInside(this, false) ;
+        (aboard = newTile).setInside(this, true) ;
+      }
     }
-    //*/
-    if (boarding != aboard) {
-      if (aboard != null) aboard.setInside(this, false) ;
-      if (boarding != null) boarding.setInside(this, true) ;
-      aboard = boarding ;
-    }
+    //
+    //  Either way, update position and check for tile changes-
     position.setTo(nextPosition) ;
     rotation = nextRotation ;
     super.setPosition(position.x, position.y, world) ;
-    if (oldTile != newTile) onTileChange(oldTile, newTile) ;
+    ///if (oldTile != newTile) onTileChange(oldTile, newTile) ;
   }
   
   
@@ -283,24 +216,9 @@ public abstract class Mobile extends Element
   }
   
   
-  protected void onMotionBlock(Tile t) {
-    pathingAbort() ;
-  }
-  
-  
-  public void pathingAbort() {
-  }
-  
-  
   protected float aboveGroundHeight() {
     return 0 ;
   }
-  
-  
-  
-  /**  Updates and stuff-
-    */
-  public float scheduledInterval() { return 1.0f ; }
   
   
   
@@ -332,5 +250,164 @@ public abstract class Mobile extends Element
 
 
 
+
+/*
+private Boardable
+  aboard = null,
+  boarding = null ;
+//*/
+
+
+
+/*
+if (toBoard == boarding) return ;
+if (aboard != null) aboard.setInside(this, false) ;
+aboard = boarding = toBoard ;
+if (aboard != null) aboard.setInside(this, true) ;
+setHeading(toBoard.position(null), nextRotation, true, world) ;
+//*/
+
+
+
+/*
+//*/
+
+/*
+if (BaseUI.isPicked(this)) {
+  I.say("Updating mobile- "+this) ;
+  I.say("  Aboard: "+aboard) ;
+  I.say("  Boarding: "+boarding) ;
+  I.say("  Old/new position: "+position+"/"+nextPosition) ;
+  I.say("  Origin: "+origin()) ;
+}
+//*/
+//
+//  ...There's a problem here.  You need to have some kind of emergency
+//  fallback in the event that you can't follow your specified path.
+/*
+if ((! checkTileClear(newTile)) && newTile.owner() instanceof Boardable) {
+  boarding = (Boardable) newTile.owner() ;
+}
+//*/
+
+
+
+/*
+private Boardable location(Target t) {
+  if (t instanceof Boardable) return (Boardable) t ;
+  if (t instanceof Mobile) {
+    final Mobile a = (Mobile) t ;
+    if (a.aboard() != null) return a.aboard() ;
+    return a.origin() ;
+  }
+  if (t instanceof Element) {
+    return Spacing.nearestOpenTile((Element) t, this, world) ;
+  }
+  I.complain("CANNOT GET LOCATION FOR: "+t) ;
+  return null ;
+}
+
+
+public boolean refreshPath() {
+  path = refreshPath(location(this), location(target)) ;
+  stepIndex = 0 ;
+  return path != null ;
+}
+
+
+protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
+  if (GameSettings.freePath) {
+    final PathingSearch search = new PathingSearch(initB, destB) ;
+    search.doSearch() ;
+    return search.fullPath(Boardable.class) ;
+  }
+  else {
+    return world.pathingCache.getLocalPath(
+      initB, destB, MAX_PATH_SCAN * 2
+    ) ;
+  }
+}
+
+
+public void updateWithTarget(Target moveTarget, float minDist) {
+  //
+  //  Firstly, check to see if the actual path target has been changed-
+  this.target = moveTarget ;
+  if (
+    (! (moveTarget instanceof Venue)) &&
+    (Spacing.distance(this, moveTarget) <= minDist)
+  ) {
+    closeEnough = true ;
+    return ;
+  }
+  final Boardable location = location(this), dest = location(moveTarget) ;
+  ///I.say(mobile+" location: "+location+", dest: "+dest+" ("+target+")") ;
+  if (location == dest) {
+    closeEnough = true ;
+    return ;
+  }
+  else closeEnough = false ;
+  //
+  //  Check to ensure that subsequent steps along this path are not blocked-
+  boolean blocked = false, nearTarget = false, doRefresh = false ;
+  if (nextStep() != null) for (int i = 0 ; i < MAX_PATH_SCAN ; i++) {
+    final int index = stepIndex + i ;
+    if (index >= path.length) break ;
+    final Boardable t = path[index] ;
+    if (! canEnter(t)) blocked = true ;
+    else if (! t.inWorld()) blocked = true ;
+    if (t == dest) nearTarget = true ;
+  }
+  doRefresh = blocked || path == null || pathTarget != dest ;
+  //
+  //  In the case that the path we're following is only partial, update once
+  //  we're approaching the terminus-
+  if (path != null && ! nearTarget) {
+    final Target last = path[path.length - 1] ;
+    final int dist = Spacing.outerDistance(location, last) ;
+    if (dist < World.SECTION_RESOLUTION / 2) {
+      doRefresh = true ;
+    }
+  }
+  //
+  //  If the path needs refreshment, do so-
+  if (doRefresh) {
+    pathTarget = dest ;
+    refreshPath() ;
+    if (path == null) {
+      I.say("COULDN'T FIND PATH TO: "+pathTarget) ;
+      pathingAbort() ;
+      stepIndex = -1 ;
+      return ;
+    }
+  }
+  if (location == path[stepIndex]) {
+    stepIndex = Visit.clamp(stepIndex + 1, path.length) ;
+  }
+}
+
+
+Target nextStep() {
+  if (stepIndex == -1 || path == null) return null ;
+  return path[stepIndex] ;
+}
+
+
+protected void onMotionBlock(Tile t) {
+  pathingAbort() ;
+}
+//*/
+
+
+/*
+public boolean closeEnough() {
+  return closeEnough ;
+}
+
+
+public boolean facingTarget() {
+  return facingTarget ;
+}
+//*/
 
 

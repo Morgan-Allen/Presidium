@@ -99,10 +99,10 @@ public class DebugBehaviour extends PlayLoop {
     //  There are still problems related to how boarding/unboarding the
     //  freighter is handled.  Get rid of the DropZone shebang.
     
-    baseScenario(world, base, HUD) ;
+    //baseScenario(world, base, HUD) ;
     //missionScenario(world, base, HUD) ;
     //natureScenario(world, base, HUD) ;
-    //socialScenario(world, base, HUD) ;
+    socialScenario(world, base, HUD) ;
   }
   
   
@@ -164,7 +164,7 @@ public class DebugBehaviour extends PlayLoop {
     prey.health.setupHealth(Rand.num(), 1, 0) ;
     prey.enterWorldAt(8, 8, world) ;
     
-    hunter.psyche.assignBehaviour(
+    hunter.AI.assignBehaviour(
       new Hunting(hunter, prey, Hunting.TYPE_FEEDS)
     ) ;
     hunter.assignAction(null) ;
@@ -203,10 +203,16 @@ public class DebugBehaviour extends PlayLoop {
       other = new Human(Vocation.VETERAN , base) ;
     actor.enterWorldAt(5, 5, world) ;
     other.enterWorldAt(8, 8, world) ;
-    ((BaseUI) UI).selection.setSelected(other) ;
+    ((BaseUI) UI).selection.setSelected(actor) ;
 
-    base.intelMap.liftFogAround(other, 10) ;
+    base.intelMap.liftFogAround(actor, 10) ;
     other.health.takeInjury(other.health.maxHealth() + 1) ;
+    
+    final Sickbay sickbay = new Sickbay(base) ;
+    sickbay.enterWorldAt(8, 8, world) ;
+    sickbay.setAsEstablished(true) ;
+    sickbay.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+    sickbay.onCompletion() ;
   }
 }
 

@@ -132,6 +132,7 @@ public class Vareen extends Fauna {
   
   /**  Pathing modifications-
     */
+  //*
   protected MobilePathing initPathing() {
     //
     //  We use a modified form of pathing search that can bypass most
@@ -159,6 +160,7 @@ public class Vareen extends Fauna {
       }
     } ;
   }
+  //*/
   
   
   public boolean canEnter(Boardable t) {

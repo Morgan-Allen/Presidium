@@ -68,6 +68,9 @@ public class Choice {
     *  likelihood of their selection.
     */
   public Behaviour weightedPick() {
+    //  TODO:  You need to modify weights to screen out anything more than 2
+    //  points below the highest choice.  The absence of this feature is
+    //  causing some screwy behaviour.
     final Behaviour picked = (Behaviour) Rand.pickFrom(plans, weights) ;
     return picked ;
   }

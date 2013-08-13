@@ -144,6 +144,7 @@ public class BaseUI extends HUD implements UIConstants {
   
   public void updateInput() {
     super.updateInput() ;
+    
     if (newPanel != currentPanel) {
       final float TRANSITION_TIME = 0.5f ;
       float fade = System.currentTimeMillis() - panelInceptTime ;
@@ -157,6 +158,7 @@ public class BaseUI extends HUD implements UIConstants {
       if (newPanel != null) newPanel.relAlpha = newFade ;
       if (fade >= 1) currentPanel = newPanel ;
     }
+    
     if (selection.updateSelection(world, rendering.port, infoArea)) {
       if (mouseClicked() && currentTask == null) {
         selection.setSelected(selection.hovered()) ;

@@ -67,7 +67,7 @@ public class Barge extends Mobile {
     super.updateAsMobile() ;
     if (
       (! followed.inWorld()) ||
-      ! followed.psyche.agenda().includes(tracked)
+      ! followed.AI.agenda().includes(tracked)
     ) {
       exitWorld() ;
       return ;
@@ -82,8 +82,6 @@ public class Barge extends Mobile {
     final float angle = new Vec2D().setTo(pos).toAngle() ;
     pos.scale(0 - idealDist).add(FP) ;
     super.setHeading(pos, angle, false, world) ;
-    
-    //goAboard(followed.aboard(), world) ;
     /*
     if (passenger != null) {
       passenger.setHeading(nextPosition, nextRotation, false, world) ;

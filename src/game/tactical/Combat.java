@@ -50,7 +50,7 @@ public class Combat extends Plan implements ActorConstants {
   public float priorityFor(Actor actor) {
     //
     //  TODO:  Move this evaluation below, to the combatPriority method?
-    float relation = actor.psyche.relationTo(target) ;
+    float relation = actor.AI.relationTo(target) ;
     relation *= PARAMOUNT / Relation.MAX_ATT ;
     if (actor.assignedBase() == target.assignedBase()) relation += ROUTINE ;
     return combatPriority(actor, target, 0 - relation, PARAMOUNT) ;

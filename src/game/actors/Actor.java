@@ -30,10 +30,8 @@ public abstract class Actor extends Mobile implements
   final public ActorTraits traits = new ActorTraits(this) ;
   final public ActorGear   gear   = new ActorGear  (this) ;
   
-  final public MobilePathing pathing = initPathing() ;
-  final public ActorPsyche psyche = initPsyche() ;
-  
-  private Action actionTaken, reflexAction ;
+  final public ActorAI AI = initAI() ;
+  private Action actionTaken ;//, reflexAction ;
   private Base base ;
   
   
@@ -47,9 +45,7 @@ public abstract class Actor extends Mobile implements
     health.loadState(s) ;
     traits.loadState(s) ;
     gear.loadState(s) ;
-    
-    pathing.loadState(s) ;
-    psyche.loadState(s) ;
+    AI.loadState(s) ;
     
     actionTaken = (Action) s.loadObject() ;
     base = (Base) s.loadObject() ;
@@ -62,16 +58,14 @@ public abstract class Actor extends Mobile implements
     health.saveState(s) ;
     traits.saveState(s) ;
     gear.saveState(s) ;
-    
-    pathing.saveState(s) ;
-    psyche.saveState(s) ;
+    AI.saveState(s) ;
     
     s.saveObject(actionTaken) ;
     s.saveObject(base) ;
   }
   
   
-  protected abstract ActorPsyche initPsyche() ;
+  protected abstract ActorAI initAI() ;
   
   protected MobilePathing initPathing() { return new MobilePathing(this) ; }
   
@@ -96,22 +90,16 @@ public abstract class Actor extends Mobile implements
     this.actionTaken = action ;
     if (action != null) actionTaken.updateAction() ;
     world.activities.toggleActive(action, true) ;
-  }
+  }  
   
   
-  protected void onMotionBlock() {
-    final boolean canRoute = pathing.refreshPath() ;
-    if (! canRoute) pathingAbort() ;
-  }
-  
-  
-  public void pathingAbort() {
+  protected void pathingAbort() {
     if (actionTaken == null) return ;
     ///I.say(this+" aborting actionTaken...") ;
-    psyche.cancelBehaviour(psyche.topBehaviour()) ;
-    final Behaviour top = psyche.topBehaviour() ;
+    AI.cancelBehaviour(AI.topBehaviour()) ;
+    final Behaviour top = AI.topBehaviour() ;
     if (top != null) top.abortStep() ;
-    assignAction(psyche.getNextAction()) ;
+    assignAction(AI.getNextAction()) ;
   }
   
   
@@ -140,7 +128,7 @@ public abstract class Actor extends Mobile implements
   
   public void exitWorld() {
     world.activities.toggleActive(actionTaken, false) ;
-    psyche.cancelBehaviour(psyche.topBehaviour()) ;
+    AI.cancelBehaviour(AI.topBehaviour()) ;
     super.exitWorld() ;
   }
   
@@ -150,8 +138,8 @@ public abstract class Actor extends Mobile implements
     if (actionTaken != null) actionTaken.updateAction() ;
     if (health.conscious()) {
       if (actionTaken == null || actionTaken.complete()) {
-        assignAction(psyche.getNextAction()) ;
-        I.say(this+" got next action: "+actionTaken) ;
+        assignAction(AI.getNextAction()) ;
+        ///I.say(this+" got next action: "+actionTaken) ;
       }
     }
   }
@@ -160,7 +148,7 @@ public abstract class Actor extends Mobile implements
   public void updateAsScheduled(int numUpdates) {
     health.updateHealth(numUpdates) ;
     if (health.conscious()) {
-      psyche.updatePsyche(numUpdates) ;
+      AI.updatePsyche(numUpdates) ;
       if (assignedBase() != null) {
         assignedBase().intelMap.liftFogAround(this, health.sightRange()) ;
       }
@@ -177,7 +165,7 @@ public abstract class Actor extends Mobile implements
       this, this, this, "actionFall",
       Action.FALL, "Stricken"
     ) ;
-    psyche.cancelBehaviour(psyche.rootBehaviour()) ;
+    AI.cancelBehaviour(AI.rootBehaviour()) ;
     this.assignAction(falling) ;
   }
   
@@ -232,7 +220,8 @@ public abstract class Actor extends Mobile implements
         actionTaken.animName()+" "+actionTaken.animProgress()
       ) ;
       //*/
-      s.setAnimation(actionTaken.animName(), actionTaken.animProgress()) ;
+      actionTaken.configSprite(s) ;
+      ///s.setAnimation(actionTaken.animName(), actionTaken.animProgress()) ;
     }
     super.renderFor(rendering, base) ;
     //

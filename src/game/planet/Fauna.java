@@ -77,9 +77,9 @@ public abstract class Fauna extends Actor {
   
   /**  Shared behavioural methods-
     */
-  protected ActorPsyche initPsyche() {
+  protected ActorAI initAI() {
     final Fauna fauna = this ;
-    return new ActorPsyche(this) {
+    return new ActorAI(this) {
       protected Behaviour nextBehaviour() {
         return fauna.nextBehaviour() ;
       }
@@ -286,8 +286,8 @@ public abstract class Fauna extends Actor {
       //  If everything else checks out, consider making a baby-
       if (shouldMate) {
         final Behaviour mating = nextMating() ;
-        if (psyche.couldSwitchTo(mating)) {
-          psyche.assignBehaviour(mating) ;
+        if (AI.couldSwitchTo(mating)) {
+          AI.assignBehaviour(mating) ;
         }
       }
     }

@@ -96,7 +96,7 @@ public abstract class Plan implements Saveable, Behaviour {
 
   public void abortStep() {
     ///I.say("Aborting plan! "+this) ;
-    actor.psyche.cancelBehaviour(this) ;
+    actor.AI.cancelBehaviour(this) ;
   }
   
   

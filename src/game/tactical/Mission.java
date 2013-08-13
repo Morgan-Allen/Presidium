@@ -167,8 +167,8 @@ public abstract class Mission implements
     for (Role role : roles) {
       if (! role.approved) roles.remove(role) ;
       else {
-        role.applicant.psyche.assignMission(this) ;
-        role.applicant.psyche.assignBehaviour(this) ;
+        role.applicant.AI.assignMission(this) ;
+        role.applicant.AI.assignBehaviour(this) ;
       }
     }
     begun = true ;
@@ -178,7 +178,7 @@ public abstract class Mission implements
   protected void endMission(boolean cancelled) {
     int reward = REWARD_AMOUNTS[rewardType] ;
     for (Role role : roles) {
-      role.applicant.psyche.assignMission(null) ;
+      role.applicant.AI.assignMission(null) ;
       if (! cancelled) role.applicant.gear.incCredits(reward) ;
     }
     base.removeMission(this) ;

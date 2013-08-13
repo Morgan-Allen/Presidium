@@ -18,7 +18,7 @@ import src.util.* ;
 
 
 
-public abstract class ActorPsyche implements ActorConstants {
+public abstract class ActorAI implements ActorConstants {
   
   
   /**  Field definitions, constructor, save/load methods-
@@ -53,7 +53,7 @@ public abstract class ActorPsyche implements ActorConstants {
   
   
   
-  protected ActorPsyche(Actor actor) {
+  protected ActorAI(Actor actor) {
     this.actor = actor ;
   }
   

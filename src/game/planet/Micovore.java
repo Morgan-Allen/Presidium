@@ -82,8 +82,8 @@ public class Micovore extends Fauna {
   protected void fightWith(Fauna competes) {
     final Hunting fight = new Hunting(this, competes, Hunting.TYPE_FEEDS) ;
     fight.setPriority(Plan.CRITICAL) ;
-    if (psyche.couldSwitchTo(fight)) {
-      psyche.assignBehaviour(fight) ;
+    if (AI.couldSwitchTo(fight)) {
+      AI.assignBehaviour(fight) ;
     }
   }
   

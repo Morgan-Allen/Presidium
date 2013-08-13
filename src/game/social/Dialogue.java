@@ -70,15 +70,15 @@ public class Dialogue extends Plan implements ActorConstants {
   public static boolean canTalk(Actor actor, Actor other) {
     if (actor == other) return false ;
     if (isListening(actor, other)) return true ;
-    return actor.psyche.couldSwitch(
-      actor.psyche.rootBehaviour(), new Dialogue(actor, other)
+    return actor.AI.couldSwitch(
+      actor.AI.rootBehaviour(), new Dialogue(actor, other)
     ) ;
   }
   
   //
   //  Returns whether Actor is listening to Other.
   static boolean isListening(Actor actor, Actor other) {
-    final Behaviour root = actor.psyche.rootBehaviour() ;
+    final Behaviour root = actor.AI.rootBehaviour() ;
     if (! (root instanceof Dialogue)) return false ;
     return ((Dialogue) root).other == other ;
   }
@@ -180,14 +180,14 @@ public class Dialogue extends Plan implements ActorConstants {
       forOther.location = Spacing.nearestOpenTile((Tile) location, other) ;
     }
     else forOther.location = location ;
-    other.psyche.assignBehaviour(forOther) ;
+    other.AI.assignBehaviour(forOther) ;
   }
 
   
   private void finishDialogue() {
     BaseUI.logFor(actor, actor+" finished dialogue.") ;
     this.finished = true ;
-    final Behaviour root = other.psyche.rootBehaviour() ;
+    final Behaviour root = other.AI.rootBehaviour() ;
     if (root instanceof Dialogue) {
       final Dialogue d = ((Dialogue) root) ;
       if (d.other == actor) d.finished = true ;
@@ -217,7 +217,7 @@ public class Dialogue extends Plan implements ActorConstants {
 
     //*
     I.say(actor+" talking to "+other) ;
-    final float attLevel = other.psyche.relationTo(actor) / Relation.MAX_ATT ;
+    final float attLevel = other.AI.relationTo(actor) / Relation.MAX_ATT ;
     float success = 0 ;
     if (actor.traits.test(mannersFor(actor), ROUTINE_DC, 1)) success += 5 ;
     if (actor.traits.test(SUASION, attLevel * -20, 1)) success += 5 ;
@@ -225,7 +225,7 @@ public class Dialogue extends Plan implements ActorConstants {
     //success += (other.psyche.relationTo(other) / Relation.MAX_ATT) * Rand.num() ;
     success /= 2 ;
     
-    other.psyche.incRelation(actor, success) ;
+    other.AI.incRelation(actor, success) ;
     actor.health.liftStress(success / 5f) ;
     //*/
     //float success = 0.9f ;

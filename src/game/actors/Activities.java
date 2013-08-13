@@ -100,7 +100,7 @@ public class Activities {
     final List <Action> onTarget = actions.get(t) ;
     if (onTarget == null) return false ;
     for (Action a : onTarget) {
-      for (Behaviour b : a.actor.psyche.agenda()) {
+      for (Behaviour b : a.actor.AI.agenda()) {
         if (b.getClass() == behaviourClass) return true ;
       }
     }

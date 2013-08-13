@@ -263,6 +263,11 @@ public final class Spacing implements TileConstants {
     return (dist < 0) ? 0 : dist ;
   }
   
+  
+  public static float innerDistance(Target a, Target b) {
+    return a.position(pA).distance(b.position(pB)) ;
+  }
+  
 
   public static int outerDistance(Target a, Target b) {
     float dist = a.position(pA).distance(b.position(pB)) ;

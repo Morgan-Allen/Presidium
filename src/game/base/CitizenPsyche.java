@@ -59,7 +59,7 @@ import src.util.* ;
 
 
 
-public class CitizenPsyche extends ActorPsyche implements ActorConstants {
+public class CitizenPsyche extends ActorAI implements ActorConstants {
   
   
   

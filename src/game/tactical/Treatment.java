@@ -98,7 +98,7 @@ public class Treatment extends Plan implements ActorConstants {
     if ((! patient.health.conscious()) && (! patient.indoors())) {
       Venue haven = Retreat.nearestHaven(actor, Sickbay.class) ;
       
-      if (haven == null) haven = actor.psyche.home() ;
+      if (haven == null) haven = actor.AI.home() ;
       if (haven != null) {
         final Delivery transport = new Delivery(patient, haven) ;
         return transport ;

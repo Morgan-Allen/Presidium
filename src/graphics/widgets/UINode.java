@@ -7,6 +7,9 @@
 package src.graphics.widgets ;
 import src.util.* ;
 import org.lwjgl.opengl.* ;
+import org.lwjgl.* ;
+import java.nio.* ;
+
 
 
 public abstract class UINode {
@@ -151,9 +154,33 @@ public abstract class UINode {
     GL11.glTexCoord2f(umax, vmax) ;
     GL11.glVertex3f(xmax, ymin, absDepth) ;
   }
+  
+  
+  //
+  //  TODO:  Consider supplying the ByteBuffer yourself and resetting it after
+  //  use.
+  final public static ByteBuffer copyPixels(Box2D area) {
+    final int size = ((int) area.xdim()) * ((int) area.ydim()) ;
+    final ByteBuffer pixels = BufferUtils.createByteBuffer(size) ;
+    GL11.glReadPixels(
+      (int) area.xpos(), (int) area.ypos(),
+      (int) area.xdim(), (int) area.ydim(),
+      GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixels
+    ) ;
+    return pixels ;
+  }
+  
   //
   //  TODO:  You need another method for direct bitmap display, rather than
   //  using texture coordinates.  Use glDrawPixels and glPixelZoom.
+  final public static void drawPixels(Box2D area, ByteBuffer pixels) {
+    GL11.glRasterPos2f((int) area.xpos(), (int) area.ypos()) ;
+    GL11.glDrawPixels(
+      (int) area.xdim(), (int) area.ydim(),
+      GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixels
+    ) ;
+  }
+  
 }
 
 

@@ -87,8 +87,8 @@ public class VenuePersonnel {
   
   
   protected void onDecommission() {
-    for (Actor c : workers()) c.psyche.setEmployer(null) ;
-    for (Actor c : residents()) c.psyche.setHomeVenue(null) ;
+    for (Actor c : workers()) c.AI.setEmployer(null) ;
+    for (Actor c : residents()) c.AI.setHomeVenue(null) ;
   }
   
   
@@ -98,7 +98,7 @@ public class VenuePersonnel {
     // name, and maybe links to family or one or two past career events.
     final Career career = new Career(v) ;
     final Human citizen = new Human(career, venue.base()) ;
-    citizen.psyche.setEmployer(venue) ;
+    citizen.AI.setEmployer(venue) ;
     if (GameSettings.hireFree) {
       final Tile t = venue.mainEntrance() ;
       citizen.enterWorldAt(t.x, t.y, venue.world()) ;

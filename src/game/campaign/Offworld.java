@@ -195,7 +195,7 @@ public class Offworld {
   private void addCrew(Dropship ship, Vocation... positions) {
     for (Vocation v : positions) {
       final Human staff = new Human(new Career(v), base) ;
-      staff.psyche.setEmployer(ship) ;
+      staff.AI.setEmployer(ship) ;
       ship.setInside(staff, true) ;
     }
   }

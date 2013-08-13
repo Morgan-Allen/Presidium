@@ -44,7 +44,7 @@ public class StrikeMission extends Mission {
   public float priorityFor(Actor actor) {
     return Combat.combatPriority(
       actor, (Actor) subject,
-      actor.psyche.greedFor(rewardAmount()) * ROUTINE,
+      actor.AI.greedFor(rewardAmount()) * ROUTINE,
       PARAMOUNT
     ) ;
   }

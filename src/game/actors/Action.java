@@ -21,10 +21,10 @@ public class Action implements Behaviour, Model.AnimNames {
   /**  Field definitions, constants and constructors-
     */
   final public static int
-    QUICK   = 1,
-    CAREFUL = 2,
-    STEADY  = 4,
-    RANGED  = 8 ;
+    QUICK    = 1,
+    CAREFUL  = 2,
+    CARRIES  = 4,
+    RANGED   = 8 ;
   
   final public Actor actor ;
   final Session.Saveable basis ;
@@ -160,14 +160,14 @@ public class Action implements Behaviour, Model.AnimNames {
   public void abortStep() {
     progress = -1 ;
     inRange = -1 ;
-    actor.psyche.cancelBehaviour(this) ;
+    actor.AI.cancelBehaviour(this) ;
   }
   
   
 
   /**  Actual execution of associated behaviour-
     */
-  protected float duration() {
+  private float duration() {
     float duration = 1 ;
     if ((properties & QUICK) != 0) duration /= 2 ;
     if ((properties & CAREFUL) != 0) duration *= 2 ;
@@ -175,7 +175,7 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-  protected float moveRate() {
+  private float moveRate() {
     float rate = actor.health.moveRate() ;
     //  You also have to account for the effects of fatigue and encumbrance...
     if ((properties & QUICK  ) != 0) rate *= 2 ;
@@ -191,30 +191,33 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-  protected void adjustMotion() {
+  private void adjustMotion() {
     //
-    //  Update the actor's pathing and current heading as required.
-    ///I.say(actor+" move target is: "+moveTarget) ;
+    //  Depending on whether you're currently close enough to the move-target,
+    //  and facing the action-target, you enter motion or action mode
+    //  respectively.
     float minDist = 0 ;
     if ((properties & RANGED) != 0) minDist = actor.health.sightRange() ;
-    actor.pathing.updateWithTarget(moveTarget, minDist) ;
-    //
-    //  Depending on whether you're currently close enough, and facing the
-    //  target, you enter motion or action mode respectively.
     final boolean
-      closed = actor.pathing.closeEnough(),
-      facing = actor.facingTarget(actionTarget) ;
+      closed = actor.pathing.closeEnough (moveTarget, minDist),
+      facing = actor.pathing.facingTarget(actionTarget) ;
+    if (! closed) actor.pathing.updatePathing(moveTarget, minDist) ;
     final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;
-    actor.headTowards(faced, moveRate(), ! closed) ;
+    /*
+    I.say("Heading toward: "+faced+", action target: "+actionTarget) ;
+    I.say("Closed/facing: "+closed+"/"+facing) ;
+    I.say("Distance to move target: "+Spacing.distance(actor, moveTarget)) ;
+    //*/
+    actor.pathing.headTowards(faced, moveRate(), ! closed) ;
     //
-    //  If there's a change in state, reset progress.
+    //  Check for state changes-
     final byte oldRange = inRange ;
     inRange = (byte) ((closed && facing) ? 1 : 0) ;
     if (inRange != oldRange) progress = oldProgress = 0 ;
   }
   
   
-  protected float progressPerUpdate() {
+  private float progressPerUpdate() {
     if (inRange == 1) {
       return 1f / (duration() * PlayLoop.UPDATES_PER_SECOND) ;
     }
@@ -228,35 +231,26 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-  //  TODO:  Having to include both motion and actual action-updates here is a
-  //  little awkward.  Consider moving some of this to the MobilePathing or
-  //  Actor classes?
-  protected void updateAction() {
-    if (complete()) {
-      oldProgress = progress = 1 ;
-      return ;
+  private void advanceAction() {
+    progress = Visit.clamp(progress, 0, 1) ;
+    final float duration = duration() ;
+    final float contact = (duration - 0.25f) / duration ;
+    if (oldProgress <= contact && progress > contact) try {
+      toCall.invoke(basis, actor, actionTarget) ;
     }
+    catch (Exception e) {
+      I.say("PROBLEM WITH ACTION: "+toCall.getName()) ;
+      I.report(e) ;
+    }
+  }
+  
+  
+  protected void updateAction() {
+    if (complete()) { oldProgress = progress = 1 ; return ; }
     adjustMotion() ;
-    //
-    //  Iterate over progress made-
     oldProgress = progress ;
     progress += progressPerUpdate() ;
-    //
-    //  If you're actually in range, check to see if you can deliver the needed
-    //  behaviour.  Delivery is intended to occur a quarter second before the
-    //  action completes.
-    if (inRange == 1) {
-      progress = Visit.clamp(progress, 0, 1) ;
-      final float duration = duration() ;
-      final float contact = (duration - 0.25f) / duration ;
-      if (oldProgress <= contact && progress > contact) try {
-        toCall.invoke(basis, actor, actionTarget) ;
-      }
-      catch (Exception e) {
-        I.say("PROBLEM WITH ACTION: "+toCall.getName()) ;
-        I.report(e) ;
-      }
-    }
+    if (inRange == 1) advanceAction() ;
   }
   
   
@@ -307,7 +301,15 @@ public class Action implements Behaviour, Model.AnimNames {
   
   /**  Methods to support rendering-
     */
-  float animProgress() {
+  void configSprite(Sprite sprite) {
+    //
+    //  In the case of a pushing animation, you actually need to set different
+    //  animations for the upper and lower body.
+    sprite.setAnimation(animName(), animProgress()) ;
+  }
+  
+  
+  protected float animProgress() {
     final float alpha = PlayLoop.frameTime() ;
     final float AP = ((progress * alpha) + (oldProgress * (1 - alpha))) ;
     if (AP > 1) return AP % 1 ;
@@ -315,7 +317,7 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-  String animName() {
+  protected String animName() {
     if (inRange == 1) {
       return animName ;
     }

@@ -80,7 +80,7 @@ public class Human extends Actor implements ActorConstants {
   }
   
   
-  protected ActorPsyche initPsyche() { return new CitizenPsyche(this) ; }
+  protected ActorAI initAI() { return new CitizenPsyche(this) ; }
   
   public Vocation vocation() { return career.vocation() ; }
   
@@ -302,13 +302,13 @@ public class Human extends Actor implements ActorConstants {
     //  Describe your job, place of work, and current residence:
     d.append("Vocation: "+this.vocation().name) ;
     d.append("\nWorkplace: ") ;
-    if (psyche.work() != null) {
-      d.append(psyche.work()) ;
+    if (AI.work() != null) {
+      d.append(AI.work()) ;
     }
     else d.append("Unemployed") ;
     d.append("\nResidence: ") ;
-    if (psyche.home() != null) {
-      d.append(psyche.home()) ;
+    if (AI.home() != null) {
+      d.append(AI.home()) ;
     }
     else d.append("Homeless") ;
     //
@@ -328,7 +328,7 @@ public class Human extends Actor implements ActorConstants {
     //
     //  Describe your current assignment or undertaking.
     d.append("\n\nCurrently:") ;
-    final Behaviour rootB = psyche.rootBehaviour() ;
+    final Behaviour rootB = AI.rootBehaviour() ;
     if (rootB != null) {
       d.append("\n  ") ;
       rootB.describeBehaviour(d) ;
@@ -424,7 +424,7 @@ public class Human extends Actor implements ActorConstants {
     }
     
     d.append("\n\nRelationships: ") ;
-    for (Relation r : psyche.relations()) {
+    for (Relation r : AI.relations()) {
       d.append("\n  ") ;
       d.append(r.subject) ;
       d.append(" ("+r.descriptor()+")") ;

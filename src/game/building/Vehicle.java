@@ -14,10 +14,6 @@ import src.user.* ;
 import src.util.* ;
 
 
-//
-//  TODO:  This could issue orders as well.  Implement an 'Employment'
-//  interface to generate Plans for particular actors.
-
 
 public abstract class Vehicle extends Mobile implements
   Boardable, Inventory.Owner, CitizenPsyche.Employment, Selectable

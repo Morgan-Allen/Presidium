@@ -161,13 +161,13 @@ public class DebugPathing extends PlayLoop {
   
   private void assignRandomTarget(Human c) {
     if (c == null) return ;
-    if (c.psyche.topBehaviour() == lastAction) return ;
+    if (c.AI.topBehaviour() == lastAction) return ;
     final int size = world().size ;
     Tile dest = world().tileAt(Rand.index(size), Rand.index(size)) ;
     dest = Spacing.nearestOpenTile(dest, dest) ;
     if (dest == null) return ;
     I.say("SENDING ACTOR TO: "+dest) ;
-    c.psyche.assignBehaviour(lastAction = new Action(
+    c.AI.assignBehaviour(lastAction = new Action(
       c, dest, this, "actionGo",
       Action.LOOK, "going to "+dest
     )) ;

@@ -54,7 +54,7 @@ public class Exploring extends Plan implements ActorConstants {
   protected Behaviour getNextStep() {
     //
     //  TODO:  Consider grabbing another nearby spot.
-    if (actor.assignedBase().intelMap.fogAt(lookedAt) == 1) return null ;
+    if (actor.base().intelMap.fogAt(lookedAt) == 1) return null ;
     final Action looking = new Action(
       actor, lookedAt,
       this, "actionLook",

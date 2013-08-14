@@ -220,7 +220,7 @@ public abstract class Venue extends Fixture implements
   
   
   public boolean allowsEntry(Mobile m) {
-    return m.assignedBase() == base ;
+    return m.base() == base ;
   }
   
   

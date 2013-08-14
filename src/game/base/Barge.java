@@ -104,7 +104,7 @@ public class Barge extends Mobile {
   
   protected float aboveGroundHeight() { return 0.15f ; }
   public float radius() { return 0.0f ; }
-  public Base assignedBase() { return null ; }
+  public Base base() { return null ; }
   
   
   

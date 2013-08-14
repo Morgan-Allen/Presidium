@@ -285,22 +285,28 @@ public class Human extends Actor implements ActorConstants {
   
   
   public String[] infoCategories() {
-    return new String[] { "STATUS", "OUTFIT", "SKILLS", "PSYCH" } ;
+    return new String[] { "STATUS", "SKILLS", "PROFILE" } ;
   }
   
   
   public void writeInformation(Description d, int categoryID, BaseUI UI) {
     if (categoryID == 0) describeStatus(d, UI) ;
-    if (categoryID == 1) describeOutfit(d, UI) ;
-    if (categoryID == 2) describeSkills(d, UI) ;
-    if (categoryID == 3) describePsych (d, UI) ;
+    ///if (categoryID == 1) describeOutfit(d, UI) ;
+    if (categoryID == 1) describeSkills(d, UI) ;
+    if (categoryID == 2) describeProfile(d, UI) ;
   }
   
   
+  //
+  //  Some of this could be outsourced to the ActorGear classes, et cetera.
   private void describeStatus(Description d, BaseUI UI) {
     //
     //  Describe your job, place of work, and current residence:
-    d.append("Vocation: "+this.vocation().name) ;
+    d.append("Is: ") ;
+    final Behaviour rootB = AI.rootBehaviour() ;
+    if (rootB != null) rootB.describeBehaviour(d) ;
+    else d.append(health.stateDesc()) ;
+    d.append("\nVocation: "+this.vocation().name) ;
     d.append("\nWorkplace: ") ;
     if (AI.work() != null) {
       d.append(AI.work()) ;
@@ -314,38 +320,22 @@ public class Human extends Actor implements ActorConstants {
     //
     //  Describe your current health, outlook, or special FX.
     d.append("\n\nCondition: ") ;
-    d.append("\n  Injury: "+health.injuryLevel()) ;
-    d.append("\n  Fatigue: "+health.fatigueLevel()) ;
-    d.append("\n  Stress: "+health.stressLevel()) ;
-    //*
+    final Batch <String> healthDesc = health.conditionsDesc() ;
+    for (String desc : healthDesc) {
+      d.append("\n  "+desc) ;
+    }
     final Batch <Condition> conditions = traits.conditions() ;
-    //if (conditions.size() == 0) d.append("\n  Okay") ;
     for (Condition c : conditions) {
       d.append("\n  ") ;
       d.append(traits.levelDesc(c)) ;
     }
-    //*/
-    //
-    //  Describe your current assignment or undertaking.
-    d.append("\n\nCurrently:") ;
-    final Behaviour rootB = AI.rootBehaviour() ;
-    if (rootB != null) {
-      d.append("\n  ") ;
-      rootB.describeBehaviour(d) ;
+    if (healthDesc.size() == 0 && conditions.size() == 0) {
+      d.append("\n  Okay") ;
     }
-    else d.append("\n  "+health.stateName()) ;
+    //
+    //  Describe your current gear and anything carried.
+    d.append("\n\nInventory: ") ;
     
-    d.append("\n  Age: "+health.exactAge()) ;
-  }
-  
-  
-  private void describeOutfit(Description d, BaseUI UI) {
-    //
-    //
-    //  Describe your current weapon or implement, and armour or dress.  Rate
-    //  your current encumbrance, and any other special bonuses or effects.
-    d.append("Inventory: ") ;
-
     final Item device = gear.deviceEquipped() ;
     if (device != null) d.append("\n  "+device) ;
     else d.append("\n  No device") ;
@@ -365,21 +355,9 @@ public class Human extends Actor implements ActorConstants {
       }
     }
     else d.append("  Nothing carried") ;
-    
     d.append("\n  "+((int) gear.credits())+" Credits") ;
-    /*
-    d.append("\n  Fuel Cells: "+((int) gear.fuelCells)) ;
-    d.append("\n  Rations: "+((int) gear.currentRations)) ;
-    //*/
-    
-    //  Describe your overall appearance and physique.
-    d.append("\n\nPhysique: ") ;
-    d.append("\n  "+health.agingDesc()) ;
-    for (Trait t : traits.physique()) {
-      d.append("\n  ") ;
-      d.append(traits.levelDesc(t)) ;
-    }
-    d.append("\n  "+BLOOD_TRAITS[bloodID(this)]) ;
+    ///d.append("\n  Fuel Cells: "+((int) gear.fuelCells)) ;
+    ///d.append("\n  Rations: "+((int) gear.currentRations)) ;
   }
   
   
@@ -407,7 +385,7 @@ public class Human extends Actor implements ActorConstants {
   }
   
   
-  private void describePsych(Description d, BaseUI UI) {
+  private void describeProfile(Description d, BaseUI UI) {
     //
     //  Describe background, personality, relationships and memories.
     //  TODO:  Allow for a chain of arbitrary vocations in a career?
@@ -416,6 +394,15 @@ public class Human extends Actor implements ActorConstants {
     d.append(" "+traits.levelDesc(GENDER)) ;
     d.append("\n  "+career.birth()+" on "+career.homeworld()) ;
     d.append("\n  Trained as "+career.vocation()) ;
+    d.append("\n  Age: "+health.exactAge()) ;
+    
+    d.append("\n\nPhysique: ") ;
+    d.append("\n  "+health.agingDesc()) ;
+    for (Trait t : traits.physique()) {
+      d.append("\n  ") ;
+      d.append(traits.levelDesc(t)) ;
+    }
+    d.append("\n  "+BLOOD_TRAITS[bloodID(this)]) ;
     
     d.append("\n\nPersonality: ") ;
     for (Trait t : traits.personality()) {
@@ -429,22 +416,34 @@ public class Human extends Actor implements ActorConstants {
       d.append(r.subject) ;
       d.append(" ("+r.descriptor()+")") ;
     }
-    
-    /*
-    d.append("\n\nMemories: ") ;
-    //  TODO:  Refer to Memories directly, so you can reconstruct the plan
-    //  from the signature, and link to affected targets/subjects.
-    int numM = 0 ;
-    for (Class planClass : psyche.recentActivities()) {
-      d.append("\n  "+planClass.getSimpleName()) ;
-      if (++numM >= 5) break ;
-    }
-    //*/
   }
 }
 
 
 
+
+
+//private void describeOutfit(Description d, BaseUI UI) {
+  //
+  //
+  //  Describe your current weapon or implement, and armour or dress.  Rate
+  //  your current encumbrance, and any other special bonuses or effects.
+  /*
+  //*/
+  
+  //  Describe your overall appearance and physique.
+//}
+
+/*
+d.append("\n\nMemories: ") ;
+//  TODO:  Refer to Memories directly, so you can reconstruct the plan
+//  from the signature, and link to affected targets/subjects.
+int numM = 0 ;
+for (Class planClass : psyche.recentActivities()) {
+  d.append("\n  "+planClass.getSimpleName()) ;
+  if (++numM >= 5) break ;
+}
+//*/
 
 
 

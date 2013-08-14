@@ -47,25 +47,28 @@ public interface VenueConstants extends ActorConstants {
     INSCRIPTION = new Item.Type(C, COMMODITY, "Inscription", 140),
     PRESSFEED   = new Item.Type(C, COMMODITY, "Pressfeed"  , 160),
     MEDICINE    = new Item.Type(C, COMMODITY, "Medicine"   , 200),
-
-    /*
-    SPYCE_A = new Item.Type(C, COMMODITY, "Spyce A (Tinerazine)", 400),
-    SPYCE_B = new Item.Type(C, COMMODITY, "Spyce B (Halebdynum)", 400),
-    SPYCE_C = new Item.Type(C, COMMODITY, "Spyce C (Natrizoral)", 400),
-    //*/
+    
+    CARRIED_ITEM_TYPES[] = Item.Type.typesSoFar(),
     
     WATER        = new Item.Type(C, PROVISION, "Water"       , 0),
     LIFE_SUPPORT = new Item.Type(C, PROVISION, "Life Support", 0),
     POWER        = new Item.Type(C, PROVISION, "Power"       , 0),
     
+    ALL_FOOD_TYPES[] = { STARCHES, PROTEIN, GREENS  },
     ALL_PROVISIONS[] = { WATER, LIFE_SUPPORT, POWER },
     
     //  Plants (young/mature- species?  Flora or animal remains?  Dead/alive?)
     //  Housing.
     
-    SERVICE_ADMIN = new Item.Type(C, SERVICE, "Admin", 0),
+    SERVICE_ADMIN = new Item.Type(C, SERVICE, "Admin", 0) ;
     //  Also housing, refuge, storage, et cetera.
-    
+
+
+  /*
+  SPYCE_A = new Item.Type(C, COMMODITY, "Spyce A (Tinerazine)", 400),
+  SPYCE_B = new Item.Type(C, COMMODITY, "Spyce B (Halebdynum)", 400),
+  SPYCE_C = new Item.Type(C, COMMODITY, "Spyce C (Natrizoral)", 400),
+  //*/
     /*
     OUTFITS  = new Item.Type(C, UNIQUE, "Outfits", 0),
     DEVICES  = new Item.Type(C, UNIQUE, "Devices", 0),
@@ -75,7 +78,6 @@ public interface VenueConstants extends ActorConstants {
     NEURAL_SCAN = new Item.Type(C, UNIQUE, "Neural Scan", 500),
     TROPHY      = new Item.Type(C, UNIQUE, "Trophy"     , 250)
     //*/
-    CARRIED_ITEM_TYPES[] = Item.Type.typesSoFar() ;
   
   
   final public static int

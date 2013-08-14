@@ -95,7 +95,7 @@ public class PathingSearch extends Search <Boardable> {
     */
   private boolean fogged(Boardable spot) {
     if (client == null || ! (spot instanceof Tile)) return false ;
-    return client.assignedBase().intelMap.fogAt((Tile) spot) == 0 ;
+    return client.base().intelMap.fogAt((Tile) spot) == 0 ;
   }
   
   

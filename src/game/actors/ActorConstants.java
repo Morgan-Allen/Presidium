@@ -425,8 +425,22 @@ public interface ActorConstants {
     ),
     
     
+    HUNGER = new Condition(
+      "Near Starvation",
+      "Gnawing Hunger",
+      "Hungry",
+      null
+    ),
+    MALNOURISHMENT = new Condition(
+      "Badly Malnourished",
+      "Malnourished",
+      "Slightly Malnourished",
+      null
+    ),
+    
+    
     POISONED = new Condition(
-      "Heavily Poisoned",
+      "Fatally Poisoned",
       "Badly Poisoned",
       "Poisoned",
       null
@@ -446,14 +460,13 @@ public interface ActorConstants {
       null
     ),
     
-    
     SPYCE_ADDICTION = new Condition(
       "Complete Addiction",
       "Heavy Addiction",
       "Mild Addiction",
       null
     ),
-    
+    /*
     RAGE_INFECTION = new Condition(
       "Infection Frenzy",
       "Infection Atavism",
@@ -464,7 +477,7 @@ public interface ActorConstants {
     PART_CYBORG = new Condition(
       "Part Cyborg"
     ),
-    
+    //*/
     CONDITIONS[] = Trait.traitsSoFar()
   ;
   

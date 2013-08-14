@@ -26,7 +26,7 @@ public class Relation {
     TYPE_LORD    = 5,
     TYPE_VASSAL  = 6 ;
   
-  final public static float
+  final static float
     MIN_ATT = -100,
     MAX_ATT =  100,
     ATT_DIE =  10 ;
@@ -35,10 +35,10 @@ public class Relation {
     "Soulmate",
     "Close",
     "Friendly",
-    "Cordial",
+    "Civil",
     "Ambivalent",
     "Tense",
-    "Emnity",
+    "Strained",
     "Hostile",
     "Nemesis"
   } ;
@@ -97,8 +97,8 @@ public class Relation {
   
   /**  Accessing and modifying the content of the relationship-
     */
-  public float attitude() {
-    return attitude ;
+  public float value() {
+    return attitude / MAX_ATT ;
   }
   
   
@@ -120,13 +120,13 @@ public class Relation {
   }
   
   
-  public void incRelation(float inc) {
+  public void incValue(float inc) {
     //
     //  Roll dice matching current relationship against magnitude of event.
     final int numDice = (int) (Math.abs(attitude / ATT_DIE) + 0.5f) ;
     int roll = 0 ;
     for (int n = numDice ; n-- > 0 ;) roll += Rand.yes() ? 1 : 0 ;
-    final float diff = Math.abs(inc) - (roll * ATT_DIE) ;
+    final float diff = (Math.abs(inc) - roll) * ATT_DIE ;
     //
     //  Raise/lower by half the margin of failure.
     if (diff > 0) {
@@ -140,6 +140,11 @@ public class Relation {
     this.type = type ;
   }
 }
+
+
+
+
+
 
 
 

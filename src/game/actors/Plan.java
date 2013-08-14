@@ -160,7 +160,9 @@ public abstract class Plan implements Saveable, Behaviour {
   
   /**  Rendering and interface methods-
     */
-  
+  public String toString() {
+    return getClass().getSimpleName() ;
+  }
   
   
   /**  Validation methods, intended to ensure that Plans can be stored

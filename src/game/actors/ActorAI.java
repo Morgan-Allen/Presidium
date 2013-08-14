@@ -16,7 +16,8 @@ import src.util.* ;
 
 
 //
-//  ...You need to implement the TODO functionality.
+//  ...You need to implement the TODOLIST functionality.  Unfinished behaviours
+//  need to be stored and returned to later, in a fairly deterministic way.
 
 
 
@@ -30,24 +31,13 @@ public abstract class ActorAI implements ActorConstants {
     MAX_RELATIONS = 100,
     MAX_VALUES    = 100 ;
   
-  /*
-  static class Memory {
-    Class planClass ;
-    Session.Saveable signature[] ;
-    float timeBegun, timeEnded ;
-  }
-  //*/
-  
   
   final protected Actor actor ;
   
-  protected Stack <Behaviour> behaviourStack = new Stack <Behaviour> () ;
-  //  TODO:  CREATE A LIST OF BEHAVIOURS TO GO BACK TO!  USE THAT FOR MISSIONS,
-  //  FARMING, PURCHASES, ET CETERA!
-  protected List <Behaviour> todoList = new List <Behaviour> () ;
-  
-  protected Table <Element, Element> seen = new Table <Element, Element> () ;
-  protected Table <Actor, Relation> relations = new Table <Actor, Relation> () ;
+  protected Stack <Behaviour> behaviourStack = new Stack() ;
+  protected List <Behaviour> todoList = new List() ;
+  protected Table <Element, Element> seen = new Table() ;
+  protected Table <Accountable, Relation> relations = new Table() ;
   
   protected Mission mission ;
   protected Venue home ;
@@ -62,33 +52,34 @@ public abstract class ActorAI implements ActorConstants {
   
   protected void loadState(Session s) throws Exception {
     s.loadObjects(behaviourStack) ;
+    s.loadObjects(todoList) ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Element e = (Element) s.loadObject() ;
       seen.put(e, e) ;
+    }
+    for (int n = s.loadInt() ; n-- > 0 ;) {
+      final Relation r = Relation.loadFrom(s) ;
+      relations.put((Actor) r.subject, r) ;
     }
     
     mission = (Mission) s.loadObject() ;
     home = (Venue) s.loadObject() ;
     work = (Employment) s.loadObject() ;
     
-    for (int n = s.loadInt() ; n-- > 0 ;) {
-      final Relation r = Relation.loadFrom(s) ;
-      relations.put((Actor) r.subject, r) ;
-    }
   }
   
   
   protected void saveState(Session s) throws Exception {
     s.saveObjects(behaviourStack) ;
+    s.saveObjects(todoList) ;
     s.saveInt(seen.size()) ;
     for (Element e : seen.keySet()) s.saveObject(e) ;
+    s.saveInt(relations.size()) ;
+    for (Relation r : relations.values()) Relation.saveTo(s, r) ;
     
     s.saveObject(mission) ;
     s.saveObject(home) ;
     s.saveObject(work) ;
-    
-    s.saveInt(relations.size()) ;
-    for (Relation r : relations.values()) Relation.saveTo(s, r) ;
   }
   
   
@@ -103,9 +94,10 @@ public abstract class ActorAI implements ActorConstants {
   }
   
   
+  
   /**  Setting home and work venues-
     */
-  public static interface Employment extends Session.Saveable {
+  public static interface Employment extends Session.Saveable, Boardable {
     Behaviour jobFor(Actor actor) ;
     void setWorker(Actor actor, boolean is) ;
   }
@@ -156,10 +148,12 @@ public abstract class ActorAI implements ActorConstants {
     if (behaviour == null) I.complain("CANNOT ASSIGN NULL BEHAVIOUR.") ;
     I.say("Assigning behaviour "+behaviour+" to "+actor) ;
     actor.assignAction(null) ;
-    cancelBehaviour(rootBehaviour()) ;
+    final Behaviour replaced = rootBehaviour() ;
+    cancelBehaviour(replaced) ;
     pushBehaviour(behaviour) ;
-    //  TODO:  Push unfinished behaviours onto the todoList, and return to them
-    //  later if still valid.
+    if (replaced != null && ! replaced.complete()) {
+      todoList.include(replaced) ;
+    }
   }
   
   
@@ -178,7 +172,7 @@ public abstract class ActorAI implements ActorConstants {
     this.mission = mission ;
     //
     //  This might have to be done with all bases.
-    for (Mission m : actor.assignedBase().allMissions()) if (m != mission) {
+    for (Mission m : actor.base().allMissions()) if (m != mission) {
       m.setApplicant(actor, false) ;
     }
   }
@@ -190,9 +184,9 @@ public abstract class ActorAI implements ActorConstants {
   
   
   public boolean couldSwitch(Behaviour last, Behaviour next) {
+    if (! actor.health.conscious()) return false ;
     if (next == null) return false ;
     if (last == null) return true ;
-    if (! actor.health.conscious()) return false ;
     return
       next.priorityFor(actor) >=
       (last.priorityFor(actor) + persistance()) ;
@@ -204,11 +198,13 @@ public abstract class ActorAI implements ActorConstants {
     */
   protected Action getNextAction() {
     while (true) {
-      //
-      //  TODO:  You'll have to try getting Behaviours from the todo-list here.
       if (behaviourStack.size() == 0) {
-        final Behaviour root = nextBehaviour() ;
+        final Behaviour 
+          notDone = new Choice(actor, todoList).weightedPick(0),
+          newChoice = nextBehaviour(),
+          root = couldSwitch(notDone, newChoice) ? newChoice : notDone ;
         if (root == null) return null ;
+        if (root == notDone) todoList.remove(notDone) ;
         pushBehaviour(root) ;
       }
       final Behaviour current = topBehaviour() ;
@@ -250,20 +246,26 @@ public abstract class ActorAI implements ActorConstants {
   
   
   
-  
   /**  Methods related to relationships-
     */
-  public float relationTo(Actor other) {
-    Relation r = relations.get(other) ;
-    if (r == null) return 0 ;
-    return r.attitude() ;
+  public float relation(Base base) {
+    if (base == actor.base()) return 1 ;
+    else return 0 ;
+    //else return actor.base().relation(base) ;
   }
   
   
-  public void incRelation(Actor other, float inc) {
+  public float relation(Actor other) {
+    Relation r = relations.get(other) ;
+    if (r == null) return 0 ;
+    return r.value() ;
+  }
+  
+  
+  public void incRelation(Accountable other, float inc) {
     Relation r = relations.get(other) ;
     if (r == null) relations.put(other, r = new Relation(actor, other)) ;
-    r.incRelation(inc) ;
+    r.incValue(inc) ;
   }
   
   
@@ -288,7 +290,6 @@ public abstract class ActorAI implements ActorConstants {
     float val = credits / 100f ;
     val = (float) Math.sqrt(val) ;
     val *= actor.traits.scaleLevel(ACQUISITIVE) ;
-    
     //
     //  Cut this down based on how many thousand credits the actor has ATM.
     float reserves = actor.gear.credits() / 1000f ;
@@ -316,6 +317,15 @@ public abstract class ActorAI implements ActorConstants {
 
 
 
+//  TODO:  CREATE A LIST OF BEHAVIOURS TO GO BACK TO!  USE THAT FOR MISSIONS,
+//  FARMING, PURCHASES, ET CETERA!
+/*
+static class Memory {
+  Class planClass ;
+  Session.Saveable signature[] ;
+  float timeBegun, timeEnded ;
+}
+//*/
 
 
 

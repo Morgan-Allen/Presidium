@@ -217,7 +217,7 @@ public class Dialogue extends Plan implements ActorConstants {
 
     //*
     I.say(actor+" talking to "+other) ;
-    final float attLevel = other.AI.relationTo(actor) / Relation.MAX_ATT ;
+    final float attLevel = other.AI.relation(actor) ;
     float success = 0 ;
     if (actor.traits.test(mannersFor(actor), ROUTINE_DC, 1)) success += 5 ;
     if (actor.traits.test(SUASION, attLevel * -20, 1)) success += 5 ;

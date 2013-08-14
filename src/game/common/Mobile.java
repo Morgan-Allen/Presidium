@@ -61,7 +61,7 @@ public abstract class Mobile extends Element
   }
   
   
-  public abstract Base assignedBase() ;
+  public abstract Base base() ;
   protected MobilePathing initPathing() { return null ; }
   
   
@@ -169,14 +169,21 @@ public abstract class Mobile extends Element
     final Tile
       oldTile = origin(),
       newTile = world().tileAt(nextPosition.x, nextPosition.y) ;
+    final Boardable next = pathing == null ? null : pathing.nextStep() ;
+    //
+    //  We allow mobiles to 'jump' between dissimilar objects.
+    if (next != null && next.getClass() != aboard.getClass()) {
+      aboard.setInside(this, false) ;
+      (aboard = next).setInside(this, true) ;
+      next.position(nextPosition) ;
+    }
     //
     //  If you're not in either your current 'aboard' object, or the area
     //  corresponding to the next step in pathing, you need to default to the
     //  nearest clear tile.
-    if (oldTile != newTile || ! aboard.inWorld()) {
+    else if (oldTile != newTile || ! aboard.inWorld()) {
       onTileChange(oldTile, newTile) ;
       final Box2D area = new Box2D() ;
-      final Boardable next = pathing == null ? null : pathing.nextStep() ;
       final boolean awry = next != null && Spacing.distance(next, this) > 1 ;
       final Vec3D p = nextPosition ;
       if (aboard.area(area).contains(p.x, p.y) && aboard.inWorld()) {

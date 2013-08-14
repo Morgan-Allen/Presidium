@@ -69,7 +69,7 @@ public class Artificer extends Venue implements VenueConstants {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     //
-    //  TODO:  This is a temporary measure.  Remove later.
+    //  TODO:  This is a temporary measure.  Remove later?
     for (Item.Type good : services()) {
       if (orders.receivedShortage(good) < 10) orders.receiveDemand(good, 10) ;
     }
@@ -96,13 +96,16 @@ public class Artificer extends Venue implements VenueConstants {
     return new Composite(UI, "media/GUI/Buttons/artificer_button.gif") ;
   }
   
-  public String fullName() { return "Artificer" ; }
+  
+  public String fullName() { return "The Artificer" ; }
+  
   
   public String helpInfo() {
     return
       "The Artificer manufactures parts, inscriptions, devices and armour "+
       "for your citizens." ;
   }
+  
   
   public String buildCategory() {
     return InstallTab.TYPE_ARTIFICER ;

@@ -113,7 +113,7 @@ public abstract class Actor extends Mobile implements
   }
   
   
-  public Base assignedBase() {
+  public Base base() {
     return base ;
   }
   
@@ -149,8 +149,8 @@ public abstract class Actor extends Mobile implements
     health.updateHealth(numUpdates) ;
     if (health.conscious()) {
       AI.updatePsyche(numUpdates) ;
-      if (assignedBase() != null) {
-        assignedBase().intelMap.liftFogAround(this, health.sightRange()) ;
+      if (base() != null) {
+        base().intelMap.liftFogAround(this, health.sightRange()) ;
       }
     }
     else if (health.decomposed()) setAsDestroyed() ;

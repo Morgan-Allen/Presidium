@@ -109,7 +109,7 @@ public class MineFace extends Element implements Boardable, TileConstants {
   
   
   public boolean allowsEntry(Mobile m) {
-    return m.assignedBase() == parent.base() ;
+    return m.base() == parent.base() ;
   }
   
 }

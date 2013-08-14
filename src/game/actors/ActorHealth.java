@@ -50,6 +50,7 @@ public class ActorHealth implements ActorConstants {
     DEFAULT_HEALTH = 10,
     MAX_DIGEST = 0.2f,
     STARVE_INTERVAL = World.DEFAULT_DAY_LENGTH * 5,
+    MAX_FOOD_TYPES = 4,
     
     DEFAULT_BULK  = 1.0f,
     DEFAULT_SPEED = 1.0f,
@@ -168,10 +169,8 @@ public class ActorHealth implements ActorConstants {
     this.currentAge = lifespan * agingFactor ;
     updateHealth(-1) ;
     
-    calories = ((Rand.num() + 0.1f) * overallHealth) * maxHealth ;
-    calories = Visit.clamp(calories, 0, maxHealth) ;
-    nutrition = Rand.num() * overallHealth * 2 ;
-    nutrition = Visit.clamp(nutrition, 0, 1) ;
+    calories = Visit.clamp(Rand.num() + (overallHealth / 2), 0, 1) * maxHealth ;
+    nutrition = Visit.clamp(Rand.num() + overallHealth, 0, 1) ;
     
     fatigue = Rand.num() * (1 - (calories / maxHealth)) * maxHealth / 2f ;
     stress = Rand.num() * accidentChance * maxHealth / 2f ;
@@ -303,6 +302,11 @@ public class ActorHealth implements ActorConstants {
   
   /**  State queries-
     */
+  public float hungerLevel() {
+    return (maxHealth - calories) / maxHealth ;
+  }
+  
+  
   public float injuryLevel() {
     return injury / (maxHealth * MAX_INJURY) ;
   }
@@ -344,6 +348,7 @@ public class ActorHealth implements ActorConstants {
     if (hunger > 0.5f) sum += hunger - 0.5f ;
     return Visit.clamp((sum * sum) - 0.5f, 0, 1) ;
   }
+  
   
   public float maxHealth() {
     return maxHealth ;
@@ -469,8 +474,57 @@ public class ActorHealth implements ActorConstants {
   
   /**  Rendering and interface methods-
     */
-  public String stateName() {
+  public String stateDesc() {
+    if ((state == STATE_RESTING || state == STATE_ACTIVE) && bleeds) {
+      return "Bleeding" ;
+    }
     return STATE_DESC[state] ;
+  }
+  
+  
+  public String hungerDesc() {
+    return descFor(HUNGER, 1 - (calories / maxHealth), -1) ;
+  }
+  
+  
+  public String malnourishDesc() {
+    return descFor(MALNOURISHMENT, 1 - nutrition, -1) ;
+  }
+  
+  
+  public String injuryDesc() {
+    return descFor(INJURY, injuryLevel(), maxHealth) ;
+  }
+  
+  
+  public String fatigueDesc() {
+    return descFor(FATIGUE, fatigueLevel(), maxHealth) ;
+  }
+  
+  
+  public String stressDesc() {
+    return descFor(STRESS, stressLevel(), maxHealth) ;
+  }
+  
+  
+  private String descFor(Trait trait, float level, float max) {
+    final String desc = Trait.descriptionFor(trait, level * trait.maxVal) ;
+    if (desc == null) return null ;
+    if (max <= 0) return desc ;
+    return desc+" ("+(int) (level * max)+"/"+(int) max+")" ;
+  }
+  
+  
+  public Batch <String> conditionsDesc() {
+    final Batch <String> allDesc = new Batch <String> () {
+      public void add(String s) { if (s != null) super.add(s) ; }
+    } ;
+    allDesc.add(hungerDesc()    ) ;
+    allDesc.add(malnourishDesc()) ;
+    allDesc.add(injuryDesc()    ) ;
+    allDesc.add(fatigueDesc()   ) ;
+    allDesc.add(stressDesc()    ) ;
+    return allDesc ;
   }
 }
 

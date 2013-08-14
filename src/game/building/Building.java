@@ -55,7 +55,7 @@ public class Building extends Plan implements ActorConstants {
     //
     //  Repairing non-base (or enemy) structures should be less important.
     //  ...That's an aspect of your general 'relationship' function.
-    if (built.base != actor.assignedBase()) appeal /= 2 ;
+    if (built.base != actor.base()) appeal /= 2 ;
     
     return Visit.clamp(chance * damage, 0, 1) * ROUTINE * appeal ;
   }

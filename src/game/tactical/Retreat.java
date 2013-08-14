@@ -28,7 +28,7 @@ public class Retreat implements ActorConstants {
     float bestRating = 0 ;
     int numChecked = 0 ;
     
-    for (Object t : p.matchesNear(actor.assignedBase(), actor, -1)) {
+    for (Object t : p.matchesNear(actor.base(), actor, -1)) {
       if (numChecked++ > numC) break ;
       float rating = rateHaven(t, actor, prefClass) ;
       if (rating > bestRating) { bestRating = rating ; picked = t ; }
@@ -51,7 +51,7 @@ public class Retreat implements ActorConstants {
     final Venue haven = (Venue) t ;
     float rating = 1 ;
     if (haven.getClass() == prefClass) rating *= 2 ;
-    if (haven.base() == actor.assignedBase()) rating *= 2 ;
+    if (haven.base() == actor.base()) rating *= 2 ;
     final int SS = Terrain.SECTOR_SIZE ;
     rating *= SS / (SS + Spacing.distance(actor, haven)) ;
     return rating ;

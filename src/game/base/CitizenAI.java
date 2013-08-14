@@ -105,8 +105,8 @@ public class CitizenAI extends ActorAI implements ActorConstants {
   
   
   protected void applyForMissions(Behaviour chosen) {
-    if (mission != null || actor.assignedBase() == null) return ;
-    for (Mission mission : actor.assignedBase().allMissions()) {
+    if (mission != null || actor.base() == null) return ;
+    for (Mission mission : actor.base().allMissions()) {
       if (! mission.open()) continue ;
       if (couldSwitch(chosen, mission)) {
         mission.setApplicant(actor, true) ;
@@ -179,18 +179,15 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     final Action wander = (Action) new Patrolling(actor, actor, 5).nextStep() ;
     wander.setPriority(Plan.IDLE) ;
     choice.add(wander) ;
-
     //
     //  Consider going home to rest, or finding a recreational facility of
     //  some kind.  That requires iterating over various venues.
-    
-    
+    choice.add(new Resting(actor, Resting.pickRestPoint(actor))) ;
     //
     //  As hobbies, consider hunting, exploration, assistance, and dialogue,
     //  with one chosen target each.
   }
 }
-
 
 
 

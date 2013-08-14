@@ -22,7 +22,7 @@ public class Skill extends Trait {
     "(Seasoned)", "(Expert)", "(Master)",
   } ;
   final static String ATT_LEVELS[] = new String[] {
-    "(Meagre)", "(Typical)", "(Developed)",
+    "(Feeble)", "(Meagre)", "(Developed)",
     "(Outstanding)", "(Prodigious)", "(Phenomenal)",
   } ;
   final static Colour DESC_TONES[] = {

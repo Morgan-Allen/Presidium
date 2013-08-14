@@ -102,11 +102,12 @@ public class Career implements ActorConstants {
     //
     //  We top up basic attributes to match.
     //
-    //  TODO:  Try adding 1 - 3 family members, possibly as potential migrants?
+    //  TODO:  Try adding 1 - 3 family members, possibly as potential
+    //  co-migrants?
     actor.traits.initDNA(0) ;
     actor.health.setupHealth(
       Visit.clamp(Rand.avgNums(2), 0.26f, 0.94f),
-      Visit.clamp(Rand.num(), 0.5f, 1), 0
+      1, 0
     ) ;
     //
     //  For now, we apply gender at random, though this might be tweaked a bit

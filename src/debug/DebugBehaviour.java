@@ -210,15 +210,25 @@ public class DebugBehaviour extends PlayLoop {
     //  ...Maybe you should consider getting them back to the Hospice first?
     
     base.intelMap.liftFogAround(actor, 10) ;
-    other.health.takeInjury(other.health.maxHealth() + 1) ;
+    other.health.takeFatigue(other.health.maxHealth() / 2) ;
+    //other.health.takeInjury(other.health.maxHealth() + 1) ;
+    
+    final Cantina cantina = new Cantina(base) ;
+    cantina.enterWorldAt(2, 9, world) ;
+    cantina.setAsEstablished(true) ;
+    cantina.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+    cantina.onCompletion() ;
     
     final Hospice hospice = new Hospice(base) ;
-    hospice.enterWorldAt(2, 9, world) ;
+    hospice.enterWorldAt(9, 2, world) ;
     hospice.setAsEstablished(true) ;
     hospice.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
     hospice.onCompletion() ;
   }
 }
+
+
+
 
 
 
@@ -233,3 +243,4 @@ citizen.enterWorldAt(5, 5, world) ;
 //citizen.psyche.assignBehaviour(explores) ;
 ((BaseUI) UI).selection.setSelected(citizen) ;
 //*/
+

@@ -212,7 +212,7 @@ public abstract class Element implements
     */
   public Vec3D viewPosition(Vec3D v) {
     v = position(v) ;
-    v.z += height() / 2 ;
+    //v.z += height() / 2 ;
     return v ;
   }
   

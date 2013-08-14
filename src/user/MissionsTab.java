@@ -6,6 +6,8 @@
 
 package src.user ;
 import src.game.common.* ;
+import src.game.actors.* ;
+import src.game.building.* ;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
@@ -73,6 +75,8 @@ public class MissionsTab extends InfoPanel {
     }) ;
     detailText.append("\n") ;
     
+    
+    /*
     detailText.insert(CONTACT_ICON, 40) ;
     detailText.append(" Contact Mission\n") ;
     detailText.append(new Text.Clickable() {
@@ -88,10 +92,12 @@ public class MissionsTab extends InfoPanel {
       public void whenClicked() { initSecurityTask() ; }
     }) ;
     detailText.append("\n") ;
+    //*/
   }
   
   
   private void appendHelp(String helpString) {
+    
   }
   
   
@@ -117,7 +123,8 @@ public class MissionsTab extends InfoPanel {
     UI.beginTask(new TargetTask(UI, STRIKE_ICON) {
       
       boolean validPick(Target pick) {
-        return pick instanceof Mobile || pick instanceof Fixture ;
+        return pick instanceof Actor ;
+        //return pick instanceof Mobile || pick instanceof Venue ;
       }
       
       void previewAt(Target picked, boolean valid) {
@@ -125,6 +132,8 @@ public class MissionsTab extends InfoPanel {
       }
       
       void performAt(Target picked) {
+        //
+        //  TODO:  PROBLEM.  BUILDINGS AREN'T A VALID TARGET AT THE MOMENT.
         final Mission mission = new StrikeMission(UI.played(), picked) ;
         UI.played().addMission(mission) ;
         UI.selection.setSelected(mission) ;

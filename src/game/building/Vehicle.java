@@ -53,7 +53,7 @@ public abstract class Vehicle extends Mobile implements
   }
   
   
-  public Base assignedBase() {
+  public Base base() {
     if (dropPoint != null) return dropPoint.base() ;
     return null ;
   }
@@ -110,7 +110,7 @@ public abstract class Vehicle extends Mobile implements
   
   
   public boolean allowsEntry(Mobile m) {
-    return m.assignedBase() == assignedBase() ;
+    return m.base() == base() ;
   }
   
   

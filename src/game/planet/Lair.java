@@ -5,6 +5,7 @@ package src.game.planet ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.common.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 
 
@@ -52,7 +53,7 @@ public class Lair extends Venue {
     return species.name+" lair" ;
   }
 
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return null ;
   }
 

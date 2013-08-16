@@ -116,12 +116,6 @@ public class Action implements Behaviour, Model.AnimNames {
     this.properties = p ;
   }
   
-  /*
-  public void setDuration(float d) {
-    if (d <= 0) I.complain("DURATION MUST BE POSITIVE.") ;
-    this.duration = d ;
-  }
-  //*/
   
   public Target target() {
     return actionTarget ;
@@ -183,6 +177,7 @@ public class Action implements Behaviour, Model.AnimNames {
   
   private float moveRate() {
     float rate = actor.health.moveRate() ;
+    //
     //  You also have to account for the effects of fatigue and encumbrance...
     if ((properties & QUICK  ) != 0) rate *= 2 ;
     if ((properties & CAREFUL) != 0) rate /= 2 ;
@@ -209,7 +204,7 @@ public class Action implements Behaviour, Model.AnimNames {
     float minDist = 0 ;
     if ((properties & RANGED) != 0) minDist = actor.health.sightRange() ;
     final boolean
-      closed = actor.pathing.closeEnough (moveTarget, minDist),
+      closed = actor.pathing.closeEnough(moveTarget, minDist),
       facing = actor.pathing.facingTarget(actionTarget) ;
     if (! closed) actor.pathing.updatePathing(moveTarget, minDist) ;
     final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;

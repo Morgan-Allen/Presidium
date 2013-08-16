@@ -8,6 +8,7 @@
 package src.game.planet ;
 import src.game.common.* ;
 import src.game.actors.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
 
@@ -387,7 +388,7 @@ public abstract class Fauna extends Actor {
   }
   
   
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return new Composite(UI, species.portrait) ;
   }
   
@@ -402,7 +403,7 @@ public abstract class Fauna extends Actor {
   }
   
   
-  public void writeInformation(Description d, int categoryID, BaseUI UI) {
+  public void writeInformation(Description d, int categoryID, HUD UI) {
     
     final int maxHealth = (int) health.maxHealth() ;
 

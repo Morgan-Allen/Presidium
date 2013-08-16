@@ -44,7 +44,7 @@ import src.util.* ;
 
 
 
-public class Resting extends Plan implements VenueConstants {
+public class Resting extends Plan implements BuildConstants {
   
   
   
@@ -87,11 +87,13 @@ public class Resting extends Plan implements VenueConstants {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
+    if (restPoint == null) return -1 ;
     return ratePoint(actor, restPoint) ;
   }
   
   
   protected Behaviour getNextStep() {
+    if (restPoint == null) return null ;
     //
     //  If you're hungry, eat from local stocks.
     if (actor.health.hungerLevel() > 0.1f) {
@@ -101,7 +103,7 @@ public class Resting extends Plan implements VenueConstants {
         Action.BUILD, "Eating at "+restPoint
       ) ;
       final Batch <Item.Type> menu = menuFor(restPoint) ;
-      if (menu.size() == 0) {
+      if (menu.size() == 0 && actor.health.hungerLevel() > 0.6f) {
         final Tile t = Spacing.pickFreeTileAround(restPoint, actor) ;
         eats.setMoveTarget(t) ;
         eats.setProperties(Action.CAREFUL) ;

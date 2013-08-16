@@ -5,6 +5,7 @@
   */
 
 package src.game.common ;
+import src.game.actors.Actor;
 import src.game.building.* ;
 import src.util.* ;
 
@@ -251,6 +252,17 @@ public final class Spacing implements TileConstants {
     }
     if (free.size() == 0) return (Tile) Rand.pickFrom(perim) ;
     return (Tile) Rand.pickFrom(free, weights) ;
+  }
+  
+  
+  public static Tile pickRandomTile(Actor actor, float range) {
+    final double angle = Rand.num() * Math.PI ;
+    final float dist = Rand.num() * range ;
+    final Tile o = actor.origin() ;
+    return actor.world.tileAt(
+      o.x + (float) (Math.cos(angle) * dist),
+      o.y + (float) (Math.sin(angle) * dist)
+    ) ;
   }
   
   

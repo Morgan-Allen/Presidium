@@ -57,6 +57,7 @@ public class Terrain implements TileConstants, Session.Saveable {
   private byte
     roadCounter[][] ;
   
+  
   final TileMask pavingMask = new TileMask() {
     public boolean maskAt(int x, int y) {
       return roadCounter[x][y] > 0 ;

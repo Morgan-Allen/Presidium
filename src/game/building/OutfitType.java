@@ -5,7 +5,7 @@ import src.graphics.common.* ;
 import java.io.* ;
 
 
-public class OutfitType extends Item.Type implements VenueConstants {
+public class OutfitType extends Item.Type implements BuildConstants {
   
   
   final public static String

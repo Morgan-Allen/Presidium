@@ -10,29 +10,32 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.campaign.* ;
 import src.game.tactical.* ;
+import src.game.social.* ;
 import src.graphics.common.* ;
 import src.user.* ;
 import src.util.* ;
 
 
 //
-//  TODO:  Try implementing Accountable.
-public class Base implements Session.Saveable, Schedule.Updates {
+//  TODO:  Try implementing Accountable.  Also, bases need to have official
+//  relations with other bases.
+public class Base implements
+  Session.Saveable, Schedule.Updates, Accountable
+{
   
   
   
   /**  Fields, constructors, and save/load methods-
     */
   final public World world ;
-  ///final public Offworld offworld = new Offworld(this) ;  //Move to world.
   
   Actor ruler ;
   Venue commandPost ;
   final List <Mission> missions = new List <Mission> () ;
   float communitySpirit, alertLevel, crimeLevel ;
   
+  final Table <Accountable, Relation> baseRelations = new Table() ;
   final public Paving paving ;
-  //  TODO:  also include a map for repairs?
   final public IntelMap intelMap = new IntelMap(this) ;
   
   
@@ -48,7 +51,6 @@ public class Base implements Session.Saveable, Schedule.Updates {
     s.cacheInstance(this) ;
     this.world = s.world() ;
 
-    ///offworld.loadState(s) ;
     ruler = (Actor) s.loadObject() ;
     s.loadObjects(missions) ;
     
@@ -56,6 +58,10 @@ public class Base implements Session.Saveable, Schedule.Updates {
     alertLevel = s.loadFloat() ;
     crimeLevel = s.loadFloat() ;
     
+    for (int n = s.loadInt() ; n-- > 0 ;) {
+      final Relation r = Relation.loadFrom(s) ;
+      baseRelations.put(r.subject, r) ;
+    }
     paving = new Paving(world) ;
     paving.loadState(s) ;
     intelMap.loadState(s) ;
@@ -64,7 +70,6 @@ public class Base implements Session.Saveable, Schedule.Updates {
   
   public void saveState(Session s) throws Exception {
     
-    ///offworld.saveState(s) ;
     s.saveObject(ruler) ;
     s.saveObjects(missions) ;
     
@@ -72,6 +77,8 @@ public class Base implements Session.Saveable, Schedule.Updates {
     s.saveFloat(alertLevel) ;
     s.saveFloat(crimeLevel) ;
     
+    s.saveInt(baseRelations.size()) ;
+    for (Relation r : baseRelations.values()) Relation.saveTo(s, r) ;
     paving.saveState(s) ;
     intelMap.saveState(s) ;
   }
@@ -98,6 +105,19 @@ public class Base implements Session.Saveable, Schedule.Updates {
   
   /**  Dealing with admin functions-
     */
+  public void setRelation(Base base, float attitude) {
+    baseRelations.put(base, new Relation(this, base, attitude)) ;
+  }
+  
+  
+  public float relationWith(Base base) {
+    final Relation r = baseRelations.get(base) ;
+    if (r == null) return 0 ;
+    return r.value() ;
+  }
+  
+  
+  public Base base() { return this ; }
   
   
   

@@ -3,6 +3,7 @@
 package src.game.building ;
 import src.game.common.* ;
 import src.graphics.common.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 
 
@@ -19,7 +20,7 @@ public interface Installation {
   void preview(boolean canPlace, Rendering rendering, Tile from, Tile to) ;
   
   String fullName() ;
-  Composite portrait(BaseUI UI) ;
+  Composite portrait(HUD UI) ;
   String helpInfo() ;
   String buildCategory() ;
 }

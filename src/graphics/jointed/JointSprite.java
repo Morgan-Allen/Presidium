@@ -8,7 +8,7 @@
 package src.graphics.jointed ;
 import src.util.* ;
 import src.graphics.common.* ;
-import java.io.* ;
+//import java.io.* ;
 import java.nio.* ;
 import org.lwjgl.opengl.GL11 ;
 
@@ -78,14 +78,6 @@ public class JointSprite extends Sprite {
     */
   public void setAnimation(String animName, float progress) {
     setJointAnimation(root.model.name, animName, progress) ;
-    /*
-    final Model.AnimRange range = rangeFor(animName) ;
-    if (range == null) return ;
-    if (animation == null || animation.animRange != range) {
-      animation = new JointAnimation(this, range) ;
-    }
-    animation.setProgress(progress) ;
-    //*/
   }
   
   
@@ -139,6 +131,22 @@ public class JointSprite extends Sprite {
   }
   
   
+  public Vec3D attachPoint(String function) {
+    Joint j = root ;
+    for (Model.AttachPoint point : model.attachPoints()) {
+      if (! point.function.equals(function)) continue ;
+      final int jointID = model.jointID(point.pointName) ;
+      if (jointID == -1) continue ;
+      j = this.joints[jointID] ;
+      break ;
+    }
+    final Vec3D JP = new Vec3D(j.position) ;
+    JP.scale(this.scale * model.scale()) ;
+    JP.add(position) ;
+    return JP ;
+  }
+  
+  
   
   /**  Default drawing and update methods.
     */
@@ -179,6 +187,9 @@ public class JointSprite extends Sprite {
       if (! group.toggled) continue ;
       group.modelGroup.material.texture.bindTex() ;
       group.renderTo(rendering) ;
+      //
+      //  We only render overlay textures on the main skin surface.
+      if (! group.modelGroup.material.name.equals("main_skin")) continue ;
       for (Texture overlaid : overlays) {
         overlaid.bindTex() ;
         group.renderTo(rendering) ;

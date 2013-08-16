@@ -11,12 +11,13 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
 
 
 
-public class Fabricator extends Venue implements VenueConstants {
+public class Fabricator extends Venue implements BuildConstants {
 
   
   
@@ -82,7 +83,7 @@ public class Fabricator extends Venue implements VenueConstants {
   
   /**  Rendering and interface methods-
     */
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/fabricator_button.gif") ;
   }
 

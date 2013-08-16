@@ -5,8 +5,9 @@
   */
 
 package src.game.tactical ;
-import src.game.actors.* ;
 import src.game.common.* ;
+import src.game.actors.* ;
+import src.game.building.* ;
 import src.user.* ;
 import src.util.* ;
 
@@ -42,25 +43,27 @@ public class StrikeMission extends Mission {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
-    return Combat.combatPriority(
+    //  TODO:  Try to unify these.
+    if (subject instanceof Actor) return Combat.combatPriority(
       actor, (Actor) subject,
       actor.AI.greedFor(rewardAmount()) * ROUTINE,
       PARAMOUNT
     ) ;
+    if (subject instanceof Venue) {
+      return actor.AI.greedFor(rewardAmount()) * ROUTINE ;
+    }
+    return 0 ;
   }
   
   
   public Behaviour nextStepFor(Actor actor) {
     if (complete()) return null ;
-    I.say("Getting next combat step for "+actor) ;
-    return new Combat(actor, (Actor) subject) ;
+    return new Combat(actor, (Element) subject) ;
   }
 
 
   public boolean complete() {
-    final Actor target = (Actor) subject ;
-    I.say(target+" is dead? "+target.health.deceased()) ;
-    if (target.health.deceased()) return true ;
+    if (Combat.isDead((Element) subject)) return true ;
     return false ;
   }
   

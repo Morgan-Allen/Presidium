@@ -141,6 +141,7 @@ public class TalkFX extends SFX {
   /**  Rendering methods-
     */
   public void renderTo(Rendering rendering) {
+    if (showing.size() == 0) return ;
     final Vec3D flatPoint = new Vec3D(position) ;
     rendering.port.isoToScreen(flatPoint) ;
     float fontScale = LINE_HIGH / FONT.map[' '].height ;

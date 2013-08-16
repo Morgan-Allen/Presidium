@@ -25,7 +25,7 @@ public class BeamFX extends SFX {
   
   private Texture tex ;
   private float width ;
-  private float glowAlpha = 1.0f ;
+  //private float glowAlpha = 1.0f ;
   
   final public Vec3D
     origin = new Vec3D(),
@@ -47,7 +47,6 @@ public class BeamFX extends SFX {
     super.saveTo(out) ;
     Texture.saveTexture(tex, out) ;
     out.writeFloat(width) ;
-    out.writeFloat(glowAlpha) ;
     origin.saveTo(out) ;
     target.saveTo(out) ;
   }
@@ -57,7 +56,6 @@ public class BeamFX extends SFX {
     super.loadFrom(in) ;
     tex = Texture.loadTexture(in) ;
     width = in.readFloat() ;
-    glowAlpha = in.readFloat() ;
     origin.loadFrom(in) ;
     target.loadFrom(in) ;
   }
@@ -78,8 +76,8 @@ public class BeamFX extends SFX {
     line.y = target.y - origin.y ;
     //this.radius = line.length() * 0.5f ;
     this.position.setTo(origin).add(target).scale(0.5f) ;
-    glowAlpha -= 0.33f ;
-    if (glowAlpha < 0) glowAlpha = 0 ;
+    //glowAlpha -= 0.33f ;
+    //if (glowAlpha < 0) glowAlpha = 0 ;
   }
   
   
@@ -88,7 +86,7 @@ public class BeamFX extends SFX {
     if (shield == null) target.setTo(targPos) ;
     else target.setTo(shield.interceptPoint(origin)) ;
     update() ;
-    glowAlpha = 1.0f ;
+    //glowAlpha = 1.0f ;
   }
   
   
@@ -108,8 +106,14 @@ public class BeamFX extends SFX {
     verts[1].setTo(target).add(perp) ;
     verts[2].setTo(target).sub(perp) ;
     verts[3].setTo(origin).sub(perp) ;
-    GL11.glColor4f(1, 1, 1, glowAlpha) ;
+    final Colour c = this.colour ;
+    final float f = this.fog ;
+    GL11.glColor4f(c.r * f, c.g * f, c.b * f, c.a) ;
     renderTex(verts, tex) ;
     GL11.glColor4f(1, 1, 1, 1) ;
   }
 }
+
+
+
+

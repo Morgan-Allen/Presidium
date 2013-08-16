@@ -10,10 +10,12 @@ import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.social.* ;
+import src.game.tactical.Combat;
 import src.game.planet.* ;
 import src.graphics.common.* ;
 import src.graphics.jointed.* ;
 import src.graphics.sfx.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
 
@@ -30,10 +32,10 @@ public class Human extends Actor implements ActorConstants {
     XML_PATH = FILE_DIR+"HumanModels.xml" ;
   final public static Model
     MODEL_MALE = MS3DModel.loadMS3D(
-      Actor.class, FILE_DIR, "MaleAnimNewSkin.ms3d", 0.025f
+      Actor.class, FILE_DIR, "male_final.ms3d", 0.025f
     ).loadXMLInfo(XML_PATH, "MalePrime"),
     MODEL_FEMALE = MS3DModel.loadMS3D(
-      Actor.class, FILE_DIR, "FemaleAnimNewSkin.ms3d", 0.025f
+      Actor.class, FILE_DIR, "female_final.ms3d", 0.025f
     ).loadXMLInfo(XML_PATH, "FemalePrime") ;
   
   final public static Texture
@@ -161,7 +163,7 @@ public class Human extends Actor implements ActorConstants {
   }
   
   
-  private static Composite faceComposite(Human c, BaseUI UI) {
+  private static Composite faceComposite(Human c, HUD UI) {
     
     final Composite composite = new Composite(UI) ;
     final int bloodID = bloodID(c) ;
@@ -218,26 +220,42 @@ public class Human extends Actor implements ActorConstants {
     Texture costume = c.career.vocation().costume ;
     if (costume == null) costume = c.career.birth().costume ;
     s.overlayTexture(costume) ;
-    for (String groupName : ((JointModel) s.model()).groupNames()) {
-      if (! "Main Body".equals(groupName))
-        s.toggleGroup(groupName, false) ;
+    toggleSpriteGroups(c, s) ;
+  }
+  
+  
+  //
+  //  You might want to call this at more regular intervals?
+  private static void toggleSpriteGroups(Human human, JointSprite sprite) {
+    for (String groupName : ((JointModel) sprite.model()).groupNames()) {
+      boolean valid = "Main Body".equals(groupName) ;
+      final DeviceType DT = human.gear.deviceType() ;
+      if (DT != null && DT.groupName.equals(groupName)) valid = true ;
+      if (! valid) sprite.toggleGroup(groupName, false) ;
     }
+  }
+  
+  
+  //
+  //  This may need to be changed later, since devices can be used for purposes
+  //  besides combat.  Ideally, the activities themselves should be toggling
+  //  animation state.
+  private static boolean inCombat(Human human) {
+    for (Behaviour b : human.AI.agenda()) {
+      if (b.getClass() == Combat.class) return true ;
+    }
+    return false ;
   }
   
   
   
   /**  More usual rendering and interface methods-
     */
-  private TalkFX talkFX ;
-  
   public void renderFor(Rendering rendering, Base base) {
+    final DeviceType DT = gear.deviceType() ;
+    final boolean IC = inCombat(this) ;
+    if (DT != null) ((JointSprite) sprite()).toggleGroup(DT.groupName, IC) ;
     super.renderFor(rendering, base) ;
-    //
-    //  If you don't have a TalkFX already, create one, add dialogue, and
-    //  render it-
-    //  So... this creates a problem.  This should probably be considered a
-    //  form of ephemera.  But this type would need to track the actor.
-    
     /*
     if (talkFX == null) talkFX = new TalkFX() ;
     if (talkFX.numPhrases() == 0) {
@@ -269,7 +287,7 @@ public class Human extends Actor implements ActorConstants {
   }
   
   
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return faceComposite(this, UI) ;
   }
   
@@ -289,7 +307,7 @@ public class Human extends Actor implements ActorConstants {
   }
   
   
-  public void writeInformation(Description d, int categoryID, BaseUI UI) {
+  public void writeInformation(Description d, int categoryID, HUD UI) {
     if (categoryID == 0) describeStatus(d, UI) ;
     ///if (categoryID == 1) describeOutfit(d, UI) ;
     if (categoryID == 1) describeSkills(d, UI) ;
@@ -299,7 +317,7 @@ public class Human extends Actor implements ActorConstants {
   
   //
   //  Some of this could be outsourced to the ActorGear classes, et cetera.
-  private void describeStatus(Description d, BaseUI UI) {
+  private void describeStatus(Description d, HUD UI) {
     //
     //  Describe your job, place of work, and current residence:
     d.append("Is: ") ;
@@ -361,7 +379,7 @@ public class Human extends Actor implements ActorConstants {
   }
   
   
-  private void describeSkills(Description d, BaseUI UI) {
+  private void describeSkills(Description d, HUD UI) {
     //
     //  Describe attributes, skills and psyonic techniques.
     d.append("Attributes: ") ;
@@ -385,7 +403,7 @@ public class Human extends Actor implements ActorConstants {
   }
   
   
-  private void describeProfile(Description d, BaseUI UI) {
+  private void describeProfile(Description d, HUD UI) {
     //
     //  Describe background, personality, relationships and memories.
     //  TODO:  Allow for a chain of arbitrary vocations in a career?

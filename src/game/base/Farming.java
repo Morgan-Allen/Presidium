@@ -16,7 +16,7 @@ import src.util.* ;
 
 
 
-public class Farming extends Plan implements VenueConstants {
+public class Farming extends Plan implements BuildConstants {
   
   
   final BotanicalStation nursery ;

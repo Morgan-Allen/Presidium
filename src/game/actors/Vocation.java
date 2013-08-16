@@ -12,7 +12,7 @@ import src.util.* ;
 
 
 
-public class Vocation implements VenueConstants {
+public class Vocation implements BuildConstants {
   
   
   
@@ -199,14 +199,22 @@ public class Vocation implements VenueConstants {
       ASSEMBLY, HARD_LABOUR,
       SOMETIMES, DUTIFUL, AGGRESSIVE,
       SHOCK_STAFF, BODY_ARMOUR
-    ),    
-    VETERAN = new Vocation(  //  Rename to Veteran?
+    ),
+    VETERAN = new Vocation(
       "Veteran", "militant_skin.gif", "militant_portrait.png",
       UPPER_CLASS,
       EXPERT, CLOSE_COMBAT, MARKSMANSHIP, PRACTICED, SURVEILLANCE,
       BATTLE_TACTICS, COMMAND,
       OFTEN, DUTIFUL, SOMETIMES, STUBBORN, AMBITIOUS,
       SHOCK_STAFF, BODY_ARMOUR
+    ),
+    
+    RUNNER = new Vocation(
+      "Runner", "runner_skin.gif", "vendor_portrait.png", LOWER_CLASS,
+      EXPERT, PILOTING, MARKSMANSHIP, STEALTH_AND_COVER,
+      PRACTICED, SUASION, SURVEILLANCE, DISGUISE,
+      OFTEN, ACQUISITIVE, NERVOUS,
+      PHASE_PISTOL, CAMOUFLAGE
     ) ;
   
   

@@ -14,7 +14,7 @@ import src.game.base.* ;
 //  Include various service-types here?
 
 
-public interface VenueConstants extends ActorConstants {
+public interface BuildConstants extends ActorConstants {
   
   
   final public static int
@@ -25,7 +25,7 @@ public interface VenueConstants extends ActorConstants {
     OUTFIT         = 4,
     SERVICE        = 5 ;
   
-  final static Class C = VenueConstants.class ;
+  final static Class C = BuildConstants.class ;
   final public static Item.Type
     
     STARCHES = new Item.Type(C, COMMODITY, "Starches", 10 ),

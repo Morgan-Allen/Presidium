@@ -8,6 +8,7 @@
 package src.game.building ;
 import src.game.common.* ;
 import src.game.actors.* ;
+import src.graphics.widgets.HUD;
 //import src.graphics.common.* ;
 import src.user.* ;
 //import src.util.* ;
@@ -25,7 +26,7 @@ import src.user.* ;
   *  interface with vehicles.  It occupies a single tile, just outside the
   *  vehicle door.
   */
-public class DropZone extends Venue implements VenueConstants {
+public class DropZone extends Venue implements BuildConstants {
   
   
   /**  Fields, constants, constructors and save/load methods-
@@ -146,7 +147,7 @@ public class DropZone extends Venue implements VenueConstants {
     return "Drop Zone for "+landing.fullName() ;
   }
 
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return landing.portrait(null) ;
   }
   
@@ -154,7 +155,7 @@ public class DropZone extends Venue implements VenueConstants {
     return landing.helpInfo() ;
   }
   
-  public void writeInformation(Description d, int categoryID, BaseUI UI) {
+  public void writeInformation(Description d, int categoryID, HUD UI) {
     landing.writeInformation(d, categoryID, null) ;
   }
   

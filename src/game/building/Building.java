@@ -49,13 +49,9 @@ public class Building extends Plan implements ActorConstants {
       chance = Visit.clamp(actor.traits.useLevel(ASSEMBLY) / 20, 0, 1),
       damage = (1 - built.structure.repairLevel()) * 2 ;
     float appeal = 1 ;
-    
+    appeal *= actor.AI.relation(built.base()) ;
     //  TODO:  Certain structures should be considered particularly important.
     //         Community Spirit should factor in here?
-    //
-    //  Repairing non-base (or enemy) structures should be less important.
-    //  ...That's an aspect of your general 'relationship' function.
-    if (built.base != actor.base()) appeal /= 2 ;
     
     return Visit.clamp(chance * damage, 0, 1) * ROUTINE * appeal ;
   }

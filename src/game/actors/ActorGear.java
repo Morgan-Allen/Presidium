@@ -23,7 +23,7 @@ import src.util.* ;
 
 
 
-public class ActorGear extends Inventory implements VenueConstants {
+public class ActorGear extends Inventory implements BuildConstants {
   
   
   final public static float
@@ -57,9 +57,6 @@ public class ActorGear extends Inventory implements VenueConstants {
     Item.saveTo(s, outfit) ;
     s.saveFloat(fuelCells) ;
     s.saveFloat(currentShields) ;
-    ///s.saveFloat(foodTypes) ;
-    ///s.saveFloat(currentRations) ;
-    //Model.saveSprite(shieldFX, s.output()) ;
   }
   
 
@@ -71,9 +68,6 @@ public class ActorGear extends Inventory implements VenueConstants {
     outfit = Item.loadFrom(s) ;
     fuelCells = s.loadFloat() ;
     currentShields = s.loadFloat() ;
-    ///foodTypes = s.loadFloat() ;
-    ///currentRations = s.loadFloat() ;
-    ///shieldFX = (ShieldFX) Model.loadSprite(s.input()) ;
   }
   
   
@@ -86,7 +80,8 @@ public class ActorGear extends Inventory implements VenueConstants {
     baseArmour = a ;
   }
   
-
+  
+  
   /**  Returns this actor's effective attack damage.  Actors without equipped
     *  weapons, or employing weapons in melee, gain a bonus based on their
     *  physical brawn.
@@ -102,9 +97,6 @@ public class ActorGear extends Inventory implements VenueConstants {
   }
   
   
-  
-  /**  Returns this actor's attack range.
-    */
   public float attackRange() {
     if (deviceType().hasProperty(RANGED))
       return actor.health.sightRange() ;
@@ -117,6 +109,7 @@ public class ActorGear extends Inventory implements VenueConstants {
     return type.baseRange ;
     //*/
   }
+  
   
   public boolean meleeWeapon() {
     final Item weapon = deviceEquipped() ;
@@ -131,6 +124,12 @@ public class ActorGear extends Inventory implements VenueConstants {
     if (weapon == null) return true ;
     if (deviceType().hasProperty(PHYSICAL)) return true ;
     return false ;
+  }
+  
+  
+  public boolean armed() {
+    final DeviceType type = deviceType() ;
+    return (type != null) && type.baseDamage > 0 ;
   }
   
   
@@ -231,10 +230,11 @@ public class ActorGear extends Inventory implements VenueConstants {
   public void equipDevice(Item device) {
     if (device != null && ! (device.type instanceof DeviceType))
       return ;
+    this.device = device ;
+    /*
     final Actor actor = (Actor) owner ;
     final JointSprite sprite = (JointSprite) actor.sprite() ;
     final Item oldItem = this.device ;
-    this.device = device ;
     //
     //  Attach/detach the appropriate media-
     if (oldItem != null && sprite != null) {
@@ -245,6 +245,7 @@ public class ActorGear extends Inventory implements VenueConstants {
       final DeviceType newType = (DeviceType) device.type ;
       sprite.toggleGroup(newType.groupName, true) ;
     }
+    //*/
   }
   
   

@@ -123,8 +123,9 @@ public class MissionsTab extends InfoPanel {
     UI.beginTask(new TargetTask(UI, STRIKE_ICON) {
       
       boolean validPick(Target pick) {
-        return pick instanceof Actor ;
-        //return pick instanceof Mobile || pick instanceof Venue ;
+        if (! (pick instanceof Actor || pick instanceof Venue)) return false ;
+        if (! ((Element) pick).visibleTo(UI.played())) return false ;
+        return true ;
       }
       
       void previewAt(Target picked, boolean valid) {

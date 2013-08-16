@@ -23,7 +23,7 @@ public class ActorTraits implements ActorConstants {
     DNA_LETTERS = 26,
     MUTATION_PERCENT = 5 ;
 
-  private static class Level { float value ; }
+  private static class Level { float value ; }  //studyLevel?
   private Table <Trait, Level> levels = new Table <Trait, Level> () ;
   
   final Actor actor ;

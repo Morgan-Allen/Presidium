@@ -8,6 +8,7 @@ import src.game.building.* ;
 import src.game.planet.* ;
 import src.graphics.common.* ;
 import src.graphics.jointed.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
 
@@ -330,7 +331,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     return "Freighter" ;
   }
   
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return null ;
   }
   
@@ -338,7 +339,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     return null ;
   }
   
-  public void writeInformation(Description description, int categoryID, BaseUI UI) {
+  public void writeInformation(Description description, int categoryID, HUD UI) {
   }
 }
 

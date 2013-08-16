@@ -12,12 +12,13 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
 
 
 
-public class MineShaft extends Venue implements VenueConstants, TileConstants {
+public class MineShaft extends Venue implements BuildConstants, TileConstants {
   
   
   /**  Constants, fields, constructors and save/load methods-
@@ -237,7 +238,7 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
   }
 
 
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/excavation_button.gif") ;
   }
 
@@ -254,7 +255,7 @@ public class MineShaft extends Venue implements VenueConstants, TileConstants {
   }
   
   
-  public void writeInformation(Description d, int categoryID, BaseUI UI) {
+  public void writeInformation(Description d, int categoryID, HUD UI) {
     
     d.append(new Description.Link("\n[Seek Carbons]") {
       public void whenClicked() {

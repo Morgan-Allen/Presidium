@@ -35,18 +35,18 @@ public class World {
   final public int size ;
   final Tile tiles[][] ;
   final public WorldSections sections ;
+  
   final public Schedule schedule ;
+  private float currentTime ;
+  private List <Mobile> mobiles = new List <Mobile> () ;
   
   private Terrain terrain ;
   private RandomScan growth ;  //Move to the Planet or Terrain class...
-  
+  ///final public Offworld offworld = new Offworld(this) ;
   private List <Base> bases = new List <Base> () ;
-  private float currentTime ;
-  private List <Mobile> mobiles = new List <Mobile> () ;  //This may be dispensible?
   
   final public Activities activities ;
   final public PathingCache pathingCache ;
-  //final public Paving paving ;
   final public Presences presences ;
   final public Ephemera ephemera ;
   
@@ -201,7 +201,7 @@ public class World {
   }
   
   
-  protected void registerBase(Base base, boolean active) {
+  public void registerBase(Base base, boolean active) {
     if (active) {
       bases.include(base) ;
       schedule.scheduleForUpdates(base) ;
@@ -308,27 +308,31 @@ public class World {
   }
   
   
-  public Tile pickedTile(final HUD UI, final Viewport port) {
+  public Tile pickedTile(final HUD UI, final Viewport port, Base base) {
     final Vec3D onGround = pickedGroundPoint(UI, port) ;
     return tileAt(onGround.x, onGround.y) ;
   }
   
   
-  public Fixture pickedFixture(final HUD UI, final Viewport port) {
-    final Tile t = pickedTile(UI, port) ;
+  public Fixture pickedFixture(final HUD UI, final Viewport port, Base base) {
+    final Tile t = pickedTile(UI, port, base) ;
     if (t == null) return null ;
-    if (t.owner() instanceof Fixture) return (Fixture) t.owner() ;
-    return null ;
+    if (t.owner() instanceof Fixture) {
+      if (! t.owner().visibleTo(base)) return null ;
+      return (Fixture) t.owner() ;
+    }
+    else return null ;
   }
   
   
-  public Mobile pickedMobile(final HUD UI, final Viewport port) {
+  public Mobile pickedMobile(final HUD UI, final Viewport port, Base base) {
     //
     //  You may want to use some pre-emptive culling here in future.
     Mobile nearest = null ;
     float minDist = Float.POSITIVE_INFINITY ;
     for (Mobile m : mobiles) {
       if (m.indoors() || ! (m instanceof Selectable)) continue ;
+      if (! m.visibleTo(base)) continue ;
       final float selRad = (m.height() + m.radius()) / 2 ;
       final Vec3D selPos = m.viewPosition(null) ;
       if (! port.mouseIntersects(selPos, selRad, UI)) continue ;

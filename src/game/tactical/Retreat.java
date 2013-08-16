@@ -7,19 +7,125 @@ import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
+import src.user.* ;
 import src.util.* ;
 
 
 
-public class Retreat implements ActorConstants {
-  
-  
-  //
-  //  Retreat should become less attractive the closer you are to home?  Well,
-  //  more so the further you are from a safe haven, anyway.  I dunno.
+public class Retreat extends Plan implements ActorConstants {
   
   
   
+  /**  Constants, field definitions, constructors and save/load methods-
+    */
+  Target safePoint ;
+  
+  
+  public Retreat(Actor actor, Target safePoint) {
+    super(actor) ;
+    this.safePoint = safePoint ;
+  }
+
+
+  public Retreat(Session s) throws Exception {
+    super(s) ;
+    this.safePoint = s.loadTarget() ;
+  }
+  
+  
+  public void saveState(Session s) throws Exception {
+    super.saveState(s) ;
+    s.saveTarget(safePoint) ;
+  }
+  
+  
+  
+  /**  Behaviour implementation-
+    */
+  public float priorityFor(Actor actor) {
+    float danger = dangerAtSpot(actor.origin(), actor, actor.AI.seen()) ;
+    return PARAMOUNT * danger ;
+  }
+  
+  
+  protected Behaviour getNextStep() {
+    if (actor.aboard() == safePoint) return null ;
+    final Action flees = new Action(
+      actor, safePoint,
+      this, "actionFlee",
+      Action.LOOK, "Fleeing to "+safePoint
+    ) ;
+    flees.setProperties(Action.QUICK) ;
+    return flees ;
+  }
+  
+  
+  public boolean actionFlee(Actor actor, Target safePoint) {
+    return true ;
+  }
+  
+  
+  
+  /**  Rendering and interface methods-
+    */
+  public void describeBehaviour(Description d) {
+    d.append("Retreating to ") ;
+    d.append(safePoint) ;
+  }
+  
+  
+  
+  /**  These methods select safe points to withdraw to in a local area.
+    */
+  public static Tile pickWithdrawPoint(
+    Actor actor, float range,
+    Target target, float salt
+  ) {
+    final int numPicks = 3 ;  //Make this an argument, instead of range?
+    Tile pick = actor.origin() ;
+    float bestRating = dangerAtSpot(pick, actor, actor.AI.seen()) ;
+    for (int i = numPicks ; i-- > 0 ;) {
+      final Tile tried = Spacing.pickRandomTile(actor, range) ;
+      if (Spacing.distance(tried, target) > range * 2) continue ;
+      float tryRating = dangerAtSpot(tried, actor, actor.AI.seen()) ;
+      tryRating += (Rand.num() - 0.5f) * salt ;
+      if (tryRating < bestRating) { bestRating = tryRating ; pick = tried ; }
+    }
+    return pick ;// pick == actor.origin() ? null : pick ;
+  }
+  
+  
+  public static float dangerAtSpot(
+    Target spot, Actor actor, Batch <Element> seen
+  ) {
+    //
+    //  Get a reading of threats based on all actors visible to this one, and
+    //  their distance from the spot in question.
+    float seenDanger = 0 ;
+    final float range = World.DEFAULT_SECTOR_SIZE ;
+    for (Element m : seen) {
+      if (m == actor || ! (m instanceof Actor)) continue ;
+      final Actor near = (Actor) m ;
+      //
+      //  More distant foes are less threatening.
+      float danger = Combat.combatStrength(near) ;
+      final float dist = Visit.clamp(Spacing.distance(spot, near), 0, range) ;
+      danger *= 1 - (dist / range) ;
+      
+      float attitude = near.AI.relation(actor) ;
+      if (attitude < 0) seenDanger += danger ;
+      if (attitude > 0) seenDanger -= danger / 2 ;
+    }
+    if (seenDanger == 0) return 0 ;
+    final float strength = Combat.combatStrength(actor) * 2 ;
+    if (strength == 0) return PARAMOUNT ;
+    return Visit.clamp(seenDanger / strength, 0, PARAMOUNT) ;
+  }
+  
+  
+  
+  /**  These methods select safe venues to run to, over longer distances.
+    */
   public static Venue nearestHaven(Actor actor, Class prefClass) {
     final Presences p = actor.world().presences ;
     int numC = (int) (actor.traits.trueLevel(INSIGHT) / 3) ;
@@ -56,90 +162,6 @@ public class Retreat implements ActorConstants {
     rating *= SS / (SS + Spacing.distance(actor, haven)) ;
     return rating ;
   }
-  
-  
-  
-  /**  These are general evaluation and utility methods.
-    */
-  /*
-  public static float dangerAtSpot(Target spot, Actor actor) {
-    //
-    //  Get a reading of threats based on all actors visible to this one, and
-    //  their distance from the spot in question.
-    float seenDanger = 0 ;
-    final float range = Sector.SECTOR_SIZE / 2 ;
-    for (Actor near : actor.AI.seenActors()) {
-      if (near == actor) continue ;
-      ///I.say("    "+near+" might threaten "+actor) ;
-      float danger = near.health.combatStrength() ;
-      float attitude = near.AI.attitudeTo(actor) ;
-      if (! near.AI.attentionOn(actor, Combat.class)) {
-        danger /= 2 ;
-        if (near.AI.attentionOn(null, Retreat.class)) danger /= 2 ;
-        danger *= Visit.clamp(attitude, -1, 1) ;
-      }
-      final float dist = Visit.clamp(World.distance(spot, near), 0, range) ;
-      danger *= 1 - (dist / range) ;
-      seenDanger += danger ;
-    }
-    if (seenDanger == 0) return 0 ;
-    //
-    //  Get a general reading based on the ambient 'danger level' of this
-    //  location.
-    float areaDanger = 0 ;
-    final Tile t = actor.world.tileAt(spot) ;
-    for (Realm realm : actor.world.allRealms()) {
-      final int status = realm.relationTo(actor.realm()) ;
-      final float power = realm.powerMap.valueAt(t.x, t.y) ;
-      if (status == Realm.ALLIANCE) areaDanger -= power ;
-      if (status == Realm.AT_WAR) areaDanger += power ;
-    }
-    return (areaDanger + seenDanger) / actor.health.combatStrength() ;
-  }
-
-  public static Tile pickRandomTile(Actor actor, float range) {
-    final double angle = Rand.num() * Math.PI ;
-    final float dist = Rand.num() * range ;
-    return actor.world.tileAt(
-      actor.cornerX() + (float) (Math.cos(angle) * dist),
-      actor.cornerY() + (float) (Math.sin(angle) * dist)
-    ) ;
-  }
-
-  public static Tile pickWithdrawPoint(Actor actor) {
-    return pickWithdrawPoint(actor, actor.health.sightRange()) ;
-  }
-  
-  public static Tile pickWithdrawPoint(Actor actor, float range) {
-    //
-    //  Firstly, set up data caches, and rate the actor's current tile-
-    final int numPicks = 3 ;
-    Tile pick = actor.world.tileAt(actor) ;
-    float bestRating = dangerAtSpot(pick, actor) ;
-    //
-    //  Now pick other tiles at random, and compare them-
-    for (int i = numPicks ; i-- > 0 ;) {
-      final Tile tried = pickRandomTile(actor, range) ;
-      final float tryRating = dangerAtSpot(tried, actor) ;
-      ///I.say("    Evaluating point: "+tried+", danger: "+tryRating) ;
-      if (tryRating < bestRating) { bestRating = tryRating ; pick = tried ; }
-    }
-    return pick == actor.world.tileAt(actor) ? null : pick ;
-  }
-  
-  
-  public static Target pickShelter(Actor actor) {
-    Target picked = actor.realm().nearestVenueTo(actor) ;
-    if (picked == null) picked = pickWithdrawPoint(actor) ;
-    if (picked == null) picked = actor.location() ;
-    return picked ;
-  }
-  //*/
 }
-
-
-
-
-
 
 

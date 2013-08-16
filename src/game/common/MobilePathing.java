@@ -125,7 +125,7 @@ public class MobilePathing {
     }
     //
     //  If you're close to the centre of your current step, advance one step.
-    if (inLocus(path[stepIndex])) {
+    if (path != null && inLocus(path[stepIndex])) {
       stepIndex = Visit.clamp(stepIndex + 1, path.length) ;
     }
   }
@@ -190,7 +190,7 @@ public class MobilePathing {
   
   
   public boolean closeEnough(Target target, float minDist) {
-    if (target instanceof Boardable) return inLocus((Boardable) target) ;
+    ///if (target instanceof Boardable) return inLocus((Boardable) target) ;
     return Spacing.distance(mobile, target) <= minDist ;
   }
   

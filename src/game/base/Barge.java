@@ -112,9 +112,13 @@ public class Barge extends Mobile {
     */
   public void renderFor(Rendering rendering, Base base) {
     if (followed.indoors()) return ;
+    if (origin().owner() != null) return ;
     super.renderFor(rendering, base) ;
   }
 }
+
+
+
 
 
 

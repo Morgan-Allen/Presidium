@@ -18,7 +18,7 @@ import src.graphics.cutout.* ;
   *  Setting quality or amount to -1 will allow for matches with items of any
   *  quality and amount.
   */
-public class Item implements VenueConstants {
+public class Item implements BuildConstants {
   
   
   /**  Type definition.

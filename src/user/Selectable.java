@@ -17,8 +17,8 @@ public interface Selectable extends Text.Clickable, Session.Saveable {
   String helpInfo() ;
   
   String[] infoCategories() ;
-  Composite portrait(BaseUI UI) ;
-  void writeInformation(Description description, int categoryID, BaseUI UI) ;
+  Composite portrait(HUD UI) ;
+  void writeInformation(Description description, int categoryID, HUD UI) ;
   
   void whenClicked() ;
   InfoPanel createPanel(BaseUI UI) ;

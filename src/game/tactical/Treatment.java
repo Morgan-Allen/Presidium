@@ -26,10 +26,16 @@ public class Treatment extends Plan implements ActorConstants {
     TYPE_GENE_THERAPY = 4, GENE_THERAPY_DC = 25, GENE_THERAPY_XP = 150,
     TYPE_CONDITIONING = 5, CONDITIONING_DC = 30, CONDITIONING_XP = 250 ;
   //*/
+  final static int
+    STAGE_NONE = 0,
+    STAGE_EMERGENCY = 1,
+    STAGE_TRANSPORT = 2,
+    STAGE_FOLLOW_UP = 3 ;
   
   final Actor patient ;
   final int type ;
   Trait applied = null ;
+  int stage ;
   
   
   public Treatment(Actor actor, Actor patient) {

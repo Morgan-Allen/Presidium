@@ -46,7 +46,7 @@ public class VenueOrders {
     int numC = s.loadInt() ;
     while (numC-- > 0) {
       final Demand d = new Demand() ;
-      d.type = VenueConstants.ALL_ITEM_TYPES[s.loadInt()] ;
+      d.type = BuildConstants.ALL_ITEM_TYPES[s.loadInt()] ;
       d.required = s.loadFloat() ;
       d.received = s.loadFloat() ;
       d.balance  = s.loadFloat() ;

@@ -18,12 +18,14 @@ public class VenueStructure extends Inventory {
   /**  Fields, definitions and save/load methods-
     */
   final static int
-    DEFAULT_INTEGRITY = 100 ;
+    DEFAULT_INTEGRITY = 100,
+    DEFAULT_ARMOUR    = 10 ;
   final public static int
     STATE_INSTALL = 0,
     STATE_INTACT  = 1,
     STATE_REPAIR  = 2,
-    STATE_SALVAGE = 3 ;
+    STATE_SALVAGE = 3,
+    STATE_RAZED   = 4 ;
   
   final static int
     SMALL_MAX_UPGRADES  = 3,
@@ -38,12 +40,17 @@ public class VenueStructure extends Inventory {
   
   
   final Venue venue ;
-  private int state = STATE_INSTALL ;
+  
+  //  These don't actually need to be supplied on an individual basis.  They
+  //  belong to the class, rather than to the object.
   private int baseIntegrity = DEFAULT_INTEGRITY ;
+  private int maxUpgrades = NORMAL_MAX_UPGRADES ;
+  private int buildCost, armouring ;
+
+  private int state = STATE_INSTALL ;
   private float integrity = baseIntegrity ;
 
-  private int maxUpgrades = NORMAL_MAX_UPGRADES ;
-  private Table <Upgrade, Integer> upgrades = new Table <Upgrade, Integer> () ;
+  
   
   //  int buildCost, armouring, restLevel, moraleLevel, pollutes ;
   //  Item materials[] ;
@@ -59,16 +66,24 @@ public class VenueStructure extends Inventory {
   
   public void loadState(Session s) throws Exception {
     super.loadState(s) ;
-    state = s.loadInt() ;
     baseIntegrity = s.loadInt() ;
+    maxUpgrades = s.loadInt() ;
+    buildCost = s.loadInt() ;
+    armouring = s.loadInt() ;
+    
+    state = s.loadInt() ;
     integrity = s.loadFloat() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveInt(state) ;
     s.saveInt(baseIntegrity) ;
+    s.saveInt(maxUpgrades) ;
+    s.saveInt(buildCost) ;
+    s.saveInt(armouring) ;
+    
+    s.saveInt(state) ;
     s.saveFloat(integrity) ;
   }
   
@@ -80,8 +95,14 @@ public class VenueStructure extends Inventory {
     int maxUpgrades
   ) {
     this.integrity = this.baseIntegrity = baseIntegrity ;
+    this.armouring = armouring ;
+    this.buildCost = buildCost ;
     this.maxUpgrades = maxUpgrades ;
   }
+  
+  
+  public int armouring() { return armouring ; }
+  
   
   
   //
@@ -111,6 +132,7 @@ public class VenueStructure extends Inventory {
     if (integrity < 0) {
       toggleForRepairs(false) ;
       //  TODO:  You need to leave some rubble behind!
+      state = STATE_RAZED ;
       venue.setAsDestroyed() ;
     }
     //
@@ -161,20 +183,19 @@ public class VenueStructure extends Inventory {
   }
   
   
-  public int integrity() {
-    return (int) integrity ;
-  }
-  
-  
   public int correctIntegrity() {
     if (state == STATE_SALVAGE) return -1 ;
     //  TODO:  Base this on the number on upgrades NOT due for salvage.
     else return maxIntegrity() ;
   }
   
-  
   protected boolean complete() {
     return (state != STATE_INSTALL) && (state != STATE_SALVAGE) ;
+  }
+  
+  
+  public int integrity() {
+    return (int) integrity ;
   }
   
   
@@ -193,6 +214,11 @@ public class VenueStructure extends Inventory {
   }
   
   
+  public boolean destroyed() {
+    return state == STATE_RAZED ;
+  }
+  
+  
   
   /**  Regular updates-
     */
@@ -208,37 +234,7 @@ public class VenueStructure extends Inventory {
   
   /**  Handling upgrades-
     */
-  //
-  //  ...You should also include a method for reducing integrity, so that
-  //  structural materials can be salvaged too.
-  
-  //  Okay.  You need to check to make sure that upgrades cannot be used while
-  //  construction is underway, or while the venue is badly damaged, in
-  //  proportion to the health bonus involved.
-  
-  public boolean canUse(Upgrade upgrade) {
-    Integer useState = upgrades.get(upgrade) ;
-    if (useState == null || useState != STATE_INTACT) return false ;
-    return true ;
-  }
-  
-  
-  public boolean allows(Upgrade upgrade) {
-    if (upgrades.size() >= maxUpgrades) return false ;
-    if (upgrade.required == null) return true ;
-    if (! upgrades.keySet().contains(upgrade.required)) return false ;
-    return true ;
-  }
-  
-  
-  public void beginUpgrade(Upgrade begun) {
-    upgrades.put(begun, STATE_INSTALL) ;
-  }
-  
-  
-  public void removeUpgrade(Upgrade removed) {
-    ///upgrades.remove(removed) ;  // (Take off a chunk of health?)
-  }
+  //...It might be best to handle upgrades on an entirely different scale.
 }
 
 
@@ -248,7 +244,40 @@ public class VenueStructure extends Inventory {
 
 
 
+//
+//  ...You should also include a method for reducing integrity, so that
+//  structural materials can be salvaged too.
 
+//  Okay.  You need to check to make sure that upgrades cannot be used while
+//  construction is underway, or while the venue is badly damaged, in
+//  proportion to the health bonus involved.
+
+
+/*
+public boolean canUse(Upgrade upgrade) {
+  Integer useState = upgrades.get(upgrade) ;
+  if (useState == null || useState != STATE_INTACT) return false ;
+  return true ;
+}
+
+
+public boolean allows(Upgrade upgrade) {
+  if (upgrades.size() >= maxUpgrades) return false ;
+  if (upgrade.required == null) return true ;
+  if (! upgrades.keySet().contains(upgrade.required)) return false ;
+  return true ;
+}
+
+
+public void beginUpgrade(Upgrade begun) {
+  upgrades.put(begun, STATE_INSTALL) ;
+}
+
+
+public void removeUpgrade(Upgrade removed) {
+  ///upgrades.remove(removed) ;  // (Take off a chunk of health?)
+}
+//*/
 
 
 

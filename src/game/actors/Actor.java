@@ -26,6 +26,9 @@ public abstract class Actor extends Mobile implements
   final public static Texture
     GROUND_SHADOW = Texture.loadTexture("media/SFX/ground_shadow.png") ;
   
+  //  private ActorSprite actSprite ;
+  //  private TalkFX chat ;
+  
   final public ActorHealth health = new ActorHealth(this) ;
   final public ActorTraits traits = new ActorTraits(this) ;
   final public ActorGear   gear   = new ActorGear  (this) ;
@@ -178,7 +181,7 @@ public abstract class Actor extends Mobile implements
   
   /**  Rendering and interface methods-
     */
-  protected boolean visibleTo(Base base) {
+  public boolean visibleTo(Base base) {
     if (indoors()) return false ;
     return super.visibleTo(base) ;
   }

@@ -8,6 +8,7 @@
 package src.game.base ;
 import src.game.building.* ;
 import src.game.common.* ;
+import src.graphics.widgets.HUD;
 //import src.graphics.common.* ;
 import src.user.* ;
 import src.util.* ;
@@ -118,7 +119,7 @@ public class ShieldWall extends LineInstallation {
   }
   
   
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/shield_wall_button.gif") ;
   }
   

@@ -15,10 +15,10 @@ import src.util.* ;
 
 
 
-//
-//  ...You need to implement the TODOLIST functionality.  Unfinished behaviours
-//  need to be stored and returned to later, in a fairly deterministic way.
 
+//  Include a list of past behaviours as well, or their types?  As memories?
+//  What about a separate list of elements currently 'aware of'?  This is
+//  going to be the basis of a bunch of activities.
 
 
 public abstract class ActorAI implements ActorConstants {
@@ -36,6 +36,7 @@ public abstract class ActorAI implements ActorConstants {
   
   protected Stack <Behaviour> behaviourStack = new Stack() ;
   protected List <Behaviour> todoList = new List() ;
+  
   protected Table <Element, Element> seen = new Table() ;
   protected Table <Accountable, Relation> relations = new Table() ;
   
@@ -85,12 +86,47 @@ public abstract class ActorAI implements ActorConstants {
   
   
   /**  Dealing with seen objects and reactions to them-
-    *  TODO:  This needs to handle stealth effects and the like.  And implement
-    *         the rest of it.
+    *  TODO:  This needs to handle stealth effects, which can affect how
+    *  easily an actor is spotted and how easily they can be missed.
     */
-  public boolean awareOf(Element e) {
-    return actor.health.sightRange() >= Spacing.distance(actor, e) ;
-    //Fix later.  Refer to stuff in local records.
+  protected void updateSeen() {
+    final PresenceMap mobiles = actor.world().presences.mapFor(Mobile.class) ;
+    final float sightRange = actor.health.sightRange() ;
+    final float lostRange = sightRange * 1.5f ;
+    final int reactLimit = (int) (actor.traits.trueLevel(INSIGHT) / 2) ;
+    //
+    //  Firstly, remove any elements that have escaped beyond sight range.
+    final Batch <Element> outOfRange = new Batch <Element> () ;
+    for (Element e : seen.keySet()) {
+      if (Spacing.distance(e, actor) > lostRange) {
+        outOfRange.add(e) ;
+      }
+    }
+    for (Element e : outOfRange) seen.remove(e) ;
+    //
+    //  Secondly, add any elements that have entered the requisite range-
+    int numR = 0 ; for (Target t : mobiles.visitNear(actor, -1, null)) {
+      if (++numR > reactLimit) break ;
+      if (Spacing.distance(actor, t) <= sightRange) {
+        final Mobile m = (Mobile) t ;
+        seen.put(m, m) ;
+      }
+      else break ;
+    }
+  }
+  
+  
+  public boolean canSee(Element e) {
+    return seen.get(e) != null ;
+  }
+  
+  
+  public Batch <Element> seen() {
+    final Batch <Element> seen = new Batch <Element> () ;
+    for (Element e : this.seen.keySet()) {
+      seen.add(e) ;
+    }
+    return seen ;
   }
   
   
@@ -221,6 +257,9 @@ public abstract class ActorAI implements ActorConstants {
   
   protected void updatePsyche(int numUpdates) {
     if (numUpdates % 10 == 0 && behaviourStack.size() > 0) {
+      for (Behaviour b : todoList) {
+        if (b.complete() || b.priorityFor(actor) <= 0) todoList.remove(b) ;
+      }
       final Behaviour
         last = rootBehaviour(),
         next = nextBehaviour() ;
@@ -249,9 +288,10 @@ public abstract class ActorAI implements ActorConstants {
   /**  Methods related to relationships-
     */
   public float relation(Base base) {
-    if (base == actor.base()) return 1 ;
+    final Base AB = actor.base() ;
+    if (base == AB) return 1 ;
+    else if (AB != null) return AB.relationWith(base) ;
     else return 0 ;
-    //else return actor.base().relation(base) ;
   }
   
   

@@ -93,7 +93,7 @@ public class InfoPanel extends UIGroup implements UIConstants {
       for (int i = 0 ; i < cats.length ; i++) {
         final int index = i ;
         headerText.append(new Text.Clickable() {
-          public String fullName() { return "("+cats[index]+")" ; }
+          public String fullName() { return " ("+cats[index]+")" ; }
           public void whenClicked() { categoryID = index ; }
         }) ;
       }

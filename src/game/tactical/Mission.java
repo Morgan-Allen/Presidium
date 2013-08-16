@@ -7,6 +7,7 @@ import src.game.actors.* ;
 import src.game.social.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
 
@@ -35,8 +36,8 @@ public abstract class Mission implements
   } ;
   
   
-  Base base ;
-  Target subject ;
+  final Base base ;
+  final Target subject ;
   int rewardType = TYPE_VOLUNTEER ;
   List <Role> roles = new List <Role> () ;
   
@@ -97,6 +98,11 @@ public abstract class Mission implements
     
     Model.saveSprite(flagSprite, s.output()) ;
     s.saveString(description) ;
+  }
+  
+  
+  public Base base() {
+    return base ;
   }
   
   
@@ -208,7 +214,7 @@ public abstract class Mission implements
   public String toString() { return description ; }
   
   
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     final Composite c = new Composite(UI, flagTex) ;
     return c ;
   }
@@ -218,7 +224,7 @@ public abstract class Mission implements
   
   
   public void writeInformation(
-    Description d, int categoryID, final BaseUI UI
+    Description d, int categoryID, final HUD UI
   ) {
     //
     //  You need the ability to set overall urgency, see volunteers, and screen
@@ -288,7 +294,7 @@ public abstract class Mission implements
       public void whenClicked() {
         if (begun) endMission(true) ;
         else endMission(false) ;
-        UI.selection.setSelected(null) ;
+        if (UI instanceof BaseUI) ((BaseUI) UI).selection.setSelected(null) ;
       }
     }, Colour.RED) ;
   }

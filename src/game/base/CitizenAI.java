@@ -118,19 +118,22 @@ public class CitizenAI extends ActorAI implements ActorConstants {
   
   protected void addReactions(Choice choice) {
     //
+    //  TODO:  You need to have some generalised routines for getting actors
+    //  and venues for consideration.
+    //*
+    //
     //  Find all nearby items or actors and consider reacting to them.
     final PresenceMap
       mobiles = actor.world().presences.mapFor(Mobile.class),
       repairs = actor.world().presences.mapFor("damaged") ;
     final int reactLimit = (int) (actor.traits.trueLevel(INSIGHT) / 2) ;
-    
-    
     final Batch <Actor> actorB = new Batch <Actor> () ;
     int numR = 0 ;
     for (Target t : mobiles.visitNear(actor, -1, null)) {
       if (t instanceof Actor) actorB.add((Actor) t) ;
       if (++numR > reactLimit) break ;
     }
+    //*/
     //
     //  Consider retreat or surrender based on all nearby actors.
     //choice.add(new Retreat(actor, considered)) ;

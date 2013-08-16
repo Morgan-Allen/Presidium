@@ -5,6 +5,7 @@ package src.game.base ;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
 
@@ -94,7 +95,7 @@ public class MagLine extends LineInstallation {
   }
   
   
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/mag_line_button.gif") ;
   }
   

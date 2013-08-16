@@ -19,3 +19,6 @@
 /StrikeMission.class
 /Treatment.class
 /Foraging.class
+/Combatant.class
+/CombatStats.class
+/Combat$Participant.class

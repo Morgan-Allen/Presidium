@@ -11,13 +11,13 @@ import src.game.building.* ;
 import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.user.BaseUI;
+import src.graphics.widgets.HUD;
 import src.user.InstallTab;
 import src.user.Composite;
 
 
 
-public class CultureVats extends Venue implements VenueConstants {
+public class CultureVats extends Venue implements BuildConstants {
 
   
   
@@ -83,7 +83,7 @@ public class CultureVats extends Venue implements VenueConstants {
   
   /**  Rendering and interface methods-
     */
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/culture_vats_button.gif") ;
   }
 

@@ -12,13 +12,13 @@ import src.game.building.* ;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.user.BaseUI;
+import src.graphics.widgets.HUD;
 import src.user.InstallTab;
 import src.user.Composite;
 
 
 
-public class Bastion extends Venue implements VenueConstants {
+public class Bastion extends Venue implements BuildConstants {
   
   
   /**  Fields, constructors, and save/load methods-
@@ -65,7 +65,7 @@ public class Bastion extends Venue implements VenueConstants {
   
   /**  Rendering and interface methods-
     */
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/bastion_button.gif") ;
   }
   

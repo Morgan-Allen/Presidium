@@ -10,6 +10,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
 
@@ -146,7 +147,7 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
   }
 
 
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/shield_wall_button.gif") ;
   }
 

@@ -76,13 +76,6 @@ public class DebugBehaviour extends PlayLoop {
   
   
   protected void configureScenario(World world, Base base, HUD HUD) {
-    //
-    //  The intrinsic AI functions, and the whole mobile/pathing/action thing,
-    //  need to be sorted out.  Get rid of strict requirements for manufacture.
-    
-    //
-    //  Introduce a hospice in the social scenario, and see if the wounded are
-    //  taken there.  Fix the barge code while you're at it.
     
     //
     //  You also need to try scenarios between multiple actors, some of them
@@ -91,6 +84,9 @@ public class DebugBehaviour extends PlayLoop {
     
     //  Also, rest/relaxation needs to be re-implemented.  And housing, for
     //  the sake of food and so forth.  Then, recreation behaviours.
+
+    //
+    //  Get rid of strict requirements for manufacture.
     
     //  Item purchases, and possibly sales.  Delivery needs to use barges.
     
@@ -100,9 +96,10 @@ public class DebugBehaviour extends PlayLoop {
     //  freighter is handled.  Get rid of the DropZone shebang.
     
     //baseScenario(world, base, HUD) ;
-    //missionScenario(world, base, HUD) ;
+    missionScenario(world, base, HUD) ;
     //natureScenario(world, base, HUD) ;
-    socialScenario(world, base, HUD) ;
+    //socialScenario(world, base, HUD) ;
+    //siegeScenario(world, base, HUD) ;
   }
   
   
@@ -130,19 +127,17 @@ public class DebugBehaviour extends PlayLoop {
   
   
   
-  /**  Various scenarios to execute:
+  /**  These are scenarios associated with upkeep, maintenance and
+    *  construction of the settlement-
     */
   private void baseScenario(World world, Base base, HUD UI) {
-    
     GameSettings.hireFree = true ;
     
-    //*
     final Artificer artificer = new Artificer(base) ;
     artificer.enterWorldAt(8, 8, world) ;
     artificer.setAsEstablished(true) ;
     artificer.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
     artificer.onCompletion() ;
-    //*/
     
     final Garrison garrison = new Garrison(base) ;
     garrison.enterWorldAt(2, 6, world) ;
@@ -171,29 +166,55 @@ public class DebugBehaviour extends PlayLoop {
   }
   
   
+  /*
+  private void siegeScenario(World world, Base base, HUD UI) {
+    
+    final Venue garrison = new Garrison(base) ;
+    garrison.enterWorldAt(8, 8, world) ;
+    garrison.structure.setState(VenueStructure.STATE_INTACT, 1) ;
+    garrison.setAsEstablished(true) ;
+    //  ...You'll need to add a reward, or assign the garrison to another base.
+    
+    assails.AI.assignBehaviour(new Combat(assails, garrison)) ;
+  }
+  //*/
+  
+  
   private void missionScenario(World world, Base base, HUD UI) {
     //
     //  You'll also want to ensure that actors get visible payment for their
     //  efforts...
     /*
-    final Actor target = new Quud() ;
-    target.health.setupHealth(0.5f, 1, 0) ;
-    target.enterWorldAt(5, 5, world) ;
-    
-    final Mission mission = new StrikeMission(base, target) ;
-    base.addMission(mission) ;
-    ((BaseUI) UI).selection.setSelected(mission) ;
-    //*/
-    
-    //*
     final Mission mission = new ReconMission(base, world.tileAt(20, 20)) ;
     base.addMission(mission) ;
     ((BaseUI) UI).selection.setSelected(mission) ;
     ((BaseUI) UI).camera.zoomNow(mission.subject()) ;
+    //*/
+    final Actor assails = new Human(Vocation.RUNNER, base) ;
+    assails.enterWorldAt(15, 15, world) ;
     
-    final Venue garrison = new Garrison(base) ;
+    final Actor target = new Quud() ;
+    target.health.setupHealth(0.5f, 1, 0) ;
+    target.enterWorldAt(5, 5, world) ;
+    
+    final Base otherBase = new Base(world) ;
+    world.registerBase(otherBase, true) ;
+    base.setRelation(otherBase, -1) ;
+    otherBase.setRelation(base, -1) ;
+    
+    final Venue garrison = new Garrison(otherBase) ;
     garrison.enterWorldAt(8, 8, world) ;
+    garrison.structure.setState(VenueStructure.STATE_INTACT, 1) ;
     garrison.setAsEstablished(true) ;
+    
+    assails.AI.assignBehaviour(new Combat(assails, garrison)) ;
+    ((BaseUI) UI).selection.setSelected(assails) ;
+    /*
+    final Mission mission = new StrikeMission(base, garrison) ;
+    mission.setApplicant(assails, true) ;
+    base.addMission(mission) ;
+    ((BaseUI) UI).selection.setSelected(mission) ;
+    //*/
   }
   
   

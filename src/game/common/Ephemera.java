@@ -41,6 +41,7 @@ public class Ephemera {
     int size ;
     float inceptTime ;
     Sprite sprite ;
+    float duration = 2.0f ;
     
     public void renderFor(Rendering r, Base b) {
       r.addClient(sprite) ;
@@ -52,13 +53,14 @@ public class Ephemera {
   }
   
   
-  public void addGhost(Tile t, float size, Sprite s) {
+  public void addGhost(Tile t, float size, Sprite s, float duration) {
     if (t == null || s == null) return ;
     final Ghost ghost = new Ghost() ;
     ghost.position = t ;
     ghost.size = (int) Math.ceil(size) ;
     ghost.inceptTime = world.currentTime() ;
     ghost.sprite = s ;
+    ghost.duration = duration ;
     
     final Vec3D p = s.position ;
     final Section section = world.sections.sectionAt((int) p.x, (int) p.y) ;
@@ -75,14 +77,15 @@ public class Ephemera {
     for (Section section : world.visibleSections(rendering)) {
       final List <Ghost> SG = ghosts.get(section) ;
       if (SG != null) for (Ghost ghost : SG) {
+        final float duration = ghost.duration ;
         float timeGone = world.currentTime() - ghost.inceptTime ;
         timeGone += PlayLoop.frameTime() / PlayLoop.UPDATES_PER_SECOND ;
         
-        if (timeGone >= 2) { SG.remove(ghost) ; continue ; }
+        if (timeGone >= duration) { SG.remove(ghost) ; continue ; }
         else {
           final Sprite s = ghost.sprite ;
           if (! port.intersects(s.position, ghost.size)) continue ;
-          s.colour = Colour.transparency((2 - timeGone) / 2) ;
+          s.colour = Colour.transparency((duration - timeGone) / duration) ;
           results.add(ghost) ;
         }
       }

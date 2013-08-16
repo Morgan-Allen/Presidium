@@ -84,7 +84,7 @@ public abstract class Element implements
   public void setAsDestroyed() {
     if (! inWorld()) I.complain("Never entered world...") ;
     this.toggleProperty(PROP_DESTROYED, true) ;
-    world.ephemera.addGhost(origin(), radius() * 2, sprite) ;
+    world.ephemera.addGhost(origin(), radius() * 2, sprite, 2.0f) ;
     exitWorld() ;
   }
   
@@ -212,13 +212,17 @@ public abstract class Element implements
     */
   public Vec3D viewPosition(Vec3D v) {
     v = position(v) ;
-    //v.z += height() / 2 ;
     return v ;
   }
   
+
+  protected float fogFor(Base base) {
+    return base.intelMap.fogAt(origin()) ;
+  }
   
-  protected boolean visibleTo(Base base) {
-    float fog = base.intelMap.fogAt(origin()) ;
+  
+  public boolean visibleTo(Base base) {
+    float fog = fogFor(base) ;
     if (fog == 0) return false ;
     else sprite.fog = fog ;
     return true ;

@@ -8,7 +8,7 @@ package src.game.base ;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.graphics.common.Texture;
-import src.user.BaseUI;
+import src.graphics.widgets.HUD;
 import src.user.Composite;
 
 
@@ -38,7 +38,7 @@ public class TempDropZone extends DropZone {
   }
 
 
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/supply_depot_button.gif") ;
   }
   

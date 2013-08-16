@@ -70,10 +70,11 @@ public class Selection implements UIConstants {
     //
     //  Our first task to see what the different kinds of object currently
     //  being hovered over are-
+    final Base base = UI.played() ;
     hovered = null ;
-    pickTile = world.pickedTile(UI, port) ;
-    pickFixture = world.pickedFixture(UI, port) ;
-    pickMobile = world.pickedMobile(UI, port) ;
+    pickTile = world.pickedTile(UI, port, base) ;
+    pickFixture = world.pickedFixture(UI, port, base) ;
+    pickMobile = world.pickedMobile(UI, port, base) ;
     pickMission = UI.played().pickedMission(UI, port) ;
     //
     //  Then, we see which type is given priority-

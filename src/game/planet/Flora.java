@@ -121,7 +121,7 @@ public class Flora extends Element implements TileConstants {
     final Sprite oldSprite = this.sprite() ;
     attachSprite(model.makeSprite()) ;
     setAsEstablished(false) ;
-    world.ephemera.addGhost(origin(), radius() * 2, oldSprite) ;
+    world.ephemera.addGhost(origin(), 1, oldSprite, 2.0f) ;
   }
   
   

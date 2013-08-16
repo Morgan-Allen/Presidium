@@ -15,7 +15,7 @@
   <animations>
     <animation name="stand"      start="0"  end="0"  duration="0.5" />
     <animation name="move"       start="5"  end="21" duration="1.5" />
-    <animation name="fire"       start="25" end="29" duration="1.5" />
+    <animation name="fire"       start="26" end="28" duration="1.5" />
     <animation name="reach_down" start="30" end="34" duration="1.2" />
     <animation name="strike"     start="36" end="39" duration="1.5" />
     <animation name="fall"       start="40" end="46" duration="2.1" />
@@ -52,7 +52,7 @@
   <animations>
     <animation name="stand"      start="0"  end="0"  duration="0.5" />
     <animation name="move"       start="5"  end="21" duration="1.5" />
-    <animation name="fire"       start="25" end="29" duration="1.5" />
+    <animation name="fire"       start="26" end="28" duration="1.5" />
     <animation name="reach_down" start="30" end="34" duration="1.2" />
     <animation name="strike"     start="36" end="39" duration="1.0" />
     <animation name="fall"       start="40" end="46" duration="2.1" />

@@ -10,6 +10,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
 
@@ -17,7 +18,7 @@ import src.util.* ;
 
 
 
-public class BotanicalStation extends Venue implements VenueConstants {
+public class BotanicalStation extends Venue implements BuildConstants {
   
   
   
@@ -285,7 +286,7 @@ public class BotanicalStation extends Venue implements VenueConstants {
   
   /**  Rendering and interface methods-
     */
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/ecologist_button.gif") ;
   }
   
@@ -304,7 +305,7 @@ public class BotanicalStation extends Venue implements VenueConstants {
   }
   
   
-  public void writeInformation(Description d, int categoryID, BaseUI UI) {
+  public void writeInformation(Description d, int categoryID, HUD UI) {
     
     d.append(new Description.Link("\n[Grow Starches]") {
       public void whenClicked() {

@@ -6,11 +6,12 @@ import src.game.building.* ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 
 
 
-public class Garrison extends Venue implements VenueConstants {
+public class Garrison extends Venue implements BuildConstants {
   
   
   
@@ -74,7 +75,7 @@ public class Garrison extends Venue implements VenueConstants {
   }
   
   
-  public Composite portrait(BaseUI UI) {
+  public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/garrison_button.gif") ;
   }
   

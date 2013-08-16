@@ -6,11 +6,11 @@
 
 
 package src.game.building ;
-import src.game.actors.* ;
-import src.game.base.* ;
 import src.game.common.* ;
+import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.* ;
+import src.graphics.widgets.HUD;
 import src.graphics.cutout.* ;
 import src.graphics.sfx.* ;
 import src.user.* ;
@@ -20,7 +20,7 @@ import src.util.* ;
 
 public abstract class Venue extends Fixture implements
   Schedule.Updates, Boardable, Installation,
-  Inventory.Owner, CitizenAI.Employment,
+  Inventory.Owner, ActorAI.Employment,
   Selectable
 {
   
@@ -156,14 +156,14 @@ public abstract class Venue extends Fixture implements
   
   
   public void onCompletion() {
-    world.ephemera.addGhost(origin(), size, buildSprite.scaffolding()) ;
+    world.ephemera.addGhost(origin(), size, buildSprite.scaffolding(), 2.0f) ;
     setAsEstablished(false) ;
     personnel.onCompletion() ;
   }
   
   
   public void onDecommission() {
-    world.ephemera.addGhost(origin(), size, buildSprite.baseSprite()) ;
+    world.ephemera.addGhost(origin(), size, buildSprite.baseSprite(), 2.0f) ;
     setAsEstablished(false) ;
     personnel.onDecommission() ;
   }
@@ -369,7 +369,7 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  public void writeInformation(Description d, int categoryID, BaseUI UI) {
+  public void writeInformation(Description d, int categoryID, HUD UI) {
     
     d.append("INTEGRITY: ") ;
     d.append(structure.integrity()+" / "+structure.maxIntegrity()) ;

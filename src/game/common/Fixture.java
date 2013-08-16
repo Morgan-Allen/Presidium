@@ -16,6 +16,7 @@ import src.util.* ;
 public abstract class Fixture extends Element {
   
   
+  
   /**  Field definitions, constructors, and save/load methods-
     */
   final public int size, high ;
@@ -91,16 +92,6 @@ public abstract class Fixture extends Element {
     return result ;
   }
   
-  /*
-  public boolean canPlace() {
-    if (! super.canPlace()) return false ;
-    for (Tile t : origin().world.tilesIn(area, false)) {
-      if (t == null || t.blocked()) return false ;
-    }
-    return true ;
-  }
-  //*/
-  
   
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
@@ -123,8 +114,8 @@ public abstract class Fixture extends Element {
     }
     super.exitWorld() ;
   }
-
-
+  
+  
   public int xdim() { return size ; }
   public int ydim() { return size ; }
   public int zdim() { return high ; }
@@ -155,7 +146,28 @@ public abstract class Fixture extends Element {
   public int owningType() {
     return FIXTURE_OWNS ;
   }
+  
+  
+  
+  /**  Rendering and interface methods-
+    */
+  protected float fogFor(Base base) {
+    float maxFog = Float.NEGATIVE_INFINITY ;
+    final Tile o = origin() ;
+    for (int x = o.x ; x < o.x + size ; x++)
+      for (int y = o.y ; y < o.y + size ; y++) {
+        final float fog = base.intelMap.fogAt(world.tileAt(x,  y)) ;
+        if (fog > maxFog) maxFog = fog ;
+      }
+    return maxFog ;
+  }
 }
+
+
+
+
+
+
 
 
 

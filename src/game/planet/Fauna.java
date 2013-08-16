@@ -405,13 +405,13 @@ public abstract class Fauna extends Actor {
   
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
-    d.append("\n\nIs: ") ;
+    d.append("\nIs: ") ;
     if (currentAction() != null) {
       currentAction().describeBehaviour(d) ;
     }
     else d.append(health.stateDesc()) ;
     
-    d.append("Condition:") ;
+    d.append("\n\nCondition:") ;
     final Batch <String> CD = health.conditionsDesc() ;
     for (String s : CD) d.append("\n  "+s) ;
     if (CD.size() == 0) d.append("\n  Okay") ;

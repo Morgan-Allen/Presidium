@@ -52,6 +52,8 @@ public class VenueStructure extends Inventory {
 
   private int state = STATE_INSTALL ;
   private float integrity = baseIntegrity ;
+  private float upgradeProgress ;
+  final List <Upgrade> upgrades = new List <Upgrade> () ;
   
   //  Item materials[] ;
   //  List <Upgrade> upgrades ;
@@ -235,6 +237,9 @@ public class VenueStructure extends Inventory {
   /**  Handling upgrades-
     */
   //...It might be best to handle upgrades on an entirely different scale.
+  
+  
+  
 }
 
 

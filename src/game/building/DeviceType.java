@@ -52,7 +52,7 @@ public class DeviceType extends Item.Type implements BuildConstants {
     final Vec3D HP = applied.position(null) ;
     final float r = applied.radius(), h = applied.height() / 2 ;
     HP.z += h ;
-    if (hits && Rand.yes()) return HP ;
+    if (hits) return HP ;
     HP.x += Rand.range(-r, r) ;
     HP.y += Rand.range(-r, r) ;
     HP.z += Rand.range(-h, h) ;

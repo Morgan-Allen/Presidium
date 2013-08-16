@@ -92,10 +92,11 @@ public class InfoPanel extends UIGroup implements UIConstants {
       headerText.append("\n") ;
       for (int i = 0 ; i < cats.length ; i++) {
         final int index = i ;
+        final boolean CC = categoryID == i ;
         headerText.append(new Text.Clickable() {
           public String fullName() { return " ("+cats[index]+")" ; }
           public void whenClicked() { categoryID = index ; }
-        }) ;
+        }, CC ? Colour.GREEN : Colour.BLUE) ;
       }
     }
     detailText.setText("") ;

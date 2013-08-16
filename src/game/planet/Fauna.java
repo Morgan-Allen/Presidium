@@ -31,6 +31,7 @@ import src.util.* ;
 //  Whatever the reason, trim it down after initialisation?
 
 
+
 public abstract class Fauna extends Actor {
   
   
@@ -404,23 +405,16 @@ public abstract class Fauna extends Actor {
   
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
-    
-    final int maxHealth = (int) health.maxHealth() ;
-
-    final int hunger = (int) ((1 - health.energyLevel()) * maxHealth) ;
-    d.append("\nAge: "+health.agingDesc()) ;
-    d.append("\nHunger: "+hunger+"/"+maxHealth) ;
-    d.append("\nStress:  "+(int) (health.stressLevel()  * maxHealth)) ;
-    d.append("\nFatigue: "+(int) (health.fatigueLevel() * maxHealth)) ;
-    d.append("\nInjury:  "+(int) (health.injuryLevel()  * maxHealth)) ;
-    
-    ///d.append("\nCrowding: "+crowding) ;
-    d.append("\n\nCurrently: ") ;
+    d.append("\n\nIs: ") ;
     if (currentAction() != null) {
       currentAction().describeBehaviour(d) ;
     }
-    else if (health.deceased()) d.append("Dead") ;
-    else d.append("Resting") ;
+    else d.append(health.stateDesc()) ;
+    
+    d.append("Condition:") ;
+    final Batch <String> CD = health.conditionsDesc() ;
+    for (String s : CD) d.append("\n  "+s) ;
+    if (CD.size() == 0) d.append("\n  Okay") ;
     
     d.append("\n\n") ;
     d.append(species.info) ;

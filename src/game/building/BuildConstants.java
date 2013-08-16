@@ -110,17 +110,17 @@ public interface BuildConstants extends ActorConstants {
       "modus lute"
     ),
     CARVED_SPEAR = new DeviceType(C, "Carved Spear",
-      10, RANGED | PHYSICAL, 5,
+      5, RANGED | PHYSICAL, 5,
       new Conversion(2, TIMBER, 5, ASSEMBLY),
       "spear"
     ),
     SHOCK_STAFF = new DeviceType(C, "Shock Staff",
-      10, MELEE | PHYSICAL | RANGED | ENERGY, 40,
+      10, MELEE | PHYSICAL | STUN, 40,
       new Conversion(3, PARTS, 10, ASSEMBLY),
       "staff"
     ),
     PHASE_PISTOL = new DeviceType(C, "Phase Pistol",
-      5, RANGED | ENERGY | STUN, 25,
+      15, RANGED | ENERGY, 25,
       new Conversion(3, PARTS, 10, ASSEMBLY),
       "pistol"
     ),

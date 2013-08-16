@@ -18,8 +18,9 @@ public class VenueStructure extends Inventory {
   /**  Fields, definitions and save/load methods-
     */
   final static int
-    DEFAULT_INTEGRITY = 100,
-    DEFAULT_ARMOUR    = 10 ;
+    DEFAULT_INTEGRITY  = 100,
+    DEFAULT_ARMOUR     = 10,
+    DEFAULT_BUILD_COST = 200 ;
   final public static int
     STATE_INSTALL = 0,
     STATE_INTACT  = 1,
@@ -45,14 +46,13 @@ public class VenueStructure extends Inventory {
   //  belong to the class, rather than to the object.
   private int baseIntegrity = DEFAULT_INTEGRITY ;
   private int maxUpgrades = NORMAL_MAX_UPGRADES ;
-  private int buildCost, armouring ;
+  private int
+    buildCost = DEFAULT_BUILD_COST,
+    armouring = DEFAULT_ARMOUR ;
 
   private int state = STATE_INSTALL ;
   private float integrity = baseIntegrity ;
-
   
-  
-  //  int buildCost, armouring, restLevel, moraleLevel, pollutes ;
   //  Item materials[] ;
   //  List <Upgrade> upgrades ;
   

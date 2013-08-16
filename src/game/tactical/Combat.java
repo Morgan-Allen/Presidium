@@ -15,11 +15,6 @@ import src.util.* ;
 
 
 
-//
-//  Merge this with the hunting class.  No- have this as a subset of the
-//  hunting class!
-
-
 public class Combat extends Plan implements ActorConstants {
   
   
@@ -178,32 +173,49 @@ public class Combat extends Plan implements ActorConstants {
     //
     //  Depending on the type of target, and how dangerous the area is, a bit
     //  of dancing around may be in order.
-    if (melee) {
-      strike.setProperties(Action.QUICK) ;
-      if (razes && (Rand.num() < 0.2f || ! Spacing.adjacent(actor, target))) {
-        strike.setMoveTarget(Spacing.pickFreeTileAround(target, actor)) ;
-      }
-    }
-    else {
-      final float range = actor.health.sightRange() ;
-      if (Rand.num() < danger) {
-        final Tile WP = Retreat.pickWithdrawPoint(actor, range, target, 0.1f) ;
-        strike.setMoveTarget(WP) ;
-        strike.setProperties(Action.QUICK) ;
-      }
-      else if (razes && Rand.num() < 0.2f) {
-        final Tile alt = Spacing.pickRandomTile(actor, 3) ;
-        if (Spacing.distance(alt, target) < range && alt.owner() == null) {
-          strike.setMoveTarget(alt) ;
-        }
-        strike.setProperties(Action.QUICK) ;
-      }
-      else strike.setProperties(Action.RANGED | Action.QUICK) ;
-    }
+    if (melee) configMeleeAction(strike, razes, danger) ;
+    else configRangedAction(strike, razes, danger) ;
     return strike ;
   }
   
   
+  private void configMeleeAction(Action strike, boolean razes, float danger) {
+    final World world = actor.world() ;
+    strike.setProperties(Action.QUICK) ;
+    if (razes) {
+      if (! Spacing.adjacent(actor, target)) {
+        strike.setMoveTarget(Spacing.nearestOpenTile(target, actor, world)) ;
+      }
+      else if (Rand.num() < 0.2f) {
+        strike.setMoveTarget(Spacing.pickFreeTileAround(target, actor)) ;
+      }
+      else strike.setMoveTarget(actor.origin()) ;
+    }
+  }
+  
+  
+  private void configRangedAction(Action strike, boolean razes, float danger) {
+    final float range = actor.health.sightRange() ;
+    if (Rand.num() < danger) {
+      final Tile WP = Retreat.pickWithdrawPoint(actor, range, target, 0.1f) ;
+      strike.setMoveTarget(WP) ;
+      strike.setProperties(Action.QUICK) ;
+    }
+    else if (razes && Rand.num() < 0.2f) {
+      final Tile alt = Spacing.pickRandomTile(actor, 3) ;
+      if ((Spacing.distance(alt, target) < range) && alt.owner() == null) {
+        strike.setMoveTarget(alt) ;
+        strike.setProperties(Action.QUICK) ;
+      }
+      else strike.setProperties(Action.RANGED | Action.QUICK) ;
+    }
+    else strike.setProperties(Action.RANGED | Action.QUICK) ;
+  }
+  
+  
+  
+  /**  Executing the action-
+    */
   public boolean actionStrike(Actor actor, Actor target) {
     if (target.health.deceased()) return false ;
     //
@@ -258,7 +270,12 @@ public class Combat extends Plan implements ActorConstants {
     float damage = actor.gear.attackDamage() * Rand.num() * 2 ;
     if (accurate) damage *= 1.5f ;
     else damage *= 0.5f ;
-    damage -= besieged.structure.armouring() * Rand.num() * 2 ;
+    
+    final float armour = besieged.structure.armouring() ;
+    damage -= armour * ((Rand.num() * 2) + 0.5f) ;
+    damage /= 1 + (armour / 2) ;
+    
+    I.say("Armour/Damage: "+armour+"/"+damage) ;
     
     if (damage > 0) besieged.structure.takeDamage(damage) ;
     DeviceType.applyFX(actor.gear.deviceType(), actor, besieged, true) ;

@@ -10,11 +10,6 @@
 //  Resting also needs to be tested out.  And self-defence.  And co-existence
 //  with human structures (or humanoids themselves.)
 
-//
-//  Finally, you need to make the various flaggings part of the world, not the
-//  base.  And you need to either eliminate island effects, or make pathing-
-//  distance calculations cheap over long intervals.  (and the PathingMap must
-//  be part of the world as well.)
 
 16 commodity types to cover (everything else is minor)
   foodstuffs (3 types), spice

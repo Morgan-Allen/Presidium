@@ -184,14 +184,10 @@ public class DebugBehaviour extends PlayLoop {
     //
     //  You'll also want to ensure that actors get visible payment for their
     //  efforts...
-    /*
-    final Mission mission = new ReconMission(base, world.tileAt(20, 20)) ;
-    base.addMission(mission) ;
-    ((BaseUI) UI).selection.setSelected(mission) ;
-    ((BaseUI) UI).camera.zoomNow(mission.subject()) ;
-    //*/
-    final Actor assails = new Human(Vocation.RUNNER, base) ;
-    assails.enterWorldAt(15, 15, world) ;
+    final Actor actorA = new Human(Vocation.RUNNER, base) ;
+    actorA.enterWorldAt(15, 15, world) ;
+    final Actor actorB = new Human(Vocation.VETERAN, base) ;
+    actorB.enterWorldAt(15, 3, world) ;
     
     final Actor target = new Quud() ;
     target.health.setupHealth(0.5f, 1, 0) ;
@@ -207,8 +203,16 @@ public class DebugBehaviour extends PlayLoop {
     garrison.structure.setState(VenueStructure.STATE_INTACT, 1) ;
     garrison.setAsEstablished(true) ;
     
-    assails.AI.assignBehaviour(new Combat(assails, garrison)) ;
-    ((BaseUI) UI).selection.setSelected(assails) ;
+    actorA.AI.assignBehaviour(new Combat(actorA, garrison)) ;
+    actorB.AI.assignBehaviour(new Combat(actorA, garrison)) ;
+    ((BaseUI) UI).selection.setSelected(actorA) ;
+    
+    /*
+    final Mission mission = new ReconMission(base, world.tileAt(20, 20)) ;
+    base.addMission(mission) ;
+    ((BaseUI) UI).selection.setSelected(mission) ;
+    ((BaseUI) UI).camera.zoomNow(mission.subject()) ;
+    //*/
     /*
     final Mission mission = new StrikeMission(base, garrison) ;
     mission.setApplicant(assails, true) ;

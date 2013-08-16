@@ -91,7 +91,7 @@ public class ActorGear extends Inventory implements BuildConstants {
     final float brawnBonus = actor.traits.trueLevel(BRAWN) / 4 ;
     if (weapon == null) return 2 + brawnBonus + baseDamage ;
     final DeviceType type = (DeviceType) weapon.type ;
-    final float damage = type.baseDamage * (weapon.quality() + 1) / 4 ;
+    final float damage = type.baseDamage * (weapon.quality() + 2f) / 4 ;
     if (type.hasProperty(MELEE)) return damage + brawnBonus + baseDamage ;
     else return damage + baseDamage ;
   }

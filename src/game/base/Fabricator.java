@@ -49,16 +49,16 @@ public class Fabricator extends Venue implements BuildConstants {
     */
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    orders.translateDemands(conversions()) ;
+    stocks.translateDemands(conversions()) ;
   }
   
   
   public Behaviour jobFor(Actor actor) {
     
-    final Delivery d = orders.nextDelivery(actor, services()) ;
+    final Delivery d = stocks.nextDelivery(actor, services()) ;
     if (d != null) return d ;
     
-    final Manufacture m = orders.nextManufacture(actor, conversions()) ;
+    final Manufacture m = stocks.nextManufacture(actor, conversions()) ;
     if (m != null) return m ;
     
     return null ;

@@ -27,6 +27,7 @@ public abstract class Actor extends Mobile implements
     GROUND_SHADOW = Texture.loadTexture("media/SFX/ground_shadow.png") ;
   
   //  private ActorSprite actSprite ;
+  //  private Healthbar healthBar ;
   //  private TalkFX chat ;
   
   final public ActorHealth health = new ActorHealth(this) ;
@@ -34,7 +35,7 @@ public abstract class Actor extends Mobile implements
   final public ActorGear   gear   = new ActorGear  (this) ;
   
   final public ActorAI AI = initAI() ;
-  private Action actionTaken ;//, reflexAction ;
+  private Action actionTaken ;
   private Base base ;
   
   
@@ -140,6 +141,9 @@ public abstract class Actor extends Mobile implements
     super.updateAsMobile() ;
     if (actionTaken != null) actionTaken.updateAction() ;
     if (health.conscious()) {
+      //
+      //  TODO:  This should be moved to the updateAsScheduled method, since
+      //  mobile updates are not time-sliced.  (Maybe they should be?)
       if (actionTaken == null || actionTaken.complete()) {
         assignAction(AI.getNextAction()) ;
         ///I.say(this+" got next action: "+actionTaken) ;

@@ -10,7 +10,7 @@ import src.game.common.* ;
 import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.* ;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.* ;
 import src.graphics.cutout.* ;
 import src.graphics.sfx.* ;
 import src.user.* ;
@@ -45,9 +45,8 @@ public abstract class Venue extends Fixture implements
   Base base ;
   List <Mobile> inside = new List <Mobile> () ;
   
-  final public Inventory stocks = new Inventory(this) ;
   final public VenuePersonnel personnel = new VenuePersonnel(this) ;
-  final public VenueOrders orders = new VenueOrders(this) ;
+  final public VenueStocks stocks = new VenueStocks(this) ;
   final public VenueStructure structure = new VenueStructure(this) ;
   
   
@@ -68,9 +67,8 @@ public abstract class Venue extends Fixture implements
     base = (Base) s.loadObject() ;
     s.loadObjects(inside) ;
     
-    stocks.loadState(s) ;
     personnel.loadState(s) ;
-    orders.loadState(s) ;
+    stocks.loadState(s) ;
     structure.loadState(s) ;
   }
   
@@ -83,9 +81,8 @@ public abstract class Venue extends Fixture implements
     s.saveObject(base) ;
     s.saveObjects(inside) ;
     
-    stocks.saveState(s) ;
     personnel.saveState(s) ;
-    orders.saveState(s) ;
+    stocks.saveState(s) ;
     structure.saveState(s) ;
   }
   
@@ -93,7 +90,7 @@ public abstract class Venue extends Fixture implements
   public int owningType() { return VENUE_OWNS ; }
   public Inventory inventory() { return stocks ; }
   public Base base() { return base ; }
-  protected Index allUpgrades() { return null ; }
+  protected Index <Upgrade> allUpgrades() { return null ; }
   
   
   
@@ -172,6 +169,7 @@ public abstract class Venue extends Fixture implements
   public void setAsDestroyed() {
     super.setAsDestroyed() ;
     personnel.onDecommission() ;
+    Slag.reduceToSlag(this) ;
   }
   
   
@@ -234,7 +232,7 @@ public abstract class Venue extends Fixture implements
   
   public void updateAsScheduled(int numUpdates) {
     if (numUpdates % 10 == 0) {
-      orders.updateOrders() ;
+      stocks.updateOrders() ;
       if (base != null) updatePaving(true) ;
     }
     structure.updateStructure(numUpdates) ;
@@ -260,9 +258,6 @@ public abstract class Venue extends Fixture implements
   
   /**  Recruiting staff and assigning manufacturing tasks-
     */
-  //
-  //  TODO:  You may want to get rid of or relocate this, since the plan is to
-  //  use upgrades for recruitment.
   public void setWorker(Actor actor, boolean is) {
     personnel.setWorker(actor, is) ;
   }
@@ -270,7 +265,7 @@ public abstract class Venue extends Fixture implements
   
   public int numOpenings(Vocation v) {
     int num = 0 ;
-    ///for (Upgrade u : structure.upgrades) if (u.refers == v) num++ ;
+    for (Upgrade u : structure.workingUpgrades()) if (u.refers == v) num++ ;
     return num ;
   }
   
@@ -330,7 +325,115 @@ public abstract class Venue extends Fixture implements
   
   
   
-  /**  Rendering and interface methods-
+  /**  Interface methods-
+    */
+  public String toString() {
+    return fullName() ;
+  }
+  
+  
+  
+  public String[] infoCategories() {
+    return new String[] { "STATUS", "STAFF", "UPGRADES" } ;
+  }
+  
+  
+  public void writeInformation(Description d, int categoryID, HUD UI) {
+    if (categoryID == 0) describeCondition(d, UI) ;
+    if (categoryID == 1) describePersonnel(d, UI) ;
+    if (categoryID == 2) describeUpgrades(d, UI) ;
+  }
+  
+  
+  private void describeCondition(Description d, HUD UI) {
+    
+    d.append("INTEGRITY: ") ;
+    d.append(structure.repair()+" / "+structure.maxIntegrity()) ;
+    
+    d.append("\n\nVISITORS:") ;
+    if (inside.size() == 0) d.append("\n  No visitors.") ;
+    else for (Mobile m : inside) {
+      d.append("\n  ") ; d.append(m) ;
+    }
+    
+    d.append("\n\nSTOCKS:") ;
+    final Batch <String> orders = stocks.ordersDesc() ;
+    for (String order : orders) d.append("\n  "+order) ;
+    if (orders.size() == 0) d.append("\n  No orders.") ;
+  }
+  
+  
+  private void describePersonnel(Description d, HUD UI) {
+    
+    d.append("APPLICANTS:") ;
+    if (personnel.applications.size() == 0) d.append("\n  No applicants.") ;
+    
+    //  TODO:  List Applicants here as well, whether local or offworld.
+    d.append("\n\nPERSONNEL:") ;
+    if (personnel.workers().size() == 0) d.append("\n  No workers.") ;
+    else for (Actor a : personnel.workers()) {
+      d.append("\n  ") ; d.append(a) ;
+    }
+    d.append("\n\nRESIDENTS:") ;
+    if (personnel.residents().size() == 0) d.append("\n  No residents.") ;
+    else for (Actor a : personnel.residents()) {
+      d.append("\n  ") ; d.append(a) ;
+    }
+  }
+  
+  
+  private static Upgrade lastCU ;  //last clicked...
+  
+  private void describeUpgrades(Description d, HUD UI) {
+    
+    final Batch <String> DU = structure.descUpgrades() ;
+    d.append("CURRENT UPGRADES ("+DU.size()+"/"+structure.maxUpgrades()+")") ;
+    for (String s : DU) d.append("\n  "+s) ;
+    //d.append("Upgrade progress: "+structure.) ;
+    
+    d.append("\n\nAVAILABLE UPGRADES:") ;
+    final Index <Upgrade> upgrades = allUpgrades() ;
+    if (upgrades != null && upgrades.members().length > 0) {
+      for (final Upgrade upgrade : upgrades) {
+        d.append("\n  ") ;
+        d.append(new Description.Link(upgrade.name) {
+          public void whenClicked() { lastCU = upgrade ; }
+        }) ;
+      }
+      if (lastCU != null) {
+        d.append("\n\nDescription: ") ;
+        d.append(lastCU.description) ;
+        if (lastCU.required != null) {
+          d.append("\nRequires: "+lastCU.required.name) ;
+        }
+        d.append("\n\n") ;
+        if (structure.upgradePossible(lastCU)) {
+          d.append(new Description.Link("BEGIN UPGRADE") {
+            public void whenClicked() { structure.beginUpgrade(lastCU) ; }
+          }) ;
+        }
+      }
+    }
+    else d.append("\n  No upgrades.") ;
+  }
+
+  
+  public void whenClicked() {
+    lastCU = null ;
+    ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
+  }
+  
+  
+  public InfoPanel createPanel(BaseUI UI) {
+    return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
+  }
+  
+  
+  public Target subject() { return this ; }
+  
+  
+  
+  /**  Rendering methods-
     */
   protected void attachSprite(Sprite sprite) {
     if (! (sprite instanceof ImageSprite)) {
@@ -342,9 +445,8 @@ public abstract class Venue extends Fixture implements
   
   
   public void renderFor(Rendering rendering, Base base) {
-    //final Sprite s = sprite() ;
     position(buildSprite.position) ;
-    buildSprite.updateCondition(structure.repairLevel(), structure.complete()) ;
+    buildSprite.updateCondition(structure.repairLevel(), structure.intact()) ;
     
     if (healthbar == null) healthbar = new Healthbar() ;
     healthbar.level = structure.repairLevel() ;
@@ -354,60 +456,6 @@ public abstract class Venue extends Fixture implements
     rendering.addClient(healthbar) ;
     
     super.renderFor(rendering, base) ;
-  }
-
-
-  public String toString() {
-    return fullName() ;
-  }
-  
-  
-  
-  public String[] infoCategories() {
-    //  Condition, stocks, personnel and upgrades.  Okay.
-    return null ;
-  }
-  
-  
-  public void writeInformation(Description d, int categoryID, HUD UI) {
-    
-    d.append("INTEGRITY: ") ;
-    d.append(structure.integrity()+" / "+structure.maxIntegrity()) ;
-
-    //  TODO:  List Applicants here as well, whether local or offworld.
-    d.append("\n\nPERSONNEL:") ;
-    if (personnel.workers().size() == 0) d.append("\n  No workers.") ;
-    else for (Actor a : personnel.workers()) {
-      d.append("\n  ") ; d.append(a) ;
-    }
-    d.append("\n\nVISITORS:") ;
-    if (inside.size() == 0) d.append("\n  No visitors.") ;
-    else for (Mobile m : inside) if (m instanceof Actor) {
-      d.append("\n  ") ; d.append(m) ;
-    }
-    
-    if (! stocks.empty()) d.append("\n\nCURRENT STOCKS:") ;
-    stocks.writeInformation(d) ;
-    /*
-    d.append("\n\nCURRENT ORDERS:") ;
-    orders.writeInformation(d) ;
-    //*/
-  }
-  
-  
-  public void describeBehaviour(Description d) {
-    d.append("Working at the ") ;
-    d.append(this) ;
-  }
-  
-  
-  public void whenClicked() {
-    ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
-  }
-  
-  
-  public InfoPanel createPanel(BaseUI UI) {
-    return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
   }
   
 
@@ -419,10 +467,6 @@ public abstract class Venue extends Fixture implements
     ) ;
   }
   
-  
-  public Target subject() {
-    return this ;
-  }
 }
 
 
@@ -430,6 +474,27 @@ public abstract class Venue extends Fixture implements
 
 
 
+/*
+d.append("INTEGRITY: ") ;
+d.append(structure.repair()+" / "+structure.maxIntegrity()) ;
+
+//  TODO:  List Applicants here as well, whether local or offworld.
+d.append("\n\nPERSONNEL:") ;
+if (personnel.workers().size() == 0) d.append("\n  No workers.") ;
+else for (Actor a : personnel.workers()) {
+  d.append("\n  ") ; d.append(a) ;
+}
+d.append("\n\nVISITORS:") ;
+if (inside.size() == 0) d.append("\n  No visitors.") ;
+else for (Mobile m : inside) if (m instanceof Actor) {
+  d.append("\n  ") ; d.append(m) ;
+}
+
+if (! stocks.empty()) d.append("\n\nCURRENT STOCKS:") ;
+stocks.writeInformation(d) ;
+d.append("\n\nCURRENT ORDERS:") ;
+orders.writeInformation(d) ;
+//*/
 
 
 

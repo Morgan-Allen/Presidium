@@ -12,7 +12,8 @@ import src.util.* ;
 import java.io.* ;
 
 
-
+//
+//  This is causing errors in saving/loading.
 
 public class BuildingSprite extends GroupSprite {
   
@@ -45,6 +46,7 @@ public class BuildingSprite extends GroupSprite {
   Sprite scaffolding = null ;
   Sprite baseSprite  = null ;
   List <MoteFX> flameFX = new List <MoteFX> () ;
+  
   int size, high ;
   float condition = 0 ;
   
@@ -66,8 +68,10 @@ public class BuildingSprite extends GroupSprite {
     size = in.readInt() ;
     high = in.readInt() ;
     condition = in.readFloat() ;
-    baseSprite = super.atIndex(in.readInt()) ;
-    if (baseSprite == null) baseSprite = Model.loadSprite(in) ;
+    
+    final int baseIndex = in.readInt() ;
+    if (baseIndex == -1) baseSprite = Model.loadSprite(in) ;
+    else baseSprite = super.atIndex(baseIndex) ;
     scaffolding = super.atIndex(in.readInt()) ;
   }
   
@@ -77,6 +81,7 @@ public class BuildingSprite extends GroupSprite {
     out.writeInt(size) ;
     out.writeInt(high) ;
     out.writeFloat(condition) ;
+    
     final int baseIndex = super.indexOf(baseSprite) ;
     out.writeInt(baseIndex) ;
     if (baseIndex == -1) Model.saveSprite(baseSprite, out) ;
@@ -124,6 +129,7 @@ public class BuildingSprite extends GroupSprite {
       final float c = (1 + (condition * condition)) / 2f ;
       this.colour = new Colour(c, c, c, 1) ;
       final float flameChance = (1 - condition) / 100f ;
+      
       if (flameFX.size() < 1 && Rand.num() < flameChance) {
         final MoteFX flame = new MoteFX(BLAST_MODEL.makeSprite()) ;
         flame.position.setTo(position) ;

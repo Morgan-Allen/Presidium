@@ -13,6 +13,11 @@ import src.graphics.widgets.* ;
 
 public interface Selectable extends Text.Clickable, Session.Saveable {
   
+  //
+  //  I don't think all of this is really needed.  fullName(), writeInfo()
+  //  and portrait() are the only essentials, really.  Maybe configPanel()?
+  
+  
   String fullName() ;
   String helpInfo() ;
   
@@ -25,3 +30,6 @@ public interface Selectable extends Text.Clickable, Session.Saveable {
   Target subject() ;
   void renderSelection(Rendering rendering, boolean hovered) ;
 }
+
+
+

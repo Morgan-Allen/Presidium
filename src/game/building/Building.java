@@ -45,9 +45,10 @@ public class Building extends Plan implements ActorConstants {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
-    final float
+    float
       chance = Visit.clamp(actor.traits.useLevel(ASSEMBLY) / 20, 0, 1),
       damage = (1 - built.structure.repairLevel()) * 2 ;
+    if (built.structure.needsUpgrade() && damage < 1) damage = 1 ;
     float appeal = 1 ;
     appeal *= actor.AI.relation(built.base()) ;
     //  TODO:  Certain structures should be considered particularly important.
@@ -55,31 +56,31 @@ public class Building extends Plan implements ActorConstants {
     
     return Visit.clamp(chance * damage, 0, 1) * ROUTINE * appeal ;
   }
-  
-  
-  //  Actors need to check for a behaviour's completion more frequently than
-  //  just when an action completes.
-  /*
-  public boolean complete() {
-    if (super.complete()) return true ;
-    return built.structure.repairLevel() >= 1 ;
-  }
-  //*/
 
 
   protected Behaviour getNextStep() {
-    if (built.structure.repairLevel() >= 1) return null ;
-    final Action building = new Action(
-      actor, built,
-      this, "actionBuild",
-      Action.BUILD, "Assembling "+built
-    ) ;
-    if (! Spacing.adjacent(actor.origin(), built) || Rand.num() < 0.2f) {
-      final Tile t = Spacing.pickFreeTileAround(built, actor) ;
-      building.setMoveTarget(t) ;
+    if (built.structure.needsRepair()) {
+      final Action building = new Action(
+        actor, built,
+        this, "actionBuild",
+        Action.BUILD, "Assembling "+built
+      ) ;
+      if (! Spacing.adjacent(actor.origin(), built) || Rand.num() < 0.2f) {
+        final Tile t = Spacing.pickFreeTileAround(built, actor) ;
+        building.setMoveTarget(t) ;
+      }
+      else building.setMoveTarget(actor.origin()) ;
+      return building ;
     }
-    else building.setMoveTarget(actor.origin()) ;
-    return building ;
+    if (built.structure.needsUpgrade()) {
+      final Action upgrades = new Action(
+        actor, built,
+        this, "actionUpgrade",
+        Action.BUILD, "Upgrading "+built
+      ) ;
+      return upgrades ;
+    }
+    return null ;
   }
   
   
@@ -89,7 +90,16 @@ public class Building extends Plan implements ActorConstants {
     int success = 1 ;
     success *= actor.traits.test(ASSEMBLY, 10, 0.5f) ? 2 : 1 ;
     success *= actor.traits.test(ASSEMBLY, 20, 0.5f) ? 2 : 1 ;
-    built.structure.repairBy(success * 5 / 2f) ;
+    built.structure.repairBy(success * 5f / 2) ;
+    return true ;
+  }
+  
+  
+  public boolean actionUpgrade(Actor actor, Venue built) {
+    int success = 1 ;
+    success *= actor.traits.test(ASSEMBLY, 10, 0.5f) ? 2 : 1 ;
+    success *= actor.traits.test(ASSEMBLY, 20, 0.5f) ? 2 : 1 ;
+    built.structure.advanceUpgrade(success * 1f / 100) ;
     return true ;
   }
   
@@ -101,6 +111,8 @@ public class Building extends Plan implements ActorConstants {
     d.append(built) ;
   }
 }
+
+
 
 
 

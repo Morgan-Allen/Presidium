@@ -106,7 +106,7 @@ public class DropZone extends Venue implements BuildConstants {
   
   
   public Behaviour jobFor(Actor actor) {
-    return orders.nextDelivery(actor, services()) ;
+    return stocks.nextDelivery(actor, services()) ;
   }
   
   

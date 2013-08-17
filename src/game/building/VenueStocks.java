@@ -8,12 +8,14 @@
 package src.game.building ;
 import src.game.common.* ;
 import src.game.actors.* ;
-import src.user.Description ;
+import src.user.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  Merge this with the stocks object.
 
-public class VenueOrders {
+public class VenueStocks extends Inventory {
   
   
   /**  Fields, constructors, and save/load methods-
@@ -36,12 +38,14 @@ public class VenueOrders {
   }
   
   
-  VenueOrders(Venue v) {
+  VenueStocks(Venue v) {
+    super(v) ;
     this.venue = v ;
   }
   
   
-  void loadState(Session s) throws Exception {
+  public void loadState(Session s) throws Exception {
+    super.loadState(s) ;
     s.loadObjects(orders) ;
     int numC = s.loadInt() ;
     while (numC-- > 0) {
@@ -54,7 +58,8 @@ public class VenueOrders {
     }
   }
   
-  void saveState(Session s) throws Exception {
+  public void saveState(Session s) throws Exception {
+    super.saveState(s) ;
     s.saveObjects(orders) ;
     s.saveInt(demands.size()) ;
     for (Demand d : demands.values()) {
@@ -139,7 +144,7 @@ public class VenueOrders {
       //  ignored.
       for (Item.Type type : types) {
         if (venue.stocks.amountOf(type) < ORDER_UNIT) continue ;
-        float urgency = client.orders.requiredShortage(type) ;
+        float urgency = client.stocks.requiredShortage(type) ;
         if (urgency <= 0) continue ;
         final Delivery order = new Delivery(
           new Item(type, ORDER_UNIT), venue, client
@@ -249,7 +254,7 @@ public class VenueOrders {
         d.type, venue, SEARCH_RADIUS
       ) ;
       if (supplies == null) continue ;
-      supplies.orders.receiveDemand(d.type, d.required) ;
+      supplies.stocks.receiveDemand(d.type, d.required) ;
       d.received *= 1 - POTENTIAL_INC ;
     }
   }
@@ -258,7 +263,18 @@ public class VenueOrders {
   
   /**  Rendering and interface methods-
     */
-  void writeInformation(Description d) {
+  protected Batch <String> ordersDesc() {
+    final Batch <String> desc = new Batch <String> () ;
+    for (Demand demand : demands.values()) {
+      String s = demand.type.name ;
+      s+=" ("+(int) amountOf(demand.type)+"/"+(int) demand.received+")" ;
+      desc.add(s) ;
+    }
+    return desc ;
+  }
+  
+  /*
+  public void writeInformation(Description d) {
     if (demands.size() == 0) {
       d.append("\n\n  No current demands.") ;
       return ;
@@ -270,133 +286,12 @@ public class VenueOrders {
       d.append("\n    ("+(int) demand.balance +" balance)" ) ;
     }
   }
+  //*/
 }
 
 
 
 
-
-
-
-
-/*
-private void updateDemands() {
-  for (Demand d : demands.values()) {
-    d.level *= 1 - POTENTIAL_INC ;
-    d.placedAmount = d.metAmount = 0 ;
-  }
-  for (Delivery p : ordersPlaced) {
-    demandFor(p.item.type).placedAmount += p.item.amount ;
-  }
-  for (Delivery p : ordersMet) {
-    demandFor(p.item.type).metAmount += p.item.amount ;
-  }
-  for (Demand d : demands.values()) {
-    final float supply = d.placedAmount + venue.stocks.amountOf(d.type) ;
-    if (supply < d.level) {
-      final Venue supplies = bestSupplier(d) ;
-      if (supplies != null) placeOrder(d.type, supplies) ;
-    }
-    if (supply > d.level + 5) {
-      final Delivery worst = worstOrder(d.type) ;
-      if (worst != null && ! worst.begun()) deleteOrder(worst) ;
-    }
-  }
-}
-
-
-private void clearDeadOrders(List <Delivery> orders) {
-  final World world = venue.world() ;
-  for (Delivery order : orders) {
-    if (order.begun() && ! world.activities.includes(order)) {
-      orders.remove(order) ;
-    }
-  }
-}
-//*/
-
-
-
-
-
-/**  Modulating supply and demand-
-  */
-/*
-  
-  public boolean canMeetOrder(Delivery d) {
-    //  Ensure that the current stock of items of this type, minus the amounts
-    //  of any other deliveries prior to their pickup stage, is greater than
-    //  the amount needed for this delivery.
-    float amountReserved = 0 ;
-    for (Delivery order : ordersMet) {
-      if (! order.item.matchKind(d.item)) continue ;
-      if (order.stage() > Delivery.STAGE_PICKUP) continue ;
-      amountReserved += order.item.amount ;
-    }
-    return venue.stocks.amountOf(d.item) - amountReserved > 0 ;
-  }
-  
-private void deleteOrder(Delivery d) {
-  d.destination.orders.ordersMet.remove(d) ;
-  d.origin.orders.ordersPlaced.remove(d) ;
-  d.abortStep() ;
-}
-
-
-private void placeOrder(Item.Type type, Venue supplies) {
-  final Delivery d = new Delivery(
-    new Item(type, ORDER_UNIT), supplies, venue
-  ) ;
-  d.destination.orders.ordersMet.add(d) ;
-  d.origin.orders.ordersPlaced.add(d) ;
-}
-
-
-private Venue bestSupplier(Demand demand) {
-  final Base base = venue.belongs ;
-  Venue best = base.nearestService(demand.type, venue, SEARCH_RADIUS) ;
-  float bestRating = rateSupplier(venue, best, demand.type) ;
-  
-  int numChecked = 0 ;
-  for (Object o : base.servicesNear(demand.type, venue, SEARCH_RADIUS)) {
-    final Venue supplier = (Venue) o ;
-    final float rating = rateSupplier(venue, supplier, demand.type) ;
-    if (rating > bestRating) { best = supplier ; bestRating = rating ; }
-    numChecked++ ;
-    if (numChecked > MAX_CHECKED && Rand.yes()) break ;
-  }
-  return best ;
-}
-
-
-private Delivery worstOrder(Item.Type type) {
-  Delivery worst = null ;
-  float worstRating = Float.POSITIVE_INFINITY ;
-  for (Plan p : ordersPlaced) if (p instanceof Delivery) {
-    final Delivery d = (Delivery) p ;
-    final float rating = rateSupplier(venue, ((Delivery) p).origin, type) ;
-    if (rating < worstRating) { worst = d ; worstRating = rating ; }
-  }
-  return worst ;
-}
-
-
-private float rateSupplier(Venue demands, Venue supplies, Item.Type type) {
-  if (supplies == null) return 0 ;
-  if (supplies.inventory().amountOf(type) == 0) {
-    //supplies.orders.incDemand(type, 5 * POTENTIAL_INC) ;
-    return 0 ;
-  }
-  float rating = 10.0f ;
-  rating /= SEARCH_RADIUS + Spacing.distance(
-    demands, supplies
-  ) ;
-  rating /= supplies.orders.ordersMet.size() + 2 ;
-  //final float price = supplies.orders.priceFor(type) ;
-  //rating /= type.basePrice / (type.basePrice + price) ;
-  return rating ;
-}
-//*/
 
 
 

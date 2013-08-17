@@ -67,14 +67,14 @@ public class TownVault extends Venue implements BuildConstants {
     super.updateAsScheduled(numUpdates) ;
     
     ///I.say("Updating demands...") ;
-    orders.clearDemands() ;
+    stocks.clearDemands() ;
     for (Holding holding : holdings) {
       for (Item i : holding.goodsWanted().raw) {
-        orders.incRequired(i.type, i.amount) ;
+        stocks.incRequired(i.type, i.amount) ;
       }
-      orders.incRequired(STARCHES, 10) ;
-      orders.incRequired(GREENS  , 10) ;
-      orders.incRequired(PROTEIN , 10) ;
+      stocks.incRequired(STARCHES, 10) ;
+      stocks.incRequired(GREENS  , 10) ;
+      stocks.incRequired(PROTEIN , 10) ;
       ///I.say("Adding demand for: "+holding.fullName()) ;
     }
     

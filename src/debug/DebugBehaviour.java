@@ -95,11 +95,10 @@ public class DebugBehaviour extends PlayLoop {
     //  There are still problems related to how boarding/unboarding the
     //  freighter is handled.  Get rid of the DropZone shebang.
     
-    //baseScenario(world, base, HUD) ;
-    missionScenario(world, base, HUD) ;
+    baseScenario(world, base, HUD) ;
+    //missionScenario(world, base, HUD) ;
     //natureScenario(world, base, HUD) ;
     //socialScenario(world, base, HUD) ;
-    //siegeScenario(world, base, HUD) ;
   }
   
   
@@ -133,6 +132,9 @@ public class DebugBehaviour extends PlayLoop {
   private void baseScenario(World world, Base base, HUD UI) {
     GameSettings.hireFree = true ;
     
+    //final Actor actorA = new Human(Vocation.RUNNER, base) ;
+    //actorA.enterWorldAt(15, 15, world) ;
+    //*
     final Artificer artificer = new Artificer(base) ;
     artificer.enterWorldAt(8, 8, world) ;
     artificer.setAsEstablished(true) ;
@@ -143,12 +145,14 @@ public class DebugBehaviour extends PlayLoop {
     garrison.enterWorldAt(2, 6, world) ;
     garrison.setAsEstablished(true) ;
     garrison.structure.setState(VenueStructure.STATE_INSTALL, 0.1f) ;
-    ((BaseUI) UI).selection.setSelected(garrison) ;
     
-    base.intelMap.liftFogAround(garrison, 16) ;
+    ((BaseUI) UI).selection.setSelected(artificer) ;
   }
   
   
+  
+  /**  Testing out interactions between alien creatures or primitive humanoids.
+    */
   private void natureScenario(World world, Base base, HUD UI) {
     final Actor
       hunter = new Micovore(),
@@ -166,20 +170,10 @@ public class DebugBehaviour extends PlayLoop {
   }
   
   
-  /*
-  private void siegeScenario(World world, Base base, HUD UI) {
-    
-    final Venue garrison = new Garrison(base) ;
-    garrison.enterWorldAt(8, 8, world) ;
-    garrison.structure.setState(VenueStructure.STATE_INTACT, 1) ;
-    garrison.setAsEstablished(true) ;
-    //  ...You'll need to add a reward, or assign the garrison to another base.
-    
-    assails.AI.assignBehaviour(new Combat(assails, garrison)) ;
-  }
-  //*/
   
-  
+  /**  Testing out directed behaviour like combat, exploration, security or
+    *  contact missions.
+    */
   private void missionScenario(World world, Base base, HUD UI) {
     //
     //  You'll also want to ensure that actors get visible payment for their
@@ -222,6 +216,9 @@ public class DebugBehaviour extends PlayLoop {
   }
   
   
+  /**  Testing out pro-social behaviour like dialogue, recreation and medical
+    *  treatment.
+    */
   private void socialScenario(World world, Base base, HUD UI) {
     final Actor
       actor = new Human(Vocation.PHYSICIAN, base),

@@ -49,7 +49,9 @@ public class BotanicalStation extends Venue implements BuildConstants {
     //new Object[] { 0, TIMBER  , CROP_MODELS[0] },
   } ;
   
+  
   public static int pickSpecies(Tile t, BotanicalStation parent) {
+    /*
     final float proteinChance = parent.growProtein ? 0.2f : 0.1f ;
     if (Rand.num() < proteinChance) return 4 ;
     float moisture = t.habitat().moisture() / 10f ;
@@ -61,12 +63,16 @@ public class BotanicalStation extends Venue implements BuildConstants {
       0f
     } ;
     return (Integer) ((Object[]) Rand.pickFrom(CROP_SPECIES, chances))[0] ;
+    //*/
+    return (Integer) ((Object[]) Rand.pickFrom(CROP_SPECIES))[0] ;
   }
+  
   
   public static Model speciesModel(int varID, int growStage) {
     final Model seq[] = (Model[]) CROP_SPECIES[varID][2] ;
     return seq[Visit.clamp(growStage, seq.length)] ;
   }
+  
   
   public static Item.Type speciesYield(int varID) {
     return (Item.Type) CROP_SPECIES[varID][1] ;
@@ -75,11 +81,12 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   final static int
     MAX_PLANT_RANGE = 4 ;
-
+  /*
   boolean
     growStarches = false,
     growGreens   = true ,
     growProtein  = false ;
+  //*/
   
   final List <Tile> toPlant = new List <Tile> () ;
   final List <Crop> planted = new List <Crop> () ;
@@ -95,9 +102,9 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   public BotanicalStation(Session s) throws Exception {
     super(s) ;
-    growStarches = s.loadBool() ;
-    growGreens   = s.loadBool() ;
-    growProtein  = s.loadBool() ;
+    //growStarches = s.loadBool() ;
+    //growGreens   = s.loadBool() ;
+    //growProtein  = s.loadBool() ;
     s.loadTargets((Series) toPlant) ;
     s.loadObjects(planted) ;
     onceGrabbed = s.loadInt() ;
@@ -106,9 +113,9 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveBool(growStarches) ;
-    s.saveBool(growGreens  ) ;
-    s.saveBool(growProtein ) ;
+    //s.saveBool(growStarches) ;
+    //s.saveBool(growGreens  ) ;
+    //s.saveBool(growProtein ) ;
     s.saveTargets((Series) toPlant) ;
     s.saveObjects(planted) ;
     s.saveInt(onceGrabbed) ;
@@ -194,7 +201,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   /**  Handling upgrades and economic functions-
     */
-  final static Index
+  final static Index <Upgrade>
     ALL_UPGRADES = new Index(BotanicalStation.class, "botanical_upgrades") ;
   final public static Upgrade
     CEREAL_LAB = new Upgrade(
@@ -243,7 +250,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
     ) ;
   
   
-  protected Index allUpgrades() {
+  protected Index <Upgrade> allUpgrades() {
     return ALL_UPGRADES ;
   }
   
@@ -267,7 +274,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
 
   public Behaviour jobFor(Actor actor) {
-    final Delivery d = orders.nextDelivery(actor, services()) ;
+    final Delivery d = stocks.nextDelivery(actor, services()) ;
     if (d != null) return d ;
     
     //if (true) return null ;
@@ -303,8 +310,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
   public String buildCategory() {
     return InstallTab.TYPE_ECOLOGIST ;
   }
-  
-  
+  /*
   public void writeInformation(Description d, int categoryID, HUD UI) {
     
     d.append(new Description.Link("\n[Grow Starches]") {
@@ -328,6 +334,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
     
     super.writeInformation(d, categoryID, UI) ;
   }
+  //*/
 }
 
 

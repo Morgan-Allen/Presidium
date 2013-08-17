@@ -50,7 +50,7 @@ public class ActorHealth implements ActorConstants {
     DEFAULT_HEALTH = 10,
     MAX_DIGEST = 0.2f,
     STARVE_INTERVAL = World.DEFAULT_DAY_LENGTH * 5,
-    MAX_FOOD_TYPES = 4,
+    MAX_FOOD_TYPES = 3,
     
     DEFAULT_BULK  = 1.0f,
     DEFAULT_SPEED = 1.0f,

@@ -11,6 +11,9 @@ import src.util.* ;
 
 
 
+//
+//  Modify this so that Vehicles can possess it too?  Put in an interface?
+
 public class VenueStructure extends Inventory {
   
   
@@ -22,13 +25,21 @@ public class VenueStructure extends Inventory {
     DEFAULT_ARMOUR     = 10,
     DEFAULT_BUILD_COST = 200 ;
   final public static int
-    STATE_INSTALL = 0,
-    STATE_INTACT  = 1,
-    STATE_REPAIR  = 2,
-    STATE_SALVAGE = 3,
-    STATE_RAZED   = 4 ;
+    STATE_NONE    =  0,
+    STATE_INSTALL =  1,
+    STATE_INTACT  =  2,
+    STATE_SALVAGE =  3,
+    STATE_RAZED   =  4 ;
+  final static String STATE_DESC[] = {
+    "N/A",
+    "Installing",
+    "Complete",
+    "Salvaging",
+    "N/A"
+  } ;
   
-  final static int
+  final public static int
+    NO_UPGRADES         = 0,
     SMALL_MAX_UPGRADES  = 3,
     NORMAL_MAX_UPGRADES = 6,
     BIG_MAX_UPGRADES    = 12 ;
@@ -42,21 +53,25 @@ public class VenueStructure extends Inventory {
   
   final Venue venue ;
   
+  //
   //  These don't actually need to be supplied on an individual basis.  They
-  //  belong to the class, rather than to the object.
+  //  belong to the class, rather than to the object.  Maybe Upgrades could
+  //  serve this function, as a set of default stats for the structure?
   private int baseIntegrity = DEFAULT_INTEGRITY ;
-  private int maxUpgrades = NORMAL_MAX_UPGRADES ;
+  private int maxUpgrades = NO_UPGRADES ;
   private int
     buildCost = DEFAULT_BUILD_COST,
     armouring = DEFAULT_ARMOUR ;
+  //  private Item materials[] ;
 
   private int state = STATE_INSTALL ;
   private float integrity = baseIntegrity ;
-  private float upgradeProgress ;
-  final List <Upgrade> upgrades = new List <Upgrade> () ;
+  //  private boolean burning ;
   
-  //  Item materials[] ;
-  //  List <Upgrade> upgrades ;
+  private float upgradeProgress = 0 ;
+  private int upgradeIndex = -1 ;
+  private Upgrade upgrades[] = null ;
+  private int upgradeStates[] = null ;
   
   
   
@@ -75,6 +90,16 @@ public class VenueStructure extends Inventory {
     
     state = s.loadInt() ;
     integrity = s.loadFloat() ;
+    
+    if (maxUpgrades > 0) {
+      upgrades = new Upgrade[maxUpgrades] ;
+      upgradeStates = new int[maxUpgrades] ;
+    }
+    final Index <Upgrade> AU = venue.allUpgrades() ;
+    if (AU != null) for (int i = 0 ; i < maxUpgrades ; i++) {
+      upgrades[i] = AU.loadMember(s.input()) ;
+      upgradeStates[i] = s.loadInt() ;
+    }
   }
   
   
@@ -87,6 +112,12 @@ public class VenueStructure extends Inventory {
     
     s.saveInt(state) ;
     s.saveFloat(integrity) ;
+    
+    final Index <Upgrade> AU = venue.allUpgrades() ;
+    if (AU != null) for (int i = 0 ; i < maxUpgrades ; i++) {
+      AU.saveMember(upgrades[i], s.output()) ;
+      s.saveInt(upgradeStates[i]) ;
+    }
   }
   
   
@@ -99,74 +130,75 @@ public class VenueStructure extends Inventory {
     this.integrity = this.baseIntegrity = baseIntegrity ;
     this.armouring = armouring ;
     this.buildCost = buildCost ;
+    
     this.maxUpgrades = maxUpgrades ;
+    this.upgrades = new Upgrade[maxUpgrades] ;
+    this.upgradeStates = new int[maxUpgrades] ;
   }
   
   
-  public int armouring() { return armouring ; }
   
-  
-  
-  //
-  //  TODO:  You also have to make way for upgrades.  And the Building plan
-  //  needs to perform salvage as well as construction.
   /**  Queries and modifications-
     */
-  public void repairBy(float repairs) {
-    //  This can also be used to perform salvage.
-    
-      //  Implement burning, and try to cancel it out?
-      //  if (burning && Rand.num() * baseIntegrity < repairs) burning = false ;
-    
-    //if (repairs < 0) I.complain("NEGATIVE REPAIR!") ;
-    setIntegrity(integrity + repairs) ;
+  public int maxIntegrity() { return baseIntegrity ; }
+  public int armouring() { return armouring ; }
+  public int maxUpgrades() { return upgrades == null ? 0 : maxUpgrades ; }
+  
+  public boolean intact() { return state == STATE_INTACT ; }
+  public boolean destroyed() { return state == STATE_RAZED ; }
+  public int buildState() { return state ; }
+  
+  public int repair() { return (int) integrity ; }
+  public float repairLevel() { return integrity / maxIntegrity() ; }
+  
+  
+  public void setState(int state, float condition) {
+    this.state = state ;
+    this.integrity = maxIntegrity() * condition ;
+    checkMaintenance() ;
+  }
+  
+  
+  public void repairBy(float inc) {
+    if (inc < 0) I.complain("NEGATIVE REPAIR!") ;
+    adjustRepair(inc) ;
   }
   
   
   public void takeDamage(float damage) {
     if (damage < 0) I.complain("NEGATIVE DAMAGE!") ;
-    setIntegrity(integrity - damage) ;
+    adjustRepair(0 - damage) ;
   }
   
   
-  protected void setIntegrity(float level) {
-    integrity = Visit.clamp(level, -1, maxIntegrity()) ;
+  protected void adjustRepair(float inc) {
+    final int max = maxIntegrity() ;
+    integrity += inc ;
     if (integrity < 0) {
-      toggleForRepairs(false) ;
-      //  TODO:  You need to leave some rubble behind!
       state = STATE_RAZED ;
       venue.setAsDestroyed() ;
+      integrity = 0 ;
     }
-    //
-    //  Toggle for repairs based on difference between current and correct
-    //  integrity!
-    else if (integrity < maxIntegrity()) {
-      toggleForRepairs(true) ;
-      if (state == STATE_INTACT) state = STATE_REPAIR ;
-    }
-    else {
-      toggleForRepairs(false) ;
+    else if (integrity >= max) {
       if (state == STATE_INSTALL) venue.onCompletion() ;
-      state = STATE_INTACT ;
+      if (state != STATE_SALVAGE) state = STATE_INTACT ;
+      integrity = max ;
     }
+    checkMaintenance() ;
   }
   
   
-  public void setState(int newState, float condition) {
-    final int oldState = newState ;
-    this.state = newState ;
-    if (condition >= 0) setIntegrity(maxIntegrity() * condition) ;
-    if (oldState == STATE_INTACT && newState == STATE_SALVAGE) {
-      toggleForRepairs(true) ;
-      venue.onDecommission() ;
-    }
+  public boolean needsRepair() {
+    boolean needs = false ;
+    if (state == STATE_SALVAGE) needs = integrity > 0 ;
+    else needs = integrity < maxIntegrity() ;
+    return needs ;
   }
   
   
-  //
-  //  TODO:  You need to toggle the venue as needing repairs whenever correct
-  //  integrity does not match maximum integrity.
-  private void toggleForRepairs(boolean needs) {
+  protected void checkMaintenance() {
+    final boolean needs = needsRepair() || needsUpgrade() ;
+    I.say(venue+" needs maintenance? "+needs) ;
     final World world = venue.world() ;
     world.presences.togglePresence(
       venue, world.tileAt(venue), needs, "damaged"
@@ -174,50 +206,92 @@ public class VenueStructure extends Inventory {
   }
   
   
-  public float repairLevel() {
-    return integrity * 1f / maxIntegrity() ;
+  
+  /**  Handling upgrades-
+    */
+  public boolean needsUpgrade() {
+    return nextUpgradeIndex() != -1 ;
   }
   
   
-  public int maxIntegrity() {
-    final float upBonus = 1 ;// + UPGRADE_HP_BONUSES[upgrades.size() - 1] ;
-    return (int) (baseIntegrity * upBonus) ;
+  private int nextUpgradeIndex() {
+    if (upgrades == null) return -1 ;
+    for (int i = 0 ; i < upgrades.length ; i++) {
+      if (upgrades[i] != null && upgradeStates[i] != STATE_INTACT) return i ;
+    }
+    return -1 ;
   }
   
   
-  public int correctIntegrity() {
-    if (state == STATE_SALVAGE) return -1 ;
-    //  TODO:  Base this on the number on upgrades NOT due for salvage.
-    else return maxIntegrity() ;
-  }
-  
-  protected boolean complete() {
-    return (state != STATE_INSTALL) && (state != STATE_SALVAGE) ;
-  }
-  
-  
-  public int integrity() {
-    return (int) integrity ;
+  private void deleteUpgrade(int atIndex) {
+    final int LI = upgrades.length - 1 ;
+    for (int i = atIndex ; i++ < LI ;) {
+      upgrades[i - 1] = upgrades[i] ;
+      upgradeStates[i - 1] = upgradeStates[i] ;
+    }
+    upgrades[LI] = null ;
+    upgradeStates[LI] = STATE_INSTALL ;
   }
   
   
-  protected boolean allowsUse() {
-    return complete() && repairLevel() > 0.5f ;
+  public void advanceUpgrade(float progress) {
+    if (upgradeIndex == -1) upgradeIndex = nextUpgradeIndex() ;
+    if (upgradeIndex == -1) return ;// I.complain("NO UPGRADES REMAINING.") ;
+    upgradeProgress += progress ;
+    I.say("Upgrade progress is: "+upgradeProgress) ;
+    //
+    //  You may also want to deduct any credits or materials associated with
+    //  construction.
+    if (upgradeProgress >= 1) {
+      final int US = upgradeStates[upgradeIndex] ;
+      if (US == STATE_SALVAGE) deleteUpgrade(upgradeIndex) ;
+      else upgradeStates[upgradeIndex] = STATE_INTACT ;
+      upgradeProgress = 0 ;
+      upgradeIndex = -1 ;
+    }
   }
   
   
-  protected boolean needsRepair() {
-    return correctIntegrity() != integrity ;
+  public void beginUpgrade(Upgrade upgrade) {
+    int atIndex = -1 ;
+    for (int i = 0 ; i < upgrades.length ; i++) {
+      if (upgrades[i] == null) { atIndex = i ; break ; }
+    }
+    if (atIndex == -1) I.complain("NO ROOM FOR UPGRADE!") ;
+    upgrades[atIndex] = upgrade ;
+    upgradeStates[atIndex] = STATE_INSTALL ;
+    if (upgradeIndex == atIndex) upgradeProgress = 0 ;
+    checkMaintenance() ;
   }
   
   
-  protected int state() {
-    return state ;
+  public void resignUpgrade(int atIndex) {
+    if (upgrades[atIndex] == null) I.complain("NO SUCH UPGRADE!") ;
+    upgradeStates[atIndex] = STATE_SALVAGE ;
+    if (upgradeIndex == atIndex) upgradeProgress = 0 ;
+    checkMaintenance() ;
   }
   
   
-  public boolean destroyed() {
-    return state == STATE_RAZED ;
+  public Batch <Upgrade> workingUpgrades() {
+    final Batch <Upgrade> working = new Batch <Upgrade> () ;
+    if (upgrades == null) return working ;
+    for (int i = 0 ; i < upgrades.length ; i++) {
+      if (upgrades[i] != null && upgradeStates[i] == STATE_INTACT)
+        working.add(upgrades[i]) ;
+    }
+    return working ;
+  }
+  
+  
+  public boolean upgradePossible(Upgrade upgrade) {
+    boolean isSlot = false, hasReq = false ;
+    for (Upgrade u : upgrades) {
+      if (u == null) { isSlot = true ; break ; }
+      if (u == upgrade.required) hasReq = true ;
+    }
+    if (upgrade.required == null) return isSlot ;
+    return isSlot && hasReq ;
   }
   
   
@@ -225,7 +299,7 @@ public class VenueStructure extends Inventory {
   /**  Regular updates-
     */
   protected void updateStructure(int numUpdates) {
-    //  if (burning) takeDamage(Rand.num() * 5) ;
+    //  if (burning) takeDamage(Rand.num() * 2) ;
     //  TODO:  Structures can also suffer breakdowns due to simple wear and
     //  tear.  (Ancient or organic structures are immune to this, and the
     //  latter can actively regenerate damage.)
@@ -233,56 +307,42 @@ public class VenueStructure extends Inventory {
   
   
   
-  
-  /**  Handling upgrades-
+  /**  Rendering and interface-
     */
-  //...It might be best to handle upgrades on an entirely different scale.
-  
-  
+  protected Batch <String> descUpgrades() {
+    final Batch <String> desc = new Batch <String> () ;
+    if (upgrades == null) return desc ;
+    boolean working = false ;
+    for (int i = 0 ; i < upgrades.length ; i++) {
+      if (upgrades[i] == null) break ;
+      if (upgradeStates[i] != STATE_INTACT) working = true ;
+      desc.add(upgrades[i].name+" ("+STATE_DESC[upgradeStates[i]]+")") ;
+    }
+    if (working) {
+      desc.add("Progress: "+((int) (upgradeProgress * 100))+"%") ;
+    }
+    return desc ;
+  }
   
 }
-
-
-
-
-
-
 
 
 //
-//  ...You should also include a method for reducing integrity, so that
-//  structural materials can be salvaged too.
-
-//  Okay.  You need to check to make sure that upgrades cannot be used while
-//  construction is underway, or while the venue is badly damaged, in
-//  proportion to the health bonus involved.
+//  I'm still not entirely clear on how the whole HP bonus thing is supposed to
+//  work out.
 
 
-/*
-public boolean canUse(Upgrade upgrade) {
-  Integer useState = upgrades.get(upgrade) ;
-  if (useState == null || useState != STATE_INTACT) return false ;
-  return true ;
-}
 
 
-public boolean allows(Upgrade upgrade) {
-  if (upgrades.size() >= maxUpgrades) return false ;
-  if (upgrade.required == null) return true ;
-  if (! upgrades.keySet().contains(upgrade.required)) return false ;
-  return true ;
-}
 
 
-public void beginUpgrade(Upgrade begun) {
-  upgrades.put(begun, STATE_INSTALL) ;
-}
 
 
-public void removeUpgrade(Upgrade removed) {
-  ///upgrades.remove(removed) ;  // (Take off a chunk of health?)
-}
-//*/
+
+
+
+
+
 
 
 

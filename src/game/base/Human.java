@@ -283,7 +283,7 @@ public class Human extends Actor implements ActorConstants {
 
 
   public String fullName() {
-    return career.fullName() ;//+" the "+career.vocation().name ;
+    return career.fullName()+" ("+career.vocation().name+")" ;
   }
   
   
@@ -364,15 +364,7 @@ public class Human extends Actor implements ActorConstants {
     else d.append("\n  Nothing worn") ;
     d.append(" ("+((int) gear.armourRating())+")") ;
     
-    d.append("\n") ;
-    final Batch <Item> carried = gear.allItems() ;
-    if (carried.size() > 0) {
-      d.append("   Carrying:") ;
-      for (Item item : carried) {
-        d.append("\n    "+item) ;
-      }
-    }
-    else d.append("  Nothing carried") ;
+    for (Item item : gear.allItems()) d.append("\n  "+item) ;
     d.append("\n  "+((int) gear.credits())+" Credits") ;
     ///d.append("\n  Fuel Cells: "+((int) gear.fuelCells)) ;
     ///d.append("\n  Rations: "+((int) gear.currentRations)) ;
@@ -412,21 +404,10 @@ public class Human extends Actor implements ActorConstants {
     d.append(" "+traits.levelDesc(GENDER)) ;
     d.append("\n  "+career.birth()+" on "+career.homeworld()) ;
     d.append("\n  Trained as "+career.vocation()) ;
-    d.append("\n  Age: "+health.exactAge()) ;
+    d.append("\n  Age: "+health.exactAge()+" ("+health.agingDesc()+")") ;
     
-    d.append("\n\nPhysique: ") ;
-    d.append("\n  "+health.agingDesc()) ;
-    for (Trait t : traits.physique()) {
-      d.append("\n  ") ;
-      d.append(traits.levelDesc(t)) ;
-    }
-    d.append("\n  "+BLOOD_TRAITS[bloodID(this)]) ;
-    
-    d.append("\n\nPersonality: ") ;
-    for (Trait t : traits.personality()) {
-      d.append("\n  ") ;
-      d.append(traits.levelDesc(t)) ;
-    }
+    d.appendList("\n\nPhysique: ", traits.physique()) ;
+    d.appendList("\n\nPersonality: ", traits.personality()) ;
     
     d.append("\n\nRelationships: ") ;
     for (Relation r : AI.relations()) {

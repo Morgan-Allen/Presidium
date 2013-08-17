@@ -206,7 +206,7 @@ public interface ActorConstants {
       "Fickle"
     ),
     INQUISITIVE = new Trait(PERSONALITY,
-      "Bookworm",
+      "Insatiable Curiosity",
       "Inquisitive",
       "Curious",
       null,
@@ -317,8 +317,8 @@ public interface ActorConstants {
     //  attributes.  TODO:  Implement that.
     
     FEMININE = new Trait(PHYSICAL,
-      "Pneumatic",
-      "Curvaceous",
+      "Busty",
+      "Curvy",
       "Feminine",
       null,
       "Masculine",

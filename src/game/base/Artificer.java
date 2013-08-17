@@ -13,6 +13,7 @@ import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD;
 import src.user.* ;
+import src.util.Index;
 
 
 
@@ -29,6 +30,7 @@ public class Artificer extends Venue implements BuildConstants {
   
   public Artificer(Base base) {
     super(4, 3, ENTRANCE_WEST, base) ;
+    structure.setupStats(200, 5, 350, VenueStructure.NORMAL_MAX_UPGRADES) ;
     this.attachSprite(MODEL.makeSprite()) ;
   }
   
@@ -46,7 +48,55 @@ public class Artificer extends Venue implements BuildConstants {
   
   /**  Economic functions, upgrades and employee behaviour-
     */
-  //  TODO:  Include upgrades here.
+
+  final static Index <Upgrade>
+    ALL_UPGRADES = new Index(Artificer.class, "artificer_upgrades") ;
+  final public static Upgrade
+    ASSEMBLY_LINE = new Upgrade(
+      "Assembly Line",
+      "An assembly line allows standardised parts to manufactured quickly, "+
+      "cheaply and in greater abundance.",
+      PARTS, 2, null, ALL_UPGRADES
+    ),
+    MOLDING_PRESS = new Upgrade(
+      "Molding Press",
+      "The molding press allows materials to be recycled and sculpted to fit "+
+      "new purposes, reducing waste and pollution, and speeding production "+
+      "of custom-made parts.",
+      PLASTICS, 1, null, ALL_UPGRADES
+    ),
+    TECHNICIAN_QUARTERS = new Upgrade(
+      "Technician Quarters",
+      "Technicians are trained to operate and perform routine maintenance on "+
+      "common machinery, but lack the theoretical grounding needed for "+
+      "fundamental design or customisation.",
+      Vocation.TECHNICIAN, 2, null, ALL_UPGRADES
+    ),
+    COMPOSITE_MATERIALS = new Upgrade(
+      "Composite Materials",
+      "Composite materials enhance the production of lightweight and "+
+      "flexible armours, as well as close-range melee weaponry.",
+      null, 2, MOLDING_PRESS, ALL_UPGRADES
+    ),
+    FLUX_CONTAINMENT = new Upgrade(
+      "Flux Containment",
+      "Flux containment allows high-energy plasmas to be generated and "+
+      "controlled, permitting refinements to shield technology and ranged "+
+      "energy weapons.",
+      null, 2, TECHNICIAN_QUARTERS, ALL_UPGRADES
+    ),
+    ARTIFICER_QUARTERS = new Upgrade(
+      "Artificer Quarters",
+      "Artificers are highly-skilled as physicists and engineers, and can "+
+      "tackle the most taxing commissions reliant on dangerous or arcane "+
+      "technologies.",
+      Vocation.ARTIFICER, 1, TECHNICIAN_QUARTERS, ALL_UPGRADES
+    ) ;
+  
+  
+  protected Index <Upgrade> allUpgrades() {
+    return ALL_UPGRADES ;
+  }
   
   
   protected Item.Type[] services() {
@@ -72,18 +122,19 @@ public class Artificer extends Venue implements BuildConstants {
     //
     //  TODO:  This is a temporary measure.  Remove later?
     for (Item.Type good : services()) {
-      if (orders.receivedShortage(good) < 10) orders.receiveDemand(good, 10) ;
+      if (stocks.receivedShortage(good) < 10) stocks.receiveDemand(good, 10) ;
     }
-    orders.translateDemands(METALS_TO_PARTS) ;
+    stocks.translateDemands(METALS_TO_PARTS) ;
   }
   
   
   public Behaviour jobFor(Actor actor) {
+    if (! structure.intact()) return null ;
     
-    final Delivery d = orders.nextDelivery(actor, services()) ;
+    final Delivery d = stocks.nextDelivery(actor, services()) ;
     if (d != null) return d ;
     
-    final Manufacture m = orders.nextManufacture(actor, METALS_TO_PARTS) ;
+    final Manufacture m = stocks.nextManufacture(actor, METALS_TO_PARTS) ;
     if (m != null) return m ;
     
     return null ;

@@ -112,7 +112,7 @@ public class Offworld {
     for (Object o : world.presences.matchesNear(base, world.tileAt(0, 0), -1)) {
       if (! (o instanceof Venue)) continue ;
       final Venue venue = (Venue) o ;
-      for (Item item : venue.orders.shortages(true)) {
+      for (Item item : venue.stocks.shortages(true)) {
         summary.addItem(item) ;
       }
     }

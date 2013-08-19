@@ -81,6 +81,14 @@ public class ActorGear extends Inventory implements BuildConstants {
   }
   
   
+  public void incCredits(int inc) {
+    super.incCredits(inc) ;
+    String phrase = inc >= 0 ? "+" : "-" ;
+    phrase+=" "+Math.abs(inc) ;
+    actor.chat.addPhrase(phrase, false) ;
+  }
+  
+  
   
   /**  Returns this actor's effective attack damage.  Actors without equipped
     *  weapons, or employing weapons in melee, gain a bonus based on their

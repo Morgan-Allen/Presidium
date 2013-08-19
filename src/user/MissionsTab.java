@@ -137,7 +137,7 @@ public class MissionsTab extends InfoPanel {
         //  TODO:  PROBLEM.  BUILDINGS AREN'T A VALID TARGET AT THE MOMENT.
         final Mission mission = new StrikeMission(UI.played(), picked) ;
         UI.played().addMission(mission) ;
-        UI.selection.setSelected(mission) ;
+        UI.selection.pushSelection(mission, true) ;
       }
     }) ;
   }
@@ -162,7 +162,7 @@ public class MissionsTab extends InfoPanel {
       void performAt(Target picked) {
         final Mission mission = new ReconMission(UI.played(), (Tile) picked) ;
         UI.played().addMission(mission) ;
-        UI.selection.setSelected(mission) ;
+        UI.selection.pushSelection(mission, true) ;
       }
     }) ;
   }

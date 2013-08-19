@@ -14,6 +14,9 @@ import src.util.* ;
 //
 //  Modify this so that Vehicles can possess it too?  Put in an interface?
 
+//  I want to have some kind of external progress metre.
+
+
 public class VenueStructure extends Inventory {
   
   
@@ -42,7 +45,8 @@ public class VenueStructure extends Inventory {
     NO_UPGRADES         = 0,
     SMALL_MAX_UPGRADES  = 3,
     NORMAL_MAX_UPGRADES = 6,
-    BIG_MAX_UPGRADES    = 12 ;
+    BIG_MAX_UPGRADES    = 12,
+    MAX_OF_TYPE         = 3 ;
   final static float UPGRADE_HP_BONUSES[] = {
     //0.15f, 0.1f, 0.1f, 0.5f, 0.5f, 0.5f
     0.15f, 0.25f, 0.35f,
@@ -198,7 +202,7 @@ public class VenueStructure extends Inventory {
   
   protected void checkMaintenance() {
     final boolean needs = needsRepair() || needsUpgrade() ;
-    I.say(venue+" needs maintenance? "+needs) ;
+    ///I.say(venue+" needs maintenance? "+needs) ;
     final World world = venue.world() ;
     world.presences.togglePresence(
       venue, world.tileAt(venue), needs, "damaged"
@@ -238,7 +242,7 @@ public class VenueStructure extends Inventory {
     if (upgradeIndex == -1) upgradeIndex = nextUpgradeIndex() ;
     if (upgradeIndex == -1) return ;// I.complain("NO UPGRADES REMAINING.") ;
     upgradeProgress += progress ;
-    I.say("Upgrade progress is: "+upgradeProgress) ;
+    ///I.say("Upgrade progress is: "+upgradeProgress) ;
     //
     //  You may also want to deduct any credits or materials associated with
     //  construction.
@@ -261,6 +265,7 @@ public class VenueStructure extends Inventory {
     upgrades[atIndex] = upgrade ;
     upgradeStates[atIndex] = STATE_INSTALL ;
     if (upgradeIndex == atIndex) upgradeProgress = 0 ;
+    upgradeIndex = nextUpgradeIndex() ;
     checkMaintenance() ;
   }
   
@@ -277,21 +282,25 @@ public class VenueStructure extends Inventory {
     final Batch <Upgrade> working = new Batch <Upgrade> () ;
     if (upgrades == null) return working ;
     for (int i = 0 ; i < upgrades.length ; i++) {
-      if (upgrades[i] != null && upgradeStates[i] == STATE_INTACT)
+      if (upgrades[i] != null && upgradeStates[i] == STATE_INTACT) {
         working.add(upgrades[i]) ;
+      }
     }
     return working ;
   }
   
   
   public boolean upgradePossible(Upgrade upgrade) {
-    boolean isSlot = false, hasReq = false ;
+    //  Consider returning a String explaining the problem, if there is one?
+    //  ...Or an error code of some kind?
+    boolean isSlot = false, hasReq = upgrade.required == null ;
+    int numType = 0 ;
     for (Upgrade u : upgrades) {
       if (u == null) { isSlot = true ; break ; }
       if (u == upgrade.required) hasReq = true ;
+      if (u == upgrade) numType++ ;
     }
-    if (upgrade.required == null) return isSlot ;
-    return isSlot && hasReq ;
+    return isSlot && hasReq && numType < MAX_OF_TYPE ;
   }
   
   
@@ -305,25 +314,35 @@ public class VenueStructure extends Inventory {
     //  latter can actively regenerate damage.)
   }
   
+  //  ...I want some kind of external indication of the upgrade-in-progress.
+  
   
   
   /**  Rendering and interface-
     */
+  final static String UPGRADE_ERRORS[] = {
+    "This facility lacks a prerequisite upgrade",
+    "There are no remaining upgrade slots.",
+    "No more than 3 upgrades of a single type."
+  } ;
+  
   protected Batch <String> descUpgrades() {
     final Batch <String> desc = new Batch <String> () ;
     if (upgrades == null) return desc ;
-    boolean working = false ;
     for (int i = 0 ; i < upgrades.length ; i++) {
       if (upgrades[i] == null) break ;
-      if (upgradeStates[i] != STATE_INTACT) working = true ;
+      //if (upgradeStates[i] != STATE_INTACT) working = true ;
       desc.add(upgrades[i].name+" ("+STATE_DESC[upgradeStates[i]]+")") ;
-    }
-    if (working) {
-      desc.add("Progress: "+((int) (upgradeProgress * 100))+"%") ;
     }
     return desc ;
   }
   
+  
+  protected String currentUpgradeDesc() {
+    if (upgradeIndex == -1) return null ;
+    final Upgrade u = upgrades[upgradeIndex] ;
+    return "Installing "+u.name+" ("+(int) (upgradeProgress * 100)+"%)" ;
+  }
 }
 
 

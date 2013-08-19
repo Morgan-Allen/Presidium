@@ -29,6 +29,7 @@ public class Selection implements UIConstants {
   private Mission pickMission ;
   
   private Selectable hovered, selected ;
+  private Stack <Selectable> navStack = new Stack <Selectable> () ;
   
   
   Selection(BaseUI UI) {
@@ -36,7 +37,7 @@ public class Selection implements UIConstants {
   }
 
   public void loadState(Session s) throws Exception {
-    setSelected((Selectable) s.loadObject()) ;
+    pushSelection((Selectable) s.loadObject(), false) ;
   }
   
 
@@ -94,13 +95,34 @@ public class Selection implements UIConstants {
   }
   
 
-  public void setSelected(Selectable s) {
+  public void pushSelection(Selectable s, boolean asRoot) {
+    if (asRoot) navStack.clear() ;
+    
     if (s != null) {
       selected = s ;
-      UI.camera.lockOn(s.subject()) ;
-      UI.setInfoPanel(s.createPanel(UI)) ;
+      if (s.subject().inWorld()) UI.camera.lockOn(s.subject()) ;
+      final InfoPanel panel = s.createPanel(UI) ;
+      
+      final int SI = navStack.indexOf(selected) ;
+      Selectable previous = null ;
+      if (SI != -1) {
+        if (selected == navStack.getLast()) previous = null ;
+        else previous = navStack.atIndex(SI + 1) ;
+        while (navStack.getFirst() != selected) navStack.removeFirst() ;
+        panel.setPrevious(previous) ;
+      }
+      else {
+        previous = navStack.getFirst() ;
+        navStack.addFirst(selected) ;
+        panel.setPrevious(previous) ;
+      }
+      //I.say("Navigation stack is: ") ;
+      //for (Selectable n : navStack) I.add("\n  "+n) ;
+      
+      UI.setInfoPanel(panel) ;
     }
     else if (selected != null) {
+      navStack.clear() ;
       selected = null ;
       UI.camera.lockOn(null) ;
       UI.setInfoPanel(null) ;

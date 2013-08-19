@@ -12,8 +12,6 @@ import src.user.* ;
 import src.util.* ;
 
 
-//
-//  TODO:  Merge this with the stocks object.
 
 public class VenueStocks extends Inventory {
   
@@ -267,7 +265,8 @@ public class VenueStocks extends Inventory {
     final Batch <String> desc = new Batch <String> () ;
     for (Demand demand : demands.values()) {
       String s = demand.type.name ;
-      s+=" ("+(int) amountOf(demand.type)+"/"+(int) demand.received+")" ;
+      final int needed = (int) Math.max(demand.received, demand.required) ;
+      s+=" ("+(int) amountOf(demand.type)+"/"+needed+")" ;
       desc.add(s) ;
     }
     return desc ;

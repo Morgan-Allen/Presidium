@@ -130,23 +130,22 @@ public class DebugBehaviour extends PlayLoop {
     *  construction of the settlement-
     */
   private void baseScenario(World world, Base base, HUD UI) {
-    GameSettings.hireFree = true ;
     
-    //final Actor actorA = new Human(Vocation.RUNNER, base) ;
-    //actorA.enterWorldAt(15, 15, world) ;
-    //*
+    //  ...Have a dropship come along.  Immediately?
+    
+    
     final Artificer artificer = new Artificer(base) ;
     artificer.enterWorldAt(8, 8, world) ;
     artificer.setAsEstablished(true) ;
     artificer.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
     artificer.onCompletion() ;
+    base.intelMap.liftFogAround(artificer, 5) ;
+    ((BaseUI) UI).selection.pushSelection(artificer, true) ;
     
     final Garrison garrison = new Garrison(base) ;
     garrison.enterWorldAt(2, 6, world) ;
     garrison.setAsEstablished(true) ;
     garrison.structure.setState(VenueStructure.STATE_INSTALL, 0.1f) ;
-    
-    ((BaseUI) UI).selection.setSelected(artificer) ;
   }
   
   
@@ -199,7 +198,7 @@ public class DebugBehaviour extends PlayLoop {
     
     actorA.AI.assignBehaviour(new Combat(actorA, garrison)) ;
     actorB.AI.assignBehaviour(new Combat(actorA, garrison)) ;
-    ((BaseUI) UI).selection.setSelected(actorA) ;
+    ((BaseUI) UI).selection.pushSelection(actorA, true) ;
     
     /*
     final Mission mission = new ReconMission(base, world.tileAt(20, 20)) ;
@@ -225,7 +224,7 @@ public class DebugBehaviour extends PlayLoop {
       other = new Human(Vocation.VETERAN , base) ;
     actor.enterWorldAt(5, 5, world) ;
     other.enterWorldAt(8, 8, world) ;
-    ((BaseUI) UI).selection.setSelected(actor) ;
+    ((BaseUI) UI).selection.pushSelection(actor, true) ;
     
     //
     //  TODO:  You also want to see what happens when the actor is diseased.

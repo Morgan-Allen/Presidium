@@ -16,6 +16,9 @@ import src.graphics.widgets.* ;
 public class InfoPanel extends UIGroup implements UIConstants {
   
   
+  
+  /**  Constants, fields and setup methods-
+    */
   final public Texture BORDER_TEX = Texture.loadTexture(
     "media/GUI/Panel.png"
   ) ;
@@ -30,6 +33,8 @@ public class InfoPanel extends UIGroup implements UIConstants {
   final Bordering border ;
   final Text headerText, detailText ;
   final protected Selectable selected ;
+  
+  private Selectable previous ;
   private int categoryID ;
   
   
@@ -66,37 +71,57 @@ public class InfoPanel extends UIGroup implements UIConstants {
   }
   
   
+  protected void setPrevious(Selectable previous) {
+    this.previous = previous ;
+  }
+  
+  
+  protected Selectable previous() {
+    return previous ;
+  }
+  
+  
+  
+  /**  Display and updates-
+    */
   protected void updateState() {
-    /*
-    if (selected != null && ! selected.inWorld()) {
+    if (selected != null && selected.subject().destroyed()) {
       I.say(
         "SELECTION IS NO LONGER IN WORLD... "+
         selected+" "+selected.getClass().getName()
       ) ;
-      UI.selection.setSelected(null) ;
+      UI.selection.pushSelection(previous, false) ;
       return ;
     }
-    //*/
     updateText(UI, headerText, detailText) ;
     super.updateState() ;
   }
   
   
   protected void updateText(
-    BaseUI UI, Text headerText, Text detailText
+    final BaseUI UI, Text headerText, Text detailText
   ) {
     if (selected == null) return ;
     headerText.setText(selected.fullName()) ;
+    
+    headerText.append("\n") ;
+    if (previous != null) {
+      headerText.append(new Description.Link("UP ") {
+        public void whenClicked() {
+          UI.selection.pushSelection(previous, false) ;
+        }
+      }) ;
+    }
+    
     final String cats[] = selected.infoCategories() ;
     if (cats != null) {
-      headerText.append("\n") ;
       for (int i = 0 ; i < cats.length ; i++) {
         final int index = i ;
         final boolean CC = categoryID == i ;
         headerText.append(new Text.Clickable() {
-          public String fullName() { return " ("+cats[index]+")" ; }
+          public String fullName() { return ""+cats[index]+" " ; }
           public void whenClicked() { categoryID = index ; }
-        }, CC ? Colour.GREEN : Colour.BLUE) ;
+        }, CC ? Colour.GREEN : Text.LINK_COLOUR) ;
       }
     }
     detailText.setText("") ;

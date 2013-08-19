@@ -26,8 +26,9 @@ public abstract class Vehicle extends Mobile implements
   final protected List <Mobile> inside = new List <Mobile> () ;
   final protected List <Actor> crew = new List <Actor> () ;
   
-  protected Venue dropPoint ;
   protected float entranceFace = Venue.ENTRANCE_NONE ;
+  protected Boardable dropPoint ;
+  protected Base base ;
   
   
   public Vehicle() {
@@ -39,8 +40,9 @@ public abstract class Vehicle extends Mobile implements
     cargo.loadState(s) ;
     s.loadObjects(inside) ;
     s.loadObjects(crew) ;
-    dropPoint = (Venue) s.loadObject() ;
+    dropPoint = (Boardable) s.loadTarget() ;
     entranceFace = s.loadFloat() ;
+    base = (Base) s.loadObject() ;
   }
   
   public void saveState(Session s) throws Exception {
@@ -48,15 +50,27 @@ public abstract class Vehicle extends Mobile implements
     cargo.saveState(s) ;
     s.saveObjects(inside) ;
     s.saveObjects(crew) ;
-    s.saveObject(dropPoint) ;
+    s.saveTarget(dropPoint) ;
     s.saveFloat(entranceFace) ;
+    s.saveObject(base) ;
+  }
+  
+  
+  public void assignBase(Base base) {
+    this.base = base ;
   }
   
   
   public Base base() {
-    if (dropPoint != null) return dropPoint.base() ;
-    return null ;
+    return base ;
   }
+  
+  
+  
+  /**  TODO:  Include code here for assessing suitable landing sites?
+    */
+  
+  
   
   
   
@@ -118,7 +132,7 @@ public abstract class Vehicle extends Mobile implements
     if (put == null) put = new Box2D() ;
     final Vec3D p = position ;
     final float r = radius() ;
-    put.set(p.x - (r / 2), p.y - (r / 2), r, r) ;
+    put.set(p.x - r, p.y - r, r * 2, r * 2) ;
     return put ;
   }
   
@@ -143,11 +157,16 @@ public abstract class Vehicle extends Mobile implements
   public InfoPanel createPanel(BaseUI UI) {
     return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
   }
+  
+  
+  protected float fogFor(Base base) {
+    if (base == this.base) return 1 ;
+    return super.fogFor(base) ;
+  }
+  
 
-  
-  
   public void renderSelection(Rendering rendering, boolean hovered) {
-    if (indoors()) return ;
+    if (indoors() || ! inWorld()) return ;
     Selection.renderPlane(
       rendering, viewPosition(null), radius() + 0.5f,
       hovered ? Colour.transparency(0.5f) : Colour.WHITE,
@@ -168,7 +187,7 @@ public abstract class Vehicle extends Mobile implements
   
   public void whenClicked() {
     if (PlayLoop.currentUI() instanceof BaseUI) {
-      ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
+      ((BaseUI) PlayLoop.currentUI()).selection.pushSelection(this, false) ;
     }
   }
 }

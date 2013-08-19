@@ -26,6 +26,8 @@ public abstract class Actor extends Mobile implements
   final public static Texture
     GROUND_SHADOW = Texture.loadTexture("media/SFX/ground_shadow.png") ;
   
+  final public Healthbar healthBar = new Healthbar() ;
+  final public TalkFX chat = new TalkFX() ;
   //  private ActorSprite actSprite ;
   //  private Healthbar healthBar ;
   //  private TalkFX chat ;
@@ -198,12 +200,11 @@ public abstract class Actor extends Mobile implements
     final float scale = spriteScale() ;
     final Sprite s = sprite() ;
     
-    final Healthbar bar = new Healthbar() ;
-    bar.level = 1 - health.stressLevel() ;
-    bar.size = health.maxHealth() * 2 ;
-    bar.matchTo(s) ;
-    bar.position.z -= radius() ;
-    rendering.addClient(bar) ;
+    healthBar.level = 1 - health.stressLevel() ;
+    healthBar.size = health.maxHealth() * 2 ;
+    healthBar.matchTo(s) ;
+    healthBar.position.z -= radius() ;
+    rendering.addClient(healthBar) ;
     
     //
     //  Render your shadow, either on the ground or on top of occupants-
@@ -220,20 +221,16 @@ public abstract class Actor extends Mobile implements
     //
     //  ...Maybe include equipment/costume configuration here as well?
     s.scale = scale ;
-    if (actionTaken != null) {
-      /*
-      if (BaseUI.isPicked(this)) I.say(
-        this+" action name/progress "+
-        actionTaken.animName()+" "+actionTaken.animProgress()
-      ) ;
-      //*/
-      actionTaken.configSprite(s) ;
-      ///s.setAnimation(actionTaken.animName(), actionTaken.animProgress()) ;
-    }
+    if (actionTaken != null) actionTaken.configSprite(s) ;
     super.renderFor(rendering, base) ;
     //
-    //  TODO:  Last but not least, you need to render any weapon or shield FX
-    //  associated with your gear.
+    //  Finally, if you have anything to say, render the chat bubbles!
+    if (chat.numPhrases() > 0) {
+      chat.position.setTo(s.position) ;
+      chat.position.z += height() ;
+      chat.update() ;
+      rendering.addClient(chat) ;
+    }
   }
   
   
@@ -264,7 +261,7 @@ public abstract class Actor extends Mobile implements
   
   
   public void renderSelection(Rendering rendering, boolean hovered) {
-    if (indoors()) return ;
+    if (indoors() || ! inWorld()) return ;
     Selection.renderPlane(
       rendering, viewPosition(null), radius() + 0.5f,
       hovered ? Colour.transparency(0.5f) : Colour.WHITE,
@@ -285,7 +282,7 @@ public abstract class Actor extends Mobile implements
   
   public void whenClicked() {
     if (PlayLoop.currentUI() instanceof BaseUI) {
-      ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
+      ((BaseUI) PlayLoop.currentUI()).selection.pushSelection(this, false) ;
     }
   }
 }

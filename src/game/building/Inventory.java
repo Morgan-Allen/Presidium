@@ -70,10 +70,11 @@ public class Inventory {
     text.append("\n") ;
   }
   
-
+  
+  
   /**  Financial balance-
     */
-  public void incCredits(float inc) {
+  public void incCredits(int inc) {
     if (inc > 0) {
       credits += inc ;
     }
@@ -132,6 +133,7 @@ public class Inventory {
   }
   
   
+  
   /**  Adds the given item to the inventory.  If the item is one with 'free
     *  terms' used for matching purposes, returns false- only fully-specified
     *  items can be added.
@@ -153,6 +155,7 @@ public class Inventory {
   public void addItem(Item.Type type, float amount) {
     addItem(new Item(type, amount)) ;
   }
+  
   
   
   /**  Removes the given item from this inventory.  The item given must have a
@@ -193,12 +196,14 @@ public class Inventory {
   }
   
   
+  
   /**  Returns the total amount of the given item type, for all owners and
     *  qualities.
     */
   public float amountOf(Item.Type type) {
     return amountOf(new Item(type)) ;
   }
+  
   
   
   /**  Returns all matches with the given item.
@@ -223,6 +228,7 @@ public class Inventory {
   }
   
   
+  
   /**  Returns the sum total amount of all matches with the given item.
     */
   public float amountOf(Item item) {
@@ -232,6 +238,7 @@ public class Inventory {
     }
     return amount ;
   }
+  
   
   
   /**  Returns whether this inventory has enough of the given item to satisfy

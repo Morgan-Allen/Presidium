@@ -28,6 +28,7 @@ import org.lwjgl.input.* ;
  *    Game Powers/Settings/Seat of Power.
  */
 
+//  TODO:  You need to include a credits display & day counter.
 
 
 public class BaseUI extends HUD implements UIConstants {
@@ -53,7 +54,7 @@ public class BaseUI extends HUD implements UIConstants {
   UIGroup infoArea ;
   MainPanel mainPanel ;
   
-  private UIGroup currentPanel, newPanel ;  //TODO:  DO A TRANSITION!
+  private UIGroup currentPanel, newPanel ;
   private long panelInceptTime = -1 ;
   
   
@@ -161,7 +162,7 @@ public class BaseUI extends HUD implements UIConstants {
     
     if (selection.updateSelection(world, rendering.port, infoArea)) {
       if (mouseClicked() && currentTask == null) {
-        selection.setSelected(selection.hovered()) ;
+        selection.pushSelection(selection.hovered(), true) ;
       }
     }
   }

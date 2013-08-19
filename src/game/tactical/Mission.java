@@ -294,14 +294,16 @@ public abstract class Mission implements
       public void whenClicked() {
         if (begun) endMission(true) ;
         else endMission(false) ;
-        if (UI instanceof BaseUI) ((BaseUI) UI).selection.setSelected(null) ;
+        if (UI instanceof BaseUI) {
+          ((BaseUI) UI).selection.pushSelection(null, false) ;
+        }
       }
     }, Colour.RED) ;
   }
   
 
   public void whenClicked() {
-    ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
+    ((BaseUI) PlayLoop.currentUI()).selection.pushSelection(this, true) ;
   }
   
   

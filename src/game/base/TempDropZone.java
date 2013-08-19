@@ -12,7 +12,7 @@ import src.graphics.widgets.HUD;
 import src.user.Composite;
 
 
-
+/*
 public class TempDropZone extends DropZone {
   
   
@@ -46,3 +46,4 @@ public class TempDropZone extends DropZone {
     return "Experimental only." ;
   }
 }
+//*/

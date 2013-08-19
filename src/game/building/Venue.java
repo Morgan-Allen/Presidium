@@ -231,10 +231,12 @@ public abstract class Venue extends Fixture implements
   
   
   public void updateAsScheduled(int numUpdates) {
+    if (! structure.intact()) return ;
     if (numUpdates % 10 == 0) {
       stocks.updateOrders() ;
       if (base != null) updatePaving(true) ;
     }
+    personnel.updatePersonnel(numUpdates) ;
     structure.updateStructure(numUpdates) ;
   }
   
@@ -266,6 +268,7 @@ public abstract class Venue extends Fixture implements
   public int numOpenings(Vocation v) {
     int num = 0 ;
     for (Upgrade u : structure.workingUpgrades()) if (u.refers == v) num++ ;
+    num -= personnel.numPositions(v) ;
     return num ;
   }
   
@@ -349,6 +352,9 @@ public abstract class Venue extends Fixture implements
     
     d.append("INTEGRITY: ") ;
     d.append(structure.repair()+" / "+structure.maxIntegrity()) ;
+    //  If there's an upgrade in progress, list it here.
+    final String CUD = structure.currentUpgradeDesc() ;
+    if (CUD != null) d.append("\n"+CUD) ;
     
     d.append("\n\nVISITORS:") ;
     if (inside.size() == 0) d.append("\n  No visitors.") ;
@@ -367,13 +373,24 @@ public abstract class Venue extends Fixture implements
     
     d.append("APPLICANTS:") ;
     if (personnel.applications.size() == 0) d.append("\n  No applicants.") ;
-    
-    //  TODO:  List Applicants here as well, whether local or offworld.
+    else for (final VenuePersonnel.Application app : personnel.applications) {
+      d.append("\n  ") ;
+      d.append(app.applies) ;
+      d.append("\n  ("+app.signingCost+" credits) ") ;
+      d.append(new Description.Link("HIRE") {
+        public void whenClicked() {
+          personnel.confirmApplication(app) ;
+        }
+      }) ;
+    }
+    //
+    //  Then list current workers and residents-
     d.append("\n\nPERSONNEL:") ;
     if (personnel.workers().size() == 0) d.append("\n  No workers.") ;
     else for (Actor a : personnel.workers()) {
       d.append("\n  ") ; d.append(a) ;
     }
+    //  List any unfilled slots, going by vocation.
     d.append("\n\nRESIDENTS:") ;
     if (personnel.residents().size() == 0) d.append("\n  No residents.") ;
     else for (Actor a : personnel.residents()) {
@@ -420,7 +437,7 @@ public abstract class Venue extends Fixture implements
   
   public void whenClicked() {
     lastCU = null ;
-    ((BaseUI) PlayLoop.currentUI()).selection.setSelected(this) ;
+    ((BaseUI) PlayLoop.currentUI()).selection.pushSelection(this, false) ;
   }
   
   
@@ -444,6 +461,12 @@ public abstract class Venue extends Fixture implements
   }
   
   
+  protected float fogFor(Base base) {
+    if (base == this.base) return 1 ;
+    return super.fogFor(base) ;
+  }
+  
+  
   public void renderFor(Rendering rendering, Base base) {
     position(buildSprite.position) ;
     buildSprite.updateCondition(structure.repairLevel(), structure.intact()) ;
@@ -460,6 +483,7 @@ public abstract class Venue extends Fixture implements
   
 
   public void renderSelection(Rendering rendering, boolean hovered) {
+    if (destroyed() || ! inWorld()) return ;
     Selection.renderPlane(
       rendering, position(null), (xdim() / 2f) + 1,
       hovered ? Colour.transparency(0.5f) : Colour.WHITE,
@@ -468,35 +492,6 @@ public abstract class Venue extends Fixture implements
   }
   
 }
-
-
-
-
-
-
-/*
-d.append("INTEGRITY: ") ;
-d.append(structure.repair()+" / "+structure.maxIntegrity()) ;
-
-//  TODO:  List Applicants here as well, whether local or offworld.
-d.append("\n\nPERSONNEL:") ;
-if (personnel.workers().size() == 0) d.append("\n  No workers.") ;
-else for (Actor a : personnel.workers()) {
-  d.append("\n  ") ; d.append(a) ;
-}
-d.append("\n\nVISITORS:") ;
-if (inside.size() == 0) d.append("\n  No visitors.") ;
-else for (Mobile m : inside) if (m instanceof Actor) {
-  d.append("\n  ") ; d.append(m) ;
-}
-
-if (! stocks.empty()) d.append("\n\nCURRENT STOCKS:") ;
-stocks.writeInformation(d) ;
-d.append("\n\nCURRENT ORDERS:") ;
-orders.writeInformation(d) ;
-//*/
-
-
 
 
 

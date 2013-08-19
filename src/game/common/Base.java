@@ -28,14 +28,18 @@ public class Base implements
   /**  Fields, constructors, and save/load methods-
     */
   final public World world ;
+  final public Commerce commerce = new Commerce(this) ;
+  int credits = 0 ;
   
   Actor ruler ;
   Venue commandPost ;
   final List <Mission> missions = new List <Mission> () ;
-  float communitySpirit, alertLevel, crimeLevel ;
   
+  float communitySpirit, alertLevel, crimeLevel ;
   final Table <Accountable, Relation> baseRelations = new Table() ;
+  
   final public Paving paving ;
+  //  ...You should also have a PresenceMap just for construction.
   final public IntelMap intelMap = new IntelMap(this) ;
   
   
@@ -50,6 +54,8 @@ public class Base implements
   public Base(Session s) throws Exception {
     s.cacheInstance(this) ;
     this.world = s.world() ;
+    commerce.loadState(s) ;
+    credits = s.loadInt() ;
 
     ruler = (Actor) s.loadObject() ;
     s.loadObjects(missions) ;
@@ -69,6 +75,8 @@ public class Base implements
   
   
   public void saveState(Session s) throws Exception {
+    commerce.saveState(s) ;
+    s.saveInt(credits) ;
     
     s.saveObject(ruler) ;
     s.saveObjects(missions) ;
@@ -103,6 +111,27 @@ public class Base implements
   
   
   
+  /**  Dealing with finances, trade and taxation-
+    */
+  public int credits() {
+    return credits ;
+  }
+  
+  
+  public void incCredits(int inc) {
+    credits += inc ;
+  }
+  
+  
+  public boolean hasCredits(int sum) {
+    return credits >= sum ;
+  }
+  
+  
+  //  Summarise total supply/demand for all goods here.
+  
+  
+  
   /**  Dealing with admin functions-
     */
   public void setRelation(Base base, float attitude) {
@@ -129,10 +158,8 @@ public class Base implements
   
   
   public void updateAsScheduled(int numUpdates) {
-    ///offworld.updateEvents() ;
-    for (Mission mission : missions) {
-      mission.updateMission() ;
-    }
+    commerce.updateCommerce() ;
+    for (Mission mission : missions) mission.updateMission() ;
     //paving.distribute(VenueConstants.ALL_PROVISIONS) ;
   }
   

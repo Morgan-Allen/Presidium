@@ -22,6 +22,8 @@ import src.util.* ;
   *  need for vehicles themselves to be boardable?  Either that, or you need to
   *  make the VenueOrders class based on Employment/Owner properties.
   */
+
+
 public class Dropship extends Vehicle implements Inventory.Owner {
   
   
@@ -98,14 +100,21 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     */
   public void updateAsScheduled(int numUpdates) {
     //I.say("Updating freighter, no. of passengers: "+inside().size()) ;
+    /*
     if (stage == STAGE_LANDED) {
+      //
+      //  Don't put this here.  Dump passengers when you land, not afterwards.
+      //  Then your passengers won't need to exit the world.
       for (Mobile m : inside()) if (! m.inWorld()) {
-        final Tile e = dropPoint.mainEntrance() ;
-        setInside(m, false) ;
-        m.enterWorldAt(e.x, e.y, world) ;
+        
+        //m.goAboard(dropPoint, world) ;
+        //final Tile e = dropPoint.mainEntrance() ;
+        //setInside(m, false) ;
+        //m.enterWorldAt(e.x, e.y, world) ;
         break ;
       }
     }
+    //*/
   }
   
   
@@ -113,26 +122,31 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     ///I.say("dropship getting job for: "+actor) ;
     if (stage == STAGE_BOARDING) {
       final Action boardAction = new Action(
-        actor, dropPoint,
+        actor, this,
         this, "actionBoard",
         Action.STAND, "boarding "+this
       ) ;
       boardAction.setPriority(Behaviour.URGENT) ;
       return boardAction ;
     }
+    //
+    //  ...You also need to try making deliveries/collections, based on what
+    //  nearby venues have either a shortage or excess of.
+    /*
     if (dropPoint instanceof DropZone) {
       return dropPoint.jobFor(actor) ;
     }
+    //*/
     return super.jobFor(actor) ;
   }
   
-  
-  public boolean actionBoard(Actor actor, DropZone zone) {
+  //*
+  public boolean actionBoard(Actor actor, Dropship ship) {
     actor.exitWorld() ;  //This may be a little extreme, but needed atm...
-    this.setInside(actor, true) ;
+    ship.setInside(actor, true) ;
     return true ;
   }
-  
+  //*/
   
   public void beginBoarding() {
     if (stage != STAGE_LANDED) I.complain("Cannot board until landed!") ;
@@ -142,21 +156,115 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   public boolean allBoarded() {
     boolean all = true ;
-    for (Actor c : crew) {
-      if (c.aboard() != this && c.aboard() != dropPoint) all = false ;
-    }
+    for (Actor c : crew) if (c.aboard() != this) all = false ;
     return all ;
+  }
+  
+  
+  protected void offloadPassengers() {
+    final int size = (int) Math.ceil(radius() * 2) ;
+    final int EC[] = Spacing.entranceCoords(size, size, entranceFace) ;
+    final Vec3D p = this.position ;
+    final Tile exit = world.tileAt(p.x + EC[0], p.y + EC[1]) ;
+    for (Mobile m : inside()) if (! m.inWorld()) {
+      m.enterWorldAt(exit.x, exit.y, world) ;
+    }
   }
   
   
   
   /**  Handling the business of ascent and landing-
     */
-  public void beginDescent(Venue landing) {
+  protected boolean checkLandingArea(World world, Box2D area) {
+    for (Tile t : world.tilesIn(area, false)) {
+      if (t == null || t.owningType() > Element.ENVIRONMENT_OWNS) return false ;
+    }
+    return true ;
+  }
+  
+  
+  private void performLandingAt(World world, Box2D area) {
+    for (Tile t : world.tilesIn(area, false)) {
+      if (t.owner() != null) t.owner().setAsDestroyed() ;
+    }
+    area = new Box2D().setTo(area).expandBy(-1) ;
+    for (Tile t : world.tilesIn(area, false)) {
+      t.setOwner(this) ;
+    }
+    for (Tile t : world.tilesIn(area, false)) {
+      for (Mobile m : t.inside()) {
+        final Tile e = Spacing.nearestOpenTile(m.origin(), m) ;
+        m.setPosition(e.x, e.y, world) ;
+      }
+    }
+  }
+  
+  
+  private void performTakeoff(World world, Box2D area) {
+    area = new Box2D().setTo(area).expandBy(-1) ;
+    for (Tile t : world.tilesIn(area, false)) {
+      t.setOwner(null) ;
+    }
+  }
+  
+  
+  private Box2D landArea() {
+    final Box2D area = area(null) ;
+    area.clipToMultiple(1) ;
+    area.expandBy(1) ;
+    I.say("Landing area is: "+area) ;
+    return area ;
+  }
+  
+  
+  
+  /**  Code for finding a suitable landing site-
+    */
+  public static Box2D findLandingSite(Dropship landing, final Base base) {
+    //
+    //  Firstly, determine a reasonable starting position-
+    final World world = base.world ;
+    final Tile midTile = world.tileAt(world.size / 2, world.size / 2) ;
+    final Target nearest = world.presences.randomMatchNear(base, midTile, -1) ;
+    if (nearest == null) return null ;
+    final Tile init = Spacing.nearestOpenTile(world.tileAt(nearest), midTile) ;
+    if (init == null) return null ;
+    return findLandingSite(landing, init, base) ;
+  }
+  
+  
+  public static Box2D findLandingSite(
+    final Dropship landing, final Tile init, final Base base
+  ) {
+    //
+    //  Then, spread out to try and find a decent landing site-
+    final Box2D area = landing.landArea() ;
+    final TileSpread spread = new TileSpread(init) {
+      protected boolean canAccess(Tile t) {
+        if (Spacing.distance(t, init) > World.DEFAULT_SECTOR_SIZE) return false ;
+        return ! t.blocked() ;
+      }
+      protected boolean canPlaceAt(Tile t) {
+        area.xpos(t.x) ;
+        area.ypos(t.y) ;
+        return landing.checkLandingArea(base.world, area) ;
+      }
+    } ;
+    spread.doSearch() ;
+    if (spread.success()) return area ;
+    return null ;
+  }
+  
+  
+  
+  //
+  //  TODO:  Fade out alpha during the final and initial stages of flight.
+  
+  public void beginDescent(Box2D area, World world) {
     if (inWorld()) I.complain("Already in world!") ;
-    final World world = landing.world() ;
-    final Box2D area = landing.area() ;
-    this.dropPoint = landing ;
+    //final World world = landing.world() ;
+    //final Box2D area = landing.area() ;
+    //this.dropPoint = landing ;
     this.landPos.set(
       area.xpos() + (area.xdim() / 2),
       area.ypos() + (area.ydim() / 2)
@@ -177,14 +285,20 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   
   protected void completeDescent() {
+    this.performLandingAt(world, landArea()) ;
+    this.offloadPassengers() ;
+    
     initTime = world.currentTime() ;
-    for (Item item : cargo.allItems()) cargo.transfer(item, dropPoint) ;
+    stage = STAGE_LANDED ;
+    ///for (Item item : cargo.allItems()) cargo.transfer(item, dropPoint) ;
   }
   
   
   public void beginAscent() {
+    this.performTakeoff(world, landArea()) ;
+    
     if (! inWorld()) I.complain("No longer in world!") ;
-    if (dropPoint instanceof DropZone) dropPoint.exitWorld() ;
+    ///if (dropPoint instanceof DropZone) dropPoint.exitWorld() ;
     initTime = world.currentTime() ;
     stage = STAGE_ASCENT ;
   }
@@ -205,10 +319,11 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     return stage > STAGE_DESCENT && stage < STAGE_ASCENT ;
   }
   
-  
+  /*
   public Venue landingSite() {
     return dropPoint ;
   }
+  //*/
   
   
   public float timeSinceDescent(World world) {
@@ -270,8 +385,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   
   //  TODO:  Move this to the vehicle class?
-  //      ...This is still causing problems- jittery positioning.  Also, wierd
-  //         effects on cropland.  You'll need to perform explicit placement.
+  //  ...Why is that jittery positioning bug happening?
   private Vec3D getShipPos(float time) {
     if (time < UPPER_FLIGHT_TIME) {
       final float
@@ -284,6 +398,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
         (landPos.y * horiz) + (liftOff.y * (1 - horiz)),
         LOWER_FLIGHT_HEIGHT + (UPPER_FLIGHT_RADIUS * vert)
       ) ;
+      if (BaseUI.isPicked(this)) I.say("  ship position: "+p) ;
       //I.say("  Horiz/vert are: "+horiz+"/"+vert+", pos: "+p) ;
       return p ;
     }
@@ -307,6 +422,8 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     return (initAngle + terpAngle + 360) % 360 ;
   }
   
+  //  There is some kind of massive instability being caused here.
+  
   
   
   /**  Rendering and interface methods-
@@ -327,19 +444,23 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     super.renderFor(rendering, base) ;
   }
   
+  
   public String fullName() {
     return "Freighter" ;
   }
+  
   
   public Composite portrait(HUD UI) {
     return null ;
   }
   
+  
   public String helpInfo() {
     return null ;
   }
   
-  public void writeInformation(Description description, int categoryID, HUD UI) {
+  
+  public void writeInformation(Description d, int categoryID, HUD UI) {
   }
 }
 

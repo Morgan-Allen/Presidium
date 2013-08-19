@@ -26,11 +26,13 @@ import src.user.* ;
   *  interface with vehicles.  It occupies a single tile, just outside the
   *  vehicle door.
   */
+/*
 public class DropZone extends Venue implements BuildConstants {
   
   
   /**  Fields, constants, constructors and save/load methods-
     */
+  /*
   Vehicle landing ;
   
   
@@ -95,6 +97,7 @@ public class DropZone extends Venue implements BuildConstants {
   
   /**  Satisfying supply and demand-
     */
+  /*
   protected Vocation[] careers() {
     return new Vocation[0] ;
   }
@@ -113,6 +116,7 @@ public class DropZone extends Venue implements BuildConstants {
   
   /**  Entry and exit methods, that similarly need to be overwritten.
     */
+  /*
   public int owningType() {
     return inWorld() ? Element.VENUE_OWNS : Element.FIXTURE_OWNS ;
   }
@@ -143,6 +147,7 @@ public class DropZone extends Venue implements BuildConstants {
   
   /**  Rendering and interface methods-
     */
+  /*
   public String fullName() {
     return "Drop Zone for "+landing.fullName() ;
   }
@@ -165,7 +170,7 @@ public class DropZone extends Venue implements BuildConstants {
 }
 
 
-
+//*/
 
 
 

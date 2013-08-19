@@ -87,7 +87,7 @@ public class Camera {
     port.cameraPosition.x += x ;
     port.cameraPosition.y += y ;
     //UI.setSelected(null) ;
-    UI.selection.setSelected(null) ;
+    UI.selection.pushSelection(null, true) ;
     lockTarget = null ;
   }
   

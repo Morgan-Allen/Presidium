@@ -41,7 +41,7 @@ public class MissionsList extends UIGroup {
         protected void whenHovered() {
         }
         protected void whenClicked() {
-          UI.selection.setSelected(mission) ;
+          UI.selection.pushSelection(mission, true) ;
         }
       } ;
       

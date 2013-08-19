@@ -74,22 +74,16 @@ public class Tile implements Target, TileConstants, Boardable {
     return elevation ;
   }
   
-  public boolean inWorld() {
-    return true ;
-  }
+  public boolean inWorld() { return true ; }
+  public boolean destroyed() { return false ; }
   
   public Vec3D position(Vec3D v) {
     if (v == null) v = new Vec3D() ;
     return v.set(x, y, elevation()) ;
   }
   
-  public float radius() {
-    return 0.0f ;
-  }
-  
-  public float height() {
-    return 0 ;
-  }
+  public float radius() { return 0 ; }
+  public float height() { return 0 ; }
   
   
   /**  Setting path type and occupation-

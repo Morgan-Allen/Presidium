@@ -50,7 +50,8 @@ public class Cantina extends Venue {
   
   
   protected Vocation[] careers() {
-    return null ;
+    return new Vocation[0] ;
+    ///return new Vocation[] { Vocation.FRONTMAN, Vocation.PERFORMER } ;
   }
   
   

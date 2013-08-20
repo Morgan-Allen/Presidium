@@ -30,7 +30,7 @@ public class TalkFX extends SFX {
   final static float
     LINE_HIGH  = FONT.map[' '].height,
     LINE_SPACE = LINE_HIGH + 10,
-    FADE_RATE  = 1f / 25 ;
+    FADE_RATE  = 1f / 40 ;// 1f / 25 ;
   
   final Stack <Bubble> toShow = new Stack <Bubble> () ;
   final Stack <Bubble> showing = new Stack <Bubble> () ;
@@ -195,7 +195,7 @@ public class TalkFX extends SFX {
       
       texWide = 128 * 40f / texHigh,  //True width/height for the texture.
       minX = x - 10,
-      maxX = x + bubble.width + 10,
+      maxX = x + Math.max(bubble.width, 64) + 10,
       capXL = minX + (texWide * 0.25f),
       capXR = maxX - (texWide * 0.25f) ;
     ///I.say("Tex dims are: "+TW+" "+TH) ;

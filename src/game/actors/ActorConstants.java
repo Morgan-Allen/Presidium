@@ -206,7 +206,7 @@ public interface ActorConstants {
       "Fickle"
     ),
     INQUISITIVE = new Trait(PERSONALITY,
-      "Insatiable Curiosity",
+      "Insatiably Curious",
       "Inquisitive",
       "Curious",
       null,

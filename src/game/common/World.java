@@ -166,6 +166,11 @@ public class World {
   }
   
   
+  public List <Base> bases() {
+    return bases ;
+  }
+  
+  
   
   /**  Update methods.
     */

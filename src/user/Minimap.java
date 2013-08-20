@@ -62,13 +62,10 @@ public class Minimap extends UINode {
   }
   
   
-  //*
   public void updateAt(Tile t) {
     final Colour avg = t.minimapHue() ;
-    ///I.say("  Updating minimap at "+t+", hue: "+avg) ;
     mapImage.putColour(avg, t.x, t.y) ;
   }
-  //*/
   
   
   protected UINode selectionAt(Vec2D mousePos) {
@@ -114,7 +111,7 @@ public class Minimap extends UINode {
     //GL11.glColor4f(1, 1, 1, oldFade) ;
     //newImage.bindTex() ;
     //renderTex() ;
-    if (base != null) {
+    if (base != null && ! GameSettings.noFog) {
       GL11.glColor4f(0, 0, 0, 1) ;
       base.intelMap.fogTex().bindTex() ;
       renderTex() ;

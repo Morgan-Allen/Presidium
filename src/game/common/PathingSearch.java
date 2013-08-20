@@ -111,18 +111,26 @@ public class PathingSearch extends Search <Boardable> {
   
   protected float cost(Boardable prior, Boardable spot) {
     if (spot == null) return -1 ;
+    float mods = 0 ;
     //
     //  TODO:  Incorporate sector-based danger values, and stay out of hostile
     //         bases' line of sight when sneaking.
+    if (client != null && client.base() != null && spot instanceof Tile) {
+      final float presence = client.base().dangerMap.valAt((Tile) spot) ;
+      if (presence < 0) mods += presence * -5 ;
+    }
     //
     //  TODO:  If the area or tile has other actors in it, increase the
     //         perceived cost.
+    mods += spot.inside().size() / 2f ;
+    //
+    //  Finally, return a value based on pathing difficulties in the terrain-
     final float baseCost = Spacing.distance(prior, spot) ;
-    if (fogged(spot)) return 2.0f * baseCost ;
+    if (fogged(spot)) return (2.0f * baseCost) + mods ;
     switch (spot.pathType()) {
-      case (Tile.PATH_CLEAR  ) : return 1.0f * baseCost ;
-      case (Tile.PATH_ROAD   ) : return 0.5f * baseCost ;
-      case (Tile.PATH_HINDERS) : return 2.0f * baseCost ;
+      case (Tile.PATH_CLEAR  ) : return (1.0f * baseCost) + mods ;
+      case (Tile.PATH_ROAD   ) : return (0.5f * baseCost) + mods ;
+      case (Tile.PATH_HINDERS) : return (2.0f * baseCost) + mods ;
       default : return baseCost ;
     }
   }
@@ -144,3 +152,5 @@ public class PathingSearch extends Search <Boardable> {
     return best == destination ;
   }
 }
+
+

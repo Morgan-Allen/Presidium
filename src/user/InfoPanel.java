@@ -7,6 +7,9 @@
 
 package src.user ;
 import src.util.* ;
+import src.game.actors.Actor;
+import src.game.building.Vehicle;
+import src.game.building.Venue;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 ///import src.graphics.widgets.Text.Clickable ;
@@ -26,6 +29,27 @@ public class InfoPanel extends UIGroup implements UIConstants {
     DEFAULT_TOP_MARGIN = 50,
     MARGIN_WIDTH = 10,
     HEADER_HEIGHT = 50 ;
+  
+  final static Class INFO_CLASSES[] = {
+    Vehicle.class,
+    Actor.class,
+    Venue.class
+  } ;
+  private static Table <Class, Integer> DEFAULT_CATS = new Table() ;
+  
+  private static Class infoClass(Selectable s) {
+    if (s == null) return null ;
+    for (Class c : INFO_CLASSES) {
+      if (c.isAssignableFrom(s.getClass())) return c ;
+    }
+    return null ;
+  }
+  
+  private void setCategory(int catID) {
+    this.categoryID = catID ;
+    final Class IC = infoClass(selected) ;
+    if (IC != null) DEFAULT_CATS.put(IC, catID) ;
+  }
   
   
   final protected BaseUI UI ;
@@ -67,7 +91,14 @@ public class InfoPanel extends UIGroup implements UIConstants {
     this.selected = selected ;
     final String cats[] = (selected == null) ?
       null : selected.infoCategories() ;
+
     categoryID = 0 ;
+    final Class IC = infoClass(selected) ;
+    if (IC != null) {
+      final Integer catID = DEFAULT_CATS.get(IC) ;
+      I.say("Default category is: "+catID) ;
+      if (catID != null) categoryID = catID ;
+    }
   }
   
   
@@ -105,14 +136,6 @@ public class InfoPanel extends UIGroup implements UIConstants {
     headerText.setText(selected.fullName()) ;
     
     headerText.append("\n") ;
-    if (previous != null) {
-      headerText.append(new Description.Link("UP ") {
-        public void whenClicked() {
-          UI.selection.pushSelection(previous, false) ;
-        }
-      }) ;
-    }
-    
     final String cats[] = selected.infoCategories() ;
     if (cats != null) {
       for (int i = 0 ; i < cats.length ; i++) {
@@ -120,10 +143,18 @@ public class InfoPanel extends UIGroup implements UIConstants {
         final boolean CC = categoryID == i ;
         headerText.append(new Text.Clickable() {
           public String fullName() { return ""+cats[index]+" " ; }
-          public void whenClicked() { categoryID = index ; }
+          public void whenClicked() { setCategory(index) ; }
         }, CC ? Colour.GREEN : Text.LINK_COLOUR) ;
       }
     }
+    if (previous != null) {
+      headerText.append(new Description.Link("UP") {
+        public void whenClicked() {
+          UI.selection.pushSelection(previous, false) ;
+        }
+      }) ;
+    }
+    
     detailText.setText("") ;
     selected.writeInformation(detailText, categoryID, UI) ;
   }

@@ -13,6 +13,11 @@ import src.user.* ;
 import src.util.* ;
 
 
+//
+//  ...This should be linked to an Order object at a venue, so that progress
+//  can be tracked externally and the job taken up by other actors.  Key off
+//  the item in question?
+
 
 public class Manufacture extends Plan implements Behaviour {
   
@@ -27,7 +32,7 @@ public class Manufacture extends Plan implements Behaviour {
   final Conversion conversion ;
   
   private float progress = 0, timeTaken = 0 ;
-  private Item[] needed ;
+  private Item[] needed ;//, made ;
   
   
   

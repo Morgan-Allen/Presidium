@@ -143,7 +143,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     for (Actor near : actorB) {
       choice.add(new Combat(actor, near)) ;
       choice.add(new Treatment(actor, near)) ;
-      //choice.add(new Dialogue(actor, near)) ;
+      choice.add(new Dialogue(actor, near, true)) ;
     }
     //
     //  Consider repairing nearby buildings-

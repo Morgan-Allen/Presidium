@@ -9,6 +9,7 @@ package src.game.actors ;
 import src.game.building.* ;
 import src.game.common.* ;
 import src.game.social.* ;
+import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.sfx.* ;
 import src.user.* ;
@@ -157,9 +158,15 @@ public abstract class Actor extends Mobile implements
   public void updateAsScheduled(int numUpdates) {
     health.updateHealth(numUpdates) ;
     if (health.conscious()) {
-      AI.updatePsyche(numUpdates) ;
-      if (base() != null) {
-        base().intelMap.liftFogAround(this, health.sightRange()) ;
+      AI.updateAI(numUpdates) ;
+      //
+      //  Update the intel/danger maps associated with world's bases.
+      final float power = Combat.combatStrength(this) ;
+      for (Base b : world.bases()) {
+        if (b == base()) b.intelMap.liftFogAround(this, health.sightRange()) ;
+        if (! visibleTo(b)) continue ;
+        final float relation = AI.relation(b) ;
+        b.dangerMap.imposeVal(origin(), power * relation) ;
       }
     }
     else if (health.decomposed()) setAsDestroyed() ;

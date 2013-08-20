@@ -54,6 +54,11 @@ public class Table <K, V> extends java.util.Hashtable <K, V> {
   }
   
   
+  public static int hashFor(Object a, Object b) {
+    return (a.hashCode() * 13) + (b.hashCode() % 13) ;
+  }
+  
+  
   public static int hashFor(Object... args) {
     int hash = 0 ;
     for (Object o : args) {

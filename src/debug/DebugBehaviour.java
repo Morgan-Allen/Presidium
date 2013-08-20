@@ -77,6 +77,8 @@ public class DebugBehaviour extends PlayLoop {
   
   protected void configureScenario(World world, Base base, HUD HUD) {
     
+    I.say(" "+(String.class.isAssignableFrom(Object.class))) ;
+    
     //
     //  You also need to try scenarios between multiple actors, some of them
     //  hostile, and see how they respond.  Ideally, you don't want actors
@@ -84,7 +86,7 @@ public class DebugBehaviour extends PlayLoop {
     
     //  Also, rest/relaxation needs to be re-implemented.  And housing, for
     //  the sake of food and so forth.  Then, recreation behaviours.
-
+    
     //
     //  Get rid of strict requirements for manufacture.
     
@@ -96,8 +98,8 @@ public class DebugBehaviour extends PlayLoop {
     //  freighter is handled.  Get rid of the DropZone shebang.
     
     baseScenario(world, base, HUD) ;
-    //missionScenario(world, base, HUD) ;
     //natureScenario(world, base, HUD) ;
+    //missionScenario(world, base, HUD) ;
     //socialScenario(world, base, HUD) ;
   }
   
@@ -130,14 +132,19 @@ public class DebugBehaviour extends PlayLoop {
     *  construction of the settlement-
     */
   private void baseScenario(World world, Base base, HUD UI) {
-    
-    //  ...Have a dropship come along.  Immediately?
-    
+    /*
+    final Dropship ship = new Dropship() ;
+    ship.assignBase(base) ;
+    final Box2D area = new Box2D().set(Rand.index(10), Rand.index(10), 6, 6) ;
+    ship.beginDescent(area, world) ;
+    base.intelMap.liftFogAround(world.tileAt(5, 5), 10) ;
+    if (true) return ;
+    //*/
     
     final Artificer artificer = new Artificer(base) ;
     artificer.enterWorldAt(8, 8, world) ;
-    artificer.setAsEstablished(true) ;
     artificer.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+    artificer.setAsEstablished(true) ;
     artificer.onCompletion() ;
     base.intelMap.liftFogAround(artificer, 5) ;
     ((BaseUI) UI).selection.pushSelection(artificer, true) ;
@@ -231,7 +238,7 @@ public class DebugBehaviour extends PlayLoop {
     //  ...Maybe you should consider getting them back to the Hospice first?
     
     base.intelMap.liftFogAround(actor, 10) ;
-    other.health.takeFatigue(other.health.maxHealth() / 2) ;
+    //other.health.takeFatigue(other.health.maxHealth() / 2) ;
     //other.health.takeInjury(other.health.maxHealth() + 1) ;
     
     final Cantina cantina = new Cantina(base) ;

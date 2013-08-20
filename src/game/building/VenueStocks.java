@@ -23,17 +23,28 @@ public class VenueStocks extends Inventory {
     POTENTIAL_INC = 0.15f,
     SEARCH_RADIUS = 32,
     MAX_CHECKED = 4 ;
+
   
-  
-  final Venue venue ;
-  Table <Item.Type, Demand> demands = new Table() ;
-  List <Plan> orders = new List <Plan> () ;
+  //  TODO:  It's possible Orders should be a dedicated class, instead of a
+  //  list of plans.  Is it possible the two can be combined?
   
   
   static class Demand {
     Item.Type type ;
     float required, received, balance ;
   }
+  
+  
+  static class Order {
+    Item ordered ;
+    Actor assigned ;
+    Manufacture manufacture ;
+  }
+  
+  
+  final Venue venue ;
+  Table <Item.Type, Demand> demands = new Table() ;
+  List <Plan> orders = new List <Plan> () ;
   
   
   VenueStocks(Venue v) {
@@ -70,41 +81,10 @@ public class VenueStocks extends Inventory {
   
   
   
-  
-  /**  Internal and external updates-
+  /**  Assigning and producing jobs-
     */
-  Demand demandFor(Item.Type t) {
-    final Demand d = demands.get(t) ;
-    if (d != null) return d ;
-    Demand made = new Demand() ;
-    made.type = t ;
-    demands.put(t, made) ;
-    return made ;
-  }
-  
-  
-  public void setRequired(Item.Type type, float amount) {
-    demandFor(type).required = amount ;
-  }
-  
-  
-  public void incRequired(Item.Type type, float amount) {
-    demandFor(type).required += amount ;
-  }
-  
-  
-  public void receiveDemand(Item.Type type, float amount) {
-    demandFor(type).received += amount * POTENTIAL_INC ;
-  }
-  
-  
-  public float receivedShortage(Item.Type type) {
-    return demandFor(type).received - venue.stocks.amountOf(type) ;
-  }
-  
-  
-  public float requiredShortage(Item.Type type) {
-    return demandFor(type).required - venue.stocks.amountOf(type) ;
+  public void assignOrder(Manufacture newOrder) {
+    orders.add(newOrder) ;
   }
   
   
@@ -157,6 +137,45 @@ public class VenueStocks extends Inventory {
   }
   
   
+  
+  
+  /**  Internal and external updates-
+    */
+  Demand demandFor(Item.Type t) {
+    final Demand d = demands.get(t) ;
+    if (d != null) return d ;
+    Demand made = new Demand() ;
+    made.type = t ;
+    demands.put(t, made) ;
+    return made ;
+  }
+  
+  
+  public void setRequired(Item.Type type, float amount) {
+    demandFor(type).required = amount ;
+  }
+  
+  
+  public void incRequired(Item.Type type, float amount) {
+    demandFor(type).required += amount ;
+  }
+  
+  
+  public void receiveDemand(Item.Type type, float amount) {
+    demandFor(type).received += amount * POTENTIAL_INC ;
+  }
+  
+  
+  public float receivedShortage(Item.Type type) {
+    return demandFor(type).received - venue.stocks.amountOf(type) ;
+  }
+  
+  
+  public float requiredShortage(Item.Type type) {
+    return demandFor(type).required - venue.stocks.amountOf(type) ;
+  }
+  
+  
   private void checkBalance() {
     for (Demand d : demands.values()) {
       d.balance = venue.stocks.amountOf(d.type) ;
@@ -183,7 +202,7 @@ public class VenueStocks extends Inventory {
     return true ;
   }
   
-  
+  /*
   public Batch <Item> shortages(boolean requiredOnly) {
     final Batch <Item> batch = new Batch <Item> () ;
     for (Demand d : demands.values()) {
@@ -194,7 +213,7 @@ public class VenueStocks extends Inventory {
     }
     return batch ;
   }
-  
+  //*/
   
 
   /**  Updates and maintenance.
@@ -222,7 +241,8 @@ public class VenueStocks extends Inventory {
   }
   
   
-  public void updateOrders() {
+  public void updateStocks(int numUpdates) {
+    if (numUpdates % 10 != 0) return ;
     //for (Demand d : demands.values()) d.reserved = 0 ;
     final Presences presences = venue.base().world.presences ;
     //

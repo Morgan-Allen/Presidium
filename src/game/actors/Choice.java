@@ -48,7 +48,8 @@ public class Choice {
     //  Firstly, acquire the priorities for each plan.  If the permitted range
     //  of priorities is zero, simply return the most promising.
     if (BaseUI.isPicked(actor)) I.say(
-      actor+" is making a choice, range: "+priorityRange
+      actor+" ("+actor.vocation().name+
+      ") is making a choice, range: "+priorityRange
     ) ;
     float highestW = 0 ;
     int i = 0 ;

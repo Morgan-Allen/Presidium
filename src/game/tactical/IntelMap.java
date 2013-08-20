@@ -25,7 +25,7 @@ public class IntelMap {
   //  0.5, or 0.3, or something.  That way, you still get the 'fadeout' effect
   //  at the edge of an actor's vision.
   
-  float dangerLevel ;
+  ///float dangerLevel ;
   //  Create old and new fog maps later on.  Have one fade in completely before
   //  you fade the other out, every half-second or so.
   private Texture fogTex ;

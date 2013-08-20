@@ -133,7 +133,7 @@ public abstract class Venue extends Fixture implements
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
     world.presences.togglePresence(this, true , services()) ;
-    if (base != null) updatePaving(true) ;
+    ///if (base != null) updatePaving(true) ;
     world.schedule.scheduleForUpdates(this) ;
   }
   
@@ -231,11 +231,12 @@ public abstract class Venue extends Fixture implements
   
   
   public void updateAsScheduled(int numUpdates) {
-    if (! structure.intact()) return ;
-    if (numUpdates % 10 == 0) {
-      stocks.updateOrders() ;
-      if (base != null) updatePaving(true) ;
+    if (! structure.intact()) {
+      personnel.updatePersonnel(numUpdates) ;
+      return ;
     }
+    if (base != null && numUpdates % 10 == 0) updatePaving(true) ;
+    stocks.updateStocks(numUpdates) ;
     personnel.updatePersonnel(numUpdates) ;
     structure.updateStructure(numUpdates) ;
   }
@@ -370,7 +371,8 @@ public abstract class Venue extends Fixture implements
   
   
   private void describePersonnel(Description d, HUD UI) {
-    
+    //
+    //  List applicants for various positions-
     d.append("APPLICANTS:") ;
     if (personnel.applications.size() == 0) d.append("\n  No applicants.") ;
     else for (final VenuePersonnel.Application app : personnel.applications) {
@@ -389,8 +391,12 @@ public abstract class Venue extends Fixture implements
     if (personnel.workers().size() == 0) d.append("\n  No workers.") ;
     else for (Actor a : personnel.workers()) {
       d.append("\n  ") ; d.append(a) ;
+      d.append(" ("+a.vocation().name+")") ;
     }
-    //  List any unfilled slots, going by vocation.
+    for (Vocation v : careers()) {
+      final int numOpen = numOpenings(v) ;
+      if (numOpen > 0) d.append("\n  "+numOpen+" "+v.name+" vacancies") ;
+    }
     d.append("\n\nRESIDENTS:") ;
     if (personnel.residents().size() == 0) d.append("\n  No residents.") ;
     else for (Actor a : personnel.residents()) {

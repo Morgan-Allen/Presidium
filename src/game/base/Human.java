@@ -123,7 +123,7 @@ public class Human extends Actor implements ActorConstants {
     else if (descO.equals("Homosexual")) {
       matchO = (actorG * otherG > 0) ? 1 : 0.33f ;
     }
-    return attraction * matchO ;
+    return attraction * matchO / 10f ;
   }
   
   
@@ -283,7 +283,7 @@ public class Human extends Actor implements ActorConstants {
 
 
   public String fullName() {
-    return career.fullName()+" ("+career.vocation().name+")" ;
+    return career.fullName() ;
   }
   
   
@@ -406,7 +406,7 @@ public class Human extends Actor implements ActorConstants {
     d.append("\n  Trained as "+career.vocation()) ;
     d.append("\n  Age: "+health.exactAge()+" ("+health.agingDesc()+")") ;
     
-    d.appendList("\n\nPhysique: ", traits.physique()) ;
+    //d.appendList("\n\nPhysique: ", traits.physique()) ;
     d.appendList("\n\nPersonality: ", traits.personality()) ;
     
     d.append("\n\nRelationships: ") ;

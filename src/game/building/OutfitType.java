@@ -5,11 +5,12 @@ import src.graphics.common.* ;
 import java.io.* ;
 
 
+
 public class OutfitType extends Item.Type implements BuildConstants {
   
   
-  final public static String
-    SHIELD_ATTACH_POINT = "root" ;
+  //final public static String
+    //SHIELD_ATTACH_POINT = "root" ;
   
   final public float
     defence,
@@ -33,5 +34,11 @@ public class OutfitType extends Item.Type implements BuildConstants {
       this.skin = null ;
   }
   
-  public Conversion materials() { return materials ; }
+  
+  public Conversion materials() {
+    return materials ;
+  }
 }
+
+
+

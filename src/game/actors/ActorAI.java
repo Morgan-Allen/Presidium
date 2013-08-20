@@ -255,7 +255,7 @@ public abstract class ActorAI implements ActorConstants {
   protected abstract Behaviour nextBehaviour() ;
   
   
-  protected void updatePsyche(int numUpdates) {
+  protected void updateAI(int numUpdates) {
     if (numUpdates % 10 == 0 && behaviourStack.size() > 0) {
       for (Behaviour b : todoList) {
         if (b.complete() || b.priorityFor(actor) <= 0) todoList.remove(b) ;
@@ -295,16 +295,28 @@ public abstract class ActorAI implements ActorConstants {
   }
   
   
+  //  TODO:  Consider return Relation objects directly, with a NONE object in
+  //  case of new subjects?
+  
   public float relation(Actor other) {
-    Relation r = relations.get(other) ;
+    final Relation r = relations.get(other) ;
     if (r == null) return 0 ;
     return r.value() ;
   }
   
   
+  public float novelty(Actor other) {
+    final Relation r = relations.get(other) ;
+    if (r == null) return 1 ;
+    return r.novelty(actor.world()) ;
+  }
+  
+  
   public void incRelation(Accountable other, float inc) {
     Relation r = relations.get(other) ;
-    if (r == null) relations.put(other, r = new Relation(actor, other)) ;
+    if (r == null) relations.put(
+      other, r = new Relation(actor, other, 0, actor.world())
+    ) ;
     r.incValue(inc) ;
   }
   

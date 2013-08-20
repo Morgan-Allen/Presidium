@@ -38,7 +38,11 @@ public class DeviceType extends Item.Type implements BuildConstants {
     this.groupName = groupName ;
   }
   
-  public Conversion materials() { return materials ; }
+  
+  public Conversion materials() {
+    return materials ;
+  }
+  
   
   public boolean hasProperty(int p) {
     return (properties & p) == p ;
@@ -72,7 +76,7 @@ public class DeviceType extends Item.Type implements BuildConstants {
       //  You'll have to create a missile effect, with similar parameters.
     }
     else if (type.hasProperty(RANGED | ENERGY)) {
-      final BeamFX beam = new BeamFX(LASER_TEX, 0.1f) ;
+      final BeamFX beam = new BeamFX(LASER_TEX, 0.05f) ;
       
       uses.position(beam.origin) ;
       final JointSprite sprite = (JointSprite) uses.sprite() ;

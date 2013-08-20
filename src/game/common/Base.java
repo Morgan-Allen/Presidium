@@ -39,7 +39,9 @@ public class Base implements
   final Table <Accountable, Relation> baseRelations = new Table() ;
   
   final public Paving paving ;
-  //  ...You should also have a PresenceMap just for construction.
+  //  ...You should also have a PresenceMap just for maintenance purposes.
+  
+  final public DangerMap dangerMap ;
   final public IntelMap intelMap = new IntelMap(this) ;
   
   
@@ -47,6 +49,7 @@ public class Base implements
   public Base(World world) {
     this.world = world ;
     paving = new Paving(world) ;
+    dangerMap = new DangerMap(world, this) ;
     intelMap.initFog(world) ;
   }
   
@@ -63,13 +66,16 @@ public class Base implements
     communitySpirit = s.loadFloat() ;
     alertLevel = s.loadFloat() ;
     crimeLevel = s.loadFloat() ;
-    
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Relation r = Relation.loadFrom(s) ;
       baseRelations.put(r.subject, r) ;
     }
+    
     paving = new Paving(world) ;
     paving.loadState(s) ;
+    
+    dangerMap = new DangerMap(world, this) ;
+    dangerMap.loadState(s) ;
     intelMap.loadState(s) ;
   }
   
@@ -84,10 +90,12 @@ public class Base implements
     s.saveFloat(communitySpirit) ;
     s.saveFloat(alertLevel) ;
     s.saveFloat(crimeLevel) ;
-    
     s.saveInt(baseRelations.size()) ;
     for (Relation r : baseRelations.values()) Relation.saveTo(s, r) ;
+    
     paving.saveState(s) ;
+    
+    dangerMap.saveState(s) ;
     intelMap.saveState(s) ;
   }
   
@@ -135,7 +143,7 @@ public class Base implements
   /**  Dealing with admin functions-
     */
   public void setRelation(Base base, float attitude) {
-    baseRelations.put(base, new Relation(this, base, attitude)) ;
+    baseRelations.put(base, new Relation(this, base, attitude, world)) ;
   }
   
   
@@ -158,6 +166,11 @@ public class Base implements
   
   
   public void updateAsScheduled(int numUpdates) {
+    //
+    //  Iterate across all personnel to get a sense of citizen mood, and
+    //  compute community spirit.
+    
+    
     commerce.updateCommerce() ;
     for (Mission mission : missions) mission.updateMission() ;
     //paving.distribute(VenueConstants.ALL_PROVISIONS) ;

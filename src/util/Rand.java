@@ -42,6 +42,7 @@ public class Rand {
   }
   
   final public static Object pickFrom(Object[] array) {
+    if (array.length == 0) return null ;
     return array[GEN.nextInt(array.length)] ;
   }
   

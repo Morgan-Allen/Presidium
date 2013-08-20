@@ -7,6 +7,7 @@
 
 
 package src.game.social ;
+//import src.game.actors.Behaviour;
 import src.game.common.* ;
 import src.util.* ;
 
@@ -25,6 +26,11 @@ public class Relation {
     TYPE_SIBLING = 4,
     TYPE_LORD    = 5,
     TYPE_VASSAL  = 6 ;
+  final public static float
+    MAG_CHATTING  = 0.33f,
+    MAG_HELPING   = 0.66f,
+    MAG_SAVE_LIFE = 1.00f ;
+  
   
   final static float
     MIN_ATT = -100,
@@ -46,22 +52,23 @@ public class Relation {
   
   final public Accountable object, subject ;
   final private int hash ;
+  final int initTime ;  //...This has to be the time the relation was founded.
   
   private float attitude = 0 ;
+  private int familiarity = 0 ;
   private int type = TYPE_GENERIC ;
   
   
-  
-  public Relation(Accountable object, Accountable subject) {
-    this(object, subject, 0) ;
-  }
-  
-  
-  public Relation(Accountable object, Accountable subject, float init) {
+  public Relation(
+    Accountable object, Accountable subject, float init, World world
+  ) {
     this.object = object ;
     this.subject = subject ;
+    this.initTime = (int) world.currentTime() ;
+    
     this.hash = Table.hashFor(object, subject) ;
     this.attitude = init ;
+    this.familiarity = 0 ;
   }
   
   
@@ -76,20 +83,29 @@ public class Relation {
   }
   
   
+  
+  private Relation(Session s) throws Exception {
+    object = (Accountable) s.loadObject() ;
+    subject = (Accountable) s.loadObject() ;
+    initTime = s.loadInt() ;
+    hash = Table.hashFor(object, subject) ;
+    attitude = s.loadFloat() ;
+    familiarity = s.loadInt() ;
+    type = s.loadInt() ;
+  }
+  
+  
   public static Relation loadFrom(Session s) throws Exception {
-    final Relation r = new Relation(
-      (Accountable) s.loadObject(), (Accountable) s.loadObject()
-    ) ;
-    r.attitude = s.loadFloat() ;
-    r.type = s.loadInt() ;
-    return r ;
+    return new Relation(s) ;
   }
   
   
   public static void saveTo(Session s, Relation r) throws Exception {
     s.saveObject((Session.Saveable) r.object ) ;
     s.saveObject((Session.Saveable) r.subject) ;
+    s.saveInt(r.initTime) ;
     s.saveFloat(r.attitude) ;
+    s.saveInt(r.familiarity) ;
     s.saveInt(r.type) ;
   }
   
@@ -99,6 +115,13 @@ public class Relation {
     */
   public float value() {
     return attitude / MAX_ATT ;
+  }
+  
+  
+  public float novelty(World world) {
+    float delay = world.currentTime() - initTime ;
+    delay /= World.DEFAULT_DAY_LENGTH ;
+    return delay + 1 - (familiarity / 10f) ;
   }
   
   
@@ -121,6 +144,7 @@ public class Relation {
   
   
   public void incValue(float inc) {
+    //Include weight, and use it to modify familiarity?
     //
     //  Roll dice matching current relationship against magnitude of event.
     final int numDice = (int) (Math.abs(attitude / ATT_DIE) + 0.5f) ;
@@ -128,11 +152,13 @@ public class Relation {
     for (int n = numDice ; n-- > 0 ;) roll += Rand.yes() ? 1 : 0 ;
     final float diff = (Math.abs(inc) - roll) * ATT_DIE ;
     //
-    //  Raise/lower by half the margin of failure.
+    //  Raise/lower by half the margin of failure, and increment familiarity
+    //  either way.
     if (diff > 0) {
       attitude += (inc > 0) ? (diff / 2) : (diff / -2) ;
       attitude = Visit.clamp(attitude, MIN_ATT, MAX_ATT) ;
     }
+    familiarity++ ;
   }
   
   

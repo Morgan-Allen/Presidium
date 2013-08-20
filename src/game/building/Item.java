@@ -82,6 +82,8 @@ public class Item implements BuildConstants {
       s.saveInt(typeID) ;
     }
     
+    public Conversion materials() { return null ; }
+    
     public String toString() { return name ; }
   }
   

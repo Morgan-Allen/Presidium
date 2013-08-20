@@ -24,25 +24,22 @@ public class Dialogue extends Plan implements ActorConstants {
   final static int
     STAGE_GREETING = 0,
     STAGE_TALKING  = 1,
-    STAGE_GOODBYE  = 3,
-    
-    TRANSCRIPT_SIZE = 5 ;
+    STAGE_GOODBYE  = 3 ;
   final static float
     FINISH_CHANCE = 0.1f ;
   
   final Actor other ;
-  protected Boardable location = null ;
-  
-  
-  //  TODO:  Introduce various stages (above) instead.
-  boolean finished = false ;
-  Stack <String> transcript = new Stack <String> () ;
+  final boolean inits ;
+  private Boardable location = null ;
+  private boolean speaking = false, finished = false ;
   
   
   
-  public Dialogue(Actor actor, Actor other) {
+  public Dialogue(Actor actor, Actor other, boolean inits) {
     super(actor, actor, other) ;
     this.other = other ;
+    this.inits = inits ;
+    this.speaking = inits ;
   }
   
   
@@ -50,6 +47,9 @@ public class Dialogue extends Plan implements ActorConstants {
     super(s) ;
     this.other = (Actor) s.loadObject() ;
     this.location = (Boardable) s.loadTarget() ;
+    this.inits = s.loadBool() ;
+    this.speaking = s.loadBool() ;
+    this.finished = s.loadBool() ;
   }
   
   
@@ -57,6 +57,9 @@ public class Dialogue extends Plan implements ActorConstants {
     super.saveState(s) ;
     s.saveObject(other) ;
     s.saveTarget(location) ;
+    s.saveBool(inits) ;
+    s.saveBool(speaking) ;
+    s.saveBool(finished) ;
   }
   
   
@@ -66,21 +69,22 @@ public class Dialogue extends Plan implements ActorConstants {
     *  conversation, or decide whether it even happens.)
     */
   //
-  //  Returns whether Actor can talk to Other.
-  public static boolean canTalk(Actor actor, Actor other) {
-    if (actor == other) return false ;
-    if (isListening(actor, other)) return true ;
-    return actor.AI.couldSwitch(
-      actor.AI.rootBehaviour(), new Dialogue(actor, other)
-    ) ;
-  }
-  
-  //
   //  Returns whether Actor is listening to Other.
   static boolean isListening(Actor actor, Actor other) {
     final Behaviour root = actor.AI.rootBehaviour() ;
     if (! (root instanceof Dialogue)) return false ;
     return ((Dialogue) root).other == other ;
+  }
+  
+  
+  //
+  //  Returns whether Actor can talk to Other.
+  public static boolean canTalk(Actor actor, Actor other) {
+    if (actor == other) return false ;
+    if (isListening(actor, other)) return true ;
+    return actor.AI.couldSwitch(
+      actor.AI.rootBehaviour(), new Dialogue(actor, other, false)
+    ) ;
   }
   
   
@@ -93,72 +97,77 @@ public class Dialogue extends Plan implements ActorConstants {
   }
   
   
-  static Skill mannersFor(Actor actor) {
-    if (actor instanceof Human) {
-      final Vocation birth = ((Human) actor).career().birth() ;
-      if (birth == Vocation.NATIVE_BIRTH) return NATIVE_TABOO ;
-      if (birth == Vocation.HIGH_BIRTH) return NOBLE_ETIQUETTE ;
-      return COMMON_CUSTOM ;
+  private void joinDialogue(Actor other) {
+    BaseUI.logFor(actor, actor+" starting dialogue with "+other) ;
+    final Dialogue forOther = new Dialogue(other, actor, false) ;
+    if (location instanceof Tile) {
+      final Box2D a = location.area(null) ;
+      forOther.location = Spacing.nearestOpenTile(a, other, actor.world()) ;
     }
-    //
-    //  TODO:  Create/re-locate/use species traits.  And use a wider variety of
-    //  skills for non-human actors.
-    return SUASION ;
+    else forOther.location = location ;
+    other.AI.assignBehaviour(forOther) ;
   }
   
   
-  static float firstImpression(Actor actor, Actor other) {
-    float impression = -10 * Rand.num() ;
-    if (other.traits.test(mannersFor(other), ROUTINE_DC, 1)) impression += 10 ;
-    if (other.traits.test(SUASION, ROUTINE_DC, 1)) impression += 10 ;
-    impression += actor.attraction(other) * Rand.avgNums(2) ;
-    return impression ;
+  private void finishDialogue() {
+    BaseUI.logFor(actor, actor+" finished dialogue.") ;
+    ///actor.chat.addPhrase(Wording.VOICE_GOODBYE, true) ;
+    this.finished = true ;
+    final Behaviour root = other.AI.rootBehaviour() ;
+    if (root instanceof Dialogue) {
+      final Dialogue d = ((Dialogue) root) ;
+      if (d.other == actor) d.finished = true ;
+    }
   }
   
   
   public float priorityFor(Actor actor) {
-    return IDLE ;
+    
+    if (finished || (inits && ! canTalk(other, actor))) return 0 ;
+    
+    ///I.say("____ Other actor can talk: "+other) ;
+    final float
+      relation = actor.AI.relation(other),
+      attraction = actor.attraction(other),
+      novelty = actor.AI.novelty(other) ;
     /*
-    float priority = ROUTINE / 4f ;
-    priority += actor.attraction(other) / 4f ;
-    priority += actor.psyche.relationTo(other) / 2f ;
-    priority += actor.traits.trueLevel(SOCIABLE) ;
-    
-    priority += actor.psyche.curiosity(Dialogue.class, actor, other) * 5 ;
-    I.say(actor+" priority for dialogue with "+other+" is "+priority) ;
-    
-    return Visit.clamp(priority, 0, ROUTINE) ;
+    I.say(
+      "____ Relation / attraction / novelty: "+
+      relation+" / "+attraction+" / "+novelty+
+      "\n____ For: "+other
+    ) ;
     //*/
+    //  TODO:  Include 'community spirit' as a factor here?  If you have dozens
+    //  of actors here, there'll be too many strangers to introduce yourself to.
+    
+    float appeal = 0 ;
+    appeal += relation ;
+    appeal += attraction / 2 ;
+    appeal += novelty * actor.traits.scaleLevel(INQUISITIVE) ;
+    appeal *= actor.traits.scaleLevel(SOCIABLE) * CASUAL ;
+    ///I.say("____ Final appeal of dialogue: "+appeal) ;
+    return Visit.clamp(appeal, 0, ROUTINE) ;
   }
   
   
   
   /**  Implementing the actual sequence of actions.
     */
-  //
-  //  The attraction here really needs to be based on how much information the
-  //  two have to exchange.
-  //  Basic info- homeworld, birth, vocation.
-  //  Recent events- last couple of behaviours known.
-  //  Fields of interest- skills and traits.
-  //  Acquaintances- friends, foes and family.
-  //  Trigger based on association?
   protected Behaviour getNextStep() {
-    if (! canTalk(actor, other)) {
-      BaseUI.logFor(actor, actor+" can't talk right now, breaking dialogue.") ;
+    if (priorityFor(actor) <= 0) {
+      ///BaseUI.logFor(actor, actor+" can't talk right now, breaking dialogue.") ;
       finishDialogue() ;
       return null ;
     }
-    if (finished) return null ;
     //
-    //  TODO:  Base this selection on a Stage field (above.)
-    if (location == null) {
+    //  TODO:  Base this selection on a Stage field (above)?
+    if (inits && location == null) {
       final Action greet = new Action(
         actor, other,
         this, "actionGreet",
         Action.TALK, "Greeting "+other
       ) ;
-      greet.setMoveTarget(actor) ;
+      greet.setProperties(Action.RANGED) ;
       return greet ;
     }
     //
@@ -173,36 +182,15 @@ public class Dialogue extends Plan implements ActorConstants {
   }
   
   
-  private void joinDialogue(Actor other) {
-    BaseUI.logFor(actor, actor+" starting dialogue with "+other) ;
-    final Dialogue forOther = new Dialogue(other, actor) ;
-    if (location instanceof Tile) {
-      forOther.location = Spacing.nearestOpenTile((Tile) location, other) ;
-    }
-    else forOther.location = location ;
-    other.AI.assignBehaviour(forOther) ;
-  }
-
-  
-  private void finishDialogue() {
-    BaseUI.logFor(actor, actor+" finished dialogue.") ;
-    this.finished = true ;
-    final Behaviour root = other.AI.rootBehaviour() ;
-    if (root instanceof Dialogue) {
-      final Dialogue d = ((Dialogue) root) ;
-      if (d.other == actor) d.finished = true ;
-    }
-  }
-  
-  
   public boolean actionGreet(Actor actor, Actor other) {
+    if (finished) return false ;
     if (canTalk(other, actor)) {
       location = pickLocation(this) ;
       joinDialogue(other) ;
       return true ;
     }
     else {
-      BaseUI.logFor(actor, other+" can't talk right now, breaking dialogue.") ;
+      //BaseUI.logFor(actor, other+" can't talk right now, breaking dialogue.") ;
       finishDialogue() ;
       return false ;
     }
@@ -210,77 +198,210 @@ public class Dialogue extends Plan implements ActorConstants {
   
   
   public boolean actionTalk(Actor actor, Actor other) {
-    if (finished || ! canTalk(other, actor)) {
+    if (finished) return false ;
+    if (! canTalk(other, actor)) {
+      I.say("____ Other actor CANNOT talk: "+other) ;
       finishDialogue() ;
       return false ;
     }
-
-    //*
-    I.say(actor+" talking to "+other) ;
-    final float attLevel = other.AI.relation(actor) ;
-    float success = 0 ;
-    if (actor.traits.test(mannersFor(actor), ROUTINE_DC, 1)) success += 5 ;
-    if (actor.traits.test(SUASION, attLevel * -20, 1)) success += 5 ;
-    ///success += other.psyche.attraction(actor) * Rand.num() ;
-    //success += (other.psyche.relationTo(other) / Relation.MAX_ATT) * Rand.num() ;
-    success /= 2 ;
-    
-    other.AI.incRelation(actor, success) ;
-    actor.health.liftStress(success / 5f) ;
-    //*/
-    //float success = 0.9f ;
-    
-    if (Rand.num() < FINISH_CHANCE && Rand.index(10) > success) {
-      finishDialogue() ;
+    speaking = ! speaking ;
+    if (speaking) return false ;
+    //
+    //  Try factoring this in a bit more thoroughly.
+    final float SE = suasionEffect(actor, other) ;
+    other.AI.incRelation(actor, SE) ;
+    if (SE > 0) actor.health.liftStress(SE) ;
+    else actor.health.takeStress(0 - SE) ;
+    //
+    //  Pick one of three approaches to take at random-
+    switch (Rand.index(3)) {
+      case(0): anecdote(actor, other) ;
+      case(1): gossip(actor, other) ;
+      case(2): advise(actor, other) ;
     }
     return true ;
   }
   
   
-  private void introduce(Actor actor, Actor other) {
-    //
-    //  Compare vocations, physical traits and appearance, and proper manners.
-    //  Set up initial relationships.
+  
+  /**
+    */
+  private float suasionEffect(Actor actor, Actor other) {
+    final float attLevel = other.AI.relation(actor) ;
+    float effect = 0 ;
+    if (actor.traits.test(SUASION, ROUTINE_DC, 1)) effect += 5 ;
+    else effect -= 5 ;
+    if (actor.traits.test(SUASION, attLevel * -20, 1)) effect += 5 ;
+    else effect -= 5 ;
+    effect /= 25 ;
+    return effect ;
   }
+  
+  
+  private void anecdote(Actor actor, Actor other) {
+    //
+    //  Pick a random recent activity and see if the other also indulged in it.
+    //  If the activity is similar, or was undertaken for similar reasons,
+    //  improve relations.
+    
+    //
+    //  TODO:  At the moment, we just compare traits.  Fix later.
+    final Trait comp = (Trait) Rand.pickFrom(actor.traits.personality()) ;
+    final float
+      levelA = actor.traits.scaleLevel(comp),
+      levelO = actor.traits.scaleLevel(comp),
+      effect = 0.5f - (Math.abs(levelA - levelO) / 1.5f) ;
+    final String desc = actor.traits.levelDesc(comp) ;
+    
+    other.AI.incRelation(actor, effect) ;
+    actor.AI.incRelation(other, effect) ;
+    
+    utters(actor, "It's important to be "+desc+".") ;
+    if (effect > 0) utters(other, "Absolutely.") ;
+    if (effect == 0) utters(other, "Yeah, I guess...") ;
+    if (effect < 0) utters(other, "No way!") ;
+  }
+  
   
   private void gossip(Actor actor, Actor other) {
     //
-    //  Pick a random recent activity and see if the other also indulged in it.
-    //  If the activity is similar, or was undertaken for similar reason,
-    //  improve relations.
+    //  Pick an acquaintance, see if it's mutual, and if so compare attitudes
+    //  on the subject.  TODO:  Include memories of recent activities?
+    final Relation r = (Relation) Rand.pickFrom(actor.AI.relations()) ;
+    if (r == null) {
+      utters(actor, "Nice weather, huh?") ;
+      utters(other, "Uh-huh.") ;
+      return ;
+    }
+    final float attA = r.value(), attO = other.AI.relation(actor) ;
+    if (r.subject == other) {
+      if (attA > 0) utters(actor, "I think we get along.") ;
+      else utters(actor, "We don't get along.") ;
+    }
+    else {
+      if (attA > 0) utters(actor, "I get on well with "+r.subject+".") ;
+      else utters(actor, "I don't get on with "+r.subject+".") ;
+    }
+    final boolean agrees = attO * attA > 0 ;
+    if (agrees) utters(other, "I can see that.") ;
+    else utters(other, "Really?") ;
+    
+    final float effect = 0.2f * (agrees ? 1 : -1) ;
+    other.AI.incRelation(actor, effect) ;
+    actor.AI.incRelation(other, effect) ;
   }
+  
   
   private void advise(Actor actor, Actor other) {
-    //
-    //  Pick a random skill and see if the other knows it.  Possibly instruct
-    //  the other in the skill in question, if their level is lower.  If so,
-    //  improve relations.
+    final Skill tested = (Skill) Rand.pickFrom(other.traits.skillSet()) ;
+    final float level = actor.traits.useLevel(tested) ;
+    
+    utters(other, "I'm interested in "+tested.name+".") ;
+    if (level < other.traits.useLevel(tested)) {
+      utters(actor, "Don't know much about that.") ;
+      return ;
+    }
+    utters(actor, "Well, here's what you do...") ;
+    utters(other, "You mean like this?") ;
+    
+    //  Use the Counsel skill here.  And/or possibly restrict to intellectual
+    //  skills?
+    
+    float effect = 0 ;
+    if (other.traits.test(tested, level / 2, 0.5f)) effect += 5 ;
+    else effect -= 5 ;
+    if (other.traits.test(tested, level * Rand.num(), 0.5f)) effect += 5 ;
+    else effect -= 5 ;
+    effect /= 25 ;
+    other.AI.incRelation(actor, effect) ;
+    actor.AI.incRelation(other, effect) ;
+    
+    if (effect > 0) utters(actor, "Yes, exactly!") ;
+    if (effect == 0) utters(actor, "Close. Try again.") ;
+    if (effect < 0) utters(actor, "No, that's not it...") ;
   }
   
-  private void request(Actor actor, Actor other) {
-    //
-    //  Pick something the actor wants, and ask the other for it.  If it's a
-    //  reasonable request, grant it.
-  }
+  
+  
+  /**  You need to have methods for convincing actors to switch allegiance,
+    *  chiefly for the sake of Contact missions.
+    */
+  
   
   
   /**  Rendering and interface methods-
     */
-  private void transcribe(Actor actor, String phrase) {
-    transcript.addLast(phrase) ;
-    if (transcript.size() > TRANSCRIPT_SIZE) transcript.removeFirst() ;
+  private void utters(Actor a, String s) {
+    a.chat.addPhrase(s, true) ;
   }
   
   
   public void describeBehaviour(Description d) {
-    d.append(actor) ;
-    d.append(" talking to ") ;
+    d.append("Talking to ") ;
     d.append(other) ;
   }
 }
 
 
+//
+//  TODO:  REINTRODUCE THESE ASAP.
 
+
+/*
+//
+//  The attraction here really needs to be based on how much information the
+//  two have to exchange.
+//  Basic info- homeworld, birth, vocation.
+//  Recent events- last couple of behaviours known.
+//  Fields of interest- skills and traits.
+//  Acquaintances- friends, foes and family.
+//  Trigger based on association?
+
+
+private void introduce(Actor actor, Actor other) {
+  //
+  //  Compare vocations, physical traits and appearance, and proper manners.
+  //  Set up initial relationships.
+}
+
+//*/
+
+
+
+
+
+
+
+
+
+
+/*
+private void request(Actor actor, Actor other) {
+  //
+  //  Pick something the actor wants, and ask the other for it.  If it's a
+  //  reasonable request, grant it.
+}
+//*/
+/*
+static Skill mannersFor(Actor actor) {
+  if (actor instanceof Human) {
+    final Vocation birth = ((Human) actor).career().birth() ;
+    if (birth == Vocation.NATIVE_BIRTH) return NATIVE_TABOO ;
+    if (birth == Vocation.HIGH_BIRTH) return NOBLE_ETIQUETTE ;
+    return COMMON_CUSTOM ;
+  }
+  else return null ;
+}
+
+
+static float firstImpression(Actor actor, Actor other) {
+  float impression = -10 * Rand.num() ;
+  if (other.traits.test(mannersFor(other), ROUTINE_DC, 1)) impression += 10 ;
+  if (other.traits.test(SUASION, ROUTINE_DC, 1)) impression += 10 ;
+  impression += actor.attraction(other) * Rand.avgNums(2) ;
+  return impression ;
+}
+//*/
 
 
 

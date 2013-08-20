@@ -96,8 +96,10 @@ public interface BuildConstants extends ActorConstants {
     CAUSTIC      = 128,
     TRANSMORPHIC = 256,
     ENERGY_DRAIN = 512 ;
-
   
+  //
+  //  TODO:  These prices are far too low next to the value of the raw
+  //  materials.  Also, you need medical devices and so on.
   final public static DeviceType
     MANIPLES = new DeviceType(C, "Maniples",
       2, GRAPPLE | MELEE | PHYSICAL, 10,
@@ -132,11 +134,11 @@ public interface BuildConstants extends ActorConstants {
   final public static Item.Type
     ALL_IMPLEMENTS[] = Item.Type.typesSoFar() ;
   
+  
   //
   //  TODO:  Should have skins associated with these?
+  //  TODO:  Add 'Primitive Garb' and 'Overalls'?  What about costume?
   final public static OutfitType
-    //  TODO:  Add 'Primitive Garb' and 'Overalls'?  What about costume?
-    
     FINERY         = new OutfitType(
       C, "Finery"        , 2 , 100,
       new Conversion(3, PLASTICS, Fabricator.class, 15, GRAPHIC_MEDIA)

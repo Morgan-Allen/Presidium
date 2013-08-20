@@ -19,6 +19,7 @@ import javax.swing.* ;
   */
 public class I {
   
+  
   private static boolean mute = false ;
   
   
@@ -39,10 +40,12 @@ public class I {
     }
   }
   
+  
   public static final void complain(String e) {
     say(e) ;
     throw new RuntimeException(e) ;
   }
+  
   
   public static void report(Exception e) {
     if (! mute) {
@@ -50,6 +53,7 @@ public class I {
       e.printStackTrace() ;
     }
   }
+  
   
   public static void amMute(boolean m) { mute = m ; }
   

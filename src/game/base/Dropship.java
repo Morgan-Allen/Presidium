@@ -352,6 +352,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     if (stage == STAGE_DESCENT) {
       ///I.say("Updating descent...") ;
       float time = Math.min(world.currentTime() - initTime, TOTAL_FLIGHT_TIME) ;
+      //  time = 0 ;
       this.nextPosition.setTo(getShipPos(time)) ;
       this.nextRotation = getShipRot(time, true) ;
       ///I.say("Current position/rotation: "+position+"/"+rotation) ;

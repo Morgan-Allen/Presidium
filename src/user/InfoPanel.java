@@ -96,7 +96,6 @@ public class InfoPanel extends UIGroup implements UIConstants {
     final Class IC = infoClass(selected) ;
     if (IC != null) {
       final Integer catID = DEFAULT_CATS.get(IC) ;
-      I.say("Default category is: "+catID) ;
       if (catID != null) categoryID = catID ;
     }
   }

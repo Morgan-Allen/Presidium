@@ -109,16 +109,6 @@ public abstract class Mobile extends Element
   
   /**  Dealing with pathing-
     */
-  protected void pathingAbort() {
-  }
-  
-  
-  protected void onMotionBlock(Tile t) {
-    final boolean canRoute = pathing != null && pathing.refreshPath() ;
-    if (! canRoute) pathingAbort() ;
-  }
-  
-  
   public Boardable aboard() {
     return aboard ;
   }
@@ -193,10 +183,11 @@ public abstract class Mobile extends Element
         aboard.setInside(this, false) ;
         (aboard = next).setInside(this, true) ;
       }
-      else if (newTile.blocked()) {
+      else if (blocksMotion(newTile)) {
         onMotionBlock(newTile) ;
         final Tile free = Spacing.nearestOpenTile(newTile, this) ;
         if (free == null) I.complain("NO FREE TILE AVAILABLE!") ;
+        I.say("Escaping to free tile: "+free) ;
         setPosition(free.x, free.y, world) ;
         return ;
       }
@@ -215,9 +206,21 @@ public abstract class Mobile extends Element
   }
   
   
-  public boolean canEnter(Boardable t) {
-    if (t instanceof Tile) return ! ((Tile) t).blocked() ;
-    return true ;
+  //  TODO:  Make this specific to tiles?  Might be simpler.
+  public boolean blocksMotion(Boardable t) {
+    if (t instanceof Tile) return ((Tile) t).blocked() ;
+    return false ;
+  }
+  
+
+  protected void pathingAbort() {
+  }
+  
+  
+  protected void onMotionBlock(Tile t) {
+    //I.say("Motion blocked at: "+t) ;
+    final boolean canRoute = pathing != null && pathing.refreshPath() ;
+    if (! canRoute) pathingAbort() ;
   }
   
   
@@ -254,8 +257,20 @@ public abstract class Mobile extends Element
     final float rotateChange = Vec2D.degreeDif(nextRotation, rotation) ;
     s.rotation = (rotation + (rotateChange * alpha) + 360) % 360 ;
     ///I.say("sprite position/rotation: "+s.position+" "+s.rotation) ;
+    
+    /*
+    if (this instanceof Vehicle) {
+      I.say("Sprite pos "+s.position) ;
+      I.say(" "+position+" "+nextPosition) ;
+    }
+    //*/
     rendering.addClient(s) ;
   }
 }
+
+
+
+
+
 
 

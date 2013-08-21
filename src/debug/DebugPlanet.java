@@ -57,12 +57,12 @@ public class DebugPlanet extends PlayLoop {
     TG.setupOutcrops(world) ;
     ///TG.presentMineralMap(world, world.terrain()) ;
     
+    GameSettings.noFog = true ;
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;
-    /*
+    
     EG.populateFauna(world, 16, Species.QUUD, Species.VAREEN) ;
     EG.populateFauna(world, 32, Species.MICOVORE) ;
-    //*/
     
     return world ;
   }

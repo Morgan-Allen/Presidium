@@ -84,7 +84,7 @@ public class ActorGear extends Inventory implements BuildConstants {
   public void incCredits(int inc) {
     super.incCredits(inc) ;
     String phrase = inc >= 0 ? "+" : "-" ;
-    phrase+=" "+Math.abs(inc) ;
+    phrase+=" "+Math.abs(inc)+" credits" ;
     actor.chat.addPhrase(phrase, false) ;
   }
   

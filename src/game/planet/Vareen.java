@@ -137,7 +137,7 @@ public class Vareen extends Fauna {
     //
     //  We use a modified form of pathing search that can bypass most
     //  tiles.
-    final Vareen actor = this ;
+    //final Vareen actor = this ;
     return new MobilePathing(this) {
       protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
         final PathingSearch flightPS = new PathingSearch(initB, destB) {
@@ -146,29 +146,33 @@ public class Vareen extends Fauna {
           protected Boardable[] adjacent(Boardable spot) {
             if (spot instanceof Tile) {
               ((Tile) spot).allAdjacent(tileB) ;
+              for (int i : Tile.N_INDEX) {
+                if (blocksMotion(tileB[i])) tileB[i] = null ;
+              }
+              Spacing.cullDiagonals(tileB) ;
               return tileB ;
             }
             return super.adjacent(spot) ;
           }
-          
+          /*
           protected boolean canEnter(Boardable spot) {
-            return actor.canEnter(spot) ;
+            return ! actor.blocksMotion(spot) ;
           }
+          //*/
         } ;
         flightPS.doSearch() ;
         return flightPS.fullPath(Boardable.class) ;
       }
     } ;
   }
-  //*/
   
   
-  public boolean canEnter(Boardable t) {
+  public boolean blocksMotion(Boardable t) {
     if (t instanceof Tile) {
       final Element owner = ((Tile) t).owner() ;
-      return owner == null || owner.height() < 2.5f ;
+      return owner != null && owner.height() > 2.5f ;
     }
-    return true ;
+    return false ;
   }
   
   
@@ -177,15 +181,18 @@ public class Vareen extends Fauna {
     if (currentAction() != null) {
       final String actName = currentAction().toString() ;
       if (actName.equals("Basking")) idealHeight = 0 ;
+      /*
       else  {
         final Target t = currentAction().target() ;
-        if (t instanceof Tile) ;
+        if (t instanceof Tile) idealHeight = ((Tile) t).elevation() + 2.5f ;
         else idealHeight = t.height() ;
       }
+      //*/
     }
     if (! health.conscious()) idealHeight = 0 ;
     flyHeight = Visit.clamp(idealHeight, flyHeight - 0.1f, flyHeight + 0.1f) ;
     super.updateAsMobile() ;
+    nextPosition.z = origin().elevation() + flyHeight ;
   }
   
   

@@ -159,6 +159,17 @@ public final class Spacing implements TileConstants {
   
   
   
+  /**  Used to ensure that diagonally-adjacent tiles are fully accessible.
+    */
+  public static void cullDiagonals(Object batch[]) {
+    for (int i : Tile.N_DIAGONAL) if (batch[i] != null) {
+      if (batch[(i + 7) % 8] == null) batch[i] = null ;
+      if (batch[(i + 1) % 8] == null) batch[i] = null ;
+    }
+  }
+  
+  
+  
   /**  Proximity methods-
     */
   public static Target nearest(
@@ -270,19 +281,21 @@ public final class Spacing implements TileConstants {
   /**  Distance calculation methods-
     */
   public static float distance(Target a, Target b) {
-    float dist = a.position(pA).distance(b.position(pB)) ;
-    dist -= a.radius() + b.radius() ;
+    final float dist = innerDistance(a, b) - (a.radius() + b.radius()) ;
     return (dist < 0) ? 0 : dist ;
   }
   
   
   public static float innerDistance(Target a, Target b) {
-    return a.position(pA).distance(b.position(pB)) ;
+    a.position(pA) ;
+    b.position(pB) ;
+    final float xd = pA.x - pB.x, yd = pA.y - pB.y ;
+    return (float) Math.sqrt((xd * xd) + (yd * yd)) ;
   }
   
 
   public static int outerDistance(Target a, Target b) {
-    float dist = a.position(pA).distance(b.position(pB)) ;
+    final float dist = innerDistance(a, b) ;
     return (int) Math.ceil(dist + a.radius() + b.radius()) ;
   }
   

@@ -14,14 +14,14 @@ import src.util.* ;
 
 
 
-/**  Trade ships come to deposit and collect personnel and cargo, typically at
-  *  the landing strip... at the house garrison.
-  *  
-  *  TODO:  This needs to cover multiple cases- supply, smuggler and spacer.
-  *  TODO:  If you're using DropZones for pathing interface, maybe there's no
-  *  need for vehicles themselves to be boardable?  Either that, or you need to
-  *  make the VenueOrders class based on Employment/Owner properties.
+/**  Trade ships come to deposit and collect personnel and cargo.
   */
+//
+//  NOTE:  This class has been prone to bugs where sprite position appears to
+//  'jitter' when passing over blocked tiles below, due to the mobile class
+//  attempting to 'correct' position after each update.  This class must treat
+//  all tiles as passable to compensate.
+
 
 
 public class Dropship extends Vehicle implements Inventory.Owner {
@@ -99,27 +99,10 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   /**  Perform the actual exchange of goods and people.
     */
   public void updateAsScheduled(int numUpdates) {
-    //I.say("Updating freighter, no. of passengers: "+inside().size()) ;
-    /*
-    if (stage == STAGE_LANDED) {
-      //
-      //  Don't put this here.  Dump passengers when you land, not afterwards.
-      //  Then your passengers won't need to exit the world.
-      for (Mobile m : inside()) if (! m.inWorld()) {
-        
-        //m.goAboard(dropPoint, world) ;
-        //final Tile e = dropPoint.mainEntrance() ;
-        //setInside(m, false) ;
-        //m.enterWorldAt(e.x, e.y, world) ;
-        break ;
-      }
-    }
-    //*/
   }
   
   
   public Behaviour jobFor(Actor actor) {
-    ///I.say("dropship getting job for: "+actor) ;
     if (stage == STAGE_BOARDING) {
       final Action boardAction = new Action(
         actor, this,
@@ -132,21 +115,17 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     //
     //  ...You also need to try making deliveries/collections, based on what
     //  nearby venues have either a shortage or excess of.
-    /*
-    if (dropPoint instanceof DropZone) {
-      return dropPoint.jobFor(actor) ;
-    }
-    //*/
+    
     return super.jobFor(actor) ;
   }
   
-  //*
+  
   public boolean actionBoard(Actor actor, Dropship ship) {
     actor.exitWorld() ;  //This may be a little extreme, but needed atm...
     ship.setInside(actor, true) ;
     return true ;
   }
-  //*/
+  
   
   public void beginBoarding() {
     if (stage != STAGE_LANDED) I.complain("Cannot board until landed!") ;
@@ -262,9 +241,6 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   public void beginDescent(Box2D area, World world) {
     if (inWorld()) I.complain("Already in world!") ;
-    //final World world = landing.world() ;
-    //final Box2D area = landing.area() ;
-    //this.dropPoint = landing ;
     this.landPos.set(
       area.xpos() + (area.xdim() / 2),
       area.ypos() + (area.ydim() / 2)
@@ -319,12 +295,6 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     return stage > STAGE_DESCENT && stage < STAGE_ASCENT ;
   }
   
-  /*
-  public Venue landingSite() {
-    return dropPoint ;
-  }
-  //*/
-  
   
   public float timeSinceDescent(World world) {
     if (! landed()) {
@@ -350,13 +320,9 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   protected void updateAsMobile() {
     super.updateAsMobile() ;
     if (stage == STAGE_DESCENT) {
-      ///I.say("Updating descent...") ;
       float time = Math.min(world.currentTime() - initTime, TOTAL_FLIGHT_TIME) ;
-      //  time = 0 ;
       this.nextPosition.setTo(getShipPos(time)) ;
       this.nextRotation = getShipRot(time, true) ;
-      ///I.say("Current position/rotation: "+position+"/"+rotation) ;
-      ///I.say("Next position/rotation: "+nextPosition+"/"+nextRotation) ;
       if (time == TOTAL_FLIGHT_TIME) {
         completeDescent() ;
         stage = STAGE_LANDED ;
@@ -373,9 +339,15 @@ public class Dropship extends Vehicle implements Inventory.Owner {
         this.nextRotation = getShipRot(time, true) ;
       }
     }
+    /*
+    I.say("Current position/rotation: "+position+"/"+rotation) ;
+    I.say("Next position/rotation: "+nextPosition+"/"+nextRotation) ;
+    I.say("Stage is: "+stage) ;
+    //*/
   }
   
-  protected boolean checkEnter(Tile t) {
+  
+  public boolean blocksMotion(Boardable t) {
     return true ;
   }
   
@@ -385,8 +357,6 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   }
   
   
-  //  TODO:  Move this to the vehicle class?
-  //  ...Why is that jittery positioning bug happening?
   private Vec3D getShipPos(float time) {
     if (time < UPPER_FLIGHT_TIME) {
       final float
@@ -399,7 +369,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
         (landPos.y * horiz) + (liftOff.y * (1 - horiz)),
         LOWER_FLIGHT_HEIGHT + (UPPER_FLIGHT_RADIUS * vert)
       ) ;
-      if (BaseUI.isPicked(this)) I.say("  ship position: "+p) ;
+      //if (BaseUI.isPicked(this)) I.say("  ship position: "+p) ;
       //I.say("  Horiz/vert are: "+horiz+"/"+vert+", pos: "+p) ;
       return p ;
     }
@@ -442,6 +412,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
       else progress = 0 ;
     }
     s.setAnimation("descend", Visit.clamp(progress, 0, 1)) ;
+    s.colour = Colour.transparency(progress) ;
     super.renderFor(rendering, base) ;
   }
   

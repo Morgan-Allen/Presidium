@@ -5,10 +5,9 @@
   */
 
 package src.graphics.common ;
-import org.lwjgl.opengl.* ;
-
 import src.util.* ;
 import src.graphics.widgets.HUD ;
+import org.lwjgl.opengl.* ;
 
 
 
@@ -50,6 +49,7 @@ public class Rendering {
       I.say("View width/height are: "+viewWide+"/"+viewHigh) ;
       Display.setDisplayMode(chosen) ;
       Display.setFullscreen(full) ;
+      Display.setResizable(true) ;
       Display.setVSyncEnabled(true) ;
       Display.setSwapInterval(25) ;
       Display.create() ;
@@ -99,6 +99,8 @@ public class Rendering {
   
   
   public void updateViews() {
+    viewWide = Display.getWidth()  ;
+    viewHigh = Display.getHeight() ;
     if (Display.isCloseRequested()) {
       Display.destroy() ;
       System.exit(0) ;

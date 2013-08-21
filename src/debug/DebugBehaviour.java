@@ -85,22 +85,16 @@ public class DebugBehaviour extends PlayLoop {
     //  willingly running into situations that they then run away from.
     
     //  Also, rest/relaxation needs to be re-implemented.  And housing, for
-    //  the sake of food and so forth.  Then, recreation behaviours.
+    //  the sake of food and so forth.  More detail in recreation behaviours.
     
     //
     //  Get rid of strict requirements for manufacture.
+    //  Item purchases, and possibly sales.  Visual indicators for research.
     
-    //  Item purchases, and possibly sales.  Delivery needs to use barges.
-    
-    //  Last but not least, you need to implement upgrades for the sake of
-    //  research and recruitment.
-    //  There are still problems related to how boarding/unboarding the
-    //  freighter is handled.  Get rid of the DropZone shebang.
-    
-    baseScenario(world, base, HUD) ;
+    //baseScenario(world, base, HUD) ;
     //natureScenario(world, base, HUD) ;
     //missionScenario(world, base, HUD) ;
-    //socialScenario(world, base, HUD) ;
+    socialScenario(world, base, HUD) ;
   }
   
   
@@ -132,20 +126,12 @@ public class DebugBehaviour extends PlayLoop {
     *  construction of the settlement-
     */
   private void baseScenario(World world, Base base, HUD UI) {
-    /*
-    final Dropship ship = new Dropship() ;
-    ship.assignBase(base) ;
-    final Box2D area = new Box2D().set(Rand.index(10), Rand.index(10), 6, 6) ;
-    ship.beginDescent(area, world) ;
-    base.intelMap.liftFogAround(world.tileAt(5, 5), 10) ;
-    if (true) return ;
-    //*/
     
     final Artificer artificer = new Artificer(base) ;
     artificer.enterWorldAt(8, 8, world) ;
     artificer.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
-    artificer.setAsEstablished(true) ;
     artificer.onCompletion() ;
+    artificer.setAsEstablished(true) ;
     base.intelMap.liftFogAround(artificer, 5) ;
     ((BaseUI) UI).selection.pushSelection(artificer, true) ;
     

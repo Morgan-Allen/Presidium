@@ -88,6 +88,7 @@ public class IntelMap {
   /**  Queries and modifications-
     */
   public float fogAt(Tile t) {
+    if (GameSettings.noFog) return 1 ;
     return fogVals[t.x][t.y] ;
   }
   

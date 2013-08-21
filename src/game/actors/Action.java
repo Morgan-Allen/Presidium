@@ -206,6 +206,7 @@ public class Action implements Behaviour, Model.AnimNames {
     final boolean
       closed = actor.pathing.closeEnough(moveTarget, minDist),
       facing = actor.pathing.facingTarget(actionTarget) ;
+    ///I.say("Close enough? "+closed+" "+Spacing.distance(actor, moveTarget)) ;
     if (! closed) actor.pathing.updatePathing(moveTarget, minDist) ;
     final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;
     actor.pathing.headTowards(faced, moveRate(), ! closed) ;

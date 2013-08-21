@@ -65,7 +65,7 @@ public class MobilePathing {
     return null ;
   }
   
-  
+  //*
   protected boolean refreshPath() {
     path = refreshPath(location(mobile), location(trueTarget)) ;
     stepIndex = 0 ;
@@ -85,7 +85,7 @@ public class MobilePathing {
       ) ;
     }
   }
-  
+  //*/
   
   public void updatePathing(Target moveTarget, float minDist) {
     this.trueTarget = moveTarget ;
@@ -98,7 +98,7 @@ public class MobilePathing {
       final int index = stepIndex + i ;
       if (index >= path.length) break ;
       final Boardable t = path[index] ;
-      if (! mobile.canEnter(t)) blocked = true ;
+      if (mobile.blocksMotion(t)) blocked = true ;
       else if (! t.inWorld()) blocked = true ;
       if (t == dest) nearTarget = true ;
     }
@@ -114,6 +114,7 @@ public class MobilePathing {
     //
     //  If the path needs refreshment, do so-
     if (doRefresh) {
+      I.say("Must refresh path... "+blocked) ;
       pathTarget = dest ;
       refreshPath() ;
       if (path == null) {
@@ -191,7 +192,6 @@ public class MobilePathing {
   
   
   public boolean closeEnough(Target target, float minDist) {
-    ///if (target instanceof Boardable) return inLocus((Boardable) target) ;
     return Spacing.distance(mobile, target) <= minDist ;
   }
   

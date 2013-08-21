@@ -150,7 +150,7 @@ public class Relation {
     final int numDice = (int) (Math.abs(attitude / ATT_DIE) + 0.5f) ;
     int roll = 0 ;
     for (int n = numDice ; n-- > 0 ;) roll += Rand.yes() ? 1 : 0 ;
-    final float diff = (Math.abs(inc) - roll) * ATT_DIE ;
+    final float diff = (Math.abs(inc) * MAX_ATT) - (roll * ATT_DIE) ;
     //
     //  Raise/lower by half the margin of failure, and increment familiarity
     //  either way.

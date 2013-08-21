@@ -30,7 +30,7 @@ public class TalkFX extends SFX {
   final static float
     LINE_HIGH  = FONT.map[' '].height,
     LINE_SPACE = LINE_HIGH + 10,
-    FADE_RATE  = 1f / 40 ;// 1f / 25 ;
+    FADE_RATE  = 1f / 50 ;// 1f / 25 ;
   
   final Stack <Bubble> toShow = new Stack <Bubble> () ;
   final Stack <Bubble> showing = new Stack <Bubble> () ;

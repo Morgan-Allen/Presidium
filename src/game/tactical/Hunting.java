@@ -80,7 +80,7 @@ public class Hunting extends Combat implements ActorConstants {
         I.complain("NON-FEEDING HUNTING BEHAVIOUR NOT IMPLEMENTED YET!") ;
       }
     }
-    return super.nextStepFor(actor) ;
+    return super.getNextStep() ;
   }
   
   

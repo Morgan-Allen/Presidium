@@ -314,9 +314,11 @@ public abstract class ActorAI implements ActorConstants {
   
   public void incRelation(Accountable other, float inc) {
     Relation r = relations.get(other) ;
-    if (r == null) relations.put(
-      other, r = new Relation(actor, other, 0, actor.world())
-    ) ;
+    if (r == null) {
+      final float initR = relation(other.base()) / 3f ;
+      r = new Relation(actor, other, initR, actor.world()) ;
+      relations.put(other, r) ;
+    }
     r.incValue(inc) ;
   }
   

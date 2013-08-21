@@ -196,10 +196,8 @@ public class Tile implements Target, TileConstants, Boardable {
       if (t == null || t.blocked()) continue ;
       batch[n] = t ;
     }
-    for (int i : Tile.N_DIAGONAL) if (batch[i] != null) {
-      if (batch[(i + 7) % 8] == null) batch[i] = null ;
-      if (batch[(i + 1) % 8] == null) batch[i] = null ;
-    }
+    Spacing.cullDiagonals(batch) ;
+    
     for (int n : N_ADJACENT) if (batch[n] == null) {
       final Tile t = world.tileAt(x + N_X[n], y + N_Y[n]) ;
       if (t == null || ! (t.owner() instanceof Boardable)) continue ;

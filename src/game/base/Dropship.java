@@ -236,9 +236,6 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   
   
-  //
-  //  TODO:  Fade out alpha during the final and initial stages of flight.
-  
   public void beginDescent(Box2D area, World world) {
     if (inWorld()) I.complain("Already in world!") ;
     this.landPos.set(

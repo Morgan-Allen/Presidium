@@ -43,7 +43,14 @@ public class Lair extends Venue {
   
   //
   //  TODO:  The 'onGrowth' method for a lair needs to do some damage to it.
-  //  TODO:  For that, you will need to update the VenueStocks class.
+  //  TODO:  For that, you will need to update the VenueStructure class.
+  
+  
+  //
+  //  Lairs need to be used as birthing locations for animals.  This means
+  //  moving some of the crowding-estimation code to here.
+  
+  
   
   
   

@@ -107,11 +107,9 @@ public class DebugBehaviour extends PlayLoop {
     //  hostile, and see how they respond.  Ideally, you don't want actors
     //  willingly running into situations that they then run away from.
     //
-    //  Also, rest/relaxation needs to be re-implemented.  And housing, for
-    //  the sake of food and so forth.  More detail in recreation behaviours.
+    //  More detail in recreation behaviours.  And housing purchases/upgrades.
     //
-    //  Get rid of strict requirements for manufacture.
-    //  Item purchases, and possibly sales.  Visual indicators for research.
+    //  Visual indicators for research/upgrades.
     
     baseScenario(world, base, HUD) ;
     //natureScenario(world, base, HUD) ;

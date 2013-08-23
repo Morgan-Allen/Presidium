@@ -217,8 +217,8 @@ public class MineShaft extends Venue implements BuildConstants, TileConstants {
   }
   
   
-  protected Item.Type[] services() {
-    return new Item.Type[] { CARBONS, METALS, ISOTOPES } ;
+  protected Service[] services() {
+    return new Service[] { CARBONS, METALS, ISOTOPES } ;
   }
   
   

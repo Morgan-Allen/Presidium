@@ -42,7 +42,7 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
     if (key instanceof String) keyOkay = true ;
     if (key instanceof Class) keyOkay = true ;
     if (key instanceof Session.Saveable) keyOkay = true ;
-    if (key instanceof Item.Type) keyOkay = true ;
+    if (key instanceof Service) keyOkay = true ;
     if (! keyOkay) I.complain("INVALID FLAGGING KEY: "+key) ;
     this.key = key ;
   }

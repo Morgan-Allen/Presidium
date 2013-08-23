@@ -267,7 +267,7 @@ public class ActorTraits implements ActorConstants {
     if (b != null) bonusB += b.traits.useLevel(opposed) ;
     final float chance = Visit.clamp(bonusA + 10 - bonusB, 0, 20) / 20 ;
     ///I.say("Test chance for "+actor+" is: "+chance) ;
-    return chance ;
+    return Visit.clamp(chance, 0.1f, 0.9f) ;
   }
   
   

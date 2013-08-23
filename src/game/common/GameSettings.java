@@ -16,7 +16,9 @@ public class GameSettings {
     hireFree  = false,
     noFog     = false,
     freePath  = false,
-    frozen    = false ;
+    frozen    = false,
+    hardCore  = false ;
+  
   
   /*
   public static void loadSettings(Session s) throws Exception {
@@ -26,6 +28,7 @@ public class GameSettings {
     frozen = s.loadBool() ;
   }
   
+  
   public static void saveSettings(Session s) throws Exception {
     s.saveBool(buildFree) ;
     s.saveBool(noFog) ;
@@ -34,3 +37,7 @@ public class GameSettings {
   }
   //*/
 }
+
+
+
+

@@ -83,6 +83,7 @@ public class ActorGear extends Inventory implements BuildConstants {
   
   public void incCredits(int inc) {
     super.incCredits(inc) ;
+    if (! actor.inWorld()) return ;
     String phrase = inc >= 0 ? "+" : "-" ;
     phrase+=" "+Math.abs(inc)+" credits" ;
     actor.chat.addPhrase(phrase, false) ;
@@ -99,7 +100,7 @@ public class ActorGear extends Inventory implements BuildConstants {
     final float brawnBonus = actor.traits.trueLevel(BRAWN) / 4 ;
     if (weapon == null) return 2 + brawnBonus + baseDamage ;
     final DeviceType type = (DeviceType) weapon.type ;
-    final float damage = type.baseDamage * (weapon.quality() + 2f) / 4 ;
+    final float damage = type.baseDamage * (weapon.quality + 2f) / 4 ;
     if (type.hasProperty(MELEE)) return damage + brawnBonus + baseDamage ;
     else return damage + baseDamage ;
   }
@@ -151,7 +152,7 @@ public class ActorGear extends Inventory implements BuildConstants {
     final float reflexBonus = actor.traits.trueLevel(REFLEX) / 4 ;
     if (armour == null) return 2 + reflexBonus + baseArmour ;
     final OutfitType type = (OutfitType) armour.type ;
-    final float rating = type.defence * (armour.quality() + 1) / 4 ;
+    final float rating = type.defence * (armour.quality + 1) / 4 ;
     if (type.defence < 10) return rating + reflexBonus + baseArmour ;
     else return rating + baseArmour ;
   }
@@ -268,6 +269,7 @@ public class ActorGear extends Inventory implements BuildConstants {
   }
   
   
+  
   /**  Here, we deal with applying/removing Outfits-
     */
   public void equipOutfit(Item outfit) {
@@ -289,9 +291,11 @@ public class ActorGear extends Inventory implements BuildConstants {
     }
   }
   
+  
   public Item outfitEquipped() {
     return outfit ;
   }
+  
   
   public OutfitType outfitType() {
     if (outfit == null) return null ;
@@ -300,55 +304,61 @@ public class ActorGear extends Inventory implements BuildConstants {
   
   
   
-  /**  Functions related to current rations and food quality-
-    */
-  /*
-  public void topUpRations(float amount, float quality) {
-    final float shortage = MAX_RATIONS - currentRations ;
-    foodTypes = ((quality * shortage / MAX_RATIONS) + foodTypes) / 2 ;
-    currentRations = MAX_RATIONS ;
-  }
-  
-  
-  public float rationShortage() {
-    return MAX_RATIONS - currentRations ;
-  }
-  
-  
-  public void deductRations(float amount) {
-    currentRations -= amount ;
-    if (currentRations <= 0) {
-      currentRations = 0 ;
-      foodTypes = 0 ;
-    }
-  }
-  
-  
-  public float foodQuality() { return foodTypes ; }
-  public float foodAmount() { return currentRations ; }
-  //*/
-  
-  
   /**  Maintenance, updates and spring cleaning-
     */
   public void updateEquipment() {
     if (outfit != null) regenerateShields() ;
     else currentShields = 0 ;
-    /*
-    if (shieldFX != null && ! shieldFX.visible()) {
-      //shieldFX.cancelFX() ;
-      //shieldFX.attachToBase(null) ;
-      shieldFX = null ;
-    }
-    //*/
   }
   
   public boolean addItem(Item item) {
-    if (! super.addItem(item)) return false ;
-    if (item.type instanceof DeviceType) equipDevice(item) ;
-    if (item.type instanceof OutfitType) equipOutfit(item) ;
+    if (item == null) return false ;
+    else if (item.type instanceof DeviceType) equipDevice(item) ;
+    else if (item.type instanceof OutfitType) equipOutfit(item) ;
+    else if (! super.addItem(item)) return false ;
     return true ;
   }
 }
 
 
+
+
+
+
+
+/*
+if (shieldFX != null && ! shieldFX.visible()) {
+  //shieldFX.cancelFX() ;
+  //shieldFX.attachToBase(null) ;
+  shieldFX = null ;
+}
+//*/
+
+
+/**  Functions related to current rations and food quality-
+  */
+/*
+public void topUpRations(float amount, float quality) {
+  final float shortage = MAX_RATIONS - currentRations ;
+  foodTypes = ((quality * shortage / MAX_RATIONS) + foodTypes) / 2 ;
+  currentRations = MAX_RATIONS ;
+}
+
+
+public float rationShortage() {
+  return MAX_RATIONS - currentRations ;
+}
+
+
+public void deductRations(float amount) {
+  currentRations -= amount ;
+  if (currentRations <= 0) {
+    currentRations = 0 ;
+    foodTypes = 0 ;
+  }
+}
+
+
+public float foodQuality() { return foodTypes ; }
+public float foodAmount() { return currentRations ; }
+//*/

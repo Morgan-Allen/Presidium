@@ -18,12 +18,11 @@ public class Retreat extends Plan implements ActorConstants {
   
   /**  Constants, field definitions, constructors and save/load methods-
     */
-  Target safePoint ;
+  Target safePoint = null ;
   
   
-  public Retreat(Actor actor, Target safePoint) {
+  public Retreat(Actor actor) {
     super(actor) ;
-    this.safePoint = safePoint ;
   }
 
 
@@ -50,6 +49,9 @@ public class Retreat extends Plan implements ActorConstants {
   
   protected Behaviour getNextStep() {
     if (actor.aboard() == safePoint) return null ;
+    if (safePoint == null) {
+      safePoint = nearestHaven(actor, null) ;
+    }
     final Action flees = new Action(
       actor, safePoint,
       this, "actionFlee",
@@ -127,8 +129,12 @@ public class Retreat extends Plan implements ActorConstants {
   /**  These methods select safe venues to run to, over longer distances.
     */
   public static Venue nearestHaven(Actor actor, Class prefClass) {
+    
+    //
+    //  TODO:  Use the list of venues the actor is aware of.
+    
     final Presences p = actor.world().presences ;
-    int numC = (int) (actor.traits.trueLevel(INSIGHT) / 3) ;
+    int numC = 3 ;// (int) (actor.traits.trueLevel(INSIGHT) / 3) ;
     
     Object picked = null ;
     float bestRating = 0 ;
@@ -139,11 +145,13 @@ public class Retreat extends Plan implements ActorConstants {
       float rating = rateHaven(t, actor, prefClass) ;
       if (rating > bestRating) { bestRating = rating ; picked = t ; }
     }
-    numChecked = 0 ;
-    for (Object t : p.matchesNear(prefClass, actor, -1)) {
-      if (numChecked++ > numC) break ;
-      float rating = rateHaven(t, actor, prefClass) ;
-      if (rating > bestRating) { bestRating = rating ; picked = t ; }
+    if (prefClass != null) {
+      numChecked = 0 ;
+      for (Object t : p.matchesNear(prefClass, actor, -1)) {
+        if (numChecked++ > numC) break ;
+        float rating = rateHaven(t, actor, prefClass) ;
+        if (rating > bestRating) { bestRating = rating ; picked = t ; }
+      }
     }
     return (Venue) picked ;
   }

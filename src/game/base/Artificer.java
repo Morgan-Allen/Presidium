@@ -99,8 +99,11 @@ public class Artificer extends Venue implements BuildConstants {
   }
   
   
-  protected Item.Type[] services() {
-    return new Item.Type[] { PARTS } ;
+  protected Service[] services() {
+    return new Service[] {
+      PARTS, SHOCK_STAFF, PHASE_PISTOL,
+      SHIELD_BELT, BODY_ARMOUR, GOLEM_ARMOUR
+    } ;
   }
   
   
@@ -119,11 +122,8 @@ public class Artificer extends Venue implements BuildConstants {
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    //
-    //  TODO:  This is a temporary measure.  Remove later?
-    for (Item.Type good : services()) {
-      if (stocks.receivedShortage(good) < 10) stocks.receiveDemand(good, 10) ;
-    }
+    //  This is a temporary measure.  Remove later?
+    //stocks.receiveDemand(PARTS, 10) ;
     stocks.translateDemands(METALS_TO_PARTS) ;
   }
   
@@ -133,6 +133,9 @@ public class Artificer extends Venue implements BuildConstants {
     
     final Delivery d = stocks.nextDelivery(actor, services()) ;
     if (d != null) return d ;
+    
+    final Manufacture o = stocks.nextSpecialOrder(actor) ;
+    if (o != null) return o ;
     
     final Manufacture m = stocks.nextManufacture(actor, METALS_TO_PARTS) ;
     if (m != null) return m ;

@@ -157,8 +157,8 @@ public class Holding extends Venue implements BuildConstants {
   }
   
   
-  protected Item.Type[] services() {
-    return new Item.Type[0] ;
+  protected Service[] services() {
+    return new Service[0] ;
   }
   
   

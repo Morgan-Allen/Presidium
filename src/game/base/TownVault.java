@@ -178,7 +178,7 @@ public class TownVault extends Venue implements BuildConstants {
     float needed = i.amount - h.stocks.amountOf(i) ;
     if (needed <= 0) return null ;
     needed = (float) Math.ceil(needed / 5) * 5 ;
-    final Delivery d = new Delivery(new Item(i, needed), this, h) ;
+    final Delivery d = new Delivery(Item.withAmount(i, needed), this, h) ;
     if (d.valid()) return d ;
     return null ;
   }
@@ -189,8 +189,8 @@ public class TownVault extends Venue implements BuildConstants {
   }
   
   
-  protected Item.Type[] services() {
-    return new Item.Type[0] ;
+  protected Service[] services() {
+    return new Service[0] ;
   }
   
   

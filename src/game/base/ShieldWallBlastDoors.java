@@ -68,8 +68,8 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
   }
   
   
-  protected Item.Type[] services() {
-    return new Item.Type[] {} ;
+  protected Service[] services() {
+    return new Service[] {} ;
   }
   
   

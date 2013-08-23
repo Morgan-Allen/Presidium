@@ -39,7 +39,7 @@ public class Lair extends Venue {
     */
   public Behaviour jobFor(Actor actor) { return null ; }
   protected Vocation[] careers() { return new Vocation[0] ; }
-  protected Item.Type[] services() { return new Item.Type[0] ; }
+  protected Service[] services() { return new Service[0] ; }
   
   //
   //  TODO:  The 'onGrowth' method for a lair needs to do some damage to it.

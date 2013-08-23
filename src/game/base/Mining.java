@@ -79,13 +79,13 @@ public class Mining extends Plan implements BuildConstants {
       final float amount = terrain.mineralsAt(t, rockType) ;
       terrain.setMinerals(t, rockType, Terrain.DEGREE_TAKEN) ;
       
-      Item.Type itemType = null ;
+      Service itemType = null ;
       switch (rockType) {
         case (Terrain.TYPE_CARBONS ) : itemType = CARBONS  ; break ;
         case (Terrain.TYPE_METALS  ) : itemType = METALS   ; break ;
         case (Terrain.TYPE_ISOTOPES) : itemType = ISOTOPES ; break ;
       }
-      final Item mined = new Item(itemType, amount) ;
+      final Item mined = Item.withAmount(itemType, amount) ;
       actor.gear.addItem(mined) ;
       face.parent.openFace(face) ;
       return true ;

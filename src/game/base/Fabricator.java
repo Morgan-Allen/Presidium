@@ -49,7 +49,7 @@ public class Fabricator extends Venue implements BuildConstants {
     */
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    stocks.translateDemands(conversions()) ;
+    stocks.translateDemands(CARBONS_TO_PLASTICS) ;
   }
   
   
@@ -58,20 +58,18 @@ public class Fabricator extends Venue implements BuildConstants {
     final Delivery d = stocks.nextDelivery(actor, services()) ;
     if (d != null) return d ;
     
-    final Manufacture m = stocks.nextManufacture(actor, conversions()) ;
+    final Manufacture o = stocks.nextSpecialOrder(actor) ;
+    if (o != null) return o ;
+    
+    final Manufacture m = stocks.nextManufacture(actor, CARBONS_TO_PLASTICS) ;
     if (m != null) return m ;
     
     return null ;
   }
   
   
-  protected Conversion[] conversions() {
-    return new Conversion[] { CARBONS_TO_PLASTICS } ;
-  }
-  
-  
-  protected Item.Type[] services() {
-    return new Item.Type[] { PLASTICS } ;
+  protected Service[] services() {
+    return new Service[] { PLASTICS, FINERY, CAMOUFLAGE, SEALSUIT } ;
   }
   
   

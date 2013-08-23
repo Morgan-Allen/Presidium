@@ -236,6 +236,7 @@ public class Action implements Behaviour, Model.AnimNames {
     progress = Visit.clamp(progress, 0, 1) ;
     final float contact = contactTime() ;
     if (oldProgress <= contact && progress > contact) try {
+      ///if (BaseUI.isPicked(actor)) I.say(methodName()+" is happening...") ;
       toCall.invoke(basis, actor, actionTarget) ;
     }
     catch (Exception e) {

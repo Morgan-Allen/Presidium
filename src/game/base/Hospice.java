@@ -54,7 +54,7 @@ public class Hospice extends Venue {
   }
   
   
-  protected Item.Type[] services() {
+  protected Service[] services() {
     return null ;
   }
   

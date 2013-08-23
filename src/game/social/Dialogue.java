@@ -243,7 +243,6 @@ public class Dialogue extends Plan implements ActorConstants {
     //  Pick a random recent activity and see if the other also indulged in it.
     //  If the activity is similar, or was undertaken for similar reasons,
     //  improve relations.
-    
     //
     //  TODO:  At the moment, we just compare traits.  Fix later.
     final Trait comp = (Trait) Rand.pickFrom(actor.traits.personality()) ;

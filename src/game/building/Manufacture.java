@@ -13,13 +13,15 @@ import src.user.* ;
 import src.util.* ;
 
 
+
 //
-//  ...This should be linked to an Order object at a venue, so that progress
+//  ...This could be linked to an Order object at a venue, so that progress
 //  can be tracked externally and the job taken up by other actors.  Key off
 //  the item in question?
 
 
 public class Manufacture extends Plan implements Behaviour {
+  
   
   
   
@@ -30,18 +32,21 @@ public class Manufacture extends Plan implements Behaviour {
   
   final Venue venue ;
   final Conversion conversion ;
+  final Item made, needed[] ;
   
   private float progress = 0, timeTaken = 0 ;
-  private Item[] needed ;//, made ;
   
   
   
-  public Manufacture(Actor actor, Venue venue, Conversion conversion) {
+  public Manufacture(
+    Actor actor, Venue venue, Conversion conversion, Item made
+  ) {
     super(actor, venue) ;
     this.venue = venue ;
+    this.made = made == null ? conversion.out : made ;
     this.conversion = conversion ;
     this.needed = conversion.raw ;
-    for (Item made : conversion.out) timeTaken += made.amount ;
+    timeTaken += this.made.amount ;
     timeTaken *= TIME_PER_UNIT ;
   }
   
@@ -49,7 +54,8 @@ public class Manufacture extends Plan implements Behaviour {
   public Manufacture(Session s) throws Exception {
     super(s) ;
     venue = (Venue) s.loadObject() ;
-    conversion = (Conversion) s.loadObject() ;
+    conversion = Conversion.loadFrom(s) ;
+    made = Item.loadFrom(s) ;
     progress = s.loadFloat() ;
     timeTaken = s.loadFloat() ;
     this.needed = conversion.raw ;
@@ -59,11 +65,37 @@ public class Manufacture extends Plan implements Behaviour {
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveObject(venue) ;
-    s.saveObject(conversion) ;
+    Conversion.saveTo(s, conversion) ;
+    Item.saveTo(s, made) ;
     s.saveFloat(progress) ;
     s.saveFloat(timeTaken) ;
   }
   
+  
+  
+  /**  Vary this based on delay since inception and demand at the venue-
+    */
+  public float priorityFor(Actor actor) {
+    if (GameSettings.hardCore && ! hasNeeded()) return 0 ;
+    //
+    //  Vary priority based on how qualified to perform the task you are.
+    
+    return ROUTINE ;
+  }
+  
+  
+  public boolean valid() {
+    if (GameSettings.hardCore && ! hasNeeded()) return false ;
+    return true ;
+  }
+  
+  
+  private boolean hasNeeded() {
+    for (Item need : needed) {
+      if (! venue.stocks.hasItem(need)) return false ;
+    }
+    return true ;
+  }
   
   
   /**  Behaviour implementation-
@@ -81,53 +113,42 @@ public class Manufacture extends Plan implements Behaviour {
   }
   
   
-  public boolean valid() {
-    if (! super.valid()) return false ;
-    for (Item need : needed) {
-      if (! venue.stocks.hasItem(need)) return false ;
-    }
-    return true ;
-  }
-  
-  
-  
-  //  This should be adaptable to construction as well.
-  
   public boolean actionMake(Actor actor, Venue venue) {
     //
-    //  First, check to make sure you have adequate raw materials.
-    final Conversion c = conversion ;
-    final float inc = 1 / timeTaken ;
-    if (progress == 0) {
-      for (Item r : c.raw) {
-        if (! venue.inventory().hasItem(r)) {
-          abortStep() ;
-          return false ;
-        }
-      }
-      for (Item r : c.raw) venue.inventory().removeItem(r) ;
+    //  First, check to make sure you have adequate raw materials.  (In hard-
+    //  core mode, raw materials are strictly essential, and will be depleted
+    //  regardless of success.)
+    ///I.say(actor+" making "+made) ;
+    final boolean hasNeeded = hasNeeded() ;
+    if (GameSettings.hardCore && ! hasNeeded) {
+      abortStep() ;
+      return false ;
     }
+    final Conversion c = conversion ;
+    final int checkMod = hasNeeded ? 0 : 5 ;
+    final float progInc = (hasNeeded ? 1 : 0.5f) / timeTaken ;
     //
-    //  Secondly, make sure the skill tests all check out.
+    //  Secondly, make sure the skill tests all check out, and deplete any raw
+    //  materials used up.
     boolean success = true ;
     for (int i = c.skills.length ; i-- > 0 ;) {
-      success &= actor.traits.test(c.skills[i], c.skillDCs[i], 1) ;
+      success &= actor.traits.test(c.skills[i], c.skillDCs[i] + checkMod, 1) ;
     }
-    progress += inc * (success ? 1.5f : 0.5f) ;
+    ///if (! success) I.say(" FAILED TEST") ;
+    if (success || GameSettings.hardCore) {
+      for (Item r : c.raw) {
+        final Item used = Item.withAmount(r, r.amount * progInc) ;
+        venue.inventory().removeItem(used) ;
+      }
+    }
     //
     //  Advance progress, and check if you're done yet.
+    progress += success ? progInc : (progInc / 10f) ;
     if (progress >= 1) {
-      for (Item made : conversion.out) {
-        venue.stocks.addItem(made) ;
-      }
+      venue.stocks.addItem(made) ;
       return true ;
     }
     return false ;
-  }
-  
-  
-  public float priorityFor(Actor actor) {
-    return ROUTINE ;
   }
   
   
@@ -135,15 +156,15 @@ public class Manufacture extends Plan implements Behaviour {
   /**  Rendering and interface behaviour-
     */
   public void describeBehaviour(Description d) {
-    d.append("Manufacturing ") ;
-    for (Item i : conversion.out) {
-      d.append(i.type.name) ;
-      if (i != Visit.last(conversion.out)) d.append(" and ") ;
-    }
+    d.append("Manufacturing "+made) ;
+    d.append(" ("+((int) (progress * 100))+"%)") ;
+    /*
     d.append(" at the ") ;
     d.append(venue) ;
+    //*/
   }
 }
+
 
 
 

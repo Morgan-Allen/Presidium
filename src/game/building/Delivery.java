@@ -89,7 +89,8 @@ public class Delivery extends Plan {
   public boolean valid() {
     if (! super.valid()) return false ;
     if (stage >= STAGE_PICKUP || origin == null) return true ;
-    return origin.stocks.canMeetOrder(this) ;
+    for (Item i : items) if (! origin.stocks.hasItem(i)) return false ;
+    return true ;
   }
   
   

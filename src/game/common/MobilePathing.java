@@ -114,7 +114,7 @@ public class MobilePathing {
     //
     //  If the path needs refreshment, do so-
     if (doRefresh) {
-      I.say("Must refresh path... "+blocked) ;
+      ///I.say("Must refresh path... "+blocked) ;
       pathTarget = dest ;
       refreshPath() ;
       if (path == null) {

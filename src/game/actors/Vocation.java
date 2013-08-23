@@ -249,7 +249,7 @@ public class Vocation implements BuildConstants {
   final public int standing ;
   Table <Skill, Integer> baseSkills = new Table() ;
   Table <Trait, Float> traitChances = new Table() ;
-  List <Item.Type> gear = new List() ;
+  List <Service> gear = new List() ;
   
   
   
@@ -276,8 +276,8 @@ public class Vocation implements BuildConstants {
       else if (o instanceof Trait) {
         traitChances.put((Trait) o, chance) ;
       }
-      else if (o instanceof Item.Type) {
-        gear.add((Item.Type) o) ;
+      else if (o instanceof Service) {
+        gear.add((Service) o) ;
       }
     }
     all.add(this) ;

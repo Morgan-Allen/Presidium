@@ -278,7 +278,7 @@ public abstract class Venue extends Fixture implements
   //  reserved for both item-orders and service-seating.  And what about shifts
   //  at work?
   protected abstract Vocation[] careers() ;
-  protected abstract Item.Type[] services() ;
+  protected abstract Service[] services() ;
   
   
   
@@ -363,10 +363,15 @@ public abstract class Venue extends Fixture implements
       d.append("\n  ") ; d.append(m) ;
     }
     
-    d.append("\n\nSTOCKS:") ;
-    final Batch <String> orders = stocks.ordersDesc() ;
-    for (String order : orders) d.append("\n  "+order) ;
-    if (orders.size() == 0) d.append("\n  No orders.") ;
+    d.append("\n\nORDERS:") ;
+    boolean empty = true ;
+    for (String order : stocks.ordersDesc()) {
+      d.append("\n  "+order) ; empty = false ;
+    }
+    for (Manufacture m : stocks.specialOrders()) {
+      d.append("\n  ") ; m.describeBehaviour(d) ; empty = false ;
+    }
+    if (empty) d.append("\n  No orders.") ;
   }
   
   

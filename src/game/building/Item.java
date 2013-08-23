@@ -23,154 +23,57 @@ public class Item implements BuildConstants {
   
   /**  Type definition.
     */
-  public static class Type implements Session.Saveable {
-    
-    
-    private static int nextID = 0 ;
-    private static Batch allTypes = new Batch(), soFar = new Batch() ;
-    
-    final static String ITEM_PATH = "media/Items/" ;
-    final static String DEFAULT_PIC = ITEM_PATH+"crate.gif" ;
-    
-    
-    static Type[] typesSoFar() {
-      Type t[] = (Type[]) soFar.toArray(Type.class) ;
-      soFar.clear() ;
-      return t ;
-    }
-    
-    static Type[] allTypes() {
-      return (Type[]) allTypes.toArray(Type.class) ;
-    }
-    
-    
-    final public int form ;
-    final public String name ;
-    final public int typeID = nextID++ ;
-    
-    final public int basePrice ;
-    final public Texture pic ;
-    final public Model model ;
-    
-    
-    protected Type(Class typeClass, int form, String name, int basePrice) {
-      this.form = form ;
-      this.name = name ;
-      this.basePrice = basePrice ;
-      final String imagePath = ITEM_PATH+name+".gif" ;
-      if (new java.io.File(imagePath).exists()) {
-        this.pic = Texture.loadTexture(imagePath) ;
-        this.model = ImageModel.asIsometricModel(
-          typeClass, imagePath, 0.5f, 0.5f
-        ) ;
-      }
-      else {
-        this.pic = Texture.loadTexture(DEFAULT_PIC) ;
-        this.model = ImageModel.asIsometricModel(
-          typeClass, DEFAULT_PIC, 0.5f, 0.5f
-        ) ;
-      }
-      soFar.add(this) ;
-      allTypes.add(this) ;
-    }
-    
-    public static Type loadConstant(Session s) throws Exception {
-      return ALL_ITEM_TYPES[s.loadInt()] ;
-    }
-    
-    public void saveState(Session s) throws Exception {
-      s.saveInt(typeID) ;
-    }
-    
-    public Conversion materials() { return null ; }
-    
-    public String toString() { return name ; }
-  }
-  
-  
-  /**  Qualities are used to annotate personal effects, such as weapons and
-    *  outfits.
-    */
-  public static class Quality implements Session.Saveable {
-    
-    final int level ;
-    
-    private Quality(int level) {
-      this.level = level ;
-    }
-    /*
-    public Quality(Session s) throws Exception {
-      s.cacheInstance(this) ;
-      this.level = s.loadInt() ;
-    }
-    //*/
-    public static Session.Saveable loadConstant(Session s) throws Exception {
-      return QUALITIES[s.loadInt()] ;
-    }
-    
-    
-    public void saveState(Session s) throws Exception {
-      s.saveInt(level) ;
-    }
-    
-    public String toString() { return QUAL_NAMES[level] ; }
-  }
-  
   final static String QUAL_NAMES[] = {
     "Crude", "Basic", "Standard", "Quality", "Luxury"
   } ;
+  final static float PRICE_MULTS[] = {
+    1.0f, 2.0f, 3.0f, 4.0f, 5.0f
+  } ;
   
-  final public static Quality
-    CRUDE_QUALITY    = new Quality(0),
-    BASIC_QUALITY    = new Quality(1),
-    STANDARD_QUALITY = new Quality(2),
-    HIGH_QUALITY     = new Quality(3),
-    LUXURY_QUALITY   = new Quality(4),
-    QUALITIES[] = {
-      CRUDE_QUALITY,
-      BASIC_QUALITY,
-      STANDARD_QUALITY,
-      HIGH_QUALITY,
-      LUXURY_QUALITY 
-    } ;
-  public static Quality quality(int level) {
-    return QUALITIES[Visit.clamp(level, 5)] ;
-  }
   
   
   /**  Field definitions, standard constructors and save/load functionality-
     */
   final public static float ANY = Float.NEGATIVE_INFINITY ;
-  final public static int MAX_QUALITY = 5 ;
+  final public static int MAX_QUALITY = 4 ;
   
   
-  final public Type type ;
-  final public float amount ;
+  final public Service type ;
   final public Session.Saveable refers ;
+  final public float amount ;
+  final public int quality ;
+  //  TODO:  Make quality an atttribute?  Yeah.  It's simpler.
   
   
-  public Item(Type type, float amount, Session.Saveable refers) {
+  private Item(
+    Service type, Session.Saveable refers, float amount, int quality
+  ) {
     this.type = type ;
     this.amount = amount ;
+    this.quality = quality ;
     this.refers = refers ;
   }
   
   
-  public static Item loadFrom(Session s) throws Exception {
-    final int typeID = s.loadInt() ;
-    if (typeID == -1) return null ;
-    return new Item(ALL_ITEM_TYPES[typeID], s.loadFloat(), s.loadObject()) ;
+  public static Item withAmount(Service type, float amount) {
+    return new Item(type, null, amount, -1) ;
   }
   
   
-  public static void saveTo(Session s, Item item) throws Exception {
-    if (item == null) { s.saveInt(-1) ; return ; }
-    s.saveInt(item.type.typeID) ;
-    s.saveFloat(item.amount) ;
-    s.saveObject(item.refers) ;
+  public static Item withAmount(Item item, float amount) {
+    return new Item(item.type, item.refers, amount, item.quality) ;
   }
   
   
+  public static Item withQuality(Service type, int quality) {
+    return new Item(type, null, 1, quality) ;
+  }
+  
+  
+  public static Item withType(Service type) {
+    return new Item(type, null, -1, -1) ;
+  }
+  /*
   public Item(Item item) {
     this(item.type, item.amount, item.refers) ;
   }
@@ -193,6 +96,26 @@ public class Item implements BuildConstants {
   
   public Item(Type type, float amount) {
     this(type, amount > 0 ? amount : ANY, null) ;
+  }
+  //*/
+  
+  
+  public static Item loadFrom(Session s) throws Exception {
+    final int typeID = s.loadInt() ;
+    if (typeID == -1) return null ;
+    return new Item(
+      ALL_ITEM_TYPES[typeID], s.loadObject(),
+      s.loadFloat(), s.loadInt()
+    ) ;
+  }
+  
+  
+  public static void saveTo(Session s, Item item) throws Exception {
+    if (item == null) { s.saveInt(-1) ; return ; }
+    s.saveInt(item.type.typeID) ;
+    s.saveObject(item.refers) ;
+    s.saveFloat(item.amount) ;
+    s.saveInt(item.quality) ;
   }
   
   
@@ -232,11 +155,10 @@ public class Item implements BuildConstants {
   }
   
   
-  public int quality() {
-    if (refers instanceof Quality) {
-      return ((Quality) refers).level ;
-    }
-    return -1 ;
+  public int price() {
+    final int q = quality ;
+    if (q == 1) return type.basePrice ;
+    return (int) (type.basePrice * PRICE_MULTS[q]) ;
   }
   
   
@@ -246,6 +168,7 @@ public class Item implements BuildConstants {
     if (refers != null) {
       return refers+" "+type ;
     }
+    else if (quality != -1) return QUAL_NAMES[quality]+" "+type ;
     else return ((int) amount)+" "+type ;
   }
 }
@@ -254,6 +177,48 @@ public class Item implements BuildConstants {
 
 
 
+
+
+/**  Qualities are used to annotate personal effects, such as weapons and
+  *  outfits.
+  */
+/*
+public static class Quality implements Session.Saveable {
+  
+  final int level ;
+  
+  private Quality(int level) {
+    this.level = level ;
+  }
+  
+  public static Session.Saveable loadConstant(Session s) throws Exception {
+    return QUALITIES[s.loadInt()] ;
+  }
+  
+  public void saveState(Session s) throws Exception {
+    s.saveInt(level) ;
+  }
+  
+  public String toString() { return QUAL_NAMES[level] ; }
+}
+
+final public static Quality
+  CRUDE_QUALITY    = new Quality(0),
+  BASIC_QUALITY    = new Quality(1),
+  STANDARD_QUALITY = new Quality(2),
+  HIGH_QUALITY     = new Quality(3),
+  LUXURY_QUALITY   = new Quality(4),
+  QUALITIES[] = {
+    CRUDE_QUALITY,
+    BASIC_QUALITY,
+    STANDARD_QUALITY,
+    HIGH_QUALITY,
+    LUXURY_QUALITY 
+  } ;
+public static Quality quality(int level) {
+  return QUALITIES[Visit.clamp(level, 5)] ;
+}
+//*/
 
 
 

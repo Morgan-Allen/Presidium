@@ -53,6 +53,7 @@ import src.util.* ;
  Relaxation/conversation/sex in public, at home, or at the Cantina.
  Matches/debates/spectation at the Arena or Senate Chamber.
  Learning new skills through apprenticeship or research at the Archives.
+ Purchasing new equipment and home items.
 //*/
 
 
@@ -120,7 +121,6 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     //
     //  TODO:  You need to have some generalised routines for getting actors
     //  and venues for consideration.
-    //*
     //
     //  Find all nearby items or actors and consider reacting to them.
     final PresenceMap
@@ -133,18 +133,15 @@ public class CitizenAI extends ActorAI implements ActorConstants {
       if (t instanceof Actor) actorB.add((Actor) t) ;
       if (++numR > reactLimit) break ;
     }
-    //*/
     //
-    //  Consider retreat or surrender based on all nearby actors.
-    //choice.add(new Retreat(actor, considered)) ;
-    
-    //
-    //  Consider defence & treatment of self or others, or dialogue.
+    //  Consider retreat based on ambient danger levels, defence & treatment of
+    //  self or others, or dialogue.
     for (Actor near : actorB) {
       choice.add(new Combat(actor, near)) ;
       choice.add(new Treatment(actor, near)) ;
-      choice.add(new Dialogue(actor, near, true)) ;
+      ///choice.add(new Dialogue(actor, near, true)) ;
     }
+    choice.add(new Retreat(actor)) ;
     //
     //  Consider repairing nearby buildings-
     final Batch <Venue> venueB = new Batch <Venue> () ;
@@ -179,6 +176,8 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     //
     //  Try a range of other spontaneous behaviours, include relaxation,
     //  helping out and spontaneous missions-
+    
+    
     final Action wander = (Action) new Patrolling(actor, actor, 5).nextStep() ;
     wander.setPriority(Plan.IDLE) ;
     choice.add(wander) ;
@@ -189,14 +188,43 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     //
     //  As hobbies, consider hunting, exploration, assistance, and dialogue,
     //  with one chosen target each.
+    
+    //
+    //  Consider purchases of new equipment or home items.
+    addPurchases(choice) ;
+  }
+  
+  
+  private void addPurchases(Choice choice) {
+    //
+    //  If you already have something ordered, don't place a second order.
+    if (rootBehaviour() instanceof Purchase) return ;
+    for (Behaviour b : todoList) if (b instanceof Purchase) return ;
+    //
+    //  Otherwise, consider upgrading weapons or armour.
+    final Service DT = actor.gear.deviceType() ;
+    if (DT != null) {
+      final int DQ = actor.gear.deviceEquipped().quality ;
+      if (DQ < Item.MAX_QUALITY) {
+        final Item nextDevice = Item.withQuality(DT, DQ + 1) ;
+        final Venue shop = Purchase.findVenue(actor, nextDevice) ;
+        if (shop != null) choice.add(new Purchase(actor, nextDevice, shop)) ;
+      }
+    }
+    final Service OT = actor.gear.outfitType() ;
+    if (OT != null) {
+      final int OQ = actor.gear.outfitEquipped().quality ;
+      if (OQ < Item.MAX_QUALITY) {
+        final Item nextOutfit = Item.withQuality(OT, OQ + 1) ;
+        final Venue shop = Purchase.findVenue(actor, nextOutfit) ;
+        if (shop != null) choice.add(new Purchase(actor, nextOutfit, shop)) ;
+      }
+    }
+    //
+    //  Also, consider buying new items for your home, either individually or
+    //  together at the stock exchange.
   }
 }
-
-
-
-
-
-
 
 
 

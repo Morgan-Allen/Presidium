@@ -121,7 +121,7 @@ public class Inventory {
   }
   
   
-  public void clearItems(Item.Type type) {
+  public void clearItems(Service type) {
     itemTable.remove(type) ;
   }
   
@@ -145,15 +145,15 @@ public class Inventory {
     final Item oldItem = itemTable.get(item) ;
     float amount = item.amount ;
     if (oldItem != null) amount += oldItem.amount ;
-    final Item entered = new Item(item, amount) ;
+    final Item entered = Item.withAmount(item, amount) ;
     itemTable.put(entered, entered) ;
     //owner.afterTransaction() ;
     return true ;
   }
   
   
-  public void addItem(Item.Type type, float amount) {
-    addItem(new Item(type, amount)) ;
+  public void addItem(Service type, float amount) {
+    addItem(Item.withAmount(type, amount)) ;
   }
   
   
@@ -168,7 +168,7 @@ public class Inventory {
     final float newAmount = oldItem.amount - item.amount ;
     if (newAmount <= 0) itemTable.remove(oldItem) ;
     else {
-      final Item entered = new Item(item, newAmount) ;
+      final Item entered = Item.withAmount(item, newAmount) ;
       itemTable.put(entered, entered) ;
     }
     //owner.afterTransaction() ;
@@ -176,7 +176,7 @@ public class Inventory {
   }
   
 
-  public float transfer(Item.Type type, Owner to) {
+  public float transfer(Service type, Owner to) {
     float amount = 0 ;
     for (Item item : matches(type)) {
       removeItem(item) ;
@@ -189,7 +189,7 @@ public class Inventory {
   
   public float transfer(Item item, Owner to) {
     final float amount = Math.min(item.amount, amountOf(item)) ;
-    final Item transfers = new Item(item, amount) ;
+    final Item transfers = Item.withAmount(item, amount) ;
     removeItem(transfers) ;
     to.inventory().addItem(transfers) ;
     return amount ;
@@ -200,8 +200,8 @@ public class Inventory {
   /**  Returns the total amount of the given item type, for all owners and
     *  qualities.
     */
-  public float amountOf(Item.Type type) {
-    return amountOf(new Item(type)) ;
+  public float amountOf(Service type) {
+    return amountOf(Item.withType(type)) ;
   }
   
   
@@ -219,7 +219,7 @@ public class Inventory {
   }
   
   
-  public Batch <Item> matches(Item.Type type) {
+  public Batch <Item> matches(Service type) {
     final Batch <Item> matches = new Batch <Item> (4) ;
     for (Item found : itemTable.values()) {
       if (found.type == type) matches.add(found) ;

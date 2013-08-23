@@ -4,12 +4,6 @@
 *  Extra humanoid models:  fat/skinny, young/old.
 *  Mutant/primitive/infected textures.
 
-*  Actor portraits, full names, and more attention to skins/costumes.
-
-//
-//  Resting also needs to be tested out.  And self-defence.  And co-existence
-//  with human structures (or humanoids themselves.)
-
 
 16 commodity types to cover (everything else is minor)
   foodstuffs (3 types), spice
@@ -35,3 +29,12 @@ What are the tradeoffs involved in this game?
   you send them on at what times.
   The schools you invest in and large-scale politics, which become an
   increasingly binding commitment.
+
+
+Quest ideas-
+  There's an existing crime-ridden settlement.
+  There's an ancient relic guarded by powerful defences.
+  There are rich resources contested by native tribes.
+  There's a virgin wilderness filled with animals.
+  Settlers are being preyed on by a powerful enemy.
+  An imperial fortress is help by a trio of champions.

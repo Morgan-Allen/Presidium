@@ -102,7 +102,7 @@ public class Resting extends Plan implements BuildConstants {
         this, "actionEats",
         Action.BUILD, "Eating at "+restPoint
       ) ;
-      final Batch <Item.Type> menu = menuFor(restPoint) ;
+      final Batch <Service> menu = menuFor(restPoint) ;
       if (menu.size() == 0 && actor.health.hungerLevel() > 0.6f) {
         final Tile t = Spacing.pickFreeTileAround(restPoint, actor) ;
         eats.setMoveTarget(t) ;
@@ -130,12 +130,12 @@ public class Resting extends Plan implements BuildConstants {
   public boolean actionEats(Actor actor, Target place) {
     //
     //  If you're inside a venue, and it has food, then avail of it-
-    final Batch <Item.Type> menu = menuFor(place) ;
+    final Batch <Service> menu = menuFor(place) ;
     if (menu.size() > 0) {
       final Venue venue = (Venue) place ;
       int numFoods = 0 ;
-      for (Item.Type type : menu) {
-        venue.inventory().removeItem(new Item(type, 1f / numFoods)) ;
+      for (Service type : menu) {
+        venue.inventory().removeItem(Item.withAmount(type, 1f / numFoods)) ;
       }
       actor.health.takeSustenance(5, numFoods / ActorHealth.MAX_FOOD_TYPES) ;
       return true ;
@@ -152,11 +152,11 @@ public class Resting extends Plan implements BuildConstants {
   }
   
   
-  private Batch <Item.Type> menuFor(Target place) {
-    Batch <Item.Type> menu = new Batch <Item.Type> () ;
+  private Batch <Service> menuFor(Target place) {
+    Batch <Service> menu = new Batch <Service> () ;
     if (! (place instanceof Venue)) return menu ;
     final Venue venue = (Venue) place ;
-    for (Item.Type type : ALL_FOOD_TYPES) {
+    for (Service type : ALL_FOOD_TYPES) {
       if (venue.inventory().amountOf(type) >= 1) menu.add(type) ;
     }
     return menu ;

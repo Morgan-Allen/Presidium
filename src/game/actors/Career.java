@@ -235,14 +235,14 @@ public class Career implements ActorConstants {
   
   
   private void applyGear(Vocation v, Actor actor) {
-    for (Item.Type gear : v.gear) {
+    for (Service gear : v.gear) {
       if (gear instanceof DeviceType) {
-        actor.gear.equipDevice(new Item(gear, Item.quality(2))) ;
+        actor.gear.equipDevice(Item.withQuality(gear, 2)) ;
       }
       else if (gear instanceof OutfitType) {
-        actor.gear.equipOutfit(new Item(gear, Item.quality(2))) ;
+        actor.gear.equipOutfit(Item.withQuality(gear, 2)) ;
       }
-      else actor.gear.addItem(new Item(gear)) ;
+      else actor.gear.addItem(Item.withAmount(gear, 2)) ;
     }
     actor.gear.incCredits(50 + Rand.index(100)) ;
   }

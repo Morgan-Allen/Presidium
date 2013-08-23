@@ -55,8 +55,8 @@ public class Garrison extends Venue implements BuildConstants {
   }
   
   
-  protected Item.Type[] services() {
-    return new Item.Type[] {} ;
+  protected Service[] services() {
+    return new Service[] {} ;
   }
   
   

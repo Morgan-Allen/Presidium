@@ -74,8 +74,8 @@ public class BotanicalStation extends Venue implements BuildConstants {
   }
   
   
-  public static Item.Type speciesYield(int varID) {
-    return (Item.Type) CROP_SPECIES[varID][1] ;
+  public static Service speciesYield(int varID) {
+    return (Service) CROP_SPECIES[varID][1] ;
   }
   
   
@@ -263,8 +263,8 @@ public class BotanicalStation extends Venue implements BuildConstants {
   }
   
   
-  protected Item.Type[] services() {
-    return new Item.Type[] { STARCHES, GREENS, PROTEIN } ;
+  protected Service[] services() {
+    return new Service[] { STARCHES, GREENS, PROTEIN } ;
   }
   
   

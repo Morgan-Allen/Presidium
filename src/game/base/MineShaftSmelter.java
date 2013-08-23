@@ -50,7 +50,7 @@ public class MineShaftSmelter extends Venue implements BuildConstants {
   
   final static int
     MOLD_COOL_TIME = 8 ;
-  final static Item.Type
+  final static Service
     MINED_TYPES[] = { ISOTOPES, METALS, CARBONS } ;
   
   
@@ -60,7 +60,7 @@ public class MineShaftSmelter extends Venue implements BuildConstants {
   }
   
   
-  final Item.Type mined ;
+  final Service mined ;
   final int variant ;
   final Mold molds[] = new Mold[NUM_MOLDS] ;
   
@@ -116,8 +116,8 @@ public class MineShaftSmelter extends Venue implements BuildConstants {
   }
 
 
-  protected Item.Type[] services() {
-    return new Item.Type[] { mined } ;
+  protected Service[] services() {
+    return new Service[] { mined } ;
   }
   
   

@@ -26,33 +26,33 @@ public interface BuildConstants extends ActorConstants {
     SERVICE        = 5 ;
   
   final static Class C = BuildConstants.class ;
-  final public static Item.Type
+  final public static Service
     
-    STARCHES = new Item.Type(C, COMMODITY, "Starches", 10 ),
-    PROTEIN  = new Item.Type(C, COMMODITY, "Protein" , 20 ),
-    GREENS   = new Item.Type(C, COMMODITY, "Greens"  , 30 ),
+    STARCHES = new Service(C, COMMODITY, "Starches", 10 ),
+    PROTEIN  = new Service(C, COMMODITY, "Protein" , 20 ),
+    GREENS   = new Service(C, COMMODITY, "Greens"  , 30 ),
     
-    TIMBER   = new Item.Type(C, COMMODITY, "Timber"  , 40 ),
-    STONE    = new Item.Type(C, COMMODITY, "Stone"   , 70 ),
-    HIDES    = new Item.Type(C, COMMODITY, "Hides"   , 150),
+    TIMBER   = new Service(C, COMMODITY, "Timber"  , 40 ),
+    STONE    = new Service(C, COMMODITY, "Stone"   , 70 ),
+    HIDES    = new Service(C, COMMODITY, "Hides"   , 150),
     
-    METALS   = new Item.Type(C, COMMODITY, "Metals"  , 15 ),
-    CARBONS  = new Item.Type(C, COMMODITY, "Carbons" , 35 ),
-    ISOTOPES = new Item.Type(C, COMMODITY, "Isotopes", 60 ),
+    METALS   = new Service(C, COMMODITY, "Metals"  , 15 ),
+    CARBONS  = new Service(C, COMMODITY, "Carbons" , 35 ),
+    ISOTOPES = new Service(C, COMMODITY, "Isotopes", 60 ),
     
-    PARTS    = new Item.Type(C, COMMODITY, "Parts"   , 50 ),
-    PLASTICS = new Item.Type(C, COMMODITY, "Plastics", 75 ),
-    SOMA     = new Item.Type(C, COMMODITY, "Soma"    , 100),
+    PARTS    = new Service(C, COMMODITY, "Parts"   , 50 ),
+    PLASTICS = new Service(C, COMMODITY, "Plastics", 75 ),
+    SOMA     = new Service(C, COMMODITY, "Soma"    , 100),
     
-    INSCRIPTION = new Item.Type(C, COMMODITY, "Inscription", 140),
-    PRESSFEED   = new Item.Type(C, COMMODITY, "Pressfeed"  , 160),
-    MEDICINE    = new Item.Type(C, COMMODITY, "Medicine"   , 200),
+    INSCRIPTION = new Service(C, COMMODITY, "Inscription", 140),
+    PRESSFEED   = new Service(C, COMMODITY, "Pressfeed"  , 160),
+    MEDICINE    = new Service(C, COMMODITY, "Medicine"   , 200),
     
-    CARRIED_ITEM_TYPES[] = Item.Type.typesSoFar(),
+    CARRIED_ITEM_TYPES[] = Service.typesSoFar(),
     
-    WATER        = new Item.Type(C, PROVISION, "Water"       , 0),
-    LIFE_SUPPORT = new Item.Type(C, PROVISION, "Life Support", 0),
-    POWER        = new Item.Type(C, PROVISION, "Power"       , 0),
+    WATER        = new Service(C, PROVISION, "Water"       , 0),
+    LIFE_SUPPORT = new Service(C, PROVISION, "Life Support", 0),
+    POWER        = new Service(C, PROVISION, "Power"       , 0),
     
     ALL_FOOD_TYPES[] = { STARCHES, PROTEIN, GREENS  },
     ALL_PROVISIONS[] = { WATER, LIFE_SUPPORT, POWER },
@@ -60,7 +60,7 @@ public interface BuildConstants extends ActorConstants {
     //  Plants (young/mature- species?  Flora or animal remains?  Dead/alive?)
     //  Housing.
     
-    SERVICE_ADMIN = new Item.Type(C, SERVICE, "Admin", 0) ;
+    SERVICE_ADMIN = new Service(C, SERVICE, "Admin", 0) ;
     //  Also housing, refuge, storage, et cetera.
 
 
@@ -131,8 +131,8 @@ public interface BuildConstants extends ActorConstants {
       new Conversion(2, PARTS, 5, ASSEMBLY),
       "heavy blade"
     ) ;
-  final public static Item.Type
-    ALL_IMPLEMENTS[] = Item.Type.typesSoFar() ;
+  final public static Service
+    ALL_IMPLEMENTS[] = Service.typesSoFar() ;
   
   
   //
@@ -153,7 +153,7 @@ public interface BuildConstants extends ActorConstants {
     ),
     SHIELD_BELT = new OutfitType(
       C, "Shield Belt"   , 5 , 50,
-      new Conversion(2, PARTS, Artificer.class, 10, ASSEMBLY)
+      new Conversion(2, PARTS, Artificer.class, 5, ASSEMBLY)
     ),
     BODY_ARMOUR    = new OutfitType(
       C, "Body Armour"   , 10, 75,
@@ -163,11 +163,11 @@ public interface BuildConstants extends ActorConstants {
       C, "Golem Armour"  , 20, 150,
       new Conversion(12, PARTS, Artificer.class, 20, ASSEMBLY)
     ) ;
-  final public static Item.Type
-    ALL_OUTFITS[] = Item.Type.typesSoFar() ;
+  final public static Service
+    ALL_OUTFITS[] = Service.typesSoFar() ;
   
-  final public static Item.Type
-    ALL_ITEM_TYPES[] = Item.Type.allTypes() ;
+  final public static Service
+    ALL_ITEM_TYPES[] = Service.allTypes() ;
   
   
   

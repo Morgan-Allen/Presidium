@@ -107,11 +107,7 @@ public abstract class Plan implements Saveable, Behaviour {
     }
     if (nextStep == null || nextStep.complete()) {
       if (valid()) nextStep = getNextStep() ;
-      else {
-        onceInvalid() ;
-        ///I.say("Plan no longer valid: "+this) ;
-        nextStep = null ;
-      }
+      else { onceInvalid() ; nextStep = null ; }
     }
     return nextStep ;
   }

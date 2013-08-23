@@ -9,7 +9,7 @@ import src.util.* ;
 
 
 
-public class DeviceType extends Item.Type implements BuildConstants {
+public class DeviceType extends Service implements BuildConstants {
   
   
   

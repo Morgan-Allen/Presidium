@@ -57,8 +57,8 @@ public class Bastion extends Venue implements BuildConstants {
   }
   
   
-  protected Item.Type[] services() {
-    return new Item.Type[] { SERVICE_ADMIN } ;
+  protected Service[] services() {
+    return new Service[] { SERVICE_ADMIN } ;
   }
   
   

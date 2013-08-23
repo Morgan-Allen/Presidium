@@ -38,6 +38,10 @@ public class LoadService {
   public static Batch <Class> loadClassesInDir(
     String dirName, String packageName
   ) {
+    //
+    //  TODO:  THIS WON'T WORK IF YOU HAVE EVERYTHING PACKED INTO A .JAR FILE.
+    //  YOU'LL NEED TO LOAD THINGS AS RESOURCES INSTEAD.  Look here-
+    //  http://stackoverflow.com/questions/2393194/how-to-access-resources-in-jar-file
     final Batch <Class> loaded = new Batch <Class> () ;
     final char sep = java.io.File.separatorChar ;
     File baseDir = new File(dirName) ;

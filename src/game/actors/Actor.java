@@ -149,7 +149,6 @@ public abstract class Actor extends Mobile implements
       //  mobile updates are not time-sliced.  (Maybe they should be?)
       if (actionTaken == null || actionTaken.complete()) {
         assignAction(AI.getNextAction()) ;
-        ///I.say(this+" got next action: "+actionTaken) ;
       }
     }
   }
@@ -160,7 +159,7 @@ public abstract class Actor extends Mobile implements
     if (health.conscious()) {
       AI.updateAI(numUpdates) ;
       //
-      //  Update the intel/danger maps associated with world's bases.
+      //  Update the intel/danger maps associated with the world's bases.
       final float power = Combat.combatStrength(this) ;
       for (Base b : world.bases()) {
         if (b == base()) b.intelMap.liftFogAround(this, health.sightRange()) ;

@@ -13,44 +13,16 @@ import src.util.* ;
 
 
 
-public class Conversion implements Session.Saveable, BuildConstants {
+public class Conversion implements BuildConstants {
   
   
   
   /**  Fields, constructors, and save/load methods-
     */
-  final public Item raw[], out[] ;
+  final public Item raw[], out ;
   final public Skill skills[] ;
   final public float skillDCs[] ;
-  //  Class venueClass?
-  
-  
-  public Conversion(Session s) throws Exception {
-    s.cacheInstance(this) ;
-    raw = new Item[s.loadInt()] ;
-    for (int i = 0 ; i < raw.length ; i++) raw[i] = Item.loadFrom(s) ;
-    out = new Item[s.loadInt()] ;
-    for (int i = 0 ; i < out.length ; i++) out[i] = Item.loadFrom(s) ;
-    skills = new Skill[s.loadInt()] ;
-    skillDCs = new float[skills.length] ;
-    for (int i = 0 ; i < skills.length ; i++) {
-      skills[i] = (Skill) ActorConstants.ALL_TRAIT_TYPES[s.loadInt()] ;
-      skillDCs[i] = s.loadFloat() ;
-    }
-  }
-  
-  
-  public void saveState(Session s) throws Exception {
-    s.saveInt(raw.length) ;
-    for (Item i : raw) Item.saveTo(s, i) ;
-    s.saveInt(out.length) ;
-    for (Item i : out) Item.saveTo(s, i) ;
-    s.saveInt(skills.length) ;
-    for (int i = 0 ; i < skills.length ; i++) {
-      s.saveInt(skills[i].traitID) ;
-      s.saveFloat(skillDCs[i]) ;
-    }
-  }
+  final public Class venueType ;
   
 
   public Conversion(Object... args) {
@@ -63,8 +35,9 @@ public class Conversion implements Session.Saveable, BuildConstants {
     //
     //  Set up temporary storage variables.
     Class v = null ;
-    Batch rawB = new Batch(), outB = new Batch(), skillB = new Batch() ;
-    Batch rawN = new Batch(), outN = new Batch(), skillN = new Batch() ;
+    Item out = null ;
+    Batch rawB = new Batch(), skillB = new Batch() ;
+    Batch rawN = new Batch(), skillN = new Batch() ;
     //
     //  Iterate over all arguments-
     for (Object o : args) {
@@ -73,22 +46,20 @@ public class Conversion implements Session.Saveable, BuildConstants {
       else if (o instanceof Class) v = (Class) o ;
       else if (o instanceof Skill) { skillB.add(o) ; skillN.add(num) ; }
       else if (o == TO) recRaw = false ;
-      else if (o instanceof Item.Type) {
+      else if (o instanceof Service) {
         if (recRaw) { rawB.add(o) ; rawN.add(num) ; }
-        else        { outB.add(o) ; outN.add(num) ; }
+        else { out = Item.withAmount((Service) o, num) ; }
       }
     }
     //
     //  Then assign the final tallies-
     int i ;
     raw = new Item[rawB.size()] ;
-    for (i = 0 ; i < rawB.size() ; i++) raw[i] = new Item(
-      (Item.Type) rawB.atIndex(i), (Float) rawN.atIndex(i)
+    for (i = 0 ; i < rawB.size() ; i++) raw[i] = Item.withAmount(
+      (Service) rawB.atIndex(i), (Float) rawN.atIndex(i)
     ) ;
-    out = new Item[outB.size()] ;
-    for (i = 0 ; i < outB.size() ; i++) out[i] = new Item(
-      (Item.Type) outB.atIndex(i), (Float) outN.atIndex(i)
-    ) ;
+    this.out = out ;
+    this.venueType = v ;
     skills = (Skill[]) skillB.toArray(Skill.class) ;
     skillDCs = Visit.fromFloats(skillN.toArray()) ;
   }
@@ -99,7 +70,48 @@ public class Conversion implements Session.Saveable, BuildConstants {
     for (int i = c.length ; i-- > 0 ;) c[i] = new Conversion(args[i]) ;
     return c ;
   }
+  
+  
+  /**  Various save/load utility methods (may have to rework this later.)
+    */
+  private Conversion(Session s) throws Exception {
+    raw = new Item[s.loadInt()] ;
+    for (int i = 0 ; i < raw.length ; i++) raw[i] = Item.loadFrom(s) ;
+    out = Item.loadFrom(s) ;
+    //for (int i = 0 ; i < out.length ; i++) out[i] = Item.loadFrom(s) ;
+    skills = new Skill[s.loadInt()] ;
+    skillDCs = new float[skills.length] ;
+    for (int i = 0 ; i < skills.length ; i++) {
+      skills[i] = (Skill) ActorConstants.ALL_TRAIT_TYPES[s.loadInt()] ;
+      skillDCs[i] = s.loadFloat() ;
+    }
+    venueType = s.loadClass() ;
+  }
+  
+  
+  public static Conversion loadFrom(Session s) throws Exception {
+    return new Conversion(s) ;
+  }
+  
+  
+  private void saveState(Session s) throws Exception {
+    s.saveInt(raw.length) ;
+    for (Item i : raw) Item.saveTo(s, i) ;
+    Item.saveTo(s, out) ;
+    s.saveInt(skills.length) ;
+    for (int i = 0 ; i < skills.length ; i++) {
+      s.saveInt(skills[i].traitID) ;
+      s.saveFloat(skillDCs[i]) ;
+    }
+    s.saveClass(venueType) ;
+  }
+  
+  
+  public static void saveTo(Session s, Conversion c) throws Exception {
+    c.saveState(s) ;
+  }
 }
+
 
 
 

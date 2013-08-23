@@ -234,6 +234,8 @@ public abstract class ActorAI implements ActorConstants {
     */
   protected Action getNextAction() {
     while (true) {
+      //
+      //  If all current behaviours are complete, generate a new one.
       if (behaviourStack.size() == 0) {
         final Behaviour 
           notDone = new Choice(actor, todoList).weightedPick(0),
@@ -243,9 +245,19 @@ public abstract class ActorAI implements ActorConstants {
         if (root == notDone) todoList.remove(notDone) ;
         pushBehaviour(root) ;
       }
+      //
+      //  Root behaviours which return null, but aren't complete, should be
+      //  stored for later.  Otherwise, unfinished behaviours should return
+      //  their next step.
       final Behaviour current = topBehaviour() ;
       final Behaviour next = current.nextStepFor(actor) ;
-      if (current.complete() || next == null) popBehaviour() ;
+      final boolean isDone = current.complete() ;
+      if (isDone || next == null) {
+        if (current == rootBehaviour() && ! isDone) {
+          todoList.add(current) ;
+        }
+        popBehaviour() ;
+      }
       else if (current instanceof Action) return (Action) current ;
       else pushBehaviour(next) ;
     }
@@ -258,7 +270,10 @@ public abstract class ActorAI implements ActorConstants {
   protected void updateAI(int numUpdates) {
     if (numUpdates % 10 == 0 && behaviourStack.size() > 0) {
       for (Behaviour b : todoList) {
-        if (b.complete() || b.priorityFor(actor) <= 0) todoList.remove(b) ;
+        if (b.complete()) {
+          I.say("REMOVING FROM TODO LIST: "+b) ;
+          todoList.remove(b) ;
+        }
       }
       final Behaviour
         last = rootBehaviour(),
@@ -294,9 +309,6 @@ public abstract class ActorAI implements ActorConstants {
     else return 0 ;
   }
   
-  
-  //  TODO:  Consider return Relation objects directly, with a NONE object in
-  //  case of new subjects?
   
   public float relation(Actor other) {
     final Relation r = relations.get(other) ;
@@ -371,8 +383,8 @@ public abstract class ActorAI implements ActorConstants {
 
 
 
-//  TODO:  CREATE A LIST OF BEHAVIOURS TO GO BACK TO!  USE THAT FOR MISSIONS,
-//  FARMING, PURCHASES, ET CETERA!
+
+
 /*
 static class Memory {
   Class planClass ;

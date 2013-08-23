@@ -13,7 +13,8 @@ import src.util.* ;
 
 
 
-public class VenueStocks extends Inventory {
+public class VenueStocks extends Inventory implements BuildConstants {
+  
   
   
   /**  Fields, constructors, and save/load methods-
@@ -23,28 +24,17 @@ public class VenueStocks extends Inventory {
     POTENTIAL_INC = 0.15f,
     SEARCH_RADIUS = 32,
     MAX_CHECKED = 4 ;
-
-  
-  //  TODO:  It's possible Orders should be a dedicated class, instead of a
-  //  list of plans.  Is it possible the two can be combined?
   
   
   static class Demand {
-    Item.Type type ;
+    Service type ;
     float required, received, balance ;
   }
   
   
-  static class Order {
-    Item ordered ;
-    Actor assigned ;
-    Manufacture manufacture ;
-  }
-  
-  
   final Venue venue ;
-  Table <Item.Type, Demand> demands = new Table() ;
-  List <Plan> orders = new List <Plan> () ;
+  final Table <Service, Demand> demands = new Table <Service, Demand> () ;
+  final List <Manufacture> specialOrders = new List <Manufacture> () ;
   
   
   VenueStocks(Venue v) {
@@ -55,7 +45,7 @@ public class VenueStocks extends Inventory {
   
   public void loadState(Session s) throws Exception {
     super.loadState(s) ;
-    s.loadObjects(orders) ;
+    s.loadObjects(specialOrders) ;
     int numC = s.loadInt() ;
     while (numC-- > 0) {
       final Demand d = new Demand() ;
@@ -69,7 +59,7 @@ public class VenueStocks extends Inventory {
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveObjects(orders) ;
+    s.saveObjects(specialOrders) ;
     s.saveInt(demands.size()) ;
     for (Demand d : demands.values()) {
       s.saveInt(d.type.typeID) ;
@@ -83,34 +73,61 @@ public class VenueStocks extends Inventory {
   
   /**  Assigning and producing jobs-
     */
-  public void assignOrder(Manufacture newOrder) {
-    orders.add(newOrder) ;
+  public void addSpecialOrder(Manufacture newOrder) {
+    specialOrders.add(newOrder) ;
   }
   
   
-  public Manufacture nextManufacture(Actor actor, Conversion... cons) {
-    Manufacture picked = null ;
-    float maxUrgency = 0 ;
-    for (Conversion c : cons) {
-      final Manufacture m = new Manufacture(actor, venue, c) ;
-      if (! m.valid()) continue ;
-      float urgency = 0 ;
-      for (Item i : c.out) urgency += receivedShortage(i.type) ;
-      if (urgency > maxUrgency) { picked = m ; maxUrgency = urgency ; }
+  public Batch <Item> shortages(boolean requiredOnly) {
+    final Batch <Item> batch = new Batch <Item> () ;
+    for (Demand d : demands.values()) {
+      float amount = requiredShortage(d.type) ;
+      if (! requiredOnly) amount += receivedShortage(d.type) ;
+      batch.add(Item.withAmount(d.type, amount)) ;
     }
-    ///I.say("Urgency was: "+maxUrgency) ;
-    if (picked != null) orders.add(picked) ;
-    return picked ;
+    return batch ;
   }
   
   
-  public Delivery nextDelivery(Actor actor, Item.Type types[]) {
+  public Manufacture nextSpecialOrder(Actor actor) {
+    for (Manufacture order : specialOrders) {
+      if (order.actor() == null && ! order.complete()) {
+        return order ;
+      }
+    }
+    return null ;
+  }
+  
+  
+  public Manufacture nextManufacture(Actor actor, Conversion c) {
+    final float shortage = receivedShortage(c.out.type) ;
+    if (shortage <= 0) return null ;
+    return new Manufacture(
+      actor, venue, c, Item.withAmount(c.out, ORDER_UNIT)
+    ) ;
+  }
+  
+  
+  public Delivery nextDelivery(Actor actor, Service types[]) {
+    //
+    //  If an actor has already been assigned to this task, then don't assign
+    //  anyone else.
+    //
+    //  TODO:  (Alternatively, iterate over all behaviours aimed at this venue,
+    //  and the subtract the total of items reserved by other deliveries, to
+    //  ensure there'll still be enough.)
+    for (Actor works : venue.personnel.workers) {
+      if (works.AI.rootBehaviour() instanceof Delivery) {
+        final Delivery d = (Delivery) works.AI.rootBehaviour() ;
+        if (d.origin == venue) return null ;
+      }
+    }
+    //
+    //  Otherwise we iterate over every nearby venue, and see if they need what
+    //  we're selling, so to speak.
     float maxUrgency = 0 ;
     Delivery picked = null ;
     final Presences presences = venue.base().world.presences ;
-    //
-    //  We iterate over every nearby venue, and see if they need what we're
-    //  selling, so to speak.
     for (Object o : presences.matchesNear(venue.base(), venue, SEARCH_RADIUS)) {
       final Venue client = (Venue) o ;
       final float distFactor = (SEARCH_RADIUS + Spacing.distance(
@@ -120,28 +137,25 @@ public class VenueStocks extends Inventory {
       //  If we don't have enough of a given item to sell, we just pass over
       //  that item type.  Conversely, if a venue has no shortage, it is
       //  ignored.
-      for (Item.Type type : types) {
+      for (Service type : types) {
         if (venue.stocks.amountOf(type) < ORDER_UNIT) continue ;
         float urgency = client.stocks.requiredShortage(type) ;
         if (urgency <= 0) continue ;
         final Delivery order = new Delivery(
-          new Item(type, ORDER_UNIT), venue, client
+          Item.withAmount(type, ORDER_UNIT), venue, client
         ) ;
-        if (! canMeetOrder(order)) continue ;
         urgency /= distFactor ;
         if (urgency > maxUrgency) { picked = order ; maxUrgency = urgency ; }
       }
     }
-    if (picked != null) orders.add(picked) ;
     return picked ;
   }
   
   
   
-  
   /**  Internal and external updates-
     */
-  Demand demandFor(Item.Type t) {
+  Demand demandFor(Service t) {
     final Demand d = demands.get(t) ;
     if (d != null) return d ;
     Demand made = new Demand() ;
@@ -151,69 +165,30 @@ public class VenueStocks extends Inventory {
   }
   
   
-  public void setRequired(Item.Type type, float amount) {
+  public void setRequired(Service type, float amount) {
     demandFor(type).required = amount ;
   }
   
   
-  public void incRequired(Item.Type type, float amount) {
+  public void incRequired(Service type, float amount) {
     demandFor(type).required += amount ;
   }
   
   
-  public void receiveDemand(Item.Type type, float amount) {
+  public void receiveDemand(Service type, float amount) {
     demandFor(type).received += amount * POTENTIAL_INC ;
   }
   
   
-  public float receivedShortage(Item.Type type) {
+  public float receivedShortage(Service type) {
     return demandFor(type).received - venue.stocks.amountOf(type) ;
   }
   
   
-  public float requiredShortage(Item.Type type) {
+  public float requiredShortage(Service type) {
     return demandFor(type).required - venue.stocks.amountOf(type) ;
   }
   
-  
-  private void checkBalance() {
-    for (Demand d : demands.values()) {
-      d.balance = venue.stocks.amountOf(d.type) ;
-    }
-    for (Plan p : orders) if (p instanceof Delivery) {
-      final Delivery order = (Delivery) p ;
-      final Actor a = order.actor() ;
-      if (a == null) continue ;
-      for (Item i : order.items) {
-        final Demand d = demandFor(i.type) ;
-        d.balance += a.inventory().amountOf(i) ;
-        d.balance -= i.amount ;
-      }
-    }
-  }
-  
-  
-  public boolean canMeetOrder(Delivery d) {
-    checkBalance() ;
-    boolean included = orders.contains(d) ;
-    for (Item i : d.items) {
-      if (demandFor(i.type).balance < (included ? 0 : i.amount)) return false ;
-    }
-    return true ;
-  }
-  
-  /*
-  public Batch <Item> shortages(boolean requiredOnly) {
-    final Batch <Item> batch = new Batch <Item> () ;
-    for (Demand d : demands.values()) {
-      float amount = requiredShortage(d.type) ;
-      if (! requiredOnly) amount += receivedShortage(d.type) ;
-      final Item i = new Item(d.type, amount) ;
-      batch.add(i) ;
-    }
-    return batch ;
-  }
-  //*/
   
 
   /**  Updates and maintenance.
@@ -231,11 +206,9 @@ public class VenueStocks extends Inventory {
       for (Item i : c.raw) demandFor(i.type).required = 0 ;
     }
     for (Conversion c : cons) {
-      for (Item out : c.out) {
-        final float demand = receivedShortage(out.type) / out.amount ;
-        for (Item raw : c.raw) {
-          demandFor(raw.type).required += (raw.amount * demand) + 1 ;
-        }
+      final float demand = receivedShortage(c.out.type) / c.out.amount ;
+      for (Item raw : c.raw) {
+        demandFor(raw.type).required += (raw.amount * demand) + 1 ;
       }
     }
   }
@@ -243,27 +216,15 @@ public class VenueStocks extends Inventory {
   
   public void updateStocks(int numUpdates) {
     if (numUpdates % 10 != 0) return ;
-    //for (Demand d : demands.values()) d.reserved = 0 ;
-    final Presences presences = venue.base().world.presences ;
     //
-    //  Remove any orders which have expired, and calculate what goods are
-    //  being held in reserve.
-    final World world = venue.world() ;
-    for (Plan order : orders) {
-      if (! world.activities.includes(order)) {
-        orders.remove(order) ;
-      }
-      /*
-      if (order instanceof Delivery) {
-        final Delivery d = (Delivery) order ;
-        if (d.stage() > Delivery.STAGE_PICKUP) continue ;
-        for (Item i : d.items) demandFor(i.type).reserved += i.amount ;
-      }
-      //*/
+    //  Clear out any special orders that are complete-
+    for (Manufacture order : specialOrders) {
+      if (order.complete() || ! order.valid()) specialOrders.remove(order) ;
     }
     //
     //  Find a random nearby supplier of this item type, and bump up demand
     //  received there.
+    final Presences presences = venue.base().world.presences ;
     for (Demand d : demands.values()) {
       //
       //  TODO:  Search a little more thoroughly, and favour suppliers that are
@@ -284,28 +245,18 @@ public class VenueStocks extends Inventory {
   protected Batch <String> ordersDesc() {
     final Batch <String> desc = new Batch <String> () ;
     for (Demand demand : demands.values()) {
-      String s = demand.type.name ;
       final int needed = (int) Math.max(demand.received, demand.required) ;
-      s+=" ("+(int) amountOf(demand.type)+"/"+needed+")" ;
-      desc.add(s) ;
+      final int amount = (int) amountOf(demand.type) ;
+      if (needed == 0 && amount == 0) continue ;
+      desc.add(demand.type.name+" ("+amount+"/"+needed+")") ;
     }
     return desc ;
   }
   
-  /*
-  public void writeInformation(Description d) {
-    if (demands.size() == 0) {
-      d.append("\n\n  No current demands.") ;
-      return ;
-    }
-    for (Demand demand : demands.values()) {
-      d.append("\n  Demand for: "+demand.type.name) ;
-      d.append("\n    ("+(int) demand.required+" required)") ;
-      d.append("\n    ("+(int) demand.received+" received)") ;
-      d.append("\n    ("+(int) demand.balance +" balance)" ) ;
-    }
+  
+  protected List <Manufacture> specialOrders() {
+    return specialOrders ;
   }
-  //*/
 }
 
 
@@ -313,5 +264,70 @@ public class VenueStocks extends Inventory {
 
 
 
+/*
+private void checkBalance() {
+  for (Demand d : demands.values()) {
+    d.balance = venue.stocks.amountOf(d.type) ;
+  }
+  for (Plan p : orders) if (p instanceof Delivery) {
+    final Delivery order = (Delivery) p ;
+    final Actor a = order.actor() ;
+    if (a == null) continue ;
+    for (Item i : order.items) {
+      final Demand d = demandFor(i.type) ;
+      d.balance += a.inventory().amountOf(i) ;
+      d.balance -= i.amount ;
+    }
+  }
+}
 
 
+public boolean canMeetOrder(Delivery d) {
+  checkBalance() ;
+  boolean included = orders.contains(d) ;
+  for (Item i : d.items) {
+    if (demandFor(i.type).balance < (included ? 0 : i.amount)) return false ;
+  }
+  return true ;
+}
+//*/
+
+//
+//  Remove any orders which have expired.
+/*
+final World world = venue.world() ;
+for (Plan order : orders) {
+  if (! world.activities.includes(order)) orders.remove(order) ;
+}
+//*/
+
+
+
+/*
+public Batch <Item> shortages(boolean requiredOnly) {
+  final Batch <Item> batch = new Batch <Item> () ;
+  for (Demand d : demands.values()) {
+    float amount = requiredShortage(d.type) ;
+    if (! requiredOnly) amount += receivedShortage(d.type) ;
+    final Item i = new Item(d.type, amount) ;
+    batch.add(i) ;
+  }
+  return batch ;
+}
+//*/
+
+
+/*
+public void writeInformation(Description d) {
+  if (demands.size() == 0) {
+    d.append("\n\n  No current demands.") ;
+    return ;
+  }
+  for (Demand demand : demands.values()) {
+    d.append("\n  Demand for: "+demand.type.name) ;
+    d.append("\n    ("+(int) demand.required+" required)") ;
+    d.append("\n    ("+(int) demand.received+" received)") ;
+    d.append("\n    ("+(int) demand.balance +" balance)" ) ;
+  }
+}
+//*/

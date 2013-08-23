@@ -49,7 +49,7 @@ public class CultureVats extends Venue implements BuildConstants {
     */
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    stocks.translateDemands(conversions()) ;
+    stocks.translateDemands(NONE_TO_SOMA) ;
   }
   
   
@@ -58,20 +58,18 @@ public class CultureVats extends Venue implements BuildConstants {
     final Delivery d = stocks.nextDelivery(actor, services()) ;
     if (d != null) return d ;
     
-    final Manufacture m = stocks.nextManufacture(actor, conversions()) ;
+    final Manufacture o = stocks.nextSpecialOrder(actor) ;
+    if (o != null) return o ;
+    
+    final Manufacture m = stocks.nextManufacture(actor, NONE_TO_SOMA) ;
     if (m != null) return m ;
     
     return null ;
   }
   
   
-  protected Conversion[] conversions() {
-    return new Conversion[] { NONE_TO_SOMA } ;
-  }
-  
-  
-  protected Item.Type[] services() {
-    return new Item.Type[] { SOMA } ;
+  protected Service[] services() {
+    return new Service[] { SOMA } ;
   }
   
   

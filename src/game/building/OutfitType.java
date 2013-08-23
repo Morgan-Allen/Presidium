@@ -6,7 +6,7 @@ import java.io.* ;
 
 
 
-public class OutfitType extends Item.Type implements BuildConstants {
+public class OutfitType extends Service implements BuildConstants {
   
   
   //final public static String

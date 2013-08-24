@@ -219,7 +219,7 @@ public class Tile implements Target, TileConstants, Boardable {
   
   
   public boolean allowsEntry(Mobile m) {
-    return ! blocked() ;
+    return true ;
   }
   
   

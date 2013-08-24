@@ -267,7 +267,7 @@ public final class Spacing implements TileConstants {
   
   
   public static Tile pickRandomTile(Actor actor, float range) {
-    final double angle = Rand.num() * Math.PI ;
+    final double angle = Rand.num() * Math.PI * 2 ;
     final float dist = Rand.num() * range ;
     final Tile o = actor.origin() ;
     return actor.world.tileAt(

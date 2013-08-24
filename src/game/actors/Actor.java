@@ -83,12 +83,6 @@ public abstract class Actor extends Mobile implements
   public Object species() { return null ; }
   
   
-  //  TODO:  Should this be moved to the Psyche class?
-  public float attraction(Actor otherA) {
-    return 0 ;
-  }
-  
-  
   
   /**  Assigning behaviours and actions-
     */
@@ -102,7 +96,9 @@ public abstract class Actor extends Mobile implements
   
   protected void pathingAbort() {
     if (actionTaken == null) return ;
-    I.say(this+" aborting actionTaken...") ;
+    if (BaseUI.isPicked(this)) {
+      I.say(this+" aborting "+actionTaken.methodName()) ;
+    }
     AI.cancelBehaviour(AI.topBehaviour()) ;
     final Behaviour top = AI.topBehaviour() ;
     if (top != null) top.abortStep() ;
@@ -152,6 +148,7 @@ public abstract class Actor extends Mobile implements
   public void updateAsScheduled(int numUpdates) {
     health.updateHealth(numUpdates) ;
     if (health.conscious()) {
+      pathing.updatePathing() ;
       //
       //  Check to see if a new action needs to be decided on.
       if (actionTaken == null || actionTaken.complete()) {
@@ -234,6 +231,7 @@ public abstract class Actor extends Mobile implements
     //  ...Maybe include equipment/costume configuration here as well?
     s.scale = scale ;
     if (actionTaken != null) actionTaken.configSprite(s) ;
+    ///I.say("Sprite height: "+s.position.z) ;
     super.renderFor(rendering, base) ;
     //
     //  Finally, if you have anything to say, render the chat bubbles!
@@ -270,7 +268,6 @@ public abstract class Actor extends Mobile implements
     return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
   }
 
-  
   
   public void renderSelection(Rendering rendering, boolean hovered) {
     if (indoors() || ! inWorld()) return ;

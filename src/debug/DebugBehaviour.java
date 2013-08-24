@@ -12,8 +12,7 @@ import src.game.building.* ;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.tactical.* ;
-import src.game.wild.Micovore;
-import src.game.wild.Quud;
+import src.game.wild.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.user.* ;
@@ -76,7 +75,7 @@ public class DebugBehaviour extends PlayLoop {
   
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(
-      64, 0.2f,
+      32, 0.2f,
       Habitat.MEADOW , 0.7f,
       Habitat.BARRENS, 0.3f
     ) ;
@@ -155,12 +154,15 @@ public class DebugBehaviour extends PlayLoop {
     */
   private void natureScenario(World world, Base base, HUD UI) {
     GameSettings.noFog = true ;
-    PlayLoop.setGameSpeed(10f) ;
+    PlayLoop.setGameSpeed(25.0f) ;
     
-    final Actor prey = new Quud() ;
+    final Actor prey = new Vareen() ;
     prey.health.setupHealth(Rand.num(), 1, 0) ;
     prey.enterWorldAt(8, 8, world) ;
     ((BaseUI) UI).selection.pushSelection(prey, true) ;
+    
+    
+    
     
     /*
     final Actor hunter = new Micovore() ;

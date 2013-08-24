@@ -128,7 +128,7 @@ public class Dialogue extends Plan implements ActorConstants {
     ///I.say("____ Other actor can talk: "+other) ;
     final float
       relation = actor.AI.relation(other),
-      attraction = actor.attraction(other),
+      attraction = actor.AI.attraction(other),
       novelty = actor.AI.novelty(other) ;
     /*
     I.say(

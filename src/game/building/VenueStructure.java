@@ -13,8 +13,8 @@ import src.util.* ;
 
 //
 //  Modify this so that Vehicles can possess it too?  Put in an interface?
-
-//  I want to have some kind of external progress metre.
+//
+//  I want to have some kind of external progress metre for research/upgrades.
 
 
 public class VenueStructure extends Inventory {
@@ -66,11 +66,12 @@ public class VenueStructure extends Inventory {
   private int
     buildCost = DEFAULT_BUILD_COST,
     armouring = DEFAULT_ARMOUR ;
+  private boolean organic ;
   //  private Item materials[] ;
 
   private int state = STATE_INSTALL ;
   private float integrity = baseIntegrity ;
-  //  private boolean burning ;
+  private boolean burning ;
   
   private float upgradeProgress = 0 ;
   private int upgradeIndex = -1 ;
@@ -91,9 +92,11 @@ public class VenueStructure extends Inventory {
     maxUpgrades = s.loadInt() ;
     buildCost = s.loadInt() ;
     armouring = s.loadInt() ;
+    organic = s.loadBool() ;
     
     state = s.loadInt() ;
     integrity = s.loadFloat() ;
+    burning = s.loadBool() ;
     
     if (maxUpgrades > 0) {
       upgrades = new Upgrade[maxUpgrades] ;
@@ -113,9 +116,11 @@ public class VenueStructure extends Inventory {
     s.saveInt(maxUpgrades) ;
     s.saveInt(buildCost) ;
     s.saveInt(armouring) ;
+    s.saveBool(organic) ;
     
     s.saveInt(state) ;
     s.saveFloat(integrity) ;
+    s.saveBool(burning) ;
     
     final Index <Upgrade> AU = venue.allUpgrades() ;
     if (AU != null) for (int i = 0 ; i < maxUpgrades ; i++) {
@@ -129,11 +134,13 @@ public class VenueStructure extends Inventory {
     int baseIntegrity,
     int armouring,
     int buildCost,
-    int maxUpgrades
+    int maxUpgrades,
+    boolean organic
   ) {
     this.integrity = this.baseIntegrity = baseIntegrity ;
     this.armouring = armouring ;
     this.buildCost = buildCost ;
+    this.organic = organic ;
     
     this.maxUpgrades = maxUpgrades ;
     this.upgrades = new Upgrade[maxUpgrades] ;
@@ -154,6 +161,7 @@ public class VenueStructure extends Inventory {
   
   public int repair() { return (int) integrity ; }
   public float repairLevel() { return integrity / maxIntegrity() ; }
+  public boolean burning() { return burning ; }
   
   
   public void setState(int state, float condition) {
@@ -166,12 +174,14 @@ public class VenueStructure extends Inventory {
   public void repairBy(float inc) {
     if (inc < 0) I.complain("NEGATIVE REPAIR!") ;
     adjustRepair(inc) ;
+    if (inc > Rand.num() * maxIntegrity()) burning = false ;
   }
   
   
   public void takeDamage(float damage) {
     if (damage < 0) I.complain("NEGATIVE DAMAGE!") ;
     adjustRepair(0 - damage) ;
+    if (damage > Rand.num() * maxIntegrity()) burning = true ;
   }
   
   
@@ -308,13 +318,16 @@ public class VenueStructure extends Inventory {
   /**  Regular updates-
     */
   protected void updateStructure(int numUpdates) {
-    //  if (burning) takeDamage(Rand.num() * 2) ;
-    //  TODO:  Structures can also suffer breakdowns due to simple wear and
-    //  tear.  (Ancient or organic structures are immune to this, and the
-    //  latter can actively regenerate damage.)
+    if (burning) {
+      takeDamage(Rand.num() * 2) ;
+      final float damage = maxIntegrity() - integrity ;
+      if (armouring > Rand.num() * damage) burning = false ;
+    }
+    if (numUpdates % 10 == 0) {
+      final float wear = Rand.num() * 2 ;
+      if (wear > Rand.num() * armouring) burning = false ;
+    }
   }
-  
-  //  ...I want some kind of external indication of the upgrade-in-progress.
   
   
   

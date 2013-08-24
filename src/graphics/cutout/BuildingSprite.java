@@ -11,6 +11,10 @@ import src.util.* ;
 import java.io.* ;
 
 
+//
+//  I either need to extend this to cope with organic/natural structures, or I
+//  need to relax constraints on venue-associated sprites.
+
 
 public class BuildingSprite extends GroupSprite {
   
@@ -95,7 +99,9 @@ public class BuildingSprite extends GroupSprite {
   
   //
   //  TODO:  This should be coupled to world updates, not the rendering cycle?
-  public void updateCondition(float newCondition, boolean normalState) {
+  public void updateCondition(
+    float newCondition, boolean normalState, boolean burning
+  ) {
     //
     //  Firstly, make any necessary state transitions-
     final float oldCondition = condition ;
@@ -121,13 +127,14 @@ public class BuildingSprite extends GroupSprite {
       attach(scaffolding, 0, 0, 0) ;
     }
     else {
+      //
       //  TODO:  An actual 'grey' filter would be useful here.
       //  Grey up the sprite and add random explosion FX as damage is taken.
       final float c = (1 + (condition * condition)) / 2f ;
       this.colour = new Colour(c, c, c, 1) ;
       final float flameChance = (1 - condition) / 100f ;
       
-      if (flameFX.size() < 1 && Rand.num() < flameChance) {
+      if (burning && flameFX.size() < 1 && Rand.num() < flameChance) {
         final MoteFX flame = new MoteFX(BLAST_MODEL.makeSprite()) ;
         flame.position.setTo(position) ;
         flame.position.x += Rand.range(-size, size) / 2 ;

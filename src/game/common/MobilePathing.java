@@ -68,6 +68,7 @@ public class MobilePathing {
   
   
   protected boolean refreshPath() {
+    if (trueTarget == null) { path = null ; stepIndex = -1 ; return false ; }
     path = refreshPath(location(mobile), location(trueTarget)) ;
     stepIndex = (path == null) ? -1 : 0 ;
     return path != null ;
@@ -89,9 +90,19 @@ public class MobilePathing {
   }
   
   
-  public void updatePathing(Target moveTarget, float minDist) {
-    ///if (BaseUI.isPicked(mobile)) I.say("Must update pathing... "+stepIndex) ;
+  public void updateTarget(Target moveTarget) {
     this.trueTarget = moveTarget ;
+    //
+    //  If you're close to the centre of your current step, advance one step.
+    if (inLocus(nextStep())) {
+      stepIndex = Visit.clamp(stepIndex + 1, path.length) ;
+    }
+  }
+  
+  
+  public void updatePathing() {
+    if (trueTarget == null) return ;
+    ///if (BaseUI.isPicked(mobile)) I.say("Must update pathing... "+stepIndex) ;
     final Boardable location = location(mobile), dest = location(trueTarget) ;
     boolean blocked = false, nearTarget = false, doRefresh = false ;
     //
@@ -122,15 +133,10 @@ public class MobilePathing {
       refreshPath() ;
     }
     if (path == null) {
-      I.say("COULDN'T FIND PATH TO: "+pathTarget) ;
+      if (BaseUI.isPicked(mobile)) I.say("COULDN'T PATH TO: "+pathTarget) ;
       mobile.pathingAbort() ;
       stepIndex = -1 ;
       return ;
-    }
-    //
-    //  If you're close to the centre of your current step, advance one step.
-    if (inLocus(nextStep())) {
-      stepIndex = Visit.clamp(stepIndex + 1, path.length) ;
     }
   }
   

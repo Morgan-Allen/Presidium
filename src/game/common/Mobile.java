@@ -8,6 +8,7 @@
 package src.game.common ;
 import src.game.building.* ;
 import src.graphics.common.* ;
+import src.user.BaseUI;
 import src.util.* ;
 
 
@@ -121,7 +122,9 @@ public abstract class Mobile extends Element
     
     final Vec3D p = this.nextPosition ;
     if (! aboard.area(null).contains(p.x, p.y)) {
-      setHeading(toBoard.position(null), nextRotation, true, world) ;
+      final Vec3D pos = toBoard.position(null) ;
+      pos.z += aboveGroundHeight() ;
+      setHeading(pos, nextRotation, true, world) ;
     }
   }
   
@@ -135,17 +138,22 @@ public abstract class Mobile extends Element
   public void setHeading(
     Vec3D pos, float rotation, boolean instant, World world
   ) {
-    final Tile oldTile = origin(), newTile = world.tileAt(pos.x, pos.y) ;
+    final Tile
+      oldTile = origin(),
+      newTile = world.tileAt(pos.x, pos.y) ;
     super.setPosition(pos.x, pos.y, world) ;
     nextPosition.setTo(pos) ;
     nextRotation = rotation ;
+    
+    if (aboard != newTile) {
+      if (aboard != null) aboard.setInside(this, false) ;
+      (aboard = newTile).setInside(this, true) ;
+    }
     if (instant) {
       this.position.setTo(pos) ;
       this.rotation = rotation ;
       if (inWorld() && oldTile != newTile) {
         onTileChange(oldTile, newTile) ;
-        aboard.setInside(this, false) ;
-        (aboard = newTile).setInside(this, true) ;
       }
     }
   }
@@ -162,11 +170,21 @@ public abstract class Mobile extends Element
   }
   
   
-  
   protected void updateAsMobile() {
-    final Tile
-      oldTile = origin(),
-      newTile = world().tileAt(nextPosition.x, nextPosition.y) ;
+    //
+    //  
+    if (blocksMotion(aboard)) {
+      final Tile blocked = origin() ;
+      final Tile free = Spacing.nearestOpenTile(blocked, this) ;
+      if (free == null) I.complain("NO FREE TILE AVAILABLE!") ;
+      if (BaseUI.isPicked(this)) I.say("Escaping to free tile: "+free) ;
+      //I.say("Blocked by: "+aboard+" free blocked? "+blocksMotion(free)) ;
+      //I.say("Origin is: "+origin()) ;
+      setPosition(free.x, free.y, world) ;
+      //I.say("Now aboard: "+aboard) ;
+      onMotionBlock(blocked) ;
+      return ;
+    }
     final Boardable next = pathing == null ? null : pathing.nextStep() ;
     //
     //  We allow mobiles to 'jump' between dissimilar objects.
@@ -175,16 +193,20 @@ public abstract class Mobile extends Element
       (aboard = next).setInside(this, true) ;
       next.position(nextPosition) ;
     }
+    final Tile
+      oldTile = origin(),
+      newTile = world().tileAt(nextPosition.x, nextPosition.y) ;
     //
     //  If you're not in either your current 'aboard' object, or the area
     //  corresponding to the next step in pathing, you need to default to the
     //  nearest clear tile.
-    else if (oldTile != newTile || ! aboard.inWorld()) {
+    if (oldTile != newTile || ! aboard.inWorld()) {
       onTileChange(oldTile, newTile) ;
       final Box2D area = new Box2D() ;
       final boolean awry = next != null && Spacing.distance(next, this) > 1 ;
       final Vec3D p = nextPosition ;
       if (aboard.area(area).contains(p.x, p.y) && aboard.inWorld()) {
+        //
         //  In this case, you're fine.  Just carry on.
       }
       else if (next != null && next.area(area).contains(p.x, p.y)) {
@@ -197,20 +219,11 @@ public abstract class Mobile extends Element
         (aboard = newTile).setInside(this, true) ;
       }
     }
-    if (blocksMotion(aboard)) {
-      final Tile free = Spacing.nearestOpenTile(newTile, this) ;
-      if (free == null) I.complain("NO FREE TILE AVAILABLE!") ;
-      I.say("Escaping to free tile: "+free) ;
-      setPosition(free.x, free.y, world) ;
-      onMotionBlock(newTile) ;
-      return ;
-    }
     //
     //  Either way, update position and check for tile changes-
     position.setTo(nextPosition) ;
     rotation = nextRotation ;
     super.setPosition(position.x, position.y, world) ;
-    ///if (oldTile != newTile) onTileChange(oldTile, newTile) ;
   }
   
   
@@ -255,11 +268,9 @@ public abstract class Mobile extends Element
     final float alpha = PlayLoop.frameTime() ;
     s.position.setTo(position).scale(1 - alpha) ;
     s.position.add(nextPosition, alpha, s.position) ;
-    //s.position.z += moveAnimHeight() ;
+    
     final float rotateChange = Vec2D.degreeDif(nextRotation, rotation) ;
     s.rotation = (rotation + (rotateChange * alpha) + 360) % 360 ;
-    ///I.say("sprite position/rotation: "+s.position+" "+s.rotation) ;
-    
     /*
     if (this instanceof Vehicle) {
       I.say("Sprite pos "+s.position) ;

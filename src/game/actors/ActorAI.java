@@ -8,6 +8,7 @@
 
 package src.game.actors ;
 import src.game.common.* ;
+import src.game.base.Human;
 import src.game.building.* ;
 import src.game.social.* ;
 import src.game.tactical.* ;
@@ -34,7 +35,7 @@ public abstract class ActorAI implements ActorConstants {
   
   final protected Actor actor ;
   
-  protected Stack <Behaviour> behaviourStack = new Stack() ;
+  protected Stack <Behaviour> agenda = new Stack() ;
   protected List <Behaviour> todoList = new List() ;
   
   protected Table <Element, Element> seen = new Table() ;
@@ -52,7 +53,7 @@ public abstract class ActorAI implements ActorConstants {
   
   
   protected void loadState(Session s) throws Exception {
-    s.loadObjects(behaviourStack) ;
+    s.loadObjects(agenda) ;
     s.loadObjects(todoList) ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Element e = (Element) s.loadObject() ;
@@ -71,7 +72,7 @@ public abstract class ActorAI implements ActorConstants {
   
   
   protected void saveState(Session s) throws Exception {
-    s.saveObjects(behaviourStack) ;
+    s.saveObjects(agenda) ;
     s.saveObjects(todoList) ;
     s.saveInt(seen.size()) ;
     for (Element e : seen.keySet()) s.saveObject(e) ;
@@ -168,13 +169,13 @@ public abstract class ActorAI implements ActorConstants {
   /**  Methods related to behaviours-
     */
   private void pushBehaviour(Behaviour b) {
-    behaviourStack.addFirst(b) ;
+    agenda.addFirst(b) ;
     actor.world().activities.toggleActive(b, true) ;
   }
   
   
   private Behaviour popBehaviour() {
-    final Behaviour b = behaviourStack.removeFirst() ;
+    final Behaviour b = agenda.removeFirst() ;
     actor.world().activities.toggleActive(b, false) ;
     return b ;
   }
@@ -182,7 +183,7 @@ public abstract class ActorAI implements ActorConstants {
   
   public void assignBehaviour(Behaviour behaviour) {
     if (behaviour == null) I.complain("CANNOT ASSIGN NULL BEHAVIOUR.") ;
-    I.say("Assigning behaviour "+behaviour+" to "+actor) ;
+    ///I.say("Assigning behaviour "+behaviour+" to "+actor) ;
     actor.assignAction(null) ;
     final Behaviour replaced = rootBehaviour() ;
     cancelBehaviour(replaced) ;
@@ -195,12 +196,12 @@ public abstract class ActorAI implements ActorConstants {
   
   public void cancelBehaviour(Behaviour b) {
     if (b == null) return ;
-    if (! behaviourStack.includes(b)) I.complain("Behaviour not active.") ;
-    while (behaviourStack.size() > 0) {
+    if (! agenda.includes(b)) I.complain("Behaviour not active.") ;
+    while (agenda.size() > 0) {
       final Behaviour popped = popBehaviour() ;
       if (popped == b) break ;
     }
-    if (behaviourStack.includes(b)) I.complain("Duplicate behaviour!") ;
+    if (agenda.includes(b)) I.complain("Duplicate behaviour!") ;
   }
   
   
@@ -236,7 +237,7 @@ public abstract class ActorAI implements ActorConstants {
     while (true) {
       //
       //  If all current behaviours are complete, generate a new one.
-      if (behaviourStack.size() == 0) {
+      if (agenda.size() == 0) {
         final Behaviour 
           notDone = new Choice(actor, todoList).weightedPick(0),
           newChoice = nextBehaviour(),
@@ -268,7 +269,7 @@ public abstract class ActorAI implements ActorConstants {
   
   
   protected void updateAI(int numUpdates) {
-    if (numUpdates % 10 == 0 && behaviourStack.size() > 0) {
+    if (numUpdates % 10 == 0 && agenda.size() > 0) {
       for (Behaviour b : todoList) {
         if (b.complete()) {
           I.say("REMOVING FROM TODO LIST: "+b) ;
@@ -280,22 +281,22 @@ public abstract class ActorAI implements ActorConstants {
         next = nextBehaviour() ;
       if (couldSwitch(last, next)) assignBehaviour(next) ;
     }
-    for (Behaviour b : behaviourStack) if (b.monitor(actor)) break ;
+    for (Behaviour b : agenda) if (b.monitor(actor)) break ;
   }
   
   
   public Stack <Behaviour> agenda() {
-    return behaviourStack ;
+    return agenda ;
   }
   
   
   public Behaviour topBehaviour() {
-    return behaviourStack.getFirst() ;
+    return agenda.getFirst() ;
   }
   
   
   public Behaviour rootBehaviour() {
-    return behaviourStack.getLast() ;
+    return agenda.getLast() ;
   }
   
   
@@ -373,6 +374,45 @@ public abstract class ActorAI implements ActorConstants {
   
   public float whimsy() {
     return 2 / actor.traits.scaleLevel(STUBBORN) ;
+  }
+  
+
+  
+  
+  
+  /**  Supplementary methods for behaviour-
+    */
+  public float attraction(Actor otherA) {
+    if (! (this.actor instanceof Human)) return 0 ;
+    if (! (otherA instanceof Human)) return 0 ;
+    final Human actor = (Human) this.actor ;
+    final Human other = (Human) otherA ;
+    //
+    //  TODO:  Create exceptions based on age and kinship modifiers.
+    //
+    //  First, we establish a few facts about each actor's sexual identity:
+    float actorG = 0, otherG = 0 ;
+    if (actor.traits.hasTrait(GENDER, "Male"  )) actorG = -1 ;
+    if (actor.traits.hasTrait(GENDER, "Female")) actorG =  1 ;
+    if (other.traits.hasTrait(GENDER, "Male"  )) otherG = -1 ;
+    if (other.traits.hasTrait(GENDER, "Female")) otherG =  1 ;
+    float attraction = other.traits.trueLevel(HANDSOME) * 3.33f ;
+    attraction += otherG * other.traits.trueLevel(FEMININE) * 3.33f ;
+    attraction *= (actor.traits.scaleLevel(DEBAUCHED) + 1f) / 2 ;
+    //
+    //  Then compute attraction based on orientation-
+    final String descO = actor.traits.levelDesc(ORIENTATION) ;
+    float matchO = 0 ;
+    if (descO.equals("Heterosexual")) {
+      matchO = (actorG * otherG < 0) ? 1 : 0.33f ;
+    }
+    else if (descO.equals("Bisexual")) {
+      matchO = 0.66f ;
+    }
+    else if (descO.equals("Homosexual")) {
+      matchO = (actorG * otherG > 0) ? 1 : 0.33f ;
+    }
+    return attraction * matchO / 10f ;
   }
 }
 

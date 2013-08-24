@@ -139,7 +139,7 @@ public class Camera {
       //  Otherwise, ascertain the rate at which one should 'drift' toward the
       //  target, and displace accordingly-
       final float drift = Math.min(1,
-        ((distance + 2) * 5) / (PlayLoop.FRAMES_PER_SECOND * distance)
+        ((distance + 2) * 2) / (PlayLoop.FRAMES_PER_SECOND * distance)
       ) ;
       viewPos.add(displace.scale(drift)) ;
     }

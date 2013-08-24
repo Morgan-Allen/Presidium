@@ -66,104 +66,82 @@ public class Vareen extends Fauna {
   
   
   
-  /**  Behaviour implementation-
+  /**  Behaviour modifications/implementation-
     */
-  //
-  //  TODO:  It might be an idea for the world to have a trees-map, so that you
-  //  can look up their location more easily, including for forestry purposes.
-  /*
-  protected Behaviour nextFeeding() {
+  protected void updateAsMobile() {
+    float idealHeight = 2.5f ;
+    if (amDoing("actionRest")) idealHeight = 1.0f ;
+    if (! health.conscious()) idealHeight = 0 ;
+    flyHeight = Visit.clamp(idealHeight, flyHeight - 0.1f, flyHeight + 0.1f) ;
+    super.updateAsMobile() ;
+    nextPosition.z = flyHeight + origin().elevation() ;
+  }
+  
+
+  public void updateAsScheduled(int numUpdates) {
     //
-    //  Pick several random nearby tiles, and see if one has flora.  If so,
-    //  feed from it.
-    Tile pick = null ;
-    for (int numTries = 3 ; numTries-- > 0 ;) {
-      final Tile seen = randomTileInRange(health.sightRange()) ;
-      if (seen == null || ! (seen.owner() instanceof Flora)) continue ;
-      pick = seen ;
-      break ;
+    //  TODO:  Base nutritional value on daylight...
+    if (! indoors()) {
+      final float value = 0.5f / World.DEFAULT_DAY_LENGTH ;
+      health.takeSustenance(value, 1) ;
     }
-    //
-    //  If you can't find other food, just bask in the sun to gain energy-
-    if (pick == null && ! origin().blocked()) {
-      final Action basking = new Action(
-        this, origin(),
-        this, "actionBask",
-        Action.MOVE, "Basking"
-      ) ;
-      basking.setProperties(Action.CAREFUL) ;
-      ///basking.setDuration(2.0f) ;
-      return basking ;
-    }
-    //
-    //  Otherwise, go pluck some fruit or whatever-
-    if (pick == null) return null ;
-    final Action foraging = new Action(
-      this, pick,
-      this, "actionForage",
-      Action.STRIKE, "Foraging"
-    ) ;
-    foraging.setMoveTarget(Spacing.nearestOpenTile(pick, this)) ;
-    return foraging ;
+    super.updateAsScheduled(numUpdates) ;
   }
   
   
-  public boolean actionBask(Vareen actor, Tile location) {
-    //
-    //  Adjust this based on night/day values?
-    health.takeSustenance(location.habitat().insolation() / 100f, 1.0f) ;
-    return true ;
+  
+  protected float aboveGroundHeight() {
+    return flyHeight ;
   }
   
   
-  public boolean actionForage(Vareen actor, Tile location) {
-    if (! (location.owner() instanceof Flora)) return false ;
-    final Flora f = (Flora) location.owner() ;
-    health.takeSustenance(f.growStage() * 0.25f / Flora.MAX_GROWTH, 1.0f) ;
-    f.incGrowth(-0.25f / 4, world, false) ;
-    return true ;
-  }
   
-  
-  protected Target findRestPoint() {
-    //
-    //  Return to your nest if possible.  Otherwise, roost in the trees.
-    return origin() ;
-    //return null ;
-  }
-  //*/
-  
-  
-  
-  /**  Pathing modifications-
-    */
-  //*
   protected MobilePathing initPathing() {
+    final Vareen actor = this ;
     //
     //  We use a modified form of pathing search that can bypass most
     //  tiles.
-    //final Vareen actor = this ;
-    return new MobilePathing(this) {
+    return new MobilePathing(actor) {
       protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
+        final Lair lair = (Lair) actor.AI.home() ;
+        
         final PathingSearch flightPS = new PathingSearch(initB, destB) {
-          final Tile tileB[] = new Tile[8] ;
+          final Boardable tileB[] = new Boardable[8] ;
           
           protected Boardable[] adjacent(Boardable spot) {
+            //
+            //  TODO:  There has got to be some way to factor this out into the
+            //  Tile and PathingSearch classes.  This is recapitulating a lot
+            //  of functionality AND IT'S DAMNED UGLY
             if (spot instanceof Tile) {
-              ((Tile) spot).allAdjacent(tileB) ;
-              for (int i : Tile.N_INDEX) {
-                if (blocksMotion(tileB[i])) tileB[i] = null ;
+              final Tile tile = ((Tile) spot) ;
+              for (int i : Tile.N_DIAGONAL) {
+                final Tile near = world.tileAt(
+                  tile.x + Tile.N_X[i],
+                  tile.y + Tile.N_Y[i]
+                ) ;
+                tileB[i] = blocksMotion(near) ? null : near ;
+              }
+              for (int i : Tile.N_ADJACENT) {
+                final Tile near = world.tileAt(
+                  tile.x + Tile.N_X[i],
+                  tile.y + Tile.N_Y[i]
+                ) ;
+                if (
+                  near != null && near.owner() == lair &&
+                  lair != null && tile == lair.mainEntrance()
+                ) tileB[i] = lair ;
+                else tileB[i] = blocksMotion(near) ? null : near ;
               }
               Spacing.cullDiagonals(tileB) ;
               return tileB ;
             }
             return super.adjacent(spot) ;
           }
-          /*
+          
           protected boolean canEnter(Boardable spot) {
-            return ! actor.blocksMotion(spot) ;
+            return ! blocksMotion(spot) ;
           }
-          //*/
         } ;
         flightPS.doSearch() ;
         return flightPS.fullPath(Boardable.class) ;
@@ -178,31 +156,6 @@ public class Vareen extends Fauna {
       return owner != null && owner.height() > 2.5f ;
     }
     return false ;
-  }
-  
-  
-  protected void updateAsMobile() {
-    float idealHeight = 2.5f ;
-    if (currentAction() != null) {
-      final String actName = currentAction().toString() ;
-      if (actName.equals("Basking")) idealHeight = 0 ;
-      /*
-      else  {
-        final Target t = currentAction().target() ;
-        if (t instanceof Tile) idealHeight = ((Tile) t).elevation() + 2.5f ;
-        else idealHeight = t.height() ;
-      }
-      //*/
-    }
-    if (! health.conscious()) idealHeight = 0 ;
-    flyHeight = Visit.clamp(idealHeight, flyHeight - 0.1f, flyHeight + 0.1f) ;
-    super.updateAsMobile() ;
-    nextPosition.z = origin().elevation() + flyHeight ;
-  }
-  
-  
-  protected float aboveGroundHeight() {
-    return flyHeight - 0.3f ;
   }
   
   
@@ -240,6 +193,81 @@ public class Vareen extends Fauna {
 
 
 
+
+//
+//  TODO:  Try making this an aspect of the generalised pathing-search,
+//  based on the aboveGroundHeight of a mobile.  It definitely needs some
+//  simplification/streamlining.
+
+/*
+//*/
+
+
+
+//
+//  TODO:  It might be an idea for the world to have a trees-map, so that you
+//  can look up their location more easily, including for forestry purposes.
+/*
+protected Behaviour nextFeeding() {
+  //
+  //  Pick several random nearby tiles, and see if one has flora.  If so,
+  //  feed from it.
+  Tile pick = null ;
+  for (int numTries = 3 ; numTries-- > 0 ;) {
+    final Tile seen = randomTileInRange(health.sightRange()) ;
+    if (seen == null || ! (seen.owner() instanceof Flora)) continue ;
+    pick = seen ;
+    break ;
+  }
+  //
+  //  If you can't find other food, just bask in the sun to gain energy-
+  if (pick == null && ! origin().blocked()) {
+    final Action basking = new Action(
+      this, origin(),
+      this, "actionBask",
+      Action.MOVE, "Basking"
+    ) ;
+    basking.setProperties(Action.CAREFUL) ;
+    ///basking.setDuration(2.0f) ;
+    return basking ;
+  }
+  //
+  //  Otherwise, go pluck some fruit or whatever-
+  if (pick == null) return null ;
+  final Action foraging = new Action(
+    this, pick,
+    this, "actionForage",
+    Action.STRIKE, "Foraging"
+  ) ;
+  foraging.setMoveTarget(Spacing.nearestOpenTile(pick, this)) ;
+  return foraging ;
+}
+
+
+public boolean actionBask(Vareen actor, Tile location) {
+  //
+  //  Adjust this based on night/day values?
+  health.takeSustenance(location.habitat().insolation() / 100f, 1.0f) ;
+  return true ;
+}
+
+
+public boolean actionForage(Vareen actor, Tile location) {
+  if (! (location.owner() instanceof Flora)) return false ;
+  final Flora f = (Flora) location.owner() ;
+  health.takeSustenance(f.growStage() * 0.25f / Flora.MAX_GROWTH, 1.0f) ;
+  f.incGrowth(-0.25f / 4, world, false) ;
+  return true ;
+}
+
+
+protected Target findRestPoint() {
+  //
+  //  Return to your nest if possible.  Otherwise, roost in the trees.
+  return origin() ;
+  //return null ;
+}
+//*/
 
 
 

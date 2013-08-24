@@ -13,37 +13,6 @@ import src.util.* ;
 
 
 
-//
-//  Various places can be used to relax- your home or workplace, the cantina,
-//  the pleasure dome, the arena, the senate or the archives.
-//
-//  These have different properties in terms of morale-boost and lifting
-//  fatigue/physical comfort.  Some can be used as a form of training.
-//  Different personality types also tend to prefer different types of venue.
-//
-//  ...For now, just focus on the fatigue-relief aspect.
-
-//  ...Actually, hunger needs to be taken care of too.  If there's no food in
-//  the vicinity, scrounge around for scraps.
-
-
-//
-//  TODO:  Bear in mind half of these don't exist yet.
-//  The Cantina is preferred by the indolent, debauched and gregarious.
-//
-//  The Arena is preferred by the optimistic, fearless or cruel.
-//
-//  The Senate is preferred by the stubborn, empathic or ambitious.
-//  ...et cetera.
-//
-//  Is the Training House actually included?
-
-
-
-
-
-
-
 public class Resting extends Plan implements BuildConstants {
   
   

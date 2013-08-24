@@ -5,6 +5,7 @@
   */
 package src.game.actors ;
 import src.game.common.* ;
+import src.user.BaseUI;
 import src.util.* ;
 
 
@@ -28,7 +29,6 @@ public class ActorHealth implements ActorConstants {
     "Dead",
     "Decomposed"
   } ;
-  //  TODO:  Also provide state descriptor strings.
   final public static int
     AGE_JUVENILE = 0,
     AGE_ADULT    = 1,
@@ -60,10 +60,12 @@ public class ActorHealth implements ActorConstants {
     MAX_FATIGUE = 1.0f,
     MAX_STRESS  = 0.5f,
     REVIVE_THRESHOLD = 0.5f,
+    STABILISE_CHANCE = 0.2f,
     
-    FATIGUE_GROW_PER_DAY = 10,
+    FATIGUE_GROW_PER_DAY = 1.0f,
     STRESS_DECAY_PER_DAY = 0.5f,
     INJURY_REGEN_PER_DAY = 0.2f ;
+  
   
   final Actor actor ;
 
@@ -117,7 +119,6 @@ public class ActorHealth implements ActorConstants {
     fatigue = s.loadFloat() ;
     stress  = s.loadFloat() ;
     
-    ///moveType = s.loadInt() ;
     state = s.loadInt() ;
   }
   
@@ -139,7 +140,6 @@ public class ActorHealth implements ActorConstants {
     s.saveFloat(fatigue) ;
     s.saveFloat(stress ) ;
     
-    ///s.saveInt(moveType) ;
     s.saveInt(state) ;
   }
   
@@ -182,9 +182,11 @@ public class ActorHealth implements ActorConstants {
   /**  Methods related to growth, reproduction, aging and death.
     */
   public void takeSustenance(float amount, float quality) {
-    amount = Visit.clamp(amount, 0, (maxHealth * (1 + MAX_DIGEST)) - calories) ;
-    nutrition = (nutrition * (calories / maxHealth)) + (quality * amount) ;
+    amount = Visit.clamp(amount, 0, maxHealth - calories) ;
+    final float oldQual = nutrition * calories ;
     calories += amount ;
+    nutrition = (oldQual + (quality * amount)) / calories ;
+    ///if (BaseUI.isPicked(actor)) I.say("Nutrition is: "+nutrition) ;
   }
   
   
@@ -429,31 +431,20 @@ public class ActorHealth implements ActorConstants {
       IM =  2 ;
       SM =  2 ;
     }
-    else if (state == STATE_ACTIVE) {
-    }
     
-    fatigue += FATIGUE_GROW_PER_DAY * baseSpeed * FM / DL ;
-    stress *= (1 - (STRESS_DECAY_PER_DAY * SM / DL)) ;
     if (bleeds) {
       injury++ ;
-      if (actor.traits.test(VIGOUR, 10, 1) && Rand.num() < 0.2f) {
+      if (actor.traits.test(VIGOUR, 10, 1) && Rand.num() < STABILISE_CHANCE) {
         bleeds = false ;
       }
     }
-    else {
-      injury -= INJURY_REGEN_PER_DAY * IM / DL ;
-    }
+    else injury -= INJURY_REGEN_PER_DAY * maxHealth * IM / DL ;
+    fatigue += FATIGUE_GROW_PER_DAY * baseSpeed * maxHealth * FM / DL ;
+    stress *= (1 - (STRESS_DECAY_PER_DAY * SM / DL)) ;
+    
     fatigue = Visit.clamp(fatigue, 0, MAX_FATIGUE * maxHealth) ;
     stress  = Visit.clamp(stress , 0, MAX_STRESS  * maxHealth) ;
     injury  = Visit.clamp(injury , 0, MAX_INJURY  * maxHealth) ;
-    /*
-    SM = stress  * STRESS .maxVal / (maxHealth * MAX_STRESS ) ;
-    FM = fatigue * FATIGUE.maxVal / (maxHealth * MAX_FATIGUE) ;
-    IM = injury  * INJURY .maxVal / (maxHealth * MAX_INJURY ) ;
-    actor.traits.setLevel(STRESS , SM) ;
-    actor.traits.setLevel(FATIGUE, FM) ;
-    actor.traits.setLevel(INJURY , IM) ;
-    //*/
   }
   
   

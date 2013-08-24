@@ -30,7 +30,10 @@ public class Artificer extends Venue implements BuildConstants {
   
   public Artificer(Base base) {
     super(4, 3, ENTRANCE_WEST, base) ;
-    structure.setupStats(200, 5, 350, VenueStructure.NORMAL_MAX_UPGRADES) ;
+    structure.setupStats(
+      200, 5, 350, VenueStructure.NORMAL_MAX_UPGRADES,
+      false
+    ) ;
     this.attachSprite(MODEL.makeSprite()) ;
   }
   

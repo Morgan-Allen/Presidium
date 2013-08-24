@@ -16,13 +16,27 @@ import src.util.* ;
 
 
 
+
+//
+//  TODO:  You need to be able to set default armour, HP, organic values etc.
+//  for lairs of a given type, ideally from the Species class.
+
 public class Lair extends Venue {
   
   
   
   /**  Fields, constructors, and save/load methods-
     */
-  Species species ;
+  final public static int
+    GROUND_SAMPLE_RANGE = 16,
+    PEER_SAMPLE_RANGE   = 16,
+    SAMPLE_AREA         = 16 * 16 * 4,
+    BROWSER_DENSITY     = 12,
+    PREDATOR_RATIO      = 12,
+    LAIR_POPULATION     = 4 ;
+  
+  
+  final Species species ;
   
   
   public Lair(
@@ -104,16 +118,6 @@ public class Lair extends Venue {
   
   /**  Determining site suitability-
     */
-  final public static int
-    GROUND_SAMPLE_RANGE = 16,
-    PEER_SAMPLE_RANGE   = 16,
-    SAMPLE_AREA         = 16 * 16 * 4,
-    BROWSER_DENSITY     = 12,
-    PREDATOR_RATIO      = 12,
-    LAIR_POPULATION     = 4 ;
-  
-  
-  
   protected float ratePosition(World world) {
     if (! canPlace()) return -1 ;
     //

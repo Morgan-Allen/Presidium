@@ -479,8 +479,13 @@ public abstract class Venue extends Fixture implements
   
   
   public void renderFor(Rendering rendering, Base base) {
+    //  TODO:  Outsource this to the VenueStructure class?
     position(buildSprite.position) ;
-    buildSprite.updateCondition(structure.repairLevel(), structure.intact()) ;
+    buildSprite.updateCondition(
+      structure.repairLevel(),
+      structure.intact(),
+      structure.burning()
+    ) ;
     
     if (healthbar == null) healthbar = new Healthbar() ;
     healthbar.level = structure.repairLevel() ;

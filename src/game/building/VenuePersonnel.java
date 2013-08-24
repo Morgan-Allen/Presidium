@@ -162,7 +162,7 @@ public class VenuePersonnel {
   
   public void setResident(Actor c, boolean is) {
     if (is) residents.include(c) ;
-    else residents.include(c) ;
+    else residents.remove(c) ;
   }
   
   

@@ -13,6 +13,10 @@ import src.graphics.jointed.* ;
 
 
 
+//
+//  TODO:  This class needs to include data for base speed, sight range, damage
+//  and armour, et cetera, et cetera.
+
 public abstract class Species {
   
   

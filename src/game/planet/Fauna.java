@@ -16,26 +16,6 @@ import src.util.* ;
 
 
 
-
-/*
-final public static int
-  GROUND_SAMPLE_RANGE = 16,
-  PEER_SAMPLE_RANGE   = 16,
-  SAMPLE_AREA         = 16 * 16 * 4,
-  BROWSER_DENSITY     = 12,
-  PREDATOR_RATIO      = 12 ;
-//*/
-//
-//  I need abstract methods for-
-//    rateMigratePoint()
-//    getRestPoint()
-//    getMating()
-//    getFeeding()
-//    getDefence()
-//    fightWith()
-
-
-
 public abstract class Fauna extends Actor {
   
   
@@ -70,6 +50,7 @@ public abstract class Fauna extends Actor {
   
   public Object species() { return species ; }
   protected abstract void initStats() ;
+  
   
   
   /**  Shared behavioural methods-
@@ -140,7 +121,7 @@ public abstract class Fauna extends Actor {
   
   public boolean actionBrowse(Fauna actor, Flora eaten) {
     if (! eaten.inWorld()) return false ;
-    eaten.incGrowth(-0.25f, actor.world(), false) ;
+    eaten.incGrowth(-0.1f, actor.world(), false) ;
     actor.health.takeSustenance(1, 1) ;
     return true ;
   }
@@ -165,7 +146,7 @@ public abstract class Fauna extends Actor {
   
   
   public boolean actionRest(Fauna actor, Target point) {
-    I.say(actor+" HAS BEGUN RESTING.") ;
+    ///I.say(actor+" HAS BEGUN RESTING.") ;
     actor.health.setState(ActorHealth.STATE_RESTING) ;
     final Lair lair = (Lair) actor.AI.home() ;
     if (lair != point) return true ;
@@ -193,6 +174,7 @@ public abstract class Fauna extends Actor {
     final float range = Lair.PEER_SAMPLE_RANGE ;
     Tile free = Spacing.pickRandomTile(this, range) ;
     free = Spacing.nearestOpenTile(free, this) ;
+    
     if (free == null) return null ;
     if (lair != null && Spacing.distance(free, lair) > range * 2) return null ;
     
@@ -222,7 +204,7 @@ public abstract class Fauna extends Actor {
       if (rating > 0) {
         actor.AI.setHomeVenue(newLair) ;
         newLair.enterWorld() ;
-        newLair.structure.setState(VenueStructure.STATE_INSTALL, 0.1f) ;
+        newLair.structure.setState(VenueStructure.STATE_INTACT, 0.1f) ;
       }
       else return false ;
     }
@@ -242,7 +224,7 @@ public abstract class Fauna extends Actor {
     ) ;
     buildNest.setMoveTarget(Spacing.pickFreeTileAround(lair, this)) ;
     if (! lair.structure.intact()) buildNest.setPriority(Action.ROUTINE) ;
-    else buildNest.setPriority(((1f - repair) * Action.ROUTINE)) ;
+    else buildNest.setPriority(((1f - repair) * Action.ROUTINE) + 2) ;
     return buildNest ;
   }
   

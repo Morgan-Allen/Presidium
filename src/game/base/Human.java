@@ -92,42 +92,6 @@ public class Human extends Actor implements ActorConstants {
   
   
   
-  /**  Supplementary methods for behaviour-
-    */
-  public float attraction(Actor otherA) {
-    if (! (otherA instanceof Human)) return 0 ;
-    final Human actor = (Human) this ;
-    final Human other = (Human) otherA ;
-    //
-    //  TODO:  Create exceptions based on age and kinship modifiers.
-    //
-    //  First, we establish a few facts about each actor's sexual identity:
-    float actorG = 0, otherG = 0 ;
-    if (actor.traits.hasTrait(GENDER, "Male"  )) actorG = -1 ;
-    if (actor.traits.hasTrait(GENDER, "Female")) actorG =  1 ;
-    if (other.traits.hasTrait(GENDER, "Male"  )) otherG = -1 ;
-    if (other.traits.hasTrait(GENDER, "Female")) otherG =  1 ;
-    float attraction = other.traits.trueLevel(HANDSOME) * 3.33f ;
-    attraction += otherG * other.traits.trueLevel(FEMININE) * 3.33f ;
-    attraction *= (actor.traits.scaleLevel(DEBAUCHED) + 1f) / 2 ;
-    //
-    //  Then compute attraction based on orientation-
-    final String descO = actor.traits.levelDesc(ORIENTATION) ;
-    float matchO = 0 ;
-    if (descO.equals("Heterosexual")) {
-      matchO = (actorG * otherG < 0) ? 1 : 0.33f ;
-    }
-    else if (descO.equals("Bisexual")) {
-      matchO = 0.66f ;
-    }
-    else if (descO.equals("Homosexual")) {
-      matchO = (actorG * otherG > 0) ? 1 : 0.33f ;
-    }
-    return attraction * matchO / 10f ;
-  }
-  
-  
-  
   /**  Utility methods/constants for creating human-citizen sprites and
     *  portraits-
     */

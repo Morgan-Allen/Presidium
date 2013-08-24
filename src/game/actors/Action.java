@@ -196,7 +196,9 @@ public class Action implements Behaviour, Model.AnimNames {
     //
     //  We don't chase targets which might have been themselves affected by
     //  the action.
-    if (inRange == 1 && progress > contactTime()) return ;
+    if (inRange == 1 && progress > contactTime()) {
+      return ;
+    }
     //
     //  Depending on whether you're currently close enough to the move-target,
     //  and facing the action-target, you enter motion or action mode
@@ -206,9 +208,8 @@ public class Action implements Behaviour, Model.AnimNames {
     final boolean
       closed = actor.pathing.closeEnough(moveTarget, minDist),
       facing = actor.pathing.facingTarget(actionTarget) ;
-    ///if (BaseUI.isPicked(actor)) I.say("Closed/facing: "+closed+"/"+facing) ;
     
-    if (! closed) actor.pathing.updatePathing(moveTarget, minDist) ;
+    if (! closed) actor.pathing.updateTarget(moveTarget) ;
     final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;
     actor.pathing.headTowards(faced, moveRate(), ! closed) ;
     //
@@ -248,9 +249,9 @@ public class Action implements Behaviour, Model.AnimNames {
   
   
   protected void updateAction() {
+    adjustMotion() ;
     if (complete()) { oldProgress = progress = 1 ; return ; }
     ///if (progress <= contactTime()) adjustMotion() ;
-    adjustMotion() ;
     oldProgress = progress ;
     progress += progressPerUpdate() ;
     if (inRange == 1) advanceAction() ;

@@ -12,6 +12,8 @@ import src.game.building.* ;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.tactical.* ;
+import src.game.wild.Micovore;
+import src.game.wild.Quud;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.user.* ;
@@ -109,10 +111,13 @@ public class DebugBehaviour extends PlayLoop {
     //
     //  More detail in recreation behaviours.  And housing purchases/upgrades.
     //
-    //  Visual indicators for research/upgrades.
+    //  Safety patrols, sick leave and performance.  Spontaneous missions.
+    //
+    //  Visual indicators for research/upgrades (& manufacture?)
     
-    baseScenario(world, base, HUD) ;
-    //natureScenario(world, base, HUD) ;
+    
+    //baseScenario(world, base, HUD) ;
+    natureScenario(world, base, HUD) ;
     //missionScenario(world, base, HUD) ;
     //socialScenario(world, base, HUD) ;
   }
@@ -149,19 +154,23 @@ public class DebugBehaviour extends PlayLoop {
   /**  Testing out interactions between alien creatures or primitive humanoids.
     */
   private void natureScenario(World world, Base base, HUD UI) {
-    final Actor
-      hunter = new Micovore(),
-      prey = new Quud() ;
+    GameSettings.noFog = true ;
+    PlayLoop.setGameSpeed(10f) ;
     
-    hunter.health.setupHealth(Rand.num(), 1, 0) ;
-    hunter.enterWorldAt(5, 5, world) ;
+    final Actor prey = new Quud() ;
     prey.health.setupHealth(Rand.num(), 1, 0) ;
     prey.enterWorldAt(8, 8, world) ;
+    ((BaseUI) UI).selection.pushSelection(prey, true) ;
     
+    /*
+    final Actor hunter = new Micovore() ;
+    hunter.health.setupHealth(Rand.num(), 1, 0) ;
+    hunter.enterWorldAt(5, 5, world) ;
     hunter.AI.assignBehaviour(
       new Hunting(hunter, prey, Hunting.TYPE_FEEDS)
     ) ;
-    hunter.assignAction(null) ;
+    //hunter.assignAction(null) ;
+    //*/
   }
   
   

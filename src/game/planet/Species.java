@@ -5,13 +5,13 @@
   */
 
 package src.game.planet ;
+import src.game.building.* ;
+import src.game.wild.* ;
 import src.graphics.common.* ;
+import src.graphics.cutout.* ;
 import src.graphics.jointed.* ;
 
 
-//
-//  TODO:  Get rid of the habitat preferences.  That most likely needs to be
-//  specified on a per-map level.
 
 public abstract class Species {
   
@@ -20,7 +20,18 @@ public abstract class Species {
     */
   final static String
     FILE_DIR = "media/Actors/fauna/",
+    LAIR_DIR = "media/Buildings/lairs and ruins/",
     XML_PATH = FILE_DIR+"FaunaModels.xml" ;
+  final static Model
+    NEST_QUUD = ImageModel.asIsometricModel(
+      Species.class, LAIR_DIR+"nest_quud.png", 3, 2
+    ),
+    NEST_VAREEN = ImageModel.asIsometricModel(
+      Species.class, LAIR_DIR+"nest_vareen.png", 3, 3
+    ),
+    NEST_MICOVORE = ImageModel.asIsometricModel(
+      Species.class, LAIR_DIR+"nest_micovore.png", 3, 2
+    ) ;
   
   public static enum Type {
     BROWSER,
@@ -49,7 +60,10 @@ public abstract class Species {
       null,
       null,
       Type.HUMANOID
-    ) { Fauna newSpecimen() { return null ; } } ,
+    ) {
+      Fauna newSpecimen() { return null ; }
+      Lair createLair() { return null ; }
+    },
     
     
     QUUD = new Species(
@@ -61,11 +75,13 @@ public abstract class Species {
       MS3DModel.loadMS3D(
         Species.class, FILE_DIR, "Quud.ms3d", 0.025f
       ).loadXMLInfo(XML_PATH, "Quud"),
-      Type.BROWSER,
-      Habitat.MEADOW, 0.5f,
-      Habitat.SWAMPLANDS, 1.0f,
-      Habitat.ESTUARY, 0.5f
-    ) { Fauna newSpecimen() { return new Quud() ; } },
+      Type.BROWSER
+    ) {
+      Fauna newSpecimen() { return new Quud() ; }
+      Lair createLair() { return new Lair(
+        3, 2, Venue.ENTRANCE_EAST, this, NEST_QUUD
+      ) ; }
+    },
     
     
     VAREEN = new Species(
@@ -78,11 +94,13 @@ public abstract class Species {
       MS3DModel.loadMS3D(
         Species.class, FILE_DIR, "Vareen.ms3d", 0.025f
       ).loadXMLInfo(XML_PATH, "Vareen"),
-      Type.BROWSER,
-      Habitat.DESERT, 0.5f,
-      Habitat.BARRENS, 1.0f,
-      Habitat.MEADOW, 0.5f
-    ) { Fauna newSpecimen() { return new Vareen() ; } },
+      Type.BROWSER
+    ) {
+      Fauna newSpecimen() { return new Vareen() ; }
+      Lair createLair() { return new Lair(
+        3, 3, Venue.ENTRANCE_EAST, this, NEST_VAREEN
+      ) ; }
+    },
     
     
     MICOVORE = new Species(
@@ -95,14 +113,16 @@ public abstract class Species {
       MS3DModel.loadMS3D(
         Species.class, FILE_DIR, "Micovore.ms3d", 0.025f
       ).loadXMLInfo(XML_PATH, "Micovore"),
-      Type.PREDATOR,
-      Habitat.MEADOW, 1.0f,
-      Habitat.SWAMPLANDS, 0.5f,
-      Habitat.BARRENS, 0.5f
-    ) { Fauna newSpecimen() { return new Micovore() ; } },
+      Type.PREDATOR
+    ) {
+      Fauna newSpecimen() { return new Micovore() ; }
+      Lair createLair() { return new Lair(
+        3, 2, Venue.ENTRANCE_EAST, this, NEST_MICOVORE
+      ) ; }
+    },
     
     ALL_SPECIES[] = { HUMAN, QUUD, VAREEN, MICOVORE }
-    ;
+  ;
   
   
   
@@ -116,53 +136,28 @@ public abstract class Species {
   final int ID = nextID++ ;
   
   final Type type ;
-  final Habitat preferred[] ;
-  final float prefWeights[] ;
   
   
   Species(
     String name, String info, String portraitTex, Model model,
-    Type type, Object... prefs
+    Type type
   ) {
     this.name = name ;
     this.info = info ;
     this.portrait = Texture.loadTexture(FILE_DIR+portraitTex) ;
     this.model = model ;
-    
     this.type = type ;
-    final int numH = prefs.length / 2 ;
-    preferred = new Habitat[numH] ;
-    prefWeights = new float[numH] ;
-    for (int n = 0 ; n < numH ; n++) {
-      preferred[n] = (Habitat) prefs[n * 2] ;
-      prefWeights[n] = (Float) prefs[(n * 2) + 1] ;
-    }
-  }
-  
-  
-  public float preference(Habitat h) {
-    for (int n = preferred.length ; n-- > 0 ;) {
-      if (preferred[n] == h) return prefWeights[n] ;
-    }
-    return 0 ;
   }
   
   
   abstract Fauna newSpecimen() ;
-  //abstract Fixture newLair() ;
+  abstract Lair createLair() ;
+  
+  
+  public String toString() { return name ; }
 }
 
 
-
-/*
-final public static Model
-  MODEL_MALE = MS3DModel.loadMS3D(
-    Actor.class, FILE_DIR, "MaleAnimNewSkin.ms3d", 0.025f
-  ).loadXMLInfo(XML_PATH, "MalePrime"),
-  MODEL_FEMALE = MS3DModel.loadMS3D(
-    Actor.class, FILE_DIR, "FemaleAnimNewSkin.ms3d", 0.025f
-  ).loadXMLInfo(XML_PATH, "FemalePrime") ;
-//*/
 
 
 /*
@@ -203,11 +198,25 @@ final public static Species
 
 
 /*
-String name ;
-Model model ;
-
-
-public Species(String name) {
-  super(CATEGORIC, name, null) ;
+final int numH = prefs.length / 2 ;
+preferred = new Habitat[numH] ;
+prefWeights = new float[numH] ;
+for (int n = 0 ; n < numH ; n++) {
+  preferred[n] = (Habitat) prefs[n * 2] ;
+  prefWeights[n] = (Float) prefs[(n * 2) + 1] ;
 }
 //*/
+//final Habitat preferred[] ;
+//final float prefWeights[] ;
+/*
+public float preference(Habitat h) {
+  for (int n = preferred.length ; n-- > 0 ;) {
+    if (preferred[n] == h) return prefWeights[n] ;
+  }
+  return 0 ;
+}
+//*/
+
+
+
+

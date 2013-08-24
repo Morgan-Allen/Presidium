@@ -8,6 +8,7 @@
 package src.game.common ;
 import src.game.common.* ;
 import src.game.building.* ;
+import src.user.* ;
 import src.util.* ;
 
 
@@ -65,17 +66,18 @@ public class MobilePathing {
     return null ;
   }
   
-  //*
+  
   protected boolean refreshPath() {
     path = refreshPath(location(mobile), location(trueTarget)) ;
-    stepIndex = 0 ;
+    stepIndex = (path == null) ? -1 : 0 ;
     return path != null ;
   }
   
   
   protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
     if (GameSettings.freePath) {
-      final PathingSearch search = new PathingSearch(initB, destB) ;
+      final PathingSearch search = new PathingSearch(initB, destB, false) ;
+      search.verbose = true ;
       search.doSearch() ;
       return search.fullPath(Boardable.class) ;
     }
@@ -85,9 +87,10 @@ public class MobilePathing {
       ) ;
     }
   }
-  //*/
+  
   
   public void updatePathing(Target moveTarget, float minDist) {
+    ///if (BaseUI.isPicked(mobile)) I.say("Must update pathing... "+stepIndex) ;
     this.trueTarget = moveTarget ;
     final Boardable location = location(mobile), dest = location(trueTarget) ;
     boolean blocked = false, nearTarget = false, doRefresh = false ;
@@ -102,7 +105,7 @@ public class MobilePathing {
       else if (! t.inWorld()) blocked = true ;
       if (t == dest) nearTarget = true ;
     }
-    doRefresh = blocked || path == null || pathTarget != dest ;
+    doRefresh = blocked || nextStep() == null || pathTarget != dest ;
     //
     //  In the case that the path we're following is only partial, update once
     //  we're approaching the terminus-
@@ -114,15 +117,15 @@ public class MobilePathing {
     //
     //  If the path needs refreshment, do so-
     if (doRefresh) {
-      ///I.say("Must refresh path... "+blocked) ;
+      ///if (BaseUI.isPicked(mobile)) I.say("Must refresh path... ") ;
       pathTarget = dest ;
       refreshPath() ;
-      if (path == null) {
-        I.say("COULDN'T FIND PATH TO: "+pathTarget) ;
-        mobile.pathingAbort() ;
-        stepIndex = -1 ;
-        return ;
-      }
+    }
+    if (path == null) {
+      I.say("COULDN'T FIND PATH TO: "+pathTarget) ;
+      mobile.pathingAbort() ;
+      stepIndex = -1 ;
+      return ;
     }
     //
     //  If you're close to the centre of your current step, advance one step.
@@ -161,6 +164,7 @@ public class MobilePathing {
   public void headTowards(
     Target target, float speed, boolean moves
   ) {
+    ///if (BaseUI.isPicked(mobile)) I.say("Heading towards: "+target) ;
     //
     //  Determine the appropriate offset and angle for this target-
     if (target == null) return ;

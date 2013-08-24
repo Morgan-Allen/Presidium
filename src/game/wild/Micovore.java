@@ -6,9 +6,13 @@
 
 
 
-package src.game.planet ;
+package src.game.wild ;
 import src.game.actors.* ;
 import src.game.common.* ;
+import src.game.planet.Fauna;
+import src.game.planet.Lair;
+import src.game.planet.Species;
+import src.game.planet.Species.Type;
 import src.game.tactical.* ;
 import src.util.* ;
 
@@ -56,9 +60,11 @@ public class Micovore extends Fauna {
   
   /**  Behaviour implementation-
     */
+  /*
   protected Behaviour nextFeeding() {
+    final float sampleRange = Lair.PEER_SAMPLE_RANGE ;
     final Batch <Fauna> prey = specimens(
-      origin(), PEER_SAMPLE_RANGE, null, Species.Type.BROWSER, 10
+      origin(), sampleRange, null, Species.Type.BROWSER, 10
     ) ;
     if (prey.size() == 0) return null ;
     
@@ -68,7 +74,7 @@ public class Micovore extends Fauna {
       //  Choose closer, younger, less heavily armed/armoured targets.
       float danger = f.gear.armourRating() + f.gear.attackDamage() ;
       danger *= f.health.maxHealth() / 100 ;
-      float dist = Spacing.distance(f, this) / PEER_SAMPLE_RANGE ;
+      float dist = Spacing.distance(f, this) / sampleRange ;
       float rating = (1 - dist) / danger ;
       if (rating > bestRating) { pickedPrey = f ; bestRating = rating ; }
     }
@@ -89,14 +95,15 @@ public class Micovore extends Fauna {
   
 
   protected float rateMigratePoint(Tile point) {
+    final float sampleRange = Lair.PEER_SAMPLE_RANGE ;
     float rating = super.rateMigratePoint(point) ;
     final Batch <Fauna> nearPrey = specimens(
-      point, PEER_SAMPLE_RANGE, null, Species.Type.BROWSER, 3
+      point, sampleRange, null, Species.Type.BROWSER, 3
     ) ;
     if (nearPrey.size() == 0) return rating ;
     float avgDistance = 0 ;
     for (Fauna f : nearPrey) avgDistance += Spacing.distance(point, f) ;
-    avgDistance /= nearPrey.size() * PEER_SAMPLE_RANGE ;
+    avgDistance /= nearPrey.size() * sampleRange ;
     return rating * (2 - avgDistance) ;
   }
   
@@ -104,6 +111,7 @@ public class Micovore extends Fauna {
   protected Target findRestPoint() {
     return origin() ;
   }
+  //*/
   
   
   //

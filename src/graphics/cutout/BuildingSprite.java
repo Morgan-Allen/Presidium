@@ -8,12 +8,9 @@ package src.graphics.cutout ;
 import src.graphics.common.* ;
 import src.graphics.sfx.* ;
 import src.util.* ;
-
 import java.io.* ;
 
 
-//
-//  This is causing errors in saving/loading.
 
 public class BuildingSprite extends GroupSprite {
   

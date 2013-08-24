@@ -127,7 +127,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
     //  we're selling, so to speak.
     float maxUrgency = 0 ;
     Delivery picked = null ;
-    final Presences presences = venue.base().world.presences ;
+    final Presences presences = venue.world().presences ;
     for (Object o : presences.matchesNear(venue.base(), venue, SEARCH_RADIUS)) {
       final Venue client = (Venue) o ;
       final float distFactor = (SEARCH_RADIUS + Spacing.distance(
@@ -224,7 +224,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
     //
     //  Find a random nearby supplier of this item type, and bump up demand
     //  received there.
-    final Presences presences = venue.base().world.presences ;
+    final Presences presences = venue.world().presences ;
     for (Demand d : demands.values()) {
       //
       //  TODO:  Search a little more thoroughly, and favour suppliers that are

@@ -144,8 +144,16 @@ public abstract class Mobile extends Element
       this.rotation = rotation ;
       if (inWorld() && oldTile != newTile) {
         onTileChange(oldTile, newTile) ;
+        aboard.setInside(this, false) ;
+        (aboard = newTile).setInside(this, true) ;
       }
     }
+  }
+  
+  
+  protected void onTileChange(Tile oldTile, Tile newTile) {
+    world.presences.togglePresence(this, oldTile, false) ;
+    world.presences.togglePresence(this, newTile, true ) ;
   }
   
   
@@ -183,19 +191,19 @@ public abstract class Mobile extends Element
         aboard.setInside(this, false) ;
         (aboard = next).setInside(this, true) ;
       }
-      else if (blocksMotion(newTile)) {
-        onMotionBlock(newTile) ;
-        final Tile free = Spacing.nearestOpenTile(newTile, this) ;
-        if (free == null) I.complain("NO FREE TILE AVAILABLE!") ;
-        I.say("Escaping to free tile: "+free) ;
-        setPosition(free.x, free.y, world) ;
-        return ;
-      }
       else {
         if (awry) onMotionBlock(newTile) ;
         aboard.setInside(this, false) ;
         (aboard = newTile).setInside(this, true) ;
       }
+    }
+    if (blocksMotion(aboard)) {
+      final Tile free = Spacing.nearestOpenTile(newTile, this) ;
+      if (free == null) I.complain("NO FREE TILE AVAILABLE!") ;
+      I.say("Escaping to free tile: "+free) ;
+      setPosition(free.x, free.y, world) ;
+      onMotionBlock(newTile) ;
+      return ;
     }
     //
     //  Either way, update position and check for tile changes-
@@ -212,21 +220,15 @@ public abstract class Mobile extends Element
     return false ;
   }
   
-
+  
+  //  TODO:  Make this abstract?
   protected void pathingAbort() {
   }
   
   
   protected void onMotionBlock(Tile t) {
-    //I.say("Motion blocked at: "+t) ;
     final boolean canRoute = pathing != null && pathing.refreshPath() ;
     if (! canRoute) pathingAbort() ;
-  }
-  
-  
-  protected void onTileChange(Tile oldTile, Tile newTile) {
-    world.presences.togglePresence(this, oldTile, false) ;
-    world.presences.togglePresence(this, newTile, true ) ;
   }
   
   

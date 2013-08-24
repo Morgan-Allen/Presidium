@@ -79,7 +79,17 @@ public class DangerMap {
   }
   
   
+  
+  /**  TODO:  Include generalised methods for estimating distance/danger totals
+    *  associated with routes between different sectors!
+    */
 }
+
+
+
+
+
+
 
 
 

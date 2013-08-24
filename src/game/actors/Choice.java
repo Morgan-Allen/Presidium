@@ -47,7 +47,7 @@ public class Choice {
     //
     //  Firstly, acquire the priorities for each plan.  If the permitted range
     //  of priorities is zero, simply return the most promising.
-    if (false && BaseUI.isPicked(actor)) {
+    if (BaseUI.isPicked(actor)) {
       String label = "Actor" ;
       if (actor.vocation() != null) label = actor.vocation().name ;
       else if (actor.species() != null) label = actor.species().toString() ;
@@ -61,7 +61,7 @@ public class Choice {
       final float priority = plan.priorityFor(actor) ;
       if (priority > highestW) { highestW = priority ; bestP = plan ; }
       weights[i++] = priority ;
-      if (false && BaseUI.isPicked(actor)) I.say(
+      if (BaseUI.isPicked(actor)) I.say(
         "  "+plan+" has priority: "+priority
       ) ;
     }

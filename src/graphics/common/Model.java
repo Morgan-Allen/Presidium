@@ -67,7 +67,7 @@ public abstract class Model {
     ClassLoader.getSystemClassLoader().loadClass(className) ;
     loaded = modelCache.get(modelName) ;
     if (loaded == null)
-      I.complain("MODEL NO LONGER DEFINED IN SPECIFIED CLASS.") ;
+      I.complain("MODEL NO LONGER DEFINED IN SPECIFIED CLASS: "+className) ;
     IDModels.put(modelID, loaded) ;
     return loaded ;
   }

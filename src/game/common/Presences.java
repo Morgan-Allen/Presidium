@@ -15,6 +15,7 @@ public class Presences {
     */
 	final World world ;
   final Table <Object, PresenceMap> allMaps ;
+  
   private PresenceMap floraMap ;
   private PresenceMap mobilesMap ;
   
@@ -81,7 +82,10 @@ public class Presences {
   
   public void togglePresence(Venue venue, boolean is, Object services[]) {
   	final Tile origin = venue.origin() ;
-    togglePresence(venue, origin, is, venue.base()) ;
+  	togglePresence(venue, origin, is, Venue.class) ;
+    if (venue.base() != null) {
+      togglePresence(venue, origin, is, venue.base()) ;
+    }
     togglePresence(venue, origin, is, venue.getClass()) ;
     if (services != null) for (Object service : services) {
       togglePresence(venue, origin, is, service) ;

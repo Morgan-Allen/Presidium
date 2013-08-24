@@ -17,9 +17,9 @@ public class Flora extends Element implements TileConstants {
   
   /**  Field definitions and constructors-
     */
-  final static int
+  final public static int
     MAX_GROWTH = 4 ;
-  final static float
+  final public static float
     GROWTH_PER_UPDATE = 0.25f ;
   
   final Habitat habitat ;
@@ -99,7 +99,7 @@ public class Flora extends Element implements TileConstants {
   }
   
   
-  protected void incGrowth(
+  public void incGrowth(
     float inc, World world, boolean init
   ) {
     growth += inc ;

@@ -102,7 +102,7 @@ public abstract class Actor extends Mobile implements
   
   protected void pathingAbort() {
     if (actionTaken == null) return ;
-    ///I.say(this+" aborting actionTaken...") ;
+    I.say(this+" aborting actionTaken...") ;
     AI.cancelBehaviour(AI.topBehaviour()) ;
     final Behaviour top = AI.topBehaviour() ;
     if (top != null) top.abortStep() ;
@@ -142,14 +142,9 @@ public abstract class Actor extends Mobile implements
   
   protected void updateAsMobile() {
     super.updateAsMobile() ;
-    if (actionTaken != null) actionTaken.updateAction() ;
-    if (health.conscious()) {
-      //
-      //  TODO:  This should be moved to the updateAsScheduled method, since
-      //  mobile updates are not time-sliced.  (Maybe they should be?)
-      if (actionTaken == null || actionTaken.complete()) {
-        assignAction(AI.getNextAction()) ;
-      }
+    if (actionTaken != null) {
+      actionTaken.updateAction() ;
+      if (actionTaken.complete()) world.schedule.scheduleNow(this) ;
     }
   }
   
@@ -157,6 +152,11 @@ public abstract class Actor extends Mobile implements
   public void updateAsScheduled(int numUpdates) {
     health.updateHealth(numUpdates) ;
     if (health.conscious()) {
+      //
+      //  Check to see if a new action needs to be decided on.
+      if (actionTaken == null || actionTaken.complete()) {
+        assignAction(AI.getNextAction()) ;
+      }
       AI.updateAI(numUpdates) ;
       //
       //  Update the intel/danger maps associated with the world's bases.
@@ -182,6 +182,12 @@ public abstract class Actor extends Mobile implements
     ) ;
     AI.cancelBehaviour(AI.rootBehaviour()) ;
     this.assignAction(falling) ;
+  }
+  
+  
+  protected boolean amDoing(String actionName) {
+    if (actionTaken == null) return false ;
+    return actionTaken.methodName().equals(actionName) ;
   }
   
   

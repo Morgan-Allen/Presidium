@@ -77,7 +77,8 @@ public class Schedule {
   }
   
   
-  /**  Registers the given Updates object to be called upon at regular intervals.
+  
+  /**  Registration and deregistration methods for updatable objects-
     */
   public void scheduleForUpdates(Updates updates) {
     if (allUpdates.get(updates) != null)
@@ -91,8 +92,16 @@ public class Schedule {
   }
   
   
-  /**  Unregisters the given Updates object from the schedule.
-    */
+  public void scheduleNow(Updates updates) {
+    final Object ref = allUpdates.get(updates) ;
+    if (ref == null) return ;
+    final Event event = events.refValue(ref) ;
+    event.time = currentTime ;
+    events.deleteRef(ref) ;
+    allUpdates.put(event.updates, events.insert(event)) ;
+  }
+  
+  
   public void unschedule(Updates updates) {
     final Object node = allUpdates.get(updates) ;
     ///I.say("...Unscheduling "+updates+" node okay? "+(node != null)) ;

@@ -1,7 +1,12 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 
 package src.game.planet ;
+import src.game.building.VenueStructure;
 import src.game.common.* ;
 import src.util.* ;
 
@@ -31,7 +36,80 @@ public class EcologyGen {
   }
   
   
+  //
+  //  TODO:  This method needs to insert lairs, instead of inserting animals
+  //  directly.  (Then top up the population.)
   
+  public void populateFauna(
+    final World world, final int rangeSize, final Species... species
+  ) {
+    final Lair typeLairs[] = new Lair[species.length] ;
+    
+    final RandomScan scan = new RandomScan(world.size) {
+      protected void scanAt(int x, int y) {
+        int bestIndex = -1 ;
+        float bestRating = 0 ;
+        
+        for (int i = species.length ; i-- > 0 ;) {
+          final Species specie = species[i] ;
+          if (typeLairs[i] == null) typeLairs[i] = specie.createLair() ;
+          final Lair lair = typeLairs[i] ;
+          lair.setPosition(x, y, world) ;
+          final float rating = lair.ratePosition(world) ;
+          if (rating > bestRating) { bestIndex = i ; bestRating = rating ; }
+        }
+        
+        if (bestIndex != -1) {
+          final Lair chosen = typeLairs[bestIndex] ;
+          typeLairs[bestIndex] = null ;
+          chosen.enterWorld() ;
+          chosen.structure.setState(VenueStructure.STATE_INTACT, 1) ;
+          chosen.setAsEstablished(true) ;
+        }
+      }
+    } ;
+    scan.doFullScan() ;
+  }
+}
+
+
+
+
+/*
+final int RS = rangeSize ;
+
+for (Coord c : Visit.grid(0, 0, world.size, world.size, RS)) {
+  final Tile midTile = world.tileAt(c.x + (RS / 2), c.y + (RS / 2)) ;
+  
+  while (true) {
+    Fauna picked = null ;
+    float minCrowding = 1.0f ;
+    
+    for (int n = species.length ; n-- > 0 ;) {
+      final Fauna specimen = species[n].newSpecimen() ;
+      float crowding = sampleCrowding(specimen, world, midTile, RS / 2) ;
+      
+      if (specimen.origin() != null && crowding < minCrowding) {
+        minCrowding = crowding ;
+        picked = specimen ;
+      }
+    }
+    
+    if (picked != null) {
+      picked.health.setupHealth(
+        Rand.num(),  //current age
+        (Rand.num() + 1) / 2,  //overall health
+        0.1f  //accident chance
+      ) ;
+      picked.enterWorld() ;
+    }
+    else break ;
+  }
+}
+//*/
+
+  
+  /*
   protected float sampleCrowding(
     Fauna specimen, World world, Tile around, float range
   ) {
@@ -58,46 +136,7 @@ public class EcologyGen {
     }
     return sumSamples / numSamples ;
   }
-  
-  
-  
-  public void populateFauna(World world, int rangeSize, Species... species) {
-    final int RS = rangeSize ;
-    
-    for (Coord c : Visit.grid(0, 0, world.size, world.size, RS)) {
-      final Tile midTile = world.tileAt(c.x + (RS / 2), c.y + (RS / 2)) ;
-      
-      while (true) {
-        Fauna picked = null ;
-        float minCrowding = 1.0f ;
-        
-        for (int n = species.length ; n-- > 0 ;) {
-          final Fauna specimen = species[n].newSpecimen() ;
-          float crowding = sampleCrowding(specimen, world, midTile, RS / 2) ;
-          
-          if (specimen.origin() != null && crowding < minCrowding) {
-            minCrowding = crowding ;
-            picked = specimen ;
-          }
-        }
-        
-        if (picked != null) {
-          picked.health.setupHealth(
-            Rand.num(),  //current age
-            (Rand.num() + 1) / 2,  //overall health
-            0.1f  //accident chance
-          ) ;
-          picked.enterWorld() ;
-        }
-        else break ;
-      }
-    }
-    //
-    //  TODO:  You also need to insert nests for species that demand them.
-  }
   //*/
-}
-
 
 
 

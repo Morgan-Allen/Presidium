@@ -411,7 +411,7 @@ public class ActorHealth implements ActorConstants {
     }
     //
     //  Deplete your current calories stockpile-
-    calories -= (1f * maxHealth) / STARVE_INTERVAL ;
+    calories -= (1f * maxHealth * baseSpeed) / STARVE_INTERVAL ;
     calories = Visit.clamp(calories, 0, maxHealth) ;
     if (calories <= 0) {
       I.say(actor+" has died of hunger.") ;
@@ -432,7 +432,7 @@ public class ActorHealth implements ActorConstants {
     else if (state == STATE_ACTIVE) {
     }
     
-    fatigue += FATIGUE_GROW_PER_DAY * FM / DL ;
+    fatigue += FATIGUE_GROW_PER_DAY * baseSpeed * FM / DL ;
     stress *= (1 - (STRESS_DECAY_PER_DAY * SM / DL)) ;
     if (bleeds) {
       injury++ ;

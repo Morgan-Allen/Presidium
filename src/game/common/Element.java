@@ -82,7 +82,7 @@ public abstract class Element implements
   
   
   public void setAsDestroyed() {
-    if (! inWorld()) I.complain("Never entered world...") ;
+    if (! inWorld()) return ;// I.complain("Never entered world...") ;
     this.toggleProperty(PROP_DESTROYED, true) ;
     world.ephemera.addGhost(origin(), radius() * 2, sprite, 2.0f) ;
     exitWorld() ;
@@ -90,7 +90,7 @@ public abstract class Element implements
   
   
   public void exitWorld() {
-    if (! inWorld()) I.complain("Never entered world...") ;
+    if (! inWorld()) return ;// I.complain("Never entered world...") ;
     if (owningType() != NOTHING_OWNS) location.setOwner(null) ;
     this.toggleProperty(PROP_IN_WORLD, false) ;
     this.world = null ;

@@ -250,6 +250,12 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
     return new nearIter() ;
   }
   
+  
+  public Target pickNearest(Target origin, float range) {
+    for (Target t : visitNear(origin, range, null)) return t ;
+    return null ;
+  }
+  
 
   public Target pickRandomAround(final Target origin, final float range) {
     origin.position(temp) ;

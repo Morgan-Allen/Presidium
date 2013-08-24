@@ -116,10 +116,12 @@ public class InfoPanel extends UIGroup implements UIConstants {
     */
   protected void updateState() {
     if (selected != null && selected.subject().destroyed()) {
+      /*
       I.say(
         "SELECTION IS NO LONGER IN WORLD... "+
-        selected+" "+selected.getClass().getName()
+        selected+" "+selected.getClass().getSimpleName()
       ) ;
+      //*/
       UI.selection.pushSelection(previous, false) ;
       return ;
     }

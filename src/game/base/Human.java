@@ -421,31 +421,3 @@ public class Human extends Actor implements ActorConstants {
 
 
 
-
-//private void describeOutfit(Description d, BaseUI UI) {
-  //
-  //
-  //  Describe your current weapon or implement, and armour or dress.  Rate
-  //  your current encumbrance, and any other special bonuses or effects.
-  /*
-  //*/
-  
-  //  Describe your overall appearance and physique.
-//}
-
-/*
-d.append("\n\nMemories: ") ;
-//  TODO:  Refer to Memories directly, so you can reconstruct the plan
-//  from the signature, and link to affected targets/subjects.
-int numM = 0 ;
-for (Class planClass : psyche.recentActivities()) {
-  d.append("\n  "+planClass.getSimpleName()) ;
-  if (++numM >= 5) break ;
-}
-//*/
-
-
-
-
-
-

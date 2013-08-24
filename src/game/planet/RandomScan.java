@@ -53,12 +53,14 @@ public abstract class RandomScan {
   }
   
   
+  
   /**  Generates the random seeds needed-
-   */
+    */
   private void initSeeds() {
     scan = seed = Rand.index(totalTiles - 1) + 1 ;
     lfsr = new LFSR(seedBits, seed) ;
   }
+  
   
   
   /**  Scans through every tile on the map.
@@ -85,6 +87,8 @@ public abstract class RandomScan {
     return gate ;
   }
   
+  
+  
   /**  Scans through a fixed number of tiles on the map surface-
     */
   public void scanThrough(int numTiles) {
@@ -106,6 +110,7 @@ public abstract class RandomScan {
     }
     lastScanIndex = (lastScanIndex + numTiles) % totalTiles ;
   }
+  
   
   
   /**  Scans a single tile of the map.

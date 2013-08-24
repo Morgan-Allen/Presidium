@@ -5,10 +5,14 @@
   */
 
 
-package src.game.planet ;
+package src.game.wild ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.common.* ;
+import src.game.planet.Fauna;
+import src.game.planet.Flora;
+import src.game.planet.Lair;
+import src.game.planet.Species;
 import src.util.* ;
 
 
@@ -67,7 +71,7 @@ public class Vareen extends Fauna {
   //
   //  TODO:  It might be an idea for the world to have a trees-map, so that you
   //  can look up their location more easily, including for forestry purposes.
-  
+  /*
   protected Behaviour nextFeeding() {
     //
     //  Pick several random nearby tiles, and see if one has flora.  If so,
@@ -127,6 +131,7 @@ public class Vareen extends Fauna {
     return origin() ;
     //return null ;
   }
+  //*/
   
   
   

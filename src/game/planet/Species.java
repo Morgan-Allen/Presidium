@@ -27,14 +27,14 @@ public abstract class Species {
     LAIR_DIR = "media/Buildings/lairs and ruins/",
     XML_PATH = FILE_DIR+"FaunaModels.xml" ;
   final static Model
-    NEST_QUUD = ImageModel.asIsometricModel(
+    MODEL_NEST_QUUD = ImageModel.asIsometricModel(
       Species.class, LAIR_DIR+"nest_quud.png", 3, 2
     ),
-    NEST_VAREEN = ImageModel.asIsometricModel(
+    MODEL_NEST_VAREEN = ImageModel.asIsometricModel(
       Species.class, LAIR_DIR+"nest_vareen.png", 3, 3
     ),
-    NEST_MICOVORE = ImageModel.asIsometricModel(
-      Species.class, LAIR_DIR+"nest_micovore.png", 3, 2
+    MODEL_NEST_MICOVORE = ImageModel.asIsometricModel(
+      Species.class, LAIR_DIR+"nest_micovore.png", 4, 3
     ) ;
   
   public static enum Type {
@@ -84,7 +84,7 @@ public abstract class Species {
     ) {
       Fauna newSpecimen() { return new Quud() ; }
       Lair createLair() { return new Lair(
-        3, 2, Venue.ENTRANCE_EAST, this, NEST_QUUD
+        3, 2, Venue.ENTRANCE_EAST, this, MODEL_NEST_QUUD
       ) ; }
     },
     
@@ -103,7 +103,7 @@ public abstract class Species {
     ) {
       Fauna newSpecimen() { return new Vareen() ; }
       Lair createLair() { return new Lair(
-        3, 3, Venue.ENTRANCE_EAST, this, NEST_VAREEN
+        3, 3, Venue.ENTRANCE_EAST, this, MODEL_NEST_VAREEN
       ) ; }
     },
     
@@ -122,7 +122,7 @@ public abstract class Species {
     ) {
       Fauna newSpecimen() { return new Micovore() ; }
       Lair createLair() { return new Lair(
-        3, 2, Venue.ENTRANCE_EAST, this, NEST_MICOVORE
+        4, 3, Venue.ENTRANCE_EAST, this, MODEL_NEST_MICOVORE
       ) ; }
     },
     

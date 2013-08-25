@@ -104,11 +104,12 @@ public class PathingCache {
     if (initP == null || destP == null) return null ;
     final Place placesPath[] = placesPath(initP, destP) ;
     if (placesPath == null || placesPath.length < 1) {
-      I.say("NO PLACES PATH!") ;
+      ///I.say("NO PLACES PATH!") ;
       return null ;
     }
     if (! verifyPlacesPath(placesPath)) {
-      I.say("BROKEN PLACES PATH") ;
+      I.complain("Places path is broken...") ;
+      ///I.say("BROKEN PLACES PATH") ;
       return null ;
     }
     return placesPath ;

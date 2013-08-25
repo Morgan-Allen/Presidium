@@ -20,7 +20,7 @@ public abstract class Element implements
     */
   final public static int
     NOTHING_OWNS     = 0,
-    ENVIRONMENT_OWNS = 1,
+    ELEMENT_OWNS = 1,
     FIXTURE_OWNS     = 2,
     VENUE_OWNS       = 3,
     TERRAIN_OWNS     = 4 ;
@@ -128,7 +128,7 @@ public abstract class Element implements
   /**  Properties, both hard-wired and custom.
     */
   public int owningType() {
-    return ENVIRONMENT_OWNS ;
+    return ELEMENT_OWNS ;
   }
   
   

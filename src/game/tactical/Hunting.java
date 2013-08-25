@@ -60,7 +60,9 @@ public class Hunting extends Combat implements ActorConstants {
     */
   public float priorityFor(Actor actor) {
     if (type == TYPE_FEEDS) {
-      final float reward = actor.health.hungerLevel() * PARAMOUNT ;
+      final float hunger = actor.health.hungerLevel() - 0.25f ;
+      if (hunger < 0) return 0 ;
+      final float reward = hunger * PARAMOUNT / 0.75f ;
       float priority = Combat.combatPriority(actor, prey, reward, PARAMOUNT) ;
       priority -= Plan.rangePenalty(actor, prey) ;
       

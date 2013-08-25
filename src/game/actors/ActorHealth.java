@@ -90,7 +90,6 @@ public class ActorHealth implements ActorConstants {
     stress    = 0 ; //Add life-satisfaction.
   private boolean bleeds = false ;
   private float needSleep = 0 ;
-  private float satisfaction ;
   
   private int
     state    = STATE_ACTIVE ;
@@ -230,6 +229,11 @@ public class ActorHealth implements ActorConstants {
   
   public float ageMultiple() {
     return ageMultiple ;
+  }
+  
+  
+  public float lifespan() {
+    return lifespan ;
   }
   
   
@@ -381,7 +385,7 @@ public class ActorHealth implements ActorConstants {
       advanceAge() ;
     }
     if (oldState != state && state != STATE_ACTIVE) {
-      I.say(actor+" has entered a non-active state: "+state) ;
+      I.say(actor+" has entered a non-active state: "+stateDesc()) ;
       actor.enterStateKO() ;
     }
   }

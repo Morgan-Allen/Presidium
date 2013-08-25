@@ -167,9 +167,11 @@ public abstract class Venue extends Fixture implements
   
   
   public void setAsDestroyed() {
-    super.setAsDestroyed() ;
     personnel.onDecommission() ;
-    Slag.reduceToSlag(this) ;
+    final World world = this.world ;
+    final Box2D area = this.area() ;
+    super.setAsDestroyed() ;
+    Slag.reduceToSlag(area, world) ;
   }
   
   

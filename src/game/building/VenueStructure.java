@@ -325,7 +325,7 @@ public class VenueStructure extends Inventory {
     }
     if (numUpdates % 10 == 0) {
       final float wear = Rand.num() * 2 ;
-      if (wear > Rand.num() * armouring) burning = false ;
+      if (wear > Rand.num() * armouring) takeDamage(wear) ;
     }
   }
   

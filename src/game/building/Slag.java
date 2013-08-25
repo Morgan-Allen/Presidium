@@ -35,10 +35,8 @@ public class Slag extends Element {
   
   
   
-  public static void reduceToSlag(Fixture fixture) {
-    final World world = fixture.world() ;
-    if (fixture.inWorld()) fixture.exitWorld() ;
-    for (Tile t : world.tilesIn(fixture.area(), true)) {
+  public static void reduceToSlag(Box2D area, World world) {
+    for (Tile t : world.tilesIn(area, true)) {
       final Slag heap = new Slag() ;
       heap.enterWorldAt(t.x, t.y, world) ;
     }
@@ -46,12 +44,12 @@ public class Slag extends Element {
   
   
   public void doGrowth() {
-    exitWorld() ;
+    setAsDestroyed() ;
   }
   
   
   public void exitWorld() {
-    //  TODO:  Spread some pollution around...
+    //  TODO:  Spread some pollution around?
   }
 }
 

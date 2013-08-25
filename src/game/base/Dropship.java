@@ -156,7 +156,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     */
   protected boolean checkLandingArea(World world, Box2D area) {
     for (Tile t : world.tilesIn(area, false)) {
-      if (t == null || t.owningType() > Element.ENVIRONMENT_OWNS) return false ;
+      if (t == null || t.owningType() > Element.ELEMENT_OWNS) return false ;
     }
     return true ;
   }

@@ -154,8 +154,9 @@ public class DebugBehaviour extends PlayLoop {
     */
   private void natureScenario(World world, Base base, HUD UI) {
     GameSettings.noFog = true ;
-    PlayLoop.setGameSpeed(25.0f) ;
-    
+    ///PlayLoop.setGameSpeed(10.0f) ;
+    //  TODO:  Now you need to test out retreat/self-defence behaviours.
+    /*
     for (int n = 16 ; n-- > 0 ;) {
       final Actor prey = Rand.yes() ? new Quud() : new Vareen() ;
       final Tile e = Spacing.pickRandomTile(world.tileAt(16, 16), 8, world) ;
@@ -163,7 +164,6 @@ public class DebugBehaviour extends PlayLoop {
       prey.enterWorldAt(e.x, e.y, world) ;
     }
     
-    //*
     final Actor hunter = new Micovore() ;
     hunter.health.setupHealth(Rand.num(), 1, 0) ;
     hunter.enterWorldAt(4, 4, world) ;

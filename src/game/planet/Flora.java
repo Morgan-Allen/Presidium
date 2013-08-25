@@ -62,7 +62,7 @@ public class Flora extends Element implements TileConstants {
     for (int i : N_INDEX) {
       final Tile n = world.tileAt(t.x + N_X[i], t.y + N_Y[i]) ;
       if (n == null || n.blocked()) numBlocked++ ;
-      if (n != null && n.owningType() > Element.ENVIRONMENT_OWNS) {
+      if (n != null && n.owningType() > Element.ELEMENT_OWNS) {
         numBlocked = 8 ;
         break ;
       }

@@ -69,10 +69,17 @@ public class Lair extends Venue {
   protected Service[] services() { return new Service[0] ; }
   
   
+  //  TODO:  Move these to the Species class, I think.
   protected int peerRange() {
     return (int) (PEER_SAMPLE_RANGE * (
       species.type == Species.Type.PREDATOR ? 1.5f : 0.75f
     )) ;
+  }
+  
+  
+  protected int maxPop() {
+    if (species.type == Species.Type.PREDATOR) return LAIR_POPULATION / 2 ;
+    return LAIR_POPULATION ;
   }
   
   
@@ -83,7 +90,7 @@ public class Lair extends Venue {
     final float r = peerRange(), s = world.size - 1 ;
     //
     //  Populate this venue with suitable specimens-
-    for (int n = LAIR_POPULATION ; n-- > 0 ;) {
+    for (int n = maxPop() ; n-- > 0 ;) {
       //
       //  Find a suitable entry point:
       final float
@@ -91,6 +98,7 @@ public class Lair extends Venue {
         y = Visit.clamp(p.y + Rand.range(-r, r), 0, s) ;
       Tile enters = world.tileAt(x, y) ;
       enters = Spacing.nearestOpenTile(enters, enters) ;
+      if (enters == null) continue ;
       //
       //  Fill up the surrounds with specimens.
       final Fauna specimen = species.newSpecimen() ;
@@ -121,7 +129,9 @@ public class Lair extends Venue {
     if ((! inWorld()) && (! canPlace())) return -1 ;
     //
     //  Iterate over nearby lairs and estimate total abundance of peers.
-    final int WS = world.size, range = peerRange(), LP = LAIR_POPULATION ;
+    final int
+      WS = world.size, range = peerRange(),
+      LP = LAIR_POPULATION ;
     final Tile point = world.tileAt(this) ;
     final Box2D limit = new Box2D().set(point.x, point.y, 0, 0) ;
     limit.expandBy(range).cropBy(new Box2D().set(0, 0, WS, WS)) ;
@@ -132,9 +142,9 @@ public class Lair extends Venue {
     boolean nearWrongStructure = false ;
     float numPeers = 0, numPrey = 0, numHunters = 0 ;
     for (Target t : venueMap.visitNear(point, -1, limit)) {
-      if (! (t instanceof Lair)) {
+      if ((! (t instanceof Lair)) || Spacing.distance(this, t) < 2) {
         nearWrongStructure = true ;
-        continue ;
+        break ;
       }
       final Lair l = (Lair) t ;
       final Species s = l.species ;
@@ -164,7 +174,7 @@ public class Lair extends Venue {
   ) {
     final float fertility = evalFertility(point) ;
     if (fertility == 0) return 0 ;
-    final float idealPop = BROWSER_DENSITY * fertility / 1.5f ;
+    final float idealPop = BROWSER_DENSITY * fertility / 2 ;
     final float rarity = (((numPrey + 1) / (numPeers + 1)) + 1) / 2f ;
     final float density = numPrey * (SAMPLE_AREA / limit.area()) ;
     return (idealPop * rarity) - density ;
@@ -176,31 +186,35 @@ public class Lair extends Venue {
     float numPeers, float numPrey, float numHunters
   ) {
     if (numPrey == 0) return 0 ;
-    float idealPop = numPrey / (PREDATOR_RATIO * 1.5f) ;
+    float idealPop = numPrey / (PREDATOR_RATIO * 2) ;
     float rarity = (((numHunters + 1) / (numPeers + 1)) + 1) / 2f ;
     final float density = numHunters * (SAMPLE_AREA / limit.area()) ;
     return (idealPop * rarity) - density ;
   }
-
+  
   //
   //  TODO:  This sort of thing might be outsourced to the GrowthMap class, or
   //  something similar.
   protected float evalFertility(Tile point) {
     final Box2D limit = new Box2D().set(point.x, point.y, 0, 0) ;
     limit.expandBy(GROUND_SAMPLE_RANGE) ;
-    float sumF = 0, numT = 0, weight ;
+    float sumF = 0 ;
     for (Tile t : point.world.tilesIn(limit, true)) {
-      weight = 1 - (Spacing.axisDist(t, point) / (GROUND_SAMPLE_RANGE + 1)) ;
-      sumF += t.habitat().moisture() * weight ;
-      numT += weight ;
+      if (t.owner() instanceof Flora) sumF += 4 ;
     }
-    sumF /= numT * 10 ;
+    /*
+    final PresenceMap floraMap = point.world.presences.mapFor(Flora.class) ;
+    for (Target t : floraMap.visitNear(point, -1, limit)) {
+      if (t instanceof Flora) sumF += 4 ;
+    }
+    //*/
+    sumF /= limit.area() ;
     return sumF ;
   }
   
   
   public float crowding() {
-    return personnel.residents().size() * 1f / LAIR_POPULATION ;
+    return personnel.residents().size() * 1f / maxPop() ;
   }
   
   

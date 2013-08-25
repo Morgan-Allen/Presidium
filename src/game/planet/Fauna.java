@@ -161,7 +161,8 @@ public abstract class Fauna extends Actor {
     actor.health.setState(ActorHealth.STATE_RESTING) ;
     final Lair lair = (Lair) actor.AI.home() ;
     if (lair != point) return true ;
-    final float rating = lair.rateCrowding(world) ;
+    final float rating = species.goesHunt() ? lair.rateCrowding(world) : 1 ;
+    //final float rating = lair.rateCrowding(world) ;
     ///if (BaseUI.isPicked(this)) I.say("Crowding is: "+rating) ;
     if (rating < 0 || lair.crowding() > 1) return false ;
     //
@@ -170,13 +171,17 @@ public abstract class Fauna extends Actor {
     if (actor.health.hungerLevel() > 0.5f) return false ;
     I.say("Giving birth to new "+actor.species.name+" at: "+point) ;
     //
-    //  Don't breed if you're too young or too hungry...
+    //  Don't breed if you're too young or too hungry.  Otherwise, produce
+    //  offpsring in inverse proportion to lifespan-
     actor.health.loseSustenance(0.25f) ;
-    final Fauna young = actor.species.newSpecimen() ;
-    young.health.setupHealth(0, 1, 0) ;
-    young.AI.setHomeVenue(lair) ;
-    final Tile e = lair.mainEntrance() ;
-    young.enterWorldAt(e.x, e.y, e.world) ;
+    final int maxKids = 1 + (int) Math.sqrt(10f / health.lifespan()) ;
+    for (int numKids = 1 + Rand.index(maxKids) ; numKids-- > 0 ;) {
+      final Fauna young = actor.species.newSpecimen() ;
+      young.health.setupHealth(0, 1, 0) ;
+      young.AI.setHomeVenue(lair) ;
+      final Tile e = lair.mainEntrance() ;
+      young.enterWorldAt(e.x, e.y, e.world) ;
+    }
     return true ;
   }
   
@@ -193,7 +198,7 @@ public abstract class Fauna extends Actor {
     final Action migrate = new Action(
       this, free,
       this, "actionMigrate",
-      Action.LOOK, "Migrating"
+      Action.LOOK, "Wandering"
     ) ;
     final float crowdBonus = (lair == null) ? 0 : lair.crowding() ;
     final float priority = Action.IDLE + (crowdBonus * Action.CASUAL) ;
@@ -209,14 +214,15 @@ public abstract class Fauna extends Actor {
     //  If you're homeless, or if home is overcrowded, consider moving into a
     //  vacant lair, or building a new one.
     if (shouldNest) {
-      Lair vacant = (Lair) world.presences.nearestMatch(Lair.class, this, -1) ;
-      if (
-        vacant != null &&
-        vacant.species == this.species &&
-        vacant.crowding() <= 0.5f
-      ) {
-        actor.AI.setHomeVenue(vacant) ;
-        return true ;
+      int numTried = 0 ;
+      for (Object t : world.presences.matchesNear(Lair.class, actor, null)) {
+        if (++numTried > 5) break ;
+        if (! (t instanceof Lair)) continue ;
+        final Lair vacant = (Lair) t ;
+        if (vacant.species == this.species && vacant.crowding() <= 0.5f) {
+          actor.AI.setHomeVenue(vacant) ;
+          return true ;
+        }
       }
     }
     if (shouldNest) {
@@ -225,6 +231,7 @@ public abstract class Fauna extends Actor {
       float rating = newLair.rateCrowding(actor.world()) ;
       if (rating > 0) {
         actor.AI.setHomeVenue(newLair) ;
+        newLair.clearSurrounds() ;
         newLair.enterWorld() ;
         newLair.structure.setState(VenueStructure.STATE_INTACT, 0.1f) ;
       }

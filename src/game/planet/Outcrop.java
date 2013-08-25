@@ -145,7 +145,7 @@ public class Outcrop extends Fixture {
   
   public int owningType() {
     return type == TYPE_DUNE ?
-      Element.ENVIRONMENT_OWNS :
+      Element.ELEMENT_OWNS :
       Element.TERRAIN_OWNS ;
   }
   

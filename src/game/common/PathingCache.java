@@ -146,9 +146,9 @@ public class PathingCache {
     }
     if (path == null) {
       ///I.say("Resorting to unbounded pathfinding between "+initB+" "+destB) ;
-      final PathingSearch search = new PathingSearch(initB, destB) ;
+      final PathingSearch search = new PathingSearch(initB, destB, -1) ;
       search.doSearch() ;
-      path =  search.fullPath(Boardable.class) ;
+      path = search.fullPath(Boardable.class) ;
     }
     return path ;
   }
@@ -371,7 +371,7 @@ public class PathingCache {
     //  to the PathingSearch class itself?
     final Tile initT = tilePosition(initB) ;
     
-    final PathingSearch search = new PathingSearch(initB, destB, false) {
+    final PathingSearch search = new PathingSearch(initB, destB, -1) {
       
       final int PPL = placesPath.length ;
       private Place lastPlace = placesPath[0] ;
@@ -445,7 +445,7 @@ public class PathingCache {
     final Box2D
       cordon = new Box2D().setTo(sA.area).include(sB.area),
       tB = new Box2D() ;
-    final PathingSearch search = new PathingSearch(a, b, false) {
+    final PathingSearch search = new PathingSearch(a, b, -1) {
       protected boolean canEnter(Boardable spot) {
         if (spot instanceof Tile) {
           final Tile t = (Tile) spot ;

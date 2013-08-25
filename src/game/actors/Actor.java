@@ -132,6 +132,7 @@ public abstract class Actor extends Mobile implements
   public void exitWorld() {
     world.activities.toggleActive(actionTaken, false) ;
     AI.cancelBehaviour(AI.topBehaviour()) ;
+    AI.onWorldExit() ;
     super.exitWorld() ;
   }
   

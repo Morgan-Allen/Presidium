@@ -205,6 +205,7 @@ public class Action implements Behaviour, Model.AnimNames {
     //  respectively.
     float minDist = 0 ;
     if ((properties & RANGED) != 0) minDist = actor.health.sightRange() ;
+    if (inRange == 1) minDist += progress + 0.5f ;
     final boolean
       closed = actor.pathing.closeEnough(moveTarget, minDist),
       facing = actor.pathing.facingTarget(actionTarget) ;

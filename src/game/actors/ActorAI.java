@@ -165,6 +165,12 @@ public abstract class ActorAI implements ActorConstants {
   }
   
   
+  protected void onWorldExit() {
+    setHomeVenue(null) ;
+    setEmployer(null) ;
+  }
+  
+  
   
   /**  Methods related to behaviours-
     */

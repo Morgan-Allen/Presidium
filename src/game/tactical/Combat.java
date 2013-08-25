@@ -91,14 +91,14 @@ public class Combat extends Plan implements ActorConstants {
       actorStrength = combatStrength(actor),
       enemyStrength = combatStrength(enemy),
       chance = actorStrength / (actorStrength + enemyStrength) ;
-    I.say(
+    if (BaseUI.isPicked(actor)) I.say(
       "Actor/enemy strength, chance: "+actorStrength+"/"+enemyStrength+
       ", "+chance
     ) ;
     float appeal = 0 ;
     appeal += winReward * chance ;
     appeal -= (1 - chance) * lossCost ;
-    I.say("Final appeal: "+appeal) ;
+    if (BaseUI.isPicked(actor)) I.say("Final appeal: "+appeal) ;
     
     //
     //final float distance = Spacing.distance(enemy, actor) ;
@@ -114,25 +114,15 @@ public class Combat extends Plan implements ActorConstants {
   //  the moment.
   public static float combatStrength(Actor actor) {
     float strength = 0 ;
-    strength += (actor.gear.armourRating() + actor.gear.attackDamage()) / 20 ;
+    strength += (actor.gear.armourRating() + actor.gear.attackDamage()) / 20f ;
     strength *= actor.health.maxHealth() / 10 ;
-    //strength *= actor.traits.trueLevel(REFLEX) / 10 ;
     strength *= (1 - actor.health.injuryLevel()) ;
     strength *= 1 - actor.health.skillPenalty() ;
     //
     //  You might need to include modifiers for ranged and melee attack skill,
     //  plus reflex and shields.
     //  Work this out later.  Different armour/weapon combos might be relevant.
-    /*
-    if (enemy != null) {
-      if (enemy.gear.meleeWeapon()) {
-        strength *= enemy.traits.chance(CLOSE_COMBAT, actor, CLOSE_COMBAT, 0) ;
-      }
-      else {
-        strength *= enemy.traits.chance(, actor, MARKSMANSHIP, 0) ;
-      }
-    }
-    //*/
+    strength *= (actor.traits.trueLevel(REFLEX) + 10) / 20f ;
     return strength ;
   }
   
@@ -202,7 +192,7 @@ public class Combat extends Plan implements ActorConstants {
       strike.setProperties(Action.QUICK) ;
     }
     else if (razes && Rand.num() < 0.2f) {
-      final Tile alt = Spacing.pickRandomTile(actor, 3) ;
+      final Tile alt = Spacing.pickRandomTile(actor, 3, actor.world()) ;
       if ((Spacing.distance(alt, target) < range) && alt.owner() == null) {
         strike.setMoveTarget(alt) ;
         strike.setProperties(Action.QUICK) ;

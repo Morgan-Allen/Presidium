@@ -36,8 +36,8 @@ public class PathingSearch extends Search <Boardable> {
   
   
   
-  public PathingSearch(Boardable init, Boardable dest, boolean safe) {
-    super(init, safe ? ((Spacing.outerDistance(init, dest) * 10) + 10) : -1) ;
+  public PathingSearch(Boardable init, Boardable dest, int limit) {
+    super(init, (limit > 0) ? ((limit + 2) * 8) : -1) ;
     if (dest == null) {
       I.complain("NO DESTINATION!") ;
     }
@@ -52,7 +52,7 @@ public class PathingSearch extends Search <Boardable> {
   
   
   public PathingSearch(Boardable init, Boardable dest) {
-    this(init, dest, true) ;
+    this(init, dest, Spacing.outerDistance(init, dest)) ;
   }
   
   

@@ -87,7 +87,7 @@ public class Retreat extends Plan implements ActorConstants {
     Tile pick = actor.origin() ;
     float bestRating = dangerAtSpot(pick, actor, actor.AI.seen()) ;
     for (int i = numPicks ; i-- > 0 ;) {
-      final Tile tried = Spacing.pickRandomTile(actor, range) ;
+      final Tile tried = Spacing.pickRandomTile(actor, range, actor.world()) ;
       if (Spacing.distance(tried, target) > range * 2) continue ;
       float tryRating = dangerAtSpot(tried, actor, actor.AI.seen()) ;
       tryRating += (Rand.num() - 0.5f) * salt ;

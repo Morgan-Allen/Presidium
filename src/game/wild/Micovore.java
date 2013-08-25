@@ -112,30 +112,34 @@ public class Micovore extends Fauna {
     return origin() ;
   }
   //*/
-  
-  
-  //
-  //  TODO:  Consider routines for placing Lairs, maintaining them, and letting
-  //  them decay over time.  TODO: MOVE THOSE TO THE MICOVORE CLASS.
-  protected Tile findLairLocation() {
-    //
-    //  Look for an area that doesn't have any rocks in the way, and place a
-    //  2x2 lair there if possible.
-    return null ;
-  }
-  
-  
-  public boolean actionGatherMaterials(Vareen actor, Tile source) {
-    //actor.inventory().addItem(new Item(DUST, 0.2f * Rand.num())) ;
-    return true ;
-  }
-  
-  
-  public boolean actionBuildNest(Vareen actor, Lair nest) {
-    //nest.stocks.repairBy(1, actor.inventory()) ;
-    return true ;
-  }
 }
 
 
 
+
+
+
+
+/*
+//
+//  TODO:  Consider routines for placing Lairs, maintaining them, and letting
+//  them decay over time.  TODO: MOVE THOSE TO THE MICOVORE CLASS.
+protected Tile findLairLocation() {
+  //
+  //  Look for an area that doesn't have any rocks in the way, and place a
+  //  2x2 lair there if possible.
+  return null ;
+}
+
+
+public boolean actionGatherMaterials(Vareen actor, Tile source) {
+  //actor.inventory().addItem(new Item(DUST, 0.2f * Rand.num())) ;
+  return true ;
+}
+
+
+public boolean actionBuildNest(Vareen actor, Lair nest) {
+  //nest.stocks.repairBy(1, actor.inventory()) ;
+  return true ;
+}
+//*/

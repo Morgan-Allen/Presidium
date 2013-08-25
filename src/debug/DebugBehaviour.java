@@ -156,22 +156,18 @@ public class DebugBehaviour extends PlayLoop {
     GameSettings.noFog = true ;
     PlayLoop.setGameSpeed(25.0f) ;
     
-    final Actor prey = new Vareen() ;
-    prey.health.setupHealth(Rand.num(), 1, 0) ;
-    prey.enterWorldAt(8, 8, world) ;
-    ((BaseUI) UI).selection.pushSelection(prey, true) ;
+    for (int n = 16 ; n-- > 0 ;) {
+      final Actor prey = Rand.yes() ? new Quud() : new Vareen() ;
+      final Tile e = Spacing.pickRandomTile(world.tileAt(16, 16), 8, world) ;
+      prey.health.setupHealth(Rand.num(), 1, 0) ;
+      prey.enterWorldAt(e.x, e.y, world) ;
+    }
     
-    
-    
-    
-    /*
+    //*
     final Actor hunter = new Micovore() ;
     hunter.health.setupHealth(Rand.num(), 1, 0) ;
-    hunter.enterWorldAt(5, 5, world) ;
-    hunter.AI.assignBehaviour(
-      new Hunting(hunter, prey, Hunting.TYPE_FEEDS)
-    ) ;
-    //hunter.assignAction(null) ;
+    hunter.enterWorldAt(4, 4, world) ;
+    ((BaseUI) UI).selection.pushSelection(hunter, true) ;
     //*/
   }
   
@@ -181,9 +177,7 @@ public class DebugBehaviour extends PlayLoop {
     *  contact missions.
     */
   private void missionScenario(World world, Base base, HUD UI) {
-    //
-    //  You'll also want to ensure that actors get visible payment for their
-    //  efforts...
+    
     final Actor actorA = new Human(Vocation.RUNNER, base) ;
     actorA.enterWorldAt(15, 15, world) ;
     final Actor actorB = new Human(Vocation.VETERAN, base) ;

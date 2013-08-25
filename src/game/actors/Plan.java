@@ -8,8 +8,10 @@
 package src.game.actors ;
 import src.game.common.* ;
 import src.game.common.Session.Saveable ;
+import src.game.planet.Terrain;
 import src.user.* ;
 import src.util.* ;
+
 import java.lang.reflect.* ;
 
 
@@ -150,6 +152,21 @@ public abstract class Plan implements Saveable, Behaviour {
 
   public void describeBehaviour(Description d) {
     if (description != null) d.append(description) ;
+  }
+  
+  
+  
+  /**  Assorted utility methods (move elsewhere soon.)  TODO; THAT
+    */
+  final private static float IL2 = 1 / (float) Math.log(2) ;
+  
+  //
+  //  TODO:  Outsource this to the ActorAI or possibly DangerMap classes.
+  public static float rangePenalty(Target a, Target b) {
+    if (a == null || b == null) return 0 ;
+    final float dist = Spacing.distance(a, b) * 1.0f / Terrain.SECTOR_SIZE ;
+    if (dist <= 1) return 1 ;
+    return IL2 * (float) Math.log(dist) ;
   }
   
   

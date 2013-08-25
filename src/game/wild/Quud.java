@@ -7,9 +7,7 @@
 
 package src.game.wild ;
 import src.game.common.* ;
-import src.game.planet.Fauna;
-import src.game.planet.Flora;
-import src.game.planet.Species;
+import src.game.planet.* ;
 import src.game.actors.* ;
 import src.util.* ;
 

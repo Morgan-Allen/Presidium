@@ -9,10 +9,7 @@ package src.game.wild ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.common.* ;
-import src.game.planet.Fauna;
-import src.game.planet.Flora;
-import src.game.planet.Lair;
-import src.game.planet.Species;
+import src.game.planet.* ;
 import src.util.* ;
 
 
@@ -23,6 +20,8 @@ public class Vareen extends Fauna {
   
   /**  Fields, constructors, and save/load methods-
     */
+  final static int FLY_PATH_LIMIT = 16 ;
+  
   private float flyHeight = 2.5f ;
   private Lair nest = null ;
   
@@ -70,7 +69,7 @@ public class Vareen extends Fauna {
     */
   protected void updateAsMobile() {
     float idealHeight = 2.5f ;
-    if (amDoing("actionRest")) idealHeight = 1.0f ;
+    if (amDoing("actionRest") || amDoing("actionBrowse")) idealHeight = 1.0f ;
     if (! health.conscious()) idealHeight = 0 ;
     flyHeight = Visit.clamp(idealHeight, flyHeight - 0.1f, flyHeight + 0.1f) ;
     super.updateAsMobile() ;
@@ -80,7 +79,7 @@ public class Vareen extends Fauna {
 
   public void updateAsScheduled(int numUpdates) {
     //
-    //  TODO:  Base nutritional value on daylight...
+    //  TODO:  Base nutritional value on daylight values...
     if (! indoors()) {
       final float value = 0.5f / World.DEFAULT_DAY_LENGTH ;
       health.takeSustenance(value, 1) ;
@@ -95,7 +94,7 @@ public class Vareen extends Fauna {
   }
   
   
-  
+  /*
   protected MobilePathing initPathing() {
     final Vareen actor = this ;
     //
@@ -105,7 +104,9 @@ public class Vareen extends Fauna {
       protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
         final Lair lair = (Lair) actor.AI.home() ;
         
-        final PathingSearch flightPS = new PathingSearch(initB, destB) {
+        final PathingSearch flightPS = new PathingSearch(
+          initB, destB, FLY_PATH_LIMIT
+        ) {
           final Boardable tileB[] = new Boardable[8] ;
           
           protected Boardable[] adjacent(Boardable spot) {
@@ -113,6 +114,8 @@ public class Vareen extends Fauna {
             //  TODO:  There has got to be some way to factor this out into the
             //  Tile and PathingSearch classes.  This is recapitulating a lot
             //  of functionality AND IT'S DAMNED UGLY
+            //  ...Also, it can't make use of the pathingCache class, though
+            //  that's less vital here.
             if (spot instanceof Tile) {
               final Tile tile = ((Tile) spot) ;
               for (int i : Tile.N_DIAGONAL) {
@@ -144,7 +147,7 @@ public class Vareen extends Fauna {
           }
         } ;
         flightPS.doSearch() ;
-        return flightPS.fullPath(Boardable.class) ;
+        return flightPS.bestPath(Boardable.class) ;
       }
     } ;
   }
@@ -157,6 +160,7 @@ public class Vareen extends Fauna {
     }
     return false ;
   }
+  //*/
   
   
   
@@ -194,19 +198,6 @@ public class Vareen extends Fauna {
 
 
 
-//
-//  TODO:  Try making this an aspect of the generalised pathing-search,
-//  based on the aboveGroundHeight of a mobile.  It definitely needs some
-//  simplification/streamlining.
-
-/*
-//*/
-
-
-
-//
-//  TODO:  It might be an idea for the world to have a trees-map, so that you
-//  can look up their location more easily, including for forestry purposes.
 /*
 protected Behaviour nextFeeding() {
   //

@@ -68,8 +68,9 @@ public class MobilePathing {
   
   
   protected boolean refreshPath() {
-    if (trueTarget == null) { path = null ; stepIndex = -1 ; return false ; }
-    path = refreshPath(location(mobile), location(trueTarget)) ;
+    ///if (BaseUI.isPicked(mobile)) I.say("...Refreshing?") ;
+    if (trueTarget == null) path = null ;
+    else path = refreshPath(location(mobile), location(trueTarget)) ;
     stepIndex = (path == null) ? -1 : 0 ;
     return path != null ;
   }
@@ -77,12 +78,14 @@ public class MobilePathing {
   
   protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
     if (GameSettings.freePath) {
-      final PathingSearch search = new PathingSearch(initB, destB, false) ;
+      ///if (BaseUI.isPicked(mobile)) I.say("Getting free path...") ;
+      final PathingSearch search = new PathingSearch(initB, destB, -1) ;
       search.verbose = true ;
       search.doSearch() ;
       return search.fullPath(Boardable.class) ;
     }
     else {
+      ///if (BaseUI.isPicked(mobile)) I.say("Getting local path...") ;
       return mobile.world().pathingCache.getLocalPath(
         initB, destB, MAX_PATH_SCAN * 2
       ) ;
@@ -128,7 +131,7 @@ public class MobilePathing {
     //
     //  If the path needs refreshment, do so-
     if (doRefresh) {
-      ///if (BaseUI.isPicked(mobile)) I.say("Must refresh path... ") ;
+      if (BaseUI.isPicked(mobile)) I.say("Must refresh path... ") ;
       pathTarget = dest ;
       refreshPath() ;
     }

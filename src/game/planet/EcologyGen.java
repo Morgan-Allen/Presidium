@@ -55,7 +55,7 @@ public class EcologyGen {
           if (typeLairs[i] == null) typeLairs[i] = specie.createLair() ;
           final Lair lair = typeLairs[i] ;
           lair.setPosition(x, y, world) ;
-          final float rating = lair.ratePosition(world) ;
+          final float rating = lair.rateCrowding(world) ;
           if (rating > bestRating) { bestIndex = i ; bestRating = rating ; }
         }
         

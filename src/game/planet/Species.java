@@ -40,6 +40,7 @@ public abstract class Species {
   public static enum Type {
     BROWSER,
     PREDATOR,
+    OMNIVORE,
     HUMANOID,
   }
   
@@ -156,6 +157,16 @@ public abstract class Species {
   
   abstract Fauna newSpecimen() ;
   abstract Lair createLair() ;
+  
+  
+  public boolean browses() {
+    return type == Type.BROWSER || type == Type.OMNIVORE ;
+  }
+  
+  
+  public boolean goesHunt() {
+    return type == Type.PREDATOR || type == Type.OMNIVORE ;
+  }
   
   
   public String toString() { return name ; }

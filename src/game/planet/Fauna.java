@@ -6,9 +6,10 @@
 
 
 package src.game.planet ;
-import src.game.building.VenueStructure;
 import src.game.common.* ;
 import src.game.planet.* ;
+import src.game.building.* ;
+import src.game.tactical.* ;
 import src.game.actors.* ;
 import src.graphics.widgets.* ;
 import src.user.* ;
@@ -37,14 +38,12 @@ public abstract class Fauna extends Actor {
     super(s) ;
     species = Species.ALL_SPECIES[s.loadInt()] ;
     initStats() ;
-    ///crowding = s.loadFloat() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveInt(species.ID) ;
-    ///s.saveFloat(crowding) ;
   }
   
   
@@ -61,17 +60,20 @@ public abstract class Fauna extends Actor {
     return new ActorAI(actor) {
       protected Behaviour nextBehaviour() {
         final Choice choice = new Choice(actor) ;
-        choice.add(nextBrowsing()) ;
+        if (species.browses()) choice.add(nextBrowsing()) ;
+        if (species.goesHunt()) choice.add(nextHunting()) ;
+        //  TODO:  Add the option to retreat.
         choice.add(nextResting()) ;
         choice.add(nextMigration()) ;
         choice.add(nextBuildingNest()) ;
+        //  TODO:  Add the option to kill peers in case of overcrowding.
         return choice.weightedPick(actor.AI.whimsy()) ;
       }
       
       protected void updateAI(int numUpdates) {
         super.updateAI(numUpdates) ;
-        //  TODO:  If you or your home are under attack, either defend or
-        //  retreat.
+        //  TODO:  If you or your home are under attack, consider defending
+        //  them from the aggressor.
       }
       
       protected Behaviour reactionTo(Mobile seen) {
@@ -80,25 +82,35 @@ public abstract class Fauna extends Actor {
     } ;
   }
   
-  
-  //
-  //  TODO:  Outsource this to the ActorAI or possibly DangerMap classes.
-  private float rangePenalty(Target a, Target b) {
-    if (a == null || b == null) return 0 ;
-    return Spacing.distance(a, b) * 2f / Terrain.SECTOR_SIZE ;
-  }
-  
-  
-  private int crowding() {
-    final Lair lair = (Lair) this.AI.home() ;
-    return (lair == null) ? 0 : lair.personnel.residents().size() ;
-  }
 
   
-  
   protected Behaviour nextHunting() {
+    final float sampleRange = Lair.PEER_SAMPLE_RANGE ;
+    final int maxSampled = 10 ;
+    Actor pickedPrey = null ;
+    float bestRating = Float.NEGATIVE_INFINITY ;
+    final PresenceMap peers = world.presences.mapFor(Mobile.class) ;
+    int numSampled = 0 ;
     
-    return null ;
+    for (Target t : peers.visitNear(this, sampleRange, null)) {
+      if (++numSampled > maxSampled) break ;
+      if (! (t instanceof Actor)) continue ;
+      final Actor f = (Actor) t ;
+      final Species s = (Species) f.species() ;
+      //  TODO:  Skip over artilects, silicates and the like?
+      
+      final float danger = Combat.combatStrength(f) * Rand.num() ;
+      final float dist = Spacing.distance(f, this) / sampleRange ;
+      float rating = (1 - dist) / danger ;
+      if (s.type != Species.Type.BROWSER) rating /= 2 ;
+      if (! (t instanceof Fauna)) rating /= 2 ;
+      
+      if (rating > bestRating) { pickedPrey = f ; bestRating = rating ; }
+    }
+    
+    if (pickedPrey == null) return null ;
+    final Hunting hunting = new Hunting(this, pickedPrey, Hunting.TYPE_FEEDS) ;
+    return hunting ;
   }
   
   
@@ -114,7 +126,7 @@ public abstract class Fauna extends Actor {
     ) ;
     browse.setMoveTarget(Spacing.nearestOpenTile(f.origin(), this)) ;
     final float priority = health.hungerLevel() * Action.PARAMOUNT ;
-    browse.setPriority(priority - rangePenalty(this, f)) ;
+    browse.setPriority(priority - Plan.rangePenalty(this, f)) ;
     return browse ;
   }
   
@@ -146,15 +158,15 @@ public abstract class Fauna extends Actor {
   
   
   public boolean actionRest(Fauna actor, Target point) {
-    ///I.say(actor+" HAS BEGUN RESTING.") ;
     actor.health.setState(ActorHealth.STATE_RESTING) ;
     final Lair lair = (Lair) actor.AI.home() ;
     if (lair != point) return true ;
-    final int crowding = lair.personnel.residents().size() ;
-    if (crowding >= Lair.LAIR_POPULATION) return false ;
+    final float rating = lair.rateCrowding(world) ;
+    ///if (BaseUI.isPicked(this)) I.say("Crowding is: "+rating) ;
+    if (rating < 0 || lair.crowding() > 1) return false ;
     //
     //  If the venue's not too crowded, consider reproducing.
-    if (Rand.index(4) < actor.health.agingStage()) return false ;
+    if (Rand.index(4) > actor.health.agingStage()) return false ;
     if (actor.health.hungerLevel() > 0.5f) return false ;
     I.say("Giving birth to new "+actor.species.name+" at: "+point) ;
     //
@@ -172,7 +184,7 @@ public abstract class Fauna extends Actor {
   protected Behaviour nextMigration() {
     final Lair lair = (Lair) this.AI.home() ;
     final float range = Lair.PEER_SAMPLE_RANGE ;
-    Tile free = Spacing.pickRandomTile(this, range) ;
+    Tile free = Spacing.pickRandomTile(this, range, world) ;
     free = Spacing.nearestOpenTile(free, this) ;
     
     if (free == null) return null ;
@@ -183,24 +195,34 @@ public abstract class Fauna extends Actor {
       this, "actionMigrate",
       Action.LOOK, "Migrating"
     ) ;
-    final float priority = Action.IDLE + crowding() ;
-    migrate.setPriority(priority - rangePenalty(lair, free)) ;
+    final float crowdBonus = (lair == null) ? 0 : lair.crowding() ;
+    final float priority = Action.IDLE + (crowdBonus * Action.CASUAL) ;
+    migrate.setPriority(priority - Plan.rangePenalty(lair, free)) ;
     return migrate ;
   }
   
   
   public boolean actionMigrate(Fauna actor, Tile point) {
     final Lair lair = (Lair) actor.AI.home() ;
-    final boolean shouldNest =
-      (lair == null) ||
-      (lair.personnel.residents().size() > Lair.LAIR_POPULATION / 2) ;
+    final boolean shouldNest = (lair == null) || (lair.crowding() > 0.5f) ;
     //
-    //  If you're homeless, or if home is overcrowded, consider building a new
-    //  nest for yourself.
+    //  If you're homeless, or if home is overcrowded, consider moving into a
+    //  vacant lair, or building a new one.
+    if (shouldNest) {
+      Lair vacant = (Lair) world.presences.nearestMatch(Lair.class, this, -1) ;
+      if (
+        vacant != null &&
+        vacant.species == this.species &&
+        vacant.crowding() <= 0.5f
+      ) {
+        actor.AI.setHomeVenue(vacant) ;
+        return true ;
+      }
+    }
     if (shouldNest) {
       final Lair newLair = actor.species.createLair() ;
       newLair.setPosition(point.x, point.y, actor.world()) ;
-      float rating = newLair.ratePosition(actor.world()) ;
+      float rating = newLair.rateCrowding(actor.world()) ;
       if (rating > 0) {
         actor.AI.setHomeVenue(newLair) ;
         newLair.enterWorld() ;
@@ -248,7 +270,7 @@ public abstract class Fauna extends Actor {
   
   
   public String fullName() {
-    return species.name ;//+" "+this.hashCode() ;
+    return health.agingDesc()+" "+species.name ;
   }
   
   
@@ -268,13 +290,13 @@ public abstract class Fauna extends Actor {
   
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
-    d.append("\nIs: ") ;
-    if (currentAction() != null) {
-      currentAction().describeBehaviour(d) ;
-    }
+    d.append("Is: ") ;
+    if (currentAction() != null) currentAction().describeBehaviour(d) ;
     else d.append(health.stateDesc()) ;
-    
-    d.append("\n\nCondition:") ;
+    d.append("\nNests at: ") ;
+    if (AI.home() != null) d.append(AI.home()) ;
+    else d.append("No nest") ;
+    d.append("\nCondition:") ;
     final Batch <String> CD = health.conditionsDesc() ;
     for (String s : CD) d.append("\n  "+s) ;
     if (CD.size() == 0) d.append("\n  Okay") ;
@@ -287,147 +309,6 @@ public abstract class Fauna extends Actor {
 
 
 
-
-
-
-/*
-//  TODO:  React to any other organisms nearby, including running/defence.
-if (psyche.dangerLevel() > 0) {
-  final Behaviour defence = nextDefence(psyche.seen()) ;
-  if (defence != null) return defence ;
-}
-//*/
-
-
-/*
-protected Behaviour nextMating() {
-  //
-  //  Find the nearest Fauna of the same species and adult age.  Converge on
-  //  them.  TODO:  That.
-  final Tile free = Spacing.nearestOpenTile(origin(), this) ;
-  if (free == null) return null ;
-  final Action birthing = new Action(
-    this, free,
-    this, "actionBirth",
-    Action.STRIKE, "Birthing"
-  ) ;
-  birthing.setPriority(Behaviour.CRITICAL) ;
-  return birthing ;
-}
-
-
-public boolean actionBirth(Fauna fauna, Tile location) {
-  if (health.energyLevel() < 0.5f) return false ;
-  //
-  //  Pop out a baby version of whatever species you belong to!
-  I.say("Giving birth to new "+species.name+" at: "+location) ;
-  final Fauna young = species.newSpecimen() ;
-  young.health.setupHealth(0, 1, 0) ;
-  young.enterWorldAt(location.x, location.y, world()) ;
-  health.loseSustenance(0.25f) ;
-  return true ;
-}
-
-
-
-//
-//  TODO:  This should probably be evaluated on a sector-by-sector basis, or
-//  possibly by lairs.
-
-
-public void updateAsScheduled(int numUpdates) {
-  super.updateAsScheduled(numUpdates) ;
-}
-//*/
-
-
-/*
-if ((! inWorld()) || (! health.conscious())) return ;
-//
-//  And, once per day, attempt actual reproduction-
-int time = numUpdates ;
-time += health.ageLevel() * World.DEFAULT_DAY_LENGTH ;
-if (time % World.DEFAULT_DAY_LENGTH == 0) {
-  //
-  //  Don't reproduce if you're too crowded, or too hungry-
-  final float crowdGuess = guessCrowding(origin()) ;
-  boolean shouldMate = crowdGuess < 1 ;
-  if (health.energyLevel() < 0.5f) shouldMate = false ;
-  //
-  //  Predators need to thin eachother out if they're too crowded, and also
-  //  reproduce more slowly-
-  if (species.type == Species.Type.PREDATOR) {
-    if (Rand.num() < crowdGuess - 2.0f) {
-      //  TODO:  Don't select the target here.  Leave that to the method.
-      final Fauna competes = specimens(
-        origin(), -1, null, Species.Type.PREDATOR, 1
-      ).first() ;
-      if (competes != null) fightWith(competes) ;
-    }
-    if (Rand.index(PREDATOR_RATIO) != 0) {
-      shouldMate = false ;
-    }
-  }
-  //
-  //  If everything else checks out, consider making a baby-
-  if (shouldMate) {
-    final Behaviour mating = nextMating() ;
-    if (AI.couldSwitchTo(mating)) {
-      AI.assignBehaviour(mating) ;
-    }
-  }
-}
-//*/
-
-
-/*
-public float guessCrowding(Tile point) {
-  final int WS = point.world.size, range = (int) (PEER_SAMPLE_RANGE * (
-    species.type == Species.Type.PREDATOR ? 1.5f : 0.75f
-  )) ;
-  final Box2D limit = new Box2D().set(point.x, point.y, 0, 0) ;
-  limit.expandBy(range).cropBy(new Box2D().set(0, 0, WS, WS)) ;
-  
-  final PresenceMap mobilesMap = point.world.presences.mapFor(Mobile.class) ;
-  float numPeers = 0, numPrey = 0, numHunters = 0 ;
-  for (Target t : mobilesMap.visitNear(point, -1, limit)) {
-    if (! (t instanceof Actor)) continue ;
-    final Actor f = (Actor) t ;
-    final Species s = (Species) f.species() ;
-    if (s == species) numPeers++ ;
-    if (s.type == Species.Type.BROWSER) numPrey++ ;
-    if (s.type == Species.Type.PREDATOR) numHunters++ ;
-  }
-  
-  if (species.type == Species.Type.BROWSER) {
-    final float fertility = evalFertility(point) ;
-    if (fertility == 0) return 100 ;
-    float idealPop = BROWSER_DENSITY * fertility ;
-    float rarity = (((numPrey + 1) / (numPeers + 1)) + 1) / 2f ;
-    return numPrey * (SAMPLE_AREA / limit.area()) / (idealPop * rarity) ;
-  }
-  else {
-    if (numPrey == 0) return 100 ;
-    float idealPop = numPrey / PREDATOR_RATIO ;
-    float rarity = (((numHunters + 1) / (numPeers + 1)) + 1) / 2f ;
-    return numHunters / (idealPop * rarity) ;
-  }
-}
-
-
-protected float evalFertility(Tile point) {
-  final Box2D limit = new Box2D().set(point.x, point.y, 0, 0) ;
-  limit.expandBy(GROUND_SAMPLE_RANGE) ;
-  float sumF = 0, numT = 0, weight ;
-  for (Tile t : point.world.tilesIn(limit, true)) {
-    weight = 1 - (Spacing.axisDist(t, point) / (GROUND_SAMPLE_RANGE + 1)) ;
-    sumF += t.habitat().moisture() * weight ;
-    numT += weight ;
-  }
-  sumF /= numT * 10 ;
-  return sumF ;
-}
-//*/
 
 
 

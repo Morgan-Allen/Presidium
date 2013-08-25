@@ -1,20 +1,18 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 
 package src.game.tactical ;
 import src.game.actors.* ;
 import src.game.common.* ;
+import src.game.planet.* ;
 import src.util.* ;
 
 
-//
-//  TODO:  Just make this a general 'Feeding' plan?
 
-
-//  Merge this with the combat class.
-
-
-//*
 public class Hunting extends Combat implements ActorConstants {
   
   
@@ -26,12 +24,12 @@ public class Hunting extends Combat implements ActorConstants {
     TYPE_HARVEST = 1,
     TYPE_SAMPLED = 2,
     
-    MAX_ATTEMPTS = 5 ;  //  Modify using Persistant trait?
+    MIN_ATTEMPTS = 3 ;
   
   
   final int type ;
   final Actor prey ;
-  //int numAttempts = 0 ;
+  int numAttempts = 0 ;
   
   
   public Hunting(Actor actor, Actor prey, int type) {
@@ -45,7 +43,7 @@ public class Hunting extends Combat implements ActorConstants {
     super(s) ;
     prey = (Actor) s.loadObject() ;
     type = s.loadInt() ;
-    //numAttempts = s.loadInt() ;
+    numAttempts = s.loadInt() ;
   }
   
   
@@ -53,7 +51,26 @@ public class Hunting extends Combat implements ActorConstants {
     super.saveState(s) ;
     s.saveObject(prey) ;
     s.saveInt(type) ;
-    //s.saveInt(numAttempts) ;
+    s.saveInt(numAttempts) ;
+  }
+  
+  
+  
+  /**  Evaluating targets and priority-
+    */
+  public float priorityFor(Actor actor) {
+    if (type == TYPE_FEEDS) {
+      final float reward = actor.health.hungerLevel() * PARAMOUNT ;
+      float priority = Combat.combatPriority(actor, prey, reward, PARAMOUNT) ;
+      priority -= Plan.rangePenalty(actor, prey) ;
+      
+      if (prey instanceof Fauna && prey.AI.home() != null) {
+        priority *= ((Lair) prey.AI.home()).crowding() ;
+      }
+      ///I.say(" BASE REWARD FOR HUNTING: "+reward+", APPEAL: "+CP) ;
+      return priority ;
+    }
+    return super.priorityFor(actor) ;
   }
   
   
@@ -76,120 +93,31 @@ public class Hunting extends Combat implements ActorConstants {
         ) ;
         return feeding ;
       }
-      else {
-        I.complain("NON-FEEDING HUNTING BEHAVIOUR NOT IMPLEMENTED YET!") ;
-      }
+      else I.complain("NON-FEEDING HUNTING BEHAVIOUR NOT IMPLEMENTED YET!") ;
     }
+    //
+    //  Otherwise, try tracking and downing the prey-
+    if (++numAttempts > MIN_ATTEMPTS + actor.AI.persistance()) return null ;
     return super.getNextStep() ;
   }
-  
-  
+
+
   public boolean actionFeed(Actor actor, Actor prey) {
     //
-    //  Inflict injury, extract meat, fill your belly.
-    //actor.health.takeSustenance(actor.health.maxHealth(), 1) ;
-    //*
-    final float damage = actor.gear.attackDamage() * (Rand.num() + 0.5f) / 2 ;
-    final float before = prey.health.injuryLevel() ;
-    prey.health.takeInjury(damage) ;
+    //  Tear off chunks of meat and fill your belly.
+    final float
+      before = prey.health.injuryLevel(),
+      damage = actor.gear.attackDamage() * (Rand.num() + 0.5f) / 2,
+      maxDamage = actor.health.hungerLevel() * actor.health.maxHealth() / 10 ;
+    prey.health.takeInjury(Math.min(damage, maxDamage)) ;
     float taken = prey.health.injuryLevel() - before ;
-    taken *= prey.health.maxHealth() * 4 ;
-    ///I.say("Eaten: "+taken+" calories from "+prey) ;
+    taken *= prey.health.maxHealth() * 10 ;
     actor.health.takeSustenance(taken, 1) ;
     return true ;
   }
 }
 
 
-
-
-/*
-if (numAttempts > MAX_ATTEMPTS) {
-  I.say(actor+" abandoning hunt of "+prey) ;
-  return null ;
-}
-//*/
-
-/*
-//
-//  If you're close to the prey, attack it.
-if (actor.psyche.awareOf(prey)) {
-  final Action strike = new Action(
-    actor, prey,
-    this, "actionStrike",
-    Action.STRIKE, "Striking at "+prey
-  ) ;
-  strike.setProperties(Action.QUICK) ;
-  return strike ;
-}
-//
-//  If the prey is out of range, track it down.
-final Action tracking = new Action(
-  actor, prey,
-  this, "actionTrack",
-  Action.LOOK, "Tracking "+prey
-) ;
-return tracking ;
-//*/
-
-/*
-protected void onceInvalid() {
-  if (! prey.inWorld()) {
-    I.say(actor+" has finished the carcasse of "+prey+"?") ;
-  }
-}
-
-
-public boolean monitor(Actor actor) {
-  //
-  //  If you're in the middle of tracking and you catch sight of the prey,
-  //  cancel the action.
-  final Action current = actor.currentAction() ;
-  if (current == null) return true ;
-  if (current.methodName().equals("actionTrack")) {
-    if (actor.psyche.awareOf(prey)) {
-      actor.psyche.cancelBehaviour(current) ;
-    }
-  }
-  return false ;
-}
-
-
-public boolean actionTrack(Actor actor, Actor prey) {
-  numAttempts++ ;
-  return true ;
-}
-//*/
-  
-  
-  /*
-  public boolean actionHarvestMeat(Actor actor, Actor prey) {
-    return true ;
-  }
-  
-  
-  public boolean actionReturnMeat(Actor actor, Actor prey) {
-    return true ;
-  }
-  //*/
-//}
-
-
-
-/*
-public boolean actionStrike(Actor actor, Actor prey) {
-  //
-  //  Outsource this to the Combat class, using specified offensive and
-  //  defensive skills.
-  if (prey.health.deceased()) return false ;
-  if (type == TYPE_FEEDS) {
-    Combat.performStrike(actor, prey, REFLEX, REFLEX) ;
-  }
-  else I.complain("UNSUPPORTED HUNTING TYPE.") ;
-  numAttempts++ ;
-  return true ;
-}
-//*/
 
 
 

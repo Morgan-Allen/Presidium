@@ -45,7 +45,7 @@ public class Micovore extends Fauna {
       20,  //lifespan
       2.5f,//bulk bonus
       1.5f,//sight range
-      1.5f //move speed
+      1.3f //move speed
     ) ;
     gear.setDamage(15) ;
     gear.setArmour(5) ;

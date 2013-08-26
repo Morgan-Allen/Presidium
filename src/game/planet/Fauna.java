@@ -60,13 +60,7 @@ public abstract class Fauna extends Actor {
     return new ActorAI(actor) {
       protected Behaviour nextBehaviour() {
         final Choice choice = new Choice(actor) ;
-        if (species.browses()) choice.add(nextBrowsing()) ;
-        if (species.goesHunt()) choice.add(nextHunting()) ;
-        //  TODO:  Add the option to retreat.
-        choice.add(nextResting()) ;
-        choice.add(nextMigration()) ;
-        choice.add(nextBuildingNest()) ;
-        //  TODO:  Add the option to kill peers in case of overcrowding.
+        addChoices(choice) ;
         return choice.weightedPick(actor.AI.whimsy()) ;
       }
       
@@ -77,7 +71,19 @@ public abstract class Fauna extends Actor {
       }
       
       protected Behaviour reactionTo(Mobile seen) {
-        return null ;
+        if (BaseUI.isPicked(this)) I.say(this+" has seen: "+seen) ;
+        return nextDefence() ;
+      }
+      
+      //
+      //  We install some default relationships with other animals-
+      public float relation(Actor other) {
+        if (other instanceof Fauna) {
+          final Fauna f = (Fauna) other ;
+          if (f.species != species && f.species.goesHunt()) return -0.5f ;
+          if (f.species == species) return 0.25f ;
+        }
+        return 0 ;
       }
     } ;
   }
@@ -145,13 +151,14 @@ public abstract class Fauna extends Actor {
     if (lair != null && lair.inWorld() && lair.structure.intact()) {
       restPoint = lair ;
     }
-    
     final Action rest = new Action(
       this, restPoint,
       this, "actionRest",
       Action.FALL, "Resting"
     ) ;
-    final float priority = health.fatigueLevel() * Action.PARAMOUNT ;
+    final float fatigue = health.fatigueLevel() - 0.25f ;
+    if (fatigue < 0) return null ;
+    final float priority = fatigue * Action.PARAMOUNT / 0.75f ;
     rest.setPriority(priority) ;
     return rest ;
   }
@@ -162,8 +169,6 @@ public abstract class Fauna extends Actor {
     final Lair lair = (Lair) actor.AI.home() ;
     if (lair != point) return true ;
     final float rating = species.goesHunt() ? lair.rateCrowding(world) : 1 ;
-    //final float rating = lair.rateCrowding(world) ;
-    ///if (BaseUI.isPicked(this)) I.say("Crowding is: "+rating) ;
     if (rating < 0 || lair.crowding() > 1) return false ;
     //
     //  If the venue's not too crowded, consider reproducing.
@@ -234,6 +239,7 @@ public abstract class Fauna extends Actor {
         newLair.clearSurrounds() ;
         newLair.enterWorld() ;
         newLair.structure.setState(VenueStructure.STATE_INTACT, 0.1f) ;
+        actor.goAboard(newLair, world) ;
       }
       else return false ;
     }
@@ -264,6 +270,21 @@ public abstract class Fauna extends Actor {
     return true ;
   }
   
+  
+  protected Behaviour nextDefence() {
+    return new Retreat(this) ;
+  }
+  
+  
+  protected void addChoices(Choice choice) {
+    //  TODO:  Add the option to kill peers in cases of overcrowding.
+    if (species.browses()) choice.add(nextBrowsing()) ;
+    if (species.goesHunt()) choice.add(nextHunting()) ;
+    choice.add(nextDefence()) ;
+    choice.add(nextResting()) ;
+    choice.add(nextMigration()) ;
+    choice.add(nextBuildingNest()) ;
+  }
   
   
   
@@ -303,10 +324,10 @@ public abstract class Fauna extends Actor {
     d.append("\nNests at: ") ;
     if (AI.home() != null) d.append(AI.home()) ;
     else d.append("No nest") ;
-    d.append("\nCondition:") ;
+    d.append("\nCondition: ") ;
     final Batch <String> CD = health.conditionsDesc() ;
-    for (String s : CD) d.append("\n  "+s) ;
-    if (CD.size() == 0) d.append("\n  Okay") ;
+    if (CD.size() == 0) d.append("Okay") ;
+    else d.appendList("", CD) ;
     
     d.append("\n\n") ;
     d.append(species.info) ;

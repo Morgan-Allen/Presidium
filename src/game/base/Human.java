@@ -200,24 +200,12 @@ public class Human extends Actor implements ActorConstants {
   }
   
   
-  //
-  //  This may need to be changed later, since devices can be used for purposes
-  //  besides combat.  Ideally, the activities themselves should be toggling
-  //  animation state.
-  private static boolean inCombat(Human human) {
-    for (Behaviour b : human.AI.agenda()) {
-      if (b.getClass() == Combat.class) return true ;
-    }
-    return false ;
-  }
-  
-  
   
   /**  More usual rendering and interface methods-
     */
   public void renderFor(Rendering rendering, Base base) {
     final DeviceType DT = gear.deviceType() ;
-    final boolean IC = inCombat(this) ;
+    final boolean IC = isDoing(Combat.class) ;
     if (DT != null) ((JointSprite) sprite()).toggleGroup(DT.groupName, IC) ;
     super.renderFor(rendering, base) ;
     /*

@@ -15,10 +15,13 @@
 >
   <animations>
     <animation name="stand"      start="0"  end="0"  duration="0.5" />
-    <animation name="look"       start="0"  end="0"  duration="0.5" />
-    <animation name="strike"     start="3"  end="11" duration="2.0" />
     <animation name="move"       start="3"  end="11" duration="2.0" />
     <animation name="fall"       start="12" end="15" duration="3.0" />
+    
+    <animation name="look"       start="0"  end="0"  duration="0.5" />
+    <animation name="strike"     start="3"  end="11" duration="2.0" />
+    <animation name="move_fast"  start="3"  end="11" duration="2.0" />
+    <animation name="move_sneak" start="3"  end="11" duration="2.0" />
   </animations>
 </model>
 
@@ -36,11 +39,13 @@
 >
   <animations>
     <animation name="stand"      start="5"  end="5"  duration="1.0" />
-    <animation name="look"       start="3"  end="7"  duration="0.6" />
     <animation name="strike"     start="3"  end="7"  duration="0.6" />
     <animation name="move"       start="3"  end="7"  duration="0.6" />
-    <animation name="move_sneak" start="3"  end="7"  duration="0.6" />
     <animation name="fall"       start="8"  end="13" duration="2.5" />
+    
+    <animation name="move_sneak" start="3"  end="7"  duration="0.6" />
+    <animation name="move_fast"  start="3"  end="7"  duration="0.6" />
+    <animation name="look"       start="3"  end="7"  duration="0.6" />
   </animations>
 </model>
 
@@ -59,10 +64,12 @@
   <animations>
     <animation name="stand"      start="0"  end="0"  duration="0.5" />
     <animation name="move"       start="2"  end="14" duration="1.0" />
-    <animation name="move_fast"  start="2"  end="14" duration="1.0" />
-    <animation name="look"       start="15" end="19" duration="0.4" />
     <animation name="strike"     start="15" end="19" duration="0.4" />
     <animation name="fall"       start="20" end="26" duration="1.5" />
+    
+    <animation name="look"       start="15" end="19" duration="0.4" />
+    <animation name="move_sneak" start="2"  end="14" duration="1.0" />
+    <animation name="move_fast"  start="2"  end="14" duration="1.0" />
   </animations>
 </model>
 

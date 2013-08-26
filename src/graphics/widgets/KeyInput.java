@@ -61,6 +61,7 @@ public class KeyInput {
   }
   
   static void updateKeyboard() {
+    //  TODO:  CERTAIN KEY EVENTS SEEM TO BE REPEATING.
     ///I.say("Updating keyboard...") ;
     pressed.clear() ;
     while(Keyboard.next()) {

@@ -8,10 +8,11 @@
 
 package src.game.actors ;
 import src.game.common.* ;
-import src.game.base.Human;
 import src.game.building.* ;
+import src.game.planet.* ;
 import src.game.social.* ;
 import src.game.tactical.* ;
+import src.user.* ;
 import src.util.* ;
 
 
@@ -38,7 +39,7 @@ public abstract class ActorAI implements ActorConstants {
   protected Stack <Behaviour> agenda = new Stack() ;
   protected List <Behaviour> todoList = new List() ;
   
-  protected Table <Element, Element> seen = new Table() ;
+  protected Table <Mobile, Mobile> seen = new Table() ;
   protected Table <Accountable, Relation> relations = new Table() ;
   
   protected Mission mission ;
@@ -56,7 +57,7 @@ public abstract class ActorAI implements ActorConstants {
     s.loadObjects(agenda) ;
     s.loadObjects(todoList) ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
-      final Element e = (Element) s.loadObject() ;
+      final Mobile e = (Mobile) s.loadObject() ;
       seen.put(e, e) ;
     }
     for (int n = s.loadInt() ; n-- > 0 ;) {
@@ -89,30 +90,44 @@ public abstract class ActorAI implements ActorConstants {
   /**  Dealing with seen objects and reactions to them-
     *  TODO:  This needs to handle stealth effects, which can affect how
     *  easily an actor is spotted and how easily they can be missed.
+    *  TODO:  You'll need to refresh reactions whenever an actor changes their
+    *  root behaviour too.  Key the 'seen' table off those.
     */
   protected void updateSeen() {
+    ///I.say(actor+" updating seen...") ;
     final PresenceMap mobiles = actor.world().presences.mapFor(Mobile.class) ;
-    final float sightRange = actor.health.sightRange() ;
+    final float sightMod = actor.indoors() ? 0.5f : 1 ;
+    final float sightRange = actor.health.sightRange() * sightMod ;
     final float lostRange = sightRange * 1.5f ;
     final int reactLimit = (int) (actor.traits.trueLevel(INSIGHT) / 2) ;
     //
     //  Firstly, remove any elements that have escaped beyond sight range.
     final Batch <Element> outOfRange = new Batch <Element> () ;
-    for (Element e : seen.keySet()) {
-      if (Spacing.distance(e, actor) > lostRange) {
+    for (Mobile e : seen.keySet()) {
+      if (e.indoors() || Spacing.distance(e, actor) > lostRange) {
         outOfRange.add(e) ;
       }
     }
     for (Element e : outOfRange) seen.remove(e) ;
     //
     //  Secondly, add any elements that have entered the requisite range-
+    final Batch <Mobile> newSeen = new Batch <Mobile> () ;
     int numR = 0 ; for (Target t : mobiles.visitNear(actor, -1, null)) {
+      if (t == actor) continue ;
       if (++numR > reactLimit) break ;
       if (Spacing.distance(actor, t) <= sightRange) {
         final Mobile m = (Mobile) t ;
+        if (seen.get(m) == null) newSeen.add(m) ;
         seen.put(m, m) ;
       }
       else break ;
+    }
+    //
+    //  And react to anything fresh-
+    for (Mobile NS : newSeen) {
+      ///if (BaseUI.isPicked(actor)) I.say(actor+" can now see: "+NS) ;
+      final Behaviour reaction = reactionTo(NS) ;
+      if (couldSwitchTo(reaction)) assignBehaviour(reaction) ;
     }
   }
   
@@ -124,11 +139,32 @@ public abstract class ActorAI implements ActorConstants {
   
   public Batch <Element> seen() {
     final Batch <Element> seen = new Batch <Element> () ;
-    for (Element e : this.seen.keySet()) {
-      seen.add(e) ;
-    }
+    for (Element e : this.seen.keySet()) seen.add(e) ;
     return seen ;
   }
+  
+  
+  protected void updateAI(int numUpdates) {
+    ///I.say(actor+" updating AI...") ;
+    updateSeen() ;
+    if (numUpdates % 10 == 0 && agenda.size() > 0) {
+      for (Behaviour b : todoList) {
+        if (b.complete()) {
+          ///I.say("REMOVING FROM TODO LIST: "+b) ;
+          todoList.remove(b) ;
+        }
+      }
+      final Behaviour
+        last = rootBehaviour(),
+        next = nextBehaviour() ;
+      if (couldSwitch(last, next)) assignBehaviour(next) ;
+    }
+    for (Behaviour b : agenda) if (b.monitor(actor)) break ;
+  }
+  
+  
+  protected abstract Behaviour nextBehaviour() ;
+  protected abstract Behaviour reactionTo(Mobile m) ;
   
   
   
@@ -197,6 +233,15 @@ public abstract class ActorAI implements ActorConstants {
     if (replaced != null && ! replaced.complete()) {
       todoList.include(replaced) ;
     }
+  }
+  
+  
+  public void pushFromParent(Behaviour b, Behaviour parent) {
+    if (! agenda.includes(parent)) I.complain("Behaviour not active.") ;
+    cancelBehaviour(parent) ;
+    pushBehaviour(parent) ;
+    pushBehaviour(b) ;
+    actor.assignAction(null) ;
   }
   
   
@@ -271,26 +316,6 @@ public abstract class ActorAI implements ActorConstants {
   }
   
   
-  protected abstract Behaviour nextBehaviour() ;
-  
-  
-  protected void updateAI(int numUpdates) {
-    if (numUpdates % 10 == 0 && agenda.size() > 0) {
-      for (Behaviour b : todoList) {
-        if (b.complete()) {
-          I.say("REMOVING FROM TODO LIST: "+b) ;
-          todoList.remove(b) ;
-        }
-      }
-      final Behaviour
-        last = rootBehaviour(),
-        next = nextBehaviour() ;
-      if (couldSwitch(last, next)) assignBehaviour(next) ;
-    }
-    for (Behaviour b : agenda) if (b.monitor(actor)) break ;
-  }
-  
-  
   public Stack <Behaviour> agenda() {
     return agenda ;
   }
@@ -319,7 +344,7 @@ public abstract class ActorAI implements ActorConstants {
   
   public float relation(Actor other) {
     final Relation r = relations.get(other) ;
-    if (r == null) return 0 ;
+    if (r == null) return 0 ;  //TODO:  Initialise a fresh relation?
     return r.value() ;
   }
   
@@ -388,11 +413,9 @@ public abstract class ActorAI implements ActorConstants {
   
   /**  Supplementary methods for behaviour-
     */
-  public float attraction(Actor otherA) {
-    if (! (this.actor instanceof Human)) return 0 ;
-    if (! (otherA instanceof Human)) return 0 ;
-    final Human actor = (Human) this.actor ;
-    final Human other = (Human) otherA ;
+  public float attraction(Actor other) {
+    if (this.actor.species() != Species.HUMAN) return 0 ;
+    if (other.species() != Species.HUMAN) return 0 ;
     //
     //  TODO:  Create exceptions based on age and kinship modifiers.
     //

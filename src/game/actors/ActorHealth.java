@@ -435,7 +435,10 @@ public class ActorHealth implements ActorConstants {
       IM =  2 ;
       SM =  2 ;
     }
-    
+    else if (actor.currentAction() != null) {
+      final float MM = actor.currentAction().moveMultiple() ;
+      FM *= MM ;
+    }
     if (bleeds) {
       injury++ ;
       if (actor.traits.test(VIGOUR, 10, 1) && Rand.num() < STABILISE_CHANCE) {
@@ -465,6 +468,7 @@ public class ActorHealth implements ActorConstants {
       }
     }
   }
+  
   
   
   /**  Rendering and interface methods-

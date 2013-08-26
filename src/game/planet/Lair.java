@@ -218,7 +218,12 @@ public class Lair extends Venue {
   }
   
   
+  public boolean allowsEntry(Mobile m) {
+    return (m instanceof Actor) && ((Actor) m).species() == species ;
+  }
   
+
+
   /**  Rendering and interface methods-
     */
   public String fullName() {

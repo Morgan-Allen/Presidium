@@ -176,13 +176,18 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-  private float moveRate() {
-    float rate = actor.health.moveRate() ;
-    //
-    //  You also have to account for the effects of fatigue and encumbrance...
+  public float moveMultiple() {
+    float rate = 1 ;
     if ((properties & QUICK  ) != 0) rate *= 2 ;
     if ((properties & CAREFUL) != 0) rate /= 2 ;
-    
+    return rate ;
+  }
+  
+  
+  private float moveRate() {
+    float rate = actor.health.moveRate() * moveMultiple() ;
+    //
+    //  You also have to account for the effects of fatigue and encumbrance...
     final int pathType = actor.origin().pathType() ;
     switch (pathType) {
       case (Tile.PATH_HINDERS) : rate *= 0.8f ; break ;
@@ -204,10 +209,10 @@ public class Action implements Behaviour, Model.AnimNames {
     //  Depending on whether you're currently close enough to the move-target,
     //  and facing the action-target, you enter motion or action mode
     //  respectively.
-    final boolean movingTarget = ! (moveTarget instanceof Boardable) ;
+    //final boolean movingTarget = ! (moveTarget instanceof Boardable) ;
     float minDist = 0 ;
     if ((properties & RANGED) != 0) minDist = actor.health.sightRange() ;
-    if (inRange == 1 && movingTarget) minDist += progress + 0.5f ;
+    if (inRange == 1) minDist += progress + 0.5f ;
     final boolean
       closed = actor.pathing.closeEnough(moveTarget, minDist),
       facing = actor.pathing.facingTarget(actionTarget) ;

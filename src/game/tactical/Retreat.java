@@ -88,12 +88,13 @@ public class Retreat extends Plan implements ActorConstants {
     float bestRating = dangerAtSpot(pick, actor, actor.AI.seen()) ;
     for (int i = numPicks ; i-- > 0 ;) {
       final Tile tried = Spacing.pickRandomTile(actor, range, actor.world()) ;
+      if (tried == null) continue ;
       if (Spacing.distance(tried, target) > range * 2) continue ;
       float tryRating = dangerAtSpot(tried, actor, actor.AI.seen()) ;
       tryRating += (Rand.num() - 0.5f) * salt ;
       if (tryRating < bestRating) { bestRating = tryRating ; pick = tried ; }
     }
-    return pick ;// pick == actor.origin() ? null : pick ;
+    return pick ;
   }
   
   
@@ -103,6 +104,7 @@ public class Retreat extends Plan implements ActorConstants {
     //
     //  Get a reading of threats based on all actors visible to this one, and
     //  their distance from the spot in question.
+    ///I.say(actor+" getting danger at: "+spot) ;
     float seenDanger = 0 ;
     final float range = World.DEFAULT_SECTOR_SIZE ;
     for (Element m : seen) {
@@ -111,10 +113,12 @@ public class Retreat extends Plan implements ActorConstants {
       //
       //  More distant foes are less threatening.
       float danger = Combat.combatStrength(near) ;
+      if (! near.isDoing(Combat.class)) danger /= 2 ;
       final float dist = Visit.clamp(Spacing.distance(spot, near), 0, range) ;
       danger *= 1 - (dist / range) ;
       
-      float attitude = near.AI.relation(actor) ;
+      float attitude = actor.AI.relation(near) ;
+      ///I.say("Danger is: "+danger+", attitude: "+attitude+" for: "+near) ;
       if (attitude < 0) seenDanger += danger ;
       if (attitude > 0) seenDanger -= danger / 2 ;
     }
@@ -128,22 +132,27 @@ public class Retreat extends Plan implements ActorConstants {
   
   /**  These methods select safe venues to run to, over longer distances.
     */
-  public static Venue nearestHaven(Actor actor, Class prefClass) {
-    
+  public static Target nearestHaven(Actor actor, Class prefClass) {
     //
     //  TODO:  Use the list of venues the actor is aware of.
-    
     final Presences p = actor.world().presences ;
-    int numC = 3 ;// (int) (actor.traits.trueLevel(INSIGHT) / 3) ;
+    int numC = 3 ;
     
     Object picked = null ;
     float bestRating = 0 ;
     int numChecked = 0 ;
     
-    for (Object t : p.matchesNear(actor.base(), actor, -1)) {
-      if (numChecked++ > numC) break ;
-      float rating = rateHaven(t, actor, prefClass) ;
-      if (rating > bestRating) { bestRating = rating ; picked = t ; }
+    if (actor.AI.home() != null) {
+      final Venue home = actor.AI.home() ;
+      float rating = rateHaven(home, actor, prefClass) ;
+      if (rating > bestRating) { bestRating = rating ; picked = home ; }
+    }
+    if (actor.base() != null) {
+      for (Object t : p.matchesNear(actor.base(), actor, -1)) {
+        if (numChecked++ > numC) break ;
+        float rating = rateHaven(t, actor, prefClass) ;
+        if (rating > bestRating) { bestRating = rating ; picked = t ; }
+      }
     }
     if (prefClass != null) {
       numChecked = 0 ;
@@ -153,7 +162,11 @@ public class Retreat extends Plan implements ActorConstants {
         if (rating > bestRating) { bestRating = rating ; picked = t ; }
       }
     }
-    return (Venue) picked ;
+    if (picked == null) picked = pickWithdrawPoint(
+      actor, actor.health.sightRange(), actor, 0.1f
+    ) ;
+    
+    return (Target) picked ;
   }
   
   
@@ -161,11 +174,12 @@ public class Retreat extends Plan implements ActorConstants {
     //
     //  TODO:  Don't pick anything too close by either.  That'll be in a
     //  dangerous area.
-    if (! (t instanceof Venue)) return -1 ;
+    if (! (t instanceof Venue)) return 1 ;
     final Venue haven = (Venue) t ;
     float rating = 1 ;
     if (haven.getClass() == prefClass) rating *= 2 ;
     if (haven.base() == actor.base()) rating *= 2 ;
+    if (haven == actor.AI.home()) rating *= 2 ;
     final int SS = Terrain.SECTOR_SIZE ;
     rating *= SS / (SS + Spacing.distance(actor, haven)) ;
     return rating ;

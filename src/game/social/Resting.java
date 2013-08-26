@@ -138,7 +138,7 @@ public class Resting extends Plan implements BuildConstants {
     //  admission fee.  Also, should the actor just enter sleep mode?  
     ///actor.health.setState(ActorHealth.STATE_RESTING) ;
     int relaxBonus = 3 ;
-    float liftF = ActorHealth.FATIGUE_GROW_PER_DAY ;
+    float liftF = ActorHealth.FATIGUE_GROW_PER_DAY * actor.health.maxHealth() ;
     liftF *= relaxBonus * 1f / World.DEFAULT_DAY_LENGTH ;
     actor.health.liftFatigue(liftF) ;
     return true ;

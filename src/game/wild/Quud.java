@@ -8,6 +8,7 @@
 package src.game.wild ;
 import src.game.common.* ;
 import src.game.planet.* ;
+import src.game.tactical.* ;
 import src.game.actors.* ;
 import src.util.* ;
 
@@ -56,23 +57,42 @@ public class Quud extends Fauna {
   /**  Behaviour implementations.
     */
   public void updateAsScheduled(int numUpdates) {
-    //
-    //  Quud can munch as they go...
     super.updateAsScheduled(numUpdates) ;
     if (health.conscious() && numUpdates % 10 == 0) {
       float eaten = origin().habitat().moisture() / 100f ;
       health.takeSustenance(eaten, 1) ;
     }
-    //
-    //  Provide an increasing bonus with age?
     if (! amDoing("actionHunker")) gear.setArmour(15) ;
   }
   
+
+  protected void addChoices(Choice choice) {
+    final Behaviour defence = nextDefence() ;
+    if (defence != null) {
+      if (! amDoing("actionHunker")) choice.add(defence) ;
+      return ;
+    }
+    super.addChoices(choice) ;
+  }
   
-  //
-  //  TODO:  Use this as a defence mechanism.
-  public boolean actionHunker(Quud actor, Tile origin) {
-    gear.setArmour(25) ;
+  
+  protected Behaviour nextDefence() {
+    final float danger = Retreat.dangerAtSpot(origin(), this, AI.seen()) ;
+    if (danger <= 0) return null ;
+    final Action hunker = new Action(
+      this, this,
+      this, "actionHunker",
+      Action.FALL, "Hunkering Down"
+    ) ;
+    hunker.setProperties(Action.QUICK) ;
+    hunker.setPriority(Action.CRITICAL) ;
+    return hunker ;
+  }
+  
+  
+  public boolean actionHunker(Quud actor, Quud doing) {
+    if (actor != this || doing != this) I.complain("No outside access.") ;
+    doing.gear.setArmour(25) ;
     return true ;
   }
   

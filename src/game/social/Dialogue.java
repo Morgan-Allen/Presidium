@@ -10,6 +10,7 @@ import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.base.* ;
 import src.game.building.* ;
+import src.graphics.sfx.TalkFX ;
 import src.user.* ;
 import src.util.* ;
 
@@ -330,8 +331,19 @@ public class Dialogue extends Plan implements ActorConstants {
   
   /**  Rendering and interface methods-
     */
+  final static Vec3D forwardVec = new Vec3D(1, 1, 0) ;
+  
+  private boolean onRight(Actor a, Actor b) {
+    final Vec3D disp = a.position(null).sub(b.position(null)) ;
+    return disp.dot(forwardVec) > 0 ;
+  }
+  
+  
   private void utters(Actor a, String s) {
-    a.chat.addPhrase(s, true) ;
+    if (a.chat.numPhrases() > 3) return ;
+    final Actor opposite = a == actor ? other : actor ;
+    final boolean onRight = onRight(a, opposite) ;
+    a.chat.addPhrase(s, onRight ? TalkFX.FROM_RIGHT : TalkFX.FROM_LEFT) ;
   }
   
   

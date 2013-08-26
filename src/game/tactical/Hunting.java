@@ -79,6 +79,14 @@ public class Hunting extends Combat implements ActorConstants {
   
   /**  Actual implementation-
     */
+  public boolean monitor(Actor actor) {
+    //  Close at normal speed until you are near your prey.  Then enter stealth
+    //  mode to get closer.  If they spot you, charge.
+    float dist = Spacing.distance(actor, prey) ;
+    return super.monitor(actor) ;
+  }
+  
+  
   protected Behaviour getNextStep() {
     //
     //  If the prey is dead, either feed or harvest the meat.

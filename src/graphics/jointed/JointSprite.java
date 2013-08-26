@@ -85,9 +85,9 @@ public class JointSprite extends Sprite {
     String jointName, String animName, float progress
   ) {
     final int jID = model.jointID(jointName) ;
-    if (jID == -1) I.complain("No Such Joint...") ;
+    if (jID == -1) return ;// I.complain("No Such Joint: "+jointName) ;
     final Model.AnimRange range = rangeFor(animName) ;
-    if (range == null) I.complain("No such animation...") ;
+    if (range == null) return ;// I.complain("No such animation: "+animName) ;
     final Joint joint = joints[jID] ;
     if (joint.animation != null && joint.animation.animRange == range) {
       joint.animation.setProgress(progress) ;

@@ -6,7 +6,7 @@ import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.util.* ;
 import java.io.* ;
-import org.lwjgl.opengl.GL11 ;
+import org.lwjgl.opengl.* ;
 
 
 
@@ -25,14 +25,18 @@ public class TalkFX extends SFX {
     BUBBLE_TEX = Texture.loadTexture("media/GUI/textBubble.png") ;
   final static Alphabet
     FONT = Text.INFO_FONT ;
-  final static int
-    MAX_LINES = 2 ;
+  
+  final public static int
+    MAX_LINES = 3,
+    NOT_SPOKEN = 0,
+    FROM_LEFT  = 1,
+    FROM_RIGHT = 2 ;
   final static float
     LINE_HIGH  = FONT.map[' '].height,
     LINE_SPACE = LINE_HIGH + 10,
-    FADE_RATE  = 1f / 50 ;// 1f / 25 ;
+    FADE_RATE  = 1f / 25 ;
   
-  final Stack <Bubble> toShow = new Stack <Bubble> () ;
+  final Stack <Bubble> toShow  = new Stack <Bubble> () ;
   final Stack <Bubble> showing = new Stack <Bubble> () ;
   
   
@@ -54,7 +58,7 @@ public class TalkFX extends SFX {
     for (Bubble b : showing) all.add(b) ;
     for (Bubble b : all) {
       LoadService.writeString(out, b.phrase) ;
-      out.writeBoolean(b.spoken) ;
+      out.writeInt(b.type) ;
       out.writeFloat(b.width) ;
       out.writeFloat(b.xoff ) ;
       out.writeFloat(b.yoff ) ;
@@ -69,7 +73,7 @@ public class TalkFX extends SFX {
     for (int n = 0 ; n < numT + numS ; n++) {
       final Bubble b = new Bubble() ;
       b.phrase = LoadService.readString(in) ;
-      b.spoken = in.readBoolean() ;
+      b.type = in.readInt() ;
       b.width = in.readFloat() ;
       b.xoff  = in.readFloat() ;
       b.yoff  = in.readFloat() ;
@@ -86,33 +90,45 @@ public class TalkFX extends SFX {
   static class Bubble {
     
     String phrase ;
-    boolean spoken ;
+    int type ;
     
     float width ;
     float xoff, yoff ;
     float alpha ;
   }
+
   
-  
-  public void update() {
-    float spacing = Float.POSITIVE_INFINITY ;
-    for (Bubble b : showing) {
-      b.yoff += FADE_RATE * LINE_SPACE * (1 + numPhrases()) / 2f ;
-      b.alpha -= FADE_RATE / MAX_LINES ;
-      if (b.alpha <= 0) showing.remove(b) ;
-      if (b.yoff < spacing) spacing = b.yoff ;
-    }
-    if (spacing >= LINE_SPACE && toShow.size() > 0) {
-      showBubble(toShow.removeFirst()) ;
-    }
+  public void addPhrase(String phrase, int bubbleType) {
+    final Bubble b = new Bubble() ;
+    b.phrase = phrase ;
+    b.type = bubbleType ;
+    toShow.add(b) ;
   }
   
   
-  public void addPhrase(String phrase, boolean spoken) {
-    final Bubble b = new Bubble() ;
-    b.phrase = phrase ;
-    b.spoken = spoken ;
-    toShow.add(b) ;
+  public void update() {
+    //
+    //  If there are bubbles awaiting display, see if you can move the existing
+    //  bubbles up to make room.
+    final Bubble first = showing.getFirst() ;
+    final boolean
+      shouldMove = toShow.size() > 0,
+      canMove = showing.size() == 0 || first.alpha <= 1,
+      isSpace = showing.size() == 0 || first.yoff >= LINE_SPACE ;
+    if (shouldMove && canMove) {
+      if (isSpace) {
+        showBubble(toShow.removeFirst()) ;
+      }
+      else for (Bubble b : showing) {
+        b.yoff += FADE_RATE * LINE_SPACE ;
+      }
+    }
+    //
+    //  In either case, gradually fate out existing bubbles-
+    for (Bubble b : showing) {
+      b.alpha -= FADE_RATE / MAX_LINES ;
+      if (b.alpha <= 0) showing.remove(b) ;
+    }
   }
   
   
@@ -124,18 +140,22 @@ public class TalkFX extends SFX {
       if (l == null) l = FONT.map[' '] ;
       width += l.width * fontScale ;
     }
+    //
+    //  You also need to either left or right justify, depending on the bubble
+    //  type.
     b.width = width ;
     b.yoff = 5 ;
-    b.xoff = -40 ;
-    b.alpha = 1 ;
-    showing.add(b) ;
+    if (b.type == NOT_SPOKEN) b.xoff = width / -2 ;
+    if (b.type == FROM_LEFT ) b.xoff = 20 - width ;
+    if (b.type == FROM_RIGHT) b.xoff = -20 ;
+    b.alpha = 1.5f ;
+    showing.addFirst(b) ;
   }
   
   
   public int numPhrases() {
     return showing.size() + toShow.size() ;
   }
-  
   
   
   /**  Rendering methods-
@@ -151,8 +171,8 @@ public class TalkFX extends SFX {
     
     BUBBLE_TEX.bindTex() ;
     GL11.glBegin(GL11.GL_QUADS) ;
-    for (Bubble bubble : showing) if (bubble.spoken) {
-      renderBubble(rendering, bubble, flatPoint, fontScale) ;
+    for (Bubble bubble : showing) if (bubble.type != NOT_SPOKEN) {
+      renderBubble(rendering, bubble, flatPoint, bubble.type == FROM_RIGHT) ;
     }
     GL11.glEnd() ;
 
@@ -168,12 +188,12 @@ public class TalkFX extends SFX {
     GL11.glColor4f(1, 1, 1, 1) ;
   }
   
-  //  TODO:  use the SFX class' renderTex method instead?
   
+  //  TODO:  Consider unifying this code with the Border-display routines?
   
   private void renderBubble(
     Rendering rendering, Bubble bubble,
-    Vec3D flatPoint, float fontScale
+    Vec3D flatPoint, boolean fromRight
   ) {
     //
     //  Some of this could be moved to the constants section-
@@ -182,9 +202,12 @@ public class TalkFX extends SFX {
       y = flatPoint.y + bubble.yoff,
       //TW = BUBBLE_TEX.xdim(),
       //TH = BUBBLE_TEX.ydim(),
-      
-      CAP_LU = 0.25f,
-      CAP_RU = 0.75f,
+      //
+      //  In the case of bubble from the right, we just flip U values-
+      MIN_U = fromRight ? 1 : 0,
+      MAX_U = fromRight ? 0 : 1,
+      CAP_LU = fromRight ? 0.75f : 0.25f,
+      CAP_RU = fromRight ? 0.25f : 0.75f,
       BOT_V = 0,
       TOP_V = BUBBLE_TEX.maxV(),
       
@@ -198,14 +221,13 @@ public class TalkFX extends SFX {
       maxX = x + Math.max(bubble.width, 64) + 10,
       capXL = minX + (texWide * 0.25f),
       capXR = maxX - (texWide * 0.25f) ;
-    ///I.say("Tex dims are: "+TW+" "+TH) ;
     //
     //  Render the three segments of the bubble-
-    GL11.glColor4f(1, 1, 1, bubble.alpha / 1f) ;
+    GL11.glColor4f(1, 1, 1, Math.min(1, bubble.alpha)) ;
     UINode.drawQuad(
       minX , minY,
       capXL, maxY,
-      0, BOT_V, CAP_LU, TOP_V,
+      MIN_U, BOT_V, CAP_LU, TOP_V,
       flatPoint.z + bubble.yoff
     ) ;
     UINode.drawQuad(
@@ -217,7 +239,7 @@ public class TalkFX extends SFX {
     UINode.drawQuad(
       capXR, minY,
       maxX , maxY,
-      CAP_RU, BOT_V, 1, TOP_V,
+      CAP_RU, BOT_V, MAX_U, TOP_V,
       flatPoint.z + bubble.yoff
     ) ;
   }
@@ -231,8 +253,8 @@ public class TalkFX extends SFX {
       scanW = 0,
       x = flatPoint.x + bubble.xoff,
       y = flatPoint.y + bubble.yoff ;
-    
-    GL11.glColor4f(1, 1, 1, bubble.alpha) ;
+
+    GL11.glColor4f(1, 1, 1, Math.min(1, bubble.alpha)) ;
     for (char c : bubble.phrase.toCharArray()) {
       Alphabet.Letter l = FONT.map[c] ;
       if (l == null) l = FONT.map[' '] ;
@@ -247,6 +269,23 @@ public class TalkFX extends SFX {
     }
   }
 }
+
+
+
+
+/*
+float spacing = Float.POSITIVE_INFINITY ;
+for (Bubble b : showing) {
+  b.yoff += FADE_RATE * LINE_SPACE * (1 + numPhrases()) / 2f ;
+  b.alpha -= FADE_RATE / MAX_LINES ;
+  if (b.alpha <= 0) showing.remove(b) ;
+  if (b.yoff < spacing) spacing = b.yoff ;
+}
+if (spacing >= LINE_SPACE && toShow.size() > 0) {
+  showBubble(toShow.removeFirst()) ;
+}
+//*/
+
 
 
 

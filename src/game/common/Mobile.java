@@ -172,20 +172,20 @@ public abstract class Mobile extends Element
   
   protected void updateAsMobile() {
     //
-    //  
+    //  If your current location is blocked, you need to escape to a free tile-
     if (blocksMotion(aboard)) {
       final Tile blocked = origin() ;
       final Tile free = Spacing.nearestOpenTile(blocked, this) ;
       if (free == null) I.complain("NO FREE TILE AVAILABLE!") ;
       if (BaseUI.isPicked(this)) I.say("Escaping to free tile: "+free) ;
-      //I.say("Blocked by: "+aboard+" free blocked? "+blocksMotion(free)) ;
-      //I.say("Origin is: "+origin()) ;
       setPosition(free.x, free.y, world) ;
-      //I.say("Now aboard: "+aboard) ;
       onMotionBlock(blocked) ;
       return ;
     }
     final Boardable next = pathing == null ? null : pathing.nextStep() ;
+    final Tile
+      oldTile = origin(),
+      newTile = world().tileAt(nextPosition.x, nextPosition.y) ;
     //
     //  We allow mobiles to 'jump' between dissimilar objects.
     if (next != null && next.getClass() != aboard.getClass()) {
@@ -193,9 +193,6 @@ public abstract class Mobile extends Element
       (aboard = next).setInside(this, true) ;
       next.position(nextPosition) ;
     }
-    final Tile
-      oldTile = origin(),
-      newTile = world().tileAt(nextPosition.x, nextPosition.y) ;
     //
     //  If you're not in either your current 'aboard' object, or the area
     //  corresponding to the next step in pathing, you need to default to the
@@ -205,15 +202,13 @@ public abstract class Mobile extends Element
       final Box2D area = new Box2D() ;
       final boolean awry = next != null && Spacing.distance(next, this) > 1 ;
       final Vec3D p = nextPosition ;
-      if (aboard.area(area).contains(p.x, p.y) && aboard.inWorld()) {
-        //
-        //  In this case, you're fine.  Just carry on.
-      }
-      else if (next != null && next.area(area).contains(p.x, p.y)) {
+      if (next != null && next.area(area).contains(p.x, p.y)) {
+        ///I.say("Moving to next aboard: "+next) ;
         aboard.setInside(this, false) ;
         (aboard = next).setInside(this, true) ;
       }
       else {
+        ///I.say("Moving to next tile: "+newTile) ;
         if (awry) onMotionBlock(newTile) ;
         aboard.setInside(this, false) ;
         (aboard = newTile).setInside(this, true) ;
@@ -221,6 +216,7 @@ public abstract class Mobile extends Element
     }
     //
     //  Either way, update position and check for tile changes-
+    ///I.say("Distance is: "+position.distance(nextPosition)) ;
     position.setTo(nextPosition) ;
     rotation = nextRotation ;
     super.setPosition(position.x, position.y, world) ;
@@ -258,25 +254,16 @@ public abstract class Mobile extends Element
     final float alpha = PlayLoop.frameTime() ;
     v.setTo(position).scale(1 - alpha) ;
     v.add(nextPosition, alpha, v) ;
-    ///v.z += height() + moveAnimHeight() ;
     return v ;
   }
   
   
   public void renderFor(Rendering rendering, Base base) {
     final Sprite s = this.sprite() ;
+    this.viewPosition(s.position) ;
     final float alpha = PlayLoop.frameTime() ;
-    s.position.setTo(position).scale(1 - alpha) ;
-    s.position.add(nextPosition, alpha, s.position) ;
-    
     final float rotateChange = Vec2D.degreeDif(nextRotation, rotation) ;
     s.rotation = (rotation + (rotateChange * alpha) + 360) % 360 ;
-    /*
-    if (this instanceof Vehicle) {
-      I.say("Sprite pos "+s.position) ;
-      I.say(" "+position+" "+nextPosition) ;
-    }
-    //*/
     rendering.addClient(s) ;
   }
 }

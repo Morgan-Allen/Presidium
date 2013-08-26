@@ -20,8 +20,8 @@ public class PathingSearch extends Search <Boardable> {
   /**  Field definitions and constructors-
     */
   final protected Boardable destination ;
+  public Mobile client = null ;
   private Target aimPoint = null ;
-  private Mobile client = null ;
   
   private Boardable closest ;
   private float closestDist ;
@@ -95,6 +95,7 @@ public class PathingSearch extends Search <Boardable> {
     */
   private boolean fogged(Boardable spot) {
     if (client == null || ! (spot instanceof Tile)) return false ;
+    if (client.base() == null) return false ;
     return client.base().intelMap.fogAt((Tile) spot) == 0 ;
   }
   
@@ -113,20 +114,26 @@ public class PathingSearch extends Search <Boardable> {
     if (spot == null) return -1 ;
     float mods = 0 ;
     //
+    //  TODO:  Incorporate these checks only at the level of Place-routes, not
+    //  individual tiles!
+    
+    //
     //  TODO:  Incorporate sector-based danger values, and stay out of hostile
     //         bases' line of sight when sneaking.
+    /*
     if (client != null && client.base() != null && spot instanceof Tile) {
       final float presence = client.base().dangerMap.valAt((Tile) spot) ;
       if (presence < 0) mods += presence * -5 ;
     }
+    //*/
     //
     //  TODO:  If the area or tile has other actors in it, increase the
     //         perceived cost.
-    mods += spot.inside().size() / 2f ;
+    //mods += spot.inside().size() / 2f ;
     //
     //  Finally, return a value based on pathing difficulties in the terrain-
     final float baseCost = Spacing.distance(prior, spot) ;
-    if (fogged(spot)) return (2.0f * baseCost) + mods ;
+    ///if (fogged(spot)) return (2.0f * baseCost) + mods ;
     switch (spot.pathType()) {
       case (Tile.PATH_CLEAR  ) : return (1.0f * baseCost) + mods ;
       case (Tile.PATH_ROAD   ) : return (0.5f * baseCost) + mods ;
@@ -137,6 +144,7 @@ public class PathingSearch extends Search <Boardable> {
   
   
   protected boolean canEnter(Boardable spot) {
+    //  TODO:  You need to set the client!
     return (client == null) ? true : spot.allowsEntry(client) ;
   }
   

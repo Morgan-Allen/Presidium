@@ -66,7 +66,7 @@ public class DangerMap {
   }
   
   
-  public void imposeVal(Tile at, float power) {
+  public void impingeVal(Tile at, float power) {
     shortTermVals[at.x / SR][at.y / SR] += power * SHORT_TERM_MULT / 3 ;
     longTermVals [at.x / SR][at.y / SR] += power *  LONG_TERM_MULT / 3 ;
     //overallVal += power * LONG_TERM_MULT / (SS * SS * 3) ;

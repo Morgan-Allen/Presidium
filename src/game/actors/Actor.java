@@ -6,6 +6,7 @@
 
 
 package src.game.actors ;
+import src.game.base.Human;
 import src.game.building.* ;
 import src.game.common.* ;
 import src.game.social.* ;
@@ -89,7 +90,7 @@ public abstract class Actor extends Mobile implements
   public void assignAction(Action action) {
     world.activities.toggleActive(this.actionTaken, false) ;
     this.actionTaken = action ;
-    if (action != null) actionTaken.updateAction() ;
+    if (actionTaken != null) actionTaken.updateAction() ;
     world.activities.toggleActive(action, true) ;
   }  
   
@@ -141,7 +142,9 @@ public abstract class Actor extends Mobile implements
     super.updateAsMobile() ;
     if (actionTaken != null) {
       actionTaken.updateAction() ;
-      if (actionTaken.complete()) world.schedule.scheduleNow(this) ;
+      if (actionTaken.complete() && health.conscious()) {
+        world.schedule.scheduleNow(this) ;
+      }
     }
   }
   
@@ -149,12 +152,12 @@ public abstract class Actor extends Mobile implements
   public void updateAsScheduled(int numUpdates) {
     health.updateHealth(numUpdates) ;
     if (health.conscious()) {
-      pathing.updatePathing() ;
       //
       //  Check to see if a new action needs to be decided on.
       if (actionTaken == null || actionTaken.complete()) {
         assignAction(AI.getNextAction()) ;
       }
+      pathing.updatePathing() ;
       AI.updateAI(numUpdates) ;
       //
       //  Update the intel/danger maps associated with the world's bases.
@@ -163,7 +166,7 @@ public abstract class Actor extends Mobile implements
         if (b == base()) b.intelMap.liftFogAround(this, health.sightRange()) ;
         if (! visibleTo(b)) continue ;
         final float relation = AI.relation(b) ;
-        b.dangerMap.imposeVal(origin(), power * relation) ;
+        b.dangerMap.impingeVal(origin(), power * relation) ;
       }
     }
     else if (health.decomposed()) setAsDestroyed() ;
@@ -183,9 +186,17 @@ public abstract class Actor extends Mobile implements
   }
   
   
-  protected boolean amDoing(String actionName) {
+  public boolean amDoing(String actionName) {
     if (actionTaken == null) return false ;
     return actionTaken.methodName().equals(actionName) ;
+  }
+  
+  
+  public boolean isDoing(Class planClass) {
+    for (Behaviour b : AI.agenda()) {
+      if (b.getClass().isInstance(planClass)) return true ;
+    }
+    return false ;
   }
   
   

@@ -19,6 +19,26 @@ import src.user.* ;
 import src.util.* ;
 
 
+/*
+Have all conversants share a single Text Bubble-generator, and insert the text
+in proper sequence, with one on each side.  Fade out as an ephemera.  Include
+visual indications of upgrades.
+
+Check to ensure that combat works okay among rival humanoid actors.  Make sure
+mining/farming's up to date.  Try to integrate with hunting.  That may require
+implementing the Ecology class, like you planned.
+
+Security patrols.  Diplomatic conversion (pressfeed.)  Disease and sick leave.
+Entertainment.  Supervision.  Tax collection is the only other major concern.
+
+Simplify the user interface, implement Powers, and add a Main Menu.  That's it.
+
+
+Walls/Roads and Power/Life Support are the next items, but those might require
+a bigger game.  Maybe *just* power.  Keep it simple.  Condensors for water, and
+from the Vault System.  Share with whole settlement.
+//*/
+
 
 public class DebugBehaviour extends PlayLoop {
   
@@ -107,18 +127,55 @@ public class DebugBehaviour extends PlayLoop {
     //  You also need to try scenarios between multiple actors, some of them
     //  hostile, and see how they respond.  Ideally, you don't want actors
     //  willingly running into situations that they then run away from.
+    
     //
     //  More detail in recreation behaviours.  And housing purchases/upgrades.
     //
-    //  Safety patrols, sick leave and performance.  Spontaneous missions.
+    //  Safety patrols, sick leave and performance.  Spontaneous missions, and
+    //  a clearer factoring out of venues/actors batches in the AI.
     //
-    //  Visual indicators for research/upgrades (& manufacture?)
+    //  Visual indicators for research/upgrades (and/or manufacture?)
     
-    
+    //natureScenario(world, base, HUD) ;
     //baseScenario(world, base, HUD) ;
-    natureScenario(world, base, HUD) ;
     //missionScenario(world, base, HUD) ;
-    //socialScenario(world, base, HUD) ;
+    socialScenario(world, base, HUD) ;
+  }
+  
+  
+  
+  /**  Testing out interactions between alien creatures or primitive humanoids.
+    */
+  private void natureScenario(World world, Base base, HUD UI) {
+    GameSettings.noFog = true ;
+    
+    /*
+    Actor prey = new Vareen() ;
+    prey.health.setupHealth(0.5f, 1, 0) ;
+    prey.enterWorldAt(12, 12, world) ;
+    ((BaseUI) UI).selection.pushSelection(prey, true) ;
+    //*/
+    
+    Actor hunter = new Micovore() ;
+    hunter.health.setupHealth(0.5f, 1, 0) ;
+    hunter.enterWorldAt(6, 6, world) ;
+    ((BaseUI) UI).selection.pushSelection(hunter, true) ;
+    //hunter.AI.assignBehaviour(new Hunting(hunter, prey, Hunting.TYPE_FEEDS)) ;
+    
+    ///PlayLoop.setGameSpeed(10.0f) ;
+    /*
+    for (int n = 16 ; n-- > 0 ;) {
+      final Actor prey = Rand.yes() ? new Quud() : new Vareen() ;
+      final Tile e = Spacing.pickRandomTile(world.tileAt(16, 16), 8, world) ;
+      prey.health.setupHealth(Rand.num(), 1, 0) ;
+      prey.enterWorldAt(e.x, e.y, world) ;
+    }
+    
+    final Actor hunter = new Micovore() ;
+    hunter.health.setupHealth(Rand.num(), 1, 0) ;
+    hunter.enterWorldAt(4, 4, world) ;
+    ((BaseUI) UI).selection.pushSelection(hunter, true) ;
+    //*/
   }
   
   
@@ -145,29 +202,6 @@ public class DebugBehaviour extends PlayLoop {
     garrison.enterWorldAt(2, 6, world) ;
     garrison.setAsEstablished(true) ;
     garrison.structure.setState(VenueStructure.STATE_INSTALL, 0.1f) ;
-    //*/
-  }
-  
-  
-  
-  /**  Testing out interactions between alien creatures or primitive humanoids.
-    */
-  private void natureScenario(World world, Base base, HUD UI) {
-    GameSettings.noFog = true ;
-    ///PlayLoop.setGameSpeed(10.0f) ;
-    //  TODO:  Now you need to test out retreat/self-defence behaviours.
-    /*
-    for (int n = 16 ; n-- > 0 ;) {
-      final Actor prey = Rand.yes() ? new Quud() : new Vareen() ;
-      final Tile e = Spacing.pickRandomTile(world.tileAt(16, 16), 8, world) ;
-      prey.health.setupHealth(Rand.num(), 1, 0) ;
-      prey.enterWorldAt(e.x, e.y, world) ;
-    }
-    
-    final Actor hunter = new Micovore() ;
-    hunter.health.setupHealth(Rand.num(), 1, 0) ;
-    hunter.enterWorldAt(4, 4, world) ;
-    ((BaseUI) UI).selection.pushSelection(hunter, true) ;
     //*/
   }
   
@@ -246,6 +280,8 @@ public class DebugBehaviour extends PlayLoop {
     hospice.setAsEstablished(true) ;
     hospice.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
     hospice.onCompletion() ;
+    
+    actor.AI.setEmployer(hospice) ;
   }
 }
 

@@ -76,8 +76,9 @@ public class PathingCache {
     *  arbitrary destinations on the map- and a few other utility methods for
     *  diagnosis of bugs...
     */
-  private Tile tilePosition(Boardable b) {
+  private Tile tilePosition(Boardable b, Mobile client) {
     if (b == null) return null ;
+    if (client != null && ! b.allowsEntry(client)) return null ;
     if (b instanceof Venue) return ((Venue) b).mainEntrance() ;
     if (b instanceof Tile) {
       final Tile t = (Tile) b ;
@@ -93,10 +94,12 @@ public class PathingCache {
   }
   
   
-  private Place[] placesBetween(Boardable initB, Boardable destB) {
+  private Place[] placesBetween(
+    Boardable initB, Boardable destB, Mobile client
+  ) {
     final Tile
-      initT = tilePosition(initB),
-      destT = tilePosition(destB) ;
+      initT = tilePosition(initB, client),
+      destT = tilePosition(destB, client) ;
     if (initT == null || destT == null) return null ;
     final Place
       initP = placeFor(initT),
@@ -115,16 +118,17 @@ public class PathingCache {
     return placesPath ;
   }
   
-  
+  /*
   public Object placesPathRef(Boardable initB, Boardable destB) {
     return (Object) placesBetween(initB, destB) ;
   }
+  //*/
   
   
   public Boardable[] getLocalPath(
-    Boardable initB, Boardable destB, int maxLength
+    Boardable initB, Boardable destB, int maxLength, Mobile client
   ) {
-    final Place placesPath[] = placesBetween(initB, destB) ;
+    final Place placesPath[] = placesBetween(initB, destB, client) ;
     Boardable path[] = null ;
     if (placesPath != null && placesPath.length < 3) {
       ///I.say("Obtaining full cordoned path between "+initB+" "+destB) ;
@@ -132,6 +136,7 @@ public class PathingCache {
         initB, destB, placesPath[0].caching.section,
         placesPath[placesPath.length - 1].caching.section
       ) ;
+      search.client = client ;
       search.doSearch() ;
       path = search.fullPath(Boardable.class) ;
       if (path != null) return path ;
@@ -141,6 +146,7 @@ public class PathingCache {
       final PathingSearch search = fullPathSearch(
         initB, destB, placesPath, maxLength
       ) ;
+      search.client = client ;
       search.doSearch() ;
       path = search.fullPath(Boardable.class) ;
       if (path != null) return path ;
@@ -148,6 +154,7 @@ public class PathingCache {
     if (path == null) {
       ///I.say("Resorting to unbounded pathfinding between "+initB+" "+destB) ;
       final PathingSearch search = new PathingSearch(initB, destB, -1) ;
+      search.client = client ;
       search.doSearch() ;
       path = search.fullPath(Boardable.class) ;
     }
@@ -361,7 +368,7 @@ public class PathingCache {
       placesPath = (Place[]) placesPathRef ;
     }
     else {
-      placesPath = placesBetween(initB, destB) ;
+      placesPath = placesBetween(initB, destB, null) ;
       if (placesPath == null) return null ;
     }
     //
@@ -370,7 +377,7 @@ public class PathingCache {
     //
     //  TODO:  Put this in a dedicated class lower down, or possibly even move
     //  to the PathingSearch class itself?
-    final Tile initT = tilePosition(initB) ;
+    final Tile initT = tilePosition(initB, null) ;
     
     final PathingSearch search = new PathingSearch(initB, destB, -1) {
       

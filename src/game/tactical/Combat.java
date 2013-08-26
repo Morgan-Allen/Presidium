@@ -237,8 +237,8 @@ public class Combat extends Plan implements ActorConstants {
       offence, target, defence, 0 - rangePenalty(actor, target), 10
     ) ;
     if (success) {
-      float damage = actor.gear.attackDamage() * Rand.num() * 2 ;
-      damage -= target.gear.armourRating() * Rand.num() * 2 ;
+      float damage = actor.gear.attackDamage() * Rand.avgNums(2) ;
+      damage -= target.gear.armourRating() * (Rand.num() + 0.5f) ;
       if (damage > 0) target.health.takeInjury(damage) ;
     }
     DeviceType.applyFX(actor.gear.deviceType(), actor, target, success) ;

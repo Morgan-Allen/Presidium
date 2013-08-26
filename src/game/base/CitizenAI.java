@@ -58,6 +58,9 @@ import src.util.* ;
 
 
 
+//
+//  TODO:  You need to have some generalised routines for getting actors
+//  and venues for consideration.
 
 
 public class CitizenAI extends ActorAI implements ActorConstants {
@@ -83,7 +86,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
 
   /**  Behaviour implementation-
     */
-  public Behaviour nextBehaviour() {
+  protected Behaviour nextBehaviour() {
     final Choice choice = new Choice(actor) ;
     addReactions(choice) ;
     
@@ -105,6 +108,11 @@ public class CitizenAI extends ActorAI implements ActorConstants {
   }
   
   
+  protected Behaviour reactionTo(Mobile seen) {
+    return null ;
+  }
+  
+  
   protected void applyForMissions(Behaviour chosen) {
     if (mission != null || actor.base() == null) return ;
     for (Mission mission : actor.base().allMissions()) {
@@ -117,10 +125,8 @@ public class CitizenAI extends ActorAI implements ActorConstants {
   }
   
   
+  //  TODO:  This method is poorly named.
   protected void addReactions(Choice choice) {
-    //
-    //  TODO:  You need to have some generalised routines for getting actors
-    //  and venues for consideration.
     //
     //  Find all nearby items or actors and consider reacting to them.
     final PresenceMap
@@ -139,7 +145,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     for (Actor near : actorB) {
       choice.add(new Combat(actor, near)) ;
       choice.add(new Treatment(actor, near)) ;
-      ///choice.add(new Dialogue(actor, near, true)) ;
+      choice.add(new Dialogue(actor, near, true)) ;
     }
     choice.add(new Retreat(actor)) ;
     //

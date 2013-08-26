@@ -78,26 +78,25 @@ public class MobilePathing {
   
   protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
     if (GameSettings.freePath) {
-      ///if (BaseUI.isPicked(mobile)) I.say("Getting free path...") ;
       final PathingSearch search = new PathingSearch(initB, destB, -1) ;
-      search.verbose = true ;
+      //search.verbose = true ;
+      search.client = mobile ;
       search.doSearch() ;
       return search.fullPath(Boardable.class) ;
     }
     else {
-      ///if (BaseUI.isPicked(mobile)) I.say("Getting local path...") ;
       return mobile.world().pathingCache.getLocalPath(
-        initB, destB, MAX_PATH_SCAN * 2
+        initB, destB, MAX_PATH_SCAN * 2, mobile
       ) ;
     }
   }
   
   
   public void updateTarget(Target moveTarget) {
+    final Target oldTarget = trueTarget ;
     this.trueTarget = moveTarget ;
-    //
-    //  If you're close to the centre of your current step, advance one step.
-    if (inLocus(nextStep())) {
+    if (trueTarget != oldTarget) { path = null ; stepIndex = -1 ; return ; }
+    else if (inLocus(nextStep())) {
       stepIndex = Visit.clamp(stepIndex + 1, path.length) ;
     }
   }
@@ -105,13 +104,13 @@ public class MobilePathing {
   
   public void updatePathing() {
     if (trueTarget == null) return ;
-    ///if (BaseUI.isPicked(mobile)) I.say("Must update pathing... "+stepIndex) ;
-    final Boardable location = location(mobile), dest = location(trueTarget) ;
-    boolean blocked = false, nearTarget = false, doRefresh = false ;
+    final Boardable dest = location(trueTarget) ;
+    boolean blocked = false, nearTarget = false, validPath = true ;
     //
     //  Check to ensure that subsequent steps along this path are not blocked,
     //  and that the path target has not changed.
-    if (nextStep() != null) for (int i = 0 ; i < MAX_PATH_SCAN ; i++) {
+    validPath = nextStep() != null && pathTarget == dest ;
+    if (validPath) for (int i = 0 ; i < MAX_PATH_SCAN ; i++) {
       final int index = stepIndex + i ;
       if (index >= path.length) break ;
       final Boardable t = path[index] ;
@@ -119,18 +118,17 @@ public class MobilePathing {
       else if (! t.inWorld()) blocked = true ;
       if (t == dest) nearTarget = true ;
     }
-    doRefresh = blocked || nextStep() == null || pathTarget != dest ;
+    if (blocked) validPath = false ;
     //
     //  In the case that the path we're following is only partial, update once
     //  we're approaching the terminus-
-    if (path != null && ! nearTarget && Visit.last(path) != dest) {
-      final Target last = (Target) Visit.last(path) ;
-      final int dist = Spacing.outerDistance(location, last) ;
-      if (dist < World.SECTION_RESOLUTION / 2) doRefresh = true ;
+    if (validPath && (! nearTarget) && (Visit.last(path) != dest)) {
+      final int dist = path.length - (stepIndex + 1) ;
+      if (dist < World.SECTION_RESOLUTION / 2) validPath = false ;
     }
     //
     //  If the path needs refreshment, do so-
-    if (doRefresh) {
+    if (! validPath) {
       if (BaseUI.isPicked(mobile)) I.say("Must refresh path... ") ;
       pathTarget = dest ;
       refreshPath() ;
@@ -173,7 +171,6 @@ public class MobilePathing {
   public void headTowards(
     Target target, float speed, boolean moves
   ) {
-    ///if (BaseUI.isPicked(mobile)) I.say("Heading towards: "+target) ;
     //
     //  Determine the appropriate offset and angle for this target-
     if (target == null) return ;
@@ -205,6 +202,9 @@ public class MobilePathing {
   
   
   public boolean closeEnough(Target target, float minDist) {
+    if (target instanceof Boardable && minDist <= 0) {
+      return inLocus((Boardable) target) ;
+    }
     return Spacing.distance(mobile, target) <= minDist ;
   }
   

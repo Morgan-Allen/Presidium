@@ -86,7 +86,7 @@ public class ActorGear extends Inventory implements BuildConstants {
     if (! actor.inWorld()) return ;
     String phrase = inc >= 0 ? "+" : "-" ;
     phrase+=" "+Math.abs(inc)+" credits" ;
-    actor.chat.addPhrase(phrase, false) ;
+    actor.chat.addPhrase(phrase, TalkFX.NOT_SPOKEN) ;
   }
   
   
@@ -316,6 +316,7 @@ public class ActorGear extends Inventory implements BuildConstants {
     else if (item.type instanceof DeviceType) equipDevice(item) ;
     else if (item.type instanceof OutfitType) equipOutfit(item) ;
     else if (! super.addItem(item)) return false ;
+    actor.chat.addPhrase("+"+item, TalkFX.NOT_SPOKEN) ;
     return true ;
   }
 }

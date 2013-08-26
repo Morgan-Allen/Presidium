@@ -84,6 +84,7 @@ public abstract class Element implements
   public void setAsDestroyed() {
     if (! inWorld()) return ;// I.complain("Never entered world...") ;
     this.toggleProperty(PROP_DESTROYED, true) ;
+    this.viewPosition(sprite.position) ;
     world.ephemera.addGhost(origin(), radius() * 2, sprite, 2.0f) ;
     exitWorld() ;
   }
@@ -169,6 +170,7 @@ public abstract class Element implements
     if (isGrown) inceptTime = -10 ;
     else inceptTime = world.currentTime() ;
   }
+  
   
   
   /**  Methods related to specifying position and size-

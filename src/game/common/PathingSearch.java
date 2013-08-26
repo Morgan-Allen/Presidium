@@ -93,19 +93,16 @@ public class PathingSearch extends Search <Boardable> {
   
   /**  Actual search-execution methods-
     */
+  /*
   private boolean fogged(Boardable spot) {
     if (client == null || ! (spot instanceof Tile)) return false ;
     if (client.base() == null) return false ;
     return client.base().intelMap.fogAt((Tile) spot) == 0 ;
   }
+  //*/
   
   
   protected Boardable[] adjacent(Boardable spot) {
-    if (fogged(spot)) {
-      ((Tile) spot).allAdjacent(tileB) ;
-      for (int i : Tile.N_INDEX) batch[i] = tileB[i] ;
-      return batch ;
-    }
     return spot.canBoard(batch) ;
   }
   

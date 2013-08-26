@@ -91,8 +91,10 @@ public class Visit <T> {
   
   public static Iterable <Coord> grid(Box2D area) {
     return grid(
-      (int) area.xpos(), (int) area.ypos(),
-      (int) area.xdim(), (int) area.ydim(),
+      (int) (area.xpos() + 0.5f),
+      (int) (area.ypos() + 0.5f),
+      (int) area.xdim(),
+      (int) area.ydim(),
     1) ;
   }
   

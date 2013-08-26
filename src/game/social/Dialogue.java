@@ -7,6 +7,7 @@
 
 package src.game.social ;
 import src.game.common.* ;
+import src.game.planet.Species;
 import src.game.actors.* ;
 import src.game.base.* ;
 import src.game.building.* ;
@@ -80,8 +81,9 @@ public class Dialogue extends Plan implements ActorConstants {
   
   //
   //  Returns whether Actor can talk to Other.
+  //  TODO:  Base this off possession of mutual etiquette/language skills?
   public static boolean canTalk(Actor actor, Actor other) {
-    if (actor == other) return false ;
+    if (actor == other || other.species() != Species.HUMAN) return false ;
     if (isListening(actor, other)) return true ;
     return actor.AI.couldSwitch(
       actor.AI.rootBehaviour(), new Dialogue(actor, other, false)
@@ -123,23 +125,15 @@ public class Dialogue extends Plan implements ActorConstants {
   
   
   public float priorityFor(Actor actor) {
-    
+    if (actor.species() != Species.HUMAN || other.species() != Species.HUMAN) {
+      return 0 ;
+    }
     if (finished || (inits && ! canTalk(other, actor))) return 0 ;
     
-    ///I.say("____ Other actor can talk: "+other) ;
     final float
       relation = actor.AI.relation(other),
       attraction = actor.AI.attraction(other),
       novelty = actor.AI.novelty(other) ;
-    /*
-    I.say(
-      "____ Relation / attraction / novelty: "+
-      relation+" / "+attraction+" / "+novelty+
-      "\n____ For: "+other
-    ) ;
-    //*/
-    //  TODO:  Include 'community spirit' as a factor here?  If you have dozens
-    //  of actors here, there'll be too many strangers to introduce yourself to.
     
     float appeal = 0 ;
     appeal += relation ;
@@ -294,6 +288,7 @@ public class Dialogue extends Plan implements ActorConstants {
   
   private void advise(Actor actor, Actor other) {
     final Skill tested = (Skill) Rand.pickFrom(other.traits.skillSet()) ;
+    if (tested == null) return ;
     final float level = actor.traits.useLevel(tested) ;
     
     utters(other, "I'm interested in "+tested.name+".") ;

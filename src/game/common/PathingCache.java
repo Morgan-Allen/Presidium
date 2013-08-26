@@ -301,7 +301,8 @@ public class PathingCache {
     //  areas of unblocked tiles.  (These must be flagged just after
     //  acquisition, so that we know to skip over them.)
     final Batch <Tile[]> allUnder = new Batch <Tile[]> () ;
-    for (Tile t : world.tilesIn(section.area, false)) {
+    for (Coord c : Visit.grid(section.area)) {
+      final Tile t = world.tileAt(c.x, c.y) ;
       if (t.flaggedWith() != null || t.blocked()) continue ;
       final TileSpread spread = new TileSpread(t) {
         protected boolean canAccess(Tile t) {

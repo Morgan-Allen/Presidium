@@ -427,14 +427,12 @@ public interface ActorConstants {
     
     HUNGER = new Condition(
       "Near Starvation",
-      "Very Hungry",
       "Hungry",
+      "Peckish",
       null
     ),
     MALNOURISHMENT = new Condition(
-      "Badly Malnourished",
       "Malnourished",
-      "Sickly",
       null
     ),
     

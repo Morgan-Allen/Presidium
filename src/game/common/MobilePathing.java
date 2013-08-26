@@ -198,6 +198,7 @@ public class MobilePathing {
     mobile.nextPosition.setTo(disp) ;
     mobile.nextPosition.z = mobile.aboveGroundHeight() ;
     mobile.nextRotation = angle ;
+    ///if (BaseUI.isPicked(mobile)) I.say("Updating actor: ") ;
   }
   
   

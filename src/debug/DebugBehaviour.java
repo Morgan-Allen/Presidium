@@ -259,7 +259,7 @@ public class DebugBehaviour extends PlayLoop {
       other = new Human(Vocation.VETERAN , base) ;
     actor.enterWorldAt(5, 5, world) ;
     other.enterWorldAt(8, 8, world) ;
-    ((BaseUI) UI).selection.pushSelection(actor, true) ;
+    ///((BaseUI) UI).selection.pushSelection(actor, true) ;
     
     //
     //  TODO:  You also want to see what happens when the actor is diseased.
@@ -281,7 +281,11 @@ public class DebugBehaviour extends PlayLoop {
     hospice.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
     hospice.onCompletion() ;
     
+    
     actor.AI.setEmployer(hospice) ;
+    final EcologyGen EG = new EcologyGen() ;
+    EG.populateFlora(world) ;
+    EG.populateFauna(world, Species.VAREEN) ;
   }
 }
 

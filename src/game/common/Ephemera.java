@@ -53,16 +53,22 @@ public class Ephemera {
   }
   
   
-  public void addGhost(Tile t, float size, Sprite s, float duration) {
-    if (t == null || s == null) return ;
+  public void addGhost(Element e, float size, Sprite s, float duration) {
+    if (s == null) return ;
     final Ghost ghost = new Ghost() ;
-    ghost.position = t ;
     ghost.size = (int) Math.ceil(size) ;
     ghost.inceptTime = world.currentTime() ;
     ghost.sprite = s ;
     ghost.duration = duration ;
-    
+
     final Vec3D p = s.position ;
+    if (e == null) {
+      ghost.position = world.tileAt(p.x, p.y) ;
+    }
+    else {
+      ghost.position = e.origin() ;
+      e.viewPosition(p) ;
+    }
     final Section section = world.sections.sectionAt((int) p.x, (int) p.y) ;
     List <Ghost> SG = ghosts.get(section) ;
     if (SG == null) ghosts.put(section, SG = new List <Ghost> ()) ;

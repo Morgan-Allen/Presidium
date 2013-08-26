@@ -120,6 +120,7 @@ public class Retreat extends Plan implements ActorConstants {
       float attitude = actor.AI.relation(near) ;
       ///I.say("Danger is: "+danger+", attitude: "+attitude+" for: "+near) ;
       if (attitude < 0) seenDanger += danger ;
+      if (attitude == 0) seenDanger += danger / 2 ;
       if (attitude > 0) seenDanger -= danger / 2 ;
     }
     if (seenDanger == 0) return 0 ;

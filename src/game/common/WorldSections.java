@@ -224,7 +224,7 @@ public class WorldSections implements TileConstants {
           for (Element e : world.fixturesFrom(s.area)) {
             if (e.sprite() == null) continue ;
             if (! port.intersects(boundsFrom(e, tempBounds))) continue ;
-            if (base == null || e.visibleTo(base)) visibleFixtures.add(e) ;
+            if (e.visibleTo(base)) visibleFixtures.add(e) ;
           }
         }
       }

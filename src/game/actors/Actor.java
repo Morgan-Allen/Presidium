@@ -209,6 +209,8 @@ public abstract class Actor extends Mobile implements
   /**  Rendering and interface methods-
     */
   public boolean visibleTo(Base base) {
+    ///GameSettings.noFog = true ;
+    ///if (BaseUI.isPicked(this)) I.say("Fog: "+base.intelMap.fogAt(origin())+" at: "+origin()) ;
     if (indoors()) return false ;
     return super.visibleTo(base) ;
   }
@@ -217,7 +219,6 @@ public abstract class Actor extends Mobile implements
   public void renderFor(Rendering rendering, Base base) {
     //
     //  Make a few basic sanity checks for visibility-
-    //if (indoors()) return ;
     final float scale = spriteScale() ;
     final Sprite s = sprite() ;
     

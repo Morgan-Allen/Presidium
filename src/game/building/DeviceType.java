@@ -88,7 +88,7 @@ public class DeviceType extends Service implements BuildConstants {
       final Tile centre = world.tileAt(p.x, p.y) ;
       final float size = beam.origin.sub(beam.target, null).length() ;
       
-      world.ephemera.addGhost(centre, size, beam, 0.33f) ;
+      world.ephemera.addGhost(null, size, beam, 0.33f) ;
     }
   }
 }

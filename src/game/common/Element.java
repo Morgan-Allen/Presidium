@@ -84,8 +84,7 @@ public abstract class Element implements
   public void setAsDestroyed() {
     if (! inWorld()) return ;// I.complain("Never entered world...") ;
     this.toggleProperty(PROP_DESTROYED, true) ;
-    this.viewPosition(sprite.position) ;
-    world.ephemera.addGhost(origin(), radius() * 2, sprite, 2.0f) ;
+    world.ephemera.addGhost(this, radius() * 2, sprite, 2.0f) ;
     exitWorld() ;
   }
   
@@ -224,7 +223,7 @@ public abstract class Element implements
   
   
   public boolean visibleTo(Base base) {
-    float fog = fogFor(base) ;
+    final float fog = base == null ? 1 : fogFor(base) ;
     if (fog == 0) return false ;
     else sprite.fog = fog ;
     return true ;

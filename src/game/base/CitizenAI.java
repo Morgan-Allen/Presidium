@@ -125,7 +125,8 @@ public class CitizenAI extends ActorAI implements ActorConstants {
   }
   
   
-  //  TODO:  This method is poorly named.
+  //  TODO:  This method is poorly named.  Also, the list of stuff worth
+  //  reacting to should be made accessible.
   protected void addReactions(Choice choice) {
     //
     //  Find all nearby items or actors and consider reacting to them.

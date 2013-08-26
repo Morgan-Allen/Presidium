@@ -5,6 +5,7 @@ package src.game.tactical ;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.graphics.common.* ;
+import src.user.BaseUI;
 import src.util.* ;
 
 
@@ -107,7 +108,7 @@ public class IntelMap {
     float tilesSeen = 0 ;
     //
     //  Iterate over any tiles within a certain distance of the target point-
-    for (Tile t : world.tilesIn(area, true)) if (t != null) {
+    for (Tile t : world.tilesIn(area, true)) {
       final float distance = Spacing.distance(t, target) ;
       if (distance > radius) continue ;
       //

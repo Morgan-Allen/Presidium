@@ -352,6 +352,8 @@ public class ActorHealth implements ActorConstants {
     float sum = Visit.clamp((stress + fatigue + injury) / maxHealth, 0, 1) ;
     final float hunger = 1 - (calories / maxHealth) ;
     if (hunger > 0.5f) sum += hunger - 0.5f ;
+    sum *= nutrition * 1.25f ;
+    if (bleeds) sum += 0.25f ;
     return Visit.clamp((sum * sum) - 0.5f, 0, 1) ;
   }
   

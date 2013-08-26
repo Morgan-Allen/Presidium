@@ -40,6 +40,10 @@ public abstract class ActorAI implements ActorConstants {
   protected List <Behaviour> todoList = new List() ;
   
   protected Table <Mobile, Mobile> seen = new Table() ;
+  //  Table <Mobile, Class> seen ;
+  //  List <Mobile> mobilesConsidered ;
+  //  List <Fixture> fixturesConsidered ;
+  
   protected Table <Accountable, Relation> relations = new Table() ;
   
   protected Mission mission ;
@@ -337,7 +341,7 @@ public abstract class ActorAI implements ActorConstants {
   public float relation(Base base) {
     final Base AB = actor.base() ;
     if (base == AB) return 1 ;
-    else if (AB != null) return AB.relationWith(base) ;
+    else if (AB != null && base != null) return AB.relationWith(base) ;
     else return 0 ;
   }
   

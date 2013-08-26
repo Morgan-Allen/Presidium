@@ -153,14 +153,14 @@ public abstract class Venue extends Fixture implements
   
   
   public void onCompletion() {
-    world.ephemera.addGhost(origin(), size, buildSprite.scaffolding(), 2.0f) ;
+    world.ephemera.addGhost(this, size, buildSprite.scaffolding(), 2.0f) ;
     setAsEstablished(false) ;
     personnel.onCompletion() ;
   }
   
   
   public void onDecommission() {
-    world.ephemera.addGhost(origin(), size, buildSprite.baseSprite(), 2.0f) ;
+    world.ephemera.addGhost(this, size, buildSprite.baseSprite(), 2.0f) ;
     setAsEstablished(false) ;
     personnel.onDecommission() ;
   }

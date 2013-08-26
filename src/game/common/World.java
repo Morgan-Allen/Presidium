@@ -146,11 +146,14 @@ public class World {
   public Iterable <Tile> tilesIn(Box2D area, boolean safe) {
     final Box2D b = new Box2D().setTo(area) ;
     if (safe) b.cropBy(new Box2D().set(-0.5f, -0.5f, size, size)) ;
+    ///I.say("Area is NOW "+b) ;
+    final int
+      minX = (int) (b.xpos() + 0.5f),
+      minY = (int) (b.ypos() + 0.5f),
+      dimX = (int) (b.xmax() + 0.5f) - minX,
+      dimY = (int) (b.ymax() + 0.5f) - minY ;
     return new Visit <Tile> ().grid(
-      (int) (b.xpos() + 0.5f),
-      (int) (b.ypos() + 0.5f),
-      (int) b.xdim(),
-      (int) b.ydim(),
+      minX, minY, dimX, dimY,
       tiles
     ) ;
   }

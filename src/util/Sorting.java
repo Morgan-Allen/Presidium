@@ -302,12 +302,12 @@ public abstract class Sorting <K> implements Series <K> {
     final int comp = compare(value, (K) node.value) ;
     if (comp == 0) matches.add(node) ;
     if (node.kidL != null) {
-      if (comp < 0 || compare((K) node.kidL.value, (K) node.value) != -1) {
+      if (comp <= 0 || compare((K) node.kidL.value, (K) node.value) != -1) {
         matchFrom(value, node.kidL, matches) ;
       }
     }
     if (node.kidR != null) {
-      if (comp > 0 || compare((K) node.kidR.value, (K) node.value) !=  1) {
+      if (comp >= 0 || compare((K) node.kidR.value, (K) node.value) !=  1) {
         matchFrom(value, node.kidR, matches) ;
       }
     }
@@ -324,14 +324,20 @@ public abstract class Sorting <K> implements Series <K> {
   
   
   public void delete(K value) {
+    ///I.say("  ___Attempting deletion: "+value) ;
     final Batch <Node> matches = matchesFor(value) ;
     for (Node node : matches) {
       if (node.value == value) {
+        ///I.say("  ___Succesfully deleted: "+value) ;
         deleteRef(node) ;
         return ;
       }
     }
-    I.complain("Does not contain "+value) ;
+    if (size <= 100) for (K k : this) if (k == value) {
+      I.complain("Match-seeking defective for: "+value) ;
+      I.say(this.toString()) ;
+    }
+    I.complain("Unable to find "+value) ;
   }
   
   

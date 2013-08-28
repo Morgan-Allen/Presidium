@@ -22,7 +22,6 @@ public class Paving {
   final static int PATH_RANGE = World.SECTION_RESOLUTION * 2 ;
   
   final World world ;
-  
   PresenceMap junctions ;
   Table <Tile, List <Route>> tileRoutes = new Table(1000) ;
   Table <Route, Route> allRoutes = new Table <Route, Route> (1000) ;

@@ -7,6 +7,7 @@
 
 package src.game.actors ;
 import src.game.common.* ;
+import src.graphics.sfx.TalkFX ;
 import src.util.* ;
 import src.user.* ;
 
@@ -62,6 +63,8 @@ public class ActorTraits implements ActorConstants {
   
   
   public void initAtts(float physical, float sensitive, float cognitive) {
+    //
+    //  Replace these with just 3 attributes.  Simpler that way.
     actor.traits.setLevel(BRAWN    , physical ) ;
     actor.traits.setLevel(VIGOUR   , physical ) ;
     actor.traits.setLevel(REFLEX   , sensitive) ;
@@ -140,8 +143,9 @@ public class ActorTraits implements ActorConstants {
         return level * actor.health.ageMultiple() ;
       }
       else {
-        level = (level + trueLevel(skill.parent)) / 2f ;
+        level += (useLevel(skill.parent) / 5f) ;
       }
+      level *= 1 - actor.health.skillPenalty() ;
     }
     return level ;
   }
@@ -173,17 +177,30 @@ public class ActorTraits implements ActorConstants {
   }
   
   
+  private void tryReport(Trait type, float diff) {
+    if ((! actor.inWorld()) || Math.abs(diff) < 1) return ;
+    final String prefix = diff > 0 ? "+" : "" ;
+    actor.chat.addPhrase(prefix+type, TalkFX.NOT_SPOKEN) ;
+  }
+  
+  
   public void setLevel(Trait type, float toLevel) {
     Level level = levels.get(type) ;
     if (level == null) levels.put(type, level = new Level()) ;
+    
+    final int oldVal = (int) level.value ;
     level.value = toLevel ;
+    tryReport(type, level.value - oldVal) ;
   }
   
   
   public float incLevel(Trait type, float boost) {
     Level level = levels.get(type) ;
     if (level == null) levels.put(type, level = new Level()) ;
+    
+    final int oldVal = (int) level.value ;
     level.value += boost ;
+    tryReport(type, level.value - oldVal) ;
     return level.value ;
   }
   
@@ -191,7 +208,10 @@ public class ActorTraits implements ActorConstants {
   public void raiseLevel(Trait type, float toLevel) {
     Level level = levels.get(type) ;
     if (level == null) levels.put(type, level = new Level()) ;
+    
+    final int oldVal = (int) level.value ;
     level.value = Math.max(toLevel, level.value) ;
+    tryReport(type, level.value - oldVal) ;
   }
   
   
@@ -281,9 +301,8 @@ public class ActorTraits implements ActorConstants {
     for (int tried = 0 ; tried < range ; tried++) {
       if (Rand.num() < chance) success++ ;
     }
-    final float practice = chance * (1 - chance) * duration / 10 ;
-    practice(checked, practice) ;
-    if (b != null) b.traits.practice(opposed, practice) ;
+    practice(checked, (1 - chance) * duration / 10) ;
+    if (b != null) b.traits.practice(opposed, chance * duration / 10) ;
     return success ;
   }
   
@@ -303,7 +322,7 @@ public class ActorTraits implements ActorConstants {
   
   public void practice(Skill skillType, float practice) {
     incLevel(skillType, practice / (trueLevel(skillType) + 1)) ;
-    if (skillType.parent != null) practice(skillType.parent, practice) ;
+    if (skillType.parent != null) practice(skillType.parent, practice / 5) ;
   }
   
   

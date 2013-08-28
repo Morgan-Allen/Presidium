@@ -83,7 +83,7 @@ public abstract class Plan implements Saveable, Behaviour {
       final Target t = (Target) o ;
       if (! t.inWorld()) return false ;
     }
-    if (actor != null  && ! actor.inWorld()) return false ;
+    if (actor != null && ! actor.inWorld()) return false ;
     return true ;
   }
   
@@ -164,8 +164,9 @@ public abstract class Plan implements Saveable, Behaviour {
   //  TODO:  Outsource this to the ActorAI or possibly DangerMap classes.
   public static float rangePenalty(Target a, Target b) {
     if (a == null || b == null) return 0 ;
-    final float dist = Spacing.distance(a, b) * 1.0f / Terrain.SECTOR_SIZE ;
-    if (dist <= 1) return 1 ;
+    final float SS = World.DEFAULT_SECTOR_SIZE ;
+    final float dist = Spacing.distance(a, b) * 1.0f / SS ;
+    if (dist <= 1) return dist ;
     return IL2 * (float) Math.log(dist) ;
   }
   

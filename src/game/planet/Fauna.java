@@ -58,7 +58,7 @@ public abstract class Fauna extends Actor {
     final Fauna actor = this ;
     
     return new ActorAI(actor) {
-      protected Behaviour nextBehaviour() {
+      protected Behaviour createBehaviour() {
         final Choice choice = new Choice(actor) ;
         addChoices(choice) ;
         return choice.weightedPick(actor.AI.whimsy()) ;
@@ -80,8 +80,9 @@ public abstract class Fauna extends Actor {
       public float relation(Actor other) {
         if (other instanceof Fauna) {
           final Fauna f = (Fauna) other ;
-          if (f.species != species && f.species.goesHunt()) return -0.5f ;
           if (f.species == species) return 0.25f ;
+          else if (f.species.goesHunt()) return -0.5f ;
+          else if (f.species.type != Species.Type.BROWSER) return -0.25f ;
         }
         return 0 ;
       }

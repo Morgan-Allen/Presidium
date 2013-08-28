@@ -146,7 +146,6 @@ public class World {
   public Iterable <Tile> tilesIn(Box2D area, boolean safe) {
     final Box2D b = new Box2D().setTo(area) ;
     if (safe) b.cropBy(new Box2D().set(-0.5f, -0.5f, size, size)) ;
-    ///I.say("Area is NOW "+b) ;
     final int
       minX = (int) (b.xpos() + 0.5f),
       minY = (int) (b.ypos() + 0.5f),

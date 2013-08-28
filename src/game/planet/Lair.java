@@ -196,7 +196,7 @@ public class Lair extends Venue {
   //  TODO:  This sort of thing might be outsourced to the GrowthMap class, or
   //  something similar.
   protected float evalFertility(Tile point) {
-    I.say("Evaluating fertility at: "+point) ;
+    ///I.say("Evaluating fertility at: "+point) ;
     final Box2D limit = new Box2D().set(point.x, point.y, 0, 0) ;
     limit.expandBy(GROUND_SAMPLE_RANGE) ;
     float sumF = 0 ;

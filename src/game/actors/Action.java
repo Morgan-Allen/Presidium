@@ -11,6 +11,7 @@ import src.game.building.* ;
 import src.graphics.common.* ;
 import src.user.* ;
 import src.util.* ;
+
 import java.lang.reflect.* ;
 
 
@@ -209,16 +210,16 @@ public class Action implements Behaviour, Model.AnimNames {
     //  Depending on whether you're currently close enough to the move-target,
     //  and facing the action-target, you enter motion or action mode
     //  respectively.
-    //final boolean movingTarget = ! (moveTarget instanceof Boardable) ;
     float minDist = 0 ;
     if ((properties & RANGED) != 0) minDist = actor.health.sightRange() ;
     if (inRange == 1) minDist += progress + 0.5f ;
+    
     final boolean
       closed = actor.pathing.closeEnough(moveTarget, minDist),
       facing = actor.pathing.facingTarget(actionTarget) ;
-    
     if (! closed) actor.pathing.updateTarget(moveTarget) ;
     final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;
+    
     actor.pathing.headTowards(faced, moveRate(), ! closed) ;
     //
     //  Check for state changes-

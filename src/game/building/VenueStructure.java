@@ -7,6 +7,7 @@
 package src.game.building ;
 import src.game.actors.* ;
 import src.game.common.* ;
+import src.user.BaseUI;
 import src.util.* ;
 
 
@@ -148,6 +149,13 @@ public class VenueStructure extends Inventory {
   }
   
   
+  public void updateStats(int baseIntegrity, int armouring) {
+    this.baseIntegrity = baseIntegrity ;
+    this.armouring = armouring ;
+    checkMaintenance() ;
+  }
+  
+  
   
   /**  Queries and modifications-
     */
@@ -172,7 +180,10 @@ public class VenueStructure extends Inventory {
   
   
   public void repairBy(float inc) {
-    if (inc < 0) I.complain("NEGATIVE REPAIR!") ;
+    final int max = maxIntegrity() ;
+    if (inc < 0 && integrity > max) {
+      inc = Math.min(inc, integrity - max) ;
+    }
     adjustRepair(inc) ;
     if (inc > Rand.num() * maxIntegrity()) burning = false ;
   }
@@ -203,16 +214,23 @@ public class VenueStructure extends Inventory {
   
   
   public boolean needsRepair() {
-    boolean needs = false ;
-    if (state == STATE_SALVAGE) needs = integrity > 0 ;
-    else needs = integrity < maxIntegrity() ;
-    return needs ;
+    return needsSalvage() || integrity < maxIntegrity() ;
+  }
+  
+  
+  public boolean needsSalvage() {
+    return state == STATE_SALVAGE || integrity > maxIntegrity() ;
+  }
+  
+  
+  public boolean needsUpgrade() {
+    return nextUpgradeIndex() != -1 ;
   }
   
   
   protected void checkMaintenance() {
     final boolean needs = needsRepair() || needsUpgrade() ;
-    ///I.say(venue+" needs maintenance? "+needs) ;
+    if (BaseUI.isPicked(venue)) I.say(venue+" needs maintenance? "+needs) ;
     final World world = venue.world() ;
     world.presences.togglePresence(
       venue, world.tileAt(venue), needs, "damaged"
@@ -223,11 +241,6 @@ public class VenueStructure extends Inventory {
   
   /**  Handling upgrades-
     */
-  public boolean needsUpgrade() {
-    return nextUpgradeIndex() != -1 ;
-  }
-  
-  
   private int nextUpgradeIndex() {
     if (upgrades == null) return -1 ;
     for (int i = 0 ; i < upgrades.length ; i++) {
@@ -303,6 +316,7 @@ public class VenueStructure extends Inventory {
   public boolean upgradePossible(Upgrade upgrade) {
     //  Consider returning a String explaining the problem, if there is one?
     //  ...Or an error code of some kind?
+    if (upgrades == null) return false ;
     boolean isSlot = false, hasReq = upgrade.required == null ;
     int numType = 0 ;
     for (Upgrade u : upgrades) {
@@ -311,6 +325,18 @@ public class VenueStructure extends Inventory {
       if (u == upgrade) numType++ ;
     }
     return isSlot && hasReq && numType < MAX_OF_TYPE ;
+  }
+  
+  
+  public int upgradeBonus(Object refers) {
+    if (upgrades == null) return 0 ;
+    int bonus = 0 ;
+    for (int i = 0 ; i < upgrades.length ; i++) {
+      final Upgrade u = upgrades[i] ;
+      if (u == null || upgradeStates[i] != STATE_INTACT) continue ;
+      if (u.refers == refers) bonus += u.bonus ;
+    }
+    return bonus ;
   }
   
   
@@ -324,8 +350,8 @@ public class VenueStructure extends Inventory {
       if (armouring > Rand.num() * damage) burning = false ;
     }
     if (numUpdates % 10 == 0) {
-      final float wear = Rand.num() * 2 ;
-      if (wear > Rand.num() * armouring) takeDamage(wear) ;
+      final float wear = baseIntegrity / World.DEFAULT_DAY_LENGTH ;
+      if (2 > Rand.num() * armouring) takeDamage(wear * Rand.num()) ;
     }
   }
   

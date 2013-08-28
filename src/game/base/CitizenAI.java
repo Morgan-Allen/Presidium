@@ -86,7 +86,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
 
   /**  Behaviour implementation-
     */
-  protected Behaviour nextBehaviour() {
+  protected Behaviour createBehaviour() {
     final Choice choice = new Choice(actor) ;
     addReactions(choice) ;
     
@@ -108,6 +108,29 @@ public class CitizenAI extends ActorAI implements ActorConstants {
   }
   
   
+  protected void updateAI(int numUpdates) {
+    super.updateAI(numUpdates) ;
+    if (numUpdates % 10 == 0) {
+      if (this.work == null) {
+        //  TODO:  Apply for a new position.
+      }
+      if (this.home == null && this.work instanceof Venue) {
+        ///I.say("Home is: "+home) ;
+        final Holding newHome = Holding.findHoldingFor(actor) ;
+        ///I.say("NEW home is: "+home) ;
+        if (newHome != null) {
+          if (! newHome.inWorld()) {
+            newHome.clearSurrounds() ;
+            newHome.enterWorld() ;
+            newHome.structure.setState(VenueStructure.STATE_INSTALL, 0.1f) ;
+          }
+          setHomeVenue(newHome) ;
+        }
+      }
+    }
+  }
+  
+
   protected Behaviour reactionTo(Mobile seen) {
     return null ;
   }
@@ -130,9 +153,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
   protected void addReactions(Choice choice) {
     //
     //  Find all nearby items or actors and consider reacting to them.
-    final PresenceMap
-      mobiles = actor.world().presences.mapFor(Mobile.class),
-      repairs = actor.world().presences.mapFor("damaged") ;
+    final PresenceMap mobiles = actor.world().presences.mapFor(Mobile.class) ;
     final int reactLimit = (int) (actor.traits.trueLevel(INSIGHT) / 2) ;
     final Batch <Actor> actorB = new Batch <Actor> () ;
     int numR = 0 ;
@@ -151,15 +172,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     choice.add(new Retreat(actor)) ;
     //
     //  Consider repairing nearby buildings-
-    final Batch <Venue> venueB = new Batch <Venue> () ;
-    numR = 0 ;
-    for (Target t : repairs.visitNear(actor, -1, null)) {
-      if (t instanceof Venue) venueB.add((Venue) t) ;
-      if (++numR > reactLimit) break ;
-    }
-    for (Venue near : venueB) {
-      choice.add(new Building(actor, near)) ;
-    }
+    choice.add(Building.getNextRepairFor(actor)) ;
   }
   
   
@@ -183,8 +196,6 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     //
     //  Try a range of other spontaneous behaviours, include relaxation,
     //  helping out and spontaneous missions-
-    
-    
     final Action wander = (Action) new Patrolling(actor, actor, 5).nextStep() ;
     wander.setPriority(Plan.IDLE) ;
     choice.add(wander) ;
@@ -230,8 +241,17 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     //
     //  Also, consider buying new items for your home, either individually or
     //  together at the stock exchange.
+    if (home instanceof Holding) {
+      final Item items[] = ((Holding) home).goodsNeeded().toArray(Item.class) ;
+      final Venue shop = Delivery.findBestVenue(actor, items) ;
+      if (shop != null) {
+        choice.add(new Delivery(items, shop, home)) ;
+      }
+    }
   }
 }
+
+
 
 
 

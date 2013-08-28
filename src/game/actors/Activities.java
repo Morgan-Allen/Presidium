@@ -106,6 +106,17 @@ public class Activities {
     }
     return false ;
   }
+  
+  
+  public Batch <Behaviour> targeting(Target t) {
+    final Batch <Behaviour> batch = new Batch <Behaviour> () ;
+    final List <Action> onTarget = actions.get(t) ;
+    if (onTarget == null) return batch ;
+    for (Action a : onTarget) for (Behaviour b : a.actor.AI.agenda()) {
+      batch.add(b) ;
+    }
+    return batch ;
+  }
 }
 
 

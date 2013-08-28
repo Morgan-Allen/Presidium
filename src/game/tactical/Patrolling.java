@@ -71,6 +71,7 @@ public class Patrolling extends Plan {
   private boolean pickCompassPoint() {
     if (numCircuits == 2) {
       goes = null ;
+      ///if (goes == null) I.say("...2 CIRCUITS.") ;
       return false ;
     }
     final World world = actor.world() ;
@@ -85,6 +86,7 @@ public class Patrolling extends Plan {
     pick.x = Visit.clamp(pick.x, 0, world.size - 1) ;
     pick.y = Visit.clamp(pick.y, 0, world.size - 1) ;
     goes = Spacing.nearestOpenTile(world.tileAt(pick.x, pick.y), actor) ;
+    ///if (goes == null || goes.blocked()) I.say("...NO GO.") ;
     if (goes == null || goes.blocked()) return false ;
     return true ;
   }

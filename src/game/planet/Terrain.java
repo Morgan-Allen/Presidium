@@ -17,8 +17,7 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   
   final public static int
-    SECTOR_SIZE     = 16,
-    SMOOTH_MARGIN   = 2 ,
+ //   SMOOTH_MARGIN   = 2 ,
     MAX_INSOLATION  = 10,
     MAX_MOISTURE    = 10,
     MAX_RADIATION   = 10 ;
@@ -114,6 +113,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     
     roadCounter = new byte[mapSize][mapSize] ;
     s.loadByteArray(roadCounter) ;
+    
     habitats = new Habitat[mapSize][mapSize] ;
     for (Coord c : Visit.grid(0, 0, mapSize, mapSize, 1)) {
       habitats[c.x][c.y] = Habitat.ALL_HABITATS[typeIndex[c.x][c.y]] ;

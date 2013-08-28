@@ -22,6 +22,16 @@ import src.util.* ;
 //  attempting to 'correct' position after each update.  This class must treat
 //  all tiles as passable to compensate.
 
+/*
+A parabolic curve is y = x^2.  Flip that on it's side, and you have y = sqrt(x),
+where y is lateral distance from the descent point.
+Add the minimum descent height.
+
+Parametric equation would be: X = 2at, Y = a(t^2)
+*/
+//
+//  ...You also need to try making deliveries/collections, based on what
+//  nearby venues have either a shortage or excess of.
 
 
 public class Dropship extends Vehicle implements Inventory.Owner {
@@ -112,9 +122,6 @@ public class Dropship extends Vehicle implements Inventory.Owner {
       boardAction.setPriority(Behaviour.URGENT) ;
       return boardAction ;
     }
-    //
-    //  ...You also need to try making deliveries/collections, based on what
-    //  nearby venues have either a shortage or excess of.
     
     return super.jobFor(actor) ;
   }
@@ -336,21 +343,15 @@ public class Dropship extends Vehicle implements Inventory.Owner {
         this.nextRotation = getShipRot(time, true) ;
       }
     }
-    /*
-    I.say("Current position/rotation: "+position+"/"+rotation) ;
-    I.say("Next position/rotation: "+nextPosition+"/"+nextRotation) ;
-    I.say("Stage is: "+stage) ;
-    //*/
   }
   
   
   public boolean blocksMotion(Boardable t) {
-    return true ;
+    return false ;
   }
   
   
   public void pathingAbort() {
-    //  Not sure what to do here, exactly...
   }
   
   
@@ -366,8 +367,6 @@ public class Dropship extends Vehicle implements Inventory.Owner {
         (landPos.y * horiz) + (liftOff.y * (1 - horiz)),
         LOWER_FLIGHT_HEIGHT + (UPPER_FLIGHT_RADIUS * vert)
       ) ;
-      //if (BaseUI.isPicked(this)) I.say("  ship position: "+p) ;
-      //I.say("  Horiz/vert are: "+horiz+"/"+vert+", pos: "+p) ;
       return p ;
     }
     else {
@@ -379,7 +378,6 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   
   private float getShipRot(float time, boolean descent) {
-    ///if (true) return 0 ;
     final Vec2D initVec = new Vec2D(liftOff).sub(landPos).normalise() ;
     if (descent) initVec.scale(-1) ;
     final float rotate = time / (UPPER_FLIGHT_TIME + LOWER_FLIGHT_TIME) ;
@@ -389,8 +387,6 @@ public class Dropship extends Vehicle implements Inventory.Owner {
       terpAngle = Vec2D.degreeDif(landRot, initAngle) * rotate ;
     return (initAngle + terpAngle + 360) % 360 ;
   }
-  
-  //  There is some kind of massive instability being caused here.
   
   
   
@@ -432,62 +428,6 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   public void writeInformation(Description d, int categoryID, HUD UI) {
   }
 }
-
-
-
-///I.say("Performing boarding action...") ;
-
-/*
-public void setupWithStage(
-  Base client, Box2D site, float facing, int stage, float timeElapsed
-) {
-  final World world = this.world == null ? client.world : this.world ;
-  
-  this.landingSite.setTo(site) ;
-  this.landPos.set(
-    site.xpos() + (site.xdim() / 2),
-    site.ypos() + (site.ydim() / 2)
-  ) ;
-  this.entranceFace = facing ;
-  this.liftOff.setFromAngle(Rand.num() * 360).scale(UPPER_FLIGHT_RADIUS) ;
-  this.initTime = world.currentTime() - timeElapsed ;
-  this.client = client ;
-  this.stage = stage ;
-  
-  final boolean inWorld = stage != STAGE_AWAY ;
-  if (inWorld && ! inWorld()) {
-    final Vec3D pos = getShipPos(0) ;
-    enterWorldAt((int) pos.x, (int) pos.y, world) ;
-    updateAsMobile() ;
-  }
-  if (inWorld() && ! inWorld) {
-    exitWorld() ;
-  }
-}
-//*/
-
-/*
-public void writeInformation(Description text, int categoryID) {
-  cargo.writeInformation(text) ;
-}
-
-public float scheduledInterval() { return 1 ; }
-
-public void updateOnSchedule(int numUpdates) {
-}
-//*/
-
-
-/*
-A parabolic curve is y = x^2.  Flip that on it's side, and you have y = sqrt(x),
-where y is lateral distance from the descent point.
-Add the minimum descent height.
-
-Parametric equation would be: X = 2at, Y = a(t^2)
-
-
-
-*/
 
 
 

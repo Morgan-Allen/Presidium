@@ -16,13 +16,10 @@ import src.user.* ;
 import src.util.* ;
 
 
-//
-//  TODO:  Try implementing Accountable.  Also, bases need to have official
-//  relations with other bases.
+
 public class Base implements
   Session.Saveable, Schedule.Updates, Accountable
 {
-  
   
   
   /**  Fields, constructors, and save/load methods-
@@ -155,6 +152,11 @@ public class Base implements
   
   
   public Base base() { return this ; }
+  
+  
+  public float communitySpirit() {
+    return 1.0f ;
+  }
   
   
   

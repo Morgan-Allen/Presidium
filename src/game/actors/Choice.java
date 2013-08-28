@@ -16,6 +16,8 @@ public class Choice {
   
   /**  Data fields, constructors and setup-
     */
+  public static boolean verbose = true ;
+  
   final Actor actor ;
   final Batch <Behaviour> plans = new Batch <Behaviour> () ;
   
@@ -32,6 +34,7 @@ public class Choice {
   
   
   public boolean add(Behaviour plan) {
+    if (verbose && BaseUI.isPicked(actor)) I.say("Adding to choice: "+plan) ;
     if (plan == null || plan.complete()) return false ;
     if (plan.nextStepFor(actor) == null) return false ;
     plans.add(plan) ;
@@ -43,13 +46,11 @@ public class Choice {
   /**  Picks a plan from those assigned earlier using priorities to weight the
     *  likelihood of their selection.
     */
-  public static boolean verbose = true ;
-  
   public Behaviour weightedPick(float priorityRange) {
     //
     //  Firstly, acquire the priorities for each plan.  If the permitted range
     //  of priorities is zero, simply return the most promising.
-    if (BaseUI.isPicked(actor) && verbose) {
+    if (verbose && BaseUI.isPicked(actor)) {
       String label = "Actor" ;
       if (actor.vocation() != null) label = actor.vocation().name ;
       else if (actor.species() != null) label = actor.species().toString() ;
@@ -63,7 +64,7 @@ public class Choice {
       final float priority = plan.priorityFor(actor) ;
       if (priority > highestW) { highestW = priority ; bestP = plan ; }
       weights[i++] = priority ;
-      if (BaseUI.isPicked(actor) && verbose) I.say(
+      if (verbose && BaseUI.isPicked(actor)) I.say(
         "  "+plan+" has priority: "+priority
       ) ;
     }

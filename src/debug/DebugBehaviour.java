@@ -19,11 +19,22 @@ import src.user.* ;
 import src.util.* ;
 
 
-/*
-Have all conversants share a single Text Bubble-generator, and insert the text
-in proper sequence, with one on each side.  Fade out as an ephemera.  Include
-visual indications of upgrades.
 
+//
+//  You also need to try scenarios between multiple actors, some of them
+//  hostile, and see how they respond.  Ideally, you don't want actors
+//  willingly running into situations that they then run away from.
+//
+//  Industrial sites don't deliver goods.  For that, you need housing to
+//  make the trip itself, or have vendors do the job.
+//
+//  More detail in recreation behaviours.  And housing purchases/upgrades.
+//
+//  Safety patrols, sick leave and performance.  Spontaneous missions, and
+//  a clearer factoring out of venues/actors batches in the AI.
+//
+//  Visual indicators for research/upgrades (and/or manufacture?)
+/*
 Check to ensure that combat works okay among rival humanoid actors.  Make sure
 mining/farming's up to date.  Try to integrate with hunting.  That may require
 implementing the Ecology class, like you planned.
@@ -122,20 +133,6 @@ public class DebugBehaviour extends PlayLoop {
   protected void configureScenario(World world, Base base, HUD HUD) {
     
     I.say(" "+(String.class.isAssignableFrom(Object.class))) ;
-    
-    //
-    //  You also need to try scenarios between multiple actors, some of them
-    //  hostile, and see how they respond.  Ideally, you don't want actors
-    //  willingly running into situations that they then run away from.
-    
-    //
-    //  More detail in recreation behaviours.  And housing purchases/upgrades.
-    //
-    //  Safety patrols, sick leave and performance.  Spontaneous missions, and
-    //  a clearer factoring out of venues/actors batches in the AI.
-    //
-    //  Visual indicators for research/upgrades (and/or manufacture?)
-    
     //natureScenario(world, base, HUD) ;
     //baseScenario(world, base, HUD) ;
     //missionScenario(world, base, HUD) ;
@@ -254,44 +251,39 @@ public class DebugBehaviour extends PlayLoop {
     *  treatment.
     */
   private void socialScenario(World world, Base base, HUD UI) {
-    final Actor
-      actor = new Human(Vocation.PHYSICIAN, base),
-      other = new Human(Vocation.VETERAN , base) ;
+    final Actor actor = new Human(Vocation.PHYSICIAN, base) ;
     actor.enterWorldAt(5, 5, world) ;
-    other.enterWorldAt(8, 8, world) ;
-    ///((BaseUI) UI).selection.pushSelection(actor, true) ;
+    ((BaseUI) UI).selection.pushSelection(actor, true) ;
     
     //
-    //  TODO:  You also want to see what happens when the actor is diseased.
-    //  ...Maybe you should consider getting them back to the Hospice first?
-    
+    //  You also want to see what happens when the actor is diseased.
     base.intelMap.liftFogAround(actor, 10) ;
-    //other.health.takeFatigue(other.health.maxHealth() / 2) ;
-    //other.health.takeInjury(other.health.maxHealth() + 1) ;
-    
-    final Cantina cantina = new Cantina(base) ;
-    cantina.enterWorldAt(2, 9, world) ;
-    cantina.setAsEstablished(true) ;
-    cantina.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
-    cantina.onCompletion() ;
     
     final Hospice hospice = new Hospice(base) ;
     hospice.enterWorldAt(9, 2, world) ;
     hospice.setAsEstablished(true) ;
     hospice.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
     hospice.onCompletion() ;
-    
-    
     actor.AI.setEmployer(hospice) ;
+    
+    //final Actor other = new Human(Vocation.VETERAN , base) ;
+    //other.health.takeFatigue(other.health.maxHealth() / 2) ;
+    //other.health.takeInjury(other.health.maxHealth() + 1) ;
+    /*
+    final Cantina cantina = new Cantina(base) ;
+    cantina.enterWorldAt(2, 9, world) ;
+    cantina.setAsEstablished(true) ;
+    cantina.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+    cantina.onCompletion() ;
+    //*/
+    /*
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;
-    EG.populateFauna(world, Species.VAREEN) ;
+    //  Vareen need to flee from the citizens!
+    ///EG.populateFauna(world, Species.VAREEN) ;
+    //*/
   }
 }
-
-
-
-
 
 
 
@@ -305,4 +297,3 @@ citizen.enterWorldAt(5, 5, world) ;
 //citizen.psyche.assignBehaviour(explores) ;
 ((BaseUI) UI).selection.setSelected(citizen) ;
 //*/
-

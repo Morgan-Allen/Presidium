@@ -89,13 +89,13 @@ public class Visit <T> {
   }
   
   
-  public static Iterable <Coord> grid(Box2D area) {
-    return grid(
-      (int) (area.xpos() + 0.5f),
-      (int) (area.ypos() + 0.5f),
-      (int) area.xdim(),
-      (int) area.ydim(),
-    1) ;
+  public static Iterable <Coord> grid(Box2D b) {
+    final int
+      minX = (int) (b.xpos() + 0.5f),
+      minY = (int) (b.ypos() + 0.5f),
+      dimX = (int) (b.xmax() + 0.5f) - minX,
+      dimY = (int) (b.ymax() + 0.5f) - minY ;
+    return grid(minX, minY, dimX, dimY, 1) ;
   }
   
   

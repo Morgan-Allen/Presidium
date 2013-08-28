@@ -28,7 +28,7 @@ public class ReconMission extends Mission {
       "Exploring "+subject.habitat().name+" at "+subject.x+" "+subject.y
     ) ;
     inRange = Exploring.grabExploreArea(
-      base.intelMap, subject, Terrain.SECTOR_SIZE / 2f
+      base.intelMap, subject, World.DEFAULT_SECTOR_SIZE / 2f
     ) ;
   }
   
@@ -96,7 +96,7 @@ public class ReconMission extends Mission {
   
   public void renderSelection(Rendering rendering, boolean hovered) {
     Selection.renderPlane(
-      rendering, subject.position(null),  Terrain.SECTOR_SIZE / 2f,
+      rendering, subject.position(null), World.DEFAULT_SECTOR_SIZE / 2f,
       hovered ? Colour.transparency(0.25f) : Colour.transparency(0.5f),
       Selection.SELECT_SQUARE
     ) ;

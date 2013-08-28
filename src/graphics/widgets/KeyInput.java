@@ -63,13 +63,18 @@ public class KeyInput {
   static void updateKeyboard() {
     //  TODO:  CERTAIN KEY EVENTS SEEM TO BE REPEATING.
     ///I.say("Updating keyboard...") ;
-    pressed.clear() ;
+    final Batch <Character> newChars = new Batch <Character> () ;
+    
     while(Keyboard.next()) {
       final int key = Keyboard.getEventKey() ;
       final boolean down = Keyboard.getEventKeyState() ;
       //final boolean repeat = Keyboard.isRepeatEvent() ;
       final char c = Keyboard.getEventCharacter() ;
-      pressed.add(c) ;
+      
+      boolean wasDown = false ;
+      for (Character p : pressed) if (p == c) wasDown = true ;
+      if (! wasDown) newChars.add(c) ;
+      //pressed.add(c) ;
       
       boolean match ;
       for (Listener listens : listeners) {
@@ -78,6 +83,8 @@ public class KeyInput {
         if (match && down) listens.pressEvent(c, key) ;
       }
     }
+    pressed.clear() ;
+    for (Character c : newChars) pressed.add(c) ;
     //for (char c : pressed) I.say(c+" was pressed") ;
   }
 }

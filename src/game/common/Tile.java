@@ -95,6 +95,7 @@ public class Tile implements Target, TileConstants, Boardable {
   
   public void setOwner(Element e) {
     if (e == owner) return ;
+    ///if (owner instanceof src.game.base.Holding) I.complain(e+" IS TO BLAME!") ;
     this.owner = e ;
     world.sections.flagBoundsUpdate(x, y) ;
     /*

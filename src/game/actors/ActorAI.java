@@ -149,12 +149,10 @@ public abstract class ActorAI implements ActorConstants {
   
   
   protected void updateAI(int numUpdates) {
-    ///I.say(actor+" updating AI...") ;
     updateSeen() ;
     if (numUpdates % 10 == 0 && agenda.size() > 0) {
       for (Behaviour b : todoList) {
         if (b.complete()) {
-          ///I.say("REMOVING FROM TODO LIST: "+b) ;
           todoList.remove(b) ;
         }
       }
@@ -167,7 +165,16 @@ public abstract class ActorAI implements ActorConstants {
   }
   
   
-  protected abstract Behaviour nextBehaviour() ;
+  private Behaviour nextBehaviour() {
+    final Behaviour
+      notDone = new Choice(actor, todoList).weightedPick(0),
+      newChoice = createBehaviour(),
+      taken = couldSwitch(notDone, newChoice) ? newChoice : notDone ;
+    return taken ;
+  }
+  
+  
+  protected abstract Behaviour createBehaviour() ;
   protected abstract Behaviour reactionTo(Mobile m) ;
   
   
@@ -197,6 +204,7 @@ public abstract class ActorAI implements ActorConstants {
     if (old != null) old.personnel.setResident(actor, false) ;
     this.home = home ;
     if (home != null) home.personnel.setResident(actor, true) ;
+    I.say("Home is NOW: "+home) ;
   }
   
   
@@ -215,6 +223,7 @@ public abstract class ActorAI implements ActorConstants {
   /**  Methods related to behaviours-
     */
   private void pushBehaviour(Behaviour b) {
+    if (todoList.contains(b)) todoList.remove(b) ;
     agenda.addFirst(b) ;
     actor.world().activities.toggleActive(b, true) ;
   }
@@ -235,6 +244,9 @@ public abstract class ActorAI implements ActorConstants {
     cancelBehaviour(replaced) ;
     pushBehaviour(behaviour) ;
     if (replaced != null && ! replaced.complete()) {
+      if (BaseUI.isPicked(actor)) {
+        I.say(actor+" SAVING PLAN AS TODO: "+replaced) ;
+      }
       todoList.include(replaced) ;
     }
   }
@@ -293,13 +305,9 @@ public abstract class ActorAI implements ActorConstants {
       //
       //  If all current behaviours are complete, generate a new one.
       if (agenda.size() == 0) {
-        final Behaviour 
-          notDone = new Choice(actor, todoList).weightedPick(0),
-          newChoice = nextBehaviour(),
-          root = couldSwitch(notDone, newChoice) ? newChoice : notDone ;
-        if (root == null) return null ;
-        if (root == notDone) todoList.remove(notDone) ;
-        pushBehaviour(root) ;
+        final Behaviour taken = nextBehaviour() ;
+        if (taken == null) return null ;
+        pushBehaviour(taken) ;
       }
       //
       //  Root behaviours which return null, but aren't complete, should be

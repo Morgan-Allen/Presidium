@@ -3,7 +3,7 @@
 *  Extra critter models:  Gigans and cranial.
 *  Extra humanoid models:  fat/skinny, young/old.
 *  Mutant/primitive/infected textures.
-
+*  The personnel tab might be simplified.
 
 16 commodity types to cover (everything else is minor)
   foodstuffs (3 types), spice
@@ -38,3 +38,101 @@ Quest ideas-
   There's a virgin wilderness filled with animals.
   Settlers are being preyed on by a powerful enemy.
   An imperial fortress is help by a trio of champions.
+  
+  
+  
+  
+
+
+The Reactor.
+
+The Archives.  The Vault System and Service Hatch.
+
+The Solar Array.  The Air Processor.  The Condensor/Reclamator.
+
+
+PHYSICIAN HOSPICE  (plus list of Patients/Inmates/Cadavers)
+  Aid Station  (creates Medkits)
+  Quarantine Facility
+  Minder Quarters
+  Intensive Care (requires Aid Station)
+  Psych Ward (requires Minder Quarters)
+  Physician Quarters (requires Intensive Care)
+
+CULTURE VATS
+  Soma Culture
+  Tissue Banks  (allows protein and spare organs)
+  Drug Synthesis  (requires Soma Culture)
+  Vats Breeder Quarters
+
+
+RANGER REDOUBT  (plus list of Species)
+  Enhanced Camouflage
+  Birthing Pens
+  Ranger Quarters
+  Rider Training  (requires Birthing Pens)
+
+
+
+STOCK EXCHANGE & AUDIT OFFICE
+  Making Money & propaganda directly.
+  Hearing of criminal cases.
+  Recruiting Auditors.
+  Recruiting Censors.
+
+  More storage space for hardware.
+  More storage space for perishables.
+  Permitting sales to the venue.
+  Permitting orders of rare/custom items.
+  Enhancing small-scale bulk purchases (window-shopping/special offers.)
+  Recruiting Vendors.
+
+  What about the Supply Depot/Mag Lines?
+  
+
+
+GARRISON & BASTION
+  Logistic support.  (taxmen/supply corps.)
+  More space for captives.
+  Space for you and your family/better throne room/seat of power.
+  More room for noble guests.
+  Expanding the Household and Honour Guard.
+  Recruiting Veterans.
+
+  Melee training.  (close combat and armour.)
+  Marksmanship training.  (ranged fire and stealth.)
+  Technical/piloting training.  (vehicles and assembly.)
+  Recruiting Volunteers.
+
+  What about Shield Walls/Perimeter Fence?
+  ...Restrict access to particular personnel.
+  ...Afford chance to upgrade along length.
+  ...Activate shields/man the defences.
+
+
+
+FABRICATOR & TRAINING HOUSE
+  Faster production of plastics.
+  Faster production of garments.
+  Faster production of furnishings.
+  Production of standalone artwork/landscaping.
+  Recruiting Fabricators.
+  Recruiting Sculptors.
+
+  Music and Song and Dance.
+  Physical pleasure/carnal delights.
+  Mystic trance/guided meditation.
+  Recruiting Companions.
+
+
+
+
+
+
+
+
+
+
+
+
+  

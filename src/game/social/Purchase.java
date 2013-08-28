@@ -15,6 +15,13 @@ import src.util.* ;
 //  Purchase a device/weapon, or outfit/armour.
 //  Purchase rations, fuel cells or a medkit.
 
+//  Wait.  There's an extra complication.  In the case of stock exchanges and
+//  the like, you'll want to collect several goods at once.
+
+//
+//  TODO:  Combine/merge this with the Delivery class?  ...No.
+
+
 public class Purchase extends Plan {
   
   
@@ -93,7 +100,7 @@ public class Purchase extends Plan {
   /**  Behaviour implementation-
     */
   protected Behaviour getNextStep() {
-    if (expired()) return null ;
+    if (complete()) return null ;
     //
     //  TODO:  Ensure someone is attending the shop.
     if (order != null && order.complete()) {

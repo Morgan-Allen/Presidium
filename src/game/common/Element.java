@@ -31,7 +31,7 @@ public abstract class Element implements
   
 
   private Sprite sprite ;
-  private Object flagged ;
+  private Object flagged ;  //This is used for temporary searches, not saved.
   
   protected World world ;
   private Tile location ;
@@ -49,6 +49,8 @@ public abstract class Element implements
     world = s.loadBool() ? s.world() : null ;
     location = (Tile) s.loadTarget() ;
     inceptTime = s.loadFloat() ;
+    properties = s.loadInt() ;
+    
     sprite = Model.loadSprite(s.input()) ;
   }
   
@@ -57,6 +59,8 @@ public abstract class Element implements
     s.saveBool(world != null) ;
     s.saveTarget(location) ;
     s.saveFloat(inceptTime) ;
+    s.saveInt(properties) ;
+    
     Model.saveSprite(sprite, s.output()) ;
   }
   
@@ -77,7 +81,9 @@ public abstract class Element implements
     this.toggleProperty(PROP_IN_WORLD, true) ;
     this.world = world ;
     this.inceptTime = world.currentTime() ;
-    if (owningType() != NOTHING_OWNS) location.setOwner(this) ;
+    if (owningType() != NOTHING_OWNS && ! isMobile()) {
+      location.setOwner(this) ;
+    }
   }
   
   
@@ -91,9 +97,11 @@ public abstract class Element implements
   
   public void exitWorld() {
     if (! inWorld()) return ;// I.complain("Never entered world...") ;
-    if (owningType() != NOTHING_OWNS) location.setOwner(null) ;
+    if (owningType() != NOTHING_OWNS && ! isMobile()) {
+      location.setOwner(null) ;
+    }
     this.toggleProperty(PROP_IN_WORLD, false) ;
-    this.world = null ;
+    //this.world = null ;
   }
   
   
@@ -115,7 +123,12 @@ public abstract class Element implements
   
   
   public boolean inWorld() {
-    return world != null ;
+    return hasProperty(PROP_IN_WORLD) ;
+  }
+  
+  
+  public boolean isMobile() {
+    return false ;
   }
   
   

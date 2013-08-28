@@ -129,9 +129,12 @@ public class MobilePathing {
     //
     //  If the path needs refreshment, do so-
     if (! validPath) {
-      if (BaseUI.isPicked(mobile)) I.say("Must refresh path... ") ;
       pathTarget = dest ;
       refreshPath() ;
+      if (BaseUI.isPicked(mobile) && path != null) {
+        //I.say("Path is:") ;
+        //for (Boardable b : path) I.add("\n  "+b+" "+b.inWorld()) ;
+      }
     }
     if (path == null) {
       if (BaseUI.isPicked(mobile)) I.say("COULDN'T PATH TO: "+pathTarget) ;
@@ -174,6 +177,7 @@ public class MobilePathing {
     //
     //  Determine the appropriate offset and angle for this target-
     if (target == null) return ;
+    ///if (BaseUI.isPicked(mobile)) I.say("Moving toward "+target) ;
     final Vec2D disp = displacement(target) ;
     final float dist = disp.length() ;
     float angle = dist == 0 ? 0 : disp.normalise().toAngle() ;
@@ -196,15 +200,26 @@ public class MobilePathing {
     disp.x += mobile.position.x ;
     disp.y += mobile.position.y ;
     mobile.nextPosition.setTo(disp) ;
-    mobile.nextPosition.z = mobile.aboveGroundHeight() ;
     mobile.nextRotation = angle ;
-    ///if (BaseUI.isPicked(mobile)) I.say("Updating actor: ") ;
+    final float baseHigh ;
+    if (target instanceof Tile) {
+      baseHigh = mobile.world.terrain().trueHeight(disp.x, disp.y) ;
+    }
+    else baseHigh = target.position(null).z ;
+    mobile.nextPosition.z = baseHigh + mobile.aboveGroundHeight() ;
   }
   
   
+  private static Boardable batch[] = new Boardable[8] ;
+  
   public boolean closeEnough(Target target, float minDist) {
     if (target instanceof Boardable && minDist <= 0) {
-      return inLocus((Boardable) target) ;
+      final Boardable b = (Boardable) target ;
+      if (mobile.aboard() != b) {
+        b.canBoard(batch) ;
+        if (! Visit.arrayIncludes(batch, mobile.aboard())) return false ;
+      }
+      return inLocus(b) ;
     }
     return Spacing.distance(mobile, target) <= minDist ;
   }

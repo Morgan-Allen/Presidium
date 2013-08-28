@@ -118,14 +118,16 @@ public class Retreat extends Plan implements ActorConstants {
       danger *= 1 - (dist / range) ;
       
       float attitude = actor.AI.relation(near) ;
-      ///I.say("Danger is: "+danger+", attitude: "+attitude+" for: "+near) ;
+      
+      if (BaseUI.isPicked(actor) && attitude < 0) {
+        I.say(actor+" is afraid of: "+near+", danger: "+danger) ;
+      }
       if (attitude < 0) seenDanger += danger ;
-      if (attitude == 0) seenDanger += danger / 2 ;
       if (attitude > 0) seenDanger -= danger / 2 ;
     }
-    if (seenDanger == 0) return 0 ;
+    if (seenDanger <= 0) return 0 ;
     final float strength = Combat.combatStrength(actor) * 2 ;
-    if (strength == 0) return PARAMOUNT ;
+    if (strength <= 0) return PARAMOUNT ;
     return Visit.clamp(seenDanger / strength, 0, PARAMOUNT) ;
   }
   
@@ -181,7 +183,7 @@ public class Retreat extends Plan implements ActorConstants {
     if (haven.getClass() == prefClass) rating *= 2 ;
     if (haven.base() == actor.base()) rating *= 2 ;
     if (haven == actor.AI.home()) rating *= 2 ;
-    final int SS = Terrain.SECTOR_SIZE ;
+    final int SS = World.DEFAULT_SECTOR_SIZE ;
     rating *= SS / (SS + Spacing.distance(actor, haven)) ;
     return rating ;
   }

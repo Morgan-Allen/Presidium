@@ -51,6 +51,7 @@ public class Barge extends Mobile {
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveObject(followed) ;
+    s.saveObject(tracked) ;
     s.saveObject(passenger) ;
     Item.saveTo(s, cargo) ;
   }

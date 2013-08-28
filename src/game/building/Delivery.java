@@ -86,27 +86,67 @@ public class Delivery extends Plan {
   int stage() { return stage ; }
   
   
-  public boolean valid() {
-    if (! super.valid()) return false ;
-    if (stage >= STAGE_PICKUP || origin == null) return true ;
-    for (Item i : items) if (! origin.stocks.hasItem(i)) return false ;
-    return true ;
-  }
-  
-  
-  
-  /**  Behaviour implementation-
+  /**  Assessing targets and priorities-
     */
   public float priorityFor(Actor actor) {
     return ROUTINE ;
   }
   
   
+  public boolean valid() {
+    if (! super.valid()) return false ;
+    if (stage >= STAGE_PICKUP || origin == null) return true ;
+    boolean hasAny = false ;
+    for (Item i : items) if (origin.stocks.amountOf(i) > 0) hasAny = true ;
+    return hasAny ;
+  }
+  
+  
+  public boolean complete() {
+    return stage == STAGE_DONE ;
+  }
+  
+  
+  public static Venue findBestVenue(Actor actor, Item items[]) {
+    //
+    //  TODO:  Base this off the list of venues the actor is aware of.
+    //  ...Which should, in turn, be updated gradually over time.
+    
+    final World world = actor.world() ;
+    final int maxTried = 3 ;
+    Venue best = null ;
+    float bestRating = 0 ;
+    
+    for (Item item : items) {
+      int numTried = 0 ;
+      for (Object t : world.presences.matchesNear(item.type, actor, null)) {
+        if (++numTried > maxTried) break ;
+        final Venue v = (Venue) t ;
+        float rating = 0 ;
+        for (Service s : v.services()) for (Item i : items) {
+          if (s == i.type) rating += i.amount * v.stocks.amountOf(i) ;
+        }
+        final float dist = Spacing.distance(actor, v) ;
+        rating /= 1 + (dist / World.DEFAULT_SECTOR_SIZE) ;
+        ///I.say("Rating for "+v+" was: "+rating) ;
+        if (rating > bestRating) { best = v ; bestRating = rating ; }
+      }
+    }
+    ///I.say("Returning "+best) ;
+    return best ;
+  }
+  
+  
+  
+  /**  Behaviour implementation-
+    */
   public Behaviour getNextStep() {
     //
     //  Here, you need to check if you have enough of the goods?
     if (stage == STAGE_INIT) {
       stage = STAGE_PICKUP ;
+    }
+    if (stage == STAGE_PICKUP) {
       //
       //  Create a barge to follow the actor (which will dispose of itself
       //  once the behaviour completes.)
@@ -118,8 +158,7 @@ public class Delivery extends Plan {
       ) ;
       return pickup ;
     }
-    if (stage == STAGE_PICKUP) {
-      stage = STAGE_DROPOFF ;
+    if (stage == STAGE_DROPOFF) {
       final Action dropoff = new Action(
         actor, destination,
         this, "actionDropoff",
@@ -130,6 +169,7 @@ public class Delivery extends Plan {
       //  If the destination isn't complete, drop off at the entrance?
       return dropoff ;
     }
+    ///I.say(this+" returning NULL!") ;
     return null ;
   }
   
@@ -142,12 +182,15 @@ public class Delivery extends Plan {
     I.say(actor+" Performing pickup...") ;
     
     if (target == origin) {
-      for (Item i : items) origin.stocks.transfer(i, actor) ;
+      for (Item i : items) {
+        float TA = origin.stocks.transfer(i, actor) ;
+        I.say("Transferred: "+TA+" of "+i.type.name) ;
+      }
     }
     if (target == passenger) {
       barge.passenger = passenger ;
     }
-    stage = STAGE_PICKUP ;
+    stage = STAGE_DROPOFF ;
     return true ;
   }
   

@@ -316,7 +316,7 @@ public class ActorGear extends Inventory implements BuildConstants {
     else if (item.type instanceof DeviceType) equipDevice(item) ;
     else if (item.type instanceof OutfitType) equipOutfit(item) ;
     else if (! super.addItem(item)) return false ;
-    actor.chat.addPhrase("+"+item, TalkFX.NOT_SPOKEN) ;
+    if (actor.inWorld()) actor.chat.addPhrase("+"+item, TalkFX.NOT_SPOKEN) ;
     return true ;
   }
 }

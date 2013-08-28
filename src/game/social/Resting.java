@@ -12,7 +12,6 @@ import src.util.* ;
 
 
 
-
 public class Resting extends Plan implements BuildConstants {
   
   
@@ -21,8 +20,8 @@ public class Resting extends Plan implements BuildConstants {
     */
   final static int
     SCAVENGE_DC = 5,
-    FORAGING_DC = 10,
-    
+    FORAGING_DC = 10 ;
+  final static int
     MODE_NONE     = -1,
     MODE_DINE     =  0,
     MODE_SCAVENGE =  1,
@@ -30,6 +29,7 @@ public class Resting extends Plan implements BuildConstants {
   
   final Boardable restPoint ;
   int currentMode = MODE_NONE ;
+  float minPriority = -1 ;
   
   
   public Resting(Actor actor, Boardable relaxesAt) {
@@ -42,6 +42,7 @@ public class Resting extends Plan implements BuildConstants {
     super(s) ;
     this.restPoint = (Boardable) s.loadTarget() ;
     this.currentMode = s.loadInt() ;
+    this.minPriority = s.loadFloat() ;
   }
   
   
@@ -49,6 +50,7 @@ public class Resting extends Plan implements BuildConstants {
     super.saveState(s) ;
     s.saveTarget(restPoint) ;
     s.saveInt(currentMode) ;
+    s.saveFloat(minPriority) ;
   }
   
   
@@ -57,7 +59,13 @@ public class Resting extends Plan implements BuildConstants {
     */
   public float priorityFor(Actor actor) {
     if (restPoint == null) return -1 ;
-    return ratePoint(actor, restPoint) ;
+    final float priority = ratePoint(actor, restPoint) ;
+    //
+    //  To ensure that the actor doesn't see-saw between relaxing and not
+    //  relaxing as fatigue lifts, we establish a minimum priority-
+    if (minPriority == -1) minPriority = Math.max(priority / 2, priority - 2) ;
+    if (priority < minPriority) return minPriority ;
+    return priority ;
   }
   
   

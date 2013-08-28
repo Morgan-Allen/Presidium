@@ -16,8 +16,7 @@ import src.util.* ;
 
 //
 //  ...This could be linked to an Order object at a venue, so that progress
-//  can be tracked externally and the job taken up by other actors.  Key off
-//  the item in question?
+//  can be tracked externally and the job taken up by other actors.
 
 
 public class Manufacture extends Plan implements Behaviour {
@@ -98,6 +97,7 @@ public class Manufacture extends Plan implements Behaviour {
   }
   
   
+  
   /**  Behaviour implementation-
     */
   public Behaviour getNextStep() {
@@ -143,10 +143,13 @@ public class Manufacture extends Plan implements Behaviour {
     }
     //
     //  Advance progress, and check if you're done yet.
+    final int oldCount = (int) (progress * made.amount) ;
     progress += success ? progInc : (progInc / 10f) ;
-    if (progress >= 1) {
-      venue.stocks.addItem(made) ;
-      return true ;
+    ///progress = Visit.clamp(progress, 0, 1) ;
+    final int newCount = (int) (progress * made.amount) ;
+    if (newCount > oldCount) {
+      venue.stocks.addItem(Item.withAmount(made, newCount - oldCount)) ;
+      if (progress >= 1) return true ;
     }
     return false ;
   }

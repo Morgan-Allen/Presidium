@@ -55,8 +55,8 @@ public class Fabricator extends Venue implements BuildConstants {
   
   public Behaviour jobFor(Actor actor) {
     
-    final Delivery d = stocks.nextDelivery(actor, services()) ;
-    if (d != null) return d ;
+    //final Delivery d = stocks.nextDelivery(actor, services()) ;
+    //if (d != null) return d ;
     
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
     if (o != null) return o ;
@@ -65,6 +65,13 @@ public class Fabricator extends Venue implements BuildConstants {
     if (m != null) return m ;
     
     return null ;
+  }
+  
+  
+  public int numOpenings(Vocation v) {
+    int NO = super.numOpenings(v) ;
+    if (v == Vocation.FABRICATOR) return NO + 2 ;
+    return 0 ;
   }
   
   
@@ -85,7 +92,7 @@ public class Fabricator extends Venue implements BuildConstants {
     return new Composite(UI, "media/GUI/Buttons/fabricator_button.gif") ;
   }
 
-  public String fullName() { return "Fabricator" ; }
+  public String fullName() { return "The Fabricator" ; }
   
   public String helpInfo() {
     return

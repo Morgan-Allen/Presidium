@@ -51,9 +51,10 @@ public class Artificer extends Venue implements BuildConstants {
   
   /**  Economic functions, upgrades and employee behaviour-
     */
-
-  final static Index <Upgrade>
-    ALL_UPGRADES = new Index(Artificer.class, "artificer_upgrades") ;
+  final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
+    Artificer.class, "artificer_upgrades"
+  ) ;
+  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     ASSEMBLY_LINE = new Upgrade(
       "Assembly Line",
@@ -97,11 +98,6 @@ public class Artificer extends Venue implements BuildConstants {
     ) ;
   
   
-  protected Index <Upgrade> allUpgrades() {
-    return ALL_UPGRADES ;
-  }
-  
-  
   protected Service[] services() {
     return new Service[] {
       PARTS, SHOCK_STAFF, PHASE_PISTOL,
@@ -125,7 +121,14 @@ public class Artificer extends Venue implements BuildConstants {
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
+    
+    /*
     //  This is a temporary measure.  Remove later?
+    if (stocks.amountOf(PARTS) < 10) {
+      stocks.addItem(Item.withAmount(PARTS, 10)) ;
+    }
+    //*/
+    
     //stocks.receiveDemand(PARTS, 10) ;
     stocks.translateDemands(METALS_TO_PARTS) ;
   }
@@ -134,8 +137,8 @@ public class Artificer extends Venue implements BuildConstants {
   public Behaviour jobFor(Actor actor) {
     if (! structure.intact()) return null ;
     
-    final Delivery d = stocks.nextDelivery(actor, services()) ;
-    if (d != null) return d ;
+    //final Delivery d = stocks.nextDelivery(actor, services()) ;
+    //if (d != null) return d ;
     
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
     if (o != null) return o ;

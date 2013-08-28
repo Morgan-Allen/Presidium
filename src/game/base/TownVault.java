@@ -7,7 +7,7 @@
 
 package src.game.base ;
 import src.game.common.* ;
-import src.game.planet.Planet;
+import src.game.planet.Planet ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
@@ -65,7 +65,7 @@ public class TownVault extends Venue implements BuildConstants {
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    
+    /*
     ///I.say("Updating demands...") ;
     stocks.clearDemands() ;
     for (Holding holding : holdings) {
@@ -77,6 +77,7 @@ public class TownVault extends Venue implements BuildConstants {
       stocks.incRequired(PROTEIN , 10) ;
       ///I.say("Adding demand for: "+holding.fullName()) ;
     }
+    //*/
     
     for (Object t : world.presences.matchesNear(base(), this, 32)) {
       final Venue v = (Venue) t ;
@@ -104,7 +105,8 @@ public class TownVault extends Venue implements BuildConstants {
   private Holding findHousingSite(Actor citizen, Venue works) {
     
     final int maxRange = World.DEFAULT_SECTOR_SIZE ;
-    final Holding holding = new Holding(base(), this) ;
+    //final Holding holding = new Holding(base(), this) ;
+    final Holding holding = new Holding(base()) ;
     
     Vec3D midPos = idealSite(citizen, works) ;
     final Tile midTile = world.tileAt(midPos.x, midPos.y) ;
@@ -162,6 +164,7 @@ public class TownVault extends Venue implements BuildConstants {
   /**  Implementing construction, upgrades, downgrades and salvage-
     */
   public Behaviour jobFor(Actor actor) {
+    /*
     for (Holding h : holdings) for (Item i : h.goodsNeeded().raw) {
       final Delivery d = deliveryFor(i, h) ;
       if (d != null) return d ;
@@ -170,6 +173,7 @@ public class TownVault extends Venue implements BuildConstants {
       final Delivery d = deliveryFor(i, h) ;
       if (d != null) return d ;
     }
+    //*/
     return null ;
   }
   

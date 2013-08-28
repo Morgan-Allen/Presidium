@@ -13,6 +13,7 @@ import src.util.* ;
 
 
 
+
 public class MineFace extends Element implements Boardable, TileConstants {
   
   
@@ -20,21 +21,23 @@ public class MineFace extends Element implements Boardable, TileConstants {
     */
   private static Stack <Mobile> NONE_INSIDE = new Stack <Mobile> () ;
   
-  MineShaft parent ;
+  ExcavationShaft parent ;
   Stack <Mobile> inside = NONE_INSIDE ;
   
-  protected float promise = 0, workDone = 0 ;
+  protected float
+    promise = 0,
+    workDone = 0 ;
   
   
   
-  public MineFace(MineShaft parent) {
+  public MineFace(ExcavationShaft parent) {
     this.parent = parent ;
   }
   
   
   public MineFace(Session s) throws Exception {
     super(s) ;
-    parent = (MineShaft) s.loadObject() ;
+    parent = (ExcavationShaft) s.loadObject() ;
     if (s.loadBool()) s.loadObjects(inside = new Stack <Mobile> ()) ;
     else inside = NONE_INSIDE ;
     promise = s.loadFloat() ;
@@ -95,6 +98,11 @@ public class MineFace extends Element implements Boardable, TileConstants {
   }
   
   
+  public boolean inWorld() {
+    return parent.faceAt(origin()) == this ;
+  }
+  
+  
   public boolean isEntrance(Boardable b) {
     if (b == parent) {
       return parent.firstFace == this ;
@@ -112,53 +120,13 @@ public class MineFace extends Element implements Boardable, TileConstants {
     return m.base() == parent.base() ;
   }
   
-}
-
-
-
-
-/**  Rendering and interface methods-
-  */
-/*
-public String fullName() {
-  return "Shaft Opening" ;
-}
-
-
-public Texture portrait() {
-  return null ;
-}
-
-
-public String helpInfo() {
-  return
-    "Shaft Openings allow your excavators to access subterranean deposits "+
-    "further afield." ;
-}
-
-
-public String[] infoCategories() { return null ; }
-public void writeInformation(Description description, int categoryID) {}
-public void whenClicked() {}
-//*/
-
-
-/*
-public boolean canPlace() {
-  final Box2D surround = new Box2D().setTo(area()).expandBy(1) ;
-  for (Tile t : origin().world.tilesIn(surround, false)) {
-    if (t == null || ! t.habitat().pathClear) return false ;
-    if (t.owningType() > Element.ENVIRONMENT_OWNS) return false ;
+  
+  public String toString() {
+    final Tile o = origin() ;
+    return "Mine Face at: "+o.x+" "+o.y+" ("+promise+")" ;
   }
-  return true ;
 }
 
-public void enterWorldAt(int x, int y, World world) {
-  final Box2D surround = new Box2D().setTo(area()).expandBy(1) ;
-  for (Tile t : origin().world.tilesIn(surround, false)) {
-    if (t.owner() != null) t.owner().exitWorld() ;
-  }
-  super.enterWorldAt(x, y, world) ;
-}
-//*/
+
+
 

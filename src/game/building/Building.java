@@ -42,22 +42,49 @@ public class Building extends Plan implements ActorConstants {
   
   
   
-  /**  Behaviour implementation-
+  /**  Assessing targets and priority-
     */
   public float priorityFor(Actor actor) {
-    float
-      chance = Visit.clamp(actor.traits.useLevel(ASSEMBLY) / 20, 0, 1),
-      damage = (1 - built.structure.repairLevel()) * 2 ;
-    if (built.structure.needsUpgrade() && damage < 1) damage = 1 ;
-    float appeal = 1 ;
-    appeal *= actor.AI.relation(built.base()) ;
-    //  TODO:  Certain structures should be considered particularly important.
-    //         Community Spirit should factor in here?
     
-    return Visit.clamp(chance * damage, 0, 1) * ROUTINE * appeal ;
+    float priority = Visit.clamp(actor.traits.useLevel(ASSEMBLY) / 10, 0, 1) ;
+    float needRepair = (1 - built.structure.repairLevel()) * 1.33f ;
+    if (! built.structure.intact()) needRepair = 1.0f ;
+    if (built.structure.needsUpgrade()) needRepair += 0.33f ;
+    
+    if (needRepair > 0.5f) {
+      //
+      //  If damage is higher than 50%, priority converges to max, regardless
+      //  of competency.
+      if (needRepair > 1) needRepair = 1 ;
+      final float scale = (1 - needRepair) * 2 ;
+      priority += (1 - priority) * scale ;
+    }
+    
+    //  TODO:  Scale by allegiance/community spirit.
+    return needRepair * priority * URGENT ;
   }
-
-
+  
+  
+  public static Building getNextRepairFor(Actor client) {
+    final World world = client.world() ;
+    final PresenceMap repairs = world.presences.mapFor("damaged") ;
+    final Choice choice = new Choice(client) ;
+    
+    final int reactLimit = 10 ;
+    int numR = 0 ;
+    
+    for (Target t : repairs.visitNear(client, -1, null)) {
+      final Venue near = (Venue) t ;
+      choice.add(new Building(client, near)) ;
+      if (++numR > reactLimit) break ;
+    }
+    return (Building) choice.weightedPick(client.AI.whimsy()) ;
+  }
+  
+  
+  
+  /**  Behaviour implementation-
+    */
   protected Behaviour getNextStep() {
     if (built.structure.needsRepair()) {
       final Action building = new Action(
@@ -86,11 +113,18 @@ public class Building extends Plan implements ActorConstants {
   
   public boolean actionBuild(Actor actor, Venue built) {
     //
-    //  TODO:  Double the rate of repair again if you have tools and materials.
+    //  Double the rate of repair again if you have proper tools and materials.
+    final boolean salvage = built.structure.needsSalvage() ;
     int success = 1 ;
-    success *= actor.traits.test(ASSEMBLY, 10, 0.5f) ? 2 : 1 ;
-    success *= actor.traits.test(ASSEMBLY, 20, 0.5f) ? 2 : 1 ;
-    built.structure.repairBy(success * 5f / 2) ;
+    if (salvage) {
+      success *= actor.traits.test(ASSEMBLY, 5, 1) ? 2 : 1 ;
+      built.structure.repairBy(success * 5f / -2) ;
+    }
+    else {
+      success *= actor.traits.test(ASSEMBLY, 10, 0.5f) ? 2 : 1 ;
+      success *= actor.traits.test(ASSEMBLY, 20, 0.5f) ? 2 : 1 ;
+      built.structure.repairBy(success * 5f / 2) ;
+    }
     return true ;
   }
   

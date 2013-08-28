@@ -55,7 +55,12 @@ public class Mining extends Plan implements BuildConstants {
       if (oresCarried(actor) > 0) return nextDelivery() ;
       return null ;
     }
-    if (oresCarried(actor) >= 10) return nextDelivery() ;
+    if (oresCarried(actor) > 0) return nextDelivery() ;
+    if (face.workDone >= 100) { I.say("WORKED OUT") ; return null ; }
+    //
+    //  TODO:  To facilitate pathfinding, break this into two steps- one where
+    //  the actor goes to the shaft entrance, and another where they migrate to
+    //  the mine face (underground.)
     return new Action(
       actor, face,
       this, "actionMine",
@@ -70,8 +75,8 @@ public class Mining extends Plan implements BuildConstants {
     int success = 1 ;
     success += actor.traits.test(GEOPHYSICS , 5 , 1) ? 1 : 0 ;
     success *= actor.traits.test(HARD_LABOUR, 15, 1) ? 2 : 1 ;
-    face.workDone += success * 5 * Rand.num() ;
-    I.say("Mining "+face.origin()+", work done: "+face.workDone) ;
+    face.workDone = Math.min(100, (success * 5 * Rand.num()) + face.workDone) ;
+    ///I.say("Mining "+face.origin()+", work done: "+face.workDone) ;
     
     if (face.workDone >= 100) {
       final Tile t = face.origin() ;
@@ -85,10 +90,17 @@ public class Mining extends Plan implements BuildConstants {
         case (Terrain.TYPE_METALS  ) : itemType = METALS   ; break ;
         case (Terrain.TYPE_ISOTOPES) : itemType = ISOTOPES ; break ;
       }
-      final Item mined = Item.withAmount(itemType, amount) ;
-      actor.gear.addItem(mined) ;
       face.parent.openFace(face) ;
-      return true ;
+      if (itemType == null || amount <= 0) {
+        I.say("No minerals at "+face.origin()) ;
+        return false ;
+      }
+      else {
+        final Item mined = Item.withAmount(itemType, amount) ;
+        I.say("Successfully mined: "+mined) ;
+        actor.gear.addItem(mined) ;
+        return true ;
+      }
     }
     return false ;
   }
@@ -113,7 +125,7 @@ public class Mining extends Plan implements BuildConstants {
   }
   
   
-  public boolean actionDeliverOres(Actor actor, MineShaft shaft) {
+  public boolean actionDeliverOres(Actor actor, ExcavationShaft shaft) {
     I.say("Delivering ores to shaft...") ;
     actor.gear.transfer(CARBONS , shaft) ;
     actor.gear.transfer(METALS  , shaft) ;
@@ -126,7 +138,7 @@ public class Mining extends Plan implements BuildConstants {
   /**  Rendering and interface methods-
     */
   public void describeBehaviour(Description d) {
-    d.append("Mining at "+face.origin()) ;
+    d.append("Mining at "+face.origin()+" ("+(int) face.workDone+"%)") ;
   }
 }
 

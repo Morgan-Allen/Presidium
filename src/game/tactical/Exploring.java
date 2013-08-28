@@ -96,8 +96,9 @@ public class Exploring extends Plan implements ActorConstants {
     
     //
     //  Subtract the dangers of the journey.  Divide by time taken/distance.
+    final float SS = World.DEFAULT_SECTOR_SIZE ;
     float distance = Spacing.distance(actor, point) ;
-    distance = (distance + Terrain.SECTOR_SIZE) / Terrain.SECTOR_SIZE ;
+    distance = (distance + SS) / SS ;
     
     return winReward / distance ;
   }

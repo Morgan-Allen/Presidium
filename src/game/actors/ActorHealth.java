@@ -5,7 +5,7 @@
   */
 package src.game.actors ;
 import src.game.common.* ;
-import src.user.BaseUI;
+///import src.user.BaseUI ;
 import src.util.* ;
 
 
@@ -58,13 +58,13 @@ public class ActorHealth implements ActorConstants {
     
     MAX_INJURY  = 1.5f,
     MAX_FATIGUE = 1.0f,
-    MAX_STRESS  = 0.5f,
+    MAX_MOOD    = 0.5f,
     REVIVE_THRESHOLD = 0.5f,
     STABILISE_CHANCE = 0.2f,
     
-    FATIGUE_GROW_PER_DAY = 1.0f,
-    STRESS_DECAY_PER_DAY = 0.5f,
-    INJURY_REGEN_PER_DAY = 0.2f ;
+    FATIGUE_GROW_PER_DAY = 0.50f,
+    MOOD_DECAY_PER_DAY   = 0.35f,
+    INJURY_REGEN_PER_DAY = 0.20f ;
   
   
   final Actor actor ;
@@ -87,9 +87,10 @@ public class ActorHealth implements ActorConstants {
     maxHealth = DEFAULT_HEALTH,
     injury    = 0,  //Add bleeding.
     fatigue   = 0,  //Add sleep.
-    stress    = 0 ; //Add life-satisfaction.
+    stress    = 0 ; //Change to Mood/Psy.
   private boolean bleeds = false ;
   private float needSleep = 0 ;
+  private int psyPoints = 0 ;
   
   private int
     state    = STATE_ACTIVE ;
@@ -288,7 +289,7 @@ public class ActorHealth implements ActorConstants {
   
   public void takeStress(float taken) {
     stress += taken ;
-    final float max = maxHealth * MAX_STRESS ;
+    final float max = maxHealth * MAX_MOOD ;
     if (stress > max) stress = max ;
   }
   
@@ -324,7 +325,7 @@ public class ActorHealth implements ActorConstants {
   
   
   public float stressLevel() {
-    return stress / (maxHealth * MAX_STRESS) ;
+    return stress / (maxHealth * MAX_MOOD) ;
   }
   
   
@@ -441,6 +442,7 @@ public class ActorHealth implements ActorConstants {
       final float MM = actor.currentAction().moveMultiple() ;
       FM *= MM ;
     }
+    
     if (bleeds) {
       injury++ ;
       if (actor.traits.test(VIGOUR, 10, 1) && Rand.num() < STABILISE_CHANCE) {
@@ -449,10 +451,10 @@ public class ActorHealth implements ActorConstants {
     }
     else injury -= INJURY_REGEN_PER_DAY * maxHealth * IM / DL ;
     fatigue += FATIGUE_GROW_PER_DAY * baseSpeed * maxHealth * FM / DL ;
-    stress *= (1 - (STRESS_DECAY_PER_DAY * SM / DL)) ;
+    stress *= (1 - (MOOD_DECAY_PER_DAY * SM / DL)) ;
     
     fatigue = Visit.clamp(fatigue, 0, MAX_FATIGUE * maxHealth) ;
-    stress  = Visit.clamp(stress , 0, MAX_STRESS  * maxHealth) ;
+    stress  = Visit.clamp(stress , 0, MAX_MOOD  * maxHealth) ;
     injury  = Visit.clamp(injury , 0, MAX_INJURY  * maxHealth) ;
   }
   

@@ -25,15 +25,14 @@ import src.util.* ;
 //  hostile, and see how they respond.  Ideally, you don't want actors
 //  willingly running into situations that they then run away from.
 //
-//  Industrial sites don't deliver goods.  For that, you need housing to
-//  make the trip itself, or have vendors do the job.
-//
-//  More detail in recreation behaviours.  And housing purchases/upgrades.
+//  More attention on relaxing/recreation.  Building priority must be tweaked,
+//  for the sake of housing upgrades, et cetera.
+//  Visual indicators for research/upgrades (and/or manufacture?)
 //
 //  Safety patrols, sick leave and performance.  Spontaneous missions, and
 //  a clearer factoring out of venues/actors batches in the AI.
+
 //
-//  Visual indicators for research/upgrades (and/or manufacture?)
 /*
 Check to ensure that combat works okay among rival humanoid actors.  Make sure
 mining/farming's up to date.  Try to integrate with hunting.  That may require

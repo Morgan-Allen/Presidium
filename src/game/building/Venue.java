@@ -244,19 +244,14 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  //
-  //  Okay.  The perimeter-paving needs to be made part of the Paving class.
-  
   protected void updatePaving(boolean inWorld) {
-    //final Tile perim[] = Spacing.perimeter(area(), world) ;
     if (inWorld) {
       base.paving.updateJunction(mainEntrance(), true) ;
-      //Paving.clearRoad(perim) ;
-      //world.terrain().maskAsPaved(perim, true) ;
+      base.paving.updatePerimeter(this, true) ;
     }
     else {
       base.paving.updateJunction(mainEntrance(), false) ;
-      //world.terrain().maskAsPaved(perim, false) ;
+      base.paving.updatePerimeter(this, false) ;
     }
   }
   
@@ -398,7 +393,7 @@ public abstract class Venue extends Fixture implements
       d.append("\n  ") ; d.append(a) ;
       d.append(" ("+a.vocation().name+")") ;
     }
-    for (Vocation v : careers()) {
+    if (careers() != null) for (Vocation v : careers()) {
       final int numOpen = numOpenings(v) ;
       if (numOpen > 0) d.append("\n  "+numOpen+" "+v.name+" vacancies") ;
     }

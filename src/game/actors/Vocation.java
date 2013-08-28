@@ -159,8 +159,8 @@ public class Vocation implements BuildConstants {
   
   final public static Vocation
 
-    FRONTMAN = new Vocation(
-      "Frontman", "vendor_skin.gif", "vendor_portrait.png",
+    SOMA_VENDOR = new Vocation(
+      "Soma Vendor", "vendor_skin.gif", "vendor_portrait.png",
       LOWER_CLASS,
       PRACTICED, COUNSEL, SUASION, NOVICE, DOMESTIC_SERVICE, CHEMISTRY,
       ADMINISTRATION,
@@ -220,11 +220,18 @@ public class Vocation implements BuildConstants {
   
   final public static Vocation
     
-    PROPAGANDIST = new Vocation(
-      "Propagandist", "citizen_skin.gif", null,
+    PERFORMER = new Vocation(
+      "Performer", "aesthete_male_skin.gif", "aesthete_portrait.png",
+      LOWER_CLASS,
+      NOVICE, CARNAL_PLEASURE, DISGUISE, PRACTICED, MUSIC_AND_SONG,
+      OFTEN, HANDSOME, RARELY, STUBBORN
+    ),
+    
+    CENSOR = new Vocation(
+      "Censor", "citizen_skin.gif", null,
       UPPER_CLASS,
       EXPERT, SUASION, GRAPHIC_MEDIA, NOVICE, ADMINISTRATION,
-      NEVER, HONOURABLE, RARELY, INDOLENT, STUBBORN, OFTEN, AMBITIOUS
+      RARELY, HONOURABLE, INDOLENT, OFTEN, AMBITIOUS
     ),
     
     COMPANION = new Vocation(

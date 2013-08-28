@@ -58,8 +58,23 @@ public class Paving {
   
   /**  Methods related to installation, updates and deletion of junctions-
     */
-  //  TODO:  You need to add a method for encircling the perimeter of a
-  //  venue as well.
+  public void updatePerimeter(Venue v, boolean isMember) {
+    final Tile o = v.origin() ;
+    final Route key = new Route(o, o), match = allRoutes.get(key) ;
+    if (match != null) world.terrain().maskAsPaved(match.path, false) ;
+    if (isMember) {
+      final Batch <Tile> around = new Batch <Tile> () ;
+      for (Tile t : Spacing.perimeter(v.area(), world)) if (t != null) {
+        if (t.owningType() <= Element.ELEMENT_OWNS) around.add(t) ;
+      }
+      key.path = around.toArray(Tile.class) ;
+      key.cost = -1 ;
+      world.terrain().maskAsPaved(key.path, true) ;
+      clearRoad(key.path) ;
+      allRoutes.put(key, key) ;
+    }
+  }
+  
   
   public void updateJunction(Tile t, boolean isMember) {
     junctions.toggleMember(t, isMember) ;

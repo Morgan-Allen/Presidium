@@ -55,8 +55,8 @@ public class CultureVats extends Venue implements BuildConstants {
   
   public Behaviour jobFor(Actor actor) {
     
-    final Delivery d = stocks.nextDelivery(actor, services()) ;
-    if (d != null) return d ;
+    //final Delivery d = stocks.nextDelivery(actor, services()) ;
+    //if (d != null) return d ;
     
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
     if (o != null) return o ;

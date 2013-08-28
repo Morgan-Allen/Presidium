@@ -81,8 +81,15 @@ public class Cantina extends Venue {
   /**  Upgrades, services and economic functions-
     */
   protected Vocation[] careers() {
-    //return new Vocation[] { Vocation.FRONTMAN, Vocation.PERFORMER } ;
-    return null ;
+    return new Vocation[] { Vocation.SOMA_VENDOR, Vocation.PERFORMER } ;
+  }
+  
+  
+  public int numOpenings(Vocation v) {
+    final int nO = super.numOpenings(v) ;
+    if (v == Vocation.SOMA_VENDOR) return nO + 1 ;
+    if (v == Vocation.PERFORMER) return nO + 1 ;
+    return 0 ;
   }
   
   

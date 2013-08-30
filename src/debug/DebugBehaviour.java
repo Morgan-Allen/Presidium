@@ -37,10 +37,9 @@ Check to ensure that combat works okay among rival humanoid actors.  Make sure
 mining/farming's up to date.  Try to integrate with hunting.  That may require
 implementing the Ecology class, like you planned.
 
-Security patrols.  Diplomatic conversion (pressfeed.)  Tax collection.
+Security patrols.  Diplomatic conversion.  Tax collection and pressfeed.
 
 Simplify the user interface, implement Powers, and add a Main Menu.  That's it.
-
 
 Walls/Roads and Power/Life Support are the next items, but those might require
 a bigger game.  Maybe *just* power.  Keep it simple.  Condensors for water, and

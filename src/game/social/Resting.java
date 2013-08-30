@@ -11,6 +11,8 @@ import src.user.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  Base this exclusively on fatigue!
 
 public class Resting extends Plan implements BuildConstants {
   
@@ -191,7 +193,7 @@ public class Resting extends Plan implements BuildConstants {
       baseRating += 3 ;
     }
     else if (point == actor.AI.home()) {
-      //  Modify this by the upgrade level of your dwelling.
+      //  Modify this by the upgrade level of your dwelling?
       baseRating += 4 ;
     }
     //
@@ -200,6 +202,7 @@ public class Resting extends Plan implements BuildConstants {
       float relation = actor.AI.relation(((Venue) point).base()) ;
       baseRating *= relation ;
     }
+    baseRating -= Plan.rangePenalty(actor, point) ;
     if (baseRating < 0) return 0 ;
     //
     //  Okay.  If you're only of average fatigue, these are the ratings.  With

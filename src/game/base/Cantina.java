@@ -5,11 +5,13 @@ package src.game.base ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
+import src.game.social.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
+
 
 
 
@@ -34,21 +36,9 @@ public class Cantina extends Venue {
     "Lensmans' Folly",
     "The Purple Haze",
   } ;
-  final static String PERFORM_NAMES[] = {
-    "Red Planet Blues, by Khal Segin & Tolev Zaller",
-    "It's Full Of Stars, by D. B. Unterhaussen",
-    "Take The Sky From Me, by Wedon the Elder",
-    "Men Are From Asra Novi, by The Ryot Sisters",
-    "Ode To A Hrexxen Gorn, by Ultimex 1450",
-    "Geodesic Science Rap, by Sarles Matson",
-    "Stuck In The Lagrange Point With You, by Eniud Yi",
-    "Untranslatable Feelings, by Strain Variant Beta-7J",
-    "A Credit For Your Engram, by Tobul Masri Mark IV",
-  } ;
   
   
-  
-  private int nameID = -1, performID = -1 ;
+  private int nameID = -1 ;//, performID = -1 ;
   
   
   public Cantina(Base base) {
@@ -60,14 +50,14 @@ public class Cantina extends Venue {
   public Cantina(Session s) throws Exception {
     super(s) ;
     nameID = s.loadInt() ;
-    performID = s.loadInt() ;
+    //performID = s.loadInt() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveInt(nameID) ;
-    s.saveInt(performID) ;
+    //s.saveInt(performID) ;
   }
   
   
@@ -92,18 +82,55 @@ public class Cantina extends Venue {
     return 0 ;
   }
   
+
+  public Behaviour jobFor(Actor actor) {
+    if (actor.vocation() == Vocation.SOMA_VENDOR) {
+      return new Supervision(actor, this) ;
+    }
+    if (actor.vocation() == Vocation.PERFORMER) {
+      return new Performance(actor, this, ActorConstants.MUSIC_AND_SONG) ;
+    }
+    return null ;
+  }
+  
   
   protected Service[] services() {
     return null ;
   }
   
-
-  public Behaviour jobFor(Actor actor) {
+  
+  private Performance performance() {
+    for (Actor actor : personnel.workers()) {
+      if (actor.aboard() != this) continue ;
+      for (Behaviour b : actor.AI.agenda()) if (b instanceof Performance) {
+        return (Performance) b ;
+      }
+    }
     return null ;
   }
   
   
+  public float performValue() {
+    float value = 0, count = 0 ;
+    for (Mobile m : inside()) if (m instanceof Actor) {
+      final Actor visits = (Actor) m ;
+      Performance p = null ;
+      for (Behaviour b : visits.AI.agenda()) if (b instanceof Performance) {
+        value += ((Performance) b).performValue() ;
+        count++ ;
+        break ;
+      }
+    }
+    if (count == 0) return 0 ;
+    value /= count ;
+    value *= 1 + ((count - 1) / 2f) ;
+    return value ;
+  }
   
+  
+  
+
+
   /**  Rendering and interface methods-
     */
   public Composite portrait(HUD UI) {
@@ -128,22 +155,26 @@ public class Cantina extends Venue {
   public String buildCategory() {
     return UIConstants.TYPE_MERCHANT ;
   }
-
-
+  
+  
   public void writeInformation(Description d, int categoryID, HUD UI) {
-    super.writeInformation(d, categoryID, UI) ;
+    
+    if (categoryID == 0) {
+      final Performance p = this.performance() ;
+      d.append("Current performance: ") ;
+      if (p == null) d.append("None") ;
+      else d.append(p.performDesc()) ;
+    }
+    else super.writeInformation(d, categoryID, UI) ;
     //
     //  TODO:  Describe the current performance.  You don't need upgrades or
     //  staffing descriptors, since those are spontaneous.
-    
+    //
     //  Enable gambling/games of chance/cards.
     //  Enable chance meetings with Runners.
   }
   
 }
-
-
-
 
 
 

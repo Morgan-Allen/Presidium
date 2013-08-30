@@ -53,6 +53,7 @@ public class Supervision extends Plan {
   protected Behaviour getNextStep() {
     if (beginTime == -1) beginTime = actor.world().currentTime() ;
     if (actor.world().currentTime() - beginTime > WAIT_TIME) return null ;
+    if (! (supervised.jobFor(actor) instanceof Supervision)) return null ;
     
     final Action supervise = new Action(
       actor, supervised,

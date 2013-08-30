@@ -62,11 +62,6 @@ public class Item implements BuildConstants {
   }
   
   
-  public static Item withType(Service type, Saveable refers, float amount) {
-    return new Item(type, refers, amount, 0) ;
-  }
-  
-  
   public static Item withType(Service type, Saveable refers) {
     return new Item(type, refers, 1, 0) ;
   }
@@ -80,6 +75,12 @@ public class Item implements BuildConstants {
   public static Item withQuality(Service type, int quality) {
     return new Item(type, null, 1, quality) ;
   }
+  
+  
+  public static Item withReference(Item item, Saveable refers) {
+    return new Item(item.type, refers, item.amount, item.quality) ;
+  }
+  
   
   
   
@@ -154,7 +155,11 @@ public class Item implements BuildConstants {
     if (refers != null) {
       return type+" ("+refers+")" ;
     }
-    else if (quality != -1) return QUAL_NAMES[quality]+" "+type ;
+    else if (quality != -1) {
+      final String progress = amount == 1 ?
+        "" : "("+((int) (amount * 100))+" %)" ;
+      return QUAL_NAMES[quality]+" "+type+" "+progress ;
+    }
     else return ((int) amount)+" "+type ;
   }
 }

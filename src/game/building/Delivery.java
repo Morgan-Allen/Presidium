@@ -96,14 +96,29 @@ public class Delivery extends Plan {
   public boolean valid() {
     if (! super.valid()) return false ;
     if (stage >= STAGE_PICKUP || origin == null) return true ;
-    boolean hasAny = false ;
-    for (Item i : items) if (origin.stocks.amountOf(i) > 0) hasAny = true ;
-    return hasAny ;
+    float sum = 0 ;
+    for (Item i : items) {
+      final float reserved = reservedForCollection(origin, i.type) ;
+      final float excess = origin.stocks.amountOf(i) - reserved ;
+      if (excess > 1) sum += excess ;
+    }
+    return sum > 1 ;
   }
   
   
   public boolean complete() {
     return stage == STAGE_DONE ;
+  }
+  
+  
+  public static float reservedForCollection(Venue venue, Service goodType) {
+    float sum = 0 ;
+    for (Behaviour b : venue.world().activities.targeting(venue)) {
+      if (b instanceof Delivery) for (Item i : ((Delivery) b).items) {
+        if (i.type == goodType) sum += i.amount ;
+      }
+    }
+    return sum ;
   }
   
   

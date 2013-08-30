@@ -15,14 +15,9 @@ import src.util.* ;
 //  Purchase a device/weapon, or outfit/armour.
 //  Purchase rations, fuel cells or a medkit.
 
-//  Wait.  There's an extra complication.  In the case of stock exchanges and
-//  the like, you'll want to collect several goods at once.
-
-//
-//  TODO:  Combine/merge this with the Delivery class?  ...No.
 
 
-public class Purchase extends Plan {
+public class Commission extends Plan {
   
   
   
@@ -36,15 +31,14 @@ public class Purchase extends Plan {
   private boolean delivered = false ;
   
   
-  public Purchase(Actor actor, Item item, Venue shop) {
-    super(actor, item.type, shop) ;
-    this.item = item ;
+  public Commission(Actor actor, Item baseItem, Venue shop) {
+    super(actor, baseItem.type, shop) ;
+    this.item = Item.withReference(baseItem, actor) ;
     this.shop = shop ;
-    I.say("CREATING NEW PURCHASE OF "+item) ;
   }
   
   
-  public Purchase(Session s) throws Exception {
+  public Commission(Session s) throws Exception {
     super(s) ;
     item = Item.loadFrom(s) ;
     shop = (Venue) s.loadObject() ;

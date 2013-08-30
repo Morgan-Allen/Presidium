@@ -29,7 +29,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   //*/
   final static Table CONDITION_DCS = Table.make(
     ILLNESS, 0,
-    CANCER, 5,
+    CANCER, 5,  //Replace with Mutation?
     SPICE_ADDICTION, 5,
     RAGE_INFECTION, 10,
     ALBEDAN_STRAIN, 15,
@@ -90,34 +90,11 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   
   /**  Evaluating targets and priorities-
     */
-  public static float needForTreatment(Actor patient) {
-    if (! patient.health.diseased()) return 0 ;
-    float priority = 0 ;
-    for (Trait d : DISEASES) {
-      if (hasMedication(patient, d)) continue ;
-      final float serious = MEDICATION_DC + (Integer) CONDITION_DCS.get(d) ;
-      priority += patient.traits.trueLevel(d) * serious / 5f ;
-    }
-    if (priority == 0) return 0 ;
-    return Visit.clamp(priority, IDLE, CRITICAL) ;
-  }
-  
-  
-  private static boolean hasMedication(Actor actor, Trait disease) {
-    for (Item match : actor.gear.matches(SERVICE_TREAT)) {
-      final Action action = (Action) match.refers ;
-      final Treatment treatment = (Treatment) action.basis ;
-      if (treatment.applied == disease) return true ;
-    }
-    return false ;
-  }
-  
-  
   public float priorityFor(Actor actor) {
     //
     //  ...You need to include distance and danger factors, et cetera.
     if (type == TYPE_MEDICATION) {
-      return needForTreatment(patient) ;
+      return needForMedication(patient) ;
     }
     if (type == TYPE_FIRST_AID) {
       if (patient.indoors() && ! patient.health.bleeding()) return 0 ;
@@ -134,9 +111,6 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   }
   
   
-  
-  /**  Behaviour implementation-
-    */
   protected Behaviour getNextStep() {
     switch (type) {
       case (TYPE_FIRST_AID) : return nextFirstAid() ;
@@ -146,6 +120,9 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   }
   
   
+  
+  /**  First Aid implementation-
+    */
   Behaviour nextFirstAid() {
     if (patient.health.bleeding()) {
       final Action firstAid = new Action(
@@ -181,6 +158,33 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   }
   
   
+  
+  /**  Medication implementation-
+    */
+  public static float needForMedication(Actor patient) {
+    if (! patient.health.diseased()) return 0 ;
+    float priority = 0 ;
+    final Batch <Item> treatments = patient.gear.matches(SERVICE_TREAT) ;
+    for (Trait d : DISEASES) {
+      if (hasMedication(treatments, d)) continue ;
+      final float serious = MEDICATION_DC + (Integer) CONDITION_DCS.get(d) ;
+      priority += patient.traits.trueLevel(d) * serious / 5f ;
+    }
+    if (priority == 0) return 0 ;
+    return Visit.clamp(priority, IDLE, CRITICAL) ;
+  }
+  
+  
+  private static boolean hasMedication(Batch <Item> t, Trait disease) {
+    for (Item match : t) {
+      final Action action = (Action) match.refers ;
+      final Treatment treatment = (Treatment) action.basis ;
+      if (treatment.applied == disease) return true ;
+    }
+    return false ;
+  }
+  
+  
   Behaviour nextMedication() {
     if (treatment != null || ! patient.health.diseased()) return null ;
     //
@@ -209,6 +213,9 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   
   
   public boolean actionTreatEffect(Actor patient, Actor p) {
+    //
+    //  For now, we assume that treatments only take 10 seconds.  Optimistic?
+    //  Yeah.  But in principle, that time can be extended.
     patient.traits.incLevel(applied, -0.1f * effectiveness) ;
     if (patient.traits.trueLevel(applied) < 0) {
       patient.traits.setLevel(applied, 0) ;

@@ -49,7 +49,7 @@ public class Building extends Plan implements ActorConstants {
     float priority = Visit.clamp(actor.traits.useLevel(ASSEMBLY) / 10, 0, 1) ;
     float needRepair = (1 - built.structure.repairLevel()) * 1.33f ;
     if (! built.structure.intact()) needRepair = 1.0f ;
-    if (built.structure.needsUpgrade()) needRepair += 0.33f ;
+    if (built.structure.needsUpgrade()) needRepair += 0.5f ;
     
     if (needRepair > 0.5f) {
       //

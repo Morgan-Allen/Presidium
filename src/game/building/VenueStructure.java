@@ -156,9 +156,11 @@ public class VenueStructure extends Inventory {
   
   
   public void updateStats(int baseIntegrity, int armouring) {
+    final float condition = integrity * 1f / maxIntegrity() ;
     this.baseIntegrity = baseIntegrity ;
     this.armouring = armouring ;
-    checkMaintenance() ;
+    integrity = condition * maxIntegrity() ;
+    //checkMaintenance() ;
   }
   
   
@@ -299,9 +301,10 @@ public class VenueStructure extends Inventory {
   }
   
   
-  public void beginUpgrade(Upgrade upgrade) {
+  public void beginUpgrade(Upgrade upgrade, boolean checkExists) {
     int atIndex = -1 ;
     for (int i = 0 ; i < upgrades.length ; i++) {
+      if (checkExists && upgrades[i] == upgrade) return ;
       if (upgrades[i] == null) { atIndex = i ; break ; }
     }
     if (atIndex == -1) I.complain("NO ROOM FOR UPGRADE!") ;
@@ -316,8 +319,15 @@ public class VenueStructure extends Inventory {
   public void resignUpgrade(int atIndex) {
     if (upgrades[atIndex] == null) I.complain("NO SUCH UPGRADE!") ;
     upgradeStates[atIndex] = STATE_SALVAGE ;
-    if (upgradeIndex == atIndex) upgradeProgress = 0 ;
+    if (upgradeIndex == atIndex) upgradeProgress = 1 - upgradeProgress ;
     checkMaintenance() ;
+  }
+  
+  
+  public void resignUpgrade(Upgrade upgrade) {
+    for (int i = upgrades.length ; i-- > 0 ;) {
+      if (upgrades[i] == upgrade) { resignUpgrade(i) ; return ; }
+    }
   }
   
   

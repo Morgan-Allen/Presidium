@@ -32,8 +32,7 @@ public class Manufacture extends Plan implements Behaviour {
   final Venue venue ;
   final Conversion conversion ;
   final Item made, needed[] ;
-  
-  private float progress = 0, timeTaken = 0 ;
+  private float timeTaken = 0 ;
   
   
   
@@ -55,7 +54,7 @@ public class Manufacture extends Plan implements Behaviour {
     venue = (Venue) s.loadObject() ;
     conversion = Conversion.loadFrom(s) ;
     made = Item.loadFrom(s) ;
-    progress = s.loadFloat() ;
+    ///progress = s.loadFloat() ;
     timeTaken = s.loadFloat() ;
     this.needed = conversion.raw ;
   }
@@ -66,7 +65,7 @@ public class Manufacture extends Plan implements Behaviour {
     s.saveObject(venue) ;
     Conversion.saveTo(s, conversion) ;
     Item.saveTo(s, made) ;
-    s.saveFloat(progress) ;
+    ///s.saveFloat(progress) ;
     s.saveFloat(timeTaken) ;
   }
   
@@ -100,9 +99,13 @@ public class Manufacture extends Plan implements Behaviour {
   
   /**  Behaviour implementation-
     */
+  public boolean complete() {
+    return venue.stocks.hasItem(made) ;
+  }
+  
+  
   public Behaviour getNextStep() {
-    if (progress >= 1) {
-      //  See if the venue has more orders for items of this type.
+    if (venue.stocks.hasItem(made)) {
       return null ;
     }
     return new Action(
@@ -142,14 +145,12 @@ public class Manufacture extends Plan implements Behaviour {
     }
     //
     //  Advance progress, and check if you're done yet.
-    final int oldCount = (int) (progress * made.amount) ;
-    progress += success ? progInc : (progInc / 10f) ;
-    final int newCount = (int) (progress * made.amount) ;
-    if (newCount > oldCount) {
-      venue.stocks.addItem(Item.withAmount(made, newCount - oldCount)) ;
-      if (progress >= 1) return true ;
-    }
-    return false ;
+    final float amount = venue.stocks.amountOf(made) ;
+    float progress = (success ? progInc : (progInc / 10f)) * made.amount ;
+    if (progress + amount > made.amount) progress = made.amount - amount ;
+    venue.stocks.addItem(Item.withAmount(made, progress)) ;
+    ///I.say("EXACT AMOUNT OF "+made.type+" IS: "+venue.stocks.amountOf(made)) ;
+    return venue.stocks.hasItem(made) ;
   }
   
   
@@ -158,17 +159,10 @@ public class Manufacture extends Plan implements Behaviour {
     */
   public void describeBehaviour(Description d) {
     d.append("Manufacturing "+made) ;
+    final float progress = venue.stocks.amountOf(made) / made.amount ;
     d.append(" ("+((int) (progress * 100))+"%)") ;
-    /*
-    d.append(" at the ") ;
-    d.append(venue) ;
-    //*/
   }
 }
-
-
-
-
 
 
 

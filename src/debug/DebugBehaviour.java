@@ -25,12 +25,11 @@ import src.util.* ;
 //  hostile, and see how they respond.  Ideally, you don't want actors
 //  willingly running into situations that they then run away from.
 //
-//  More attention on relaxing/recreation.  Building priority must be tweaked,
-//  for the sake of housing upgrades, et cetera.  Add Hunting at the redoubt!
-//  Visual indicators for manufacture, or make it an aspect of the venue?
+//  More attention on relaxing/recreation.  Add hunting at the redoubt, and
+//  update farming a bit.
 //
-//  Safety patrols, sick leave and performance.  Spontaneous missions, and
-//  a clearer factoring out of venues/actors batches in the AI.  Plus taxes.
+//  Safety patrols and taxation.  Spontaneous missions, and a clearer factoring
+//  out of venues/actors batches in the AI.
 
 //
 /*
@@ -38,8 +37,7 @@ Check to ensure that combat works okay among rival humanoid actors.  Make sure
 mining/farming's up to date.  Try to integrate with hunting.  That may require
 implementing the Ecology class, like you planned.
 
-Security patrols.  Diplomatic conversion (pressfeed.)  Disease and sick leave.
-Entertainment.  Supervision.  Tax collection is the only other major concern.
+Security patrols.  Diplomatic conversion (pressfeed.)  Tax collection.
 
 Simplify the user interface, implement Powers, and add a Main Menu.  That's it.
 
@@ -265,9 +263,9 @@ public class DebugBehaviour extends PlayLoop {
     actor.AI.setEmployer(hospice) ;
     
     final Actor other = new Human(Vocation.VETERAN , base) ;
-    other.traits.setLevel(ActorConstants.ILLNESS, 2) ;
+    ///other.traits.setLevel(ActorConstants.ILLNESS, 2) ;
     other.enterWorldAt(9, 9, world) ;
-    ((BaseUI) UI).selection.pushSelection(other, true) ;
+    ///((BaseUI) UI).selection.pushSelection(other, true) ;
     
     final Garrison garrison = new Garrison(base) ;
     garrison.enterWorldAt(2, 9, world) ;
@@ -278,12 +276,13 @@ public class DebugBehaviour extends PlayLoop {
     
     /*
     final Cantina cantina = new Cantina(base) ;
-    cantina.enterWorldAt(2, 9, world) ;
+    cantina.enterWorldAt(9, 9, world) ;
     cantina.setAsEstablished(true) ;
     cantina.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
     cantina.onCompletion() ;
     //*/
-    /*
+    
+    //*
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;
     //  Vareen need to flee from the citizens!
@@ -304,3 +303,5 @@ citizen.enterWorldAt(5, 5, world) ;
 //citizen.psyche.assignBehaviour(explores) ;
 ((BaseUI) UI).selection.setSelected(citizen) ;
 //*/
+
+

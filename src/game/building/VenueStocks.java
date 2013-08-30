@@ -102,9 +102,9 @@ public class VenueStocks extends Inventory implements BuildConstants {
   
   public Manufacture nextSpecialOrder(Actor actor) {
     for (Manufacture order : specialOrders) {
-      if (order.actor() == null && ! order.complete()) {
-        return order ;
-      }
+      //I.say("Actor assigned "+order.actor()) ;
+      if (order.actor() != actor || order.complete()) continue ;
+      return order ;
     }
     return null ;
   }
@@ -114,19 +114,9 @@ public class VenueStocks extends Inventory implements BuildConstants {
     final float shortage = receivedShortage(c.out.type) ;
     if (shortage <= 0) return null ;
     return new Manufacture(
-      actor, venue, c, Item.withAmount(c.out, ORDER_UNIT)
+      actor, venue, c,
+      Item.withAmount(c.out, shortage + ORDER_UNIT)
     ) ;
-  }
-  
-  
-  public float reservedForCollection(Service goodType) {
-    float sum = 0 ;
-    for (Behaviour b : venue.world().activities.targeting(venue)) {
-      if (b instanceof Delivery) for (Item i : ((Delivery) b).items) {
-        if (i.type == goodType) sum += i.amount ;
-      }
-    }
-    return sum ;
   }
   
   
@@ -164,7 +154,8 @@ public class VenueStocks extends Inventory implements BuildConstants {
       //  ignored.
       for (Service type : types) {
         if (venue.stocks.amountOf(type) < ORDER_UNIT) continue ;
-        float urgency = client.stocks.requiredShortage(type) ;
+        final float shortage = client.stocks.requiredShortage(type) ;
+        float urgency = shortage ;
         if (urgency <= 0) continue ;
         final Delivery order = new Delivery(
           Item.withAmount(type, ORDER_UNIT), venue, client

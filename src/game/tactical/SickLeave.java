@@ -38,13 +38,13 @@ public class SickLeave extends Plan {
   
   public float priorityFor(Actor actor) {
     if (sickbay == null) return 0 ;
-    return Treatment.needForTreatment(actor) ;
+    return Treatment.needForMedication(actor) ;
   }
   
   
   protected Behaviour getNextStep() {
     if (sickbay == null) return null ;
-    if (Treatment.needForTreatment(actor) == 0) return null ;
+    if (Treatment.needForMedication(actor) == 0) return null ;
     final Action leave = new Action(
       actor, sickbay,
       this, "actionLeave",

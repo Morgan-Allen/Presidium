@@ -13,6 +13,7 @@ import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD;
 import src.user.* ;
+import src.util.I;
 import src.util.Index;
 
 
@@ -122,12 +123,9 @@ public class Artificer extends Venue implements BuildConstants {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     
-    /*
-    //  This is a temporary measure.  Remove later?
-    if (stocks.amountOf(PARTS) < 10) {
-      stocks.addItem(Item.withAmount(PARTS, 10)) ;
+    if (stocks.amountOf(METALS) < 10) {
+      stocks.addItem(Item.withAmount(METALS, 10)) ;
     }
-    //*/
     
     //stocks.receiveDemand(PARTS, 10) ;
     stocks.translateDemands(METALS_TO_PARTS) ;
@@ -137,10 +135,11 @@ public class Artificer extends Venue implements BuildConstants {
   public Behaviour jobFor(Actor actor) {
     if (! structure.intact()) return null ;
     
-    //final Delivery d = stocks.nextDelivery(actor, services()) ;
-    //if (d != null) return d ;
+    final Building b = Building.getNextRepairFor(actor) ;
+    if (b != null) return b ;
     
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
+    I.say(actor+" next special order "+o) ;
     if (o != null) return o ;
     
     final Manufacture m = stocks.nextManufacture(actor, METALS_TO_PARTS) ;

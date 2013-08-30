@@ -11,7 +11,6 @@ import src.game.base.* ;
 
 
 
-//  Include various service-types here?
 /*
 SPYCE_A = new Item.Type(C, COMMODITY, "Spyce A (Tinerazine)", 400),
 SPYCE_B = new Item.Type(C, COMMODITY, "Spyce B (Halebdynum)", 400),
@@ -28,6 +27,7 @@ SPYCE_C = new Item.Type(C, COMMODITY, "Spyce C (Natrizoral)", 400),
   //*/
 
 
+
 public interface BuildConstants extends ActorConstants {
   
   
@@ -39,42 +39,43 @@ public interface BuildConstants extends ActorConstants {
     OUTFIT         = 4,
     SERVICE        = 5 ;
   
-  final static Class C = BuildConstants.class ;
+  final static Class BC = BuildConstants.class ;
+  
   final public static Service
     
-    STARCHES = new Service(C, COMMODITY, "Starches", 10 ),
-    PROTEIN  = new Service(C, COMMODITY, "Protein" , 20 ),
-    GREENS   = new Service(C, COMMODITY, "Greens"  , 30 ),
+    STARCHES = new Service(BC, COMMODITY, "Starches", 10 ),
+    PROTEIN  = new Service(BC, COMMODITY, "Protein" , 20 ),
+    GREENS   = new Service(BC, COMMODITY, "Greens"  , 30 ),
     
-    TIMBER   = new Service(C, COMMODITY, "Timber"  , 40 ),
-    STONE    = new Service(C, COMMODITY, "Stone"   , 70 ),
-    HIDES    = new Service(C, COMMODITY, "Hides"   , 150),
+    TIMBER   = new Service(BC, COMMODITY, "Timber"  , 40 ),
+    STONE    = new Service(BC, COMMODITY, "Stone"   , 70 ),
+    HIDES    = new Service(BC, COMMODITY, "Hides"   , 150),
     
-    METALS   = new Service(C, COMMODITY, "Metals"  , 15 ),
-    CARBONS  = new Service(C, COMMODITY, "Carbons" , 35 ),
-    ISOTOPES = new Service(C, COMMODITY, "Isotopes", 60 ),
+    METALS   = new Service(BC, COMMODITY, "Metals"  , 15 ),
+    CARBONS  = new Service(BC, COMMODITY, "Carbons" , 35 ),
+    ISOTOPES = new Service(BC, COMMODITY, "Isotopes", 60 ),
     
-    PARTS    = new Service(C, COMMODITY, "Parts"   , 50 ),
-    PLASTICS = new Service(C, COMMODITY, "Plastics", 75 ),
-    SOMA     = new Service(C, COMMODITY, "Soma"    , 100),
+    PARTS    = new Service(BC, COMMODITY, "Parts"   , 50 ),
+    PLASTICS = new Service(BC, COMMODITY, "Plastics", 75 ),
+    SOMA     = new Service(BC, COMMODITY, "Soma"    , 100),
     
-    INSCRIPTION = new Service(C, COMMODITY, "Inscription", 140),
-    PRESSFEED   = new Service(C, COMMODITY, "Pressfeed"  , 160),
-    MEDICINE    = new Service(C, COMMODITY, "Medicine"   , 200),
+    INSCRIPTION = new Service(BC, COMMODITY, "Inscription", 140),
+    PRESSFEED   = new Service(BC, COMMODITY, "Pressfeed"  , 160),
+    MEDICINE    = new Service(BC, COMMODITY, "Medicine"   , 200),
     
     CARRIED_ITEM_TYPES[] = Service.typesSoFar(),
     
-    WATER        = new Service(C, PROVISION, "Water"       , 0),
-    LIFE_SUPPORT = new Service(C, PROVISION, "Life Support", 0),
-    POWER        = new Service(C, PROVISION, "Power"       , 0),
+    WATER        = new Service(BC, PROVISION, "Water"       , 0),
+    LIFE_SUPPORT = new Service(BC, PROVISION, "Life Support", 0),
+    POWER        = new Service(BC, PROVISION, "Power"       , 0),
     
     ALL_FOOD_TYPES[] = { STARCHES, PROTEIN, GREENS  },
     ALL_PROVISIONS[] = { WATER, LIFE_SUPPORT, POWER } ;
 
   final public static Service
-    
-    SERVICE_ADMIN = new Service(C, SERVICE, "Admin", 0),
-    SERVICE_TREAT = new Service(C, SERVICE, "Treatment", 0) ;
+    SERVICE_ADMIN   = new Service(BC, SERVICE, "Admin", 0),
+    SERVICE_TREAT   = new Service(BC, SERVICE, "Treatment", 0),
+    SERVICE_PERFORM = new Service(BC, SERVICE, "Performance", 0) ;
   
   
   final public static int
@@ -98,32 +99,32 @@ public interface BuildConstants extends ActorConstants {
   //  TODO:  These prices are far too low next to the value of the raw
   //  materials.  Also, you need medical devices and so on.
   final public static DeviceType
-    MANIPLES = new DeviceType(C, "Maniples",
+    MANIPLES = new DeviceType(BC, "Maniples",
       2, GRAPPLE | MELEE | PHYSICAL, 10,
       new Conversion(3, PARTS, 10, ASSEMBLY),
       "maniples"
     ),
-    MODUS_LUTE = new DeviceType(C, "Modus Lute",
+    MODUS_LUTE = new DeviceType(BC, "Modus Lute",
       0, RANGED | STUN, 40,
       new Conversion(2, PARTS, 15, ASSEMBLY),
       "modus lute"
     ),
-    CARVED_SPEAR = new DeviceType(C, "Carved Spear",
+    CARVED_SPEAR = new DeviceType(BC, "Carved Spear",
       5, RANGED | PHYSICAL, 5,
       new Conversion(2, TIMBER, 5, ASSEMBLY),
       "spear"
     ),
-    SHOCK_STAFF = new DeviceType(C, "Shock Staff",
+    SHOCK_STAFF = new DeviceType(BC, "Shock Staff",
       10, MELEE | PHYSICAL | STUN, 40,
       new Conversion(3, PARTS, 10, ASSEMBLY),
       "staff"
     ),
-    PHASE_PISTOL = new DeviceType(C, "Phase Pistol",
+    PHASE_PISTOL = new DeviceType(BC, "Phase Pistol",
       15, RANGED | ENERGY, 25,
       new Conversion(3, PARTS, 10, ASSEMBLY),
       "pistol"
     ),
-    KONOCHE = new DeviceType(C, "Konoche",
+    KONOCHE = new DeviceType(BC, "Konoche",
       20, MELEE | PHYSICAL, 45,
       new Conversion(2, PARTS, 5, ASSEMBLY),
       "heavy blade"
@@ -137,27 +138,27 @@ public interface BuildConstants extends ActorConstants {
   //  TODO:  Add 'Primitive Garb' and 'Overalls'?  What about costume?
   final public static OutfitType
     FINERY         = new OutfitType(
-      C, "Finery"        , 2 , 100,
+      BC, "Finery"        , 2 , 100,
       new Conversion(3, PLASTICS, Fabricator.class, 15, GRAPHIC_MEDIA)
     ),
     CAMOUFLAGE     = new OutfitType(
-      C, "Camouflage"    , 3 , 35,
+      BC, "Camouflage"    , 3 , 35,
       new Conversion(2, PLASTICS, Fabricator.class, 10, GRAPHIC_MEDIA)
     ),
     SEALSUIT       = new OutfitType(
-      C, "Sealsuit"      , 4 , 75,
+      BC, "Sealsuit"      , 4 , 75,
       new Conversion(2, PLASTICS, 2, PARTS, Fabricator.class, 15, ASSEMBLY)
     ),
     SHIELD_BELT = new OutfitType(
-      C, "Shield Belt"   , 5 , 50,
+      BC, "Shield Belt"   , 5 , 50,
       new Conversion(2, PARTS, Artificer.class, 5, ASSEMBLY)
     ),
     BODY_ARMOUR    = new OutfitType(
-      C, "Body Armour"   , 10, 75,
+      BC, "Body Armour"   , 10, 75,
       new Conversion(5, PARTS, Artificer.class, 15, ASSEMBLY)
     ),
     GOLEM_ARMOUR   = new OutfitType(
-      C, "Golem Armour"  , 20, 150,
+      BC, "Golem Armour"  , 20, 150,
       new Conversion(12, PARTS, Artificer.class, 20, ASSEMBLY)
     ) ;
   final public static Service

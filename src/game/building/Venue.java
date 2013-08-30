@@ -139,6 +139,7 @@ public abstract class Venue extends Fixture implements
   
   
   public void exitWorld() {
+    personnel.onDecommission() ;
     world.presences.togglePresence(this, false, services()) ;
     if (base != null) updatePaving(false) ;
     world.schedule.unschedule(this) ;
@@ -167,7 +168,6 @@ public abstract class Venue extends Fixture implements
   
   
   public void setAsDestroyed() {
-    personnel.onDecommission() ;
     final World world = this.world ;
     final Box2D area = this.area() ;
     super.setAsDestroyed() ;
@@ -356,6 +356,11 @@ public abstract class Venue extends Fixture implements
     if (inside.size() == 0) d.append("\n  No visitors.") ;
     else for (Mobile m : inside) {
       d.append("\n  ") ; d.append(m) ;
+      if (m instanceof Actor && ((Actor) m).AI.rootBehaviour() != null) {
+        final Behaviour root = ((Actor) m).AI.rootBehaviour() ;
+        d.append("\n  ") ;
+        root.describeBehaviour(d) ;
+      }
     }
     
     d.append("\n\nORDERS:") ;
@@ -373,34 +378,37 @@ public abstract class Venue extends Fixture implements
   private void describePersonnel(Description d, HUD UI) {
     //
     //  List applicants for various positions-
-    d.append("APPLICANTS:") ;
-    if (personnel.applications.size() == 0) d.append("\n  No applicants.") ;
-    else for (final VenuePersonnel.Application app : personnel.applications) {
-      d.append("\n  ") ;
-      d.append(app.applies) ;
-      d.append("\n  ("+app.signingCost+" credits) ") ;
-      d.append(new Description.Link("HIRE") {
-        public void whenClicked() {
-          personnel.confirmApplication(app) ;
-        }
-      }) ;
+    if (personnel.applications.size() > 0) {
+      d.append("\nAPPLICANTS:") ;
+      for (final VenuePersonnel.Application app : personnel.applications) {
+        d.append("\n  ") ;
+        d.append(app.applies) ;
+        d.append("\n  ("+app.signingCost+" credits) ") ;
+        d.append(new Description.Link("HIRE") {
+          public void whenClicked() {
+            personnel.confirmApplication(app) ;
+          }
+        }) ;
+      }
     }
     //
     //  Then list current workers and residents-
-    d.append("\n\nPERSONNEL:") ;
-    if (personnel.workers().size() == 0) d.append("\n  No workers.") ;
-    else for (Actor a : personnel.workers()) {
-      d.append("\n  ") ; d.append(a) ;
-      d.append(" ("+a.vocation().name+")") ;
+    if (personnel.workers().size() > 0) {
+      d.append("\nPERSONNEL:") ;
+      for (Actor a : personnel.workers()) {
+        d.append("\n  ") ; d.append(a) ;
+        d.append(" ("+a.vocation().name+")") ;
+      }
     }
     if (careers() != null) for (Vocation v : careers()) {
       final int numOpen = numOpenings(v) ;
       if (numOpen > 0) d.append("\n  "+numOpen+" "+v.name+" vacancies") ;
     }
-    d.append("\n\nRESIDENTS:") ;
-    if (personnel.residents().size() == 0) d.append("\n  No residents.") ;
-    else for (Actor a : personnel.residents()) {
-      d.append("\n  ") ; d.append(a) ;
+    if (personnel.residents().size() > 0) {
+      d.append("\nRESIDENTS:") ;
+      for (Actor a : personnel.residents()) {
+        d.append("\n  ") ; d.append(a) ;
+      }
     }
   }
   
@@ -432,7 +440,9 @@ public abstract class Venue extends Fixture implements
         d.append("\n\n") ;
         if (structure.upgradePossible(lastCU)) {
           d.append(new Description.Link("BEGIN UPGRADE") {
-            public void whenClicked() { structure.beginUpgrade(lastCU) ; }
+            public void whenClicked() {
+              structure.beginUpgrade(lastCU, false) ;
+            }
           }) ;
         }
       }

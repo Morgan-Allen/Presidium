@@ -75,7 +75,8 @@ public class Dialogue extends Plan implements ActorConstants {
   static boolean isListening(Actor actor, Actor other) {
     final Behaviour root = actor.AI.rootBehaviour() ;
     if (! (root instanceof Dialogue)) return false ;
-    return ((Dialogue) root).other == other ;
+    final Dialogue OD = (Dialogue) root ;
+    return OD.other == other && ! OD.inits ;
   }
   
   

@@ -81,7 +81,10 @@ public class Holding extends Venue implements BuildConstants {
     super(2, 1, ENTRANCE_EAST, belongs) ;
     this.upgradeLevel = 0 ;
     this.varID = Rand.index(NUM_VARS) ;
-    structure.setupStats(INTEGRITIES[0], 5, BUILD_COSTS[0], 0, false) ;
+    structure.setupStats(
+      INTEGRITIES[0], 5, BUILD_COSTS[0],
+      VenueStructure.BIG_MAX_UPGRADES, false
+    ) ;
     attachSprite(modelFor(this).makeSprite()) ;
   }
   
@@ -103,6 +106,28 @@ public class Holding extends Venue implements BuildConstants {
   public int owningType() {
     return Element.FIXTURE_OWNS ;
   }
+  
+  
+  
+  /**  Upgrade listings-
+    */
+  final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
+    Holding.class, "holding_upgrades"
+  ) ;
+  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  final public static Upgrade
+    PYON_LEVEL = new Upgrade(
+      "Pyon Level", "", null, 0, null, ALL_UPGRADES
+    ),
+    FREEBORN_LEVEL = new Upgrade(
+      "Pyon Level", "", null, 0, PYON_LEVEL, ALL_UPGRADES
+    ),
+    CITIZEN_LEVEL = new Upgrade(
+      "Pyon Level", "", null, 0, FREEBORN_LEVEL, ALL_UPGRADES
+    ),
+    GUILDSMAN_LEVEL = new Upgrade(
+      "Pyon Level", "", null, 0, CITIZEN_LEVEL, ALL_UPGRADES
+    ) ;
   
   
   
@@ -129,16 +154,28 @@ public class Holding extends Venue implements BuildConstants {
     if (devolve) targetLevel = upgradeLevel - 1 ;
     else if (upgrade) targetLevel = upgradeLevel + 1 ;
     targetLevel = Visit.clamp(targetLevel, NUM_LEVELS) ;
-    //
-    //  If any due upgrade is completed, change current appearance.
-    if (targetLevel != upgradeLevel) {
+    checkForUpgrade(targetLevel) ;
+  }
+  
+  
+  private void checkForUpgrade(int targetLevel) {
+    if (targetLevel == upgradeLevel) return ;
+    
+    if (targetLevel > upgradeLevel) {
+      final Upgrade target = (Upgrade) ALL_UPGRADES.members()[targetLevel] ;
+      structure.beginUpgrade(target, true) ;
+    }
+    else {
+      final Upgrade target = (Upgrade) ALL_UPGRADES.members()[upgradeLevel] ;
+      structure.resignUpgrade(target) ;
+    }
+    
+    if ((! structure.needsUpgrade()) && (! structure.needsRepair())) {
+      upgradeLevel = targetLevel ;
       structure.updateStats(INTEGRITIES[targetLevel], 5) ;
-      if (! structure.needsRepair()) {
-        upgradeLevel = targetLevel ;
-        world.ephemera.addGhost(this, MAX_SIZE, sprite(), 2.0f) ;
-        attachSprite(modelFor(this).makeSprite()) ;
-        setAsEstablished(false) ;
-      }
+      world.ephemera.addGhost(this, MAX_SIZE, sprite(), 2.0f) ;
+      attachSprite(modelFor(this).makeSprite()) ;
+      setAsEstablished(false) ;
     }
   }
   
@@ -219,8 +256,11 @@ public class Holding extends Venue implements BuildConstants {
   
   
   public String[] infoCategories() { return null ; }
+  
   public void writeInformation(Description d, int categoryID, HUD UI) {
-    d.appendList("Home of: ", personnel.residents()) ;
+    d.append("Condition: ") ;
+    d.append(structure.repair()+" / "+structure.maxIntegrity()) ;
+    d.appendList("\n\nHome of: ", personnel.residents()) ;
     d.append("\n\n") ;
     d.appendList("Needed for upgrade: ", goodsNeeded()) ;
   }

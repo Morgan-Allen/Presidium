@@ -37,6 +37,7 @@ public class Choice {
     if (verbose && BaseUI.isPicked(actor)) I.say("Adding to choice: "+plan) ;
     if (plan == null || plan.complete()) return false ;
     if (plan.nextStepFor(actor) == null) return false ;
+    if (verbose && BaseUI.isPicked(actor)) I.say("...Accepted") ;
     plans.add(plan) ;
     return true ;
   }

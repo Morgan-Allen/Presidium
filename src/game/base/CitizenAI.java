@@ -168,7 +168,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     for (Actor near : actorB) {
       choice.add(new Combat(actor, near)) ;
       choice.add(new Treatment(actor, near)) ;
-      choice.add(new Dialogue(actor, near, true)) ;
+      //choice.add(new Dialogue(actor, near, true)) ;  //This is exhausting 'em!
     }
     choice.add(new Retreat(actor)) ;
     choice.add(new SickLeave(actor)) ;
@@ -215,8 +215,8 @@ public class CitizenAI extends ActorAI implements ActorConstants {
   private void addPurchases(Choice choice) {
     //
     //  If you already have something ordered, don't place a second order.
-    if (rootBehaviour() instanceof Purchase) return ;
-    for (Behaviour b : todoList) if (b instanceof Purchase) return ;
+    if (rootBehaviour() instanceof Commission) return ;
+    for (Behaviour b : todoList) if (b instanceof Commission) return ;
     //
     //  Otherwise, consider upgrading weapons or armour.
     final Service DT = actor.gear.deviceType() ;
@@ -224,8 +224,8 @@ public class CitizenAI extends ActorAI implements ActorConstants {
       final int DQ = actor.gear.deviceEquipped().quality ;
       if (DQ < Item.MAX_QUALITY) {
         final Item nextDevice = Item.withQuality(DT, DQ + 1) ;
-        final Venue shop = Purchase.findVenue(actor, nextDevice) ;
-        if (shop != null) choice.add(new Purchase(actor, nextDevice, shop)) ;
+        final Venue shop = Commission.findVenue(actor, nextDevice) ;
+        if (shop != null) choice.add(new Commission(actor, nextDevice, shop)) ;
       }
     }
     final Service OT = actor.gear.outfitType() ;
@@ -233,8 +233,8 @@ public class CitizenAI extends ActorAI implements ActorConstants {
       final int OQ = actor.gear.outfitEquipped().quality ;
       if (OQ < Item.MAX_QUALITY) {
         final Item nextOutfit = Item.withQuality(OT, OQ + 1) ;
-        final Venue shop = Purchase.findVenue(actor, nextOutfit) ;
-        if (shop != null) choice.add(new Purchase(actor, nextOutfit, shop)) ;
+        final Venue shop = Commission.findVenue(actor, nextOutfit) ;
+        if (shop != null) choice.add(new Commission(actor, nextOutfit, shop)) ;
       }
     }
     //
@@ -249,10 +249,5 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     }
   }
 }
-
-
-
-
-
 
 

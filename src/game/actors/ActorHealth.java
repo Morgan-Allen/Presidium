@@ -349,7 +349,16 @@ public class ActorHealth implements ActorConstants {
   }
   
   
+  public boolean diseased() {
+    for (Trait d : DISEASES) if (actor.traits.trueLevel(d) > 0) return true ;
+    return false ;
+  }
+  
+  
   public float skillPenalty() {
+    //
+    //  TODO:  Calculate this once, every second or two, and cache it for
+    //  reference.
     float sum = Visit.clamp((stress + fatigue + injury) / maxHealth, 0, 1) ;
     final float hunger = 1 - (calories / maxHealth) ;
     if (hunger > 0.5f) sum += hunger - 0.5f ;

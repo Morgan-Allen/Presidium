@@ -483,11 +483,26 @@ public abstract class Venue extends Fixture implements
     ) ;
     
     if (healthbar == null) healthbar = new Healthbar() ;
+    //
+    //  TODO:  Have the healthbar configured by the VenueStructure class,
+    //  anyway.
     healthbar.level = structure.repairLevel() ;
     healthbar.size = structure.maxIntegrity() ;
     healthbar.matchTo(buildSprite) ;
     healthbar.position.z += height() ;
     rendering.addClient(healthbar) ;
+    
+    if (structure.needsUpgrade()) {
+      Healthbar progBar = new Healthbar() ;
+      progBar.level = structure.upgradeProgress() ;
+      progBar.size = healthbar.size ;
+      progBar.position.setTo(healthbar.position) ;
+      progBar.yoff = Healthbar.BAR_HEIGHT ;
+      progBar.full = Colour.GREY ;
+      progBar.empty = Colour.GREY ;
+      progBar.colour = Colour.WHITE ; //paler version of main bar colour?
+      rendering.addClient(progBar) ;
+    }
     
     super.renderFor(rendering, base) ;
   }

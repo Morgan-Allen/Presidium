@@ -21,17 +21,23 @@ public interface Behaviour extends Session.Saveable {
     URGENT   = 7,
     CRITICAL = 9,
     PARAMOUNT = 10 ;
+  final public static int
+    STAGE_INIT = -1,
+    STAGE_BEGUN = 0,
+    STAGE_COMPLETE = 1,
+    STAGE_CANCELLED = 2 ;
+  
   
   
   Behaviour nextStepFor(Actor actor) ;
-  boolean monitor(Actor actor) ;
-  void setPriority(float priority) ;
+  boolean monitor(Actor actor) ;  //Get rid of these.
+  void setPriority(float priority) ;  //...Not used for Plans.
   
   float priorityFor(Actor actor) ;
-  boolean complete() ;  //specify actor?
+  boolean complete() ;  //specify actor?  Return stage?
   void abortStep() ;    //specify actor?
   //boolean viable() ; ?
-  //boolean begun() ; ?
+  //boolean begun() ; ?  ...No.  Return a Stage descriptor.
   
   void describeBehaviour(Description d) ;
 }

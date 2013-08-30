@@ -134,7 +134,6 @@ public class Manufacture extends Plan implements Behaviour {
     for (int i = c.skills.length ; i-- > 0 ;) {
       success &= actor.traits.test(c.skills[i], c.skillDCs[i] + checkMod, 1) ;
     }
-    ///if (! success) I.say(" FAILED TEST") ;
     if (success || GameSettings.hardCore) {
       for (Item r : c.raw) {
         final Item used = Item.withAmount(r, r.amount * progInc) ;
@@ -145,7 +144,6 @@ public class Manufacture extends Plan implements Behaviour {
     //  Advance progress, and check if you're done yet.
     final int oldCount = (int) (progress * made.amount) ;
     progress += success ? progInc : (progInc / 10f) ;
-    ///progress = Visit.clamp(progress, 0, 1) ;
     final int newCount = (int) (progress * made.amount) ;
     if (newCount > oldCount) {
       venue.stocks.addItem(Item.withAmount(made, newCount - oldCount)) ;

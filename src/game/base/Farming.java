@@ -136,8 +136,9 @@ public class Farming extends Plan implements BuildConstants {
     final int varID = BotanicalStation.pickSpecies(t, nursery) ;
     final Crop crop = new Crop(nursery, varID) ;
     crop.enterWorldAt(t.x, t.y, actor.world()) ;
-    crop.health = actor.traits.test(CULTIVATION, 10, 1) ? 2 : 1 ;
+    crop.health = actor.traits.test(CULTIVATION, 10, 1) ? 1 : 0 ;
     crop.health += actor.traits.test(HARD_LABOUR, 5, 1) ? 1 : 0 ;
+    crop.health += nursery.growBonus(t, varID) ;
     nursery.toPlant.remove(t) ;
     nursery.planted.addLast(crop) ;
     return true ;

@@ -164,7 +164,10 @@ public class Inventory {
     */
   public boolean removeItem(Item item) {
     final Item oldItem = itemTable.get(item) ;
-    if (oldItem == null || oldItem.amount < item.amount) return false ;
+    if (oldItem == null || oldItem.amount < item.amount) {
+      itemTable.remove(item) ;
+      return false ;
+    }
     final float newAmount = oldItem.amount - item.amount ;
     if (newAmount <= 0) itemTable.remove(oldItem) ;
     else {

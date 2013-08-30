@@ -306,10 +306,16 @@ public class ActorGear extends Inventory implements BuildConstants {
   
   /**  Maintenance, updates and spring cleaning-
     */
-  public void updateEquipment() {
+  public void updateGear(int numUpdates) {
     if (outfit != null) regenerateShields() ;
     else currentShields = 0 ;
+    for (Item item : itemTable.keySet()) {
+      if (item.refers instanceof Action) {
+        ((Action) item.refers).applyEffect() ;
+      }
+    }
   }
+  
   
   public boolean addItem(Item item) {
     if (item == null) return false ;
@@ -325,41 +331,3 @@ public class ActorGear extends Inventory implements BuildConstants {
 
 
 
-
-
-/*
-if (shieldFX != null && ! shieldFX.visible()) {
-  //shieldFX.cancelFX() ;
-  //shieldFX.attachToBase(null) ;
-  shieldFX = null ;
-}
-//*/
-
-
-/**  Functions related to current rations and food quality-
-  */
-/*
-public void topUpRations(float amount, float quality) {
-  final float shortage = MAX_RATIONS - currentRations ;
-  foodTypes = ((quality * shortage / MAX_RATIONS) + foodTypes) / 2 ;
-  currentRations = MAX_RATIONS ;
-}
-
-
-public float rationShortage() {
-  return MAX_RATIONS - currentRations ;
-}
-
-
-public void deductRations(float amount) {
-  currentRations -= amount ;
-  if (currentRations <= 0) {
-    currentRations = 0 ;
-    foodTypes = 0 ;
-  }
-}
-
-
-public float foodQuality() { return foodTypes ; }
-public float foodAmount() { return currentRations ; }
-//*/

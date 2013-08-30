@@ -50,24 +50,6 @@ public class BotanicalStation extends Venue implements BuildConstants {
   } ;
   
   
-  public static int pickSpecies(Tile t, BotanicalStation parent) {
-    /*
-    final float proteinChance = parent.growProtein ? 0.2f : 0.1f ;
-    if (Rand.num() < proteinChance) return 4 ;
-    float moisture = t.habitat().moisture() / 10f ;
-    final Float chances[] = {
-      (parent.growStarches ? 1.5f : 0.5f) * moisture,
-      (parent.growStarches ? 1.5f : 0.5f) * (1 - moisture),
-      (parent.growGreens   ? 1.5f : 0.5f) * moisture,
-      (parent.growGreens   ? 1.5f : 0.5f) * (1 - moisture),
-      0f
-    } ;
-    return (Integer) ((Object[]) Rand.pickFrom(CROP_SPECIES, chances))[0] ;
-    //*/
-    return (Integer) ((Object[]) Rand.pickFrom(CROP_SPECIES))[0] ;
-  }
-  
-  
   public static Model speciesModel(int varID, int growStage) {
     final Model seq[] = (Model[]) CROP_SPECIES[varID][2] ;
     return seq[Visit.clamp(growStage, seq.length)] ;
@@ -81,12 +63,6 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   final static int
     MAX_PLANT_RANGE = 4 ;
-  /*
-  boolean
-    growStarches = false,
-    growGreens   = true ,
-    growProtein  = false ;
-  //*/
   
   final List <Tile> toPlant = new List <Tile> () ;
   final List <Crop> planted = new List <Crop> () ;
@@ -102,9 +78,6 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   public BotanicalStation(Session s) throws Exception {
     super(s) ;
-    //growStarches = s.loadBool() ;
-    //growGreens   = s.loadBool() ;
-    //growProtein  = s.loadBool() ;
     s.loadTargets((Series) toPlant) ;
     s.loadObjects(planted) ;
     onceGrabbed = s.loadInt() ;
@@ -113,9 +86,6 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    //s.saveBool(growStarches) ;
-    //s.saveBool(growGreens  ) ;
-    //s.saveBool(growProtein ) ;
     s.saveTargets((Series) toPlant) ;
     s.saveObjects(planted) ;
     s.saveInt(onceGrabbed) ;
@@ -241,11 +211,11 @@ public class BotanicalStation extends Venue implements BuildConstants {
       PROTEIN, 1,
       BROADLEAF_LAB, ALL_UPGRADES
     ),
-    BOTANIST_QUARTERS = new Upgrade(
-      "Botanist Quarters",
-      "Botanists are highly-skilled students of plant ecology and gene "+
-      "modification, capable of adapting flora to local climate conditions.",
-      Vocation.BOTANIST, 1,
+    ECOLOGIST_QUARTERS = new Upgrade(
+      "Ecologist Quarters",
+      "Ecologists are highly-skilled students of plants, animals and gene "+
+      "modification, capable of adapting species to local climate conditions.",
+      Vocation.ECOLOGIST, 1,
       TREE_FARMING, ALL_UPGRADES
     ) ;
   
@@ -258,7 +228,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
   public int numOpenings(Vocation v) {
     int num = super.numOpenings(v) ;
     if (v == Vocation.FIELD_HAND) return num + 2 ;
-    if (v == Vocation.BOTANIST  ) return num + 0 ;
+    if (v == Vocation.ECOLOGIST  ) return num + 0 ;
     return 0 ;
   }
   
@@ -269,7 +239,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   
   protected Vocation[] careers() {
-    return new Vocation[] { Vocation.BOTANIST, Vocation.FIELD_HAND } ;
+    return new Vocation[] { Vocation.ECOLOGIST, Vocation.FIELD_HAND } ;
   }
   
 
@@ -285,8 +255,30 @@ public class BotanicalStation extends Venue implements BuildConstants {
   }
   
   
-  public void updateAsScheduled(int numUpdates) {
-    super.updateAsScheduled(numUpdates) ;
+  float growBonus(Tile t, int varID) {
+    if (varID == 4) {
+      return (structure.upgradeBonus(PROTEIN) + 2) * 0.25f ;
+    }
+    float bonus = t.habitat().moisture() / 10f ;
+    if (varID % 2 == 0) bonus = (1 - bonus) ;
+    if (varID < 2) {
+      return (structure.upgradeBonus(STARCHES) + 2) * 0.5f * bonus ;
+    }
+    else {
+      return (structure.upgradeBonus(GREENS) + 2) * 0.5f * bonus ;
+    }
+  }
+  
+  
+  public static int pickSpecies(Tile t, BotanicalStation parent) {
+    final Float chances[] = {
+      parent.growBonus(t, 0),
+      parent.growBonus(t, 1),
+      parent.growBonus(t, 2),
+      parent.growBonus(t, 3),
+      parent.growBonus(t, 4),
+    } ;
+    return (Integer) ((Object[]) Rand.pickFrom(CROP_SPECIES, chances))[0] ;
   }
   
   

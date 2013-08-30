@@ -151,6 +151,7 @@ public abstract class Actor extends Mobile implements
   
   public void updateAsScheduled(int numUpdates) {
     health.updateHealth(numUpdates) ;
+    gear.updateGear(numUpdates) ;
     if (health.conscious()) {
       //
       //  Check to see if a new action needs to be decided on.
@@ -222,7 +223,7 @@ public abstract class Actor extends Mobile implements
     final float scale = spriteScale() ;
     final Sprite s = sprite() ;
     
-    healthBar.level = 1 - health.stressLevel() ;
+    healthBar.level = (1 - health.injuryLevel()) * (1 - health.stressLevel()) ;
     healthBar.size = health.maxHealth() * 2 ;
     healthBar.matchTo(s) ;
     healthBar.position.z -= radius() ;

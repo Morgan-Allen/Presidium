@@ -6,9 +6,8 @@
 
 package src.game.building ;
 import src.game.common.* ;
-import src.util.* ;
-import src.graphics.common.* ;
-import src.graphics.cutout.* ;
+import src.game.common.Session.Saveable ;
+import src.game.actors.* ;
 
 
 
@@ -37,16 +36,14 @@ public class Item implements BuildConstants {
   final public static float ANY = Float.NEGATIVE_INFINITY ;
   final public static int MAX_QUALITY = 4 ;
   
-  
   final public Service type ;
-  final public Session.Saveable refers ;
+  final public Saveable refers ;
   final public float amount ;
   final public int quality ;
-  //  TODO:  Make quality an atttribute?  Yeah.  It's simpler.
   
   
   private Item(
-    Service type, Session.Saveable refers, float amount, int quality
+    Service type, Saveable refers, float amount, int quality
   ) {
     this.type = type ;
     this.amount = amount ;
@@ -65,47 +62,35 @@ public class Item implements BuildConstants {
   }
   
   
-  public static Item withQuality(Service type, int quality) {
-    return new Item(type, null, 1, quality) ;
+  public static Item withType(Service type, Saveable refers, float amount) {
+    return new Item(type, refers, amount, 0) ;
+  }
+  
+  
+  public static Item withType(Service type, Saveable refers) {
+    return new Item(type, refers, 1, 0) ;
   }
   
   
   public static Item withType(Service type) {
     return new Item(type, null, -1, -1) ;
   }
-  /*
-  public Item(Item item) {
-    this(item.type, item.amount, item.refers) ;
+  
+  
+  public static Item withQuality(Service type, int quality) {
+    return new Item(type, null, 1, quality) ;
   }
   
-
-  public Item(Item item, float amount) {
-    this(item.type, amount, item.refers) ;
-  }
-  
-  
-  public Item(Type type, Quality quality) {
-    this(type, 1, quality) ;
-  }
-  
-  
-  public Item(Type type) {
-    this(type, 1) ;
-  }
-  
-  
-  public Item(Type type, float amount) {
-    this(type, amount > 0 ? amount : ANY, null) ;
-  }
-  //*/
   
   
   public static Item loadFrom(Session s) throws Exception {
     final int typeID = s.loadInt() ;
     if (typeID == -1) return null ;
     return new Item(
-      ALL_ITEM_TYPES[typeID], s.loadObject(),
-      s.loadFloat(), s.loadInt()
+      ALL_ITEM_TYPES[typeID],
+      s.loadObject(),
+      s.loadFloat(),
+      s.loadInt()
     ) ;
   }
   
@@ -162,11 +147,12 @@ public class Item implements BuildConstants {
   }
   
   
+  
   /**  Rendering/interface functions-
     */
   public String toString() {
     if (refers != null) {
-      return refers+" "+type ;
+      return type+" ("+refers+")" ;
     }
     else if (quality != -1) return QUAL_NAMES[quality]+" "+type ;
     else return ((int) amount)+" "+type ;
@@ -174,51 +160,6 @@ public class Item implements BuildConstants {
 }
 
 
-
-
-
-
-
-/**  Qualities are used to annotate personal effects, such as weapons and
-  *  outfits.
-  */
-/*
-public static class Quality implements Session.Saveable {
-  
-  final int level ;
-  
-  private Quality(int level) {
-    this.level = level ;
-  }
-  
-  public static Session.Saveable loadConstant(Session s) throws Exception {
-    return QUALITIES[s.loadInt()] ;
-  }
-  
-  public void saveState(Session s) throws Exception {
-    s.saveInt(level) ;
-  }
-  
-  public String toString() { return QUAL_NAMES[level] ; }
-}
-
-final public static Quality
-  CRUDE_QUALITY    = new Quality(0),
-  BASIC_QUALITY    = new Quality(1),
-  STANDARD_QUALITY = new Quality(2),
-  HIGH_QUALITY     = new Quality(3),
-  LUXURY_QUALITY   = new Quality(4),
-  QUALITIES[] = {
-    CRUDE_QUALITY,
-    BASIC_QUALITY,
-    STANDARD_QUALITY,
-    HIGH_QUALITY,
-    LUXURY_QUALITY 
-  } ;
-public static Quality quality(int level) {
-  return QUALITIES[Visit.clamp(level, 5)] ;
-}
-//*/
 
 
 

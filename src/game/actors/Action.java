@@ -29,8 +29,8 @@ public class Action implements Behaviour, Model.AnimNames {
     RANGED   = 8 ;
   
   final public Actor actor ;
-  final Session.Saveable basis ;
-  final Method toCall ;
+  final public Session.Saveable basis ;
+  final public Method toCall ;
   
   private float priority ;
 
@@ -177,14 +177,6 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-  public float moveMultiple() {
-    float rate = 1 ;
-    if ((properties & QUICK  ) != 0) rate *= 2 ;
-    if ((properties & CAREFUL) != 0) rate /= 2 ;
-    return rate ;
-  }
-  
-  
   private float moveRate() {
     float rate = actor.health.moveRate() * moveMultiple() ;
     //
@@ -246,14 +238,7 @@ public class Action implements Behaviour, Model.AnimNames {
   private void advanceAction() {
     progress = Visit.clamp(progress, 0, 1) ;
     final float contact = contactTime() ;
-    if (oldProgress <= contact && progress > contact) try {
-      ///if (BaseUI.isPicked(actor)) I.say(methodName()+" is happening...") ;
-      toCall.invoke(basis, actor, actionTarget) ;
-    }
-    catch (Exception e) {
-      I.say("PROBLEM WITH ACTION: "+toCall.getName()) ;
-      I.report(e) ;
-    }
+    if (oldProgress <= contact && progress > contact) applyEffect() ;
   }
   
   
@@ -264,6 +249,23 @@ public class Action implements Behaviour, Model.AnimNames {
     oldProgress = progress ;
     progress += progressPerUpdate() ;
     if (inRange == 1) advanceAction() ;
+  }
+  
+  
+  public float moveMultiple() {
+    float rate = 1 ;
+    if ((properties & QUICK  ) != 0) rate *= 2 ;
+    if ((properties & CAREFUL) != 0) rate /= 2 ;
+    return rate ;
+  }
+  
+  
+  public void applyEffect() {
+    try { toCall.invoke(basis, actor, actionTarget) ; }
+    catch (Exception e) {
+      I.say("PROBLEM WITH ACTION: "+toCall.getName()) ;
+      I.report(e) ;
+    }
   }
   
   

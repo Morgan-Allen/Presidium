@@ -12,6 +12,20 @@ import src.game.base.* ;
 
 
 //  Include various service-types here?
+/*
+SPYCE_A = new Item.Type(C, COMMODITY, "Spyce A (Tinerazine)", 400),
+SPYCE_B = new Item.Type(C, COMMODITY, "Spyce B (Halebdynum)", 400),
+SPYCE_C = new Item.Type(C, COMMODITY, "Spyce C (Natrizoral)", 400),
+//*/
+  /*
+  OUTFITS  = new Item.Type(C, UNIQUE, "Outfits", 0),
+  DEVICES  = new Item.Type(C, UNIQUE, "Devices", 0),
+  ARMOURS  = new Item.Type(C, UNIQUE, "Armours", 0),
+  
+  GENE_SAMPLE = new Item.Type(C, UNIQUE, "Gene Sample", 50 ),
+  NEURAL_SCAN = new Item.Type(C, UNIQUE, "Neural Scan", 500),
+  TROPHY      = new Item.Type(C, UNIQUE, "Trophy"     , 250)
+  //*/
 
 
 public interface BuildConstants extends ActorConstants {
@@ -55,29 +69,12 @@ public interface BuildConstants extends ActorConstants {
     POWER        = new Service(C, PROVISION, "Power"       , 0),
     
     ALL_FOOD_TYPES[] = { STARCHES, PROTEIN, GREENS  },
-    ALL_PROVISIONS[] = { WATER, LIFE_SUPPORT, POWER },
-    
-    //  Plants (young/mature- species?  Flora or animal remains?  Dead/alive?)
-    //  Housing.
-    
-    SERVICE_ADMIN = new Service(C, SERVICE, "Admin", 0) ;
-    //  Also housing, refuge, storage, et cetera.
+    ALL_PROVISIONS[] = { WATER, LIFE_SUPPORT, POWER } ;
 
-
-  /*
-  SPYCE_A = new Item.Type(C, COMMODITY, "Spyce A (Tinerazine)", 400),
-  SPYCE_B = new Item.Type(C, COMMODITY, "Spyce B (Halebdynum)", 400),
-  SPYCE_C = new Item.Type(C, COMMODITY, "Spyce C (Natrizoral)", 400),
-  //*/
-    /*
-    OUTFITS  = new Item.Type(C, UNIQUE, "Outfits", 0),
-    DEVICES  = new Item.Type(C, UNIQUE, "Devices", 0),
-    ARMOURS  = new Item.Type(C, UNIQUE, "Armours", 0),
+  final public static Service
     
-    GENE_SAMPLE = new Item.Type(C, UNIQUE, "Gene Sample", 50 ),
-    NEURAL_SCAN = new Item.Type(C, UNIQUE, "Neural Scan", 500),
-    TROPHY      = new Item.Type(C, UNIQUE, "Trophy"     , 250)
-    //*/
+    SERVICE_ADMIN = new Service(C, SERVICE, "Admin", 0),
+    SERVICE_TREAT = new Service(C, SERVICE, "Treatment", 0) ;
   
   
   final public static int

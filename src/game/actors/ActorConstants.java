@@ -435,8 +435,6 @@ public interface ActorConstants {
       "Malnourished",
       null
     ),
-    
-    
     POISONED = new Condition(
       "Fatally Poisoned",
       "Badly Poisoned",
@@ -444,39 +442,49 @@ public interface ActorConstants {
       null
     ),
     
+    
+    //
+    //  TODO:  These need to apply their effects, and actors need to actively
+    //  pursue treatment/sick leave.
     ILLNESS = new Condition(
       "Terminal Illness",
       "Serious Illness",
       "Mild Illness",
        null
     ),
-    
     CANCER = new Condition(
       "Terminal Cancer",
       "Advanced Cancer",
       "Early Cancer",
       null
     ),
-    
-    SPYCE_ADDICTION = new Condition(
+    SPICE_ADDICTION = new Condition(
       "Complete Addiction",
       "Heavy Addiction",
       "Mild Addiction",
       null
     ),
-    /*
     RAGE_INFECTION = new Condition(
       "Infection Frenzy",
       "Infection Atavism",
       "Infection Onset",
       null
     ),
-    
-    PART_CYBORG = new Condition(
-      "Part Cyborg"
+    ALBEDAN_STRAIN = new Condition(
+      "Albedan Strain",
+      "Albedan Strain",
+      "Albedan Strain",
+      null
     ),
-    //*/
-    CONDITIONS[] = Trait.traitsSoFar()
+    SILVER_PLAGUE = new Condition(
+      "Silver Plague",
+      "Silver Plague",
+      "Silver Plague",
+      null
+    ),
+    
+    CONDITIONS[] = Trait.traitsSoFar(),
+    DISEASES[] = { ILLNESS, CANCER, SPICE_ADDICTION }
   ;
   
   final public static Trait

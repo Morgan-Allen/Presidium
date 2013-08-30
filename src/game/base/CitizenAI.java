@@ -100,6 +100,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     if (mission == null) {
   	  addWork(choice) ;
   	  addLeisure(choice) ;
+      addPurchases(choice) ;
     }
     
     final Behaviour chosen = choice.weightedPick(whimsy()) ;
@@ -170,9 +171,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
       choice.add(new Dialogue(actor, near, true)) ;
     }
     choice.add(new Retreat(actor)) ;
-    //
-    //  Consider repairing nearby buildings-
-    choice.add(Building.getNextRepairFor(actor)) ;
+    choice.add(new SickLeave(actor)) ;
   }
   
   
@@ -189,6 +188,9 @@ public class CitizenAI extends ActorAI implements ActorConstants {
       Behaviour atHome = home.jobFor(actor) ;
       if (atHome != null) choice.add(atHome) ;
     }
+    //
+    //  Consider repairing nearby buildings-
+    choice.add(Building.getNextRepairFor(actor)) ;
 	}
   
   
@@ -207,9 +209,6 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     //  As hobbies, consider hunting, exploration, assistance, and dialogue,
     //  with one chosen target each.
     
-    //
-    //  Consider purchases of new equipment or home items.
-    addPurchases(choice) ;
   }
   
   

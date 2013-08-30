@@ -99,14 +99,16 @@ public class VenueStructure extends Inventory {
     integrity = s.loadFloat() ;
     burning = s.loadBool() ;
     
-    if (maxUpgrades > 0) {
+    final Index <Upgrade> AU = venue.allUpgrades() ;
+    if (AU != null) {
+      upgradeProgress = s.loadFloat() ;
+      upgradeIndex = s.loadInt() ;
       upgrades = new Upgrade[maxUpgrades] ;
       upgradeStates = new int[maxUpgrades] ;
-    }
-    final Index <Upgrade> AU = venue.allUpgrades() ;
-    if (AU != null) for (int i = 0 ; i < maxUpgrades ; i++) {
-      upgrades[i] = AU.loadMember(s.input()) ;
-      upgradeStates[i] = s.loadInt() ;
+      for (int i = 0 ; i < maxUpgrades ; i++) {
+        upgrades[i] = AU.loadMember(s.input()) ;
+        upgradeStates[i] = s.loadInt() ;
+      }
     }
   }
   
@@ -124,9 +126,13 @@ public class VenueStructure extends Inventory {
     s.saveBool(burning) ;
     
     final Index <Upgrade> AU = venue.allUpgrades() ;
-    if (AU != null) for (int i = 0 ; i < maxUpgrades ; i++) {
-      AU.saveMember(upgrades[i], s.output()) ;
-      s.saveInt(upgradeStates[i]) ;
+    if (AU != null) {
+      s.saveFloat(upgradeProgress) ;
+      s.saveInt(upgradeIndex) ;
+      for (int i = 0 ; i < maxUpgrades ; i++) {
+        AU.saveMember(upgrades[i], s.output()) ;
+        s.saveInt(upgradeStates[i]) ;
+      }
     }
   }
   
@@ -159,7 +165,7 @@ public class VenueStructure extends Inventory {
   
   /**  Queries and modifications-
     */
-  public int maxIntegrity() { return baseIntegrity ; }
+  public int maxIntegrity() { return baseIntegrity + upgradeHP() ; }
   public int armouring() { return armouring ; }
   public int maxUpgrades() { return upgrades == null ? 0 : maxUpgrades ; }
   
@@ -238,6 +244,18 @@ public class VenueStructure extends Inventory {
   }
   
   
+  protected int upgradeHP() {
+    if (upgrades == null) return 0 ;
+    int numUsed = 0 ;
+    for (int i = 0 ; i < upgrades.length ; i++) {
+      if (upgrades[i] != null && upgradeStates[i] != STATE_INSTALL) numUsed++ ;
+    }
+    if (numUsed == 0) return 0 ;
+    return (int) (baseIntegrity * UPGRADE_HP_BONUSES[numUsed - 1]) ;
+  }
+  
+  
+  
   
   /**  Handling upgrades-
     */
@@ -270,11 +288,13 @@ public class VenueStructure extends Inventory {
     //  You may also want to deduct any credits or materials associated with
     //  construction.
     if (upgradeProgress >= 1) {
+      final float condition = integrity * 1f / maxIntegrity() ;
       final int US = upgradeStates[upgradeIndex] ;
       if (US == STATE_SALVAGE) deleteUpgrade(upgradeIndex) ;
       else upgradeStates[upgradeIndex] = STATE_INTACT ;
       upgradeProgress = 0 ;
       upgradeIndex = -1 ;
+      integrity = maxIntegrity() * condition ;
     }
   }
   
@@ -337,6 +357,19 @@ public class VenueStructure extends Inventory {
       if (u.refers == refers) bonus += u.bonus ;
     }
     return bonus ;
+  }
+  
+  
+  public int numLevels(Upgrade type) {
+    if (upgrades == null) return 0 ;
+    int num = 0 ;
+    for (Upgrade u : upgrades) if (u == type) num++ ;
+    return num ;
+  }
+  
+  
+  public float upgradeProgress() {
+    return upgradeProgress ;
   }
   
   

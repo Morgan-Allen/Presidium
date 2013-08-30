@@ -101,10 +101,10 @@ public class Vocation implements BuildConstants {
     ),
     
     FABRICATOR = new Vocation(
-      "Fabricator", "pyon_skin.gif", null,
+      "Fabricator", "citizen_skin.gif", null,
       LOWER_CLASS,
       PRACTICED, CHEMISTRY, NOVICE, HARD_LABOUR, CHEMISTRY, GRAPHIC_MEDIA,
-      RARELY, INDOLENT, SOMETIMES, STUBBORN
+      SOMETIMES, STUBBORN
     ),
     
     ARTIFICER = new Vocation(
@@ -119,7 +119,7 @@ public class Vocation implements BuildConstants {
   final public static Vocation
     
     VAT_BREEDER = new Vocation(
-      "Vat Breeder", null, null, LOWER_CLASS, new Object[] {
+      "Vat Breeder", "citizen_skin.gif", null, LOWER_CLASS, new Object[] {
       10, GENE_CULTURE, PHARMACY, 5, CHEMISTRY, ASSEMBLY,
       RARELY, DEBAUCHED, INDOLENT
     }),
@@ -148,12 +148,21 @@ public class Vocation implements BuildConstants {
       OFTEN, SOCIABLE, SOMETIMES, NATURALIST, RARELY, AMBITIOUS
     ),
     
-    BOTANIST = new Vocation(
-      "Botanist", "ecologist_skin.gif", "ecologist_portrait.png",
+    SURVEYOR = new Vocation(
+      "Surveyor", "ecologist_skin.gif", "ecologist_portrait.png",
       UPPER_CLASS,
-      EXPERT, CULTIVATION, PRACTICED, GENE_CULTURE,
-      NOVICE, XENOBIOLOGY, GEOPHYSICS, CHEMISTRY,
-      OFTEN, NATURALIST, SOMETIMES, EMPATHIC, RARELY, INDOLENT
+      EXPERT, XENOBIOLOGY, STEALTH_AND_COVER, PRACTICED, MARKSMANSHIP,
+      NATIVE_TABOO, NOVICE, BATTLE_TACTICS,
+      RARELY, NERVOUS, INDOLENT, OFTEN, NATURALIST,
+      PHASE_PISTOL, CAMOUFLAGE
+    ),
+    
+    ECOLOGIST = new Vocation(
+      "Ecologist", "ecologist_skin.gif", "ecologist_portrait.png",
+      UPPER_CLASS,
+      EXPERT, CULTIVATION, PRACTICED, GENE_CULTURE, XENOBIOLOGY,
+      NOVICE, GEOPHYSICS, CHEMISTRY,
+      ALWAYS, NATURALIST, SOMETIMES, EMPATHIC, INQUISITIVE
     )
   ;
   
@@ -200,6 +209,7 @@ public class Vocation implements BuildConstants {
       SOMETIMES, DUTIFUL, AGGRESSIVE,
       SHOCK_STAFF, BODY_ARMOUR
     ),
+    
     VETERAN = new Vocation(
       "Veteran", "militant_skin.gif", "militant_portrait.png",
       UPPER_CLASS,

@@ -9,6 +9,8 @@ import org.lwjgl.opengl.* ;
 
 
 
+//
+//  TODO:  Healthbar colour needs to be customised for different players.
 
 public class Healthbar extends Sprite {
   
@@ -20,14 +22,12 @@ public class Healthbar extends Sprite {
     BAR_MODEL = new Model("health_bar_model", Healthbar.class) {
       public Sprite makeSprite() { return new Healthbar() ; }
     } ;
-    
-  final static int
+  
+  final public static int
     BAR_HEIGHT = 3,
     DEFAULT_WIDTH = 40 ;
-  //
-  //  TODO:  Have the background flash red when at less than half health.
   
-  public float level = 0.5f ;
+  public float level = 0.5f, yoff = 0 ;
   public float size = DEFAULT_WIDTH ;
   public Colour full = Colour.BLUE, empty = Colour.RED ;
   
@@ -36,19 +36,6 @@ public class Healthbar extends Sprite {
   
   public Healthbar() {}
   public Model model() { return BAR_MODEL ; }
-  
-  
-  public void saveTo(DataOutputStream out) throws Exception {
-    super.saveTo(out) ;
-    out.writeFloat(level) ;
-    out.writeFloat(size) ;
-  }
-  
-  public void loadFrom(DataInputStream in) throws Exception {
-    super.loadFrom(in) ;
-    level = in.readFloat() ;
-    size = in.readFloat() ;
-  }
   
   
   
@@ -69,7 +56,7 @@ public class Healthbar extends Sprite {
     rendering.port.isoToScreen(base) ;
     final int
       x = (int) (base.x - (size / 2)),
-      y = (int) (base.y - (BAR_HEIGHT / 2)) ;
+      y = (int) (base.y + yoff - (BAR_HEIGHT / 2)) ;
     //
     //  Begin actual rendering-
     //GL11.glDisable(GL11.GL_DEPTH_TEST) ;

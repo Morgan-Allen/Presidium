@@ -9,8 +9,7 @@ package src.game.base ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.util.Rand;
-import src.util.Visit;
+import src.util.* ;
 
 
 
@@ -23,6 +22,8 @@ public class Crop extends Element {
   final BotanicalStation parent ;
   final int varID ;
   float growStage, health ;
+  //  Health can be negative when/if diseased!  And spreads more easily to
+  //  crops of the same type.
   
   
   Crop(BotanicalStation parent, int varID) {

@@ -26,11 +26,11 @@ import src.util.* ;
 //  willingly running into situations that they then run away from.
 //
 //  More attention on relaxing/recreation.  Building priority must be tweaked,
-//  for the sake of housing upgrades, et cetera.
-//  Visual indicators for research/upgrades (and/or manufacture?)
+//  for the sake of housing upgrades, et cetera.  Add Hunting at the redoubt!
+//  Visual indicators for manufacture, or make it an aspect of the venue?
 //
 //  Safety patrols, sick leave and performance.  Spontaneous missions, and
-//  a clearer factoring out of venues/actors batches in the AI.
+//  a clearer factoring out of venues/actors batches in the AI.  Plus taxes.
 
 //
 /*
@@ -250,24 +250,32 @@ public class DebugBehaviour extends PlayLoop {
     *  treatment.
     */
   private void socialScenario(World world, Base base, HUD UI) {
-    final Actor actor = new Human(Vocation.PHYSICIAN, base) ;
-    actor.enterWorldAt(5, 5, world) ;
-    ((BaseUI) UI).selection.pushSelection(actor, true) ;
     
     //
-    //  You also want to see what happens when the actor is diseased.
-    base.intelMap.liftFogAround(actor, 10) ;
+    //  TODO:  Add a behaviour to ensure that someone tends the desk at the
+    //  hospice.  Casual priority, let's say.
+    final Actor actor = new Human(Vocation.PHYSICIAN, base) ;
+    actor.enterWorldAt(5, 5, world) ;
     
-    final Hospice hospice = new Hospice(base) ;
+    final Sickbay hospice = new Sickbay(base) ;
     hospice.enterWorldAt(9, 2, world) ;
     hospice.setAsEstablished(true) ;
     hospice.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
     hospice.onCompletion() ;
     actor.AI.setEmployer(hospice) ;
     
-    //final Actor other = new Human(Vocation.VETERAN , base) ;
-    //other.health.takeFatigue(other.health.maxHealth() / 2) ;
-    //other.health.takeInjury(other.health.maxHealth() + 1) ;
+    final Actor other = new Human(Vocation.VETERAN , base) ;
+    other.traits.setLevel(ActorConstants.ILLNESS, 2) ;
+    other.enterWorldAt(9, 9, world) ;
+    ((BaseUI) UI).selection.pushSelection(other, true) ;
+    
+    final Garrison garrison = new Garrison(base) ;
+    garrison.enterWorldAt(2, 9, world) ;
+    garrison.setAsEstablished(true) ;
+    garrison.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+    garrison.onCompletion() ;
+    other.AI.setEmployer(garrison) ;
+    
     /*
     final Cantina cantina = new Cantina(base) ;
     cantina.enterWorldAt(2, 9, world) ;

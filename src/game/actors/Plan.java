@@ -9,6 +9,7 @@ package src.game.actors ;
 import src.game.common.* ;
 import src.game.common.Session.Saveable ;
 import src.game.planet.Terrain;
+import src.game.building.* ;
 import src.user.* ;
 import src.util.* ;
 
@@ -115,8 +116,7 @@ public abstract class Plan implements Saveable, Behaviour {
   }
   
   
-  protected void onceInvalid() {
-  }
+  protected void onceInvalid() {}
   
   protected abstract Behaviour getNextStep() ;
   
@@ -156,12 +156,11 @@ public abstract class Plan implements Saveable, Behaviour {
   
   
   
-  /**  Assorted utility methods (move elsewhere soon.)  TODO; THAT
+  /**  Assorted utility evaluation methods-
     */
   final private static float IL2 = 1 / (float) Math.log(2) ;
   
-  //
-  //  TODO:  Outsource this to the ActorAI or possibly DangerMap classes.
+  
   public static float rangePenalty(Target a, Target b) {
     if (a == null || b == null) return 0 ;
     final float SS = World.DEFAULT_SECTOR_SIZE ;
@@ -169,6 +168,34 @@ public abstract class Plan implements Saveable, Behaviour {
     if (dist <= 1) return dist ;
     return IL2 * (float) Math.log(dist) ;
   }
+  
+  
+  public static float competition(Class planClass, Target t, World world) {
+    float competition = 0 ;
+    for (Behaviour b : world.activities.targeting(t)) {
+      if (b.getClass() == planClass) {
+        final Plan plan = (Plan) b ;
+        competition += plan.successChance() ;
+      }
+    }
+    return competition ;
+  }
+  
+  
+  public static int upgradeBonus(Target location, Object refers) {
+    if (! (location instanceof Venue)) return 0 ;
+    final Venue v = (Venue) location ;
+    if (refers instanceof Upgrade) {
+      return v.structure.numLevels((Upgrade) refers) ;
+    }
+    else return v.structure.upgradeBonus(refers) ;
+  }
+  
+  
+  protected float successChance() {
+    return 1 ;
+  }
+  
   
   
   

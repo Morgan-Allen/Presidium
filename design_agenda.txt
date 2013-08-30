@@ -32,45 +32,32 @@ What are the tradeoffs involved in this game?
 
 
 Quest ideas-
-  There's an existing crime-ridden settlement.
+  There's a large existing crime-ridden settlement.
   There's an ancient relic guarded by powerful defences.
   There are rich resources contested by native tribes.
-  There's a virgin wilderness filled with animals.
-  Settlers are being preyed on by a powerful enemy.
-  An imperial fortress is help by a trio of champions.
-  
-  
-  
-  
+  There's a virgin wilderness filled with dangerous animals.
+  Two small settlements need to be rebuilt and defended.
+  An imperial fortress is held by a trio of champions.
 
 
-The Reactor.
 
-The Archives.  The Vault System and Service Hatch.
-
-The Solar Array.  The Air Processor.  The Condensor/Reclamator.
-
-
-PHYSICIAN HOSPICE  (plus list of Patients/Inmates/Cadavers)
-  Aid Station  (creates Medkits)
-  Quarantine Facility
-  Minder Quarters
-  Intensive Care (requires Aid Station)
-  Psych Ward (requires Minder Quarters)
-  Physician Quarters (requires Intensive Care)
 
 CULTURE VATS
+  Waste Disposal (it's made of PEOPLE!)
   Soma Culture
   Tissue Banks  (allows protein and spare organs)
-  Drug Synthesis  (requires Soma Culture)
   Vats Breeder Quarters
+  Drug Synthesis  (requires Soma Culture, makes medicines)
+  Cloning Vats  (requires Tissue Banks, allows cloning from samples)
 
 
 RANGER REDOUBT  (plus list of Species)
   Enhanced Camouflage
   Birthing Pens
   Ranger Quarters
-  Rider Training  (requires Birthing Pens)
+  Water Capture
+  Spice Capture (requires Water Capture)
+  Riding Pens (requires Birthing Pens)
 
 
 
@@ -88,26 +75,29 @@ STOCK EXCHANGE & AUDIT OFFICE
   Recruiting Vendors.
 
   What about the Supply Depot/Mag Lines?
-  
+  ...Provides long-range bulk transport of goods and personnel.
+  ...Permits long-range power/water/life-support transmission.
+  Supply Corps as standard.
 
 
 GARRISON & BASTION
-  Logistic support.  (taxmen/supply corps.)
-  More space for captives.
+  Logistic support.  (More taxes/maintenance.)
+  More space for captives in dungeon.
+  More room for noble guests/hostages.
   Space for you and your family/better throne room/seat of power.
-  More room for noble guests.
   Expanding the Household and Honour Guard.
   Recruiting Veterans.
 
   Melee training.  (close combat and armour.)
   Marksmanship training.  (ranged fire and stealth.)
-  Technical/piloting training.  (vehicles and assembly.)
+  Technical/piloting training.  (vehicles/Mechs and assembly.)
   Recruiting Volunteers.
 
   What about Shield Walls/Perimeter Fence?
   ...Restrict access to particular personnel.
   ...Afford chance to upgrade along length.
   ...Activate shields/man the defences.
+  One Sentry per 2 segments, as standard.
 
 
 
@@ -126,6 +116,86 @@ FABRICATOR & TRAINING HOUSE
 
 
 
+
+THE CONDENSOR AND SOLAR ARRAY/WINDTRAPS
+  ...Provides life support and water.
+  ...Provides and stores power, based on daylight values.
+
+THE AIR PROCESSOR
+  Spice Reduction.  (Small amounts of spice collected.)
+  Climate Control.  (Carbons capture/release.)
+  Dust Panning.  (Metals/isotopes.)
+  Water Cycle Integration.  (Bonus near deserts/oceans.)
+  ...automated crawler as standard.
+
+
+
+THE REACTOR
+  Lower pollution/risk of meltdown.
+  Higher power output.
+  Better manufacture of fuel cells/antimatter.
+  Boost to shield generation.
+  Better security measures and defence.
+  Recruiting Core Technicians.
+  
+  What about the Vault System/Service Hatches?
+  ...Allows you to stockpile set amounts of various goods, for
+     release in case of shortfall.
+  ...Provides a baseline degree of power and life support.
+  ...Provides an emergency shelter in times of invasion/disaster.
+
+
+
+THE ARCHIVES
+  ...Manufactures Inscription for holdings.
+  ...Allows skills to be researched (after you install their Datalinks.)
+  Archivists as a standard complement, based on no. of datalinks.
+
+THE CHILDREN'S CRECHE & DETENTION BLOC
+  Physical Ed/Augment.  (boost vigour/brawn  , related skills)
+  Sensory Ed/Augment.   (boost reflex/insight, related skills)
+  Cognitive Ed/Augment. (boost intellect/will, related skills)
+  Bunk arrangements. (reduced need for parental supervision)
+  Virtual World.  (counts as entertainment + cognitive boost)
+  Recruiting Monitors.
+  
+  What about the Detention Bloc?
+  ...Allows captives to be stored/released.
+  ...Allows rehab/re-education/re-programming.
+  Psychoanalyst and Warden as standard.
+
+THE COUNSEL CHAMBER & PREFECT OFFICE
+  Better representation/legislation in the Senate
+  More effective research & investigation
+  Training for debate and negotiation
+  Electing Counsellors  (must pass Psych Eval first)
+  Recruiting Enforcers
+  Recruiting Operatives
+
+
+
+THE ARENA
+  Animal capture/training
+  Battlecage/grand melee/duelling
+  Labyrinth/obstacle-course/stealth
+  Better seating/entertainment values
+  Recruiting Pit Fighters
+  Recruiting Janissaries
+
+
+
+THE BULLETIN BOARD
+  ...Raises mood and loyalty of passers-by.
+  ...Alerts citizens to new missions.
+  ...Requires attention from Censors.
+
+THE FREE MARKET & MCHQ
+  ...Allows open trade in black market goods, including captives.
+  ...Allows easy/sustained contact with Runners.
+  2 Free Traders as standard.
+  ...Allows open bounties to be placed on targets or target-types.
+  ...Allows Mercenaries to be temporarily hired at will.
+  Commander and 4-person Company as standard.
 
 
 

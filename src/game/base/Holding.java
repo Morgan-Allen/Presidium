@@ -18,25 +18,15 @@ import src.util.* ;
 
 
 //
-//  I think the quantities required here need to be reduced, and that actors
-//  should be more reluctant to share the same house.
-
-//
 //  One person, plus family, per unit of housing.  Whoever has the cash makes
 //  the purchases.  (In the case of slum housing the 'family' is really big,
-//  and possibly quite fractious.  But they still share everything.)
-
-
-//  You'll need to have a dedicated class for handling construction
-//  materials.
+//  and possibly quite fractious.  But they're assumed to share everything.)
 
 //  Requirements come under three headings-
 //  Building materials (parts, plastics, inscriptions, decor.)
 //  Health and Entertainment (averaged over all occupants.)
 //  Safety and Ambience (by location.)
 
-//  Food types help ensure health.
-//  Life Support and Water requirements stay constant(?)
 
 
 public class Holding extends Venue implements BuildConstants {
@@ -134,13 +124,13 @@ public class Holding extends Venue implements BuildConstants {
       stocks.setRequired(i.type, i.amount + margin) ;
     }
     //
-    //
+    //  If so, we update the target upgrade level for the venue-
     int targetLevel = upgradeLevel ;
     if (devolve) targetLevel = upgradeLevel - 1 ;
     else if (upgrade) targetLevel = upgradeLevel + 1 ;
     targetLevel = Visit.clamp(targetLevel, NUM_LEVELS) ;
     //
-    //  
+    //  If any due upgrade is completed, change current appearance.
     if (targetLevel != upgradeLevel) {
       structure.updateStats(INTEGRITIES[targetLevel], 5) ;
       if (! structure.needsRepair()) {
@@ -151,8 +141,8 @@ public class Holding extends Venue implements BuildConstants {
       }
     }
   }
-
-
+  
+  
   private Conversion goodsNeeded(int level) {
     return CONSTRUCT_NEEDS[Visit.clamp(level, NUM_LEVELS)] ;
   }

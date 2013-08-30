@@ -178,7 +178,7 @@ public class ExcavationShaft extends Venue implements
     }
   }
   
-  //*
+  
   protected void updatePromise(MineFace face) {
     final Terrain terrain = world.terrain() ;
     float promise = 1 ;
@@ -198,7 +198,6 @@ public class ExcavationShaft extends Venue implements
     face.promise = promise ;
     I.say("  UPDATING PROMISE: "+face) ;
   }
-  //*/
   
   
   private MineFace findNextFace() {

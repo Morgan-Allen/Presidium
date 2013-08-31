@@ -25,6 +25,15 @@ import src.util.* ;
 //  You'd need to assess an actor's fitness for a given Vocation, in terms of
 //  both skills and personality.  (And they'd have to be given gear.)
 
+//
+//  TODO:  Implement shifts.  Actors should not be asked to work more than
+//  eight hours per day, and in some cases, those shifts will need to be
+//  alternated.
+
+//  In addition, any openings available immediately after placement should be
+//  filled automatically.  (But you need to give the scenario a chance to fill
+//  those slots independantly, so maybe delay by *one* world-update...)
+
 
 public class VenuePersonnel {
   
@@ -144,8 +153,24 @@ public class VenuePersonnel {
   }
   
   
-  protected void onCompletion() {
+  protected void onCommission() {
+    //
+    //  We automatically fill any positions available when the venue is
+    //  established.  This is done for free, but candidates cannot be screened.
+    for (Vocation v : venue.careers()) {
+      final int numOpen = venue.numOpenings(v) ;
+      if (numOpen <= 0) continue ;
+      for (int i = numOpen ; i-- > 0 ;) {
+        final Human worker = new Human(v, venue.base()) ;
+        worker.AI.setEmployer(venue) ;
+        venue.base().commerce.addImmigrant(worker) ;
+      }
+    }
   }
+  
+  
+  //protected void onCompletion() {
+  //}
   
   
   protected void onDecommission() {

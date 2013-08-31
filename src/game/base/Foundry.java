@@ -13,23 +13,22 @@ import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD;
 import src.user.* ;
-import src.util.I;
-import src.util.Index;
+import src.util.* ;
 
 
 
-public class Artificer extends Venue implements BuildConstants {
+public class Foundry extends Venue implements BuildConstants {
   
   
   
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    Artificer.class, "media/Buildings/artificer/artificer.png", 4, 3
+    Foundry.class, "media/Buildings/artificer/artificer.png", 4, 3
   ) ;
   
   
-  public Artificer(Base base) {
+  public Foundry(Base base) {
     super(4, 3, ENTRANCE_WEST, base) ;
     structure.setupStats(
       200, 5, 350, VenueStructure.NORMAL_MAX_UPGRADES,
@@ -39,7 +38,7 @@ public class Artificer extends Venue implements BuildConstants {
   }
   
   
-  public Artificer(Session s) throws Exception {
+  public Foundry(Session s) throws Exception {
     super(s) ;
   }
   
@@ -53,7 +52,7 @@ public class Artificer extends Venue implements BuildConstants {
   /**  Economic functions, upgrades and employee behaviour-
     */
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
-    Artificer.class, "artificer_upgrades"
+    Foundry.class, "foundry_upgrades"
   ) ;
   protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
@@ -139,11 +138,33 @@ public class Artificer extends Venue implements BuildConstants {
     if (b != null) return b ;
     
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
-    I.say(actor+" next special order "+o) ;
-    if (o != null) return o ;
+    if (o != null) {
+      o.checkBonus = structure.upgradeLevel(MOLDING_PRESS) + 2 ;
+      final int CMB = structure.upgradeLevel(COMPOSITE_MATERIALS) + 2 ;
+      final int FCB = structure.upgradeBonus(FLUX_CONTAINMENT) + 2 ;
+      
+      if (o.made.type instanceof DeviceType) {
+        final DeviceType DT = (DeviceType) o.made.type ;
+        if (DT.hasProperty(PHYSICAL)) o.checkBonus += CMB ;
+        if (DT.hasProperty(ENERGY)) o.checkBonus += FCB ;
+      }
+      if (o.made.type instanceof OutfitType) {
+        //
+        //  TODO:  Have separate ratings for shield and armour values
+        //  associated with armour, and scale appropriately.
+        final OutfitType OT = (OutfitType) o.made.type ;
+        if (OT.defence <= 10) o.checkBonus += FCB ;
+        else o.checkBonus += CMB ;
+      }
+      o.timeMult = 4 ;
+      return o ;
+    }
     
     final Manufacture m = stocks.nextManufacture(actor, METALS_TO_PARTS) ;
-    if (m != null) return m ;
+    if (m != null) {
+      m.checkBonus = structure.upgradeBonus(PARTS) ;
+      return m ;
+    }
     
     return null ;
   }
@@ -157,12 +178,12 @@ public class Artificer extends Venue implements BuildConstants {
   }
   
   
-  public String fullName() { return "The Artificer" ; }
+  public String fullName() { return "The Foundry" ; }
   
   
   public String helpInfo() {
     return
-      "The Artificer manufactures parts, inscriptions, devices and armour "+
+      "The Foundry manufactures parts, inscriptions, devices and armour "+
       "for your citizens." ;
   }
   

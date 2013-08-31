@@ -186,7 +186,7 @@ public abstract class Plan implements Saveable, Behaviour {
     if (! (location instanceof Venue)) return 0 ;
     final Venue v = (Venue) location ;
     if (refers instanceof Upgrade) {
-      return v.structure.numLevels((Upgrade) refers) ;
+      return v.structure.upgradeLevel((Upgrade) refers) ;
     }
     else return v.structure.upgradeBonus(refers) ;
   }

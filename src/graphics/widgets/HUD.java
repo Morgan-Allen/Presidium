@@ -108,8 +108,7 @@ public class HUD extends UIGroup {
     GL11.glDisable(GL11.GL_LIGHTING) ;
     GL11.glDisable(GL11.GL_CULL_FACE) ;
     GL11.glDisable(GL11.GL_DEPTH_TEST) ;
-    GL11.glAlphaFunc(GL11.GL_GREATER, 0.05f) ;
-    render() ;
+    super.render() ;
   }
   
   

@@ -29,10 +29,12 @@ public class Manufacture extends Plan implements Behaviour {
   final static int
     TIME_PER_UNIT = 10 ;
   
-  final Venue venue ;
-  final Conversion conversion ;
-  final Item made, needed[] ;
-  private float timeTaken = 0 ;
+  final public Venue venue ;
+  final public Conversion conversion ;
+  final public Item made, needed[] ;
+  
+  public int checkBonus = 0, timeMult = 1 ;
+  //private float timeTaken = 0 ;
   
   
   
@@ -44,8 +46,8 @@ public class Manufacture extends Plan implements Behaviour {
     this.made = made == null ? conversion.out : made ;
     this.conversion = conversion ;
     this.needed = conversion.raw ;
-    timeTaken += this.made.amount ;
-    timeTaken *= TIME_PER_UNIT ;
+    //timeTaken += this.made.amount ;
+    //timeTaken *= TIME_PER_UNIT * timeMult ;
   }
   
   
@@ -54,9 +56,10 @@ public class Manufacture extends Plan implements Behaviour {
     venue = (Venue) s.loadObject() ;
     conversion = Conversion.loadFrom(s) ;
     made = Item.loadFrom(s) ;
-    ///progress = s.loadFloat() ;
-    timeTaken = s.loadFloat() ;
+    //timeTaken = s.loadFloat() ;
     this.needed = conversion.raw ;
+    checkBonus = s.loadInt() ;
+    timeMult   = s.loadInt() ;
   }
   
   
@@ -65,8 +68,9 @@ public class Manufacture extends Plan implements Behaviour {
     s.saveObject(venue) ;
     Conversion.saveTo(s, conversion) ;
     Item.saveTo(s, made) ;
-    ///s.saveFloat(progress) ;
-    s.saveFloat(timeTaken) ;
+    //s.saveFloat(timeTaken) ;
+    s.saveInt(checkBonus) ;
+    s.saveInt(timeMult  ) ;
   }
   
   
@@ -108,6 +112,7 @@ public class Manufacture extends Plan implements Behaviour {
     if (venue.stocks.hasItem(made)) {
       return null ;
     }
+    if (GameSettings.hardCore && ! hasNeeded()) return null ;
     return new Action(
       actor, venue,
       this, "actionMake",
@@ -128,7 +133,8 @@ public class Manufacture extends Plan implements Behaviour {
       return false ;
     }
     final Conversion c = conversion ;
-    final int checkMod = hasNeeded ? 0 : 5 ;
+    final int checkMod = (hasNeeded ? 0 : 5) - checkBonus ;
+    final float timeTaken = made.amount * TIME_PER_UNIT * timeMult ;
     final float progInc = (hasNeeded ? 1 : 0.5f) / timeTaken ;
     //
     //  Secondly, make sure the skill tests all check out, and deplete any raw

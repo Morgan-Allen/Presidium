@@ -49,7 +49,6 @@ public class Sickbay extends Venue implements BuildConstants {
   
   /**  Upgrades, economic functions and behaviour implementation-
     */
-
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     Sickbay.class, "sickbay_upgrades"
   ) ;
@@ -81,6 +80,10 @@ public class Sickbay extends Venue implements BuildConstants {
       "reconstruction to cybernetic prosthesis and engram backups.",
       null, 1, SURGERY_WARD, ALL_UPGRADES
     ),
+    //
+    //  Consider having this serve a different function?  Like providing the
+    //  player with information on staff personalities?  Or identifying latent
+    //  psychics and potential traitors?
     PSYCH_UNIT = new Upgrade(
       "Psych Unit",
       "A separate ward for sufferers of mental illness or degredation allows "+
@@ -89,7 +92,7 @@ public class Sickbay extends Venue implements BuildConstants {
       null, 1, MINDER_QUARTERS, ALL_UPGRADES
     ),
     PHYSICIAN_QUARTERS = new Upgrade(
-      "Physicians Quarters",
+      "Physician Quarters",
       "Physicians undergo extensive education in every aspect of human "+
       "metabolism and anatomy, are adept as surgeons, and can tailor their "+
       "treatments to the idiosyncracies of individual patients.",

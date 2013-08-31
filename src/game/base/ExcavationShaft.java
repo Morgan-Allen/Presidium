@@ -185,13 +185,13 @@ public class ExcavationShaft extends Venue implements
     
     promise += terrain.mineralsAt(
       face.origin(), Terrain.TYPE_CARBONS
-    ) * (structure.upgradeBonus(CARBONS) + 1) ;
+    ) * (structure.upgradeBonus(CARBONS)  + 2) ;
     promise += terrain.mineralsAt(
       face.origin(), Terrain.TYPE_METALS
-    ) * (structure.upgradeBonus(METALS) + 1) ;
+    ) * (structure.upgradeBonus(METALS)   + 2) ;
     promise += terrain.mineralsAt(
       face.origin(), Terrain.TYPE_ISOTOPES
-    ) * (structure.upgradeBonus(ISOTOPES) + 1) ;
+    ) * (structure.upgradeBonus(ISOTOPES) + 2) ;
     
     final int MDR = MAX_DIG_RANGE ;
     promise *= MDR / (Spacing.distance(this, face) + MDR) ;
@@ -223,28 +223,30 @@ public class ExcavationShaft extends Venue implements
       "Carbon Titration",
       "Allows deposits of complex hydrocarbons to be processed and stored "+
       "more efficiently.",
-      CARBONS, 2, null, ALL_UPGRADES
+      CARBONS, 1, null, ALL_UPGRADES
     ),
 
     METALS_SMELTING = new Upgrade(
       "Metals Smelting",
       "Allows heavy metal deposits to be processed and extracted more "+
       "efficiently.",
-      METALS, 2, null, ALL_UPGRADES
+      METALS, 1, null, ALL_UPGRADES
     ),
 
     ISOTOPE_CAPTURE = new Upgrade(
       "Isotope Capture",
       "Allows deposits of radiactive isotopes to be processed and stored "+
       "more efficiently.",
-      ISOTOPES, 2, null, ALL_UPGRADES
+      ISOTOPES, 1, null, ALL_UPGRADES
     ),
+    
+    //  Include mantle drilling vs. safety features.
     
     EXCAVATOR_QUARTERS = new Upgrade(
       "Excavator Quarters",
       "Excavators are responsible for seeking out subterranean mineral "+
       "deposits and bringing them to the surface.",
-      Vocation.EXCAVATOR, 1, null, ALL_UPGRADES
+      Vocation.EXCAVATOR, 2, null, ALL_UPGRADES
     ) ;
   
   

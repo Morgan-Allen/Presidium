@@ -17,7 +17,6 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   
   final public static int
- //   SMOOTH_MARGIN   = 2 ,
     MAX_INSOLATION  = 10,
     MAX_MOISTURE    = 10,
     MAX_RADIATION   = 10 ;
@@ -276,6 +275,11 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   /**  Rendering and interface methods-
     */
+  //
+  //  TODO:  If there's been a change to the meshes within a given patch, fade
+  //  in the new version more gradually!  Then you can introduce fancy terra-
+  //  forming effects, smooth changes to the road network, et cetera...
+  
   public void initPatchGrid(int patchSize) {
     this.patchSize = patchSize ;
     this.patchGridSize = mapSize / patchSize ;
@@ -340,7 +344,6 @@ public class Terrain implements TileConstants, Session.Saveable {
     if (fog == null )I.say("FOG IS NULL!") ;
     if (patches == null) I.complain("PATCHES MUST BE INITIALISED FIRST!") ;
     for (MeshPatch patch : patchesUnder(area)) {
-      //patch.fogMesh.colour = new Colour().set(0, 0, 0, 0.5f) ;
       patch.fogMesh.colour = Colour.BLACK ;
       patch.fogMesh.assignTexture(fog) ;
       rendering.addClient(patch.fogMesh) ;

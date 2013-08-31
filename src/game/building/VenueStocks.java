@@ -258,7 +258,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
   
   /**  Rendering and interface methods-
     */
-  protected Batch <String> ordersDesc() {
+  public Batch <String> ordersDesc() {
     final Batch <String> desc = new Batch <String> () ;
     for (Demand demand : demands.values()) {
       final int needed = (int) Math.max(demand.received, demand.required) ;
@@ -274,7 +274,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
-  protected List <Manufacture> specialOrders() {
+  public List <Manufacture> specialOrders() {
     return specialOrders ;
   }
 }

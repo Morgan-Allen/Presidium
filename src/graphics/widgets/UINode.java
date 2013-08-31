@@ -5,9 +5,12 @@
   */
 
 package src.graphics.widgets ;
+import src.graphics.common.Texture;
 import src.util.* ;
+
 import org.lwjgl.opengl.* ;
 import org.lwjgl.* ;
+
 import java.nio.* ;
 
 
@@ -57,7 +60,7 @@ public abstract class UINode {
   public float ypos() { return bounds.ypos() ; }
   public float xdim() { return bounds.xdim() ; }
   public float ydim() { return bounds.ydim() ; }
-  Box2D fullBounds() { return bounds ; }
+  public Box2D trueBounds() { return bounds ; }
   
   
   
@@ -157,11 +160,11 @@ public abstract class UINode {
   
   
   //
-  //  TODO:  Consider supplying the ByteBuffer yourself and resetting it after
-  //  use.
-  final public static ByteBuffer copyPixels(Box2D area) {
-    final int size = ((int) area.xdim()) * ((int) area.ydim()) ;
-    final ByteBuffer pixels = BufferUtils.createByteBuffer(size) ;
+  //  TODO:  Consider returning a Texture instead, or just a GL texture ID?
+  final public static ByteBuffer copyPixels(Box2D area, ByteBuffer pixels) {
+    final int size = ((int) area.xdim()) * ((int) area.ydim()) * 4 ;
+    if (pixels == null) pixels = BufferUtils.createByteBuffer(size) ;
+    else pixels.rewind() ;
     GL11.glReadPixels(
       (int) area.xpos(), (int) area.ypos(),
       (int) area.xdim(), (int) area.ydim(),
@@ -170,15 +173,34 @@ public abstract class UINode {
     return pixels ;
   }
   
-  //
-  //  TODO:  You need another method for direct bitmap display, rather than
-  //  using texture coordinates.  Use glDrawPixels and glPixelZoom.
+
+  private static int glID ;
+  private static boolean cached = false ;
+  
   final public static void drawPixels(Box2D area, ByteBuffer pixels) {
-    GL11.glRasterPos2f((int) area.xpos(), (int) area.ypos()) ;
-    GL11.glDrawPixels(
-      (int) area.xdim(), (int) area.ydim(),
-      GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE, pixels
+    if (! cached) {
+      final IntBuffer tmpID = BufferUtils.createIntBuffer(1) ;
+      GL11.glGenTextures(tmpID) ;
+      glID = tmpID.get(0) ;
+      cached = true ;
+    }
+    
+    GL11.glBindTexture(GL11.GL_TEXTURE_2D, glID) ;
+    Texture.setDefaultTexParams() ;
+    GL11.glTexImage2D(
+      GL11.GL_TEXTURE_2D,
+      0, 4,
+      (int) area.xdim(), (int) area.ydim(), 0,
+      GL11.GL_RGBA, GL11.GL_UNSIGNED_BYTE,
+      pixels
     ) ;
+    
+    GL11.glBegin(GL11.GL_QUADS) ;
+    UINode.drawQuad(
+      (int) area.xpos(), (int) area.ypos(),
+      (int) area.xmax(), (int) area.ymax(), 0, 1, 1, 0, 0
+    ) ;
+    GL11.glEnd() ;
   }
   
 }

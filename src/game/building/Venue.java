@@ -135,6 +135,7 @@ public abstract class Venue extends Fixture implements
     world.presences.togglePresence(this, true , services()) ;
     ///if (base != null) updatePaving(true) ;
     world.schedule.scheduleForUpdates(this) ;
+    personnel.onCommission() ;
   }
   
   
@@ -156,14 +157,14 @@ public abstract class Venue extends Fixture implements
   public void onCompletion() {
     world.ephemera.addGhost(this, size, buildSprite.scaffolding(), 2.0f) ;
     setAsEstablished(false) ;
-    personnel.onCompletion() ;
+    //personnel.onCompletion() ;
   }
   
   
   public void onDecommission() {
     world.ephemera.addGhost(this, size, buildSprite.baseSprite(), 2.0f) ;
     setAsEstablished(false) ;
-    personnel.onDecommission() ;
+    //personnel.onDecommission() ;
   }
   
   

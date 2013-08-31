@@ -1,13 +1,15 @@
 
 
 package src.game.base ;
+import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
-import src.game.common.* ;
+import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD;
 import src.user.* ;
+import src.util.Index;
 
 
 
@@ -25,6 +27,9 @@ public class Garrison extends Venue implements BuildConstants {
   
   public Garrison(Base base) {
     super(4, 4, ENTRANCE_EAST, base) ;
+    structure.setupStats(
+      500, 20, 250, VenueStructure.NORMAL_MAX_UPGRADES, false
+    ) ;
     attachSprite(MODEL.makeSprite()) ;
   }
   
@@ -42,6 +47,51 @@ public class Garrison extends Venue implements BuildConstants {
   
   /**  Upgrades, economic functions and actor behaviour-
     */
+
+  final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
+    Garrison.class, "garrison_upgrades"
+  ) ;
+  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  final public static Upgrade
+    HAND_TO_HAND_TRAINING = new Upgrade(
+      "Hand To Hand Training",
+      "Prepares your soldiers for the rigours of close combat.",
+      CLOSE_COMBAT, 3, null, ALL_UPGRADES
+    ),
+
+    MARKSMAN_TRAINING = new Upgrade(
+      "Marksman Training",
+      "Prepares your soldiers for ranged combat.",
+      MARKSMANSHIP, 3, null, ALL_UPGRADES
+    ),
+
+    TECHNICAL_TRAINING = new Upgrade(
+      "Technical Training",
+      "Prepares your soldiers with the expertise needed to pilot vehicles "+
+      "and mechanical armour.",
+      PILOTING, 3, null, ALL_UPGRADES
+    ),
+    
+    SURVIVAL_TRAINING = new Upgrade(
+      "Survival Training",
+      "Prepares your soldiers for guerilla warfare and wilderness survival.",
+      STEALTH_AND_COVER, 3, null, ALL_UPGRADES
+    ),
+
+    VOLUNTEER_QUARTERS = new Upgrade(
+      "Volunteer Quarters",
+      "Dedicated in defence of their homes, a volunteer militia provides the "+
+      "mainstay of your domestic forces.",
+      Vocation.VOLUNTEER, 2, null, ALL_UPGRADES
+    ),
+
+    VETERAN_QUARTERS = new Upgrade(
+      "Veteran Quarters",
+      "Seasoned professional soldiers, veterans provide the backbone of your "+
+      "officer corps and command structure.",
+      Vocation.VETERAN, 1, null, ALL_UPGRADES
+    ) ;
+  
   protected Vocation[] careers() {
     return new Vocation[] { Vocation.VOLUNTEER, Vocation.VETERAN } ;
   }
@@ -49,8 +99,8 @@ public class Garrison extends Venue implements BuildConstants {
   
   public int numOpenings(Vocation v) {
     int num = super.numOpenings(v) ;
-    if (v == Vocation.VOLUNTEER) return num + 2 ;
-    if (v == Vocation.VETERAN  ) return num + 0 ;
+    if (v == Vocation.VOLUNTEER) return num + 4 ;
+    if (v == Vocation.VETERAN  ) return num + 1 ;
     return 0 ;
   }
   
@@ -63,7 +113,12 @@ public class Garrison extends Venue implements BuildConstants {
   public Behaviour jobFor(Actor actor) {
     //
     //  Grab a random building nearby and patrol around it.  Especially walls.
-    return null ;
+    final Venue patrolled = world.presences.randomMatchNear(
+      base(), this, World.DEFAULT_SECTOR_SIZE
+    ) ;
+    return new Patrolling(actor, patrolled, patrolled.radius() * 2) ;
+    //
+    //  TODO:  You also need an option to train in relevant skills here.
   }
   
   

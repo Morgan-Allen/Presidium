@@ -45,12 +45,6 @@ public class InfoPanel extends UIGroup implements UIConstants {
     return null ;
   }
   
-  private void setCategory(int catID) {
-    this.categoryID = catID ;
-    final Class IC = infoClass(selected) ;
-    if (IC != null) DEFAULT_CATS.put(IC, catID) ;
-  }
-  
   
   final protected BaseUI UI ;
   
@@ -114,14 +108,16 @@ public class InfoPanel extends UIGroup implements UIConstants {
   
   /**  Display and updates-
     */
+  private void setCategory(int catID) {
+    UI.beginPanelFade() ;
+    this.categoryID = catID ;
+    final Class IC = infoClass(selected) ;
+    if (IC != null) DEFAULT_CATS.put(IC, catID) ;
+  }
+  
+  
   protected void updateState() {
     if (selected != null && selected.subject().destroyed()) {
-      /*
-      I.say(
-        "SELECTION IS NO LONGER IN WORLD... "+
-        selected+" "+selected.getClass().getSimpleName()
-      ) ;
-      //*/
       UI.selection.pushSelection(previous, false) ;
       return ;
     }

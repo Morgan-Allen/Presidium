@@ -28,8 +28,18 @@ import src.util.* ;
 //  More attention on relaxing/recreation.  Add hunting at the redoubt, and
 //  update farming a bit.
 //
-//  Safety patrols and taxation.  Spontaneous missions, and a clearer factoring
-//  out of venues/actors batches in the AI.
+//  Taxation, and general budgeting.  Spontaneous missions, and a clearer
+//  factoring out of venue/actor batches in the AI.
+//
+//  Dialogue prioritisation needs to be reworked, or you get endless cycles of
+//  conversation as the number of inhabitants grows.  I think now might be the
+//  time to introduce shifts at venues, and make chatting more leisurely.
+//
+//  Make sure food production is working, plus the culture vats.  Introduce the
+//  Stock Exchange, to simplify distribution.  And see if Dropships can trade.
+//  Also, re-introduce external FX for items at venues.  Those were cool.
+//
+//  Squalor maps and pollution FX!  Such as disease!
 
 //
 /*
@@ -37,7 +47,7 @@ Check to ensure that combat works okay among rival humanoid actors.  Make sure
 mining/farming's up to date.  Try to integrate with hunting.  That may require
 implementing the Ecology class, like you planned.
 
-Security patrols.  Diplomatic conversion.  Tax collection and pressfeed.
+Diplomatic conversion.  Tax collection and pressfeed plus budgeting.
 
 Simplify the user interface, implement Powers, and add a Main Menu.  That's it.
 
@@ -45,6 +55,7 @@ Walls/Roads and Power/Life Support are the next items, but those might require
 a bigger game.  Maybe *just* power.  Keep it simple.  Condensors for water, and
 from the Vault System.  Share with whole settlement.
 //*/
+
 
 
 public class DebugBehaviour extends PlayLoop {
@@ -179,7 +190,7 @@ public class DebugBehaviour extends PlayLoop {
   private void baseScenario(World world, Base base, HUD UI) {
     GameSettings.hireFree = true ;
     
-    final Artificer artificer = new Artificer(base) ;
+    final Foundry artificer = new Foundry(base) ;
     artificer.enterWorldAt(8, 8, world) ;
     artificer.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
     artificer.onCompletion() ;
@@ -248,23 +259,19 @@ public class DebugBehaviour extends PlayLoop {
     */
   private void socialScenario(World world, Base base, HUD UI) {
     
-    //
-    //  TODO:  Add a behaviour to ensure that someone tends the desk at the
-    //  hospice.  Casual priority, let's say.
-    final Actor actor = new Human(Vocation.PHYSICIAN, base) ;
-    actor.enterWorldAt(5, 5, world) ;
+    base.incCredits(1000) ;
     
     final Sickbay hospice = new Sickbay(base) ;
     hospice.enterWorldAt(9, 2, world) ;
     hospice.setAsEstablished(true) ;
     hospice.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
     hospice.onCompletion() ;
-    actor.AI.setEmployer(hospice) ;
+    base.intelMap.liftFogAround(hospice, 10f) ;
     
     final Actor other = new Human(Vocation.VETERAN , base) ;
     ///other.traits.setLevel(ActorConstants.ILLNESS, 2) ;
     other.enterWorldAt(9, 9, world) ;
-    ///((BaseUI) UI).selection.pushSelection(other, true) ;
+    ((BaseUI) UI).selection.pushSelection(other, true) ;
     
     final Garrison garrison = new Garrison(base) ;
     garrison.enterWorldAt(2, 9, world) ;
@@ -281,12 +288,10 @@ public class DebugBehaviour extends PlayLoop {
     cantina.onCompletion() ;
     //*/
     
-    //*
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;
     //  Vareen need to flee from the citizens!
     ///EG.populateFauna(world, Species.VAREEN) ;
-    //*/
   }
 }
 

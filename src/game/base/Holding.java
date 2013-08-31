@@ -148,6 +148,10 @@ public class Holding extends Venue implements BuildConstants {
       if (! stocks.hasItem(i)) upgrade = false ;
       stocks.setRequired(i.type, i.amount + margin) ;
     }
+    final float foodNeed = personnel.residents().size() * (1 + margin) * 2 ;
+    for (Service t : ALL_FOOD_TYPES) {
+      stocks.setRequired(t, foodNeed) ;
+    }
     //
     //  If so, we update the target upgrade level for the venue-
     int targetLevel = upgradeLevel ;
@@ -199,6 +203,13 @@ public class Holding extends Venue implements BuildConstants {
       if (amount <= 0) continue ;
       needed.add(Item.withAmount(item, amount + 0.5f)) ;
     }
+    //  Labelling on deliveries needs to be fixed.
+    /*
+    final float foodNeed = personnel.residents().size() * (1 + 0.5f) * 2 ;
+    for (Service t : ALL_FOOD_TYPES) {
+      needed.add(Item.withAmount(t, foodNeed)) ;
+    }
+    //*/
     return needed ;
   }
   
@@ -258,11 +269,20 @@ public class Holding extends Venue implements BuildConstants {
   public String[] infoCategories() { return null ; }
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
+    
     d.append("Condition: ") ;
     d.append(structure.repair()+" / "+structure.maxIntegrity()) ;
     d.appendList("\n\nHome of: ", personnel.residents()) ;
-    d.append("\n\n") ;
+    
+    //
+    //  TODO:  List current as well as desired stocks-
+    d.append("\n\nStocks:") ;
+    for (String order : stocks.ordersDesc()) {
+      d.append("\n  "+order) ;
+    }
+    /*
     d.appendList("Needed for upgrade: ", goodsNeeded()) ;
+    //*/
   }
 
 

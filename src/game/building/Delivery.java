@@ -96,13 +96,12 @@ public class Delivery extends Plan {
   public boolean valid() {
     if (! super.valid()) return false ;
     if (stage >= STAGE_PICKUP || origin == null) return true ;
-    float sum = 0 ;
     for (Item i : items) {
       final float reserved = reservedForCollection(origin, i.type) ;
       final float excess = origin.stocks.amountOf(i) - reserved ;
-      if (excess > 1) sum += excess ;
+      if (excess >= i.amount) return true ;
     }
-    return sum > 1 ;
+    return false ;
   }
   
   
@@ -191,19 +190,25 @@ public class Delivery extends Plan {
 
   public boolean actionPickup(Actor actor, Target target) {
     if (stage != STAGE_PICKUP) return false ;
-    final Barge barge = new Barge(actor, this) ;
-    final Tile o = actor.origin() ;
-    barge.enterWorldAt(o.x, o.y, o.world) ;
-    I.say(actor+" Performing pickup...") ;
     
+    boolean addBarge = true ;
     if (target == origin) {
+      float sum = 0 ;
       for (Item i : items) {
         float TA = origin.stocks.transfer(i, actor) ;
-        I.say("Transferred: "+TA+" of "+i.type.name) ;
+        sum += TA ;
       }
+      if (sum < 5) addBarge = false ;
     }
     if (target == passenger) {
       barge.passenger = passenger ;
+    }
+    
+    if (addBarge) {
+      final Barge barge = new Barge(actor, this) ;
+      final Tile o = actor.origin() ;
+      barge.enterWorldAt(o.x, o.y, o.world) ;
+      I.say(actor+" Performing pickup...") ;
     }
     stage = STAGE_DROPOFF ;
     return true ;
@@ -227,11 +232,13 @@ public class Delivery extends Plan {
     */
   public void describeBehaviour(Description d) {
     d.append("Delivering ") ;
+    final Batch <Item> available = new Batch <Item> () ;
     for (Item i : items) {
-      d.append(i) ;
-      if (i == Visit.last(items)) d.append(" from ") ;
-      else d.append(", ") ;
+      if ((! origin.stocks.hasItem(i)) && (! actor.gear.hasItem(i))) continue ;
+      available.add(i) ;
     }
+    d.appendList("", available) ;
+    d.append(" from ") ;
     d.append(origin) ;
     d.append(" to ") ;
     d.append(destination) ;

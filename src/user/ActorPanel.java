@@ -12,7 +12,8 @@ public class ActorPanel extends InfoPanel {
   
   
   public ActorPanel(BaseUI UI, Actor actor, boolean simple) {
-    super(UI, actor, 120) ;
+    super(UI, actor, InfoPanel.DEFAULT_TOP_MARGIN) ;
+    /*
     portrait = actor.portrait(UI) ;
     if (simple) {
       portrait.relBound.set(0, 1, 1, 0) ;
@@ -23,5 +24,6 @@ public class ActorPanel extends InfoPanel {
       portrait.absBound.set(10, -110, 100, 100) ;
     }
     portrait.attachTo(this) ;
+    //*/
   }
 }

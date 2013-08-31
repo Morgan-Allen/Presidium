@@ -370,7 +370,7 @@ public class VenueStructure extends Inventory {
   }
   
   
-  public int numLevels(Upgrade type) {
+  public int upgradeLevel(Upgrade type) {
     if (upgrades == null) return 0 ;
     int num = 0 ;
     for (Upgrade u : upgrades) if (u == type) num++ ;

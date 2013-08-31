@@ -135,11 +135,14 @@ public interface BuildConstants extends ActorConstants {
   
   //
   //  TODO:  Should have skins associated with these?
-  //  TODO:  Add 'Primitive Garb' and 'Overalls'?  What about costume?
   final public static OutfitType
     FINERY         = new OutfitType(
       BC, "Finery"        , 2 , 100,
       new Conversion(3, PLASTICS, Fabricator.class, 15, GRAPHIC_MEDIA)
+    ),
+    OVERALLS       = new OutfitType(
+      BC, "Overalls"      , 2, 25,
+      new Conversion(1, PLASTICS, Fabricator.class, 5, ASSEMBLY)
     ),
     CAMOUFLAGE     = new OutfitType(
       BC, "Camouflage"    , 3 , 35,
@@ -147,19 +150,24 @@ public interface BuildConstants extends ActorConstants {
     ),
     SEALSUIT       = new OutfitType(
       BC, "Sealsuit"      , 4 , 75,
-      new Conversion(2, PLASTICS, 2, PARTS, Fabricator.class, 15, ASSEMBLY)
+      new Conversion(2, PLASTICS, 1, PARTS, Fabricator.class, 15, ASSEMBLY)
     ),
+    
     SHIELD_BELT = new OutfitType(
-      BC, "Shield Belt"   , 5 , 50,
-      new Conversion(2, PARTS, Artificer.class, 5, ASSEMBLY)
+      BC, "Shield Belt"   , 5 , 25,
+      new Conversion(2, PARTS, Foundry.class, 5, ASSEMBLY)
+    ),
+    PARTIAL_ARMOUR = new OutfitType(
+      BC, "Partial Armour", 10, 50,
+      new Conversion(3, PARTS, Foundry.class, 10, ASSEMBLY)
     ),
     BODY_ARMOUR    = new OutfitType(
-      BC, "Body Armour"   , 10, 75,
-      new Conversion(5, PARTS, Artificer.class, 15, ASSEMBLY)
+      BC, "Body Armour"   , 15, 75,
+      new Conversion(5, PARTS, Foundry.class, 15, ASSEMBLY)
     ),
     GOLEM_ARMOUR   = new OutfitType(
       BC, "Golem Armour"  , 20, 150,
-      new Conversion(12, PARTS, Artificer.class, 20, ASSEMBLY)
+      new Conversion(12, PARTS, Foundry.class, 20, ASSEMBLY)
     ) ;
   final public static Service
     ALL_OUTFITS[] = Service.typesSoFar() ;
@@ -193,7 +201,7 @@ public interface BuildConstants extends ActorConstants {
     
     METALS_TO_PARTS = new Conversion(
       2, METALS, TO, 1, PARTS,
-      Artificer.class, TRICKY_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
+      Foundry.class, TRICKY_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
     ),
     
     CARBONS_TO_PLASTICS = new Conversion(
@@ -201,9 +209,15 @@ public interface BuildConstants extends ActorConstants {
       Fabricator.class, TRICKY_DC, CHEMISTRY, SIMPLE_DC, GRAPHIC_MEDIA
     ),
     
+    
     NONE_TO_SOMA = new Conversion(
       TO, 1, SOMA,
       CultureVats.class, ROUTINE_DC, CHEMISTRY, ROUTINE_DC, PHARMACY
+    ),
+    
+    NONE_TO_STARCHES = new Conversion(
+      TO, 1, STARCHES,
+      CultureVats.class, SIMPLE_DC, CHEMISTRY
     ) ;
 }
 

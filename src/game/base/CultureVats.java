@@ -11,9 +11,8 @@ import src.game.building.* ;
 import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.graphics.widgets.HUD;
-import src.user.InstallTab;
-import src.user.Composite;
+import src.graphics.widgets.HUD ;
+import src.user.* ;
 
 
 
@@ -30,6 +29,10 @@ public class CultureVats extends Venue implements BuildConstants {
   
   public CultureVats(Base base) {
     super(4, 3, ENTRANCE_EAST, base) ;
+    structure.setupStats(
+      400, 3, 450,
+      VenueStructure.NORMAL_MAX_UPGRADES, false
+    ) ;
     this.attachSprite(MODEL.makeSprite()) ;
   }
   
@@ -63,18 +66,27 @@ public class CultureVats extends Venue implements BuildConstants {
     
     final Manufacture m = stocks.nextManufacture(actor, NONE_TO_SOMA) ;
     if (m != null) return m ;
+    final Manufacture s = stocks.nextManufacture(actor, NONE_TO_STARCHES) ;
+    if (s != null) return s ;
     
     return null ;
   }
   
   
   protected Service[] services() {
-    return new Service[] { SOMA } ;
+    return new Service[] { SOMA, MEDICINE, STARCHES, PROTEIN } ;
   }
   
   
   protected Vocation[] careers() {
     return new Vocation[] { Vocation.VAT_BREEDER } ;
+  }
+  
+  
+  public int numOpenings(Vocation v) {
+    final int nO = super.numOpenings(v) ;
+    if (v == Vocation.VAT_BREEDER) return nO + 2 ;
+    return 0 ;
   }
   
   

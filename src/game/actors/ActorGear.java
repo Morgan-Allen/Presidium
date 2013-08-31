@@ -153,7 +153,7 @@ public class ActorGear extends Inventory implements BuildConstants {
     if (armour == null) return 2 + reflexBonus + baseArmour ;
     final OutfitType type = (OutfitType) armour.type ;
     final float rating = type.defence * (armour.quality + 1) / 4 ;
-    if (type.defence < 10) return rating + reflexBonus + baseArmour ;
+    if (type.defence <= 10) return rating + reflexBonus + baseArmour ;
     else return rating + baseArmour ;
   }
   

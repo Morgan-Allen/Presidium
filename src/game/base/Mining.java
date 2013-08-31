@@ -96,7 +96,8 @@ public class Mining extends Plan implements BuildConstants {
         return false ;
       }
       else {
-        final Item mined = Item.withAmount(itemType, amount) ;
+        final float bonus = face.parent.structure.upgradeBonus(itemType) + 2 ;
+        final Item mined = Item.withAmount(itemType, amount * bonus / 2) ;
         I.say("Successfully mined: "+mined) ;
         actor.gear.addItem(mined) ;
         return true ;

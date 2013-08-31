@@ -10,7 +10,12 @@ import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.util.* ;
+
 import org.lwjgl.input.* ;
+import org.lwjgl.opengl.GL11 ;
+import org.lwjgl.* ;
+
+import java.nio.* ;
 
 
 
@@ -28,7 +33,6 @@ import org.lwjgl.input.* ;
  *    Game Powers/Settings/Seat of Power.
  */
 
-//  TODO:  You need to include a credits display & day counter.
 
 
 public class BaseUI extends HUD implements UIConstants {
@@ -47,13 +51,16 @@ public class BaseUI extends HUD implements UIConstants {
   final public Camera camera ;
   
   Minimap minimap ;
+  Text readout ;
+  ///ProgBar psyPoints ;
   //Button charts, policies, household, futures ;  -for Later.
-  UIGroup quickBar, readout ;
+  //UIGroup quickBar, readout ;
   
   UIGroup helpText ;
   UIGroup infoArea ;
   MainPanel mainPanel ;
   
+  private ByteBuffer panelFade ;
   private UIGroup currentPanel, newPanel ;
   private long panelInceptTime = -1 ;
   
@@ -103,7 +110,18 @@ public class BaseUI extends HUD implements UIConstants {
     minimap.absBound.setTo(MINI_INSETS) ;
     minimap.attachTo(this) ;
     
-    infoArea = new UIGroup(this) ;
+    this.readout = new Text(this, INFO_FONT) ;
+    readout.relBound.set(0, 1, 1, 0) ;
+    readout.absBound.set(200, -50, -500, 40) ;
+    readout.attachTo(this) ;
+    /*
+    this.psyPoints = new ProgBar(this) ;
+    psyPoints.relBound.set(0, 1, 1, 0) ;
+    psyPoints.absBound.set(450, -20, -750, 5) ;
+    psyPoints.attachTo(this) ;
+    //*/
+    
+    this.infoArea = new UIGroup(this) ;
     infoArea.relBound.setTo(INFO_BOUNDS) ;
     infoArea.absBound.setTo(INFO_INSETS) ;
     infoArea.attachTo(this) ;
@@ -112,7 +130,7 @@ public class BaseUI extends HUD implements UIConstants {
     mainPanel.attachTo(infoArea) ;
     currentPanel = newPanel = mainPanel ;
     
-    helpText = new Tooltips(this, INFO_FONT, TIPS_TEX, TIPS_INSETS) ;
+    this.helpText = new Tooltips(this, INFO_FONT, TIPS_TEX, TIPS_INSETS) ;
     helpText.attachTo(this) ;
   }
   
@@ -121,43 +139,27 @@ public class BaseUI extends HUD implements UIConstants {
   /**  Modifying the interface layout-
     */
   public void setInfoPanel(UIGroup infoPanel) {
-    if (newPanel != currentPanel) return ;  //Not during a transition...
+    //if (newPanel != currentPanel) return ;  //Not during a transition...
     if (infoPanel == currentPanel) return ;
     newPanel = infoPanel ;
-    if (newPanel == null) {
-      newPanel = mainPanel ;
-    }
-    if (newPanel != null) {
-      newPanel.attachTo(infoArea) ;
-      newPanel.relAlpha = 0 ;
-      panelInceptTime = System.currentTimeMillis() ;
-    }
+    if (newPanel == null) newPanel = mainPanel ;
   }
   
   
   
   /**  Core update and rendering methods, in order of execution per-frame.
     */
-  //
-  //  TODO:  Don't use the elaborate fade-in/fade-out method here.  Take a
-  //  snapshot of the area around the info-panel, and fade that out over the
-  //  half-second using glBitMap.
-  
   public void updateInput() {
     super.updateInput() ;
     
-    if (newPanel != currentPanel) {
-      final float TRANSITION_TIME = 0.5f ;
-      float fade = System.currentTimeMillis() - panelInceptTime ;
-      fade = (fade / 1000f) / TRANSITION_TIME ;
-      final float newFade = Visit.clamp((fade - 0.5f) * 2, 0, 1) ;
-      final float oldFade = Visit.clamp((0.5f - fade) * 2, 0, 1) ;
-      if (currentPanel != null) {
-        currentPanel.relAlpha = oldFade ;
-        if (fade >= 1) currentPanel.detach() ;
-      }
-      if (newPanel != null) newPanel.relAlpha = newFade ;
-      if (fade >= 1) currentPanel = newPanel ;
+    if (readout != null) {
+      final int credits = played.credits() ;
+      final float days = world.currentTime() / World.DEFAULT_DAY_LENGTH ;
+      final String dS = (""+days).substring(0, 4) ;
+      int psyPoints = 0 ;/// played.ruler().health.psy() ;
+      readout.setText(credits+" Credits   "+dS+" Days   Psy Points:") ;
+      if (psyPoints == 0) readout.append(" (none)") ;
+      else while (psyPoints-- > 0) readout.append("|") ;
     }
     
     if (selection.updateSelection(world, rendering.port, infoArea)) {
@@ -186,6 +188,27 @@ public class BaseUI extends HUD implements UIConstants {
       camera.setLockOffset(0, 0) ;
     }
     camera.updateCamera() ;
+    
+    if (currentPanel != newPanel) {
+      beginPanelFade() ;
+      if (currentPanel != null) currentPanel.detach() ;
+      if (newPanel != null) newPanel.attachTo(infoArea) ;
+      currentPanel = newPanel ;
+    }
+    
+    final float TRANSITION_TIME = 0.5f ;
+    float fade = System.currentTimeMillis() - panelInceptTime ;
+    fade = (fade / 1000f) / TRANSITION_TIME ;
+    if (fade <= 1) {
+      GL11.glColor4f(1, 1, 1, 1 - fade) ;
+      UINode.drawPixels(infoArea.trueBounds(), panelFade) ;
+    }
+  }
+  
+  
+  protected void beginPanelFade() {
+    panelFade = UINode.copyPixels(infoArea.trueBounds(), panelFade) ;
+    panelInceptTime = System.currentTimeMillis() ;
   }
   
   
@@ -218,9 +241,6 @@ public class BaseUI extends HUD implements UIConstants {
     if (isPicked(o)) I.say(System.currentTimeMillis()+": "+log) ;
   }
 }
-
-
-
 
 
 

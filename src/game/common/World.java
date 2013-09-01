@@ -41,7 +41,8 @@ public class World {
   private List <Mobile> mobiles = new List <Mobile> () ;
   
   private Terrain terrain ;
-  private RandomScan growth ;  //Move to the Planet or Terrain class...
+  private Ecology ecology ;
+  //private RandomScan growth ;  //Move to the Planet or Terrain class...
   ///final public Offworld offworld = new Offworld(this) ;
   private List <Base> bases = new List <Base> () ;
   
@@ -67,9 +68,8 @@ public class World {
     }
     sections = new WorldSections(this, SECTION_RESOLUTION) ;
     schedule = new Schedule() ;
-    growth = new RandomScan(size) {
-      protected void scanAt(int x, int y) { growthAt(x, y) ; }
-    } ;
+    
+    ecology = new Ecology(this) ;
     activities = new Activities(this) ;
     pathingCache = new PathingCache(this) ;
     presences = new Presences(this) ;
@@ -89,9 +89,11 @@ public class World {
     
     terrain = (Terrain) s.loadObject() ;
     terrain.initPatchGrid(SECTION_RESOLUTION) ;
+    ecology.loadState(s) ;
     ///I.say("FINISHED LOADING TERRAIN") ;
     
-    growth.loadState(s) ;
+    
+    //growth.loadState(s) ;
     s.loadObjects(bases) ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
       toggleActive((Mobile) s.loadObject(), true) ;
@@ -112,7 +114,9 @@ public class World {
     schedule.saveTo(s) ;
     
     s.saveObject(terrain) ;
-    growth.saveState(s) ;
+    ecology.saveState(s) ;
+    //growth.saveState(s) ;
+    
     s.saveObjects(bases) ;
     s.saveInt(mobiles.size()) ;
     for (Mobile m : mobiles) s.saveObject(m) ;
@@ -181,18 +185,9 @@ public class World {
     if (! GameSettings.frozen) {
       currentTime += 1f / PlayLoop.UPDATES_PER_SECOND ;
       schedule.advanceSchedule(currentTime) ;
-      float growIndex = (currentTime % GROWTH_INTERVAL) ;
-      growIndex *= size * size * 1f / GROWTH_INTERVAL ;
-      growth.scanThroughTo((int) growIndex) ;
+      ecology.updateEcology() ;
       for (Mobile m : mobiles) m.updateAsMobile() ;
     }
-  }
-  
-  
-  protected void growthAt(final int x, final int y) {
-    Flora.tryGrowthAt(x, y, this, false) ;
-    final Element owner = tiles[x][y].owner() ;
-    if (owner != null) owner.onGrowth() ;
   }
   
   
@@ -252,6 +247,10 @@ public class World {
   
   
   public void renderFor(Rendering rendering, Base base) {
+    //
+    //  Set a couple of basic parameters before beginning-
+    final Colour c = Planet.lightValue(this) ;
+    rendering.lighting.setup(c.r, c.g, c.b, true, true) ;
     //
     //  First, we obtain lists of all current visible fixtures, actors, and
     //  terrain sections.

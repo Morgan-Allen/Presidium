@@ -223,6 +223,7 @@ public class ExcavationShaft extends Venue implements
       "Carbon Titration",
       "Allows deposits of complex hydrocarbons to be processed and stored "+
       "more efficiently.",
+      100,
       CARBONS, 1, null, ALL_UPGRADES
     ),
 
@@ -230,6 +231,7 @@ public class ExcavationShaft extends Venue implements
       "Metals Smelting",
       "Allows heavy metal deposits to be processed and extracted more "+
       "efficiently.",
+      150,
       METALS, 1, null, ALL_UPGRADES
     ),
 
@@ -237,6 +239,7 @@ public class ExcavationShaft extends Venue implements
       "Isotope Capture",
       "Allows deposits of radiactive isotopes to be processed and stored "+
       "more efficiently.",
+      200,
       ISOTOPES, 1, null, ALL_UPGRADES
     ),
     
@@ -246,6 +249,7 @@ public class ExcavationShaft extends Venue implements
       "Excavator Quarters",
       "Excavators are responsible for seeking out subterranean mineral "+
       "deposits and bringing them to the surface.",
+      50,
       Vocation.EXCAVATOR, 2, null, ALL_UPGRADES
     ) ;
   

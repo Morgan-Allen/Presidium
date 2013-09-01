@@ -34,6 +34,11 @@ public abstract class Venue extends Fixture implements
     ENTRANCE_WEST  =  3,
     ENTRANCE_NONE  = -1,
     NUM_SIDES      =  4 ;
+  final public static int
+    SHIFTS_ALWAYS      = 0,
+    SHIFTS_BY_HOURS    = 1,   //different 8-hour periods off.
+    SHIFTS_BY_DAY      = 2,   //every second or third day off.
+    SHIFTS_BY_CALENDAR = 3 ;  //weekends and holidays off.  NOT DONE YET
   
   
   BuildingSprite buildSprite ;
@@ -280,6 +285,11 @@ public abstract class Venue extends Fixture implements
   
   /**  Installation interface-
     */
+  public int buildCost() {
+    return structure.buildCost() ;
+  }
+  
+  
   public boolean pointsOkay(Tile from, Tile to) {
     //  You have to check for visibility too.  Have a Base argument?
     if (from == null) return false ;
@@ -295,6 +305,7 @@ public abstract class Venue extends Fixture implements
     setPosition(t.x, t.y, t.world) ;
     clearSurrounds() ;
     enterWorld() ;
+    VenuePersonnel.fillVacancies(this) ;
     if (GameSettings.buildFree) {
       structure.setState(VenueStructure.STATE_INTACT , 1) ;
     }
@@ -347,24 +358,25 @@ public abstract class Venue extends Fixture implements
   
   private void describeCondition(Description d, HUD UI) {
     
-    d.append("INTEGRITY: ") ;
+    d.append("Condition: ") ;
     d.append(structure.repair()+" / "+structure.maxIntegrity()) ;
     //  If there's an upgrade in progress, list it here.
     final String CUD = structure.currentUpgradeDesc() ;
-    if (CUD != null) d.append("\n"+CUD) ;
+    if (CUD != null) d.append("\n  "+CUD) ;
     
-    d.append("\n\nVISITORS:") ;
-    if (inside.size() == 0) d.append("\n  No visitors.") ;
-    else for (Mobile m : inside) {
+    d.append("\n\nPersonnel and Visitors:") ;
+    final Batch <Mobile> considered = new Batch <Mobile> () ;
+    for (Actor m : personnel.residents()) considered.include(m) ;
+    for (Actor m : personnel.workers()) considered.include(m) ;
+    for (Mobile m : inside) considered.include(m) ;
+    
+    for (Mobile m : considered) {
       d.append("\n  ") ; d.append(m) ;
-      if (m instanceof Actor && ((Actor) m).AI.rootBehaviour() != null) {
-        final Behaviour root = ((Actor) m).AI.rootBehaviour() ;
-        d.append("\n  ") ;
-        root.describeBehaviour(d) ;
-      }
+      d.append("\n  ") ; d.append(dutyDesc(m)) ;
+      d.append("\n  ") ; m.describeStatus(d) ;
     }
     
-    d.append("\n\nORDERS:") ;
+    d.append("\n\nOrders:") ;
     boolean empty = true ;
     for (String order : stocks.ordersDesc()) {
       d.append("\n  "+order) ; empty = false ;
@@ -373,6 +385,16 @@ public abstract class Venue extends Fixture implements
       d.append("\n  ") ; m.describeBehaviour(d) ; empty = false ;
     }
     if (empty) d.append("\n  No orders.") ;
+  }
+  
+  
+  private String dutyDesc(Mobile m) {
+    if (! (m instanceof Actor)) return "" ;
+    final Actor a = (Actor) m ;
+    if (a.AI.home() == this) return "(Resident)" ;
+    if (a.AI.work() != this) return "(Visitor)" ;
+    final String duty = personnel.onShift(a) ? "On-Duty" : "Off-Duty" ;
+    return "("+duty+" "+a.vocation()+")" ;
   }
   
   
@@ -485,7 +507,7 @@ public abstract class Venue extends Fixture implements
   
   
   public void renderFor(Rendering rendering, Base base) {
-    //  TODO:  Outsource this to the VenueStructure class?
+    
     position(buildSprite.position) ;
     buildSprite.updateCondition(
       structure.repairLevel(),
@@ -494,11 +516,10 @@ public abstract class Venue extends Fixture implements
     ) ;
     
     if (healthbar == null) healthbar = new Healthbar() ;
-    //
-    //  TODO:  Have the healthbar configured by the VenueStructure class,
-    //  anyway.
     healthbar.level = structure.repairLevel() ;
-    healthbar.size = structure.maxIntegrity() ;
+    final int NU = structure.numUpgrades() ;
+    healthbar.size = (radius() * 50) ;
+    healthbar.size *= 1 + VenueStructure.UPGRADE_HP_BONUSES[NU] ;
     healthbar.matchTo(buildSprite) ;
     healthbar.position.z += height() ;
     rendering.addClient(healthbar) ;

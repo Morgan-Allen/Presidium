@@ -182,11 +182,12 @@ public abstract class Mission implements
   
   
   protected void endMission(boolean cancelled) {
-    int reward = REWARD_AMOUNTS[rewardType] ;
+    final float reward = REWARD_AMOUNTS[rewardType] ;
     for (Role role : roles) {
       role.applicant.AI.assignMission(null) ;
-      if (! cancelled) role.applicant.gear.incCredits(reward) ;
+      if (! cancelled) role.applicant.gear.incCredits(reward / roles.size()) ;
     }
+    base.incCredits(0 - reward) ;
     base.removeMission(this) ;
   }
   

@@ -26,7 +26,7 @@ public class Base implements
     */
   final public World world ;
   final public Commerce commerce = new Commerce(this) ;
-  int credits = 0 ;
+  float credits = 0 ;
   
   Actor ruler ;
   Venue commandPost ;
@@ -55,7 +55,7 @@ public class Base implements
     s.cacheInstance(this) ;
     this.world = s.world() ;
     commerce.loadState(s) ;
-    credits = s.loadInt() ;
+    credits = s.loadFloat() ;
 
     ruler = (Actor) s.loadObject() ;
     s.loadObjects(missions) ;
@@ -79,7 +79,7 @@ public class Base implements
   
   public void saveState(Session s) throws Exception {
     commerce.saveState(s) ;
-    s.saveInt(credits) ;
+    s.saveFloat(credits) ;
     
     s.saveObject(ruler) ;
     s.saveObjects(missions) ;
@@ -119,16 +119,16 @@ public class Base implements
   /**  Dealing with finances, trade and taxation-
     */
   public int credits() {
-    return credits ;
+    return (int) credits ;
   }
   
   
-  public void incCredits(int inc) {
+  public void incCredits(float inc) {
     credits += inc ;
   }
   
   
-  public boolean hasCredits(int sum) {
+  public boolean hasCredits(float sum) {
     return credits >= sum ;
   }
   

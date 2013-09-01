@@ -114,6 +114,11 @@ public class ShieldWall extends LineInstallation {
   
   /**  Rendering and interface methods-
     */
+  public int buildCost() {
+    return 40 ;
+  }
+  
+  
   public String fullName() {
     return "Shield Wall" ;
   }

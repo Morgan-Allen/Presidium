@@ -44,7 +44,7 @@ public class Supervision extends Plan {
   /**  Evaluating targets and priority-
     */
   public float priorityFor(Actor actor) {
-    return CASUAL ;
+    return ROUTINE ;
   }
   
   

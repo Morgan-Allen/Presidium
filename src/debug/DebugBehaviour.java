@@ -260,13 +260,23 @@ public class DebugBehaviour extends PlayLoop {
   private void socialScenario(World world, Base base, HUD UI) {
     
     base.incCredits(1000) ;
+    /*
+    final Actor actor = new Human(Vocation.PHYSICIAN, base) ;
+    actor.enterWorldAt(4, 4, world) ;
+    final Actor other = new Human(Vocation.VETERAN, base) ;
+    other.enterWorldAt(6, 6, world) ;
+    ((BaseUI) UI).selection.pushSelection(other, true) ;
+    //*/
     
-    final Sickbay hospice = new Sickbay(base) ;
-    hospice.enterWorldAt(9, 2, world) ;
-    hospice.setAsEstablished(true) ;
-    hospice.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
-    hospice.onCompletion() ;
-    base.intelMap.liftFogAround(hospice, 10f) ;
+    /*
+    final Sickbay sickbay = new Sickbay(base) ;
+    sickbay.enterWorldAt(9, 2, world) ;
+    sickbay.setAsEstablished(true) ;
+    sickbay.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+    sickbay.onCompletion() ;
+    base.intelMap.liftFogAround(sickbay, 10f) ;
+    VenuePersonnel.fillVacancies(sickbay) ;
+    //*/
     
     final Actor other = new Human(Vocation.VETERAN , base) ;
     ///other.traits.setLevel(ActorConstants.ILLNESS, 2) ;
@@ -279,6 +289,8 @@ public class DebugBehaviour extends PlayLoop {
     garrison.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
     garrison.onCompletion() ;
     other.AI.setEmployer(garrison) ;
+    VenuePersonnel.fillVacancies(garrison) ;
+    //*/
     
     /*
     final Cantina cantina = new Cantina(base) ;
@@ -290,7 +302,6 @@ public class DebugBehaviour extends PlayLoop {
     
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;
-    //  Vareen need to flee from the citizens!
     ///EG.populateFauna(world, Species.VAREEN) ;
   }
 }

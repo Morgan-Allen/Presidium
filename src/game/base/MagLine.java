@@ -90,6 +90,11 @@ public class MagLine extends LineInstallation {
   
   /**  Rendering and interface methods-
     */
+  public int buildCost() {
+    return 20 ;
+  }
+  
+  
   public String fullName() {
     return "Mag Line" ;
   }

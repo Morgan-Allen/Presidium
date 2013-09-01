@@ -112,6 +112,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
   
   public Manufacture nextManufacture(Actor actor, Conversion c) {
     final float shortage = receivedShortage(c.out.type) ;
+    ///I.say(c.out.type+" shortage is: "+shortage) ;
     if (shortage <= 0) return null ;
     return new Manufacture(
       actor, venue, c,

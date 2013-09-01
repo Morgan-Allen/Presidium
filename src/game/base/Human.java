@@ -272,10 +272,7 @@ public class Human extends Actor implements ActorConstants {
   private void describeStatus(Description d, HUD UI) {
     //
     //  Describe your job, place of work, and current residence:
-    d.append("Is: ") ;
-    final Behaviour rootB = AI.rootBehaviour() ;
-    if (rootB != null) rootB.describeBehaviour(d) ;
-    else d.append(health.stateDesc()) ;
+    d.append("Is: ") ; describeStatus(d) ;
     d.append("\nVocation: "+this.vocation().name) ;
     d.append("\nWorkplace: ") ;
     if (AI.work() != null) {

@@ -180,6 +180,7 @@ public class Resting extends Plan implements BuildConstants {
   
   public static float ratePoint(Actor actor, Boardable point) {
     if (point == null) return -1 ;
+    if (point instanceof Venue && ! ((Venue) point).structure.intact()) return -1 ;
     float baseRating = 0 ;
     if (point instanceof Tile) {
       baseRating += 1 ;

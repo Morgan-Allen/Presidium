@@ -74,7 +74,7 @@ public class Inventory {
   
   /**  Financial balance-
     */
-  public void incCredits(int inc) {
+  public void incCredits(float inc) {
     if (inc > 0) {
       credits += inc ;
     }

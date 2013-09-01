@@ -93,6 +93,13 @@ public class Batch <K> implements Series <K> {
     size++ ;
   }
   
+  
+  public void include(K k) {
+    if (includes(k)) return ;
+    add(k) ;
+  }
+  
+  
   /**  Clears this list entirely.
     */
   public void clear() {

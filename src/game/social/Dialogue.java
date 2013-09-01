@@ -24,16 +24,20 @@ public class Dialogue extends Plan implements ActorConstants {
   /**  Fields, constructors and save/load methods-
     */
   final static int
-    STAGE_GREETING = 0,
-    STAGE_TALKING  = 1,
-    STAGE_GOODBYE  = 3 ;
+    STAGE_INIT     = -1,
+    STAGE_GREETING =  0,
+    STAGE_TALKING  =  1,
+    STAGE_GOODBYE  =  3,
+    STAGE_DONE     =  4 ;
   final static float
     FINISH_CHANCE = 0.1f ;
   
   final Actor other ;
   final boolean inits ;
+  
+  private int stage = STAGE_INIT ;
   private Boardable location = null ;
-  private boolean speaking = false, finished = false ;
+  private boolean speaking = false ;
   
   
   
@@ -48,88 +52,52 @@ public class Dialogue extends Plan implements ActorConstants {
   public Dialogue(Session s) throws Exception {
     super(s) ;
     this.other = (Actor) s.loadObject() ;
-    this.location = (Boardable) s.loadTarget() ;
     this.inits = s.loadBool() ;
+    
+    this.stage = STAGE_INIT ;
+    this.location = (Boardable) s.loadTarget() ;
     this.speaking = s.loadBool() ;
-    this.finished = s.loadBool() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveObject(other) ;
-    s.saveTarget(location) ;
     s.saveBool(inits) ;
+    
+    s.saveInt(stage) ;
+    s.saveTarget(location) ;
     s.saveBool(speaking) ;
-    s.saveBool(finished) ;
   }
   
   
   
-  /**  Static helper methods.  (I don't make these local, since I want to
-    *  emphasise that these are supposed to be independant of any particular
-    *  conversation, or decide whether it even happens.)
+  /**  Evaluating targets and priority-
     */
-  //
-  //  Returns whether Actor is listening to Other.
-  static boolean isListening(Actor actor, Actor other) {
-    final Behaviour root = actor.AI.rootBehaviour() ;
-    if (! (root instanceof Dialogue)) return false ;
-    final Dialogue OD = (Dialogue) root ;
-    return OD.other == other && ! OD.inits ;
-  }
-  
-  
-  //
-  //  Returns whether Actor can talk to Other.
-  //  TODO:  Base this off possession of mutual etiquette/language skills?
-  public static boolean canTalk(Actor actor, Actor other) {
-    if (actor == other || other.species() != Species.HUMAN) return false ;
-    if (isListening(actor, other)) return true ;
-    return actor.AI.couldSwitch(
-      actor.AI.rootBehaviour(), new Dialogue(actor, other, false)
-    ) ;
-  }
-  
-  
-  static Boardable pickLocation(Dialogue dialogue) {
-    final Actor A = dialogue.actor, O = dialogue.other ;
-    if (A.aboard() == O.aboard()) return A.aboard() ;
-    final Vec3D p = A.position(null).add(O.position(null)).scale(0.5f) ;
-    final Tile t = A.world().tileAt(p.x, p.y) ;
-    return Spacing.nearestOpenTile(t, O) ;
-  }
-  
-  
-  private void joinDialogue(Actor other) {
-    BaseUI.logFor(actor, actor+" starting dialogue with "+other) ;
-    final Dialogue forOther = new Dialogue(other, actor, false) ;
-    if (location instanceof Tile) {
-      final Box2D a = location.area(null) ;
-      forOther.location = Spacing.nearestOpenTile(a, other, actor.world()) ;
+  private boolean canTalk(Actor other, Actor actor) {
+    if (other == actor || ! other.health.conscious()) return false ;
+    if (actor.species() != Species.HUMAN || other.species() != Species.HUMAN) {
+      return false ;
     }
-    else forOther.location = location ;
-    other.AI.assignBehaviour(forOther) ;
-  }
-  
-  
-  private void finishDialogue() {
-    BaseUI.logFor(actor, actor+" finished dialogue.") ;
-    ///actor.chat.addPhrase(Wording.VOICE_GOODBYE, true) ;
-    this.finished = true ;
     final Behaviour root = other.AI.rootBehaviour() ;
     if (root instanceof Dialogue) {
-      final Dialogue d = ((Dialogue) root) ;
-      if (d.other == actor) d.finished = true ;
+      final Dialogue OD = (Dialogue) root ;
+      return OD.other == actor ;
     }
+    else if (stage < STAGE_TALKING) {
+      if (inits) {
+        final Dialogue OD = new Dialogue(other, actor, false) ;
+        final boolean occupied = other.AI.couldSwitch(OD, root) ;
+        return ! occupied ;
+      }
+      else return true ;
+    }
+    else return false ;
   }
   
   
   public float priorityFor(Actor actor) {
-    if (actor.species() != Species.HUMAN || other.species() != Species.HUMAN) {
-      return 0 ;
-    }
-    if (finished || (inits && ! canTalk(other, actor))) return 0 ;
+    if (stage == STAGE_DONE || ! canTalk(other, actor)) return 0 ;
     
     final float
       relation = actor.AI.relation(other),
@@ -140,24 +108,32 @@ public class Dialogue extends Plan implements ActorConstants {
     appeal += relation ;
     appeal += attraction / 2 ;
     appeal += novelty * actor.traits.scaleLevel(INQUISITIVE) ;
-    appeal *= actor.traits.scaleLevel(SOCIABLE) * CASUAL ;
-    ///I.say("____ Final appeal of dialogue: "+appeal) ;
-    return Visit.clamp(appeal, 0, ROUTINE) ;
+    appeal *= actor.traits.scaleLevel(SOCIABLE) ;
+    return Visit.clamp(appeal, 0, CASUAL) ;
   }
   
   
   
   /**  Implementing the actual sequence of actions.
     */
+  private void finishDialogue() {
+    ///actor.chat.addPhrase(Wording.VOICE_GOODBYE, true) ;
+    this.stage = STAGE_DONE ;
+    final Behaviour root = other.AI.rootBehaviour() ;
+    if (root instanceof Dialogue) {
+      final Dialogue d = ((Dialogue) root) ;
+      if (d.other == actor && d.stage != STAGE_DONE) d.finishDialogue() ;
+    }
+  }
+  
+  
   protected Behaviour getNextStep() {
     if (priorityFor(actor) <= 0) {
-      ///BaseUI.logFor(actor, actor+" can't talk right now, breaking dialogue.") ;
       finishDialogue() ;
       return null ;
     }
-    //
-    //  TODO:  Base this selection on a Stage field (above)?
     if (inits && location == null) {
+      stage = STAGE_GREETING ;
       final Action greet = new Action(
         actor, other,
         this, "actionGreet",
@@ -166,35 +142,53 @@ public class Dialogue extends Plan implements ActorConstants {
       greet.setProperties(Action.RANGED) ;
       return greet ;
     }
-    //
-    //  Otherwise, stand around and chat-
-    final Action talk = new Action(
-      actor, other,
-      this, "actionTalk",
-      Action.TALK_LONG, "Talking to "+other
-    ) ;
-    talk.setMoveTarget(location) ;
-    return talk ;
+    if (stage == STAGE_TALKING) {
+      final Action talk = new Action(
+        actor, other,
+        this, "actionTalk",
+        Action.TALK_LONG, "Talking to "+other
+      ) ;
+      talk.setMoveTarget(location) ;
+      return talk ;
+    }
+    return null ;
   }
   
   
   public boolean actionGreet(Actor actor, Actor other) {
-    if (finished) return false ;
+    if (stage == STAGE_DONE) return false ;
     if (canTalk(other, actor)) {
       location = pickLocation(this) ;
-      joinDialogue(other) ;
+
+      final Dialogue forOther = new Dialogue(other, actor, false) ;
+      if (location instanceof Tile) {
+        final Box2D a = location.area(null) ;
+        forOther.location = Spacing.nearestOpenTile(a, other, actor.world()) ;
+      }
+      else forOther.location = location ;
+      
+      forOther.stage = this.stage = STAGE_TALKING ;
+      other.AI.assignBehaviour(forOther) ;
       return true ;
     }
     else {
-      //BaseUI.logFor(actor, other+" can't talk right now, breaking dialogue.") ;
       finishDialogue() ;
       return false ;
     }
   }
   
   
+  private Boardable pickLocation(Dialogue dialogue) {
+    final Actor A = dialogue.actor, O = dialogue.other ;
+    if (A.aboard() == O.aboard()) return A.aboard() ;
+    final Vec3D p = A.position(null).add(O.position(null)).scale(0.5f) ;
+    final Tile t = A.world().tileAt(p.x, p.y) ;
+    return Spacing.nearestOpenTile(t, O) ;
+  }
+  
+  
   public boolean actionTalk(Actor actor, Actor other) {
-    if (finished) return false ;
+    if (stage == STAGE_DONE) return false ;
     if (! canTalk(other, actor)) {
       I.say("____ Other actor CANNOT talk: "+other) ;
       finishDialogue() ;
@@ -220,7 +214,7 @@ public class Dialogue extends Plan implements ActorConstants {
   
   
   
-  /**
+  /**  Various helper methods and in-detail behaviour implementations-
     */
   private float suasionEffect(Actor actor, Actor other) {
     final float attLevel = other.AI.relation(actor) ;
@@ -336,7 +330,7 @@ public class Dialogue extends Plan implements ActorConstants {
   
   
   private void utters(Actor a, String s) {
-    if (a.chat.numPhrases() > 3) return ;
+    if (a.chat.numPhrases() > 3 || a.indoors()) return ;
     final Actor opposite = a == actor ? other : actor ;
     final boolean onRight = onRight(a, opposite) ;
     a.chat.addPhrase(s, onRight ? TalkFX.FROM_RIGHT : TalkFX.FROM_LEFT) ;
@@ -350,8 +344,6 @@ public class Dialogue extends Plan implements ActorConstants {
 }
 
 
-//
-//  TODO:  REINTRODUCE THESE ASAP.
 
 
 /*
@@ -375,6 +367,27 @@ private void introduce(Actor actor, Actor other) {
 
 
 
+
+/*
+//
+//  Returns whether Actor is listening to Other.
+static boolean isListening(Actor actor, Actor other) {
+  final Behaviour root = actor.AI.rootBehaviour() ;
+  if (! (root instanceof Dialogue)) return false ;
+  final Dialogue OD = (Dialogue) root ;
+  return OD.other == other && ! OD.inits ;
+}
+//
+//  Returns whether Actor can talk to Other.
+//  TODO:  Base this off possession of mutual etiquette/language skills?
+public static boolean canTalk(Actor actor, Actor other) {
+  if (actor == other || other.species() != Species.HUMAN) return false ;
+  if (isListening(actor, other)) return true ;
+  return actor.AI.couldSwitch(
+    actor.AI.rootBehaviour(), new Dialogue(actor, other, false)
+  ) ;
+}
+//*/
 
 
 

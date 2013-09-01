@@ -152,8 +152,11 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     final int EC[] = Spacing.entranceCoords(size, size, entranceFace) ;
     final Vec3D p = this.position ;
     final Tile exit = world.tileAt(p.x + EC[0], p.y + EC[1]) ;
-    for (Mobile m : inside()) if (! m.inWorld()) {
-      m.enterWorldAt(exit.x, exit.y, world) ;
+    for (Mobile m : inside()) {
+      if (! m.inWorld()) {
+        m.enterWorldAt(exit.x, exit.y, world) ;
+      }
+      else inside.remove(m) ;
     }
   }
   
@@ -426,6 +429,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
+    d.appendList("Aboard: ", this.inside()) ;
   }
 }
 

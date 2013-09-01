@@ -45,10 +45,11 @@ public interface BuildConstants extends ActorConstants {
     
     STARCHES = new Service(BC, COMMODITY, "Starches", 10 ),
     PROTEIN  = new Service(BC, COMMODITY, "Protein" , 20 ),
-    GREENS   = new Service(BC, COMMODITY, "Greens"  , 30 ),
+    GREENS   = new Service(BC, COMMODITY, "Greens"  , 40 ),
+    SPICE    = new Service(BC, COMMODITY, "Spice"   , 100),
     
     TIMBER   = new Service(BC, COMMODITY, "Timber"  , 40 ),
-    STONE    = new Service(BC, COMMODITY, "Stone"   , 70 ),
+    STONES   = new Service(BC, COMMODITY, "Stones"  , 70 ),
     HIDES    = new Service(BC, COMMODITY, "Hides"   , 150),
     
     METALS   = new Service(BC, COMMODITY, "Metals"  , 15 ),
@@ -198,7 +199,6 @@ public interface BuildConstants extends ActorConstants {
       Reactor.class, DIFFICULT_DC, CHEMISTRY, ROUTINE_DC, FIELD_THEORY
     ),
     //*/
-    
     METALS_TO_PARTS = new Conversion(
       2, METALS, TO, 1, PARTS,
       Foundry.class, TRICKY_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
@@ -209,13 +209,18 @@ public interface BuildConstants extends ActorConstants {
       Fabricator.class, TRICKY_DC, CHEMISTRY, SIMPLE_DC, GRAPHIC_MEDIA
     ),
     
+    PLASTICS_TO_PRESSFEED = new Conversion(
+      1, PLASTICS, TO, 5, PRESSFEED,
+      AuditOffice.class, SIMPLE_DC, ADMINISTRATION, DIFFICULT_DC, GRAPHIC_MEDIA
+    ),
     
-    NONE_TO_SOMA = new Conversion(
+    
+    NIL_TO_SOMA = new Conversion(
       TO, 1, SOMA,
       CultureVats.class, ROUTINE_DC, CHEMISTRY, ROUTINE_DC, PHARMACY
     ),
     
-    NONE_TO_STARCHES = new Conversion(
+    NIL_TO_STARCHES = new Conversion(
       TO, 1, STARCHES,
       CultureVats.class, SIMPLE_DC, CHEMISTRY
     ) ;

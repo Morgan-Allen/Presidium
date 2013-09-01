@@ -6,7 +6,7 @@
 
 package src.game.actors ;
 import src.game.common.* ;
-import src.user.BaseUI;
+import src.user.BaseUI ;
 import src.util.* ;
 
 
@@ -34,10 +34,13 @@ public class Choice {
   
   
   public boolean add(Behaviour plan) {
-    if (verbose && BaseUI.isPicked(actor)) I.say("Adding to choice: "+plan) ;
-    if (plan == null || plan.complete()) return false ;
-    if (plan.nextStepFor(actor) == null) return false ;
-    if (verbose && BaseUI.isPicked(actor)) I.say("...Accepted") ;
+    if (
+      plan == null || plan.complete() ||
+      plan.nextStepFor(actor) == null
+    ) {
+      if (verbose && BaseUI.isPicked(actor)) I.say("  Rejecting plan: "+plan) ;
+      return false ;
+    }
     plans.add(plan) ;
     return true ;
   }

@@ -46,8 +46,14 @@ public class ImageSprite extends Sprite {
     //  parameters:
     GL11.glMatrixMode(GL11.GL_MODELVIEW) ;
     GL11.glLoadIdentity() ;
+    final Lighting l = rendering.lighting ;
     final Colour c = colour == null ? Colour.WHITE : colour ;
-    GL11.glColor4f(c.r * fog, c.g * fog, c.b * fog, c.a) ;
+    GL11.glColor4f(
+      c.r * fog * l.r(),
+      c.g * fog * l.g(),
+      c.b * fog * l.b(),
+      c.a
+    ) ;
     //
     //  Obtain the correct set of UV coordinates for the current frame-
     model.texture.bindTex() ;

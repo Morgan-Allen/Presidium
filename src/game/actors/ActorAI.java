@@ -359,7 +359,7 @@ public abstract class ActorAI implements ActorConstants {
   public float relation(Actor other) {
     final Relation r = relations.get(other) ;
     if (r == null) return 0 ;  //TODO:  Initialise a fresh relation?
-    return r.value() ;
+    return r.value() + (relation(other.base()) / 2) ;
   }
   
   
@@ -373,8 +373,7 @@ public abstract class ActorAI implements ActorConstants {
   public void incRelation(Accountable other, float inc) {
     Relation r = relations.get(other) ;
     if (r == null) {
-      final float initR = relation(other.base()) / 3f ;
-      r = new Relation(actor, other, initR, actor.world()) ;
+      r = new Relation(actor, other, 0, actor.world()) ;
       relations.put(other, r) ;
     }
     r.incValue(inc) ;

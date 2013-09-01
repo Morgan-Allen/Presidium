@@ -25,14 +25,12 @@ import src.util.* ;
 //  You'd need to assess an actor's fitness for a given Vocation, in terms of
 //  both skills and personality.  (And they'd have to be given gear.)
 
-//
-//  TODO:  Implement shifts.  Actors should not be asked to work more than
-//  eight hours per day, and in some cases, those shifts will need to be
-//  alternated.
 
 //  In addition, any openings available immediately after placement should be
 //  filled automatically.  (But you need to give the scenario a chance to fill
 //  those slots independantly, so maybe delay by *one* world-update...)
+
+
 
 
 public class VenuePersonnel {
@@ -53,6 +51,7 @@ public class VenuePersonnel {
   final List <Actor>
     workers   = new List <Actor> (),
     residents = new List <Actor> () ;
+  private int shiftType = -1 ;
   
   
   VenuePersonnel(Venue venue) {
@@ -61,14 +60,30 @@ public class VenuePersonnel {
   
   
   void loadState(Session s) throws Exception {
+    shiftType = s.loadInt() ;
     s.loadObjects(workers) ;
     s.loadObjects(residents) ;
+    
+    for (int n = s.loadInt() ; n-- > 0 ;) {
+      final Application a = new Application() ;
+      a.position = Vocation.ALL_CLASSES[s.loadInt()] ;
+      a.applies = (Actor) s.loadObject() ;
+      a.signingCost = s.loadInt() ;
+    }
   }
   
   
   void saveState(Session s) throws Exception {
+    s.saveInt(shiftType) ;
     s.saveObjects(workers) ;
     s.saveObjects(residents) ;
+    
+    s.saveInt(applications.size()) ;
+    for (Application a : applications) {
+      s.saveInt(a.position.ID) ;
+      s.saveObject(a.applies) ;
+      s.saveInt(a.signingCost) ;
+    }
   }
   
   
@@ -79,6 +94,60 @@ public class VenuePersonnel {
   
   public List <Actor> residents() {
     return residents ;
+  }
+  
+  
+  public void setShiftType(int type) {
+    this.shiftType = type ;
+  }
+  
+  
+  
+  /**  Handling shifts and being off-duty:
+    */
+  public boolean onShift(Actor worker) {
+    if (shiftType == -1) return false ;
+    final float time = venue.world().currentTime() / World.DEFAULT_DAY_LENGTH ;
+    int currentShift = 0, shiftCycle = 0, workerIndex = 0 ;
+    int numShifts = 0 ;
+    //
+    //  Firstly, determine proper indices for the shift and the roster-
+    if (shiftType == Venue.SHIFTS_BY_HOURS) {
+      shiftCycle = (int) time ;
+      currentShift = (int) ((time * 3) % 3) ;
+      numShifts = 1;
+    }
+    if (shiftType == Venue.SHIFTS_BY_DAY) {
+      if ((time % 1) > 0.5f) return false ;
+      shiftCycle = (int) (time / 3) ;
+      currentShift = ((int) time) % 3 ;
+      numShifts = 2 ;
+    }
+    if (shiftType == Venue.SHIFTS_BY_CALENDAR) {
+      I.complain("CALENDAR NOT IMPLEMENTED YET!") ;
+    }
+    for (Actor actor : workers) {
+      if (actor == worker) break ;
+      else workerIndex++ ;
+    }
+    //
+    //  Then, see if they match up-
+    if (workers.size() < 3) return workerIndex == currentShift ;
+    for (int period = 0 ; period < workers.size() ; period += 3) {
+      for (int shiftIndex = numShifts ; shiftIndex-- > 0 ;) {
+        final int index = period + currentShift + shiftIndex + shiftCycle ;
+        if ((index % workers.size()) == workerIndex) return true ;
+      }
+    }
+    return false ;
+  }
+  
+  
+  public int assignedTo(Class planClass) {
+    int num = 0 ; for (Actor actor : workers) {
+      if (actor.isDoing(planClass)) num++ ;
+    }
+    return num ;
   }
   
   
@@ -154,23 +223,7 @@ public class VenuePersonnel {
   
   
   protected void onCommission() {
-    //
-    //  We automatically fill any positions available when the venue is
-    //  established.  This is done for free, but candidates cannot be screened.
-    for (Vocation v : venue.careers()) {
-      final int numOpen = venue.numOpenings(v) ;
-      if (numOpen <= 0) continue ;
-      for (int i = numOpen ; i-- > 0 ;) {
-        final Human worker = new Human(v, venue.base()) ;
-        worker.AI.setEmployer(venue) ;
-        venue.base().commerce.addImmigrant(worker) ;
-      }
-    }
   }
-  
-  
-  //protected void onCompletion() {
-  //}
   
   
   protected void onDecommission() {
@@ -196,6 +249,22 @@ public class VenuePersonnel {
       for (Vocation v : match) if (c.vocation() == v) num++ ;
     }
     return num ;
+  }
+  
+  
+  public static void fillVacancies(Venue venue) {
+    //
+    //  We automatically fill any positions available when the venue is
+    //  established.  This is done for free, but candidates cannot be screened.
+    for (Vocation v : venue.careers()) {
+      final int numOpen = venue.numOpenings(v) ;
+      if (numOpen <= 0) continue ;
+      for (int i = numOpen ; i-- > 0 ;) {
+        final Human worker = new Human(v, venue.base()) ;
+        worker.AI.setEmployer(venue) ;
+        venue.base().commerce.addImmigrant(worker) ;
+      }
+    }
   }
 }
 

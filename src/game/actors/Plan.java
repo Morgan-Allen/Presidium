@@ -27,10 +27,8 @@ public abstract class Plan implements Saveable, Behaviour {
   protected Actor actor ;
   protected Behaviour nextStep = null ;
   
-  //
-  //  These can be returned by default, or overridden if required.
-  private float priority = -1 ;
-  private String description = null ;
+  public float priorityMod = 0 ;
+  
   
   
   protected Plan(Actor actor, Saveable... signature) {
@@ -55,6 +53,7 @@ public abstract class Plan implements Saveable, Behaviour {
     signature = new Saveable[numS] ;
     for (int i = 0 ; i < numS ; i++) signature[i] = s.loadObject() ;
     this.hash = Table.hashFor((Object[]) signature) ;
+    this.priorityMod = s.loadFloat() ;
   }
   
   
@@ -62,6 +61,7 @@ public abstract class Plan implements Saveable, Behaviour {
     s.saveObject(actor) ;
     s.saveInt(signature.length) ;
     for (Saveable o : signature) s.saveObject(o) ;
+    s.saveFloat(priorityMod) ;
   }
   
   
@@ -130,6 +130,7 @@ public abstract class Plan implements Saveable, Behaviour {
     return begun() && nextStep() == null ;
   }
   
+  
   public boolean begun() {
     return actor != null ;
   }
@@ -137,21 +138,6 @@ public abstract class Plan implements Saveable, Behaviour {
   
   public Actor actor() {
     return actor ;
-  }
-  
-  
-  public void setPriority(float priority) {
-    this.priority = priority ;
-  }
-  
-  
-  public float priorityFor(Actor actor) {
-    return priority ;
-  }
-
-
-  public void describeBehaviour(Description d) {
-    if (description != null) d.append(description) ;
   }
   
   

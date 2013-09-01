@@ -108,7 +108,7 @@ FABRICATOR & TRAINING HOUSE
   Production of standalone artwork/landscaping.
   Recruiting Fabricators.
   Recruiting Sculptors.
-
+  
   Music and Song and Dance.
   Physical pleasure/carnal delights.
   Mystic trance/guided meditation.
@@ -202,7 +202,59 @@ THE FREE MARKET & MCHQ
 
 
 
+Logician Sanctum (the Archives)
+  Imprinted              (basic trainees)
+  Logician Judicant      (admin, diplomacy and legal process)
+  Logician Projector     (science, history and futurology)
+  Logician Activator     (intelligence and manipulation)
+  Palatine               (bodyguards and peacekeepers)
+  First Speaker          (head of the school)
+
+Initiate Complex (the Imperial Fane)
+  Acolyte                (basic trainee)
+  Initiate Myrmidone     (soldiers and assassins)
+  Initiate Technologian  (arcane tech, relics and WoMD)
+  Initiate Genealogist   (medicine, genes and breeding)
+  Oracle                 (static sentient super-computer)
+  Reverend Father/Mother (head of the school)
+
+Spacer Habitat (the Shipyard)
+  Bondsman               (basic trainee)
+  Spacer Caste Technical (maintenance and research)
+  Spacer Caste Pilot     (piloting and mechs)
+  Spacer Caste Syndicant (diplomacy and trade)
+  Ship Mother            (reproductive installation)
+  Navigator              (head of the school)
+
+
+//
+//  These might be overly formal.  The collective/symbiont/shapers are either
+//  less hierarchical or more chaotic than the above.  Different recruitment
+//  strategies may be in order...
+
+Collective Nexus (the Psyon Choir)
+  Melded                 (basic trainees)
+  Collective Gaian       (ecological balance and life support)
+  Collective Integral    (maintenance of hardware and surgery)
+  Collective Choral      (psyon abilities and emotional rapport)
+  Android                (inherent pacifism and memory retention)
+  Nexus Vessel           (head of the school)
+
+Symbiont Circle (the Former Node)
+  Chosen                 (basic trainee)
+  Symbiont of the Glaive (combat and infiltration suit)
+  Symbiont of the Thread (ecology and terraforming)
+  Symbiont of the Core   (power and manufacture)
+  Ascended               (unstable powerhouse)
+  Demiurge               (head of the school)
+
+Shaper Colony (the Sculptor's Studio)
+  Host                   (basic trainee)
+  Shaper Metabolist      (physique, regen and basic psyonics)
+  Shaper Strain Weaver   (ecology, animals and mutation)
+  Shaper Face Shifter    (disguise, spying and seduction)
+  Xenopath               (potent psyonic abilities)
+  Chrysalid              (head of the school)
 
 
 
-  

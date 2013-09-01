@@ -65,10 +65,10 @@ public class Holding extends Venue implements BuildConstants {
   final static String LEVEL_NAMES[] = {
     "Dreg Towers",
     "Scavenger Slums",
-    "Field Quarters",
-    "Pyon Holding",
-    "Freeborn Dwelling",
-    "Citizen Apartments",
+    "Field Tent",
+    "Pyon Shacks",
+    "Freeborn Holding",
+    "Citizen Apartment",
     "Guildsman Manse",
     "Highborn Estate"
   } ;
@@ -93,6 +93,7 @@ public class Holding extends Venue implements BuildConstants {
     super(s) ;
     upgradeLevel = s.loadInt() ;
     varID = s.loadInt() ;
+    ///I.say("PARTS "+stocks.amountOf(PARTS)) ;
   }
   
   
@@ -117,16 +118,16 @@ public class Holding extends Venue implements BuildConstants {
   protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     PYON_LEVEL = new Upgrade(
-      "Pyon Level", "", null, 0, null, ALL_UPGRADES
+      "Pyon Level", "", 0, null, 0, null, ALL_UPGRADES
     ),
     FREEBORN_LEVEL = new Upgrade(
-      "Pyon Level", "", null, 0, PYON_LEVEL, ALL_UPGRADES
+      "Freeborn Level", "", 0, null, 0, PYON_LEVEL, ALL_UPGRADES
     ),
     CITIZEN_LEVEL = new Upgrade(
-      "Pyon Level", "", null, 0, FREEBORN_LEVEL, ALL_UPGRADES
+      "Citizen Level", "", 0, null, 0, FREEBORN_LEVEL, ALL_UPGRADES
     ),
     GUILDSMAN_LEVEL = new Upgrade(
-      "Pyon Level", "", null, 0, CITIZEN_LEVEL, ALL_UPGRADES
+      "Guildsman Level", "", 0, null, 0, CITIZEN_LEVEL, ALL_UPGRADES
     ) ;
   
   
@@ -135,6 +136,9 @@ public class Holding extends Venue implements BuildConstants {
     */
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
+    //if (stocks.amountOf(PARTS) < 2) stocks.addItem(Item.withAmount(PARTS, 2)) ;
+    
+    ///I.say("AMOUNT OF PARTS: "+stocks.amountOf(PARTS)) ;
     //
     //  First of all, we check if we have enough of various material goods to
     //  justify an upgrade-

@@ -1,8 +1,6 @@
 
 
 package src.game.building ;
-//import src.graphics.widgets.* ;
-//import src.user.* ;
 import src.util.* ;
 
 
@@ -16,7 +14,8 @@ public class Upgrade extends Index.Member {
   
   final String name ;
   final String description ;
-
+  
+  final int buildCost ;
   final Object refers ;
   final int bonus ;
   final Upgrade required ;
@@ -24,12 +23,14 @@ public class Upgrade extends Index.Member {
   
   public Upgrade(
     String name, String desc,
+    int buildCost,
     Object refers, int bonus,
     Upgrade required, Index index
   ) {
     super(index) ;
     this.name = name ;
     this.description = desc ;
+    this.buildCost = buildCost ;
     this.refers = refers ;
     this.bonus = bonus ;
     this.required = required ;

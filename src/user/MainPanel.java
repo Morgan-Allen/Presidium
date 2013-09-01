@@ -210,6 +210,7 @@ public class MainPanel extends UIGroup implements UIConstants {
   /**  Subsequent UI responses and content production-
     */
   private void switchToPane(int buttonID) {
+    UI.beginPanelFade() ;
     if (buttonID == TAB_MISSIONS) {
       currentTab = new MissionsTab(UI) ;
     }

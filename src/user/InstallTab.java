@@ -127,9 +127,12 @@ public class InstallTab extends InfoPanel {
       final Composite icon = type.sample.portrait(UI) ;
       final String typeName = type.sample.fullName() ;
       final String typeDesc = type.sample.helpInfo() ;
+      final int buildCost = type.sample.buildCost() ;
       
       detailText.insert(icon, 40) ;
       detailText.append("  "+typeName) ;
+      detailText.append("\n Cost: "+buildCost+" Credits") ;
+      //TODO:  List construction materials too.
       
       detailText.append(new Text.Clickable() {
         public void whenClicked() { initInstallTask(UI, type) ; }

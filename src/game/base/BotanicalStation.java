@@ -179,6 +179,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "Improves cereal yields.  Cereals yield more calories than other crop "+
       "species, but lack the full range of nutrients required in a healthy "+
       "diet.",
+      100,
       STARCHES, 2,
       null, ALL_UPGRADES
     ),
@@ -186,6 +187,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "Broadleaf Lab",
       "Improves broadleaf yields.  Broadleaves provide a wider range of "+
       "nutrients, and are valued as luxury exports, but their yield is small.",
+      150,
       GREENS, 2,
       null, ALL_UPGRADES
     ),
@@ -193,6 +195,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "Field Hand Quarters",
       "Hire additional field hands to plant and reap the harvest more "+
       "quickly, maintain equipment, and bring land under cultivation.",
+      50,
       Vocation.FIELD_HAND, 2,
       null, ALL_UPGRADES
     ),
@@ -200,6 +203,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "Tree Farming",
       "Forestry programs assist in terraforming efforts and climate "+
       "moderation, as well as providing carbons for plastic production.",
+      100,
       CARBONS, 1,
       BROADLEAF_LAB, ALL_UPGRADES
     ),
@@ -208,6 +212,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "Many plantations cultivate colonies of social insects or other "+
       "invertebrates, both as a source of protein and pollination, pest "+
       "control, or recycling services.",
+      150,
       PROTEIN, 1,
       BROADLEAF_LAB, ALL_UPGRADES
     ),
@@ -215,6 +220,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "Ecologist Quarters",
       "Ecologists are highly-skilled students of plants, animals and gene "+
       "modification, capable of adapting species to local climate conditions.",
+      150,
       Vocation.ECOLOGIST, 1,
       TREE_FARMING, ALL_UPGRADES
     ) ;

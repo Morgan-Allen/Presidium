@@ -116,14 +116,12 @@ public class CitizenAI extends ActorAI implements ActorConstants {
         //  TODO:  Apply for a new position.
       }
       if (this.home == null && this.work instanceof Venue) {
-        ///I.say("Home is: "+home) ;
         final Holding newHome = Holding.findHoldingFor(actor) ;
-        ///I.say("NEW home is: "+home) ;
         if (newHome != null) {
           if (! newHome.inWorld()) {
             newHome.clearSurrounds() ;
             newHome.enterWorld() ;
-            newHome.structure.setState(VenueStructure.STATE_INSTALL, 0.1f) ;
+            newHome.structure.setState(VenueStructure.STATE_INSTALL, 0.0f) ;
           }
           setHomeVenue(newHome) ;
         }
@@ -168,7 +166,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     for (Actor near : actorB) {
       choice.add(new Combat(actor, near)) ;
       choice.add(new Treatment(actor, near)) ;
-      //choice.add(new Dialogue(actor, near, true)) ;  //This is exhausting 'em!
+      choice.add(new Dialogue(actor, near, true)) ;
     }
     choice.add(new Retreat(actor)) ;
     choice.add(new SickLeave(actor)) ;

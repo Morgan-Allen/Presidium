@@ -16,7 +16,7 @@ import src.util.* ;
 
 
 
-public class Cantina extends Venue {
+public class Cantina extends Venue implements BuildConstants {
   
   
   
@@ -95,7 +95,13 @@ public class Cantina extends Venue {
   
   
   protected Service[] services() {
-    return null ;
+    return new Service[] { SERVICE_PERFORM } ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    stocks.setRequired(SOMA, 5) ;
   }
   
   
@@ -161,7 +167,7 @@ public class Cantina extends Venue {
     
     if (categoryID == 0) {
       final Performance p = this.performance() ;
-      d.append("Current performance: ") ;
+      d.append("Current performance:\n  ") ;
       if (p == null) d.append("None") ;
       else d.append(p.performDesc()) ;
     }

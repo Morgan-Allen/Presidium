@@ -8,7 +8,10 @@ package src.graphics.cutout ;
 import src.graphics.common.* ;
 import src.graphics.sfx.* ;
 import src.util.* ;
+
 import java.io.* ;
+
+import org.lwjgl.opengl.GL11;
 
 
 //
@@ -167,6 +170,8 @@ public class BuildingSprite extends GroupSprite {
     }
   }
   
+  final static int GL_DISABLES[] = new int[] { GL11.GL_LIGHTING } ;
+  public int[] GL_disables() { return GL_DISABLES ; }
   
   
   /**  Producing and updating scaffold sprites-

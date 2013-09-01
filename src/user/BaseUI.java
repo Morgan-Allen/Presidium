@@ -61,6 +61,7 @@ public class BaseUI extends HUD implements UIConstants {
   MainPanel mainPanel ;
   
   private ByteBuffer panelFade ;
+  
   private UIGroup currentPanel, newPanel ;
   private long panelInceptTime = -1 ;
   
@@ -155,7 +156,7 @@ public class BaseUI extends HUD implements UIConstants {
     if (readout != null) {
       final int credits = played.credits() ;
       final float days = world.currentTime() / World.DEFAULT_DAY_LENGTH ;
-      final String dS = (""+days).substring(0, 4) ;
+      final String dS = (""+days+"0000").substring(0, 4) ;
       int psyPoints = 0 ;/// played.ruler().health.psy() ;
       readout.setText(credits+" Credits   "+dS+" Days   Psy Points:") ;
       if (psyPoints == 0) readout.append(" (none)") ;
@@ -196,18 +197,18 @@ public class BaseUI extends HUD implements UIConstants {
       currentPanel = newPanel ;
     }
     
-    final float TRANSITION_TIME = 0.5f ;
+    final float TRANSITION_TIME = 0.33f ;
     float fade = System.currentTimeMillis() - panelInceptTime ;
     fade = (fade / 1000f) / TRANSITION_TIME ;
     if (fade <= 1) {
       GL11.glColor4f(1, 1, 1, 1 - fade) ;
       UINode.drawPixels(infoArea.trueBounds(), panelFade) ;
     }
+    else panelFade = UINode.copyPixels(infoArea.trueBounds(), panelFade) ;
   }
   
   
   protected void beginPanelFade() {
-    panelFade = UINode.copyPixels(infoArea.trueBounds(), panelFade) ;
     panelInceptTime = System.currentTimeMillis() ;
   }
   

@@ -61,7 +61,7 @@ public class Building extends Plan implements ActorConstants {
     }
     
     //  TODO:  Scale by allegiance/community spirit.
-    return needRepair * priority * URGENT ;
+    return (needRepair * priority * URGENT) + priorityMod ;
   }
   
   
@@ -118,12 +118,17 @@ public class Building extends Plan implements ActorConstants {
     int success = 1 ;
     if (salvage) {
       success *= actor.traits.test(ASSEMBLY, 5, 1) ? 2 : 1 ;
-      built.structure.repairBy(success * 5f / -2) ;
+      final float amount = built.structure.repairBy(success * 5f / -2) ;
+      final float cost = amount * built.structure.buildCost() ;
+      built.base().incCredits(cost * 0.5f) ;
     }
     else {
       success *= actor.traits.test(ASSEMBLY, 10, 0.5f) ? 2 : 1 ;
       success *= actor.traits.test(ASSEMBLY, 20, 0.5f) ? 2 : 1 ;
-      built.structure.repairBy(success * 5f / 2) ;
+      final boolean intact = built.structure.intact() ;
+      final float amount = built.structure.repairBy(success * 5f / 2) ;
+      final float cost = amount * built.structure.buildCost() ;
+      built.base().incCredits((0 - cost) * (intact ? 0.5f : 1)) ;
     }
     return true ;
   }

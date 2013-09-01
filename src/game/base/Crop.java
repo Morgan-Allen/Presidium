@@ -53,7 +53,7 @@ public class Crop extends Element {
   }
   
   
-  protected void onGrowth() {
+  public void onGrowth() {
     final float growChance = Visit.clamp(
       origin().habitat().moisture() / 10f, 0.2f, 0.8f
     ) ;

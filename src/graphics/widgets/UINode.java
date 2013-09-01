@@ -163,7 +163,9 @@ public abstract class UINode {
   //  TODO:  Consider returning a Texture instead, or just a GL texture ID?
   final public static ByteBuffer copyPixels(Box2D area, ByteBuffer pixels) {
     final int size = ((int) area.xdim()) * ((int) area.ydim()) * 4 ;
-    if (pixels == null) pixels = BufferUtils.createByteBuffer(size) ;
+    if (pixels == null || pixels.capacity() != size) {
+      pixels = BufferUtils.createByteBuffer(size) ;
+    }
     else pixels.rewind() ;
     GL11.glReadPixels(
       (int) area.xpos(), (int) area.ypos(),

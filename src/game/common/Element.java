@@ -174,7 +174,7 @@ public abstract class Element implements
   
   /**  Timing-associated methods-
     */
-  protected void onGrowth() {
+  public void onGrowth() {
   }
   
   

@@ -120,7 +120,7 @@ public abstract class Fixture extends Element {
   public int ydim() { return size ; }
   public int zdim() { return high ; }
   public float height() { return zdim() ; }
-  public float radius() { return size / 2 ; }
+  public float radius() { return size / 2f ; }
   public Box2D area() { return area ; }
   
   

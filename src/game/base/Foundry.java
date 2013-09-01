@@ -11,7 +11,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
@@ -24,12 +24,12 @@ public class Foundry extends Venue implements BuildConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    Foundry.class, "media/Buildings/artificer/artificer.png", 4, 3
+    Foundry.class, "media/Buildings/artificer/artificer.png", 4, 2
   ) ;
   
   
   public Foundry(Base base) {
-    super(4, 3, ENTRANCE_WEST, base) ;
+    super(4, 2, ENTRANCE_WEST, base) ;
     structure.setupStats(
       200, 5, 350, VenueStructure.NORMAL_MAX_UPGRADES,
       false
@@ -60,6 +60,7 @@ public class Foundry extends Venue implements BuildConstants {
       "Assembly Line",
       "An assembly line allows standardised parts to manufactured quickly, "+
       "cheaply and in greater abundance.",
+      200,
       PARTS, 2, null, ALL_UPGRADES
     ),
     MOLDING_PRESS = new Upgrade(
@@ -67,6 +68,7 @@ public class Foundry extends Venue implements BuildConstants {
       "The molding press allows materials to be recycled and sculpted to fit "+
       "new purposes, reducing waste and pollution, and speeding production "+
       "of custom-made parts.",
+      150,
       PLASTICS, 1, null, ALL_UPGRADES
     ),
     TECHNICIAN_QUARTERS = new Upgrade(
@@ -74,12 +76,14 @@ public class Foundry extends Venue implements BuildConstants {
       "Technicians are trained to operate and perform routine maintenance on "+
       "common machinery, but lack the theoretical grounding needed for "+
       "fundamental design or customisation.",
+      50,
       Vocation.TECHNICIAN, 2, null, ALL_UPGRADES
     ),
     COMPOSITE_MATERIALS = new Upgrade(
       "Composite Materials",
       "Composite materials enhance the production of lightweight and "+
       "flexible armours, as well as close-range melee weaponry.",
+      200,
       null, 2, MOLDING_PRESS, ALL_UPGRADES
     ),
     FLUX_CONTAINMENT = new Upgrade(
@@ -87,6 +91,7 @@ public class Foundry extends Venue implements BuildConstants {
       "Flux containment allows high-energy plasmas to be generated and "+
       "controlled, permitting refinements to shield technology and ranged "+
       "energy weapons.",
+      250,
       null, 2, TECHNICIAN_QUARTERS, ALL_UPGRADES
     ),
     ARTIFICER_QUARTERS = new Upgrade(
@@ -94,6 +99,7 @@ public class Foundry extends Venue implements BuildConstants {
       "Artificers are highly-skilled as physicists and engineers, and can "+
       "tackle the most taxing commissions reliant on dangerous or arcane "+
       "technologies.",
+      150,
       Vocation.ARTIFICER, 1, TECHNICIAN_QUARTERS, ALL_UPGRADES
     ) ;
   
@@ -122,11 +128,12 @@ public class Foundry extends Venue implements BuildConstants {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     
+    /*
     if (stocks.amountOf(METALS) < 10) {
       stocks.addItem(Item.withAmount(METALS, 10)) ;
     }
-    
-    //stocks.receiveDemand(PARTS, 10) ;
+    //*/
+    if (stocks.receivedShortage(PARTS) < 5) stocks.setRequired(PARTS, 5) ;
     stocks.translateDemands(METALS_TO_PARTS) ;
   }
   
@@ -134,8 +141,13 @@ public class Foundry extends Venue implements BuildConstants {
   public Behaviour jobFor(Actor actor) {
     if (! structure.intact()) return null ;
     
+    final Choice choice = new Choice(actor) ;
+    
     final Building b = Building.getNextRepairFor(actor) ;
-    if (b != null) return b ;
+    if (b != null) {
+      b.priorityMod = Behaviour.CASUAL ;
+      choice.add(b) ;
+    }
     
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
     if (o != null) {
@@ -157,16 +169,17 @@ public class Foundry extends Venue implements BuildConstants {
         else o.checkBonus += CMB ;
       }
       o.timeMult = 4 ;
-      return o ;
+      choice.add(o) ;
     }
     
     final Manufacture m = stocks.nextManufacture(actor, METALS_TO_PARTS) ;
     if (m != null) {
+      I.say("Next manufacture: "+m) ;
       m.checkBonus = structure.upgradeBonus(PARTS) ;
-      return m ;
+      choice.add(m) ;
     }
     
-    return null ;
+    return choice.weightedPick(actor.AI.whimsy()) ;
   }
   
   
@@ -178,7 +191,9 @@ public class Foundry extends Venue implements BuildConstants {
   }
   
   
-  public String fullName() { return "The Foundry" ; }
+  public String fullName() {
+    return "The Foundry" ;
+  }
   
   
   public String helpInfo() {

@@ -14,8 +14,6 @@ import src.util.* ;
 
 //
 //  Modify this so that Vehicles can possess it too?  Put in an interface?
-//
-//  I want to have some kind of external progress metre for research/upgrades.
 
 
 public class VenueStructure extends Inventory {
@@ -26,8 +24,8 @@ public class VenueStructure extends Inventory {
     */
   final static int
     DEFAULT_INTEGRITY  = 100,
-    DEFAULT_ARMOUR     = 10,
-    DEFAULT_BUILD_COST = 200 ;
+    DEFAULT_ARMOUR     = 1,
+    DEFAULT_BUILD_COST = 10 ;
   final public static int
     STATE_NONE    =  0,
     STATE_INSTALL =  1,
@@ -49,7 +47,7 @@ public class VenueStructure extends Inventory {
     BIG_MAX_UPGRADES    = 12,
     MAX_OF_TYPE         = 3 ;
   final static float UPGRADE_HP_BONUSES[] = {
-    //0.15f, 0.1f, 0.1f, 0.5f, 0.5f, 0.5f
+    0,
     0.15f, 0.25f, 0.35f,
     0.4f , 0.45f, 0.5f ,
     0.5f , 0.55f, 0.55f, 0.6f , 0.6f , 0.65f
@@ -58,10 +56,6 @@ public class VenueStructure extends Inventory {
   
   final Venue venue ;
   
-  //
-  //  These don't actually need to be supplied on an individual basis.  They
-  //  belong to the class, rather than to the object.  Maybe Upgrades could
-  //  serve this function, as a set of default stats for the structure?
   private int baseIntegrity = DEFAULT_INTEGRITY ;
   private int maxUpgrades = NO_UPGRADES ;
   private int
@@ -170,6 +164,7 @@ public class VenueStructure extends Inventory {
   public int maxIntegrity() { return baseIntegrity + upgradeHP() ; }
   public int armouring() { return armouring ; }
   public int maxUpgrades() { return upgrades == null ? 0 : maxUpgrades ; }
+  public int buildCost() { return buildCost ; }
   
   public boolean intact() { return state == STATE_INTACT ; }
   public boolean destroyed() { return state == STATE_RAZED ; }
@@ -180,6 +175,7 @@ public class VenueStructure extends Inventory {
   public boolean burning() { return burning ; }
   
   
+  
   public void setState(int state, float condition) {
     this.state = state ;
     this.integrity = maxIntegrity() * condition ;
@@ -187,13 +183,15 @@ public class VenueStructure extends Inventory {
   }
   
   
-  public void repairBy(float inc) {
+  public float repairBy(float inc) {
     final int max = maxIntegrity() ;
+    final float oldI = this.integrity ;
     if (inc < 0 && integrity > max) {
       inc = Math.min(inc, integrity - max) ;
     }
     adjustRepair(inc) ;
     if (inc > Rand.num() * maxIntegrity()) burning = false ;
+    return (integrity - oldI) / max ;
   }
   
   
@@ -253,7 +251,7 @@ public class VenueStructure extends Inventory {
       if (upgrades[i] != null && upgradeStates[i] != STATE_INSTALL) numUsed++ ;
     }
     if (numUsed == 0) return 0 ;
-    return (int) (baseIntegrity * UPGRADE_HP_BONUSES[numUsed - 1]) ;
+    return (int) (baseIntegrity * UPGRADE_HP_BONUSES[numUsed]) ;
   }
   
   
@@ -374,6 +372,17 @@ public class VenueStructure extends Inventory {
     if (upgrades == null) return 0 ;
     int num = 0 ;
     for (Upgrade u : upgrades) if (u == type) num++ ;
+    return num ;
+  }
+  
+  
+  public int numUpgrades() {
+    if (upgrades == null) return 0 ;
+    int num = 0 ;
+    for (int i = 0 ; i < upgrades.length ; i++) {
+      if (upgrades[i] == null || upgradeStates[i] != STATE_INTACT) continue ;
+      num++ ;
+    }
     return num ;
   }
   

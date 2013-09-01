@@ -28,8 +28,9 @@ public class Garrison extends Venue implements BuildConstants {
   public Garrison(Base base) {
     super(4, 4, ENTRANCE_EAST, base) ;
     structure.setupStats(
-      500, 20, 250, VenueStructure.NORMAL_MAX_UPGRADES, false
+      500, 20, 250, VenueStructure.SMALL_MAX_UPGRADES, false
     ) ;
+    personnel.setShiftType(SHIFTS_BY_HOURS) ;
     attachSprite(MODEL.makeSprite()) ;
   }
   
@@ -47,48 +48,48 @@ public class Garrison extends Venue implements BuildConstants {
   
   /**  Upgrades, economic functions and actor behaviour-
     */
-
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     Garrison.class, "garrison_upgrades"
   ) ;
   protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
-    HAND_TO_HAND_TRAINING = new Upgrade(
-      "Hand To Hand Training",
+    MELEE_TRAINING = new Upgrade(
+      "Melee Training",
       "Prepares your soldiers for the rigours of close combat.",
+      150,
       CLOSE_COMBAT, 3, null, ALL_UPGRADES
     ),
-
     MARKSMAN_TRAINING = new Upgrade(
       "Marksman Training",
       "Prepares your soldiers for ranged combat.",
+      150,
       MARKSMANSHIP, 3, null, ALL_UPGRADES
     ),
-
+    /*
     TECHNICAL_TRAINING = new Upgrade(
       "Technical Training",
       "Prepares your soldiers with the expertise needed to pilot vehicles "+
       "and mechanical armour.",
       PILOTING, 3, null, ALL_UPGRADES
     ),
-    
     SURVIVAL_TRAINING = new Upgrade(
       "Survival Training",
       "Prepares your soldiers for guerilla warfare and wilderness survival.",
       STEALTH_AND_COVER, 3, null, ALL_UPGRADES
     ),
-
+    //*/
     VOLUNTEER_QUARTERS = new Upgrade(
       "Volunteer Quarters",
       "Dedicated in defence of their homes, a volunteer militia provides the "+
       "mainstay of your domestic forces.",
+      50,
       Vocation.VOLUNTEER, 2, null, ALL_UPGRADES
     ),
-
     VETERAN_QUARTERS = new Upgrade(
       "Veteran Quarters",
       "Seasoned professional soldiers, veterans provide the backbone of your "+
       "officer corps and command structure.",
+      150,
       Vocation.VETERAN, 1, null, ALL_UPGRADES
     ) ;
   
@@ -111,14 +112,19 @@ public class Garrison extends Venue implements BuildConstants {
   
   
   public Behaviour jobFor(Actor actor) {
+    if (! personnel.onShift(actor)) return null ;
     //
     //  Grab a random building nearby and patrol around it.  Especially walls.
     final Venue patrolled = world.presences.randomMatchNear(
       base(), this, World.DEFAULT_SECTOR_SIZE
     ) ;
-    return new Patrolling(actor, patrolled, patrolled.radius() * 2) ;
+    if (patrolled != null) {
+      return new Patrolling(actor, patrolled, patrolled.radius() * 2) ;
+    }
     //
     //  TODO:  You also need an option to train in relevant skills here.
+    
+    return null ;
   }
   
   

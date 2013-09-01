@@ -28,11 +28,12 @@ public class Sickbay extends Venue implements BuildConstants {
   
   public Sickbay(Base base) {
     super(3, 2, Venue.ENTRANCE_EAST, base) ;
-    attachSprite(MODEL.makeSprite()) ;
     structure.setupStats(
       200, 2, 350,
       VenueStructure.NORMAL_MAX_UPGRADES, false
     ) ;
+    personnel.setShiftType(SHIFTS_BY_DAY) ;
+    attachSprite(MODEL.makeSprite()) ;
   }
   
   
@@ -58,12 +59,14 @@ public class Sickbay extends Venue implements BuildConstants {
       "Apothecary",
       "A selection of therapeutic drugs and immune modulators help to curb "+
       "the spread of contagious disease and assist in birth control.",
+      250,
       null, 1, null, ALL_UPGRADES
     ),
     SURGERY_WARD = new Upgrade(
       "Surgery Ward",
       "Surgical tools, anaesthetics and plasma reserves ensure that serious "+
       "injuries and life-threatening ailments can be treated quickly.",
+      300,
       null, 1, null, ALL_UPGRADES
     ),
     MINDER_QUARTERS = new Upgrade(
@@ -71,14 +74,8 @@ public class Sickbay extends Venue implements BuildConstants {
       "Minders are essential to monitoring patients' condition and tending "+
       "to diet and sanitary needs, but are only familiar with more common "+
       "medications and standard emergency protocol.",
+      50,
       Vocation.MINDER, 2, APOTHECARY, ALL_UPGRADES
-    ),
-    INTENSIVE_CARE = new Upgrade(
-      "Intensive Care",
-      "Intensive care allows a chance for patients on death's door to make a "+
-      "gradual comeback, covering everything from life support and tissue "+
-      "reconstruction to cybernetic prosthesis and engram backups.",
-      null, 1, SURGERY_WARD, ALL_UPGRADES
     ),
     //
     //  Consider having this serve a different function?  Like providing the
@@ -89,6 +86,15 @@ public class Sickbay extends Venue implements BuildConstants {
       "A separate ward for sufferers of mental illness or degredation allows "+
       "symptoms to be managed without interfering with other sickbay "+
       "functions, while maximising chances for recovery.",
+      350,
+      null, 1, null, ALL_UPGRADES
+    ),
+    INTENSIVE_CARE = new Upgrade(
+      "Intensive Care",
+      "Intensive care allows a chance for patients on death's door to make a "+
+      "gradual comeback, covering everything from life support and tissue "+
+      "reconstruction to cybernetic prosthesis and engram backups.",
+      400,
       null, 1, MINDER_QUARTERS, ALL_UPGRADES
     ),
     PHYSICIAN_QUARTERS = new Upgrade(
@@ -96,13 +102,13 @@ public class Sickbay extends Venue implements BuildConstants {
       "Physicians undergo extensive education in every aspect of human "+
       "metabolism and anatomy, are adept as surgeons, and can tailor their "+
       "treatments to the idiosyncracies of individual patients.",
+      150,
       Vocation.PHYSICIAN, 1, SURGERY_WARD, ALL_UPGRADES
     ) ;
   
   
   public Behaviour jobFor(Actor actor) {
-    //
-    //  You can skip some of these if another person is covering the problem.
+    if (! personnel.onShift(actor)) return null ;
     //
     //  If anyone is waiting for treatment, tend to them.
     for (Mobile m : this.inside()) if (m instanceof Actor) {

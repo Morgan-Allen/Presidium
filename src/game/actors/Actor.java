@@ -224,7 +224,7 @@ public abstract class Actor extends Mobile implements
     final Sprite s = sprite() ;
     
     healthBar.level = (1 - health.injuryLevel()) * (1 - health.stressLevel()) ;
-    healthBar.size = health.maxHealth() * 2 ;
+    healthBar.size = 25 ;
     healthBar.matchTo(s) ;
     healthBar.position.z -= radius() ;
     rendering.addClient(healthBar) ;
@@ -308,5 +308,23 @@ public abstract class Actor extends Mobile implements
       ((BaseUI) PlayLoop.currentUI()).selection.pushSelection(this, false) ;
     }
   }
+  
+  
+  public void describeStatus(Description d) {
+    if (! health.conscious()) { d.append(health.stateDesc()) ; return ; }
+    if (! inWorld()) { d.append("Is Offworld") ; return ; }
+    final Behaviour rootB = AI.rootBehaviour() ;
+    if (rootB != null) rootB.describeBehaviour(d) ;
+    else d.append("Thinking") ;
+  }
 }
+
+
+
+
+
+
+
+
+
 

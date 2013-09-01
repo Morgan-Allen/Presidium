@@ -15,8 +15,8 @@ import src.util.* ;
 
 
 //
-//  ...This could be linked to an Order object at a venue, so that progress
-//  can be tracked externally and the job taken up by other actors.
+//  TODO:  Problem!  You need to keep track of how many parts are actually
+//  required at the venue, because that might go down...
 
 
 public class Manufacture extends Plan implements Behaviour {

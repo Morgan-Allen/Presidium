@@ -13,8 +13,7 @@ import src.user.* ;
   */
 public interface Installation {
   
-  //  TODO:  You may also need to supply a Base argument here.  Along with
-  //  methods for adjusting repair/condition/salvage state.
+  int buildCost() ;
   boolean pointsOkay(Tile from, Tile to) ;
   void doPlace(Tile from, Tile to) ;
   void preview(boolean canPlace, Rendering rendering, Tile from, Tile to) ;

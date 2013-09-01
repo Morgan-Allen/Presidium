@@ -8,7 +8,7 @@
 package src.game.common ;
 import src.game.building.* ;
 import src.graphics.common.* ;
-import src.user.BaseUI;
+import src.user.* ;
 import src.util.* ;
 
 
@@ -266,6 +266,9 @@ public abstract class Mobile extends Element
     s.rotation = (rotation + (rotateChange * alpha) + 360) % 360 ;
     rendering.addClient(s) ;
   }
+  
+  
+  public void describeStatus(Description d) {}
 }
 
 

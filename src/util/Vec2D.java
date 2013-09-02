@@ -5,6 +5,8 @@
   */
 
 package src.util ;
+import java.io.* ;
+
 
 
 public class Vec2D {
@@ -17,6 +19,18 @@ public class Vec2D {
   
   
   public Vec2D() {}
+  
+  public Vec2D loadFrom(DataInputStream in) throws Exception {
+    x = in.readFloat() ;
+    y = in.readFloat() ;
+    return this ;
+  }
+  
+  public Vec2D saveTo(DataOutputStream out) throws Exception {
+    out.writeFloat(x) ;
+    out.writeFloat(y) ;
+    return this ;
+  }
   
   public Vec2D(float xv, float yv) {
     set(xv, yv) ;

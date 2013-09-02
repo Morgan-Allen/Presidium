@@ -414,14 +414,14 @@ public interface ActorConstants {
       "Mild Fatigue",
       null
     ),
-    STRESS = new Condition(
-      "Terrible Morale",
-      "Bad Morale",
-      "Weak Morale",
+    MORALE = new Condition(
+      "Fantastic Mood",
+      "Great Mood",
+      "Fair Mood",
       null,
-      "Good Morale",
-      "Strong Morale",
-      "Superb Morale"
+      "Poor Mood",
+      "Awful Mood",
+      "Wretched Mood"
     ),
     
     
@@ -444,8 +444,7 @@ public interface ActorConstants {
     
     
     //
-    //  TODO:  These need to apply their effects, and actors need to actively
-    //  pursue treatment/sick leave.
+    //  TODO:  These need to apply their effects.
     ILLNESS = new Condition(
       "Terminal Illness",
       "Serious Illness",

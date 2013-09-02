@@ -155,25 +155,16 @@ public class Commerce {
   
   
   
-  //
-  //  TODO:  You still have to trigger the descent and landing of the dropship.
   protected void updateShipping() {
-    /*
-    I.say(
-      "  Updating events for: "+ship+
-      "\n  Next visit time: "+nextVisitTime+
-      "\n  Current time: "+base.world.currentTime()
-    ) ;
-    //*/
     
     final int shipStage = ship.flightStage() ;
     if (ship.landed()) {
-      final float sinceDescent = ship.timeSinceDescent(base.world) ;
-      ///I.say("All aboard? "+ship.allBoarded()+", time: "+sinceDescent) ;
+      final float sinceDescent = ship.timeLanded() ;
+      I.say("All aboard? "+ship.allAboard()+", time: "+sinceDescent) ;
       if (sinceDescent > SUPPLY_DURATION) {
-        I.say("Ship stage: "+ship.flightStage()) ;
+        ///I.say("Ship stage: "+shipStage) ;
         if (shipStage == Dropship.STAGE_LANDED) ship.beginBoarding() ;
-        if (ship.allBoarded() && shipStage == Dropship.STAGE_BOARDING) {
+        if (ship.allAboard() && shipStage == Dropship.STAGE_BOARDING) {
           ship.beginAscent() ;
         }
       }

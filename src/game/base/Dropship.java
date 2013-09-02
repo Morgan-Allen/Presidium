@@ -8,7 +8,7 @@ import src.game.building.* ;
 import src.game.planet.* ;
 import src.graphics.common.* ;
 import src.graphics.jointed.* ;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
@@ -17,21 +17,16 @@ import src.util.* ;
 /**  Trade ships come to deposit and collect personnel and cargo.
   */
 //
-//  NOTE:  This class has been prone to bugs where sprite position appears to
-//  'jitter' when passing over blocked tiles below, due to the mobile class
-//  attempting to 'correct' position after each update.  This class must treat
-//  all tiles as passable to compensate.
+//...You also need to try making deliveries/collections, based on what
+//nearby venues have either a shortage or excess of.  Particularly at the
+//supply depot.
 
-/*
-A parabolic curve is y = x^2.  Flip that on it's side, and you have y = sqrt(x),
-where y is lateral distance from the descent point.
-Add the minimum descent height.
-
-Parametric equation would be: X = 2at, Y = a(t^2)
-*/
 //
-//  ...You also need to try making deliveries/collections, based on what
-//  nearby venues have either a shortage or excess of.
+//NOTE:  This class has been prone to bugs where sprite position appears to
+//'jitter' when passing over blocked tiles below, due to the mobile class
+//attempting to 'correct' position after each update.  This class must treat
+//all tiles as passable to compensate.
+
 
 
 public class Dropship extends Vehicle implements Inventory.Owner {
@@ -48,13 +43,6 @@ public class Dropship extends Vehicle implements Inventory.Owner {
       Dropship.class, FILE_DIR, "dropship.ms3d", 1.0f
     ).loadXMLInfo(XML_PATH, "Dropship") ;
   
-  
-  final static float
-    LOWER_FLIGHT_HEIGHT = 5,
-    UPPER_FLIGHT_RADIUS = 7,
-    UPPER_FLIGHT_TIME   = 9,
-    LOWER_FLIGHT_TIME   = 7,
-    TOTAL_FLIGHT_TIME = UPPER_FLIGHT_TIME + LOWER_FLIGHT_TIME ;
   final public static int
     STAGE_DESCENT  = 0,
     STAGE_LANDED   = 1,
@@ -63,12 +51,15 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     STAGE_AWAY     = 4 ;
   final public static int
     MAX_CAPACITY   = 100,
-    MAX_PASSENGERS = 10 ;
+    MAX_PASSENGERS = 5 ;
+  final public static float
+    INIT_DIST = 10.0f,
+    INIT_HIGH = 10.0f,
+    TOP_SPEED =  5.0f ;
   
   
-  private Vec2D liftOff = new Vec2D() ;
-  private Vec2D landPos = new Vec2D() ;
-  private float initTime = 0 ;
+  private Vec3D aimPos = new Vec3D() ;
+  private float stageInceptTime = 0 ;
   private int stage = STAGE_AWAY ;
   
   
@@ -82,36 +73,29 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   public Dropship(Session s) throws Exception {
     super(s) ;
-    liftOff.set(s.loadFloat(), s.loadFloat()) ;
-    landPos = new Vec2D().set(s.loadFloat(), s.loadFloat()) ;
-    initTime = s.loadFloat() ;
+    aimPos.loadFrom(s.input()) ;
+    stageInceptTime = s.loadFloat() ;
     stage = s.loadInt() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveFloat(liftOff.x) ; s.saveFloat(liftOff.y) ;
-    s.saveFloat(landPos.x) ; s.saveFloat(landPos.y) ;
-    s.saveFloat(initTime) ;
+    aimPos.saveTo(s.output()) ;
+    s.saveFloat(stageInceptTime) ;
     s.saveInt(stage) ;
   }
   
   
   public int owningType() { return Element.VENUE_OWNS ; }
-  public int pathingType() { return Tile.PATH_BLOCKS ; }
+  public int pathType() { return Tile.PATH_BLOCKS ; }
   public float height() { return 2.0f ; }
   public float radius() { return 2.0f ; }
   
   
-
-
-  /**  Perform the actual exchange of goods and people.
+  
+  /**  Economic and behavioural functions-
     */
-  public void updateAsScheduled(int numUpdates) {
-  }
-  
-  
   public Behaviour jobFor(Actor actor) {
     if (stage == STAGE_BOARDING) {
       final Action boardAction = new Action(
@@ -140,75 +124,198 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   }
   
   
-  public boolean allBoarded() {
-    boolean all = true ;
-    for (Actor c : crew) if (c.aboard() != this) all = false ;
-    return all ;
+  public boolean allAboard() {
+    for (Actor c : crew) if (c.aboard() != this) return false ;
+    return true ;
   }
   
   
   protected void offloadPassengers() {
-    final int size = (int) Math.ceil(radius() * 2) ;
+    final int size = 2 * (int) Math.ceil(radius()) ;
     final int EC[] = Spacing.entranceCoords(size, size, entranceFace) ;
-    final Vec3D p = this.position ;
-    final Tile exit = world.tileAt(p.x + EC[0], p.y + EC[1]) ;
-    for (Mobile m : inside()) {
-      if (! m.inWorld()) {
-        m.enterWorldAt(exit.x, exit.y, world) ;
-      }
-      else inside.remove(m) ;
+    final Box2D site = this.area(null) ;
+    final Tile o = world.tileAt(site.xpos() + 0.5f, site.ypos() + 0.5f) ;
+    final Tile exit = world.tileAt(o.x + EC[0], o.y + EC[1]) ;
+    
+    for (Mobile m : inside()) if (! m.inWorld()) {
+      m.enterWorldAt(exit.x, exit.y, world) ;
     }
+    inside.clear() ;
   }
   
   
   
   /**  Handling the business of ascent and landing-
     */
-  protected boolean checkLandingArea(World world, Box2D area) {
-    for (Tile t : world.tilesIn(area, false)) {
-      if (t == null || t.owningType() > Element.ELEMENT_OWNS) return false ;
-    }
-    return true ;
+  public void beginDescent(Box2D site, World world) {
+    ///I.say("BEGINNING DESCENT") ;
+    aimPos.set(
+      site.xpos() + (site.xdim() / 2),
+      site.ypos() + (site.ydim() / 2),
+      0
+    ) ;
+    final Tile entry = Spacing.pickRandomTile(
+      world.tileAt(aimPos.x, aimPos.y), INIT_DIST, world
+    ) ;
+    enterWorldAt(entry.x, entry.y, world) ;
+    nextPosition.set(entry.x, entry.y, INIT_HIGH) ;
+    nextRotation = 0 ;
+    setHeading(nextPosition, nextRotation, true, world) ;
+    entranceFace = Venue.ENTRANCE_SOUTH ;
+    stage = STAGE_DESCENT ;
+    stageInceptTime = world.currentTime() ;
   }
   
   
-  private void performLandingAt(World world, Box2D area) {
-    for (Tile t : world.tilesIn(area, false)) {
+  private void performLanding(World world, Box2D site) {
+    //
+    //  Clear any detritus around the perimeter-
+    for (Tile t : world.tilesIn(site, false)) {
       if (t.owner() != null) t.owner().setAsDestroyed() ;
     }
-    area = new Box2D().setTo(area).expandBy(-1) ;
-    for (Tile t : world.tilesIn(area, false)) {
-      t.setOwner(this) ;
-    }
-    for (Tile t : world.tilesIn(area, false)) {
-      for (Mobile m : t.inside()) {
+    //
+    //  Claim tiles in the middle as owned, and evacuate any occupants-
+    site = new Box2D().setTo(site).expandBy(-1) ;
+    for (Tile t : world.tilesIn(site, false)) t.setOwner(this) ;
+    for (Tile t : world.tilesIn(site, false)) {
+      for (Mobile m : t.inside()) if (m != this) {
         final Tile e = Spacing.nearestOpenTile(m.origin(), m) ;
         m.setPosition(e.x, e.y, world) ;
+      }
+    }
+    //
+    //  Offload cargo and passengers-
+    offloadPassengers() ;
+  }
+  
+  
+  public void beginAscent() {
+    ///I.say("BEGINNING ASCENT") ;
+    if (landed()) {
+      final Box2D site = new Box2D().setTo(landArea()).expandBy(-1) ;
+      for (Tile t : world.tilesIn(site, false)) t.setOwner(null) ;
+    }
+    final Tile exits = Spacing.pickRandomTile(origin(), INIT_DIST, world) ;
+    aimPos.set(exits.x, exits.y, INIT_HIGH) ;
+    stage = STAGE_ASCENT ;
+    stageInceptTime = world.currentTime() ;
+  }
+  
+  
+  public void completeDescent() {
+    nextPosition.setTo(position.setTo(aimPos)) ;
+    rotation = nextRotation = 0 ;
+    performLanding(world, landArea()) ;
+    offloadPassengers() ;
+    stageInceptTime = world.currentTime() ;
+    stage = STAGE_LANDED ;
+  }
+  
+  
+  public boolean landed() {
+    return stage == STAGE_LANDED || stage == STAGE_BOARDING ;
+  }
+  
+  
+  public float timeLanded() {
+    return world.currentTime() - stageInceptTime ;
+  }
+  
+  
+  public int flightStage() {
+    return stage ;
+  }
+  
+  
+  protected void updateAsMobile() {
+    super.updateAsMobile() ;
+    final float height = position.z / INIT_HIGH ;
+    //
+    //  Check to see if ascent or descent are complete-
+    if (stage == STAGE_ASCENT && height >= 1) {
+      exitWorld() ;
+      stage = STAGE_AWAY ;
+      stageInceptTime = world.currentTime() ;
+    }
+    if (stage == STAGE_DESCENT && height <= 0) {
+      performLanding(world, landArea()) ;
+      stage = STAGE_LANDED ;
+      stageInceptTime = world.currentTime() ;
+    }
+    //
+    //  Otherwise, adjust motion-
+    if (inWorld() && ! landed()) adjustFlight(height) ;
+  }
+  
+  
+  private void adjustFlight(float height) {
+    //
+    //  Firstly, determine what your current position is relative to the aim
+    //  point-
+    final Vec3D disp = aimPos.sub(position, null) ;
+    final Vec2D heading = new Vec2D().setTo(disp).scale(-1) ;
+    //
+    //  Calculate rate of lateral speed and descent-
+    final float UPS = 1f / PlayLoop.UPDATES_PER_SECOND ;
+    final float dist = heading.length() / INIT_DIST ;
+    final float speed = (((dist * dist) * TOP_SPEED) + 1) * UPS ;
+    float ascent = TOP_SPEED * UPS / 4 ;
+    ascent = Math.min(ascent, Math.abs(position.z - aimPos.z)) ;
+    if (stage == STAGE_DESCENT) ascent *= -1 ;
+    //
+    //  Then head toward the aim point-
+    if (disp.length() > speed) disp.scale(speed / disp.length()) ;
+    nextPosition.setTo(position).add(disp) ;
+    nextPosition.z = position.z + ascent ;
+    //
+    //  And adjust rotation-
+    float angle = (heading.toAngle() * height) + (0 * (1 - height)) ;
+    final float
+      angleDif = Vec2D.degreeDif(angle, rotation),
+      absDif   = Math.abs(angleDif), maxRotate = 90 * UPS ;
+    if (height < 0.5f && absDif > maxRotate) {
+      angle = rotation + (maxRotate * (angleDif > 0 ? 1 : -1)) ;
+      angle = (angle + 360) % 360 ;
+    }
+    nextRotation = angle ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    if (stage == STAGE_DESCENT) {
+      ///I.say("  LANDING AREA: "+landArea()) ;
+      if (! checkLandingArea(world, landArea())) {
+        beginAscent() ;
       }
     }
   }
   
   
-  private void performTakeoff(World world, Box2D area) {
-    area = new Box2D().setTo(area).expandBy(-1) ;
-    for (Tile t : world.tilesIn(area, false)) {
-      t.setOwner(null) ;
-    }
-  }
-  
-  
-  private Box2D landArea() {
-    final Box2D area = area(null) ;
-    area.clipToMultiple(1) ;
-    area.expandBy(1) ;
-    I.say("Landing area is: "+area) ;
-    return area ;
-  }
+  public boolean blocksMotion(Boardable t) { return false ; }
+  public void pathingAbort() {}
   
   
   
   /**  Code for finding a suitable landing site-
     */
+  private Box2D landArea() {
+    final int size = (int) Math.ceil(radius()) ;
+    final Box2D area = new Box2D().set(aimPos.x, aimPos.y, 0, 0) ;
+    area.expandBy(size + 1) ;
+    return area ;
+  }
+  
+  
+  protected boolean checkLandingArea(World world, Box2D area) {
+    for (Tile t : world.tilesIn(area, false)) {
+      if (t == null) return false ;
+      if (t.owner() == this) continue ;
+      if (t.owningType() > Element.ELEMENT_OWNS) return false ;
+    }
+    return true ;
+  }
+  
+  
   public static Box2D findLandingSite(Dropship landing, final Base base) {
     //
     //  Firstly, determine a reasonable starting position-
@@ -234,8 +341,8 @@ public class Dropship extends Vehicle implements Inventory.Owner {
         return ! t.blocked() ;
       }
       protected boolean canPlaceAt(Tile t) {
-        area.xpos(t.x) ;
-        area.ypos(t.y) ;
+        area.xpos(t.x - 0.5f) ;
+        area.ypos(t.y - 0.5f) ;
         return landing.checkLandingArea(base.world, area) ;
       }
     } ;
@@ -246,175 +353,35 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   
   
-  public void beginDescent(Box2D area, World world) {
-    if (inWorld()) I.complain("Already in world!") ;
-    this.landPos.set(
-      area.xpos() + (area.xdim() / 2),
-      area.ypos() + (area.ydim() / 2)
-    ) ;
-    this.entranceFace = Venue.ENTRANCE_SOUTH ;
-    this.liftOff.setFromAngle(Rand.num() * 360) ;
-    liftOff.scale(UPPER_FLIGHT_RADIUS).add(landPos) ;
-    liftOff.x = Visit.clamp(liftOff.x, 0, world.size - 1) ;
-    liftOff.y = Visit.clamp(liftOff.y, 0, world.size - 1) ;
-    this.initTime = world.currentTime() ;
-    this.stage = STAGE_DESCENT ;
-    
-    final Vec3D p = getShipPos(0) ;
-    enterWorldAt((int) p.x, (int) p.y, world) ;
-    position.setTo(nextPosition.setTo(p)) ;
-    rotation = nextRotation = getShipRot(0, true) ;
-  }
-  
-  
-  protected void completeDescent() {
-    this.performLandingAt(world, landArea()) ;
-    this.offloadPassengers() ;
-    
-    initTime = world.currentTime() ;
-    stage = STAGE_LANDED ;
-    ///for (Item item : cargo.allItems()) cargo.transfer(item, dropPoint) ;
-  }
-  
-  
-  public void beginAscent() {
-    this.performTakeoff(world, landArea()) ;
-    
-    if (! inWorld()) I.complain("No longer in world!") ;
-    ///if (dropPoint instanceof DropZone) dropPoint.exitWorld() ;
-    initTime = world.currentTime() ;
-    stage = STAGE_ASCENT ;
-  }
-  
-  
-  protected void completeAscent() {
-    initTime = world.currentTime() ;
-    exitWorld() ;
-  }
-  
-  
-  public int flightStage() {
-    return stage ;
-  }
-  
-  
-  public boolean landed() {
-    return stage > STAGE_DESCENT && stage < STAGE_ASCENT ;
-  }
-  
-  
-  public float timeSinceDescent(World world) {
-    if (! landed()) {
-      return -1 ;
-      //I.complain("Can't get descent time!") ;
-    }
-    return world.currentTime() - initTime ;
-  }
-  
-  
-  public float timeSinceAscent(World world) {
-    if (stage != STAGE_AWAY) {
-      return -1 ;
-      //I.complain("Can't get ascent time!") ;
-    }
-    return world.currentTime() - initTime ;
-  }
-  
-  
-  
-  /**  Updating motion over time-
-    */
-  protected void updateAsMobile() {
-    super.updateAsMobile() ;
-    if (stage == STAGE_DESCENT) {
-      float time = Math.min(world.currentTime() - initTime, TOTAL_FLIGHT_TIME) ;
-      this.nextPosition.setTo(getShipPos(time)) ;
-      this.nextRotation = getShipRot(time, true) ;
-      if (time == TOTAL_FLIGHT_TIME) {
-        completeDescent() ;
-        stage = STAGE_LANDED ;
-      }
-    }
-    if (stage == STAGE_ASCENT) {
-      float time = TOTAL_FLIGHT_TIME - (world.currentTime() - initTime) ;
-      if (time < 0) {
-        completeAscent() ;
-        stage = STAGE_AWAY ;
-      }
-      else {
-        this.nextPosition.setTo(getShipPos(time)) ;
-        this.nextRotation = getShipRot(time, true) ;
-      }
-    }
-  }
-  
-  
-  public boolean blocksMotion(Boardable t) {
-    return false ;
-  }
-  
-  
-  public void pathingAbort() {
-  }
-  
-  
-  private Vec3D getShipPos(float time) {
-    if (time < UPPER_FLIGHT_TIME) {
-      final float
-        progress = time / UPPER_FLIGHT_TIME,
-        asAngle  = (float) Math.toRadians(progress * 90),
-        horiz = (float) Math.sin(asAngle),
-        vert  = (float) Math.cos(asAngle) ;
-      final Vec3D p = new Vec3D(
-        (landPos.x * horiz) + (liftOff.x * (1 - horiz)),
-        (landPos.y * horiz) + (liftOff.y * (1 - horiz)),
-        LOWER_FLIGHT_HEIGHT + (UPPER_FLIGHT_RADIUS * vert)
-      ) ;
-      return p ;
-    }
-    else {
-      final float height = LOWER_FLIGHT_HEIGHT *
-        (1 - ((time - UPPER_FLIGHT_TIME) / LOWER_FLIGHT_TIME)) ;
-      return new Vec3D(landPos.x, landPos.y, height) ;
-    }
-  }
-  
-  
-  private float getShipRot(float time, boolean descent) {
-    final Vec2D initVec = new Vec2D(liftOff).sub(landPos).normalise() ;
-    if (descent) initVec.scale(-1) ;
-    final float rotate = time / (UPPER_FLIGHT_TIME + LOWER_FLIGHT_TIME) ;
-    final float landRot = entranceFace * 360 / 4f ;
-    final float
-      initAngle = initVec.toAngle(),
-      terpAngle = Vec2D.degreeDif(landRot, initAngle) * rotate ;
-    return (initAngle + terpAngle + 360) % 360 ;
-  }
-  
-  
-  
   /**  Rendering and interface methods-
     */
   public void renderFor(Rendering rendering, Base base) {
     final Sprite s = this.sprite() ;
-    float progress = 1 ;
-    if (stage == STAGE_DESCENT || stage == STAGE_ASCENT) {
-      progress = world.timeWithinFrame() - initTime ;
-      if (stage == STAGE_ASCENT) progress = TOTAL_FLIGHT_TIME - progress ;
-      if (progress > UPPER_FLIGHT_TIME) {
-        progress -= UPPER_FLIGHT_TIME ;
-        progress /= LOWER_FLIGHT_TIME ;
-      }
-      else progress = 0 ;
-    }
-    s.setAnimation("descend", Visit.clamp(progress, 0, 1)) ;
-    s.colour = Colour.transparency(progress) ;
+    final float height = this.viewPosition(null).z / INIT_HIGH ;
+    
+    final float fadeProgress = height < 0.5f ? 1 : ((1 - height) * 2) ;
+    s.colour = Colour.transparency(fadeProgress) ;
+    
+    final float animProgress = height > 0.5f ? 0 : ((0.5f - height) * 2) ;
+    s.setAnimation("descend", Visit.clamp(animProgress, 0, 1)) ;
+    
     super.renderFor(rendering, base) ;
+  }
+  
+
+  public void renderSelection(Rendering rendering, boolean hovered) {
+    if (indoors() || ! inWorld()) return ;
+    float fadeout = sprite().colour.a ;
+    Selection.renderPlane(
+      rendering, viewPosition(null), radius() + 0.5f,
+      Colour.transparency(fadeout * (hovered ? 0.5f : 1)),
+      Selection.SELECT_CIRCLE
+    ) ;
   }
   
   
   public String fullName() {
-    return "Freighter" ;
+    return "Dropship" ;
   }
   
   
@@ -424,20 +391,164 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   
   public String helpInfo() {
-    return null ;
+    return
+      "The Dropship ferries initial colonists and startup supplies to your "+
+      "fledgling settlement, courtesy of your homeworld's generosity." ;
   }
   
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
     d.appendList("Aboard: ", this.inside()) ;
+    d.append("\n\n") ; d.append(helpInfo()) ;
   }
 }
 
 
 
+/*
+if (stage == STAGE_DESCENT) {
+  float time = Math.min(world.currentTime() - initTime, TOTAL_FLIGHT_TIME) ;
+  this.nextPosition.setTo(getShipPos(time)) ;
+  this.nextRotation = getShipRot(time, true) ;
+  if (time == TOTAL_FLIGHT_TIME) {
+    completeDescent() ;
+    stage = STAGE_LANDED ;
+  }
+}
+if (stage == STAGE_ASCENT) {
+  float time = TOTAL_FLIGHT_TIME - (world.currentTime() - initTime) ;
+  if (time < 0) {
+    completeAscent() ;
+    stage = STAGE_AWAY ;
+  }
+  else {
+    this.nextPosition.setTo(getShipPos(time)) ;
+    this.nextRotation = getShipRot(time, true) ;
+  }
+}
+//*/
+
+
+/*
+final static float
+  LOWER_FLIGHT_HEIGHT = 5,
+  UPPER_FLIGHT_RADIUS = 7,
+  UPPER_FLIGHT_TIME   = 9,
+  LOWER_FLIGHT_TIME   = 7,
+  TOTAL_FLIGHT_TIME = UPPER_FLIGHT_TIME + LOWER_FLIGHT_TIME ;
+//*/
 
 
 
 
+
+/**  Handling ascension and descent-
+public void beginDescent(Box2D area, World world) {
+  if (inWorld()) I.complain("Already in world!") ;
+  this.landPos.set(
+    area.xpos() + (area.xdim() / 2),
+    area.ypos() + (area.ydim() / 2)
+  ) ;
+  this.entranceFace = Venue.ENTRANCE_SOUTH ;
+  this.liftOff.setFromAngle(Rand.num() * 360) ;
+  liftOff.scale(UPPER_FLIGHT_RADIUS).add(landPos) ;
+  liftOff.x = Visit.clamp(liftOff.x, 0, world.size - 1) ;
+  liftOff.y = Visit.clamp(liftOff.y, 0, world.size - 1) ;
+  this.initTime = world.currentTime() ;
+  this.stage = STAGE_DESCENT ;
+  
+  final Vec3D p = getShipPos(0) ;
+  enterWorldAt((int) p.x, (int) p.y, world) ;
+  position.setTo(nextPosition.setTo(p)) ;
+  rotation = nextRotation = getShipRot(0, true) ;
+}
+
+
+public void completeDescent() {
+  
+  initTime = world.currentTime() ;
+  stage = STAGE_LANDED ;
+  this.nextPosition.setTo(this.getShipPos(TOTAL_FLIGHT_TIME)) ;
+  this.nextRotation = this.getShipRot(TOTAL_FLIGHT_TIME, true) ;
+  this.position.setTo(nextPosition) ;
+  this.rotation = nextRotation ;
+  
+  this.performLandingAt(world, landArea()) ;
+  this.offloadPassengers() ;
+  ///for (Item item : cargo.allItems()) cargo.transfer(item, dropPoint) ;
+}
+
+
+public void beginAscent() {
+  this.performTakeoff(world, landArea()) ;
+  
+  if (! inWorld()) I.complain("No longer in world!") ;
+  ///if (dropPoint instanceof DropZone) dropPoint.exitWorld() ;
+  initTime = world.currentTime() ;
+  stage = STAGE_ASCENT ;
+}
+
+
+public void completeAscent() {
+  initTime = world.currentTime() ;
+  exitWorld() ;
+}
+
+
+public int flightStage() {
+  return stage ;
+}
+
+
+public boolean landed() {
+  return stage > STAGE_DESCENT && stage < STAGE_ASCENT ;
+}
+
+
+public float timeSinceDescent(World world) {
+  if (! landed()) return -1 ;
+  return world.currentTime() - initTime ;
+}
+
+
+public float timeSinceAscent(World world) {
+  if (stage != STAGE_AWAY) return -1 ;
+  return world.currentTime() - initTime ;
+}
+
+
+private Vec3D getShipPos(float time) {
+  if (time < UPPER_FLIGHT_TIME) {
+    final float
+      progress = time / UPPER_FLIGHT_TIME,
+      asAngle  = (float) Math.toRadians(progress * 90),
+      horiz = (float) Math.sin(asAngle),
+      vert  = (float) Math.cos(asAngle) ;
+    final Vec3D p = new Vec3D(
+      (landPos.x * horiz) + (liftOff.x * (1 - horiz)),
+      (landPos.y * horiz) + (liftOff.y * (1 - horiz)),
+      LOWER_FLIGHT_HEIGHT + (UPPER_FLIGHT_RADIUS * vert)
+    ) ;
+    return p ;
+  }
+  else {
+    final float height = LOWER_FLIGHT_HEIGHT *
+      (1 - ((time - UPPER_FLIGHT_TIME) / LOWER_FLIGHT_TIME)) ;
+    return new Vec3D(landPos.x, landPos.y, height) ;
+  }
+}
+
+
+private float getShipRot(float time, boolean descent) {
+  final Vec2D initVec = new Vec2D(liftOff).sub(landPos).normalise() ;
+  if (descent) initVec.scale(-1) ;
+  final float rotate = time / (UPPER_FLIGHT_TIME + LOWER_FLIGHT_TIME) ;
+  final float landRot = entranceFace * 360 / 4f ;
+  final float
+    initAngle = initVec.toAngle(),
+    terpAngle = Vec2D.degreeDif(landRot, initAngle) * rotate ;
+  return (initAngle + terpAngle + 360) % 360 ;
+}
+//*/
 
 

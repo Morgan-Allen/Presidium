@@ -5,6 +5,7 @@
   */
 package src.game.actors ;
 import src.game.common.* ;
+import src.game.planet.Planet;
 ///import src.user.BaseUI ;
 import src.util.* ;
 
@@ -44,26 +45,26 @@ public class ActorHealth implements ActorConstants {
   
   final public static float
     DEFAULT_PRIME    = 25,
-    DEFAULT_LIFESPAN = 60,  //In years.
+    DEFAULT_LIFESPAN = 60,
     LIFE_EXTENDS     = 0.1f,
-
-    DEFAULT_HEALTH = 10,
-    MAX_DIGEST = 0.2f,
-    STARVE_INTERVAL = World.DEFAULT_DAY_LENGTH * 5,
-    MAX_FOOD_TYPES = 3,
     
     DEFAULT_BULK  = 1.0f,
     DEFAULT_SPEED = 1.0f,
     DEFAULT_SIGHT = 8.0f,
+
+    DEFAULT_HEALTH  = 10,
+    MAX_CALORIES    = 1.5f,
+    STARVE_INTERVAL = World.DEFAULT_DAY_LENGTH * 5,
     
-    MAX_INJURY  = 1.5f,
-    MAX_FATIGUE = 1.0f,
-    MAX_MOOD    = 0.5f,
-    REVIVE_THRESHOLD = 0.5f,
-    STABILISE_CHANCE = 0.2f,
+    MAX_INJURY       =  1.5f,
+    MAX_FATIGUE      =  1.0f,
+    MAX_MORALE       =  0.5f,
+    MIN_MORALE       = -1.5f,
+    REVIVE_THRESHOLD =  0.5f,
+    STABILISE_CHANCE =  0.2f,
     
     FATIGUE_GROW_PER_DAY = 0.50f,
-    MOOD_DECAY_PER_DAY   = 0.35f,
+    MORALE_DECAY_PER_DAY = 0.33f,
     INJURY_REGEN_PER_DAY = 0.20f ;
   
   
@@ -74,7 +75,6 @@ public class ActorHealth implements ActorConstants {
     baseSpeed = DEFAULT_SPEED,
     baseSight = DEFAULT_SIGHT ;
   
-  //  Age and lifespan are in years.
   private float
     lifespan    = DEFAULT_LIFESPAN,
     currentAge  = 0,
@@ -85,13 +85,13 @@ public class ActorHealth implements ActorConstants {
   
   private float
     maxHealth = DEFAULT_HEALTH,
-    injury    = 0,  //Add bleeding.
-    fatigue   = 0,  //Add sleep.
-    stress    = 0 ; //Change to Mood/Psy.
-  private boolean bleeds = false ;
-  private float needSleep = 0 ;
-  private int psyPoints = 0 ;
-  
+    injury    = 0,
+    fatigue   = 0 ;
+  private boolean
+    bleeds = false ;
+  private float
+    morale    = 0,
+    psyPoints = 0 ;
   private int
     state    = STATE_ACTIVE ;
   
@@ -103,21 +103,23 @@ public class ActorHealth implements ActorConstants {
   
   
   void loadState(Session s) throws Exception {
-    baseBulk = s.loadFloat() ;
+    baseBulk  = s.loadFloat() ;
     baseSpeed = s.loadFloat() ;
     baseSight = s.loadFloat() ;
     
-    lifespan = s.loadFloat() ;
-    currentAge = s.loadFloat() ;
-    lifeExtend = s.loadFloat() ;
-    calories = s.loadFloat() ;
-    nutrition = s.loadFloat() ;
+    lifespan    = s.loadFloat() ;
+    currentAge  = s.loadFloat() ;
+    lifeExtend  = s.loadFloat() ;
+    calories    = s.loadFloat() ;
+    nutrition   = s.loadFloat() ;
     ageMultiple = s.loadFloat() ;
     
     maxHealth = s.loadFloat() ;
-    injury  = s.loadFloat() ;
-    fatigue = s.loadFloat() ;
-    stress  = s.loadFloat() ;
+    injury    = s.loadFloat() ;
+    fatigue   = s.loadFloat() ;
+    bleeds    = s.loadBool () ;
+    morale    = s.loadFloat() ;
+    psyPoints = s.loadFloat() ;
     
     state = s.loadInt() ;
   }
@@ -128,17 +130,19 @@ public class ActorHealth implements ActorConstants {
     s.saveFloat(baseSpeed) ;
     s.saveFloat(baseSight) ;
     
-    s.saveFloat(lifespan) ;
-    s.saveFloat(currentAge) ;
-    s.saveFloat(lifeExtend) ;
-    s.saveFloat(calories) ;
-    s.saveFloat(nutrition) ;
+    s.saveFloat(lifespan   ) ;
+    s.saveFloat(currentAge ) ;
+    s.saveFloat(lifeExtend ) ;
+    s.saveFloat(calories   ) ;
+    s.saveFloat(nutrition  ) ;
     s.saveFloat(ageMultiple) ;
     
     s.saveFloat(maxHealth) ;
-    s.saveFloat(injury ) ;
-    s.saveFloat(fatigue) ;
-    s.saveFloat(stress ) ;
+    s.saveFloat(injury   ) ;
+    s.saveFloat(fatigue  ) ;
+    s.saveBool (bleeds   ) ;
+    s.saveFloat(morale   ) ;
+    s.saveFloat(psyPoints) ;
     
     s.saveInt(state) ;
   }
@@ -173,8 +177,8 @@ public class ActorHealth implements ActorConstants {
     nutrition = Visit.clamp(Rand.num() + overallHealth, 0, 1) ;
     
     fatigue = Rand.num() * (1 - (calories / maxHealth)) * maxHealth / 2f ;
-    stress = Rand.num() * accidentChance * maxHealth / 2f ;
     injury = Rand.num() * accidentChance * maxHealth / 2f ;
+    morale = (Rand.num() - accidentChance) / 2f ;
   }
   
   
@@ -182,11 +186,11 @@ public class ActorHealth implements ActorConstants {
   /**  Methods related to growth, reproduction, aging and death.
     */
   public void takeSustenance(float amount, float quality) {
-    amount = Visit.clamp(amount, 0, maxHealth - calories) ;
+    final float max = (maxHealth * MAX_CALORIES) - calories ;
+    amount = Visit.clamp(amount, 0, max) ;
     final float oldQual = nutrition * calories ;
     calories += amount ;
     nutrition = (oldQual + (quality * amount)) / calories ;
-    ///if (BaseUI.isPicked(actor)) I.say("Nutrition is: "+nutrition) ;
   }
   
   
@@ -253,7 +257,8 @@ public class ActorHealth implements ActorConstants {
   
   
   public int sightRange() {
-    final float range = 0.5f + (actor.traits.useLevel(SURVEILLANCE) / 10f) ;
+    float range = 0.5f + (actor.traits.useLevel(SURVEILLANCE) / 10f) ;
+    range *= (Planet.dayValue(actor.world()) + 1) / 2 ;
     return (int) (baseSight * (float) Math.sqrt(range * ageMultiple)) ;
   }
   
@@ -287,16 +292,13 @@ public class ActorHealth implements ActorConstants {
   }
   
   
-  public void takeStress(float taken) {
-    stress += taken ;
-    final float max = maxHealth * MAX_MOOD ;
-    if (stress > max) stress = max ;
+  public void adjustMorale(float adjust) {
+    morale = Visit.clamp(morale + adjust, MIN_MORALE, MAX_MORALE) ;
   }
   
   
-  public void liftStress(float lifted) {
-    stress -= lifted ;
-    if (stress < 0) stress = 0 ;
+  public void adjustPsy(float adjust) {
+    psyPoints += adjust ;
   }
   
   
@@ -324,8 +326,8 @@ public class ActorHealth implements ActorConstants {
   }
   
   
-  public float stressLevel() {
-    return stress / (maxHealth * MAX_MOOD) ;
+  public float moraleLevel() {
+    return Visit.clamp(morale + (1 - MAX_MORALE), 0, 1) ;
   }
   
   
@@ -357,14 +359,15 @@ public class ActorHealth implements ActorConstants {
   
   public float skillPenalty() {
     //
-    //  TODO:  Calculate this once, every second or two, and cache it for
-    //  reference.
-    float sum = Visit.clamp((stress + fatigue + injury) / maxHealth, 0, 1) ;
-    final float hunger = 1 - (calories / maxHealth) ;
+    //  TODO:  Calculate this once every second or two, and cache it for
+    //  reference?
+    float sum = Visit.clamp((fatigue + injury) / maxHealth, 0, 1) ;
+    final float hunger = (1 - (calories / maxHealth)) + (1 - nutrition) ;
     if (hunger > 0.5f) sum += hunger - 0.5f ;
-    sum *= nutrition * 1.25f ;
     if (bleeds) sum += 0.25f ;
-    return Visit.clamp((sum * sum) - 0.5f, 0, 1) ;
+    sum -= moraleLevel() ;
+    if (sum < 0) return 0 ;
+    return Visit.clamp(sum, 0, 1) ;
   }
   
   
@@ -441,15 +444,15 @@ public class ActorHealth implements ActorConstants {
   private void updateStresses() {
     if (state >= STATE_SUSPEND) return ;
     final float DL = World.DEFAULT_DAY_LENGTH ;
-    float SM = 1, FM = 1, IM = 1 ;
+    float MM = 1, FM = 1, IM = 1 ;
+    
     if (state == STATE_RESTING) {
       FM = -2 ;
       IM =  2 ;
-      SM =  2 ;
+      MM =  2 ;
     }
     else if (actor.currentAction() != null) {
-      final float MM = actor.currentAction().moveMultiple() ;
-      FM *= MM ;
+      FM *= actor.currentAction().moveMultiple() ;
     }
     
     if (bleeds) {
@@ -460,11 +463,13 @@ public class ActorHealth implements ActorConstants {
     }
     else injury -= INJURY_REGEN_PER_DAY * maxHealth * IM / DL ;
     fatigue += FATIGUE_GROW_PER_DAY * baseSpeed * maxHealth * FM / DL ;
-    stress *= (1 - (MOOD_DECAY_PER_DAY * SM / DL)) ;
-    
     fatigue = Visit.clamp(fatigue, 0, MAX_FATIGUE * maxHealth) ;
-    stress  = Visit.clamp(stress , 0, MAX_MOOD  * maxHealth) ;
     injury  = Visit.clamp(injury , 0, MAX_INJURY  * maxHealth) ;
+    
+    //
+    //  TODO:  Have morale converge to a default based on the cheerful trait.
+    morale *= (1 - (MORALE_DECAY_PER_DAY * MM / DL)) ;
+    morale -= skillPenalty() / DL ;
   }
   
   
@@ -514,8 +519,8 @@ public class ActorHealth implements ActorConstants {
   }
   
   
-  public String stressDesc() {
-    return descFor(STRESS, stressLevel(), maxHealth) ;
+  public String moraleDesc() {
+    return descFor(MORALE, moraleLevel(), -1) ;
   }
   
   
@@ -535,37 +540,12 @@ public class ActorHealth implements ActorConstants {
     allDesc.add(malnourishDesc()) ;
     allDesc.add(injuryDesc()    ) ;
     allDesc.add(fatigueDesc()   ) ;
-    allDesc.add(stressDesc()    ) ;
+    allDesc.add(moraleDesc()    ) ;
     return allDesc ;
   }
 }
 
 
 
-
-
-
-
-///I.say(actor+" taking "+taken+" injury, prior total: "+injury) ;
-/*
-final float max = maxHealth * MAX_INJURY ;
-if (injury >= max) {
-  injury += taken ;
-  /*
-  if (injury > max * 2) {
-    injury = max * 2 ;
-  }
-  //*/
-/*
-}
-else {
-  injury += taken ;
-  if (injury > max) {
-    injury = max ;
-  }
-  //  TODO:  Begin bleeding?
-}
-//*/
-///I.say("Subsequent ttotal: "+injury) ;
 
 

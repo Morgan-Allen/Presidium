@@ -25,29 +25,17 @@ import src.util.* ;
 //  hostile, and see how they respond.  Ideally, you don't want actors
 //  willingly running into situations that they then run away from.
 //
-//  More attention on relaxing/recreation.  Add hunting at the redoubt, and
-//  update farming a bit.
-//
-//  Taxation, and general budgeting.  Spontaneous missions, and a clearer
-//  factoring out of venue/actor batches in the AI.
-//
-//  Dialogue prioritisation needs to be reworked, or you get endless cycles of
-//  conversation as the number of inhabitants grows.  I think now might be the
-//  time to introduce shifts at venues, and make chatting more leisurely.
-//
-//  Make sure food production is working, plus the culture vats.  Introduce the
-//  Stock Exchange, to simplify distribution.  And see if Dropships can trade.
-//  Also, re-introduce external FX for items at venues.  Those were cool.
-//
-//  Squalor maps and pollution FX!  Such as disease!
-
-//
+//  Add hunting at the redoubt, and update farming/the vats a bit.  Spontaneous
+//  missions, and a clearer factoring out of venue/actor batches in the AI.
+//  Squalor maps and pollution FX, integrated with the Ecology class.  Impact
+//  health/morale/disease/life-support.
+//  
+//  The Supply Depot.  That's the next thing you need, so you can perform
+//  offworld trade.  And make sure the stock exchange is working.
+//  
+//  Re-introduce external FX for items at venues.  Those were cool.
 /*
-Check to ensure that combat works okay among rival humanoid actors.  Make sure
-mining/farming's up to date.  Try to integrate with hunting.  That may require
-implementing the Ecology class, like you planned.
-
-Diplomatic conversion.  Tax collection and pressfeed plus budgeting.
+Diplomatic conversion.  (Good relations are way too easy/quick at the moment.)
 
 Simplify the user interface, implement Powers, and add a Main Menu.  That's it.
 
@@ -147,7 +135,16 @@ public class DebugBehaviour extends PlayLoop {
   }
   
   
+  protected void renderGameGraphics() {
+    super.renderGameGraphics() ;
+    if (((BaseUI) currentUI()).currentTask() == null) {
+      //DebugPathing.highlightPlace() ;
+      //DebugPathing.highlightPath() ;
+    }
+  }
   
+  
+
   /**  Testing out interactions between alien creatures or primitive humanoids.
     */
   private void natureScenario(World world, Base base, HUD UI) {
@@ -188,25 +185,16 @@ public class DebugBehaviour extends PlayLoop {
     *  construction of the settlement-
     */
   private void baseScenario(World world, Base base, HUD UI) {
-    GameSettings.hireFree = true ;
     
-    final Foundry artificer = new Foundry(base) ;
-    artificer.enterWorldAt(8, 8, world) ;
-    artificer.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
-    artificer.onCompletion() ;
-    artificer.setAsEstablished(true) ;
-    base.intelMap.liftFogAround(artificer, 5) ;
-    ((BaseUI) UI).selection.pushSelection(artificer, true) ;
+    final Foundry foundry = new Foundry(base) ;
+    this.establishVenue(foundry, 8, 8, true) ;
+    base.intelMap.liftFogAround(foundry, 5) ;
+    ((BaseUI) UI).selection.pushSelection(foundry, true) ;
     
     final Actor client = new Human(Vocation.VETERAN, base) ;
     client.gear.incCredits(500) ;
     client.enterWorldAt(4, 4, world) ;
-    /*
-    final Garrison garrison = new Garrison(base) ;
-    garrison.enterWorldAt(2, 6, world) ;
-    garrison.setAsEstablished(true) ;
-    garrison.structure.setState(VenueStructure.STATE_INSTALL, 0.1f) ;
-    //*/
+    establishVenue(new Garrison(base), 2, 6, true, client) ;
   }
   
   
@@ -231,10 +219,7 @@ public class DebugBehaviour extends PlayLoop {
     otherBase.setRelation(base, -1) ;
     
     final Venue garrison = new Garrison(otherBase) ;
-    garrison.enterWorldAt(8, 8, world) ;
-    garrison.structure.setState(VenueStructure.STATE_INTACT, 1) ;
-    garrison.setAsEstablished(true) ;
-    
+    establishVenue(garrison, 8, 8, true) ;
     actorA.AI.assignBehaviour(new Combat(actorA, garrison)) ;
     actorB.AI.assignBehaviour(new Combat(actorA, garrison)) ;
     ((BaseUI) UI).selection.pushSelection(actorA, true) ;
@@ -254,69 +239,47 @@ public class DebugBehaviour extends PlayLoop {
   }
   
   
+  
   /**  Testing out pro-social behaviour like dialogue, recreation and medical
     *  treatment.
     */
-  private void socialScenario(World world, Base base, HUD UI) {
-    
+  private void socialScenario(final World world, Base base, HUD UI) {
     base.incCredits(1000) ;
-    /*
+    GameSettings.noFog = true ;
+    
     final Actor actor = new Human(Vocation.PHYSICIAN, base) ;
-    actor.enterWorldAt(4, 4, world) ;
     final Actor other = new Human(Vocation.VETERAN, base) ;
+    actor.enterWorldAt(4, 4, world) ;
     other.enterWorldAt(6, 6, world) ;
-    ((BaseUI) UI).selection.pushSelection(other, true) ;
-    //*/
-    
-    /*
-    final Sickbay sickbay = new Sickbay(base) ;
-    sickbay.enterWorldAt(9, 2, world) ;
-    sickbay.setAsEstablished(true) ;
-    sickbay.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
-    sickbay.onCompletion() ;
-    base.intelMap.liftFogAround(sickbay, 10f) ;
-    VenuePersonnel.fillVacancies(sickbay) ;
-    //*/
-    
-    final Actor other = new Human(Vocation.VETERAN , base) ;
-    ///other.traits.setLevel(ActorConstants.ILLNESS, 2) ;
-    other.enterWorldAt(9, 9, world) ;
-    ((BaseUI) UI).selection.pushSelection(other, true) ;
-    
-    final Garrison garrison = new Garrison(base) ;
-    garrison.enterWorldAt(2, 9, world) ;
-    garrison.setAsEstablished(true) ;
-    garrison.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
-    garrison.onCompletion() ;
-    other.AI.setEmployer(garrison) ;
-    VenuePersonnel.fillVacancies(garrison) ;
-    //*/
-    
-    /*
-    final Cantina cantina = new Cantina(base) ;
-    cantina.enterWorldAt(9, 9, world) ;
-    cantina.setAsEstablished(true) ;
-    cantina.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
-    cantina.onCompletion() ;
-    //*/
+    establishVenue(new Sickbay(base), 9, 2, true, actor) ;
+    establishVenue(new Garrison(base), 2, 9, true, other) ;
+    establishVenue(new Cantina(base), 9, 9, true) ;
     
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;
     ///EG.populateFauna(world, Species.VAREEN) ;
   }
+  
+  
+  private Venue establishVenue(
+    Venue v, int atX, int atY, boolean intact,
+    Actor... employed
+  ) {
+    v.enterWorldAt(atX, atY, v.base().world) ;
+    if (intact) {
+      v.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+      v.onCompletion() ;
+    }
+    else {
+      v.structure.setState(VenueStructure.STATE_INSTALL, 0.0f) ;
+    }
+    for (Actor a : employed) a.AI.setEmployer(v) ;
+    VenuePersonnel.fillVacancies(v) ;
+    v.setAsEstablished(true) ;
+    return v ;
+  }
 }
 
 
-
-
-//*/
-
-/*
-final Actor citizen = new Human(Vocation.MILITANT, base) ;
-citizen.enterWorldAt(5, 5, world) ;
-//final Plan explores = new Exploring(citizen, base, world.tileAt(12, 12)) ;
-//citizen.psyche.assignBehaviour(explores) ;
-((BaseUI) UI).selection.setSelected(citizen) ;
-//*/
 
 

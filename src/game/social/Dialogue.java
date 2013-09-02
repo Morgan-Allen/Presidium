@@ -54,7 +54,7 @@ public class Dialogue extends Plan implements ActorConstants {
     this.other = (Actor) s.loadObject() ;
     this.inits = s.loadBool() ;
     
-    this.stage = STAGE_INIT ;
+    this.stage = s.loadInt() ;
     this.location = (Boardable) s.loadTarget() ;
     this.speaking = s.loadBool() ;
   }
@@ -100,9 +100,9 @@ public class Dialogue extends Plan implements ActorConstants {
     if (stage == STAGE_DONE || ! canTalk(other, actor)) return 0 ;
     
     final float
-      relation = actor.AI.relation(other),
+      relation   = actor.AI.relation(other),
       attraction = actor.AI.attraction(other),
-      novelty = actor.AI.novelty(other) ;
+      novelty    = actor.AI.novelty(other) ;
     
     float appeal = 0 ;
     appeal += relation ;
@@ -200,8 +200,8 @@ public class Dialogue extends Plan implements ActorConstants {
     //  Try factoring this in a bit more thoroughly.
     final float SE = suasionEffect(actor, other) ;
     other.AI.incRelation(actor, SE) ;
-    if (SE > 0) actor.health.liftStress(SE) ;
-    else actor.health.takeStress(0 - SE) ;
+    //  TODO:  Figure out morale effects!
+    //actor.health.adjustMorale(SE / World.DEFAULT_DAY_LENGTH) ;
     //
     //  Pick one of three approaches to take at random-
     switch (Rand.index(3)) {

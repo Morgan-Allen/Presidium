@@ -95,7 +95,6 @@ public class Tile implements Target, TileConstants, Boardable {
   
   public void setOwner(Element e) {
     if (e == owner) return ;
-    ///if (owner instanceof src.game.base.Holding) I.complain(e+" IS TO BLAME!") ;
     this.owner = e ;
     world.sections.flagBoundsUpdate(x, y) ;
     /*
@@ -140,14 +139,6 @@ public class Tile implements Target, TileConstants, Boardable {
   
   
   public void flagWith(Object f) {
-    /*
-    if (f != null && flagged != null) {
-      I.complain("PREVIOUS FLAGGING WAS NOT CLEARED- "+f+" "+flagged) ;
-    }
-    if (f == null && flagged == null) {
-      I.complain("PREVIOUS FLAGGING ALREADY CLEARED!") ;
-    }
-    //*/
     flagged = f ;
   }
   

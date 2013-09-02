@@ -28,11 +28,11 @@ public abstract class Venue extends Fixture implements
   /**  Field definitions, constants, constructors, and save/load methods.
     */
   final public static int
+    ENTRANCE_NONE  = -1,
     ENTRANCE_NORTH =  0,
     ENTRANCE_EAST  =  1,
     ENTRANCE_SOUTH =  2,
     ENTRANCE_WEST  =  3,
-    ENTRANCE_NONE  = -1,
     NUM_SIDES      =  4 ;
   final public static int
     SHIFTS_ALWAYS      = 0,
@@ -358,13 +358,29 @@ public abstract class Venue extends Fixture implements
   
   private void describeCondition(Description d, HUD UI) {
     
-    d.append("Condition: ") ;
+    d.append("Condition and Repair:") ;
+    d.append("\n  Integrity: ") ;
     d.append(structure.repair()+" / "+structure.maxIntegrity()) ;
     //  If there's an upgrade in progress, list it here.
     final String CUD = structure.currentUpgradeDesc() ;
     if (CUD != null) d.append("\n  "+CUD) ;
+    d.append("\n  Materials Needed: "+"None") ;
+    d.append("\n  Untaxed Credits: "+(int) stocks.credits()) ;
     
-    d.append("\n\nPersonnel and Visitors:") ;
+    d.append("\n\nStocks and Orders:") ;
+    boolean empty = true ;
+    for (String order : stocks.ordersDesc()) {
+      d.append("\n  "+order) ; empty = false ;
+    }
+    for (Manufacture m : stocks.specialOrders()) {
+      d.append("\n  ") ; m.describeBehaviour(d) ; empty = false ;
+    }
+    if (empty) d.append("\n  No stocks or orders.") ;
+  }
+  
+  
+  private void describePersonnel(Description d, HUD UI) {
+    d.append("Personnel and Visitors:") ;
     final Batch <Mobile> considered = new Batch <Mobile> () ;
     for (Actor m : personnel.residents()) considered.include(m) ;
     for (Actor m : personnel.workers()) considered.include(m) ;
@@ -376,15 +392,23 @@ public abstract class Venue extends Fixture implements
       d.append("\n  ") ; m.describeStatus(d) ;
     }
     
-    d.append("\n\nOrders:") ;
-    boolean empty = true ;
-    for (String order : stocks.ordersDesc()) {
-      d.append("\n  "+order) ; empty = false ;
+    d.append("\n\nVacancies and Applications:") ;
+    boolean none = true ;
+    if (careers() != null) for (Vocation v : careers()) {
+      final int numOpen = numOpenings(v) ;
+      if (numOpen > 0) none = false ;
+      if (numOpen > 0) d.append("\n  "+numOpen+" "+v.name+" vacancies") ;
     }
-    for (Manufacture m : stocks.specialOrders()) {
-      d.append("\n  ") ; m.describeBehaviour(d) ; empty = false ;
+    for (final VenuePersonnel.Application app : personnel.applications) {
+      none = false ;
+      d.append("\n  ") ;
+      d.append(app.applies) ;
+      d.append("\n  ("+app.signingCost+" credits) ") ;
+      d.append(new Description.Link("HIRE") {
+        public void whenClicked() { personnel.confirmApplication(app) ; }
+      }) ;
     }
-    if (empty) d.append("\n  No orders.") ;
+    if (none) d.append("\n  No vacancies or applications.") ;
   }
   
   
@@ -395,44 +419,6 @@ public abstract class Venue extends Fixture implements
     if (a.AI.work() != this) return "(Visitor)" ;
     final String duty = personnel.onShift(a) ? "On-Duty" : "Off-Duty" ;
     return "("+duty+" "+a.vocation()+")" ;
-  }
-  
-  
-  private void describePersonnel(Description d, HUD UI) {
-    //
-    //  List applicants for various positions-
-    if (personnel.applications.size() > 0) {
-      d.append("\nAPPLICANTS:") ;
-      for (final VenuePersonnel.Application app : personnel.applications) {
-        d.append("\n  ") ;
-        d.append(app.applies) ;
-        d.append("\n  ("+app.signingCost+" credits) ") ;
-        d.append(new Description.Link("HIRE") {
-          public void whenClicked() {
-            personnel.confirmApplication(app) ;
-          }
-        }) ;
-      }
-    }
-    //
-    //  Then list current workers and residents-
-    if (personnel.workers().size() > 0) {
-      d.append("\nPERSONNEL:") ;
-      for (Actor a : personnel.workers()) {
-        d.append("\n  ") ; d.append(a) ;
-        d.append(" ("+a.vocation().name+")") ;
-      }
-    }
-    if (careers() != null) for (Vocation v : careers()) {
-      final int numOpen = numOpenings(v) ;
-      if (numOpen > 0) d.append("\n  "+numOpen+" "+v.name+" vacancies") ;
-    }
-    if (personnel.residents().size() > 0) {
-      d.append("\nRESIDENTS:") ;
-      for (Actor a : personnel.residents()) {
-        d.append("\n  ") ; d.append(a) ;
-      }
-    }
   }
   
   

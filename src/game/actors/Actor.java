@@ -223,7 +223,7 @@ public abstract class Actor extends Mobile implements
     final float scale = spriteScale() ;
     final Sprite s = sprite() ;
     
-    healthBar.level = (1 - health.injuryLevel()) * (1 - health.stressLevel()) ;
+    healthBar.level = (1 - health.injuryLevel()) * (1 - health.skillPenalty()) ;
     healthBar.size = 25 ;
     healthBar.matchTo(s) ;
     healthBar.position.z -= radius() ;

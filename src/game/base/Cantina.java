@@ -43,6 +43,8 @@ public class Cantina extends Venue implements BuildConstants {
   
   public Cantina(Base base) {
     super(4, 3, Venue.ENTRANCE_SOUTH, base) ;
+    structure.setupStats(150, 2, 200, 0, false) ;
+    ///personnel.setShiftType(SHIFTS_BY_HOURS) ;
     attachSprite(MODEL.makeSprite()) ;
   }
   
@@ -116,6 +118,16 @@ public class Cantina extends Venue implements BuildConstants {
   }
   
   
+  private Batch <Actor> audience() {
+    final Batch <Actor> b = new Batch <Actor> () ;
+    for (Mobile m : inside()) if (m instanceof Actor) {
+      final Actor a = (Actor) m ;
+      if (a.AI.work() != this) b.add(a) ;
+    }
+    return b ;
+  }
+  
+  
   public float performValue() {
     float value = 0, count = 0 ;
     for (Mobile m : inside()) if (m instanceof Actor) {
@@ -165,19 +177,38 @@ public class Cantina extends Venue implements BuildConstants {
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
     
+    
     if (categoryID == 0) {
+      final Batch <Actor> audience = audience() ;
       final Performance p = this.performance() ;
       d.append("Current performance:\n  ") ;
-      if (p == null) d.append("None") ;
+      
+      if (p == null) d.append("No performance.") ;
       else d.append(p.performDesc()) ;
+      d.append("\n  ") ;
+      if (audience.size() == 0) d.append("No audience.") ;
+      else {
+        if (p != null) d.append(p.qualityDesc()) ;
+        d.append("\n\nAudience:") ;
+        for (Actor a : audience) {
+          d.append("\n  ") ;
+          d.append(a) ;
+        }
+      }
     }
     else super.writeInformation(d, categoryID, UI) ;
     //
-    //  TODO:  Describe the current performance.  You don't need upgrades or
-    //  staffing descriptors, since those are spontaneous.
-    //
     //  Enable gambling/games of chance/cards.
-    //  Enable chance meetings with Runners.
+    //  ...Select participants from among the visitors, and place your bets
+    //  against them.  The odds of their victory are based on insight scores,
+    //  sleight of hand, et cetera.  Everyone puts in money, whoever wins takes
+    //  the pot, minus a slice for the house.
+    
+    
+    //
+    //  Enable chance meetings with Runners, based on visitors looking for an
+    //  illegal good or service.  You could theoretically hire them for a
+    //  mission or two yourself...
   }
   
 }

@@ -240,7 +240,7 @@ public class Auditing extends Plan {
     //
     //  TODO:  Involve a skill check of some kind here, so as to minimise waste
     //  due to corruption/inefficiency...
-    final float taxes = audited.stocks.unTaxed() * BASE_INCOME_TAX ;
+    final float taxes = audited.stocks.unTaxed() ;
     audited.stocks.incCredits(0 - taxes) ;
     audited.stocks.taxDone() ;
     balance += taxes ;

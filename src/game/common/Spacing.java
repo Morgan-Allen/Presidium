@@ -63,6 +63,8 @@ public final class Spacing implements TileConstants {
     if (face == Venue.ENTRANCE_NONE) return new int[] { 0, 0 } ;
     face = (face + 0.5f) % Venue.NUM_SIDES ;
     float edgeVal = face % 1 ;
+    ///I.say("Face/edge-val: "+face+"/"+edgeVal) ;
+    
     int enterX = 1, enterY = -1 ;
     if (face < Venue.ENTRANCE_EAST) {
       //  This is the north edge.
@@ -268,11 +270,11 @@ public final class Spacing implements TileConstants {
   
   public static Tile pickRandomTile(Target t, float range, World world) {
     final double angle = Rand.num() * Math.PI * 2 ;
-    final float dist = Rand.num() * range ;
+    final float dist = Rand.num() * range, max = world.size - 1 ;
     final Vec3D o = t.position(pA) ;
     return world.tileAt(
-      o.x + (float) (Math.cos(angle) * dist),
-      o.y + (float) (Math.sin(angle) * dist)
+      Visit.clamp(o.x + (float) (Math.cos(angle) * dist), 0, max),
+      Visit.clamp(o.y + (float) (Math.sin(angle) * dist), 0, max)
     ) ;
   }
   

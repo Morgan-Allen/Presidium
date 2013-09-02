@@ -310,7 +310,7 @@ public class Holding extends Venue implements BuildConstants {
     if (holding.inWorld()) rating += 0.5f ;
     rating -= actor.AI.greedFor(TAX_LEVELS[level]) * 5 ;
     rating -= Plan.rangePenalty(actor.AI.work(), holding) ;
-    I.say("  Rating for holding is: "+rating) ;
+    ///I.say("  Rating for holding is: "+rating) ;
     return rating ;
   }
   
@@ -346,7 +346,7 @@ public class Holding extends Venue implements BuildConstants {
   //  TODO:  Okay.  Actors should be looking out regularly for new places to
   //  live.  (But maybe this should be triggered by wandering?)
   public static Holding findHoldingFor(Actor client) {
-    I.say("  Finding holding for: "+client) ;
+    ///I.say("  Finding holding for: "+client) ;
     final World world = client.world() ;
     final Tile origin = searchPoint(client) ;
     final int maxSearched = 10 ;

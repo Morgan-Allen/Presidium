@@ -202,6 +202,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     //
     //  Consider going home to rest, or finding a recreational facility of
     //  some kind.  That requires iterating over various venues.
+    choice.add(new Recreation(actor, Recreation.findRecreation(actor))) ;
     choice.add(new Resting(actor, Resting.pickRestPoint(actor))) ;
     //
     //  As hobbies, consider hunting, exploration, assistance, and dialogue,

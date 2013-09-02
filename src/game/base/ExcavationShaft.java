@@ -31,6 +31,10 @@ import src.util.* ;
 //  peripheral structures are established, by digging under far enough that
 //  they need to be brought forth.
 
+//
+//  ...I'm still getting sorting problems related to mine-face promise.  That
+//  has to be fixed.
+
 
 
 public class ExcavationShaft extends Venue implements

@@ -37,7 +37,6 @@ public class Performance extends Plan implements ActorConstants {
   } ;
   
   
-  
   final Venue venue ;
   final Skill employed ;
   int nameID ;
@@ -76,8 +75,13 @@ public class Performance extends Plan implements ActorConstants {
   
   
   public String performDesc() {
+    return PERFORM_NAMES[nameID] ;
+  }
+  
+  
+  public String qualityDesc() {
     String desc = EFFECT_DESC[Visit.clamp((int) (performValue / 2), 5)] ;
-    return PERFORM_NAMES[nameID]+"\n  ("+desc+" reception)" ;
+    return desc+" reception." ;
   }
   
   

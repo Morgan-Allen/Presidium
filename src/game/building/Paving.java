@@ -77,6 +77,7 @@ public class Paving {
   
   
   public void updateJunction(Tile t, boolean isMember) {
+    if (t == null) I.complain("CANNOT SUPPLY NULL TILE AS JUNCTION") ;
     junctions.toggleMember(t, isMember) ;
     if (isMember) {
       ///I.say("Updating road junction "+t) ;
@@ -87,7 +88,8 @@ public class Paving {
     }
     else {
       ///I.say("Deleting road junction "+t) ;
-      for (Route r : tileRoutes.get(t)) deleteRoute(r) ;
+      final List <Route> routes = tileRoutes.get(t) ;
+      if (routes != null) for (Route r : routes) deleteRoute(r) ;
     }
   }
   

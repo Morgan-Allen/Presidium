@@ -8,7 +8,7 @@
 package src.debug ;
 import src.game.planet.* ;
 import src.game.actors.* ;
-import src.game.base.Human;
+import src.game.base.* ;
 import src.game.building.* ;
 import src.game.common.* ;
 import src.graphics.widgets.* ;
@@ -33,10 +33,6 @@ public class DebugPathing extends PlayLoop {
   
   private Human citizen ;
   private Action lastAction = null ;
-  
-  private Boardable picked = null ;
-  private Boardable lastFailAll[], lastFailPath[] ;
-  private Boardable lastSuccessPath[] ;
   
   
   protected DebugPathing() {
@@ -96,11 +92,14 @@ public class DebugPathing extends PlayLoop {
     //  workers!
     I.say("Configuring world...") ;
     Tile free = null ;
+    
     for (Coord c : Visit.grid(0, 0, world.size, world.size, 1)) {
       Flora.tryGrowthAt(c.x, c.y, world, true) ;
       final Tile t = world.tileAt(c.x, c.y) ;
       if (! t.blocked()) free = t ;
     }
+    
+    GameSettings.noFog = true ;
     //GameSettings.freePath = true ;
     GameSettings.hireFree = true ;
     //introduceCitizen(free) ;
@@ -182,9 +181,11 @@ public class DebugPathing extends PlayLoop {
   
   /**  Debugging pathfinding and region-caching-
     */
-  private void highlightPlace() {
+  public static void highlightPlace() {
     final Tile t = ((BaseUI) currentUI()).selection.pickedTile() ;
+    ////I.say("Picked tile is: "+t) ;
     if (t == null) return ;
+    
     final Tile placeTiles[] = world().pathingCache.placeTiles(t) ;
     final Tile placeRoutes[][] = world().pathingCache.placeRoutes(t) ;
     
@@ -207,9 +208,14 @@ public class DebugPathing extends PlayLoop {
       rendering().addClient(routeMesh) ;
     }
   }
+
+  
+  private static Boardable picked = null ;
+  private static Boardable lastFailAll[], lastFailPath[] ;
+  private static Boardable lastSuccessPath[] ;
   
   
-  private void highlightPath() {
+  public static void highlightPath() {
     final BaseUI UI = (BaseUI) currentUI() ;
     renderOverlay(lastFailAll, Colour.SOFT_MAGENTA) ;
     renderOverlay(lastFailPath, Colour.SOFT_RED) ;
@@ -244,12 +250,19 @@ public class DebugPathing extends PlayLoop {
     }
     else if (hovered instanceof Tile) {
       renderOverlay(new Tile[] { (Tile) hovered }, Colour.SOFT_GREEN) ;
-      if (KeyInput.wasKeyPressed('p')) I.say("Current tile: "+hovered) ;
+      if (KeyInput.wasKeyPressed('p')) {
+        final Tile tile = ((Tile) hovered) ;
+        I.say("Current tile: "+tile) ;
+        I.say("  OWNED BY: "+tile.owner()) ;
+        I.say("  BLOCKED: "+tile.blocked()) ;
+        //I.say("  OWNING TYPE: "+tile.owningType()) ;
+        //I.say("  PATHING TYPE: "+tile.pathType()) ;
+      }
     }
   }
   
   
-  private boolean checkForChange(Boardable newPath[]) {
+  private static boolean checkForChange(Boardable newPath[]) {
     if (lastSuccessPath != null && newPath == null) return true ;
     if (newPath == null || lastSuccessPath == null) return false ;
     //
@@ -266,7 +279,7 @@ public class DebugPathing extends PlayLoop {
   }
   
   
-  private Boardable hovered(BaseUI UI) {
+  private static Boardable hovered(BaseUI UI) {
     final Tile t = UI.selection.pickedTile() ;
     if (t != null && t.owner() instanceof Venue) {
       return (Venue) t.owner() ;
@@ -275,7 +288,7 @@ public class DebugPathing extends PlayLoop {
   }
   
   
-  private void renderOverlay(Boardable path[], Colour c) {
+  private static void renderOverlay(Boardable path[], Colour c) {
     final Batch <Tile> tiles = new Batch <Tile> () ;
     if (path != null) for (Boardable b : path) {
       if (b instanceof Tile) tiles.add((Tile) b) ;

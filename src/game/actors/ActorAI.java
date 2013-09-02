@@ -206,7 +206,6 @@ public abstract class ActorAI implements ActorConstants {
     if (old != null) old.personnel.setResident(actor, false) ;
     this.home = home ;
     if (home != null) home.personnel.setResident(actor, true) ;
-    I.say("Home is NOW: "+home) ;
   }
   
   

@@ -4,6 +4,8 @@
 
 package src.game.social ;
 import src.game.common.* ;
+import src.game.planet.Planet;
+import src.game.tactical.Retreat;
 import src.game.building.* ;
 import src.game.actors.* ;
 import src.game.base.* ;
@@ -73,24 +75,8 @@ public class Resting extends Plan implements BuildConstants {
   
   protected Behaviour getNextStep() {
     if (restPoint == null) return null ;
-    //
-    //  If you're hungry, eat from local stocks.
-    if (actor.health.hungerLevel() > 0.1f) {
-      final Action eats = new Action(
-        actor, restPoint,
-        this, "actionEats",
-        Action.BUILD, "Eating at "+restPoint
-      ) ;
-      final Batch <Service> menu = menuFor(restPoint) ;
-      if (menu.size() == 0 && actor.health.hungerLevel() > 0.6f) {
-        final Tile t = Spacing.pickFreeTileAround(restPoint, actor) ;
-        eats.setMoveTarget(t) ;
-        eats.setProperties(Action.CAREFUL) ;
-        currentMode = MODE_SCAVENGE ;
-      }
-      else currentMode = MODE_DINE ;
-      return eats ;
-    }
+    final Behaviour eats = nextEating() ;
+    if (eats != null) return eats ;
     //
     //  If you're tired, put your feet up.
     if (actor.health.fatigueLevel() > 0.1f) {
@@ -106,6 +92,33 @@ public class Resting extends Plan implements BuildConstants {
   }
   
   
+  private Behaviour nextEating() {
+    //
+    //  If you're hungry, eat from local stocks.
+    if (actor.health.hungerLevel() > 0.1f) {
+      final Action eats = new Action(
+        actor, restPoint,
+        this, "actionEats",
+        Action.BUILD, "Eating at "+restPoint
+      ) ;
+      final Batch <Service> menu = menuFor(restPoint) ;
+      if (menu.size() == 0) {
+        if (actor.health.hungerLevel() > 0.6f) {
+          final Tile t = Spacing.pickFreeTileAround(restPoint, actor) ;
+          eats.setMoveTarget(t) ;
+          eats.setProperties(Action.CAREFUL) ;
+          currentMode = MODE_SCAVENGE ;
+          return eats ;
+        }
+        else return null ;
+      }
+      else currentMode = MODE_DINE ;
+      return eats ;
+    }
+    return null ;
+  }
+  
+  
   public boolean actionEats(Actor actor, Target place) {
     //
     //  If you're inside a venue, and it has food, then avail of it-
@@ -116,7 +129,7 @@ public class Resting extends Plan implements BuildConstants {
       for (Service type : menu) {
         venue.inventory().removeItem(Item.withAmount(type, 1f / numFoods)) ;
       }
-      actor.health.takeSustenance(5, numFoods / ActorHealth.MAX_FOOD_TYPES) ;
+      actor.health.takeSustenance(5, numFoods / (ALL_FOOD_TYPES.length - 1)) ;
       return true ;
     }
     //
@@ -142,15 +155,19 @@ public class Resting extends Plan implements BuildConstants {
   }
   
   
-  public boolean actionRelax(Actor actor, Target place) {
-    //
+  public boolean actionRelax(Actor actor, Boardable place) {
     //  TODO:  If you're in a public venue, you'll have to pay the
-    //  admission fee.  Also, should the actor just enter sleep mode?  
-    ///actor.health.setState(ActorHealth.STATE_RESTING) ;
-    int relaxBonus = 3 ;
+    //  admission fee.  Also, should the actor just enter sleep mode?
+    
+    final int restBonus = 3 ;
     float liftF = ActorHealth.FATIGUE_GROW_PER_DAY * actor.health.maxHealth() ;
-    liftF *= relaxBonus * 1f / World.DEFAULT_DAY_LENGTH ;
+    liftF *= restBonus * 1f / World.DEFAULT_DAY_LENGTH ;
     actor.health.liftFatigue(liftF) ;
+    
+    float comfort = (ratePoint(actor, place) - 2) ;
+    comfort *= actor.health.maxHealth() / 10 ;
+    comfort *= restBonus * 1f / World.DEFAULT_DAY_LENGTH ;
+    actor.health.adjustMorale(comfort) ;
     return true ;
   }
   
@@ -159,18 +176,14 @@ public class Resting extends Plan implements BuildConstants {
   /**  Methods used for external assessment-
     */
   public static Boardable pickRestPoint(final Actor actor) {
-    //
-    //  Consider outsourcing this to the Resting class?  Yeah.
     final Batch <Boardable> safePoints = new Batch <Boardable> () ;
     final Presences presences = actor.world().presences ;
-    //
-    //  TODO:  Try picking the safest known point on the map.
-    //safePoints.add(Retreat.withdrawPoint(actor)) ;
+    safePoints.add(Retreat.pickWithdrawPoint(actor, 16, actor, 0.1f)) ;
     safePoints.add(actor.AI.home()) ;
     safePoints.add(actor.AI.work()) ;
     safePoints.add(presences.nearestMatch(Cantina.class, actor, -1)) ;
     //
-    //  Okay, now pick whichever option is most attractive.
+    //  Now pick whichever option is most attractive.
     final Boardable picked = new Visit <Boardable> () {
       public float rate(Boardable b) { return ratePoint(actor, b) ; }
     }.pickBest(safePoints) ;
@@ -203,6 +216,7 @@ public class Resting extends Plan implements BuildConstants {
       float relation = actor.AI.relation(((Venue) point).base()) ;
       baseRating *= relation ;
     }
+    baseRating *= 1.5f - Planet.dayValue(actor.world()) ;
     baseRating -= Plan.rangePenalty(actor, point) ;
     if (baseRating < 0) return 0 ;
     //
@@ -224,15 +238,15 @@ public class Resting extends Plan implements BuildConstants {
     */
   public void describeBehaviour(Description d) {
     if (currentMode == MODE_DINE) {
-      d.append("Dining at ") ;
+      d.append("Eating at ") ;
       d.append(restPoint) ;
     }
     else if (currentMode == MODE_SCAVENGE) {
-      d.append("Scrounging food around ") ;
+      d.append("Foraging around ") ;
       d.append(restPoint) ;
     }
     else {
-      d.append("Relaxing at ") ;
+      d.append("Resting at ") ;
       d.append(restPoint) ;
     }
   }

@@ -107,11 +107,12 @@ public class VenuePersonnel {
     */
   public boolean onShift(Actor worker) {
     if (shiftType == -1) return false ;
+    if (shiftType == Venue.SHIFTS_ALWAYS) return true ;
+    //
+    //  Firstly, determine proper indices for the shift and the roster-
     final float time = venue.world().currentTime() / World.DEFAULT_DAY_LENGTH ;
     int currentShift = 0, shiftCycle = 0, workerIndex = 0 ;
     int numShifts = 0 ;
-    //
-    //  Firstly, determine proper indices for the shift and the roster-
     if (shiftType == Venue.SHIFTS_BY_HOURS) {
       shiftCycle = (int) time ;
       currentShift = (int) ((time * 3) % 3) ;

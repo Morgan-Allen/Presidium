@@ -101,7 +101,7 @@ public class Commerce {
     //  This requires more work on the subject of pricing.  Some will join for
     //  free, but others need enticement, depending on distance and willingness
     //  to relocate, and the friendliness of the home system.
-    final int signingCost = (vocation.standing + 1) * 100 ;
+    final int signingCost = Vocation.HIRE_COSTS[vocation.standing] ;
     venue.personnel.applyFor(vocation, candidate, signingCost) ;
     //
     //  Insert the candidate in local records, and return.

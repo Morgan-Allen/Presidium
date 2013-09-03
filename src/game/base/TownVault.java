@@ -35,14 +35,18 @@ public class TownVault extends Venue implements BuildConstants {
   
   public TownVault(Base belongs) {
     super(4, 2, ENTRANCE_EAST, belongs) ;
-    this.attachSprite(MODEL.makeSprite()) ;
+    structure.setupStats(500, 20, 350, 0, false) ;
+    personnel.setShiftType(SHIFTS_ALWAYS) ;
+    attachSprite(MODEL.makeSprite()) ;
   }
+  
   
   public TownVault(Session s) throws Exception {
     super(s) ;
     s.loadObjects(holdings) ;
     s.loadObjects(toHouse ) ;
   }
+  
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
@@ -51,150 +55,28 @@ public class TownVault extends Venue implements BuildConstants {
   }
   
   
-  
-  /**  Updates and behaviour-
-    */
-  //  If there's demand for housing, look for space nearby, and build homes to
-  //  accomodate folk.
-  
-  //  TODO:  You also want to build housing up gradually.
-  
-  //  Are the technicians responsible for construction?  Yes they are.
-  //  So what do the citizens do?  They pick up food and other essentials.
-  
-  
-  public void updateAsScheduled(int numUpdates) {
-    super.updateAsScheduled(numUpdates) ;
-    /*
-    ///I.say("Updating demands...") ;
-    stocks.clearDemands() ;
-    for (Holding holding : holdings) {
-      for (Item i : holding.goodsWanted().raw) {
-        stocks.incRequired(i.type, i.amount) ;
-      }
-      stocks.incRequired(STARCHES, 10) ;
-      stocks.incRequired(GREENS  , 10) ;
-      stocks.incRequired(PROTEIN , 10) ;
-      ///I.say("Adding demand for: "+holding.fullName()) ;
-    }
-    //*/
-    
-    for (Object t : world.presences.matchesNear(base(), this, 32)) {
-      final Venue v = (Venue) t ;
-      for (Actor citizen : v.personnel.workers()) {
-        if (citizen.AI.home() != null) continue ;
-        I.say("Attempting to find housing for: "+citizen) ;
-        Holding holding = findHousingSite(citizen, v) ;
-        if (holding != null) {
-          I.say("Housing found!") ;
-          final Tile o = holding.origin() ;
-          holding.clearSurrounds() ;
-          holding.enterWorldAt(o.x, o.y, world) ;
-          citizen.AI.setHomeVenue(holding) ;
-          toHouse.remove(citizen) ;
-          holdings.add(holding) ;
-        }
-      }
-    }
-  }
-  
-  
-  /**  Obtaining and rating housing sites-
-    *    Consider making this static within the Holding class.
-    */
-  private Holding findHousingSite(Actor citizen, Venue works) {
-    
-    final int maxRange = World.DEFAULT_SECTOR_SIZE ;
-    //final Holding holding = new Holding(base(), this) ;
-    final Holding holding = new Holding(base()) ;
-    
-    Vec3D midPos = idealSite(citizen, works) ;
-    final Tile midTile = world.tileAt(midPos.x, midPos.y) ;
-    final Tile enterTile = Spacing.nearestOpenTile(midTile, midTile) ;
-    final Box2D limit = new Box2D().set(
-      midPos.x - maxRange, midPos.y - maxRange,
-      maxRange * 2, maxRange * 2
-    ) ;
-    
-    I.say("  Searching from "+enterTile+"... ") ;
-    final TileSpread spread = new TileSpread(enterTile) {
-      
-      protected boolean canAccess(Tile t) {
-        if (t.blocked()) return false ;
-        //if (t.pathType() >= Tile.PATH_HINDERS) return false ;
-        //if (t.owningType() >= Element.FIXTURE_OWNS) return false ;
-        return limit.contains(t.x, t.y) ;
-      }
-      
-      protected boolean canPlaceAt(Tile t) {
-        I.add("|") ;
-        holding.setPosition(t.x, t.y, world) ;
-        if (holding.canPlace()) {
-          I.say("Found location!") ;
-          return true ;
-        }
-        return false ;
-      }
-    } ;
-    spread.doSearch() ;
-    I.say("  Total tiles searched: "+spread.allSearched(Tile.class).length) ;
-    
-    if (holding.origin() != null) return holding ;
-    return null ;
-  }
-  
-  
-  private Vec3D idealSite(Actor citizen, Venue works) {
-    Vec3D midPos = works.position(null) ;
-    midPos.add(this.position(null)).scale(0.5f) ;
-    return midPos ;
-  }
-  
-  
-  /*
-  private float rateHolding(Holding holding, Citizen citizen) {
-    Vec3D midPos = idealSite(citizen) ;
-    float rating = 0 - midPos.distance(holding.position()) ;
-    return rating ;
-  }
-  //*/
-  
-  //  TODO- debug this.
 
-  /**  Implementing construction, upgrades, downgrades and salvage-
+  /**  Upgrades, economic functions and behaviour implementation-
     */
   public Behaviour jobFor(Actor actor) {
-    /*
-    for (Holding h : holdings) for (Item i : h.goodsNeeded().raw) {
-      final Delivery d = deliveryFor(i, h) ;
-      if (d != null) return d ;
-    }
-    for (Holding h : holdings) for (Item i : h.goodsWanted().raw) {
-      final Delivery d = deliveryFor(i, h) ;
-      if (d != null) return d ;
-    }
-    //*/
-    return null ;
-  }
-  
-  
-  private Delivery deliveryFor(Item i, Holding h) {
-    float needed = i.amount - h.stocks.amountOf(i) ;
-    if (needed <= 0) return null ;
-    needed = (float) Math.ceil(needed / 5) * 5 ;
-    final Delivery d = new Delivery(Item.withAmount(i, needed), this, h) ;
-    if (d.valid()) return d ;
     return null ;
   }
   
   
   protected Vocation[] careers() {
-    return new Vocation[] { Vocation.TECHNICIAN } ;
+    return null ;
+    //return new Vocation[] { Vocation.TECHNICIAN } ;
   }
   
   
   protected Service[] services() {
-    return new Service[0] ;
+    return null ;
+    //return new Service[0] ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
   }
   
   
@@ -202,7 +84,7 @@ public class TownVault extends Venue implements BuildConstants {
   /**  Rendering and interface methods-
     */
   public String fullName() {
-    return "Town Vault" ;
+    return "The Town Vault" ;
   }
   
   
@@ -212,8 +94,10 @@ public class TownVault extends Venue implements BuildConstants {
   
   
   public String helpInfo() {
-    return "The Town Vault provides an emergency refuge for base personnel, "+
-      "thereby allowing construction of civilian housing.";
+    return
+      "The Town Vault provides an emergency refuge for base personnel, "+
+      "allowing goods to be stockpiled and providing a baseline degree of "+
+      "power and life support." ;
   }
   
   
@@ -225,5 +109,120 @@ public class TownVault extends Venue implements BuildConstants {
 
 
 
+/*
+///I.say("Updating demands...") ;
+stocks.clearDemands() ;
+for (Holding holding : holdings) {
+  for (Item i : holding.goodsWanted().raw) {
+    stocks.incRequired(i.type, i.amount) ;
+  }
+  stocks.incRequired(STARCHES, 10) ;
+  stocks.incRequired(GREENS  , 10) ;
+  stocks.incRequired(PROTEIN , 10) ;
+  ///I.say("Adding demand for: "+holding.fullName()) ;
+}
+
+for (Object t : world.presences.matchesNear(base(), this, 32)) {
+  final Venue v = (Venue) t ;
+  for (Actor citizen : v.personnel.workers()) {
+    if (citizen.AI.home() != null) continue ;
+    I.say("Attempting to find housing for: "+citizen) ;
+    Holding holding = findHousingSite(citizen, v) ;
+    if (holding != null) {
+      I.say("Housing found!") ;
+      final Tile o = holding.origin() ;
+      holding.clearSurrounds() ;
+      holding.enterWorldAt(o.x, o.y, world) ;
+      citizen.AI.setHomeVenue(holding) ;
+      toHouse.remove(citizen) ;
+      holdings.add(holding) ;
+    }
+  }
+}
+//*/
+/*
+for (Holding h : holdings) for (Item i : h.goodsNeeded().raw) {
+  final Delivery d = deliveryFor(i, h) ;
+  if (d != null) return d ;
+}
+for (Holding h : holdings) for (Item i : h.goodsWanted().raw) {
+  final Delivery d = deliveryFor(i, h) ;
+  if (d != null) return d ;
+}
+//*/
+
+/**  Obtaining and rating housing sites-
+  *    Consider making this static within the Holding class.
+  */
+/*
+private Holding findHousingSite(Actor citizen, Venue works) {
+  
+  final int maxRange = World.DEFAULT_SECTOR_SIZE ;
+  //final Holding holding = new Holding(base(), this) ;
+  final Holding holding = new Holding(base()) ;
+  
+  Vec3D midPos = idealSite(citizen, works) ;
+  final Tile midTile = world.tileAt(midPos.x, midPos.y) ;
+  final Tile enterTile = Spacing.nearestOpenTile(midTile, midTile) ;
+  final Box2D limit = new Box2D().set(
+    midPos.x - maxRange, midPos.y - maxRange,
+    maxRange * 2, maxRange * 2
+  ) ;
+  
+  I.say("  Searching from "+enterTile+"... ") ;
+  final TileSpread spread = new TileSpread(enterTile) {
+    
+    protected boolean canAccess(Tile t) {
+      if (t.blocked()) return false ;
+      //if (t.pathType() >= Tile.PATH_HINDERS) return false ;
+      //if (t.owningType() >= Element.FIXTURE_OWNS) return false ;
+      return limit.contains(t.x, t.y) ;
+    }
+    
+    protected boolean canPlaceAt(Tile t) {
+      I.add("|") ;
+      holding.setPosition(t.x, t.y, world) ;
+      if (holding.canPlace()) {
+        I.say("Found location!") ;
+        return true ;
+      }
+      return false ;
+    }
+  } ;
+  spread.doSearch() ;
+  I.say("  Total tiles searched: "+spread.allSearched(Tile.class).length) ;
+  
+  if (holding.origin() != null) return holding ;
+  return null ;
+}
+
+
+private Vec3D idealSite(Actor citizen, Venue works) {
+  Vec3D midPos = works.position(null) ;
+  midPos.add(this.position(null)).scale(0.5f) ;
+  return midPos ;
+}
+
+
+/*
+private float rateHolding(Holding holding, Citizen citizen) {
+  Vec3D midPos = idealSite(citizen) ;
+  float rating = 0 - midPos.distance(holding.position()) ;
+  return rating ;
+}
+//*/
+
+//  TODO- debug this.
+
+/*
+private Delivery deliveryFor(Item i, Holding h) {
+  float needed = i.amount - h.stocks.amountOf(i) ;
+  if (needed <= 0) return null ;
+  needed = (float) Math.ceil(needed / 5) * 5 ;
+  final Delivery d = new Delivery(Item.withAmount(i, needed), this, h) ;
+  if (d.valid()) return d ;
+  return null ;
+}
+//*/
 
 

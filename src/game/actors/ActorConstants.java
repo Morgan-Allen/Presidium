@@ -37,6 +37,8 @@ public interface ActorConstants {
     FORM_PSYONIC   = 4,
     FORM_INSTINCT  = 5 ;
   
+  
+  
   final public static Skill
     VIGOUR    = new Skill("Vigour"   , FORM_NATURAL, null),
     BRAWN     = new Skill("Brawn"    , FORM_NATURAL, null),

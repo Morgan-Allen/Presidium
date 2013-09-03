@@ -171,7 +171,7 @@ public class Cantina extends Venue implements BuildConstants {
   
 
   public String buildCategory() {
-    return UIConstants.TYPE_MERCHANT ;
+    return UIConstants.TYPE_AESTHETE ;
   }
   
   

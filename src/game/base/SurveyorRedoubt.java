@@ -4,7 +4,7 @@ package src.game.base ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.common.* ;
-import src.game.planet.Lair;
+import src.game.planet.* ;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;

@@ -23,12 +23,12 @@ public class CultureVats extends Venue implements BuildConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    CultureVats.class, "media/Buildings/physician/culture_vats.png", 4, 3
+    CultureVats.class, "media/Buildings/physician/culture_vats.png", 3, 3
   ) ;
   
   
   public CultureVats(Base base) {
-    super(4, 3, ENTRANCE_EAST, base) ;
+    super(3, 3, ENTRANCE_NORTH, base) ;
     structure.setupStats(
       400, 3, 450,
       VenueStructure.NORMAL_MAX_UPGRADES, false
@@ -101,7 +101,9 @@ public class CultureVats extends Venue implements BuildConstants {
     return new Composite(UI, "media/GUI/Buttons/culture_vats_button.gif") ;
   }
 
-  public String fullName() { return "Culture Vats" ; }
+  public String fullName() {
+    return "The Culture Vats" ;
+  }
   
   public String helpInfo() {
     return
@@ -110,7 +112,7 @@ public class CultureVats extends Venue implements BuildConstants {
   }
   
   public String buildCategory() {
-    return InstallTab.TYPE_ARTIFICER ;
+    return InstallTab.TYPE_PHYSICIAN ;
   }
 }
 

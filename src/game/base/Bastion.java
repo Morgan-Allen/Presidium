@@ -30,7 +30,12 @@ public class Bastion extends Venue implements BuildConstants {
   
   public Bastion(Base base) {
     super(7, 5, ENTRANCE_EAST, base) ;
-    this.attachSprite(MODEL.makeSprite()) ;
+    structure.setupStats(
+      650, 15, 1000,
+      VenueStructure.BIG_MAX_UPGRADES, false
+    ) ;
+    personnel.setShiftType(SHIFTS_BY_HOURS) ;
+    attachSprite(MODEL.makeSprite()) ;
   }
   
   
@@ -70,13 +75,13 @@ public class Bastion extends Venue implements BuildConstants {
   }
   
   
-  public String fullName() { return "Bastion" ; }
+  public String fullName() { return "The Bastion" ; }
   
   
   public String helpInfo() {
     return
       "The Bastion is your seat of command for the settlement as a "+
-      "whole." ;
+      "whole, and houses your family, advisors and bodyguards." ;
   }
   
   

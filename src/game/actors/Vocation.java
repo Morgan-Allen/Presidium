@@ -27,12 +27,17 @@ public class Vocation implements BuildConstants {
     PRACTICED = 10,
     EXPERT    = 15,
     MASTER    = 20 ;
+  
   final public static int
     SLAVE_CLASS  =  0,
     LOWER_CLASS  =  1,
     MIDDLE_CLASS =  2,
     UPPER_CLASS  =  3,
     RULER_CLASS  =  4 ;
+  final public static int HIRE_COSTS[] = {
+    50, 150, 250, 500, 1000
+  } ;
+  
   
   final static String COSTUME_DIR = "media/Actors/human/" ;
   
@@ -120,15 +125,24 @@ public class Vocation implements BuildConstants {
   final public static Vocation
     
     VAT_BREEDER = new Vocation(
-      "Vat Breeder", "citizen_skin.gif", null, MIDDLE_CLASS, new Object[] {
-      10, GENE_CULTURE, PHARMACY, 5, CHEMISTRY, ASSEMBLY,
+      "Vat Breeder", "citizen_skin.gif", null,
+      MIDDLE_CLASS,
+      PRACTICED, GENE_CULTURE, PHARMACY, NOVICE, CHEMISTRY, ASSEMBLY,
       RARELY, DEBAUCHED, INDOLENT
-    }),
+    ),
     
     MINDER = new Vocation(
-      "Minder", "citizen_skin.gif", null, MIDDLE_CLASS,
+      "Minder", "citizen_skin.gif", null,
+      MIDDLE_CLASS,
       PRACTICED, DOMESTIC_SERVICE, SUASION, NOVICE, ANATOMY, PHARMACY,
       OFTEN, EMPATHIC, SOMETIMES, STUBBORN
+    ),
+    
+    ARCHIVIST = new Vocation(
+      "Archivist", "citizen_skin.gif", null,
+      MIDDLE_CLASS,
+      PRACTICED, ADMINISTRATION, LOGOS_MENSA, NOVICE, COUNSEL,
+      ALWAYS, INQUISITIVE, SOMETIMES, NERVOUS, IMPASSIVE
     ),
 
     PHYSICIAN = new Vocation(

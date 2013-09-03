@@ -30,6 +30,11 @@ public class Fabricator extends Venue implements BuildConstants {
   
   public Fabricator(Base base) {
     super(4, 2, ENTRANCE_EAST, base) ;
+    structure.setupStats(
+      125, 2, 200,
+      VenueStructure.NORMAL_MAX_UPGRADES, false
+    ) ;
+    personnel.setShiftType(SHIFTS_BY_DAY) ;
     attachSprite(MODEL.makeSprite()) ;
   }
   
@@ -91,14 +96,19 @@ public class Fabricator extends Venue implements BuildConstants {
   public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/fabricator_button.gif") ;
   }
-
-  public String fullName() { return "The Fabricator" ; }
+  
+  
+  public String fullName() {
+    return "The Fabricator" ;
+  }
+  
   
   public String helpInfo() {
     return
       "The Fabricator manufactures plastics, pressfeed, decor and outfits "+
       "for your citizens." ;
   }
+  
   
   public String buildCategory() {
     return InstallTab.TYPE_AESTHETE ;

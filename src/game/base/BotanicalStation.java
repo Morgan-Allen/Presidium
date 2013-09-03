@@ -72,6 +72,11 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   public BotanicalStation(Base belongs) {
     super(4, 3, Venue.ENTRANCE_SOUTH, belongs) ;
+    structure.setupStats(
+      150, 3, 250,
+      VenueStructure.NORMAL_MAX_UPGRADES, false
+    ) ;
+    personnel.setShiftType(SHIFTS_BY_DAY) ;
     attachSprite(STATION_MODEL.makeSprite()) ;
   }
   

@@ -82,6 +82,9 @@ public class SupplyDepot extends Venue implements BuildConstants {
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
     super.writeInformation(d, categoryID, UI) ;
+    //
+    //  TODO:  You need the ability to specify which goods, in what amounts,
+    //  you are willing to accept, and from whom.
   }
   
   
@@ -98,7 +101,7 @@ public class SupplyDepot extends Venue implements BuildConstants {
   public String helpInfo() {
     return
       "The Supply Depot mediates long-distance trade, both between remote "+
-      "outposts of your own fief and offworld commercial partners." ;
+      "outposts of your own colony and offworld commercial partners." ;
   }
   
   

@@ -90,7 +90,10 @@ public abstract class Actor extends Mobile implements
   public void assignAction(Action action) {
     world.activities.toggleActive(this.actionTaken, false) ;
     this.actionTaken = action ;
-    if (actionTaken != null) actionTaken.updateAction() ;
+    if (actionTaken != null) {
+      actionTaken.updateMotion(false) ;
+      actionTaken.updateAction() ;
+    }
     world.activities.toggleActive(action, true) ;
   }  
   
@@ -141,8 +144,10 @@ public abstract class Actor extends Mobile implements
   protected void updateAsMobile() {
     super.updateAsMobile() ;
     if (actionTaken != null) {
+      final boolean OK = health.conscious() ;
+      actionTaken.updateMotion(OK) ;
       actionTaken.updateAction() ;
-      if (actionTaken.complete() && health.conscious()) {
+      if (actionTaken.complete() && OK) {
         world.schedule.scheduleNow(this) ;
       }
     }
@@ -158,11 +163,12 @@ public abstract class Actor extends Mobile implements
       if (actionTaken == null || actionTaken.complete()) {
         assignAction(AI.getNextAction()) ;
       }
+      ///I.say("Updating pathing...") ;
       pathing.updatePathing() ;
       AI.updateAI(numUpdates) ;
       //
       //  Update the intel/danger maps associated with the world's bases.
-      final float power = Combat.combatStrength(this) ;
+      final float power = Combat.combatStrength(this, null) ;
       for (Base b : world.bases()) {
         if (b == base()) b.intelMap.liftFogAround(this, health.sightRange()) ;
         if (! visibleTo(b)) continue ;
@@ -178,6 +184,7 @@ public abstract class Actor extends Mobile implements
   /**  Dealing with state changes-
     */
   protected void enterStateKO() {
+    if (amDoing("actionFall")) return ;
     final Action falling = new Action(
       this, this, this, "actionFall",
       Action.FALL, "Stricken"
@@ -223,11 +230,13 @@ public abstract class Actor extends Mobile implements
     final float scale = spriteScale() ;
     final Sprite s = sprite() ;
     
-    healthBar.level = (1 - health.injuryLevel()) * (1 - health.skillPenalty()) ;
-    healthBar.size = 25 ;
-    healthBar.matchTo(s) ;
-    healthBar.position.z -= radius() ;
-    rendering.addClient(healthBar) ;
+    if (! health.deceased()) {
+      healthBar.level = (1 - health.injuryLevel()) * (1 - health.skillPenalty()) ;
+      healthBar.size = 25 ;
+      healthBar.matchTo(s) ;
+      healthBar.position.z -= radius() ;
+      rendering.addClient(healthBar) ;
+    }
     
     //
     //  Render your shadow, either on the ground or on top of occupants-

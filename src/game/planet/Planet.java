@@ -14,10 +14,10 @@ public class Planet {
   
 
   final public static Colour
-    MORNING_LIGHT  = new Colour(1.0f, 0.95f, 0.7f),
-    DAY_LIGHT      = new Colour(1.0f, 1.00f, 1.0f),
-    EVENING_LIGHT  = new Colour(0.9f, 0.95f, 1.0f),
-    NIGHT_LIGHT    = new Colour(0.6f, 0.55f, 0.8f),
+    MORNING_LIGHT  = new Colour(1.00f, 0.95f, 0.70f),
+    DAY_LIGHT      = new Colour(1.00f, 1.00f, 1.00f),
+    EVENING_LIGHT  = new Colour(0.70f, 0.95f, 1.00f),
+    NIGHT_LIGHT    = new Colour(0.40f, 0.45f, 0.75f),
     ALL_LIGHTS[]   = { MORNING_LIGHT, DAY_LIGHT, EVENING_LIGHT, NIGHT_LIGHT } ;
   final static float
     fade = (1 / 3f) / 2,

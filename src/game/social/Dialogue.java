@@ -7,7 +7,7 @@
 
 package src.game.social ;
 import src.game.common.* ;
-import src.game.planet.Species;
+import src.game.planet.Species ;
 import src.game.actors.* ;
 import src.game.base.* ;
 import src.game.building.* ;
@@ -15,6 +15,18 @@ import src.graphics.sfx.TalkFX ;
 import src.user.* ;
 import src.util.* ;
 
+
+
+
+
+//
+//  There should be a few basic 'moves' here-
+//    First Impressions/Attraction
+//    Small Talk/Introduction
+//    Anecdotes/Gossip
+//    Advice/Assistance
+//    Dispute/Sex Escalation
+//    Kinship Modifiers/Exceptions
 
 
 public class Dialogue extends Plan implements ActorConstants {
@@ -87,8 +99,10 @@ public class Dialogue extends Plan implements ActorConstants {
     else if (stage < STAGE_TALKING) {
       if (inits) {
         final Dialogue OD = new Dialogue(other, actor, false) ;
-        final boolean occupied = other.AI.couldSwitch(OD, root) ;
-        return ! occupied ;
+        final boolean canSwitch =
+            root == null ||
+            root.priorityFor(other) < OD.priorityFor(other) ;
+        return canSwitch ;
       }
       else return true ;
     }
@@ -422,17 +436,6 @@ static float firstImpression(Actor actor, Actor other) {
   return impression ;
 }
 //*/
-
-
-
-//
-//  There should be a few basic 'moves' here-
-//    First Impressions/Attraction
-//    Small Talk/Introduction
-//    Anecdotes/Gossip
-//    Advice/Assistance
-//    Dispute/Sex Escalation
-//    Kinship Modifiers/Exceptions
 
 
 /*

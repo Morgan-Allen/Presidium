@@ -132,8 +132,8 @@ public class MobilePathing {
       pathTarget = dest ;
       refreshPath() ;
       if (BaseUI.isPicked(mobile) && path != null) {
-        //I.say("Path is:") ;
-        //for (Boardable b : path) I.add("\n  "+b+" "+b.inWorld()) ;
+        ///I.say("Path is:") ;
+        ///for (Boardable b : path) I.add("\n  "+b+" "+b.inWorld()) ;
       }
     }
     if (path == null) {
@@ -196,16 +196,21 @@ public class MobilePathing {
     }
     disp.scale(Math.min(moveRate, dist)) ;
     //
-    //  Then apply the changes-
+    //  Then apply the changes in heading-
     disp.x += mobile.position.x ;
     disp.y += mobile.position.y ;
     mobile.nextPosition.setTo(disp) ;
     mobile.nextRotation = angle ;
+    //
+    //  And try to track the level of the underlying terrain-
+    final Boardable aboard = mobile.aboard ;
     final float baseHigh ;
-    if (target instanceof Tile) {
+    if (aboard instanceof Tile) {
       baseHigh = mobile.world.terrain().trueHeight(disp.x, disp.y) ;
     }
-    else baseHigh = target.position(null).z ;
+    else {
+      baseHigh = aboard.position(null).z ;
+    }
     mobile.nextPosition.z = baseHigh + mobile.aboveGroundHeight() ;
   }
   

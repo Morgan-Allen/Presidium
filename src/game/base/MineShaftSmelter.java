@@ -128,7 +128,7 @@ public class MineShaftSmelter extends Venue implements BuildConstants {
   
   public Behaviour jobFor(Actor actor) {
 
-    final Delivery d = stocks.nextDelivery(actor, services()) ;
+    final Delivery d = Delivery.nextDeliveryFrom(this, actor, services()) ;
     if (d != null) return d ;
     
     if (stocks.amountOf(mined) > 50) return null ;

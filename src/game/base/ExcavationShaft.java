@@ -277,8 +277,8 @@ public class ExcavationShaft extends Venue implements
   
   
   public Behaviour jobFor(Actor actor) {
-    
-    final Delivery d = stocks.nextDelivery(actor, services()) ;
+
+    final Delivery d = Delivery.nextDeliveryFrom(this, actor, services()) ;
     if (d != null) return d ;
     
     final MineFace opening = findNextFace() ;

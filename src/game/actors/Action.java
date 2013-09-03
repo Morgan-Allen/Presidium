@@ -191,36 +191,6 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-  private void adjustMotion() {
-    //
-    //  We don't chase targets which might have been themselves affected by
-    //  the action.
-    if (inRange == 1 && progress > contactTime()) {
-      return ;
-    }
-    //
-    //  Depending on whether you're currently close enough to the move-target,
-    //  and facing the action-target, you enter motion or action mode
-    //  respectively.
-    float minDist = 0 ;
-    if ((properties & RANGED) != 0) minDist = actor.health.sightRange() ;
-    if (inRange == 1) minDist += progress + 0.5f ;
-    
-    final boolean
-      closed = actor.pathing.closeEnough(moveTarget, minDist),
-      facing = actor.pathing.facingTarget(actionTarget) ;
-    if (! closed) actor.pathing.updateTarget(moveTarget) ;
-    final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;
-    
-    actor.pathing.headTowards(faced, moveRate(), ! closed) ;
-    //
-    //  Check for state changes-
-    final byte oldRange = inRange ;
-    inRange = (byte) ((closed && facing) ? 1 : 0) ;
-    if (inRange != oldRange) progress = oldProgress = 0 ;
-  }
-  
-  
   private float progressPerUpdate() {
     if (inRange == 1) {
       return 1f / (duration() * PlayLoop.UPDATES_PER_SECOND) ;
@@ -242,10 +212,38 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
+  public void updateMotion(boolean moveOK) {
+    //
+    //  We don't chase targets which might have been themselves affected by
+    //  the action.
+    if (inRange == 1 && progress > contactTime()) {
+      return ;
+    }
+    
+    float minDist = 0 ;
+    if ((properties & RANGED) != 0) minDist = actor.health.sightRange() ;
+    if (inRange == 1) minDist += progress + 0.5f ;
+    
+    final boolean
+      closed = actor.pathing.closeEnough(moveTarget, minDist),
+      facing = actor.pathing.facingTarget(actionTarget) ;
+    if (! closed) actor.pathing.updateTarget(moveTarget) ;
+    final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;
+    
+    if (moveOK) {
+      ///I.say("is moving... toward: "+faced+", closed? "+closed) ;
+      actor.pathing.headTowards(faced, moveRate(), ! closed) ;
+    }
+    //
+    //  Check for state changes-
+    final byte oldRange = inRange ;
+    inRange = (byte) ((closed && facing) ? 1 : 0) ;
+    if (inRange != oldRange) progress = oldProgress = 0 ;
+  }
+  
+  
   protected void updateAction() {
-    adjustMotion() ;
     if (complete()) { oldProgress = progress = 1 ; return ; }
-    ///if (progress <= contactTime()) adjustMotion() ;
     oldProgress = progress ;
     progress += progressPerUpdate() ;
     if (inRange == 1) advanceAction() ;

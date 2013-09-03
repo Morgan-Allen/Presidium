@@ -121,54 +121,6 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
-  //
-  //  TODO:  This could probably be outsourced to the Delivery class itself,
-  //  made static, and re-used by things like Dropships.
-  public Delivery nextDelivery(Actor actor, Service types[]) {
-    //
-    //  If an actor has already been assigned to this task, then don't assign
-    //  anyone else.
-    //
-    //  TODO:  (Alternatively, iterate over all behaviours aimed at this venue,
-    //  and the subtract the total of items reserved by other deliveries, to
-    //  ensure there'll still be enough.)
-    for (Actor works : venue.personnel.workers) {
-      if (works.AI.rootBehaviour() instanceof Delivery) {
-        final Delivery d = (Delivery) works.AI.rootBehaviour() ;
-        if (d.origin == venue) return null ;
-      }
-    }
-    //
-    //  Otherwise we iterate over every nearby venue, and see if they need what
-    //  we're selling, so to speak.
-    float maxUrgency = 0 ;
-    Delivery picked = null ;
-    final Presences presences = venue.world().presences ;
-    for (Object o : presences.matchesNear(venue.base(), venue, SEARCH_RADIUS)) {
-      final Venue client = (Venue) o ;
-      final float distFactor = (SEARCH_RADIUS + Spacing.distance(
-        venue, client
-      )) / SEARCH_RADIUS ;
-      //
-      //  If we don't have enough of a given item to sell, we just pass over
-      //  that item type.  Conversely, if a venue has no shortage, it is
-      //  ignored.
-      for (Service type : types) {
-        if (venue.stocks.amountOf(type) < ORDER_UNIT) continue ;
-        final float shortage = client.stocks.requiredShortage(type) ;
-        float urgency = shortage ;
-        if (urgency <= 0) continue ;
-        final Delivery order = new Delivery(
-          Item.withAmount(type, ORDER_UNIT), venue, client
-        ) ;
-        urgency /= distFactor ;
-        if (urgency > maxUrgency) { picked = order ; maxUrgency = urgency ; }
-      }
-    }
-    return picked ;
-  }
-  
-  
   
   /**  Internal and external updates-
     */

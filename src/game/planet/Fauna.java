@@ -89,34 +89,11 @@ public abstract class Fauna extends Actor {
     } ;
   }
   
-
   
   protected Behaviour nextHunting() {
-    final float sampleRange = Lair.PEER_SAMPLE_RANGE ;
-    final int maxSampled = 10 ;
-    Actor pickedPrey = null ;
-    float bestRating = Float.NEGATIVE_INFINITY ;
-    final PresenceMap peers = world.presences.mapFor(Mobile.class) ;
-    int numSampled = 0 ;
-    
-    for (Target t : peers.visitNear(this, sampleRange, null)) {
-      if (++numSampled > maxSampled) break ;
-      if (! (t instanceof Actor)) continue ;
-      final Actor f = (Actor) t ;
-      final Species s = (Species) f.species() ;
-      //  TODO:  Skip over artilects, silicates and the like?
-      
-      final float danger = Combat.combatStrength(f) * Rand.num() ;
-      final float dist = Spacing.distance(f, this) / sampleRange ;
-      float rating = (1 - dist) / danger ;
-      if (s.type != Species.Type.BROWSER) rating /= 2 ;
-      if (! (t instanceof Fauna)) rating /= 2 ;
-      
-      if (rating > bestRating) { pickedPrey = f ; bestRating = rating ; }
-    }
-    
-    if (pickedPrey == null) return null ;
-    final Hunting hunting = new Hunting(this, pickedPrey, Hunting.TYPE_FEEDS) ;
+    final Actor prey = Hunting.nextPreyFor(this, Lair.PEER_SAMPLE_RANGE) ;
+    if (prey == null) return null ;
+    final Hunting hunting = new Hunting(this, prey, Hunting.TYPE_FEEDS) ;
     return hunting ;
   }
   
@@ -320,11 +297,12 @@ public abstract class Fauna extends Actor {
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
     d.append("Is: ") ;
-    if (currentAction() != null) currentAction().describeBehaviour(d) ;
-    else d.append(health.stateDesc()) ;
+    describeStatus(d) ;
+    
     d.append("\nNests at: ") ;
     if (AI.home() != null) d.append(AI.home()) ;
     else d.append("No nest") ;
+    
     d.append("\nCondition: ") ;
     final Batch <String> CD = health.conditionsDesc() ;
     if (CD.size() == 0) d.append("Okay") ;

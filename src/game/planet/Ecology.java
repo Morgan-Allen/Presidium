@@ -16,7 +16,7 @@ public class Ecology {
   final RandomScan growthMap ;
   float fertilities[][] ;  //Of crops/flora.
   float abundances[][][] ;  //Of species.
-  float squalorMap[][] ;
+  float squalorMap[][] ;    //For pollution/ambience.
   
   
   

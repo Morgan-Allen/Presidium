@@ -9,10 +9,7 @@
 package src.game.wild ;
 import src.game.actors.* ;
 import src.game.common.* ;
-import src.game.planet.Fauna;
-import src.game.planet.Lair;
-import src.game.planet.Species;
-import src.game.planet.Species.Type;
+import src.game.planet.* ;
 import src.game.tactical.* ;
 import src.util.* ;
 
@@ -58,60 +55,9 @@ public class Micovore extends Fauna {
   
   
   
-  /**  Behaviour implementation-
+  /**  Supplemental behaviour methods-
+    *  TODO:  Introduce routines for marking territory with spice middens.
     */
-  /*
-  protected Behaviour nextFeeding() {
-    final float sampleRange = Lair.PEER_SAMPLE_RANGE ;
-    final Batch <Fauna> prey = specimens(
-      origin(), sampleRange, null, Species.Type.BROWSER, 10
-    ) ;
-    if (prey.size() == 0) return null ;
-    
-    Fauna pickedPrey = null ;
-    float bestRating = Float.NEGATIVE_INFINITY ;
-    for (Fauna f : prey) {
-      //  Choose closer, younger, less heavily armed/armoured targets.
-      float danger = f.gear.armourRating() + f.gear.attackDamage() ;
-      danger *= f.health.maxHealth() / 100 ;
-      float dist = Spacing.distance(f, this) / sampleRange ;
-      float rating = (1 - dist) / danger ;
-      if (rating > bestRating) { pickedPrey = f ; bestRating = rating ; }
-    }
-    
-    if (pickedPrey == null) return null ;
-    final Hunting hunting = new Hunting(this, pickedPrey, Hunting.TYPE_FEEDS) ;
-    return hunting ;
-  }
-  
-  
-  protected void fightWith(Fauna competes) {
-    final Hunting fight = new Hunting(this, competes, Hunting.TYPE_FEEDS) ;
-    fight.setPriority(Plan.CRITICAL) ;
-    if (AI.couldSwitchTo(fight)) {
-      AI.assignBehaviour(fight) ;
-    }
-  }
-  
-
-  protected float rateMigratePoint(Tile point) {
-    final float sampleRange = Lair.PEER_SAMPLE_RANGE ;
-    float rating = super.rateMigratePoint(point) ;
-    final Batch <Fauna> nearPrey = specimens(
-      point, sampleRange, null, Species.Type.BROWSER, 3
-    ) ;
-    if (nearPrey.size() == 0) return rating ;
-    float avgDistance = 0 ;
-    for (Fauna f : nearPrey) avgDistance += Spacing.distance(point, f) ;
-    avgDistance /= nearPrey.size() * sampleRange ;
-    return rating * (2 - avgDistance) ;
-  }
-  
-  
-  protected Target findRestPoint() {
-    return origin() ;
-  }
-  //*/
 }
 
 
@@ -120,26 +66,59 @@ public class Micovore extends Fauna {
 
 
 
+
+
+/**  Behaviour implementation-
+  */
 /*
-//
-//  TODO:  Consider routines for placing Lairs, maintaining them, and letting
-//  them decay over time.  TODO: MOVE THOSE TO THE MICOVORE CLASS.
-protected Tile findLairLocation() {
-  //
-  //  Look for an area that doesn't have any rocks in the way, and place a
-  //  2x2 lair there if possible.
-  return null ;
+protected Behaviour nextFeeding() {
+  final float sampleRange = Lair.PEER_SAMPLE_RANGE ;
+  final Batch <Fauna> prey = specimens(
+    origin(), sampleRange, null, Species.Type.BROWSER, 10
+  ) ;
+  if (prey.size() == 0) return null ;
+  
+  Fauna pickedPrey = null ;
+  float bestRating = Float.NEGATIVE_INFINITY ;
+  for (Fauna f : prey) {
+    //  Choose closer, younger, less heavily armed/armoured targets.
+    float danger = f.gear.armourRating() + f.gear.attackDamage() ;
+    danger *= f.health.maxHealth() / 100 ;
+    float dist = Spacing.distance(f, this) / sampleRange ;
+    float rating = (1 - dist) / danger ;
+    if (rating > bestRating) { pickedPrey = f ; bestRating = rating ; }
+  }
+  
+  if (pickedPrey == null) return null ;
+  final Hunting hunting = new Hunting(this, pickedPrey, Hunting.TYPE_FEEDS) ;
+  return hunting ;
 }
 
 
-public boolean actionGatherMaterials(Vareen actor, Tile source) {
-  //actor.inventory().addItem(new Item(DUST, 0.2f * Rand.num())) ;
-  return true ;
+protected void fightWith(Fauna competes) {
+  final Hunting fight = new Hunting(this, competes, Hunting.TYPE_FEEDS) ;
+  fight.setPriority(Plan.CRITICAL) ;
+  if (AI.couldSwitchTo(fight)) {
+    AI.assignBehaviour(fight) ;
+  }
 }
 
 
-public boolean actionBuildNest(Vareen actor, Lair nest) {
-  //nest.stocks.repairBy(1, actor.inventory()) ;
-  return true ;
+protected float rateMigratePoint(Tile point) {
+  final float sampleRange = Lair.PEER_SAMPLE_RANGE ;
+  float rating = super.rateMigratePoint(point) ;
+  final Batch <Fauna> nearPrey = specimens(
+    point, sampleRange, null, Species.Type.BROWSER, 3
+  ) ;
+  if (nearPrey.size() == 0) return rating ;
+  float avgDistance = 0 ;
+  for (Fauna f : nearPrey) avgDistance += Spacing.distance(point, f) ;
+  avgDistance /= nearPrey.size() * sampleRange ;
+  return rating * (2 - avgDistance) ;
+}
+
+
+protected Target findRestPoint() {
+  return origin() ;
 }
 //*/

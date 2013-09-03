@@ -25,8 +25,8 @@ import src.util.* ;
 //  hostile, and see how they respond.  Ideally, you don't want actors
 //  willingly running into situations that they then run away from.
 //
-//  Add hunting at the redoubt, and update farming/the vats a bit.  Spontaneous
-//  missions, and a clearer factoring out of venue/actor batches in the AI.
+//  Update farming/the vats/mining a bit.  Spontaneous missions, and a clearer
+//  factoring out of venue/actor batches in the AI.
 //  Squalor maps and pollution FX, integrated with the Ecology class.  Impact
 //  health/morale/disease/life-support.
 //  
@@ -130,8 +130,8 @@ public class DebugBehaviour extends PlayLoop {
     I.say(" "+(String.class.isAssignableFrom(Object.class))) ;
     //natureScenario(world, base, HUD) ;
     //baseScenario(world, base, HUD) ;
-    //missionScenario(world, base, HUD) ;
-    socialScenario(world, base, HUD) ;
+    missionScenario(world, base, HUD) ;
+    //socialScenario(world, base, HUD) ;
   }
   
   
@@ -204,6 +204,32 @@ public class DebugBehaviour extends PlayLoop {
     */
   private void missionScenario(World world, Base base, HUD UI) {
     
+    //
+    //  TODO:  TEST THIS WITH HOSTILE ROBOTS.  GET IT FINISHED AND DONE WITH.
+    ///GameSettings.hireFree = true ;
+    GameSettings.noFog = true ;
+    
+    final Actor actor = new Human(Vocation.SURVEYOR, base) ;
+    actor.enterWorldAt(10, 10, world) ;
+    establishVenue(new SurveyorRedoubt(base), 4, 4, true, actor) ;
+    ((BaseUI) UI).selection.pushSelection(actor, true) ;
+    
+    ///actor.health.takeInjury(actor.health.maxHealth() * 1.1f) ;
+    
+    final Actor prey = new Vareen() ;
+    prey.health.setupHealth(Rand.num(), 1, 0) ;
+    prey.enterWorldAt(13, 13, world) ;
+    //prey.health.takeInjury(prey.health.maxHealth() * 1.33f) ;
+    //((BaseUI) UI).selection.pushSelection(prey, true) ;
+    
+    actor.AI.assignBehaviour(new Hunting(actor, prey, Hunting.TYPE_HARVEST)) ;
+    
+    
+    //final EcologyGen EG = new EcologyGen() ;
+    //EG.populateFlora(world) ;
+    //EG.populateFauna(world, Species.VAREEN) ;
+    
+    /*
     final Actor actorA = new Human(Vocation.RUNNER, base) ;
     actorA.enterWorldAt(15, 15, world) ;
     final Actor actorB = new Human(Vocation.VETERAN, base) ;
@@ -223,6 +249,7 @@ public class DebugBehaviour extends PlayLoop {
     actorA.AI.assignBehaviour(new Combat(actorA, garrison)) ;
     actorB.AI.assignBehaviour(new Combat(actorA, garrison)) ;
     ((BaseUI) UI).selection.pushSelection(actorA, true) ;
+    //*/
     
     /*
     final Mission mission = new ReconMission(base, world.tileAt(20, 20)) ;
@@ -249,11 +276,15 @@ public class DebugBehaviour extends PlayLoop {
     
     final Actor actor = new Human(Vocation.PHYSICIAN, base) ;
     final Actor other = new Human(Vocation.VETERAN, base) ;
+    other.health.takeInjury(other.health.maxHealth()) ;
+    
     actor.enterWorldAt(4, 4, world) ;
     other.enterWorldAt(6, 6, world) ;
     establishVenue(new Sickbay(base), 9, 2, true, actor) ;
+    /*
     establishVenue(new Garrison(base), 2, 9, true, other) ;
     establishVenue(new Cantina(base), 9, 9, true) ;
+    //*/
     
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;

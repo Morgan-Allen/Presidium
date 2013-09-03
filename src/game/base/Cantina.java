@@ -179,9 +179,11 @@ public class Cantina extends Venue implements BuildConstants {
     
     
     if (categoryID == 0) {
+      super.writeInformation(d, categoryID, UI) ;
+      
       final Batch <Actor> audience = audience() ;
       final Performance p = this.performance() ;
-      d.append("Current performance:\n  ") ;
+      d.append("\n\nCurrent performance:\n  ") ;
       
       if (p == null) d.append("No performance.") ;
       else d.append(p.performDesc()) ;

@@ -6,6 +6,7 @@
 package src.game.actors ;
 import src.game.common.* ;
 import src.game.planet.Planet;
+import src.user.BaseUI;
 ///import src.user.BaseUI ;
 import src.util.* ;
 
@@ -62,6 +63,7 @@ public class ActorHealth implements ActorConstants {
     MIN_MORALE       = -1.5f,
     REVIVE_THRESHOLD =  0.5f,
     STABILISE_CHANCE =  0.2f,
+    DECOMPOSE_TIME   =  World.DEFAULT_DAY_LENGTH / 2,
     
     FATIGUE_GROW_PER_DAY = 0.50f,
     MORALE_DECAY_PER_DAY = 0.33f,
@@ -82,6 +84,8 @@ public class ActorHealth implements ActorConstants {
     calories    = DEFAULT_HEALTH / 2,
     nutrition   = 0.5f,
     ageMultiple = 1.0f ;
+  private boolean
+    artilect = false ;
   
   private float
     maxHealth = DEFAULT_HEALTH,
@@ -178,7 +182,7 @@ public class ActorHealth implements ActorConstants {
     
     fatigue = Rand.num() * (1 - (calories / maxHealth)) * maxHealth / 2f ;
     injury = Rand.num() * accidentChance * maxHealth / 2f ;
-    morale = (Rand.num() - accidentChance) / 2f ;
+    morale = (Rand.num() - (0.5f + accidentChance)) / 2f ;
   }
   
   
@@ -247,6 +251,11 @@ public class ActorHealth implements ActorConstants {
   }
   
   
+  public boolean organic() {
+    return ! artilect ;
+  }
+  
+  
   
   /**  Methods related to sensing and motion-
     */
@@ -269,6 +278,10 @@ public class ActorHealth implements ActorConstants {
   public void takeInjury(float taken) {
     injury += taken ;
     if (Rand.num() * maxHealth < injury) bleeds = true ;
+    final float max ;
+    if (deceased()) max = maxHealth * (MAX_INJURY + 1) ;
+    else max = maxHealth * MAX_INJURY ;
+    injury = Visit.clamp(injury, 0, max) ;
   }
   
   
@@ -384,10 +397,7 @@ public class ActorHealth implements ActorConstants {
       (actor.traits.trueLevel(VIGOUR) / 3f) +
       (actor.traits.trueLevel(BRAWN ) / 3f)
     ) ;
-    if (numUpdates < 0) {
-      ///I.say(actor+" has max. health: "+maxHealth+" AM: "+ageMultiple) ;
-      return ;
-    }
+    if (numUpdates < 0) return ;
     //
     //  Deal with injury, fatigue and stress.
     final int oldState = state ;
@@ -407,12 +417,15 @@ public class ActorHealth implements ActorConstants {
   
   
   private void checkStateChange() {
+    if (BaseUI.isPicked(actor)) {
+      //I.say("Injury/fatigue:"+injury+"/"+fatigue+", max: "+maxHealth) ;
+      //I.say("STATE IS: "+state) ;
+    }
     //
     //  Check for state effects-
     if (state == STATE_SUSPEND) return ;
     if (state == STATE_DEAD) {
-      injury++ ;
-      if (injury > maxHealth * MAX_INJURY * 2) {
+      if (injury > maxHealth * (MAX_INJURY + 1)) {
         state = STATE_DECOMP ;
       }
       return ;
@@ -426,7 +439,7 @@ public class ActorHealth implements ActorConstants {
     }
     if (
       state == STATE_RESTING && fatigue <= 0 &&
-      injury < (maxHealth * REVIVE_THRESHOLD)
+      injuryLevel() < REVIVE_THRESHOLD
     ) {
       state = STATE_ACTIVE ;
     }
@@ -455,7 +468,10 @@ public class ActorHealth implements ActorConstants {
       FM *= actor.currentAction().moveMultiple() ;
     }
     
-    if (bleeds) {
+    if (deceased()) {
+      injury += maxHealth * 1f / DECOMPOSE_TIME ;
+    }
+    else if (bleeds) {
       injury++ ;
       if (actor.traits.test(VIGOUR, 10, 1) && Rand.num() < STABILISE_CHANCE) {
         bleeds = false ;
@@ -464,7 +480,7 @@ public class ActorHealth implements ActorConstants {
     else injury -= INJURY_REGEN_PER_DAY * maxHealth * IM / DL ;
     fatigue += FATIGUE_GROW_PER_DAY * baseSpeed * maxHealth * FM / DL ;
     fatigue = Visit.clamp(fatigue, 0, MAX_FATIGUE * maxHealth) ;
-    injury  = Visit.clamp(injury , 0, MAX_INJURY  * maxHealth) ;
+    injury = Visit.clamp(injury, 0, (MAX_INJURY + 1) * maxHealth) ;
     
     //
     //  TODO:  Have morale converge to a default based on the cheerful trait.

@@ -279,23 +279,33 @@ public class VenueStructure extends Inventory {
   }
   
   
-  public void advanceUpgrade(float progress) {
+  public Upgrade upgradeInProgress() {
+    if (upgradeIndex == -1) return null ;
+    return upgrades[upgradeIndex] ;
+  }
+  
+  
+  public float advanceUpgrade(float progress) {
     if (upgradeIndex == -1) upgradeIndex = nextUpgradeIndex() ;
-    if (upgradeIndex == -1) return ;// I.complain("NO UPGRADES REMAINING.") ;
-    upgradeProgress += progress ;
-    ///I.say("Upgrade progress is: "+upgradeProgress) ;
+    if (upgradeIndex == -1) return 0 ;
     //
-    //  You may also want to deduct any credits or materials associated with
-    //  construction.
+    //  Update progress, and store the change for return later-
+    final int US = upgradeStates[upgradeIndex] ;
+    final float oldP = upgradeProgress ;
+    upgradeProgress = Visit.clamp(upgradeProgress + progress, 0, 1) ;
+    float amount = upgradeProgress - oldP ;
+    if (US == STATE_SALVAGE) amount *= -0.5f ;
+    //
+    //  If progress is complete, change the current upgrade's state:
     if (upgradeProgress >= 1) {
       final float condition = integrity * 1f / maxIntegrity() ;
-      final int US = upgradeStates[upgradeIndex] ;
       if (US == STATE_SALVAGE) deleteUpgrade(upgradeIndex) ;
       else upgradeStates[upgradeIndex] = STATE_INTACT ;
       upgradeProgress = 0 ;
       upgradeIndex = -1 ;
       integrity = maxIntegrity() * condition ;
     }
+    return amount ;
   }
   
   
@@ -371,7 +381,9 @@ public class VenueStructure extends Inventory {
   public int upgradeLevel(Upgrade type) {
     if (upgrades == null) return 0 ;
     int num = 0 ;
-    for (Upgrade u : upgrades) if (u == type) num++ ;
+    for (int i = 0 ; i < upgrades.length ; i++) {
+      if (upgrades[i] == type && upgradeStates[i] == STATE_INTACT) num++ ;
+    }
     return num ;
   }
   
@@ -421,9 +433,8 @@ public class VenueStructure extends Inventory {
     final Batch <String> desc = new Batch <String> () ;
     if (upgrades == null) return desc ;
     for (int i = 0 ; i < upgrades.length ; i++) {
-      if (upgrades[i] == null) break ;
-      //if (upgradeStates[i] != STATE_INTACT) working = true ;
-      desc.add(upgrades[i].name+" ("+STATE_DESC[upgradeStates[i]]+")") ;
+      if (upgrades[i] == null) desc.add("Empty") ;
+      else desc.add(upgrades[i].name+" ("+STATE_DESC[upgradeStates[i]]+")") ;
     }
     return desc ;
   }
@@ -435,11 +446,6 @@ public class VenueStructure extends Inventory {
     return "Installing "+u.name+" ("+(int) (upgradeProgress * 100)+"%)" ;
   }
 }
-
-
-//
-//  I'm still not entirely clear on how the whole HP bonus thing is supposed to
-//  work out.
 
 
 

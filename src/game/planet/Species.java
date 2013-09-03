@@ -133,14 +133,14 @@ public abstract class Species {
   
   /**  Fields and constructors.
     */
-  final String name, info ;
-  final Texture portrait ;
-  final Model model ;
+  final public String name, info ;
+  final public Texture portrait ;
+  final public Model model ;
   
   private static int nextID = 0 ;
   final int ID = nextID++ ;
   
-  final Type type ;
+  final public Type type ;
   
   
   Species(

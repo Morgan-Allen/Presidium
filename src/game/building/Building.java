@@ -64,8 +64,9 @@ public class Building extends Plan implements ActorConstants {
       final float scale = (1 - needRepair) * 2 ;
       priority += (1 - priority) * scale ;
     }
+    //  TODO:  You also need to modify by community spirit.
     
-    //  TODO:  Scale by allegiance/community spirit.
+    priority *= actor.AI.relation(built.base()) ;
     return (needRepair * priority * URGENT) + priorityMod ;
   }
   
@@ -140,10 +141,14 @@ public class Building extends Plan implements ActorConstants {
   
   
   public boolean actionUpgrade(Actor actor, Venue built) {
+    final Upgrade upgrade = built.structure.upgradeInProgress() ;
+    if (upgrade == null) return false ;
     int success = 1 ;
     success *= actor.traits.test(ASSEMBLY, 10, 0.5f) ? 2 : 1 ;
     success *= actor.traits.test(ASSEMBLY, 20, 0.5f) ? 2 : 1 ;
-    built.structure.advanceUpgrade(success * 1f / 100) ;
+    final float amount = built.structure.advanceUpgrade(success * 1f / 100) ;
+    final float cost = amount * upgrade.buildCost ;
+    built.base().incCredits((0 - cost)) ;
     return true ;
   }
   

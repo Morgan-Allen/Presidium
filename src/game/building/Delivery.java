@@ -12,6 +12,7 @@ import src.game.actors.* ;
 import src.game.base.* ;
 import src.util.* ;
 import src.user.* ;
+import src.game.building.Inventory.Owner ;
 
 
 
@@ -27,21 +28,22 @@ public class Delivery extends Plan {
     STAGE_DROPOFF = 1,
     STAGE_DONE = 2 ;
   
-  final public Venue origin, destination ;  //Allow arbitrary Owners instead.
+  final public Owner origin, destination ;
   final public Item items[] ;
   final Actor passenger ;
   
   private byte stage = STAGE_INIT ;
   private Barge barge ;
+  //private Vehicle driven ;  ...Use instead of the barge?
   
   
   
-  public Delivery(Item item, Venue origin, Venue destination) {
+  public Delivery(Item item, Owner origin, Owner destination) {
     this(new Item[] { item }, origin, destination) ;
   }
   
   
-  public Delivery(Item items[], Venue origin, Venue destination) {
+  public Delivery(Item items[], Owner origin, Owner destination) {
     super(null, origin, destination) ;
     this.origin = origin ;
     this.destination = destination ;
@@ -64,8 +66,8 @@ public class Delivery extends Plan {
     items = new Item[s.loadInt()] ;
     for (int n = 0 ; n < items.length ;) items[n++] = Item.loadFrom(s) ;
     passenger = (Actor) s.loadObject() ;
-    origin = (Venue) s.loadObject() ;
-    destination = (Venue) s.loadObject() ;
+    origin = (Owner) s.loadObject() ;
+    destination = (Owner) s.loadObject() ;
     stage = (byte) s.loadInt() ;
     barge = (Barge) s.loadObject() ;
   }
@@ -96,9 +98,11 @@ public class Delivery extends Plan {
   public boolean valid() {
     if (! super.valid()) return false ;
     if (stage >= STAGE_PICKUP || origin == null) return true ;
+    final World world = ((Element) origin).world() ;
+    final Batch <Behaviour> doing = world.activities.targeting(origin) ;
     for (Item i : items) {
-      final float reserved = reservedForCollection(origin, i.type) ;
-      final float excess = origin.stocks.amountOf(i) - reserved ;
+      final float reserved = reservedForCollection(doing, i.type) ;
+      final float excess = origin.inventory().amountOf(i) - reserved ;
       if (excess >= i.amount) return true ;
     }
     return false ;
@@ -110,9 +114,11 @@ public class Delivery extends Plan {
   }
   
   
-  public static float reservedForCollection(Venue venue, Service goodType) {
+  private static float reservedForCollection(
+    Batch <Behaviour> doing, Service goodType
+  ) {
     float sum = 0 ;
-    for (Behaviour b : venue.world().activities.targeting(venue)) {
+    for (Behaviour b : doing) {
       if (b instanceof Delivery) for (Item i : ((Delivery) b).items) {
         if (i.type == goodType) sum += i.amount ;
       }
@@ -121,11 +127,10 @@ public class Delivery extends Plan {
   }
   
   
-  public static Venue findBestVenue(Actor actor, Item items[]) {
+  public static Venue findBestVendor(Actor actor, Item items[]) {
     //
     //  TODO:  Base this off the list of venues the actor is aware of.
     //  ...Which should, in turn, be updated gradually over time.
-    
     final World world = actor.world() ;
     final int maxTried = 3 ;
     Venue best = null ;
@@ -148,6 +153,46 @@ public class Delivery extends Plan {
     }
     ///I.say("Returning "+best) ;
     return best ;
+  }
+  
+  
+  public static Delivery nextDeliveryFrom(
+    Inventory.Owner venue, Actor actor, Service types[]
+  ) {
+    //
+    //  Otherwise we iterate over every nearby venue, and see if they need what
+    //  we're selling, so to speak.
+    float maxUrgency = 0 ;
+    Delivery picked = null ;
+    final Presences presences = actor.world().presences ;
+    final float SEARCH_RADIUS = World.DEFAULT_SECTOR_SIZE * 2 ;
+    final float ORDER_UNIT = VenueStocks.ORDER_UNIT ;
+    
+    for (Object o : presences.matchesNear(
+      actor.base(), venue, SEARCH_RADIUS
+    )) {
+      final Venue client = (Venue) o ;
+      final float distFactor = (SEARCH_RADIUS + Spacing.distance(
+        venue, client
+      )) / SEARCH_RADIUS ;
+      //
+      //  If we don't have enough of a given item to sell, we just pass over
+      //  that item type.  Conversely, if a venue has no shortage, it is
+      //  ignored.
+      for (Service type : types) {
+        if (venue.inventory().amountOf(type) < ORDER_UNIT) continue ;
+        final float shortage = client.stocks.requiredShortage(type) ;
+        float urgency = shortage ;
+        if (urgency <= 0) continue ;
+        final Delivery order = new Delivery(
+          Item.withAmount(type, ORDER_UNIT), venue, client
+        ) ;
+        if (! order.valid()) continue ;
+        urgency /= distFactor ;
+        if (urgency > maxUrgency) { picked = order ; maxUrgency = urgency ; }
+      }
+    }
+    return picked ;
   }
   
   
@@ -190,25 +235,27 @@ public class Delivery extends Plan {
 
   public boolean actionPickup(Actor actor, Target target) {
     if (stage != STAGE_PICKUP) return false ;
+    I.say(actor+" Performing pickup...") ;
     
     boolean addBarge = true ;
     if (target == origin) {
       float sum = 0 ;
       for (Item i : items) {
-        float TA = origin.stocks.transfer(i, actor) ;
+        float TA = origin.inventory().transfer(i, actor) ;
         sum += TA ;
       }
       if (sum < 5) addBarge = false ;
     }
-    if (target == passenger) {
-      barge.passenger = passenger ;
-    }
-    
+    if (passenger != null) addBarge = true ;
     if (addBarge) {
       final Barge barge = new Barge(actor, this) ;
       final Tile o = actor.origin() ;
       barge.enterWorldAt(o.x, o.y, o.world) ;
-      I.say(actor+" Performing pickup...") ;
+      this.barge = barge ;
+    }
+    
+    if (target == passenger) {
+      barge.passenger = passenger ;
     }
     stage = STAGE_DROPOFF ;
     return true ;
@@ -234,7 +281,9 @@ public class Delivery extends Plan {
     d.append("Delivering ") ;
     final Batch <Item> available = new Batch <Item> () ;
     for (Item i : items) {
-      if ((! origin.stocks.hasItem(i)) && (! actor.gear.hasItem(i))) continue ;
+      if ((! origin.inventory().hasItem(i)) && (! actor.gear.hasItem(i))) {
+        continue ;
+      }
       available.add(i) ;
     }
     d.appendList("", available) ;

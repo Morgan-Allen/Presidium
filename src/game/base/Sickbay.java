@@ -108,23 +108,27 @@ public class Sickbay extends Venue implements BuildConstants {
   
   
   public Behaviour jobFor(Actor actor) {
-    if (! personnel.onShift(actor)) return null ;
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     //
-    //  If anyone is waiting for treatment, tend to them.
-    for (Mobile m : this.inside()) if (m instanceof Actor) {
+    //  If anyone is waiting for treatment, tend to them- including outside the
+    //  building.
+    final Choice choice = new Choice(actor) ;
+    for (Element m : actor.AI.seen()) if (m instanceof Actor) {
       final Actor patient = (Actor) m ;
-      if (patient.health.bleeding()) return new Treatment(
+      choice.add(new Treatment(
         actor, patient, Treatment.TYPE_FIRST_AID, null
-      ) ;
+      )) ;
     }
     for (Mobile m : this.inside()) if (m instanceof Actor) {
       final Actor patient = (Actor) m ;
-      if (patient.health.diseased()) return new Treatment(
+      if (patient.health.diseased()) choice.add(new Treatment(
         actor, patient, Treatment.TYPE_MEDICATION, null
-      ) ;
+      )) ;
     }
     //
     //  You also need to cover treatment of the dead and crazy...
+    final Behaviour picked = choice.weightedPick(actor.AI.whimsy()) ;
+    if (picked != null) return picked ;
     //
     //  Otherwise, just tend the desk...
     return new Supervision(actor, this) ;

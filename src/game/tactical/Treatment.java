@@ -46,7 +46,6 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   final int type ;
   
   private Trait applied = null ;
-  ///private int stage = STAGE_NONE ;
   private float effectiveness = -1 ;
   private Item treatment = null ;
   
@@ -98,7 +97,12 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     }
     if (type == TYPE_FIRST_AID) {
       if (patient.indoors() && ! patient.health.bleeding()) return 0 ;
-      return patient.health.injuryLevel() * PARAMOUNT ;
+      if (patient.health.conscious()) return 0 ;
+      //
+      //  TODO:  Include effects of the Empathic trait.
+      float urgency = actor.AI.relation(patient) * 2 ;
+      if (! patient.health.bleeding()) urgency -= 0.25f ;
+      return patient.health.injuryLevel() * PARAMOUNT * urgency ;
     }
     return 0 ;
   }
@@ -118,6 +122,13 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     }
     return null ;
   }
+  
+  
+  /*
+  public static Treatment nextTreatment(Actor treats) {
+    
+  }
+  //*/
   
   
   
@@ -150,9 +161,20 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     if (actor.aboard() instanceof Sickbay) {
       bonus += 2 + Plan.upgradeBonus(actor.aboard(), Sickbay.SURGERY_WARD) ;
     }
+    //
     //  IF YOU HAVE MEDICINE, LOWER DIFFICULTY.
     if (actor.traits.test(ANATOMY, DC - bonus, FIRST_AID_XP)) {
       patient.health.liftInjury(1) ;
+      if (! patient.health.bleeding()) {
+        this.effectiveness = Rand.num() * actor.traits.trueLevel(ANATOMY) / 10 ;
+        this.applied = INJURY ;
+        this.treatment = Item.withType(SERVICE_TREAT, new Action(
+          patient, patient,
+          this, "actionTreatEffect",
+          Action.STAND, "for injury"
+        )) ;
+        patient.gear.addItem(treatment) ;
+      }
     }
     return true ;
   }
@@ -212,19 +234,6 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   }
   
   
-  public boolean actionTreatEffect(Actor patient, Actor p) {
-    //
-    //  For now, we assume that treatments only take 10 seconds.  Optimistic?
-    //  Yeah.  But in principle, that time can be extended.
-    patient.traits.incLevel(applied, -0.1f * effectiveness) ;
-    if (patient.traits.trueLevel(applied) < 0) {
-      patient.traits.setLevel(applied, 0) ;
-    }
-    patient.gear.removeItem(Item.withAmount(treatment, 0.1f)) ;
-    return true ;
-  }
-  
-  
   public boolean actionMedicate(Actor actor, Actor patient) {
     //
     //  Calculate the difficulty of treating the condition.
@@ -250,6 +259,31 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   
   
   
+  /**  Implements the longer-term effects of treatment:
+    */
+  public boolean actionTreatEffect(Actor patient, Actor p) {
+    //
+    //  We assume that treatment last for 1/3 of a day or so...
+    
+    if (type == TYPE_FIRST_AID) {
+      float HPD = ActorHealth.INJURY_REGEN_PER_DAY ;
+      HPD /= World.DEFAULT_DAY_LENGTH ;
+      patient.health.liftInjury(HPD * 10 * effectiveness) ;
+      patient.gear.removeItem(Item.withAmount(treatment, 0.01f)) ;
+    }
+    if (type == TYPE_MEDICATION) {
+      patient.traits.incLevel(applied, -0.01f * effectiveness) ;
+      if (patient.traits.trueLevel(applied) < 0) {
+        patient.traits.setLevel(applied, 0) ;
+      }
+      patient.gear.removeItem(Item.withAmount(treatment, 0.01f)) ;
+      return true ;
+    }
+    return false ;
+  }
+  
+  
+  
   /**  Rendering and interface methods-
     */
   public void describeBehaviour(Description d) {
@@ -257,6 +291,13 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     d.append(patient) ;
   }
 }
+
+
+
+
+
+
+
 
 
 

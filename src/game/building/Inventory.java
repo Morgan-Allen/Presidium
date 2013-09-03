@@ -31,7 +31,7 @@ public class Inventory {
   }
   
   
-  public static interface Owner {
+  public static interface Owner extends Target, Session.Saveable {
     Inventory inventory() ;
   }
   

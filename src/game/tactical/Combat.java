@@ -88,17 +88,22 @@ public class Combat extends Plan implements ActorConstants {
     
     if (actor == enemy || winReward <= 0) return 0 ;
     final float
-      actorStrength = combatStrength(actor),
-      enemyStrength = combatStrength(enemy),
+      actorStrength = combatStrength(actor, enemy),
+      enemyStrength = combatStrength(enemy, actor),
       chance = actorStrength / (actorStrength + enemyStrength) ;
-    if (BaseUI.isPicked(actor)) I.say(
-      "Actor/enemy strength, chance: "+actorStrength+"/"+enemyStrength+
-      ", "+chance
-    ) ;
     float appeal = 0 ;
-    appeal += winReward * chance ;
+    appeal += actor.AI.relation(enemy) * -1 * ROUTINE ;
+    appeal += winReward ;
+    if (BaseUI.isPicked(actor)) {
+      I.say("  "+actor+" considering COMBAT with "+enemy) ;
+      I.say(
+        "  Actor/enemy strength: "+actorStrength+"/"+enemyStrength+
+        "\n  Appeal before chance: "+appeal+", chance: "+chance
+      ) ;
+    }
+    appeal *= chance ;
     appeal -= (1 - chance) * lossCost ;
-    if (BaseUI.isPicked(actor)) I.say("Final appeal: "+appeal) ;
+    if (BaseUI.isPicked(actor)) I.say("  Final combat appeal: "+appeal) ;
     
     //
     //final float distance = Spacing.distance(enemy, actor) ;
@@ -112,17 +117,41 @@ public class Combat extends Plan implements ActorConstants {
   
   //  TODO:  Actors may need to cache this value?  Maybe later.  Not urgent at
   //  the moment.
-  public static float combatStrength(Actor actor) {
+  
+  //
+  //  Note:  it's acceptable to pass null as the enemy argument, for a general
+  //  estimate of combat prowess.  (TODO:  Put in a separate method for that?)
+  public static float combatStrength(Actor actor, Actor enemy) {
     float strength = 0 ;
     strength += (actor.gear.armourRating() + actor.gear.attackDamage()) / 20f ;
     strength *= actor.health.maxHealth() / 10 ;
     strength *= (1 - actor.health.injuryLevel()) ;
     strength *= 1 - actor.health.skillPenalty() ;
+    ///I.say("  "+actor+" strength:"+strength) ;
     //
-    //  You might need to include modifiers for ranged and melee attack skill,
-    //  plus reflex and shields.
-    //  Work this out later.  Different armour/weapon combos might be relevant.
-    strength *= (actor.traits.trueLevel(REFLEX) + 10) / 20f ;
+    //
+    if (enemy == null) {
+      strength *= (
+        actor.traits.useLevel(CLOSE_COMBAT) +
+        actor.traits.useLevel(MARKSMANSHIP)
+      ) / 20 ;
+      strength *= (
+        actor.traits.useLevel(CLOSE_COMBAT) +
+        actor.traits.useLevel(STEALTH_AND_COVER)
+      ) / 20 ;
+    }
+    else {
+      final Skill attack, defend ;
+      if (actor.gear.meleeWeapon()) {
+        attack = defend = CLOSE_COMBAT ;
+      }
+      else {
+        attack = MARKSMANSHIP ;
+        defend = STEALTH_AND_COVER ;
+      }
+      final float chance = actor.traits.chance(attack, enemy, defend, 0) ;
+      strength *= 2 * chance ;
+    }
     return strength ;
   }
   

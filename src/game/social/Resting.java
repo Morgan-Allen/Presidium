@@ -82,8 +82,8 @@ public class Resting extends Plan implements BuildConstants {
     if (actor.health.fatigueLevel() > 0.1f) {
       final Action relax = new Action(
         actor, restPoint,
-        this, "actionRelax",
-        Action.STAND, "Relaxing at "+restPoint
+        this, "actionRest",
+        Action.FALL, "Resting at "+restPoint
       ) ;
       currentMode = MODE_SLEEP ;
       return relax ;
@@ -123,9 +123,9 @@ public class Resting extends Plan implements BuildConstants {
     //
     //  If you're inside a venue, and it has food, then avail of it-
     final Batch <Service> menu = menuFor(place) ;
-    if (menu.size() > 0) {
+    final int numFoods = menu.size() ;
+    if (numFoods > 0) {
       final Venue venue = (Venue) place ;
-      int numFoods = 0 ;
       for (Service type : menu) {
         venue.inventory().removeItem(Item.withAmount(type, 1f / numFoods)) ;
       }
@@ -155,10 +155,11 @@ public class Resting extends Plan implements BuildConstants {
   }
   
   
-  public boolean actionRelax(Actor actor, Boardable place) {
+  public boolean actionRest(Actor actor, Boardable place) {
     //  TODO:  If you're in a public venue, you'll have to pay the
     //  admission fee.  Also, should the actor just enter sleep mode?
-    
+    actor.health.setState(ActorHealth.STATE_RESTING) ;
+    /*
     final int restBonus = 3 ;
     float liftF = ActorHealth.FATIGUE_GROW_PER_DAY * actor.health.maxHealth() ;
     liftF *= restBonus * 1f / World.DEFAULT_DAY_LENGTH ;
@@ -168,6 +169,7 @@ public class Resting extends Plan implements BuildConstants {
     comfort *= actor.health.maxHealth() / 10 ;
     comfort *= restBonus * 1f / World.DEFAULT_DAY_LENGTH ;
     actor.health.adjustMorale(comfort) ;
+    //*/
     return true ;
   }
   

@@ -319,7 +319,7 @@ public class ActorGear extends Inventory implements BuildConstants {
   
   public boolean addItem(Item item) {
     if (item == null) return false ;
-    if (item.refers != null) item = Item.withReference(item, null) ;
+    if (item.refers == actor) item = Item.withReference(item, null) ;
     if      (item.type instanceof DeviceType) equipDevice(item) ;
     else if (item.type instanceof OutfitType) equipOutfit(item) ;
     else if (! super.addItem(item)) return false ;
@@ -327,6 +327,9 @@ public class ActorGear extends Inventory implements BuildConstants {
     return true ;
   }
 }
+
+
+
 
 
 

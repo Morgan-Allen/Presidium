@@ -28,10 +28,11 @@ public class Vocation implements BuildConstants {
     EXPERT    = 15,
     MASTER    = 20 ;
   final public static int
-    SLAVE_CLASS =  0,
-    LOWER_CLASS =  1,
-    UPPER_CLASS =  2,
-    RULER_CLASS =  3 ;
+    SLAVE_CLASS  =  0,
+    LOWER_CLASS  =  1,
+    MIDDLE_CLASS =  2,
+    UPPER_CLASS  =  3,
+    RULER_CLASS  =  4 ;
   
   final static String COSTUME_DIR = "media/Actors/human/" ;
   
@@ -102,7 +103,7 @@ public class Vocation implements BuildConstants {
     
     FABRICATOR = new Vocation(
       "Fabricator", "citizen_skin.gif", null,
-      LOWER_CLASS,
+      MIDDLE_CLASS,
       PRACTICED, CHEMISTRY, NOVICE, HARD_LABOUR, CHEMISTRY, GRAPHIC_MEDIA,
       SOMETIMES, STUBBORN
     ),
@@ -119,13 +120,13 @@ public class Vocation implements BuildConstants {
   final public static Vocation
     
     VAT_BREEDER = new Vocation(
-      "Vat Breeder", "citizen_skin.gif", null, LOWER_CLASS, new Object[] {
+      "Vat Breeder", "citizen_skin.gif", null, MIDDLE_CLASS, new Object[] {
       10, GENE_CULTURE, PHARMACY, 5, CHEMISTRY, ASSEMBLY,
       RARELY, DEBAUCHED, INDOLENT
     }),
     
     MINDER = new Vocation(
-      "Minder", "citizen_skin.gif", null, LOWER_CLASS,
+      "Minder", "citizen_skin.gif", null, MIDDLE_CLASS,
       PRACTICED, DOMESTIC_SERVICE, SUASION, NOVICE, ANATOMY, PHARMACY,
       OFTEN, EMPATHIC, SOMETIMES, STUBBORN
     ),
@@ -150,9 +151,9 @@ public class Vocation implements BuildConstants {
     
     SURVEYOR = new Vocation(
       "Surveyor", "ecologist_skin.gif", "ecologist_portrait.png",
-      UPPER_CLASS,
+      MIDDLE_CLASS,
       EXPERT, XENOBIOLOGY, STEALTH_AND_COVER, PRACTICED, MARKSMANSHIP,
-      NATIVE_TABOO, NOVICE, BATTLE_TACTICS,
+      NATIVE_TABOO, NOVICE, BATTLE_TACTICS, CLOSE_COMBAT,
       RARELY, NERVOUS, INDOLENT, OFTEN, NATURALIST,
       PHASE_PISTOL, CAMOUFLAGE
     ),
@@ -167,14 +168,6 @@ public class Vocation implements BuildConstants {
   ;
   
   final public static Vocation
-
-    SOMA_VENDOR = new Vocation(
-      "Soma Vendor", "vendor_skin.gif", "vendor_portrait.png",
-      LOWER_CLASS,
-      PRACTICED, COUNSEL, SUASION, NOVICE, DOMESTIC_SERVICE, CHEMISTRY,
-      ADMINISTRATION,
-      SOMETIMES, ACQUISITIVE
-    ),
     
     SUPPLY_CORPS = new Vocation(
       "Supply Corps", "pyon_skin.gif", null,
@@ -189,11 +182,19 @@ public class Vocation implements BuildConstants {
       NOVICE, SUASION, HARD_LABOUR, ADMINISTRATION
     ),
     
+    SOMA_VENDOR = new Vocation(
+      "Soma Vendor", "vendor_skin.gif", "vendor_portrait.png",
+      MIDDLE_CLASS,
+      PRACTICED, COUNSEL, SUASION, NOVICE, DOMESTIC_SERVICE, CHEMISTRY,
+      ADMINISTRATION,
+      SOMETIMES, ACQUISITIVE
+    ),
+    
     AUDITOR = new Vocation(
       "Auditor", "vendor_skin.gif", "vendor_portrait.png",
       UPPER_CLASS,
       EXPERT, COUNSEL, ADMINISTRATION, PRACTICED, COMMAND, LOGOS_MENSA,
-      ALWAYS, STUBBORN, DUTIFUL,
+      ALWAYS, STUBBORN, OFTEN, DUTIFUL,
       SOMETIMES, AMBITIOUS, IMPASSIVE, RARELY, DEBAUCHED
     ) ;
   

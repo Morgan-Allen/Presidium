@@ -16,6 +16,8 @@ import javax.swing.* ;
   *  (The name is intended to be as terse as possible.)
   *  TODO:  You need to have a logging system that allows various classes to
   *         be toggled on and off for reports.
+  *  TODO:  Get rid of the BaseUI.isPicked() method and create a sayFor(X, Y)
+  *         method instead.
   */
 public class I {
   

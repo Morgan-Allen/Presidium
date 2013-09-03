@@ -112,7 +112,7 @@ public class Retreat extends Plan implements ActorConstants {
       final Actor near = (Actor) m ;
       //
       //  More distant foes are less threatening.
-      float danger = Combat.combatStrength(near) ;
+      float danger = Combat.combatStrength(near, actor) ;
       if (! near.isDoing(Combat.class)) danger /= 2 ;
       final float dist = Visit.clamp(Spacing.distance(spot, near), 0, range) ;
       danger *= 1 - (dist / range) ;
@@ -126,7 +126,7 @@ public class Retreat extends Plan implements ActorConstants {
       if (attitude > 0) seenDanger -= danger / 2 ;
     }
     if (seenDanger <= 0) return 0 ;
-    final float strength = Combat.combatStrength(actor) * 2 ;
+    final float strength = Combat.combatStrength(actor, null) * 2 ;
     if (strength <= 0) return PARAMOUNT ;
     return Visit.clamp(seenDanger / strength, 0, PARAMOUNT) ;
   }

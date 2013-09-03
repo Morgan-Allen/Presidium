@@ -72,6 +72,10 @@ public class Barge extends Mobile {
       (! followed.inWorld()) ||
       ! followed.AI.agenda().includes(tracked)
     ) {
+      if (passenger != null) {
+        final Tile o = origin() ;
+        passenger.setPosition(o.x, o.y, world) ;
+      }
       exitWorld() ;
       return ;
     }

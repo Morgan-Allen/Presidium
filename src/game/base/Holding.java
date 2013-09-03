@@ -117,6 +117,9 @@ public class Holding extends Venue implements BuildConstants {
   ) ;
   protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
+    TENT_LEVEL = new Upgrade(
+      "Tent Level", "", 0, null, 0, null, ALL_UPGRADES
+    ),
     PYON_LEVEL = new Upgrade(
       "Pyon Level", "", 0, null, 0, null, ALL_UPGRADES
     ),
@@ -270,10 +273,13 @@ public class Holding extends Venue implements BuildConstants {
   }
   
   
-  public String[] infoCategories() { return null ; }
+  public String[] infoCategories() {
+    return new String[] { "Status", "Staff" } ;
+  }
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
-    
+    if (categoryID != 2) super.writeInformation(d, categoryID, UI) ;
+    /*
     d.append("Condition: ") ;
     d.append(structure.repair()+" / "+structure.maxIntegrity()) ;
     d.appendList("\n\nHome of: ", personnel.residents()) ;

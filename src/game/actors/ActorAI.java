@@ -215,8 +215,6 @@ public abstract class ActorAI implements ActorConstants {
   
   
   protected void onWorldExit() {
-    setHomeVenue(null) ;
-    setEmployer(null) ;
   }
   
   
@@ -357,7 +355,10 @@ public abstract class ActorAI implements ActorConstants {
   
   public float relation(Actor other) {
     final Relation r = relations.get(other) ;
-    if (r == null) return 0 ;  //TODO:  Initialise a fresh relation?
+    if (r == null) {
+      return relation(other.base()) / 2 ;
+      //return 0 ;  //TODO:  Initialise a fresh relation?
+    }
     return r.value() + (relation(other.base()) / 2) ;
   }
   

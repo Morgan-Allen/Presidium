@@ -202,7 +202,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     //
     //  Consider going home to rest, or finding a recreational facility of
     //  some kind.  That requires iterating over various venues.
-    choice.add(new Recreation(actor, Recreation.findRecreation(actor))) ;
+    choice.add(Recreation.findRecreation(actor)) ;
     choice.add(new Resting(actor, Resting.pickRestPoint(actor))) ;
     //
     //  As hobbies, consider hunting, exploration, assistance, and dialogue,
@@ -241,7 +241,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     //  together at the stock exchange.
     if (home instanceof Holding) {
       final Item items[] = ((Holding) home).goodsNeeded().toArray(Item.class) ;
-      final Venue shop = Delivery.findBestVenue(actor, items) ;
+      final Venue shop = Delivery.findBestVendor(actor, items) ;
       if (shop != null) {
         choice.add(new Delivery(items, shop, home)) ;
       }

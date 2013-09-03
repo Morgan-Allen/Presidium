@@ -16,7 +16,7 @@ public class Choice {
   
   /**  Data fields, constructors and setup-
     */
-  public static boolean verbose = false ;
+  public static boolean verbose = true ;
   
   final Actor actor ;
   final Batch <Behaviour> plans = new Batch <Behaviour> () ;

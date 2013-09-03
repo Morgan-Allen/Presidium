@@ -197,7 +197,7 @@ public class VenuePersonnel {
   protected void updatePersonnel(int numUpdates) {
     //
     //  If there's an unfilled opening, look for someone to fill it.
-    //  ...Include some random timing-factor here?
+    //  TODO:  This should really be handled more from the Commerce class.
     if (numUpdates % 10 == 0) {
       final World world = venue.world() ;
       if (venue.careers() == null) return ;
@@ -218,6 +218,10 @@ public class VenuePersonnel {
           venue.base().commerce.genCandidate(v, venue, numOpen) ;
         }
       }
+      //
+      //  Clear out the office for anyone dead-
+      for (Actor a : workers) if (a.destroyed()) workers.remove(a) ;
+      for (Actor a : residents) if (a.destroyed()) residents.remove(a) ;
     }
   }
   
@@ -262,7 +266,9 @@ public class VenuePersonnel {
       for (int i = numOpen ; i-- > 0 ;) {
         final Human worker = new Human(v, venue.base()) ;
         worker.AI.setEmployer(venue) ;
-        venue.base().commerce.addImmigrant(worker) ;
+        final Tile e = venue.mainEntrance() ;
+        if (GameSettings.hireFree) worker.enterWorldAt(e.x, e.y, venue.world()) ;
+        else venue.base().commerce.addImmigrant(worker) ;
       }
     }
   }

@@ -49,10 +49,12 @@ public class Recreation extends Plan implements BuildConstants {
   }
   
   
-  public static Venue findRecreation(Actor actor) {
-    return actor.world().presences.randomMatchNear(
+  public static Recreation findRecreation(Actor actor) {
+    Venue venue = actor.world().presences.randomMatchNear(
       Cantina.class, actor, World.DEFAULT_SECTOR_SIZE
     ) ;
+    if (venue == null) return null ;
+    return new Recreation(actor, venue) ;
   }
   
   

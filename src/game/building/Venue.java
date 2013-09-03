@@ -427,11 +427,11 @@ public abstract class Venue extends Fixture implements
   private void describeUpgrades(Description d, HUD UI) {
     
     final Batch <String> DU = structure.descUpgrades() ;
-    d.append("CURRENT UPGRADES ("+DU.size()+"/"+structure.maxUpgrades()+")") ;
+    final int numU = structure.numUpgrades(), maxU = structure.maxUpgrades() ;
+    d.append("Upgrade slots ("+numU+"/"+maxU+")") ;
     for (String s : DU) d.append("\n  "+s) ;
-    //d.append("Upgrade progress: "+structure.) ;
     
-    d.append("\n\nAVAILABLE UPGRADES:") ;
+    d.append("\n\nUpgrades available: ") ;
     final Index <Upgrade> upgrades = allUpgrades() ;
     if (upgrades != null && upgrades.members().length > 0) {
       for (final Upgrade upgrade : upgrades) {
@@ -439,6 +439,7 @@ public abstract class Venue extends Fixture implements
         d.append(new Description.Link(upgrade.name) {
           public void whenClicked() { lastCU = upgrade ; }
         }) ;
+        d.append(" (x"+structure.upgradeLevel(upgrade)+")") ;
       }
       if (lastCU != null) {
         d.append("\n\nDescription: ") ;

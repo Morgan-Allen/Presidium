@@ -17,8 +17,6 @@ import src.game.building.TileSpread ;
 //  is.  Then you pick tiles from within that general area, based on proximity
 //  to the actor.
 
-//  Use the TODO system.  Then they can go back a mission they dropped!
-
 //  You also need to merge Exploring with Recon, and Combat with Strike.
 
 
@@ -75,7 +73,7 @@ public class Exploring extends Plan implements ActorConstants {
   
   
   public float priorityFor(Actor actor) {
-    return rateExplorePoint(actor, lookedAt, 0) ;
+    return rateExplorePoint(actor, lookedAt, 0) + priorityMod ;
   }
   
   
@@ -93,14 +91,7 @@ public class Exploring extends Plan implements ActorConstants {
   ) {
     winReward += actor.traits.trueLevel(INQUISITIVE) / 2f ;
     winReward -= actor.traits.trueLevel(INDOLENT) / 2f ;
-    
-    //
-    //  Subtract the dangers of the journey.  Divide by time taken/distance.
-    final float SS = World.DEFAULT_SECTOR_SIZE ;
-    float distance = Spacing.distance(actor, point) ;
-    distance = (distance + SS) / SS ;
-    
-    return winReward / distance ;
+    return winReward - Plan.rangePenalty(actor, point) ;
   }
   
   

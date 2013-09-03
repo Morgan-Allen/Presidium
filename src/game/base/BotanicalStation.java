@@ -250,7 +250,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
 
   public Behaviour jobFor(Actor actor) {
-    final Delivery d = stocks.nextDelivery(actor, services()) ;
+    final Delivery d = Delivery.nextDeliveryFrom(this, actor, services()) ;
     if (d != null) return d ;
     
     //if (true) return null ;
@@ -292,7 +292,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
   /**  Rendering and interface methods-
     */
   public Composite portrait(HUD UI) {
-    return new Composite(UI, "media/GUI/Buttons/ecologist_button.gif") ;
+    return new Composite(UI, "media/GUI/Buttons/nursery_button.gif") ;
   }
   
   
@@ -301,38 +301,14 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   public String helpInfo() {
     return
-      "Botanical Stations are responsible for agriculture and forestry.";
+      "Botanical Stations are responsible for agriculture and forestry, "+
+      "helping to secure food supplies and advance terraforming efforts." ;
   }
   
   
   public String buildCategory() {
     return InstallTab.TYPE_ECOLOGIST ;
   }
-  /*
-  public void writeInformation(Description d, int categoryID, HUD UI) {
-    
-    d.append(new Description.Link("\n[Grow Starches]") {
-      public void whenClicked() {
-        growStarches = ! growStarches ;
-      }
-    }, growStarches ? Colour.GREEN : Colour.RED) ;
-    
-    d.append(new Description.Link("\n[Grow Greens]") {
-      public void whenClicked() {
-        growGreens = ! growGreens ;
-      }
-    }, growGreens ? Colour.GREEN : Colour.RED) ;
-    
-    d.append(new Description.Link("\n[Grow Protein]") {
-      public void whenClicked() {
-        growProtein = ! growProtein ;
-      }
-    }, growProtein ? Colour.GREEN : Colour.RED) ;
-    d.append("\n\n") ;
-    
-    super.writeInformation(d, categoryID, UI) ;
-  }
-  //*/
 }
 
 

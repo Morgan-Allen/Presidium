@@ -29,12 +29,33 @@ import src.util.* ;
 
 
 
-public class Dropship extends Vehicle implements Inventory.Owner {
+public class Dropship extends Vehicle implements
+  Inventory.Owner, BuildConstants
+{
   
   
   
   /**  Fields, constants, constructors and save/load methods-
     */
+  final static String SHIP_NAMES[] = {
+    "The Rusty Mariner",
+    "The Solar Wind",
+    "The Blue Nebula",
+    "The Dejah Thoris",
+    "The Royal Organa",
+    "The Consort Irulan",
+    "The Century Wake",
+    "The Lacrimosa",
+    "The Firebrat",
+    "The Orion Belt",
+    "The Polaris",
+    "The Water Bearer",
+    "The Bottle of Klein",
+    "The Occam Razor",
+    "The Event Horizon"
+  } ;
+  
+  
   final static String
     FILE_DIR = "media/Vehicles/",
     XML_PATH = FILE_DIR+"VehicleModels.xml" ;
@@ -61,6 +82,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   private Vec3D aimPos = new Vec3D() ;
   private float stageInceptTime = 0 ;
   private int stage = STAGE_AWAY ;
+  private int nameID = -1 ;
   
   
   
@@ -68,6 +90,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     super() ;
     attachSprite(FREIGHTER_MODEL.makeSprite()) ;
     this.stage = STAGE_AWAY ;
+    this.nameID = Rand.index(SHIP_NAMES.length) ;
   }
   
   
@@ -76,6 +99,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     aimPos.loadFrom(s.input()) ;
     stageInceptTime = s.loadFloat() ;
     stage = s.loadInt() ;
+    nameID = s.loadInt() ;
   }
   
   
@@ -84,6 +108,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     aimPos.saveTo(s.output()) ;
     s.saveFloat(stageInceptTime) ;
     s.saveInt(stage) ;
+    s.saveInt(nameID) ;
   }
   
   
@@ -97,23 +122,35 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   /**  Economic and behavioural functions-
     */
   public Behaviour jobFor(Actor actor) {
+    
+    //  TODO:  You'll have to restrict deliveries to certain venues, I think.
+    //  Have the customer come to you instead.
+    /*
+    final Delivery d = Delivery.nextDeliveryFrom(
+      this, actor, CARRIED_ITEM_TYPES
+    ) ;
+    if (d != null) return d ;
+    if (actor.isDoing(Delivery.class)) return null ;
+    //*/
+    
     if (stage == STAGE_BOARDING) {
       final Action boardAction = new Action(
         actor, this,
         this, "actionBoard",
         Action.STAND, "boarding "+this
       ) ;
-      boardAction.setPriority(Behaviour.URGENT) ;
+      final float priority = timeLanded() / 10 ;
+      boardAction.setPriority(Visit.clamp(priority, 0, Action.PARAMOUNT)) ;
       return boardAction ;
     }
-    
-    return super.jobFor(actor) ;
+    return null ;
   }
   
   
   public boolean actionBoard(Actor actor, Dropship ship) {
-    actor.exitWorld() ;  //This may be a little extreme, but needed atm...
     ship.setInside(actor, true) ;
+    //  TODO:  Consider doing this when the ship gets away instead.
+    actor.exitWorld() ;
     return true ;
   }
   
@@ -125,7 +162,12 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   
   public boolean allAboard() {
-    for (Actor c : crew) if (c.aboard() != this) return false ;
+    for (Actor c : crew()) {
+      if (c.aboard() != this) return false ;
+      if (c.currentAction() != null && ! c.amDoing("actionBoard")) {
+        return false ;
+      }
+    }
     return true ;
   }
   
@@ -136,6 +178,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     final Box2D site = this.area(null) ;
     final Tile o = world.tileAt(site.xpos() + 0.5f, site.ypos() + 0.5f) ;
     final Tile exit = world.tileAt(o.x + EC[0], o.y + EC[1]) ;
+    this.dropPoint = exit ;
     
     for (Mobile m : inside()) if (! m.inWorld()) {
       m.enterWorldAt(exit.x, exit.y, world) ;
@@ -197,6 +240,7 @@ public class Dropship extends Vehicle implements Inventory.Owner {
     }
     final Tile exits = Spacing.pickRandomTile(origin(), INIT_DIST, world) ;
     aimPos.set(exits.x, exits.y, INIT_HIGH) ;
+    this.dropPoint = null ;
     stage = STAGE_ASCENT ;
     stageInceptTime = world.currentTime() ;
   }
@@ -218,6 +262,12 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   
   public float timeLanded() {
+    if (stage == STAGE_AWAY || stage == STAGE_DESCENT) return - 1 ;
+    return world.currentTime() - stageInceptTime ;
+  }
+  
+  
+  public float timeAway(World world) {
     return world.currentTime() - stageInceptTime ;
   }
   
@@ -381,7 +431,8 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   
   public String fullName() {
-    return "Dropship" ;
+    if (nameID == -1) return "Dropship" ;
+    return SHIP_NAMES[nameID] ;
   }
   
   
@@ -392,163 +443,19 @@ public class Dropship extends Vehicle implements Inventory.Owner {
   
   public String helpInfo() {
     return
-      "The Dropship ferries initial colonists and startup supplies to your "+
+      "Dropships ferry initial colonists and startup supplies to your "+
       "fledgling settlement, courtesy of your homeworld's generosity." ;
   }
   
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
-    d.appendList("Aboard: ", this.inside()) ;
+    d.appendList("Crew: ", crew()) ;
+    d.appendList("\n\nPassengers: ", inside()) ;
+    d.appendList("\n\nCargo: ", cargo.allItems()) ;
     d.append("\n\n") ; d.append(helpInfo()) ;
   }
 }
 
 
-
-/*
-if (stage == STAGE_DESCENT) {
-  float time = Math.min(world.currentTime() - initTime, TOTAL_FLIGHT_TIME) ;
-  this.nextPosition.setTo(getShipPos(time)) ;
-  this.nextRotation = getShipRot(time, true) ;
-  if (time == TOTAL_FLIGHT_TIME) {
-    completeDescent() ;
-    stage = STAGE_LANDED ;
-  }
-}
-if (stage == STAGE_ASCENT) {
-  float time = TOTAL_FLIGHT_TIME - (world.currentTime() - initTime) ;
-  if (time < 0) {
-    completeAscent() ;
-    stage = STAGE_AWAY ;
-  }
-  else {
-    this.nextPosition.setTo(getShipPos(time)) ;
-    this.nextRotation = getShipRot(time, true) ;
-  }
-}
-//*/
-
-
-/*
-final static float
-  LOWER_FLIGHT_HEIGHT = 5,
-  UPPER_FLIGHT_RADIUS = 7,
-  UPPER_FLIGHT_TIME   = 9,
-  LOWER_FLIGHT_TIME   = 7,
-  TOTAL_FLIGHT_TIME = UPPER_FLIGHT_TIME + LOWER_FLIGHT_TIME ;
-//*/
-
-
-
-
-
-/**  Handling ascension and descent-
-public void beginDescent(Box2D area, World world) {
-  if (inWorld()) I.complain("Already in world!") ;
-  this.landPos.set(
-    area.xpos() + (area.xdim() / 2),
-    area.ypos() + (area.ydim() / 2)
-  ) ;
-  this.entranceFace = Venue.ENTRANCE_SOUTH ;
-  this.liftOff.setFromAngle(Rand.num() * 360) ;
-  liftOff.scale(UPPER_FLIGHT_RADIUS).add(landPos) ;
-  liftOff.x = Visit.clamp(liftOff.x, 0, world.size - 1) ;
-  liftOff.y = Visit.clamp(liftOff.y, 0, world.size - 1) ;
-  this.initTime = world.currentTime() ;
-  this.stage = STAGE_DESCENT ;
-  
-  final Vec3D p = getShipPos(0) ;
-  enterWorldAt((int) p.x, (int) p.y, world) ;
-  position.setTo(nextPosition.setTo(p)) ;
-  rotation = nextRotation = getShipRot(0, true) ;
-}
-
-
-public void completeDescent() {
-  
-  initTime = world.currentTime() ;
-  stage = STAGE_LANDED ;
-  this.nextPosition.setTo(this.getShipPos(TOTAL_FLIGHT_TIME)) ;
-  this.nextRotation = this.getShipRot(TOTAL_FLIGHT_TIME, true) ;
-  this.position.setTo(nextPosition) ;
-  this.rotation = nextRotation ;
-  
-  this.performLandingAt(world, landArea()) ;
-  this.offloadPassengers() ;
-  ///for (Item item : cargo.allItems()) cargo.transfer(item, dropPoint) ;
-}
-
-
-public void beginAscent() {
-  this.performTakeoff(world, landArea()) ;
-  
-  if (! inWorld()) I.complain("No longer in world!") ;
-  ///if (dropPoint instanceof DropZone) dropPoint.exitWorld() ;
-  initTime = world.currentTime() ;
-  stage = STAGE_ASCENT ;
-}
-
-
-public void completeAscent() {
-  initTime = world.currentTime() ;
-  exitWorld() ;
-}
-
-
-public int flightStage() {
-  return stage ;
-}
-
-
-public boolean landed() {
-  return stage > STAGE_DESCENT && stage < STAGE_ASCENT ;
-}
-
-
-public float timeSinceDescent(World world) {
-  if (! landed()) return -1 ;
-  return world.currentTime() - initTime ;
-}
-
-
-public float timeSinceAscent(World world) {
-  if (stage != STAGE_AWAY) return -1 ;
-  return world.currentTime() - initTime ;
-}
-
-
-private Vec3D getShipPos(float time) {
-  if (time < UPPER_FLIGHT_TIME) {
-    final float
-      progress = time / UPPER_FLIGHT_TIME,
-      asAngle  = (float) Math.toRadians(progress * 90),
-      horiz = (float) Math.sin(asAngle),
-      vert  = (float) Math.cos(asAngle) ;
-    final Vec3D p = new Vec3D(
-      (landPos.x * horiz) + (liftOff.x * (1 - horiz)),
-      (landPos.y * horiz) + (liftOff.y * (1 - horiz)),
-      LOWER_FLIGHT_HEIGHT + (UPPER_FLIGHT_RADIUS * vert)
-    ) ;
-    return p ;
-  }
-  else {
-    final float height = LOWER_FLIGHT_HEIGHT *
-      (1 - ((time - UPPER_FLIGHT_TIME) / LOWER_FLIGHT_TIME)) ;
-    return new Vec3D(landPos.x, landPos.y, height) ;
-  }
-}
-
-
-private float getShipRot(float time, boolean descent) {
-  final Vec2D initVec = new Vec2D(liftOff).sub(landPos).normalise() ;
-  if (descent) initVec.scale(-1) ;
-  final float rotate = time / (UPPER_FLIGHT_TIME + LOWER_FLIGHT_TIME) ;
-  final float landRot = entranceFace * 360 / 4f ;
-  final float
-    initAngle = initVec.toAngle(),
-    terpAngle = Vec2D.degreeDif(landRot, initAngle) * rotate ;
-  return (initAngle + terpAngle + 360) % 360 ;
-}
-//*/
 
 

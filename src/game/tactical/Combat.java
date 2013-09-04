@@ -20,7 +20,7 @@ public class Combat extends Plan implements ActorConstants {
   
   /**  
     */
-  public static interface Participant { CombatStats combatStats() ; }
+  ///public static interface Participant { CombatStats combatStats() ; }
   
   //  Also allow Venues as targets.
   //final Actor target ;
@@ -71,6 +71,12 @@ public class Combat extends Plan implements ActorConstants {
   }
   
   
+  public boolean valid() {
+    if (target instanceof Actor && ((Actor) target).indoors()) return false ;
+    return super.valid() ;
+  }
+  
+  
   public static boolean isDead(Element subject) {
     if (subject instanceof Actor)
       return ((Actor) subject).health.deceased() ;
@@ -86,7 +92,10 @@ public class Combat extends Plan implements ActorConstants {
     //  TODO:  Retrofit this to work with buildings?  What about offensive
     //  structures?
     
-    if (actor == enemy || winReward <= 0) return 0 ;
+    if (actor == enemy || winReward <= 0) {
+      if (BaseUI.isPicked(actor)) I.say("  No combat reward!") ;
+      return 0 ;
+    }
     final float
       actorStrength = combatStrength(actor, enemy),
       enemyStrength = combatStrength(enemy, actor),
@@ -94,6 +103,8 @@ public class Combat extends Plan implements ActorConstants {
     float appeal = 0 ;
     appeal += actor.AI.relation(enemy) * -1 * ROUTINE ;
     appeal += winReward ;
+    
+    //*
     if (BaseUI.isPicked(actor)) {
       I.say("  "+actor+" considering COMBAT with "+enemy) ;
       I.say(
@@ -101,6 +112,7 @@ public class Combat extends Plan implements ActorConstants {
         "\n  Appeal before chance: "+appeal+", chance: "+chance
       ) ;
     }
+    //*/
     appeal *= chance ;
     appeal -= (1 - chance) * lossCost ;
     if (BaseUI.isPicked(actor)) I.say("  Final combat appeal: "+appeal) ;
@@ -266,8 +278,8 @@ public class Combat extends Plan implements ActorConstants {
       offence, target, defence, 0 - rangePenalty(actor, target), 10
     ) ;
     if (success) {
-      float damage = actor.gear.attackDamage() * Rand.avgNums(2) ;
-      damage -= target.gear.armourRating() * (Rand.num() + 0.5f) ;
+      float damage = actor.gear.attackDamage() * Rand.avgNums(2) * 1.5f ;
+      damage -= target.gear.armourRating() * (Rand.avgNums(2) + 0.25f) ;
       if (damage > 0) target.health.takeInjury(damage) ;
     }
     DeviceType.applyFX(actor.gear.deviceType(), actor, target, success) ;
@@ -286,13 +298,13 @@ public class Combat extends Plan implements ActorConstants {
       accurate = actor.traits.test(MARKSMANSHIP, penalty, 1) ;
     }
     
-    float damage = actor.gear.attackDamage() * Rand.num() * 2 ;
+    float damage = actor.gear.attackDamage() * Rand.avgNums(2) * 1.5f ;
     if (accurate) damage *= 1.5f ;
     else damage *= 0.5f ;
     
     final float armour = besieged.structure.armouring() ;
-    damage -= armour * ((Rand.num() * 2) + 0.5f) ;
-    damage /= 1 + (armour / 2) ;
+    damage -= armour * (Rand.avgNums(2) + 0.25f) ;
+    damage *= 5f / (5 + armour) ;
     
     I.say("Armour/Damage: "+armour+"/"+damage) ;
     

@@ -52,6 +52,21 @@ public abstract class Fauna extends Actor {
   
   
   
+  /**  Registering abundance with the ecology class-
+    */
+  public void enterWorldAt(int x, int y, World world) {
+    super.enterWorldAt(x, y, world) ;
+    world.ecology().impingeAbundance(this, false) ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    world.ecology().impingeAbundance(this, true) ;
+  }
+  
+
+
   /**  Shared behavioural methods-
     */
   protected ActorAI initAI() {
@@ -81,17 +96,17 @@ public abstract class Fauna extends Actor {
         if (other instanceof Fauna) {
           final Fauna f = (Fauna) other ;
           if (f.species == species) return 0.25f ;
-          else if (f.species.goesHunt()) return -0.5f ;
-          else if (f.species.type != Species.Type.BROWSER) return -0.25f ;
+          if (f.species.type == Species.Type.BROWSER) return 0 ;
+          if (f.species.goesHunt()) return -0.5f ;
         }
-        return 0 ;
+        return -0.25f ;
       }
     } ;
   }
   
   
   protected Behaviour nextHunting() {
-    final Actor prey = Hunting.nextPreyFor(this, Lair.PEER_SAMPLE_RANGE) ;
+    final Actor prey = Hunting.nextPreyFor(this, Lair.PREDATOR_SAMPLE_RANGE) ;
     if (prey == null) return null ;
     final Hunting hunting = new Hunting(this, prey, Hunting.TYPE_FEEDS) ;
     return hunting ;
@@ -146,7 +161,7 @@ public abstract class Fauna extends Actor {
     actor.health.setState(ActorHealth.STATE_RESTING) ;
     final Lair lair = (Lair) actor.AI.home() ;
     if (lair != point) return true ;
-    final float rating = species.goesHunt() ? lair.rateCrowding(world) : 1 ;
+    final float rating = lair.rateCurrentSite(world) ;
     if (rating < 0 || lair.crowding() > 1) return false ;
     //
     //  If the venue's not too crowded, consider reproducing.
@@ -171,7 +186,7 @@ public abstract class Fauna extends Actor {
   
   protected Behaviour nextMigration() {
     final Lair lair = (Lair) this.AI.home() ;
-    final float range = Lair.PEER_SAMPLE_RANGE ;
+    final float range = species.forageRange() ;
     Tile free = Spacing.pickRandomTile(this, range, world) ;
     free = Spacing.nearestOpenTile(free, this) ;
     
@@ -211,7 +226,7 @@ public abstract class Fauna extends Actor {
     if (shouldNest) {
       final Lair newLair = actor.species.createLair() ;
       newLair.setPosition(point.x, point.y, actor.world()) ;
-      float rating = newLair.rateCrowding(actor.world()) ;
+      float rating = newLair.rateCurrentSite(actor.world()) ;
       if (rating > 0) {
         actor.AI.setHomeVenue(newLair) ;
         newLair.clearSurrounds() ;
@@ -258,6 +273,7 @@ public abstract class Fauna extends Actor {
     //  TODO:  Add the option to kill peers in cases of overcrowding.
     if (species.browses()) choice.add(nextBrowsing()) ;
     if (species.goesHunt()) choice.add(nextHunting()) ;
+    ////I.say("  "+this+" ADDING NEW CHOICES...") ;
     choice.add(nextDefence()) ;
     choice.add(nextResting()) ;
     choice.add(nextMigration()) ;

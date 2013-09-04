@@ -8,6 +8,10 @@ package src.util ;
 import java.util.Iterator ;
 
 
+
+/**  A selection of convenient utility methods for iterating over or sampling
+  *  arrays and sets of objects or data-
+  */
 public class Visit <T> {
   
   
@@ -40,6 +44,7 @@ public class Visit <T> {
     return false ;
   }
   
+  
   /**  Used to convert an array of Float objects to an array of normal floats.
     */
   public static float[] fromFloats(Object[] a) {
@@ -47,6 +52,7 @@ public class Visit <T> {
     for (int i = f.length ; i-- > 0 ;) f[i] = (Float) a[i] ;
     return f ;
   }
+  
 
   /**  Used to convert an array of Integer objects to an array of normal ints.
     */
@@ -128,6 +134,39 @@ public class Visit <T> {
   
   
   
+  /**  Sampling methods for within 2D arrays of data-
+    */
+  public static float sampleMap(
+    int mapSize, byte vals[][], float mX, float mY
+  ) {
+    mX *= (vals.length - 1) * 1f / mapSize ;
+    mY *= (vals.length - 1) * 1f / mapSize ;
+    final int vX = (int) mX, vY = (int) mY ;
+    final float rX = mX % 1, rY = mY % 1 ;
+    return
+      (vals[vX    ][vY    ] * (1 - rX) * (1 - rY)) +
+      (vals[vX + 1][vY    ] * rX       * (1 - rY)) +
+      (vals[vX    ][vY + 1] * (1 - rX) * rY      ) +
+      (vals[vX + 1][vY + 1] * rX       * rY      ) ;
+  }
+  
+  
+  public static float sampleMap(
+    int mapSize, float vals[][], float mX, float mY
+  ) {
+    mX *= (vals.length - 1) * 1f / mapSize ;
+    mY *= (vals.length - 1) * 1f / mapSize ;
+    final int vX = (int) mX, vY = (int) mY ;
+    final float rX = mX % 1, rY = mY % 1 ;
+    return
+      (vals[vX    ][vY    ] * (1 - rX) * (1 - rY)) +
+      (vals[vX + 1][vY    ] * rX       * (1 - rY)) +
+      (vals[vX    ][vY + 1] * (1 - rX) * rY      ) +
+      (vals[vX + 1][vY + 1] * rX       * rY      ) ;
+  }
+  
+  
+  
   /**  Comparison methods-
     */
   public float rate(T t) { return 0 ; }
@@ -156,9 +195,8 @@ public class Visit <T> {
   
   
   
-  
-  
-  
+  /**  Array visitation-
+    */
   public void visArray(T a[]) {
     for(int n = 0 ; n < a.length ; n++)
       visit(a[n]) ;
@@ -179,3 +217,10 @@ public class Visit <T> {
       visArray(a[n]) ;
   }
 }
+
+
+
+
+
+
+

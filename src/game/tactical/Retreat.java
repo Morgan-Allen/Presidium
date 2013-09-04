@@ -43,13 +43,15 @@ public class Retreat extends Plan implements ActorConstants {
     */
   public float priorityFor(Actor actor) {
     float danger = dangerAtSpot(actor.origin(), actor, actor.AI.seen()) ;
-    return PARAMOUNT * danger ;
+    danger *= actor.traits.scaleLevel(NERVOUS) ;
+    return Visit.clamp(danger * ROUTINE, 0, PARAMOUNT) ;
   }
   
   
   protected Behaviour getNextStep() {
-    if (actor.aboard() == safePoint) return null ;
-    if (safePoint == null) {
+    ///if (actor.aboard() == safePoint) { I.say("AT HAVEN") ; return null ; }
+    ///if (priorityFor(actor) <= 0) { I.say("NO PRIORITY") ; return null ; }
+    if (safePoint == null || actor.aboard() == safePoint) {
       safePoint = nearestHaven(actor, null) ;
     }
     final Action flees = new Action(
@@ -72,7 +74,8 @@ public class Retreat extends Plan implements ActorConstants {
     */
   public void describeBehaviour(Description d) {
     d.append("Retreating to ") ;
-    d.append(safePoint) ;
+    if (safePoint instanceof Tile) d.append(((Tile) safePoint).habitat().name) ;
+    else d.append(safePoint) ;
   }
   
   
@@ -103,32 +106,36 @@ public class Retreat extends Plan implements ActorConstants {
   ) {
     //
     //  Get a reading of threats based on all actors visible to this one, and
-    //  their distance from the spot in question.
-    ///I.say(actor+" getting danger at: "+spot) ;
+    //  their distance from the spot in question.  TODO:  Retain awareness
+    //  longer?
     float seenDanger = 0 ;
     final float range = World.DEFAULT_SECTOR_SIZE ;
     for (Element m : seen) {
       if (m == actor || ! (m instanceof Actor)) continue ;
       final Actor near = (Actor) m ;
+      if (near.indoors() || ! near.health.conscious()) continue ;
+      float danger = Combat.combatStrength(near, actor) ;
       //
       //  More distant foes are less threatening.
-      float danger = Combat.combatStrength(near, actor) ;
-      if (! near.isDoing(Combat.class)) danger /= 2 ;
-      final float dist = Visit.clamp(Spacing.distance(spot, near), 0, range) ;
-      danger *= 1 - (dist / range) ;
-      
-      float attitude = actor.AI.relation(near) ;
-      
-      if (BaseUI.isPicked(actor) && attitude < 0) {
-        I.say(actor+" is afraid of: "+near+", danger: "+danger) ;
+      final float dist = Spacing.distance(spot, near) / range ;
+      danger /= 1 + dist ;
+      //
+      //  Foes who aren't engaged in combat, or who aren't targeting you, are
+      //  less threatening.  Either way, add or subtract from danger rating,
+      //  depending on allegiance.
+      final Behaviour root = near.AI.rootBehaviour() ;
+      if (! (root instanceof Combat)) danger /= 2 ;
+      final float attitude = actor.AI.relation(near) ;
+      if (attitude < 0) {
+        //final Action action = near.currentAction() ;
+        //if (action == null || action.target() != actor) danger /= 2 ;
+        seenDanger += danger ;
       }
-      if (attitude < 0) seenDanger += danger ;
-      if (attitude > 0) seenDanger -= danger / 2 ;
+      if (attitude > 0) {
+        seenDanger -= danger * attitude / 2 ;
+      }
     }
-    if (seenDanger <= 0) return 0 ;
-    final float strength = Combat.combatStrength(actor, null) * 2 ;
-    if (strength <= 0) return PARAMOUNT ;
-    return Visit.clamp(seenDanger / strength, 0, PARAMOUNT) ;
+    return Visit.clamp(seenDanger, 0, 100) ;
   }
   
   

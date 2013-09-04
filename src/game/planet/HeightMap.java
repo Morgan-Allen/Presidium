@@ -241,19 +241,6 @@ public class HeightMap {
   //  thresholds from specific height maps?
   
   
-  public static float sampleAt(int mapSize, byte vals[][], float mX, float mY) {
-    mX *= (vals.length - 1) * 1f / mapSize ;
-    mY *= (vals.length - 1) * 1f / mapSize ;
-    final int vX = (int) mX, vY = (int) mY ;
-    final float rX = mX % 1, rY = mY % 1 ;
-    return
-      (vals[vX    ][vY    ] * (1 - rX) * (1 - rY)) +
-      (vals[vX + 1][vY    ] * rX       * (1 - rY)) +
-      (vals[vX    ][vY + 1] * (1 - rX) * rY      ) +
-      (vals[vX + 1][vY + 1] * rX       * rY      ) ;
-  }
-  
-  
   /**  Prints out the height values of the terrain generated.
     */
   void report() {

@@ -33,12 +33,14 @@ public class Flora extends Element implements TileConstants {
     this.varID = Rand.index(4) ;
   }
   
+  
   public Flora(Session s) throws Exception {
     super(s) ;
     habitat = Habitat.ALL_HABITATS[s.loadInt()] ;
     varID = s.loadInt() ;
     growth = s.loadFloat() ;
   }
+  
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
@@ -52,10 +54,13 @@ public class Flora extends Element implements TileConstants {
   /**  Attempts to seed or grow new flora at the given coordinates.
     */
   public static void tryGrowthAt(int x, int y, World world, boolean init) {
+    
+    final Ecology ecology = world.ecology() ;
     final Tile t = world.tileAt(x, y) ;
     final Habitat h = world.terrain().habitatAt(x, y) ;
     if (h.floraModels == null) return ;
     final float growChance = h.moisture / (10f * 4) ;
+    
     //
     //  Check to see how many neighbours this flora would have-
     int numBlocked = 0 ;
@@ -88,11 +93,12 @@ public class Flora extends Element implements TileConstants {
           stage = Visit.clamp(stage, 0, MAX_GROWTH - 0.5f) ;
           f.incGrowth(stage, world, true) ;
           f.setAsEstablished(true) ;
-          ///f.setInceptTime(-10) ;
+          ecology.impingeFertility(f, false) ;
         }
         else if (Rand.num() < GROWTH_PER_UPDATE) {
           f.enterWorldAt(t.x, t.y, world) ;
           f.incGrowth(0.5f, world, false) ;
+          ecology.impingeFertility(f, true) ;
         }
       }
     }

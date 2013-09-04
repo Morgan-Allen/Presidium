@@ -16,7 +16,7 @@ public class Choice {
   
   /**  Data fields, constructors and setup-
     */
-  public static boolean verbose = true ;
+  public static boolean verbose = false ;
   
   final Actor actor ;
   final Batch <Behaviour> plans = new Batch <Behaviour> () ;
@@ -38,7 +38,9 @@ public class Choice {
       plan == null || plan.complete() ||
       plan.nextStepFor(actor) == null
     ) {
-      if (verbose && BaseUI.isPicked(actor)) I.say("  Rejecting plan: "+plan) ;
+      if (verbose && BaseUI.isPicked(actor) && plan != null) {
+        I.say("  Rejected: "+plan) ;
+      }
       return false ;
     }
     plans.add(plan) ;
@@ -59,6 +61,7 @@ public class Choice {
       if (actor.vocation() != null) label = actor.vocation().name ;
       else if (actor.species() != null) label = actor.species().toString() ;
       I.say(actor+" ("+label+") is making a choice, range: "+priorityRange) ;
+      I.say("  Current time: "+actor.world().currentTime()) ;
     }
     float highestW = 0 ;
     int i = 0 ;

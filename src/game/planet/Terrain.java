@@ -206,7 +206,7 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   
   public float trueHeight(float x, float y) {
-    return HeightMap.sampleAt(mapSize, heightVals, x, y) / 4 ;
+    return Visit.sampleMap(mapSize, heightVals, x, y) / 4 ;
   }
   
   

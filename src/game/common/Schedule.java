@@ -84,9 +84,7 @@ public class Schedule {
     if (allUpdates.get(updates) != null)
       I.complain(updates+" ALREADY REGISTERED FOR UPDATES!") ;
     final Event event = new Event() ;
-    event.time = currentTime + Rand.num() * updates.scheduledInterval() ;
-    //I.say("Registering for updates: "+updates) ;
-    ///I.say("Event time is: "+event.time) ;
+    event.time = currentTime - Rand.num() * updates.scheduledInterval() ;
     event.updates = updates ;
     allUpdates.put(updates, events.insert(event)) ;
   }

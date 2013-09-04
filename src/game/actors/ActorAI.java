@@ -97,8 +97,13 @@ public abstract class ActorAI implements ActorConstants {
     *  TODO:  You'll need to refresh reactions whenever an actor changes their
     *  root behaviour too.  Key the 'seen' table off those.
     */
+  //
+  //    TODO:  Use this as the basis for all other behaviours that work with
+  //    'batches' of potential targets... which means the actor can sometimes
+  //    'see' things quite far away, albeit in a randomised fashion.
+  
+  
   protected void updateSeen() {
-    ///I.say(actor+" updating seen...") ;
     final PresenceMap mobiles = actor.world().presences.mapFor(Mobile.class) ;
     final float sightMod = actor.indoors() ? 0.5f : 1 ;
     final float sightRange = actor.health.sightRange() * sightMod ;
@@ -109,6 +114,7 @@ public abstract class ActorAI implements ActorConstants {
     final Batch <Element> outOfRange = new Batch <Element> () ;
     for (Mobile e : seen.keySet()) {
       if (e.indoors() || Spacing.distance(e, actor) > lostRange) {
+        ///if (BaseUI.isPicked(actor)) I.say("  "+actor+" CANNOT SEE: "+e) ;
         outOfRange.add(e) ;
       }
     }
@@ -129,7 +135,7 @@ public abstract class ActorAI implements ActorConstants {
     //
     //  And react to anything fresh-
     for (Mobile NS : newSeen) {
-      ///if (BaseUI.isPicked(actor)) I.say(actor+" can now see: "+NS) ;
+      ///if (BaseUI.isPicked(actor)) I.say("  "+actor+" CAN NOW SEE: "+NS) ;
       final Behaviour reaction = reactionTo(NS) ;
       if (couldSwitchTo(reaction)) assignBehaviour(reaction) ;
     }
@@ -244,7 +250,7 @@ public abstract class ActorAI implements ActorConstants {
     pushBehaviour(behaviour) ;
     if (replaced != null && ! replaced.complete()) {
       if (BaseUI.isPicked(actor)) {
-        I.say(actor+" SAVING PLAN AS TODO: "+replaced) ;
+        I.say(actor+" SAVING PLAN AS TODO: "+replaced+" "+replaced.hashCode()) ;
       }
       todoList.include(replaced) ;
     }
@@ -465,81 +471,4 @@ public abstract class ActorAI implements ActorConstants {
 
 
 
-
-
-/*
-static class Memory {
-  Class planClass ;
-  Session.Saveable signature[] ;
-  float timeBegun, timeEnded ;
-}
-//*/
-
-
-
-//memories.addFirst(memory) ;
-//if (memories.size() > MAX_MEMORIES) memories.removeLast() ;
-/*
-for (Memory memory : memories) {
-  if (memory.equals(plan)) {
-    memory.timeEnded = actor.world().currentTime() ;
-    break ;
-  }
-}
-//*/
-
-/*
-//  TODO:  You need to save and load memories.
-//  TODO:  Just remember plans instead?  More direct, certainly.  ...Maybe.
-protected List <Memory> memories = new List <Memory> () ;
-//*/
-
-
-
-//  TODO:  This may be too complicated, particularly for larger settlements.
-//         Just make Dialogue something of Idle priority.
-/*
-public float curiosity(Class planClass, Session.Saveable... assoc) {
-  //
-  //  Firstly, see if an existing memory/s match this one-
-  Memory match = null ;
-  for (Memory memory : memories) {
-    if (memory.planClass != planClass) continue ;
-    boolean matches = true ;
-    for (int i = 0 ; i < assoc.length ; i++) {
-      if (assoc[i] != memory.signature[i]) { matches = false ; break ; }
-    }
-    if (matches) { match = memory ; break ; }
-  }
-  //
-  //  Then, calculate how curious about it the actor would be, based on how
-  //  recently/often this event occured-
-  
-  //  More inquisitive actors have a higher initial attraction to novel
-  //  stimuli, but take longer to recharge interest since the last event of
-  //  this type.
-  
-  
-  float curiosity = actor.traits.trueLevel(INQUISITIVE) ;
-  if (match == null) {
-    curiosity += 5 ;
-  }
-  else {
-    final float timeGap = actor.world().currentTime() - match.timeEnded ;
-    curiosity -= INQUISITIVE.maxVal ;
-    curiosity += (timeGap * 2f / World.DEFAULT_DAY_LENGTH) ;
-  }
-  return Visit.clamp(curiosity / 10f, 0, 1) ;
-}
-//*/
-
-/*
-public Class[] recentActivities() {
-  final Class recent[] = new Class[memories.size()] ;
-  int n = 0 ; for (Memory memory : memories) {
-    recent[n++] = memory.planClass ;
-  }
-  return recent ;
-}
-//*/
 

@@ -196,11 +196,15 @@ public class VenuePersonnel {
   /**  Life cycle, recruitment and updates-
     */
   protected void updatePersonnel(int numUpdates) {
-    //
-    //  If there's an unfilled opening, look for someone to fill it.
-    //  TODO:  This should really be handled more from the Commerce class.
     if (numUpdates % 10 == 0) {
       final World world = venue.world() ;
+      //
+      //  Clear out the office for anyone dead-
+      for (Actor a : workers) if (a.destroyed()) workers.remove(a) ;
+      for (Actor a : residents) if (a.destroyed()) residents.remove(a) ;
+      //
+      //  If there's an unfilled opening, look for someone to fill it.
+      //  TODO:  This should really be handled more from the Commerce class?
       if (venue.careers() == null) return ;
       for (Vocation v : venue.careers()) {
         final int numOpen = venue.numOpenings(v) ;
@@ -219,10 +223,6 @@ public class VenuePersonnel {
           venue.base().commerce.genCandidate(v, venue, numOpen) ;
         }
       }
-      //
-      //  Clear out the office for anyone dead-
-      for (Actor a : workers) if (a.destroyed()) workers.remove(a) ;
-      for (Actor a : residents) if (a.destroyed()) residents.remove(a) ;
     }
   }
   
@@ -261,6 +261,7 @@ public class VenuePersonnel {
     //
     //  We automatically fill any positions available when the venue is
     //  established.  This is done for free, but candidates cannot be screened.
+    if (venue.careers() == null) return ;
     for (Vocation v : venue.careers()) {
       final int numOpen = venue.numOpenings(v) ;
       if (numOpen <= 0) continue ;
@@ -268,7 +269,9 @@ public class VenuePersonnel {
         final Human worker = new Human(v, venue.base()) ;
         worker.AI.setEmployer(venue) ;
         final Tile e = venue.mainEntrance() ;
-        if (GameSettings.hireFree) worker.enterWorldAt(e.x, e.y, venue.world()) ;
+        if (GameSettings.hireFree) {
+          worker.enterWorldAt(e.x, e.y, venue.world()) ;
+        }
         else venue.base().commerce.addImmigrant(worker) ;
       }
     }

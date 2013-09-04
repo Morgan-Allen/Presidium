@@ -236,7 +236,7 @@ public class VenueStructure extends Inventory {
   
   protected void checkMaintenance() {
     final boolean needs = needsRepair() || needsUpgrade() ;
-    if (BaseUI.isPicked(venue)) I.say(venue+" needs maintenance? "+needs) ;
+    ///if (BaseUI.isPicked(venue)) I.say(venue+" needs maintenance? "+needs) ;
     final World world = venue.world() ;
     world.presences.togglePresence(
       venue, world.tileAt(venue), needs, "damaged"
@@ -414,7 +414,7 @@ public class VenueStructure extends Inventory {
       if (armouring > Rand.num() * damage) burning = false ;
     }
     if (numUpdates % 10 == 0) {
-      final float wear = baseIntegrity / World.DEFAULT_DAY_LENGTH ;
+      final float wear = baseIntegrity * 1f / World.DEFAULT_DAY_LENGTH ;
       if (2 > Rand.num() * armouring) takeDamage(wear * Rand.num()) ;
     }
   }

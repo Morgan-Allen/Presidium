@@ -232,7 +232,7 @@ public class Holding extends Venue implements BuildConstants {
   final static String IMG_DIR = "media/Buildings/merchant/" ;
   final static Model
     FIELD_Q_MODEL = ImageModel.asIsometricModel(
-      Holding.class, IMG_DIR+"mess_hall.png", 2, 1
+      Holding.class, IMG_DIR+"field_tent.png", 2, 1
     ),
     STANDARD_MODELS[][] = ImageModel.fromTextureGrid(
       Holding.class, Texture.loadTexture(IMG_DIR+"all_housing.gif"),

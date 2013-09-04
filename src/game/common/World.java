@@ -220,6 +220,11 @@ public class World {
   }
   
   
+  public Ecology ecology() {
+    return ecology ;
+  }
+  
+  
   public float currentTime() {
     return currentTime ;
   }

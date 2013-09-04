@@ -45,9 +45,8 @@ public class EcologyGen {
   ) {
     final Lair typeLairs[] = new Lair[species.length] ;
     
-    //final RandomScan scan = new RandomScan(world.size) {
-      //protected void scanAt(int x, int y) {
-    for (Coord c : Visit.grid(0, 0, world.size, world.size, 4)) {
+    final RandomScan scan = new RandomScan(world.size) {
+      protected void scanAt(int x, int y) {
         int bestIndex = -1 ;
         float bestRating = 0 ;
         
@@ -55,9 +54,8 @@ public class EcologyGen {
           final Species specie = species[i] ;
           if (typeLairs[i] == null) typeLairs[i] = specie.createLair() ;
           final Lair lair = typeLairs[i] ;
-          lair.setPosition(c.x, c.y, world) ;
-          final float rating = lair.rateCrowding(world) * Rand.avgNums(2) ;
-          ///I.say("Rating for "+specie.name+" is: "+rating) ;
+          lair.setPosition(x, y, world) ;
+          final float rating = lair.rateCurrentSite(world) * Rand.avgNums(2) ;
           if (rating > bestRating) { bestIndex = i ; bestRating = rating ; }
         }
         
@@ -70,8 +68,8 @@ public class EcologyGen {
           chosen.setAsEstablished(true) ;
         }
       }
-    //} ;
-    //scan.scanThrough(world.size / 64) ;
+    } ;
+    scan.doFullScan() ;
   }
 }
 

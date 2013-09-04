@@ -49,15 +49,16 @@ public class Archives extends Venue implements BuildConstants {
   /**  Upgrades, economic functions and behaviour implementations-
     */
   //
-  //  TODO:  You might not want to implement these as upgrades...
+  //  TODO:  You might not want to implement these as upgrades?  They shouldn't
+  //  really be contributing toward hit-points, for example.  Might be better
+  //  to model them as imported items, or some kind of custom object?
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     Sickbay.class, "sickbay_upgrades"
   ) ;
-  protected Index <Upgrade> allUpgrades() {
-    return ALL_UPGRADES ;
-  }
+  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   static {
     for (Skill skill : COGNITIVE_SKILLS) {
+      if (skill.parent != INTELLECT) continue ;
       final Upgrade dataLink = new Upgrade(
         skill.name+" datalinks", "Allows research in "+skill.name,
         250, skill, 5, null, ALL_UPGRADES

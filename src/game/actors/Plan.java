@@ -108,6 +108,10 @@ public abstract class Plan implements Saveable, Behaviour {
       this.actor = actor ;
       nextStep = null ;
     }
+    if (! actor.AI.agenda.includes(this)) {
+      if (valid()) return getNextStep() ;
+      else return null ;
+    }
     if (nextStep == null || nextStep.complete()) {
       if (valid()) nextStep = getNextStep() ;
       else { onceInvalid() ; nextStep = null ; }
@@ -188,7 +192,9 @@ public abstract class Plan implements Saveable, Behaviour {
   /**  Rendering and interface methods-
     */
   public String toString() {
-    return getClass().getSimpleName() ;
+    final StringDescription desc = new StringDescription() ;
+    describeBehaviour(desc) ;
+    return desc.toString() ;
   }
   
   

@@ -102,28 +102,43 @@ public interface BuildConstants extends ActorConstants {
   final public static DeviceType
     MANIPLES = new DeviceType(BC, "Maniples",
       2, GRAPPLE | MELEE | PHYSICAL, 10,
-      new Conversion(3, PARTS, 10, ASSEMBLY),
+      new Conversion(3, PARTS, 5, ASSEMBLY),
       "maniples"
     ),
     MODUS_LUTE = new DeviceType(BC, "Modus Lute",
       0, RANGED | STUN, 40,
-      new Conversion(2, PARTS, 15, ASSEMBLY),
+      new Conversion(1, PARTS, 10, ASSEMBLY),
       "modus lute"
     ),
+    BICORDER = new DeviceType(BC, "Bicorder",
+      0, MELEE, 55,
+      new Conversion(2, PARTS, 15, ASSEMBLY),
+      "bicorder"
+    ),
+    STUN_PISTOL = new DeviceType(BC, "Stun Pistol",
+      10, RANGED | PHYSICAL | STUN, 35,
+      new Conversion(1, PARTS, 10, ASSEMBLY),
+      "pistol"
+    ),
+    PHASE_BLASTER = new DeviceType(BC, "Phase Blaster",
+      15, RANGED | ENERGY, 25,
+      new Conversion(1, PARTS, 10, ASSEMBLY),
+      "pistol"
+    ),
     CARVED_SPEAR = new DeviceType(BC, "Carved Spear",
-      5, RANGED | PHYSICAL, 5,
+      5, RANGED | MELEE | PHYSICAL, 5,
       new Conversion(2, TIMBER, 5, ASSEMBLY),
       "spear"
     ),
     SHOCK_STAFF = new DeviceType(BC, "Shock Staff",
-      10, MELEE | PHYSICAL | STUN, 40,
-      new Conversion(3, PARTS, 10, ASSEMBLY),
+      15, MELEE | RANGED | PHYSICAL | STUN, 40,
+      new Conversion(2, PARTS, 10, ASSEMBLY),
       "staff"
     ),
-    PHASE_PISTOL = new DeviceType(BC, "Phase Pistol",
-      15, RANGED | ENERGY, 25,
-      new Conversion(3, PARTS, 10, ASSEMBLY),
-      "pistol"
+    ARC_SABRE = new DeviceType(BC, "Arc Sabre",
+      25, MELEE | ENERGY, 100,
+      new Conversion(3, PARTS, 15, ASSEMBLY),
+      "sabre"
     ),
     KONOCHE = new DeviceType(BC, "Konoche",
       20, MELEE | PHYSICAL, 45,

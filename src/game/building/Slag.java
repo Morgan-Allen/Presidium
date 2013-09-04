@@ -43,13 +43,13 @@ public class Slag extends Element {
   }
   
   
-  public void doGrowth() {
+  public void onGrowth() {
     setAsDestroyed() ;
   }
   
   
   public void exitWorld() {
-    //  TODO:  Spread some pollution around?
+    super.exitWorld() ;
   }
 }
 

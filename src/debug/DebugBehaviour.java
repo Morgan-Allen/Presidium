@@ -42,6 +42,10 @@ Simplify the user interface, implement Powers, and add a Main Menu.  That's it.
 Walls/Roads and Power/Life Support are the next items, but those might require
 a bigger game.  Maybe *just* power.  Keep it simple.  Condensors for water, and
 from the Vault System.  Share with whole settlement.
+
+    //
+    //  TODO:  Establish that the redoubt needs to be at a minimum distance
+    //  from other structures, including housing.  Same with mines/farms.
 //*/
 
 
@@ -128,9 +132,9 @@ public class DebugBehaviour extends PlayLoop {
   protected void configureScenario(World world, Base base, HUD HUD) {
     
     I.say(" "+(String.class.isAssignableFrom(Object.class))) ;
-    //natureScenario(world, base, HUD) ;
+    natureScenario(world, base, HUD) ;
     //baseScenario(world, base, HUD) ;
-    missionScenario(world, base, HUD) ;
+    //missionScenario(world, base, HUD) ;
     //socialScenario(world, base, HUD) ;
   }
   
@@ -143,40 +147,33 @@ public class DebugBehaviour extends PlayLoop {
     }
   }
   
-  
 
+  protected void updateGameState() {
+    PlayLoop.setGameSpeed(25.0f) ;
+    super.updateGameState() ;
+  }
+  
+  
+  
   /**  Testing out interactions between alien creatures or primitive humanoids.
     */
   private void natureScenario(World world, Base base, HUD UI) {
     GameSettings.noFog = true ;
-    
-    /*
-    Actor prey = new Vareen() ;
-    prey.health.setupHealth(0.5f, 1, 0) ;
-    prey.enterWorldAt(12, 12, world) ;
-    ((BaseUI) UI).selection.pushSelection(prey, true) ;
-    //*/
+
+    final EcologyGen EG = new EcologyGen() ;
+    EG.populateFlora(world) ;
     
     Actor hunter = new Micovore() ;
     hunter.health.setupHealth(0.5f, 1, 0) ;
     hunter.enterWorldAt(6, 6, world) ;
     ((BaseUI) UI).selection.pushSelection(hunter, true) ;
-    //hunter.AI.assignBehaviour(new Hunting(hunter, prey, Hunting.TYPE_FEEDS)) ;
     
-    ///PlayLoop.setGameSpeed(10.0f) ;
-    /*
     for (int n = 16 ; n-- > 0 ;) {
       final Actor prey = Rand.yes() ? new Quud() : new Vareen() ;
       final Tile e = Spacing.pickRandomTile(world.tileAt(16, 16), 8, world) ;
       prey.health.setupHealth(Rand.num(), 1, 0) ;
       prey.enterWorldAt(e.x, e.y, world) ;
     }
-    
-    final Actor hunter = new Micovore() ;
-    hunter.health.setupHealth(Rand.num(), 1, 0) ;
-    hunter.enterWorldAt(4, 4, world) ;
-    ((BaseUI) UI).selection.pushSelection(hunter, true) ;
-    //*/
   }
   
   
@@ -203,31 +200,19 @@ public class DebugBehaviour extends PlayLoop {
     *  contact missions.
     */
   private void missionScenario(World world, Base base, HUD UI) {
-    
     //
     //  TODO:  TEST THIS WITH HOSTILE ROBOTS.  GET IT FINISHED AND DONE WITH.
-    ///GameSettings.hireFree = true ;
     GameSettings.noFog = true ;
+    GameSettings.hireFree = true ;
     
     final Actor actor = new Human(Vocation.SURVEYOR, base) ;
     actor.enterWorldAt(10, 10, world) ;
     establishVenue(new SurveyorRedoubt(base), 4, 4, true, actor) ;
-    ((BaseUI) UI).selection.pushSelection(actor, true) ;
-    
-    ///actor.health.takeInjury(actor.health.maxHealth() * 1.1f) ;
-    
-    final Actor prey = new Vareen() ;
-    prey.health.setupHealth(Rand.num(), 1, 0) ;
-    prey.enterWorldAt(13, 13, world) ;
-    //prey.health.takeInjury(prey.health.maxHealth() * 1.33f) ;
-    //((BaseUI) UI).selection.pushSelection(prey, true) ;
-    
-    actor.AI.assignBehaviour(new Hunting(actor, prey, Hunting.TYPE_HARVEST)) ;
     
     
-    //final EcologyGen EG = new EcologyGen() ;
-    //EG.populateFlora(world) ;
-    //EG.populateFauna(world, Species.VAREEN) ;
+    final EcologyGen EG = new EcologyGen() ;
+    EG.populateFlora(world) ;
+    EG.populateFauna(world, Species.VAREEN) ;
     
     /*
     final Actor actorA = new Human(Vocation.RUNNER, base) ;
@@ -296,7 +281,7 @@ public class DebugBehaviour extends PlayLoop {
     Venue v, int atX, int atY, boolean intact,
     Actor... employed
   ) {
-    v.enterWorldAt(atX, atY, v.base().world) ;
+    v.enterWorldAt(atX, atY, PlayLoop.world()) ;
     if (intact) {
       v.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
       v.onCompletion() ;

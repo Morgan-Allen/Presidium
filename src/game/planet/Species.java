@@ -28,13 +28,13 @@ public abstract class Species {
     XML_PATH = FILE_DIR+"FaunaModels.xml" ;
   final static Model
     MODEL_NEST_QUUD = ImageModel.asIsometricModel(
-      Species.class, LAIR_DIR+"nest_quud.png", 3, 2
+      Species.class, LAIR_DIR+"nest_quud.png", 2.5f, 2
     ),
     MODEL_NEST_VAREEN = ImageModel.asIsometricModel(
-      Species.class, LAIR_DIR+"nest_vareen.png", 3, 3
+      Species.class, LAIR_DIR+"nest_vareen.png", 2.5f, 3
     ),
     MODEL_NEST_MICOVORE = ImageModel.asIsometricModel(
-      Species.class, LAIR_DIR+"nest_micovore.png", 4, 3
+      Species.class, LAIR_DIR+"nest_micovore.png", 3.5f, 2
     ) ;
   
   public static enum Type {
@@ -66,8 +66,8 @@ public abstract class Species {
       null,
       Type.HUMANOID
     ) {
-      Fauna newSpecimen() { return null ; }
-      Lair createLair() { return null ; }
+      public Fauna newSpecimen() { return null ; }
+      public Lair createLair() { return null ; }
     },
     
     
@@ -82,9 +82,9 @@ public abstract class Species {
       ).loadXMLInfo(XML_PATH, "Quud"),
       Type.BROWSER
     ) {
-      Fauna newSpecimen() { return new Quud() ; }
-      Lair createLair() { return new Lair(
-        3, 2, Venue.ENTRANCE_EAST, this, MODEL_NEST_QUUD
+      public Fauna newSpecimen() { return new Quud() ; }
+      public Lair createLair() { return new Lair(
+        2, 2, Venue.ENTRANCE_EAST, this, MODEL_NEST_QUUD
       ) ; }
     },
     
@@ -101,9 +101,9 @@ public abstract class Species {
       ).loadXMLInfo(XML_PATH, "Vareen"),
       Type.BROWSER
     ) {
-      Fauna newSpecimen() { return new Vareen() ; }
-      Lair createLair() { return new Lair(
-        3, 3, Venue.ENTRANCE_EAST, this, MODEL_NEST_VAREEN
+      public Fauna newSpecimen() { return new Vareen() ; }
+      public Lair createLair() { return new Lair(
+        2, 2, Venue.ENTRANCE_EAST, this, MODEL_NEST_VAREEN
       ) ; }
     },
     
@@ -120,9 +120,9 @@ public abstract class Species {
       ).loadXMLInfo(XML_PATH, "Micovore"),
       Type.PREDATOR
     ) {
-      Fauna newSpecimen() { return new Micovore() ; }
-      Lair createLair() { return new Lair(
-        4, 3, Venue.ENTRANCE_EAST, this, MODEL_NEST_MICOVORE
+      public Fauna newSpecimen() { return new Micovore() ; }
+      public Lair createLair() { return new Lair(
+        3, 2, Venue.ENTRANCE_EAST, this, MODEL_NEST_MICOVORE
       ) ; }
     },
     
@@ -155,8 +155,8 @@ public abstract class Species {
   }
   
   
-  abstract Fauna newSpecimen() ;
-  abstract Lair createLair() ;
+  public abstract Fauna newSpecimen() ;
+  public abstract Lair createLair() ;
   
   
   public boolean browses() {
@@ -166,6 +166,18 @@ public abstract class Species {
   
   public boolean goesHunt() {
     return type == Type.PREDATOR || type == Type.OMNIVORE ;
+  }
+  
+  
+  protected int forageRange() {
+    if (type == Species.Type.BROWSER) return Lair.BROWSER_SAMPLE_RANGE ;
+    else return Lair.PREDATOR_SAMPLE_RANGE ;
+  }
+  
+  
+  protected int maxLairPop() {
+    if (type == Species.Type.PREDATOR) return Lair.LAIR_POPULATION / 2 ;
+    return Lair.LAIR_POPULATION ;
   }
   
   

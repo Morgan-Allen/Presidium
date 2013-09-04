@@ -236,6 +236,7 @@ public abstract class Mobile extends Element
   
   
   protected void onMotionBlock(Tile t) {
+    ///if (BaseUI.isPicked(this)) I.say("...MOTION BLOCKED") ;
     final boolean canRoute = pathing != null && pathing.refreshPath() ;
     if (! canRoute) pathingAbort() ;
   }

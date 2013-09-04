@@ -143,12 +143,24 @@ public abstract class Actor extends Mobile implements
   
   protected void updateAsMobile() {
     super.updateAsMobile() ;
+
+    final boolean OK = health.conscious() ;
+    if (actionTaken != null && ! pathing.checkPathingOkay()) {
+      world.schedule.scheduleNow(this) ;
+    }
     if (actionTaken != null) {
-      final boolean OK = health.conscious() ;
       actionTaken.updateMotion(OK) ;
       actionTaken.updateAction() ;
-      if (actionTaken.complete() && OK) {
+      
+      final Behaviour root = AI.rootBehaviour() ;
+      if (root != null && root.complete() && OK) {
+        assignAction(null) ;
         world.schedule.scheduleNow(this) ;
+      }
+      else if (actionTaken.complete() && OK) {
+        world.schedule.scheduleNow(this) ;
+      }
+      else if (! pathing.checkPathingOkay()) {
       }
     }
   }
@@ -163,8 +175,7 @@ public abstract class Actor extends Mobile implements
       if (actionTaken == null || actionTaken.complete()) {
         assignAction(AI.getNextAction()) ;
       }
-      ///I.say("Updating pathing...") ;
-      pathing.updatePathing() ;
+      if (! pathing.checkPathingOkay()) pathing.refreshPath() ;
       AI.updateAI(numUpdates) ;
       //
       //  Update the intel/danger maps associated with the world's bases.

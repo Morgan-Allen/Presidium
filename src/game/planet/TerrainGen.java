@@ -187,11 +187,11 @@ public class TerrainGen implements TileConstants {
       final float
         sampleX = Visit.clamp(c.x + blendsX[XBI][c.y], 0, mapSize - 1),
         sampleY = Visit.clamp(c.y + blendsY[YBI][c.x], 0, mapSize - 1) ;
-      float sum = HeightMap.sampleAt(mapSize, sectorVal, sampleX, sampleY) ;
+      float sum = Visit.sampleMap(mapSize, sectorVal, sampleX, sampleY) ;
       
       int gradID = Visit.clamp((int) sum, habitats.length) ;
       if (! habitats[gradID].isOcean) {
-        float detail = HeightMap.sampleAt(mapSize, detailGrid, c.x, c.y) / 10f ;
+        float detail = Visit.sampleMap(mapSize, detailGrid, c.x, c.y) / 10f ;
         sum += detail * detail * 2 ;
         gradID = Visit.clamp((int) sum, habitats.length) ;
         typeIndex[c.x][c.y] = (byte) habitats[gradID].ID ;
@@ -209,7 +209,7 @@ public class TerrainGen implements TileConstants {
       final byte type = typeIndex[c.x][c.y] ;
       //if (! Habitat.ALL_HABITATS[type].isOcean) continue ;
       if (type >= Habitat.SHALLOWS.ID) continue ;
-      float detail = HeightMap.sampleAt(mapSize, detailGrid, c.x, c.y) / 10f ;
+      float detail = Visit.sampleMap(mapSize, detailGrid, c.x, c.y) / 10f ;
       detail *= detail * 1.5f ;
       typeIndex[c.x][c.y] = (byte) (((detail * detail) > 0.25f) ?
         Habitat.SHALLOWS.ID : Habitat.OCEAN.ID
@@ -312,9 +312,7 @@ public class TerrainGen implements TileConstants {
       final boolean pickHighest = Rand.num() < 0.33f ;
       float sumChances = chances[0] = 0.5f ;
       for (int i = 4 ; i-- > 1 ;) {
-        float sample = HeightMap.sampleAt(
-          mapSize, allMaps[i], c.x, c.y
-        ) / 10f ;
+        float sample = Visit.sampleMap(mapSize, allMaps[i], c.x, c.y) / 10f ;
         sample *= (1 * sample) + ((1 - sample) * abundances[i]) ;
         chances[i] = sample ;
         sumChances += sample ;

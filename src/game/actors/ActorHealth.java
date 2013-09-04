@@ -418,13 +418,14 @@ public class ActorHealth implements ActorConstants {
   
   private void checkStateChange() {
     if (BaseUI.isPicked(actor)) {
-      //I.say("Injury/fatigue:"+injury+"/"+fatigue+", max: "+maxHealth) ;
-      //I.say("STATE IS: "+state) ;
+      ///I.say("Injury/fatigue:"+injury+"/"+fatigue+", max: "+maxHealth) ;
+      ///I.say("STATE IS: "+state) ;
     }
     //
     //  Check for state effects-
     if (state == STATE_SUSPEND) return ;
     if (state == STATE_DEAD) {
+      injury += maxHealth * 1f / DECOMPOSE_TIME ;
       if (injury > maxHealth * (MAX_INJURY + 1)) {
         state = STATE_DECOMP ;
       }
@@ -468,10 +469,7 @@ public class ActorHealth implements ActorConstants {
       FM *= actor.currentAction().moveMultiple() ;
     }
     
-    if (deceased()) {
-      injury += maxHealth * 1f / DECOMPOSE_TIME ;
-    }
-    else if (bleeds) {
+    if (bleeds) {
       injury++ ;
       if (actor.traits.test(VIGOUR, 10, 1) && Rand.num() < STABILISE_CHANCE) {
         bleeds = false ;

@@ -26,15 +26,20 @@ public class Hunting extends Combat implements BuildConstants {
     TYPE_FEEDS   = 0,
     TYPE_HARVEST = 1,
     TYPE_SAMPLE  = 2 ;
-  //  TODO:  base willingness to quit on time spent, not tries made.
-  /*
   final static int
-    MIN_ATTEMPTS = 3 ;
-  //*/
+    STAGE_INIT          = 0,
+    STAGE_HUNT          = 1,
+    STAGE_FEED          = 2,
+    STAGE_HARVEST_MEAT  = 3,
+    STAGE_RETURN_MEAT   = 4,
+    STAGE_SAMPLE_GENE   = 5,
+    STAGE_RETURN_SAMPLE = 6,
+    STAGE_COMPLETE      = 7 ;
   
   
   final int type ;
   final Actor prey ;
+  private int stage = STAGE_INIT ;
   private float beginTime = -1 ;
   
   
@@ -50,6 +55,7 @@ public class Hunting extends Combat implements BuildConstants {
     super(s) ;
     prey = (Actor) s.loadObject() ;
     type = s.loadInt() ;
+    stage = s.loadInt() ;
     beginTime = s.loadFloat() ;
   }
   
@@ -58,6 +64,7 @@ public class Hunting extends Combat implements BuildConstants {
     super.saveState(s) ;
     s.saveObject(prey) ;
     s.saveInt(type) ;
+    s.saveInt(stage) ;
     s.saveFloat(beginTime) ;
   }
   
@@ -71,20 +78,16 @@ public class Hunting extends Combat implements BuildConstants {
       final float hunger = actor.health.hungerLevel() - 0.25f ;
       if (hunger < 0) return 0 ;
       reward = hunger * PARAMOUNT / 0.75f ;
+      if (BaseUI.isPicked(actor)) I.say("Base feeding priority: "+reward) ;
     }
     if (type == TYPE_HARVEST) {
       reward = ROUTINE ;
     }
     reward += priorityMod ;
-    //
-    //  TODO:  Favour more abundant prey in general.  Use the Ecology class.
     
-    //
-    //  TODO:  You need to figure out why the chance of success is so low, and
-    //  what the hell is causing that bizarre height-change bug.
     float priority = Combat.combatPriority(actor, prey, reward, PARAMOUNT) ;
     priority -= Plan.rangePenalty(actor, prey) ;
-    I.say("Hunting priority is: "+priority) ;
+    if (BaseUI.isPicked(actor)) I.say("Hunting "+prey+" priority: "+priority) ;
     return priority ;
   }
   
@@ -99,9 +102,10 @@ public class Hunting extends Combat implements BuildConstants {
   
   
   public static Actor nextPreyFor(Actor actor, float sampleRange) {
+    ///I.say("FINDING PREY FOR: "+actor) ;
     //
-    //  TODO:  Base this off the list of stuff the actor is aware of, and
-    //  favour more abundant prey.
+    //  TODO:  Base this off the list of stuff the actor is aware of?
+    final Ecology ecology = actor.world().ecology() ;
     final int maxSampled = 10 ;
     Actor pickedPrey = null ;
     float bestRating = Float.NEGATIVE_INFINITY ;
@@ -115,16 +119,21 @@ public class Hunting extends Combat implements BuildConstants {
       final Actor f = (Actor) t ;
       if ((! f.health.organic()) || (! (t instanceof Fauna))) continue ;
       final Species s = (Species) f.species() ;
+      if (s == actor.species()) continue ;
       //
       //  
       final float danger = Combat.combatStrength(f, actor) * Rand.num() ;
-      float rating = ROUTINE / danger ;
-      rating -= Plan.rangePenalty(actor, f) ;
+      float rating = 1f / danger ;
       if (s.type != Species.Type.BROWSER) rating /= 2 ;
+      rating -= Plan.rangePenalty(actor, f) ;
+      if (rating < 0) continue ;
+      rating *= ecology.globalAbundance(s) ;
       //
       //  
       if (rating > bestRating) { pickedPrey = f ; bestRating = rating ; }
     }
+    ///if (pickedPrey == null) I.say("NO PREY FOUND FOR "+actor) ;
+    //else I.say("PREY IS: "+pickedPrey) ;
     return pickedPrey ;
   }
   
@@ -146,45 +155,30 @@ public class Hunting extends Combat implements BuildConstants {
     if (timeSpent > World.DEFAULT_DAY_LENGTH / 3) {
       return null ;
     }
-    //
-    //  If the prey is dead, either feed or harvest the meat.
-    if (! prey.health.conscious()) {
-      if (type == TYPE_FEEDS) {
-        if (actor.health.energyLevel() >= 1.5f) {
-          I.say(actor+" has eaten their fill of "+prey) ;
-          return null ;
-        }
-        final Action feeding = new Action(
-          actor, prey,
-          this, "actionFeed",
-          Action.STRIKE, "Feeding on "+prey
-        ) ;
-        return feeding ;
-      }
-      else if (type == TYPE_HARVEST) {
-        if (prey.destroyed()) {
-          if (actor.gear.amountOf(PROTEIN) <= 0 || actor.AI.work() == null) {
-            return null ;
-          }
-          final Action returning = new Action(
-            actor, actor.AI.work(),
-            this, "actionReturnHarvest",
-            Action.REACH_DOWN, "Returning game meat"
-          ) ;
-          return returning ;
-        }
-        final Action harvest = new Action(
-          actor, prey,
-          this, "actionHarvest",
-          Action.BUILD, "Harvesting from "+prey
-        ) ;
-        return harvest ;
-      }
-      else I.complain("BEHAVIOUR NOT IMPLEMENTED YET!") ;
+
+    if (type == TYPE_FEEDS) {
+      return nextFeeding() ;
     }
-    //
-    //  Otherwise, try tracking and downing the prey-
-    return super.getNextStep() ;
+    if (type == TYPE_HARVEST) {
+      return nextHarvest() ;
+    }
+    I.complain("Behaviour not implemented yet!") ;
+    return null ;
+  }
+  
+  
+  protected Behaviour nextFeeding() {
+    if (prey.health.conscious()) return super.getNextStep() ;
+    if (actor.health.energyLevel() >= 1.5f) {
+      I.say(actor+" has eaten their fill of "+prey) ;
+      return null ;
+    }
+    final Action feeding = new Action(
+      actor, prey,
+      this, "actionFeed",
+      Action.STRIKE, "Feeding on "+prey
+    ) ;
+    return feeding ;
   }
 
 
@@ -194,13 +188,37 @@ public class Hunting extends Combat implements BuildConstants {
     if (! prey.health.deceased()) prey.health.setState(ActorHealth.STATE_DEAD) ;
     final float
       before = prey.health.injuryLevel(),
-      damage = actor.gear.attackDamage() * (Rand.num() + 0.5f) / 2,
-      maxDamage = actor.health.hungerLevel() * actor.health.maxHealth() / 10 ;
-    prey.health.takeInjury(Math.min(damage, maxDamage)) ;
+      damage = actor.gear.attackDamage() * (Rand.num() + 0.5f) / 2 ;
+    prey.health.takeInjury(damage) ;
     float taken = prey.health.injuryLevel() - before ;
     taken *= prey.health.maxHealth() * 10 ;
     actor.health.takeSustenance(taken, 1) ;
     return true ;
+  }
+  
+  
+  
+  /**  Routines for harvesting meat and bringing back to the depot-
+    */
+  protected Behaviour nextHarvest() {
+    if (prey.health.conscious()) return super.getNextStep() ;
+    if (prey.destroyed()) {
+      if (actor.gear.amountOf(PROTEIN) <= 0 || actor.AI.work() == null) {
+        return null ;
+      }
+      final Action returning = new Action(
+        actor, actor.AI.work(),
+        this, "actionReturnHarvest",
+        Action.REACH_DOWN, "Returning game meat"
+      ) ;
+      return returning ;
+    }
+    final Action harvest = new Action(
+      actor, prey,
+      this, "actionHarvest",
+      Action.BUILD, "Harvesting from "+prey
+    ) ;
+    return harvest ;
   }
   
   
@@ -222,12 +240,13 @@ public class Hunting extends Combat implements BuildConstants {
   }
   
   
+  
   /**  Rendering and interface-
     */
   public void describeBehaviour(Description d) {
     if (prey.health.deceased()) {
       if (type == TYPE_HARVEST) {
-        if (prey.inWorld()) d.append("Harvesting meat from "+prey) ;
+        if (! prey.destroyed()) d.append("Harvesting meat from "+prey) ;
         else d.append("Returning meat to "+actor.AI.work()) ;
       }
     }

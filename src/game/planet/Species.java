@@ -26,7 +26,7 @@ public abstract class Species {
     FILE_DIR = "media/Actors/fauna/",
     LAIR_DIR = "media/Buildings/lairs and ruins/",
     XML_PATH = FILE_DIR+"FaunaModels.xml" ;
-  final static Model
+  final public static Model
     MODEL_NEST_QUUD = ImageModel.asIsometricModel(
       Species.class, LAIR_DIR+"nest_quud.png", 2.5f, 2
     ),
@@ -35,6 +35,12 @@ public abstract class Species {
     ),
     MODEL_NEST_MICOVORE = ImageModel.asIsometricModel(
       Species.class, LAIR_DIR+"nest_micovore.png", 3.5f, 2
+    ),
+    MODEL_MIDDENS[] = ImageModel.loadModels(
+      Species.class, 1.5f, 1, LAIR_DIR,
+      "midden_a.png",
+      "midden_b.png",
+      "midden_c.png"
     ) ;
   
   public static enum Type {
@@ -169,13 +175,13 @@ public abstract class Species {
   }
   
   
-  protected int forageRange() {
+  public int forageRange() {
     if (type == Species.Type.BROWSER) return Lair.BROWSER_SAMPLE_RANGE ;
     else return Lair.PREDATOR_SAMPLE_RANGE ;
   }
   
   
-  protected int maxLairPop() {
+  public int maxLairPop() {
     if (type == Species.Type.PREDATOR) return Lair.LAIR_POPULATION / 2 ;
     return Lair.LAIR_POPULATION ;
   }

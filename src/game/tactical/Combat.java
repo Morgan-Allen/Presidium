@@ -54,18 +54,50 @@ public class Combat extends Plan implements ActorConstants {
     *  (un)appealing an engagement would be.
     */
   public float priorityFor(Actor actor) {
+    if (isDead(target)) return 0 ;
     //
     //  TODO:  Move this evaluation below, to the combatPriority method?
     if (target instanceof Actor) {
       final Actor struck = (Actor) target ;
       float relation = actor.AI.relation(struck) ;
       relation *= PARAMOUNT ;
-      if (actor.base() == struck.base()) relation += ROUTINE ;
-      return combatPriority(actor, struck, 0 - relation, PARAMOUNT) ;
+      float reward = priorityMod - relation ;
+      
+      //
+      //  If they're actually attacking someone important, bump the importance
+      //  up-
+      //  TODO:  SIMPLIFY THIS LATER
+      final Action action = struck.currentAction() ;
+      /*
+      if (BaseUI.isPicked(actor)) {
+        I.say(actor+" EVALUATING COMBAT WITH "+struck) ;
+        if (action != null) {
+          I.say("ACTION IS: "+action+", TARGET: "+action.target()) ;
+          I.say(" BEHAVIOUR IS: "+struck.AI.rootBehaviour()) ;
+          I.say(" IS IN COMBAT? "+struck.isDoing(Combat.class)) ;
+        }
+      }
+      //*/
+      
+      if (struck.isDoing(Combat.class) && action != null) {
+        final Target t = action.target() ;
+        if (t == actor) {
+          ///I.say(actor+" DEFENDING SELF!") ;
+          //return PARAMOUNT ;
+          reward += PARAMOUNT ;
+        }
+        else if (t instanceof Actor) {
+          reward += PARAMOUNT * actor.AI.relation((Actor) t) ;
+        }
+      }
+      ///I.say(actor+" DEFENCE PRIORITY: "+reward) ;
+      //  TODO:  Modify by the aggressive/pacifist traits-
+      
+      return combatPriority(actor, struck, reward, PARAMOUNT) ;
     }
     if (target instanceof Venue) {
       final Venue struck = (Venue) target ;
-      return 0 - actor.AI.relation(struck.base()) * ROUTINE ;
+      return (priorityMod - actor.AI.relation(struck.base())) * ROUTINE ;
     }
     return -1 ;
   }
@@ -93,7 +125,7 @@ public class Combat extends Plan implements ActorConstants {
     //  structures?
     
     if (actor == enemy || winReward <= 0) {
-      if (BaseUI.isPicked(actor)) I.say("  No combat reward!") ;
+      ///if (BaseUI.isPicked(actor)) I.say("  No combat reward!") ;
       return 0 ;
     }
     final float
@@ -139,7 +171,6 @@ public class Combat extends Plan implements ActorConstants {
     strength *= actor.health.maxHealth() / 10 ;
     strength *= (1 - actor.health.injuryLevel()) ;
     strength *= 1 - actor.health.skillPenalty() ;
-    ///I.say("  "+actor+" strength:"+strength) ;
     //
     //
     if (enemy == null) {

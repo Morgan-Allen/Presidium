@@ -44,6 +44,7 @@ public class Retreat extends Plan implements ActorConstants {
   public float priorityFor(Actor actor) {
     float danger = dangerAtSpot(actor.origin(), actor, actor.AI.seen()) ;
     danger *= actor.traits.scaleLevel(NERVOUS) ;
+    ///I.say(actor+" IS IN DANGER: "+danger) ;
     return Visit.clamp(danger * ROUTINE, 0, PARAMOUNT) ;
   }
   
@@ -124,18 +125,24 @@ public class Retreat extends Plan implements ActorConstants {
       //  less threatening.  Either way, add or subtract from danger rating,
       //  depending on allegiance.
       final Behaviour root = near.AI.rootBehaviour() ;
+      final Action action = near.currentAction() ;
+      float attitude = actor.AI.relation(near) ;
       if (! (root instanceof Combat)) danger /= 2 ;
-      final float attitude = actor.AI.relation(near) ;
+      else if (action != null && action.target() == actor) {
+        danger *= 2 ;
+        attitude -= 1 ;
+      }
+      
       if (attitude < 0) {
-        //final Action action = near.currentAction() ;
-        //if (action == null || action.target() != actor) danger /= 2 ;
         seenDanger += danger ;
       }
       if (attitude > 0) {
         seenDanger -= danger * attitude / 2 ;
       }
     }
-    return Visit.clamp(seenDanger, 0, 100) ;
+    final float selfPower = Combat.combatStrength(actor, null) ;
+    if (selfPower <= 0) return 100 ;
+    return Visit.clamp(seenDanger / selfPower, 0, 100) ;
   }
   
   

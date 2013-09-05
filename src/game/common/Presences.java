@@ -62,8 +62,7 @@ public class Presences {
   /**  Modifying presences-
     */
   public void togglePresence(Target t, Tile at, boolean is, Object key) {
-    PresenceMap map = allMaps.get(key) ;
-    if (map == null) allMaps.put(key, map = new PresenceMap(world, key)) ;
+    final PresenceMap map = mapFor(key) ;
     if (is) map.toggleMember(t, at, true) ;
     else map.toggleMember(t, at, false) ;
   }
@@ -97,8 +96,9 @@ public class Presences {
   /**  Querying presences-
     */
   public PresenceMap mapFor(Object key) {
-  	  final PresenceMap map = allMaps.get(key) ;
-  	  return map == null ? nullMap : map ;
+  	PresenceMap map = allMaps.get(key) ;
+  	if (map == null) allMaps.put(key, map = new PresenceMap(world, key)) ;
+    return map ;
   }
   
   

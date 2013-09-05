@@ -23,7 +23,7 @@ public abstract class Fauna extends Actor {
   
   /**  Field definitions, constructors, and save/load functionality-
     */
-  final Species species ;
+  final public Species species ;
   
   
   public Fauna(Species species) {
@@ -87,7 +87,8 @@ public abstract class Fauna extends Actor {
       
       protected Behaviour reactionTo(Mobile seen) {
         if (BaseUI.isPicked(this)) I.say(this+" has seen: "+seen) ;
-        return nextDefence() ;
+        if (seen instanceof Actor) return nextDefence((Actor) seen) ;
+        return nextDefence(null) ;
       }
       
       //
@@ -162,6 +163,7 @@ public abstract class Fauna extends Actor {
     final Lair lair = (Lair) actor.AI.home() ;
     if (lair != point) return true ;
     final float rating = lair.rateCurrentSite(world) ;
+    if (species == Species.MICOVORE) I.say("Rating for site: "+rating) ;
     if (rating < 0 || lair.crowding() > 1) return false ;
     //
     //  If the venue's not too crowded, consider reproducing.
@@ -223,20 +225,35 @@ public abstract class Fauna extends Actor {
         }
       }
     }
-    if (shouldNest) {
-      final Lair newLair = actor.species.createLair() ;
-      newLair.setPosition(point.x, point.y, actor.world()) ;
-      float rating = newLair.rateCurrentSite(actor.world()) ;
-      if (rating > 0) {
+    if (shouldNest) return siteNewLair() != null ;
+    return true ;
+  }
+  
+  
+  protected Lair siteNewLair() {
+    final Actor actor = this ;
+    final Lair newLair = species.createLair() ;
+    final TileSpread spread = new TileSpread(origin()) {
+      
+      protected boolean canAccess(Tile t) {
+        return Spacing.distance(actor, t) < 4 ;
+      }
+      
+      protected boolean canPlaceAt(Tile t) {
+        newLair.setPosition(t.x, t.y, actor.world()) ;
+        final float rating = newLair.rateCurrentSite(actor.world()) ;
+        if (rating <= 0) return false ;
         actor.AI.setHomeVenue(newLair) ;
         newLair.clearSurrounds() ;
         newLair.enterWorld() ;
         newLair.structure.setState(VenueStructure.STATE_INTACT, 0.1f) ;
         actor.goAboard(newLair, world) ;
+        return true ;
       }
-      else return false ;
-    }
-    return true ;
+    } ;
+    spread.doSearch() ;
+    if (! newLair.inWorld()) return null ;
+    return newLair ;
   }
   
   
@@ -264,17 +281,18 @@ public abstract class Fauna extends Actor {
   }
   
   
-  protected Behaviour nextDefence() {
+  protected Behaviour nextDefence(Actor near) {
     return new Retreat(this) ;
   }
   
   
   protected void addChoices(Choice choice) {
-    //  TODO:  Add the option to kill peers in cases of overcrowding.
+    //
+    //  TODO:  Add the option to kill peers in cases of overcrowding, at least
+    //  for predators.
     if (species.browses()) choice.add(nextBrowsing()) ;
     if (species.goesHunt()) choice.add(nextHunting()) ;
-    ////I.say("  "+this+" ADDING NEW CHOICES...") ;
-    choice.add(nextDefence()) ;
+    choice.add(nextDefence(null)) ;
     choice.add(nextResting()) ;
     choice.add(nextMigration()) ;
     choice.add(nextBuildingNest()) ;

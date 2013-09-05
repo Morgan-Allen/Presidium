@@ -280,7 +280,7 @@ public class ActorHealth implements ActorConstants {
     if (Rand.num() * maxHealth < injury) bleeds = true ;
     final float max ;
     if (deceased()) max = maxHealth * (MAX_INJURY + 1) ;
-    else max = maxHealth * MAX_INJURY ;
+    else max = (maxHealth * MAX_INJURY) + 1 ;
     injury = Visit.clamp(injury, 0, max) ;
   }
   

@@ -39,10 +39,7 @@ public abstract class ActorAI implements ActorConstants {
   protected Stack <Behaviour> agenda = new Stack() ;
   protected List <Behaviour> todoList = new List() ;
   
-  protected Table <Mobile, Mobile> seen = new Table() ;
-  //  Table <Mobile, Class> seen ;
-  //  List <Mobile> mobilesConsidered ;
-  //  List <Fixture> fixturesConsidered ;
+  protected Table <Mobile, Session.Saveable> seen = new Table() ;
   
   protected Table <Accountable, Relation> relations = new Table() ;
   
@@ -62,7 +59,7 @@ public abstract class ActorAI implements ActorConstants {
     s.loadObjects(todoList) ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Mobile e = (Mobile) s.loadObject() ;
-      seen.put(e, e) ;
+      seen.put(e, s.loadObject()) ;
     }
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Relation r = Relation.loadFrom(s) ;
@@ -80,7 +77,10 @@ public abstract class ActorAI implements ActorConstants {
     s.saveObjects(agenda) ;
     s.saveObjects(todoList) ;
     s.saveInt(seen.size()) ;
-    for (Element e : seen.keySet()) s.saveObject(e) ;
+    for (Element e : seen.keySet()) {
+      s.saveObject(e) ;
+      s.saveObject(seen.get(e)) ;
+    }
     s.saveInt(relations.size()) ;
     for (Relation r : relations.values()) Relation.saveTo(s, r) ;
     
@@ -127,8 +127,9 @@ public abstract class ActorAI implements ActorConstants {
       if (++numR > reactLimit) break ;
       if (Spacing.distance(actor, t) <= sightRange) {
         final Mobile m = (Mobile) t ;
-        if (seen.get(m) == null) newSeen.add(m) ;
-        seen.put(m, m) ;
+        final Session.Saveable after = activityFor(m), before = seen.get(m) ;
+        if (before != after) newSeen.add(m) ;
+        seen.put(m, after) ;
       }
       else break ;
     }
@@ -139,6 +140,18 @@ public abstract class ActorAI implements ActorConstants {
       final Behaviour reaction = reactionTo(NS) ;
       if (couldSwitchTo(reaction)) assignBehaviour(reaction) ;
     }
+  }
+  
+  
+  private Session.Saveable activityFor(Mobile m) {
+    if (m instanceof Actor) {
+      final Actor a = (Actor) m ;
+      if (a.currentAction() == null) return m ;
+      final Behaviour b = a.AI.rootBehaviour() ;
+      if (b == null) return m ;
+      else return b ;
+    }
+    else return m ;
   }
   
   

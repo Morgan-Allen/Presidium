@@ -20,16 +20,9 @@ import src.util.* ;
 //  An actor's willingness to apply for an opening should be based on the
 //  number of current applicants.  You don't want to overwhelm the player
 //  with choices.
-
 //
 //  You'd need to assess an actor's fitness for a given Vocation, in terms of
 //  both skills and personality.  (And they'd have to be given gear.)
-
-
-//  In addition, any openings available immediately after placement should be
-//  filled automatically.  (But you need to give the scenario a chance to fill
-//  those slots independantly, so maybe delay by *one* world-update...)
-
 
 
 
@@ -132,7 +125,24 @@ public class VenuePersonnel {
       else workerIndex++ ;
     }
     //
-    //  Then, see if they match up-
+    //  Then, see if they match up.  This probably requires a little more
+    //  explanation...
+    //
+    //  Imagine we have Actors 1-through-4, and Shifts A, B, and C.  As each
+    //  cycle of shifts proceeds, we want to allot actors to shifts as follows:
+    //
+    // (Cycle 1)(Cycle 2)(Cycle 3) ...
+    //   A B C    A B C    A B C   ...
+    //   1 2 3    3 4 1    1 2 3   ...
+    //   4 1 2    2 3 4    4 1 2   ...etc.
+    //
+    //  The basic idea being that all shifts are filled as evenly as possible,
+    //  without any single actor being consistently overworked.
+    
+    //  TODO:  ...Actually, this probably needs to be rethought.  It may not
+    //  be performing as advertised, or maybe it's a bad idea.  Maybe leaving
+    //  gaps in the roster is better than overworking citizens...?
+    
     if (workers.size() < 3) return workerIndex == currentShift ;
     for (int period = 0 ; period < workers.size() ; period += 3) {
       for (int shiftIndex = numShifts ; shiftIndex-- > 0 ;) {

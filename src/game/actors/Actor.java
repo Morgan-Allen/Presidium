@@ -204,6 +204,8 @@ public abstract class Actor extends Mobile implements
     this.assignAction(falling) ;
   }
   
+  //
+  //  TODO:  POLISH THESE UP, GENERALISE, AND POSSIBLY MOVE TO AI CLASS?
   
   public boolean amDoing(String actionName) {
     if (actionTaken == null) return false ;
@@ -213,7 +215,7 @@ public abstract class Actor extends Mobile implements
   
   public boolean isDoing(Class planClass) {
     for (Behaviour b : AI.agenda()) {
-      if (b.getClass().isInstance(planClass)) return true ;
+      if (planClass.isAssignableFrom(b.getClass())) return true ;
     }
     return false ;
   }

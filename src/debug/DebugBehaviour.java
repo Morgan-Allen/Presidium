@@ -150,6 +150,7 @@ public class DebugBehaviour extends PlayLoop {
 
   protected void updateGameState() {
     PlayLoop.setGameSpeed(25.0f) ;
+    ///PlayLoop.setGameSpeed(5.0f) ;
     super.updateGameState() ;
   }
   
@@ -159,21 +160,36 @@ public class DebugBehaviour extends PlayLoop {
     */
   private void natureScenario(World world, Base base, HUD UI) {
     GameSettings.noFog = true ;
+    
+    I.say("TESTING: "+Object.class.isAssignableFrom(String.class)) ;
 
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;
     
-    Actor hunter = new Micovore() ;
+    final Actor hunter = new Micovore() ;
     hunter.health.setupHealth(0.5f, 1, 0) ;
     hunter.enterWorldAt(6, 6, world) ;
+    ///hunter.health.loseSustenance(0.66f) ;
     ((BaseUI) UI).selection.pushSelection(hunter, true) ;
     
+    /*
+    for (int n = 9 ; n-- > 0 ;) {
+      final Actor competes = new Micovore() ;
+      final Tile e = Spacing.pickRandomTile(world.tileAt(8, 8), 4, world) ;
+      competes.health.setupHealth(Rand.num(), 1, 0) ;
+      competes.enterWorldAt(e.x, e.y, world) ;
+      ///((BaseUI) UI).selection.pushSelection(competes, true) ;
+    }
+    //*/
+    
+    //*
     for (int n = 16 ; n-- > 0 ;) {
       final Actor prey = Rand.yes() ? new Quud() : new Vareen() ;
       final Tile e = Spacing.pickRandomTile(world.tileAt(16, 16), 8, world) ;
       prey.health.setupHealth(Rand.num(), 1, 0) ;
       prey.enterWorldAt(e.x, e.y, world) ;
     }
+    //*/
   }
   
   

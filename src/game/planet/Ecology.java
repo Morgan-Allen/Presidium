@@ -169,17 +169,25 @@ public class Ecology {
       numHunters += hunterDensityAt(t) ;
     }
     
+    /*
+    if (species == Species.MICOVORE) {
+      I.say("NUM PEERS: "+numPeers) ;
+      I.say("NUM PREY: "+numPrey) ;
+      I.say("NUM HUNTERS: "+numHunters) ;
+    }
+    //*/
+    
     final float idealPop, numOfType ;
     if (species.type == Species.Type.BROWSER) {
       idealPop = fertility / Lair.BROWSER_RATIO ;
       numOfType = numPrey ;
     }
     else {
-      idealPop = numPrey / Lair.PREDATOR_RATIO * 2 ;
+      idealPop = numPrey / Lair.PREDATOR_RATIO ;
       numOfType = numHunters ;
     }
     float rarity = (((numOfType + 1) / (numPeers + 1)) + 1) / 2f ;
-    return numOfType - (idealPop * rarity) ;
+    return numOfType / (idealPop * rarity) ;
   }
 }
 

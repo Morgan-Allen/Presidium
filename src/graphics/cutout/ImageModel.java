@@ -119,7 +119,7 @@ public class ImageModel extends Model {
   
   
   public static ImageModel[] loadModels(
-    Class modelClass, int tileSize, float height,
+    Class modelClass, float tileSize, float height,
     String path, String... filenames
   ) {
     final ImageModel models[] = new ImageModel[filenames.length] ;

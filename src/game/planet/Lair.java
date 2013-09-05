@@ -31,7 +31,7 @@ public class Lair extends Venue {
     BROWSER_SAMPLE_RANGE  = 16,
     PREDATOR_SAMPLE_RANGE = 32,
     BROWSER_RATIO         = 12,
-    PREDATOR_RATIO        = 12,
+    PREDATOR_RATIO        = 4,
     LAIR_POPULATION       = 4 ;
   
   
@@ -111,7 +111,7 @@ public class Lair extends Venue {
     final float abundance = world.ecology().relativeAbundanceAt(
       species, o, range
     ) ;
-    return 0 - abundance ;
+    return 1 - abundance ;
   }
   
   

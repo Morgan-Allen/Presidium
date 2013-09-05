@@ -67,7 +67,7 @@ public class Quud extends Fauna {
   
 
   protected void addChoices(Choice choice) {
-    final Behaviour defence = nextDefence() ;
+    final Behaviour defence = nextDefence(null) ;
     if (defence != null) {
       if (! amDoing("actionHunker")) choice.add(defence) ;
       return ;
@@ -76,7 +76,7 @@ public class Quud extends Fauna {
   }
   
   
-  protected Behaviour nextDefence() {
+  protected Behaviour nextDefence(Actor near) {
     final float danger = Retreat.dangerAtSpot(origin(), this, AI.seen()) ;
     if (danger <= 0) return null ;
     final Action hunker = new Action(

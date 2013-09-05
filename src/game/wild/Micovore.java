@@ -11,6 +11,7 @@ import src.game.actors.* ;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.tactical.* ;
+import src.game.building.* ;
 import src.util.* ;
 
 
@@ -56,8 +57,89 @@ public class Micovore extends Fauna {
   
   
   /**  Supplemental behaviour methods-
-    *  TODO:  Introduce routines for marking territory with spice middens.
     */
+  protected Behaviour nextDefence(Actor near) {
+    final Choice choice = new Choice(this) ;
+    choice.add(new Retreat(this)) ;
+    if (near != null) choice.add(new Combat(this, near)) ;
+    return choice.weightedPick(1) ;
+  }
+  
+  
+  protected void addChoices(Choice choice) {
+    super.addChoices(choice) ;
+    
+    //
+    //  Determine whether you should fight with others of your kind-
+    final int range = species.forageRange() ;
+    final Ecology ecology = world.ecology() ;
+    float crowding = ecology.relativeAbundanceAt(species, origin(), range) ;
+    crowding = Visit.clamp(crowding - 1, 0, 10) ;
+    crowding *= 1 - health.energyLevel() ;
+    final Fauna fights = findCompetition() ;
+    
+    if (fights != null && crowding > 1) {
+      ///I.say(this+" FIGHTING PRIORITY X5: "+crowding) ;
+      final Combat fighting = new Combat(this, fights) ;
+      fighting.priorityMod = (crowding - 1) * Plan.URGENT ;
+      choice.add(fighting) ;
+    }
+    //
+    //  Determine whether you should mark your territory-
+    final Tile toMark = findTileToMark() ;
+    if (toMark != null) {
+      final Action marking = new Action(
+        this, toMark,
+        this, "actionMarkTerritory",
+        Action.STAND, "Marking Territory"
+      ) ;
+      marking.setPriority(Action.CASUAL) ;
+      choice.add(marking) ;
+    }
+  }
+  
+  
+  private Fauna findCompetition() {
+    final Batch <Fauna> tried = new Batch <Fauna> () ;
+    for (Element e : AI.seen()) if (e instanceof Micovore) {
+      if (e == this) continue ;
+      final Micovore m = (Micovore) e ;
+      tried.add(m) ;
+    }
+    return (Fauna) Rand.pickFrom(tried) ;
+  }
+  
+  
+  private Tile findTileToMark() {
+    final Venue lair = AI.home() ;
+    if (lair == null) return null ;
+    float angle = Rand.num() * (float) Math.PI * 2 ;
+    final Vec3D p = lair.position(null) ;
+    final int range = species.forageRange() / 2 ;
+    
+    final Tile tried = world.tileAt(
+      p.x + (float) (Math.cos(angle) * range),
+      p.x + (float) (Math.sin(angle) * range)
+    ) ;
+    if (tried == null) return null ;
+    final Tile free = Spacing.nearestOpenTile(tried, tried) ;
+    if (free == null) return null ;
+    
+    final PresenceMap markMap = world.presences.mapFor(SpiceMidden.class) ;
+    final SpiceMidden near = (SpiceMidden) markMap.pickNearest(free, range) ;
+    final float dist = near == null ? 10 : Spacing.distance(near, free) ;
+    if (dist < 5) return null ;
+    
+    return free ;
+  }
+  
+  
+  public boolean actionMarkTerritory(Micovore actor, Tile toMark) {
+    if (toMark.owner() != null || toMark.blocked()) return false ;
+    final SpiceMidden midden = new SpiceMidden() ;
+    midden.enterWorldAt(toMark.x, toMark.y, world) ;
+    return true ;
+  }
 }
 
 
@@ -71,39 +153,6 @@ public class Micovore extends Fauna {
 /**  Behaviour implementation-
   */
 /*
-protected Behaviour nextFeeding() {
-  final float sampleRange = Lair.PEER_SAMPLE_RANGE ;
-  final Batch <Fauna> prey = specimens(
-    origin(), sampleRange, null, Species.Type.BROWSER, 10
-  ) ;
-  if (prey.size() == 0) return null ;
-  
-  Fauna pickedPrey = null ;
-  float bestRating = Float.NEGATIVE_INFINITY ;
-  for (Fauna f : prey) {
-    //  Choose closer, younger, less heavily armed/armoured targets.
-    float danger = f.gear.armourRating() + f.gear.attackDamage() ;
-    danger *= f.health.maxHealth() / 100 ;
-    float dist = Spacing.distance(f, this) / sampleRange ;
-    float rating = (1 - dist) / danger ;
-    if (rating > bestRating) { pickedPrey = f ; bestRating = rating ; }
-  }
-  
-  if (pickedPrey == null) return null ;
-  final Hunting hunting = new Hunting(this, pickedPrey, Hunting.TYPE_FEEDS) ;
-  return hunting ;
-}
-
-
-protected void fightWith(Fauna competes) {
-  final Hunting fight = new Hunting(this, competes, Hunting.TYPE_FEEDS) ;
-  fight.setPriority(Plan.CRITICAL) ;
-  if (AI.couldSwitchTo(fight)) {
-    AI.assignBehaviour(fight) ;
-  }
-}
-
-
 protected float rateMigratePoint(Tile point) {
   final float sampleRange = Lair.PEER_SAMPLE_RANGE ;
   float rating = super.rateMigratePoint(point) ;
@@ -116,9 +165,7 @@ protected float rateMigratePoint(Tile point) {
   avgDistance /= nearPrey.size() * sampleRange ;
   return rating * (2 - avgDistance) ;
 }
-
-
-protected Target findRestPoint() {
-  return origin() ;
-}
 //*/
+
+
+

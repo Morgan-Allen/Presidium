@@ -11,52 +11,66 @@ import src.util.* ;
 
 
 
-public class Slag extends Element {
+//
+//  TODO:  Allow slag to be of different sizes!  Up to 2x2, anyway.
+
+public class Wreckage extends Fixture {
   
   
   /**  Construction and save/load routines-
     */
   final public static Model
-    SLAG_MODELS[][] = ImageModel.fromTextureGrid(
-      Slag.class, Texture.loadTexture("media/terrain/slag_heaps.png"), 2, 1.2f
-    ) ;
+  SLAG_MODELS[][] = ImageModel.fromTextureGrid(
+    Wreckage.class,
+    Texture.loadTexture("media/Buildings/lairs and ruins/all_wreckage.png"),
+    3, 1.0f
+  ) ;
   
   
   final boolean permanent ;
-  final float size ;
+  private float spriteSize ;
   
   
-  public Slag(boolean permanent, float size) {
-    super() ;
+  public Wreckage(boolean permanent, int size) {
+    super(size, size / 2) ;
     this.permanent = permanent ;
-    this.size = size ;
-    final Model model = Rand.yes() ?
-      SLAG_MODELS[Rand.index(2)][Rand.index(2)] :
-      Holding.EXTRA_MODELS[0][Rand.index(3)] ;
+    final int tier = size > 1 ? 0 : Rand.index(2) ;
+    final Model model = SLAG_MODELS[Rand.index(3)][tier] ;
     attachSprite(model.makeSprite()) ;
+    spriteSize = (size + Rand.num()) / 2f ;
   }
   
   
-  public Slag(Session s) throws Exception {
+  public Wreckage(Session s) throws Exception {
     super(s) ;
     permanent = s.loadBool() ;
-    size = s.loadFloat() ;
+    spriteSize = s.loadFloat() ;
   }
   
 
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveBool(permanent) ;
-    s.saveFloat(size) ;
+    s.saveFloat(spriteSize) ;
   }
   
   
+  public int owningType() {
+    return Element.ELEMENT_OWNS ;
+  }
+  
+  
+  public int pathType() {
+    return Tile.PATH_HINDERS ;
+  }
+
+
   
   /**  Physical properties, placement and behaviour-
     */
   public static void reduceToSlag(Box2D area, World world) {
     for (Tile t : world.tilesIn(area, true)) {
-      final Slag heap = new Slag(false, 0.5f + Rand.num()) ;
+      final Wreckage heap = new Wreckage(false, Rand.index(2) + 1) ;
       heap.enterWorldAt(t.x, t.y, world) ;
     }
   }
@@ -73,14 +87,15 @@ public class Slag extends Element {
   }
   
   
+  
+  /**  Rendering and interface methods-
+    */
   public void renderFor(Rendering rendering, Base base) {
-    sprite().scale = size ;
     super.renderFor(rendering, base) ;
+    sprite().position.z -= 0.25f ;
+    sprite().scale = spriteSize ;
   }
 }
-
-
-
 
 
 

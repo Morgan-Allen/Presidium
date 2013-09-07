@@ -5,7 +5,10 @@ package src.game.planet ;
 import src.game.actors.* ;
 import src.game.common.* ;
 import src.game.tactical.* ;
+import src.game.wild.Tripod;
 import src.game.building.* ;
+import src.graphics.common.Model;
+import src.graphics.jointed.MS3DModel;
 import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
@@ -14,6 +17,36 @@ import src.util.* ;
 
 
 public abstract class Artilect extends Actor {
+
+  
+  
+  /**  Construction and save/load methods-
+    */
+  final static String
+    IMG_DIR = "media/Actors/artilects/",
+    XML_PATH = IMG_DIR+"ArtilectModels.xml" ;
+  final public static Model
+    
+    MODEL_TRIPOD = MS3DModel.loadMS3D(
+      Artilect.class, IMG_DIR, "Tripod.ms3d", 0.025f
+    ).loadXMLInfo(XML_PATH, "Tripod"),
+    
+    MODEL_DEFENCE_DRONE = MS3DModel.loadMS3D(
+      Artilect.class, IMG_DIR, "DefenceDrone.ms3d", 0.015f
+    ).loadXMLInfo(XML_PATH, "DefenceDrone"),
+    MODEL_RECON_DRONE = MS3DModel.loadMS3D(
+      Artilect.class, IMG_DIR, "ReconDrone.ms3d", 0.015f
+    ).loadXMLInfo(XML_PATH, "ReconDrone"),
+    MODEL_BLAST_DRONE = MS3DModel.loadMS3D(
+      Artilect.class, IMG_DIR, "BlastDrone.ms3d", 0.015f
+    ).loadXMLInfo(XML_PATH, "BlastDrone"),
+    DRONE_MODELS[] = {
+      MODEL_DEFENCE_DRONE, MODEL_RECON_DRONE, MODEL_BLAST_DRONE
+    }
+    
+    
+    ;
+  
   
   
   protected Artilect() {
@@ -102,6 +135,16 @@ public abstract class Artilect extends Actor {
     super.describeStatus(d) ;
     d.append("\n\n") ;
     d.append(helpInfo()) ;
+  }
+  
+  
+  protected static String nameWithBase(String base) {
+    final StringBuffer nB = new StringBuffer(base) ;
+    for (int n = 4 ; n-- > 0 ;) {
+      if (Rand.yes()) nB.append((char) ('0' + Rand.index(10))) ;
+      else nB.append((char) ('A'+Rand.index(26))) ;
+    }
+    return nB.toString() ;
   }
 }
 

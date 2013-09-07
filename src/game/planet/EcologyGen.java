@@ -41,7 +41,6 @@ public class EcologyGen {
     final Batch <Tile> wastes = new Batch <Tile> () ;
     final Batch <Tile> barrens = new Batch <Tile> () ;
     Ruins ruins = null ;
-    Slag slag = null ;
     
     for (int d = 0 ; d < radius ; d++) {
       area.set(centre.x - 0.5f, centre.y - 0.5f, 1, 1).expandBy(d) ;
@@ -49,41 +48,30 @@ public class EcologyGen {
         final float distance = Spacing.distance(t, centre) / radius ;
         if (distance > 1) continue ;
         if (Rand.avgNums(2) > distance) {
-          if (Rand.index(5) == 0) wastes.add(t) ;
-          else barrens.add(t) ;
+          if (Rand.yes()) wastes.add(t) ;
+          barrens.add(t) ;
         }
         
         if (allRuins.size() < maxRuins) {
           if (ruins == null) ruins = new Ruins() ;
           final int HS = ruins.size / 2 ;
-          if (t.x < HS || t.y < HS) continue ;
-          ruins.setPosition(t.x - HS, t.y - HS, t.world) ;
-          if (ruins.canPlace() && Spacing.perimeterFits(ruins)) {
+          final Tile i = world.tileAt(t.x - HS, t.y - HS) ;
+          if (tryInsertion(ruins, i, wastes)) {
             ruins.clearSurrounds() ;
-            ruins.enterWorld() ;
             ruins.structure.setState(
               VenueStructure.STATE_INTACT,
               (Rand.num() + 1) / 2f
             ) ;
             ruins.setAsEstablished(true) ;
             allRuins.add(ruins) ;
-            for (Tile u : world.tilesIn(ruins.area(), false)) {
-              wastes.add(u) ;
-            } ;
             ruins = null ;
+            continue ;
           }
         }
         
-        if (Rand.num() > distance && Rand.index(5) == 0) {
-          if (slag == null) slag = new Slag(true, 1) ;
-          slag.setPosition(t.x, t.y, t.world) ;
-          if (slag.canPlace() && Spacing.perimeterFits(slag)) {
-            slag = new Slag(true, 1 + Rand.num() - distance) ;
-            slag.setPosition(t.x, t.y, t.world) ;
-            slag.enterWorld() ;
-            slag = null ;
-            wastes.add(t) ;
-          }
+        if (Rand.num() > distance && Rand.yes()) {
+          final Wreckage slag = new Wreckage(true, 1) ;
+          if (tryInsertion(slag, t, wastes)) continue ;
         }
       }
     }
@@ -94,6 +82,8 @@ public class EcologyGen {
       barrens.add(n) ;
     }
     for (Tile t : barrens) {
+      //final Habitat h = Rand.index(10) == 0 ?
+        //Habitat.DESERT : Habitat.BARRENS ;
       world.terrain().setHabitat(t, Habitat.BARRENS) ;
       t.flagWith(null) ;
     }
@@ -102,6 +92,21 @@ public class EcologyGen {
     }
     
     return allRuins ;
+  }
+  
+  
+  
+  private boolean tryInsertion(Fixture f, Tile t, Batch <Tile> under) {
+    if (t == null) return false ;
+    f.setPosition(t.x, t.y, t.world) ;
+    if (f.canPlace() && Spacing.perimeterFits(f)) {
+      f.enterWorld() ;
+      for (Tile u : t.world.tilesIn(f.area(), false)) {
+        under.add(u) ;
+      } ;
+      return true ;
+    }
+    return false ;
   }
   
   

@@ -173,7 +173,7 @@ public abstract class Venue extends Fixture implements
     final World world = this.world ;
     final Box2D area = this.area() ;
     super.setAsDestroyed() ;
-    Slag.reduceToSlag(area, world) ;
+    Wreckage.reduceToSlag(area, world) ;
   }
   
   

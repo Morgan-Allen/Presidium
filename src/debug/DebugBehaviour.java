@@ -159,7 +159,7 @@ public class DebugBehaviour extends PlayLoop {
   private void natureScenario(World world, Base base, HUD UI) {
     GameSettings.noFog = true ;
     PlayLoop.setGameSpeed(5.0f) ;
-
+    
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;
     
@@ -202,8 +202,8 @@ public class DebugBehaviour extends PlayLoop {
   private void missionScenario(World world, Base base, HUD UI) {
     //
     //  TODO:  TEST THIS WITH HOSTILE ROBOTS.  GET IT FINISHED AND DONE WITH.
-    ///GameSettings.noFog = true ;
-    GameSettings.hireFree = true ;
+    //GameSettings.noFog = true ;
+    //GameSettings.hireFree = true ;
     PlayLoop.setGameSpeed(5.0f) ;
     
     final Actor actor = new Human(Vocation.SURVEYOR, base) ;
@@ -211,20 +211,26 @@ public class DebugBehaviour extends PlayLoop {
     ///establishVenue(new SurveyorRedoubt(base), 4, 4, true, actor) ;
     ((BaseUI) UI).selection.pushSelection(actor, true) ;
     
-    final Tripod enemy = new Tripod() ;
-    enemy.enterWorldAt(16, 16, world) ;
-
     final EcologyGen EG = new EcologyGen() ;
     final Batch <Ruins> ruins = EG.populateRuins(actor.origin(), 16) ;
     EG.populateFlora(world) ;
-    enemy.AI.setHomeVenue(ruins.atIndex(0)) ;
     
+    int lairNum = 0 ; for (Ruins r : ruins) {
+      if (lairNum++ > 0 && Rand.yes()) continue ;
+      final Tile e = r.mainEntrance() ;
+      int numT = Rand.index(3) == 0 ? 1 : 0, numD = 1 + Rand.index(2) ;
+      while (numT-- > 0) {
+        final Tripod tripod = new Tripod() ;
+        tripod.enterWorldAt(e.x, e.y, world) ;
+        tripod.AI.setHomeVenue(r) ;
+      }
+      while (numD-- > 0) {
+        final Drone drone = new Drone() ;
+        drone.enterWorldAt(e.x, e.y, world) ;
+        drone.AI.setHomeVenue(r) ;
+      }
+    }
     
-    //*
-    //final Ruins lair = new Ruins() ;
-    //establishVenue(lair, 20, 20, true) ;
-    //enemy.AI.setHomeVenue(lair) ;
-    //*/
     
     /*
     final EcologyGen EG = new EcologyGen() ;

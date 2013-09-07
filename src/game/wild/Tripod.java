@@ -10,7 +10,7 @@ import src.graphics.common.* ;
 import src.graphics.jointed.* ;
 import src.graphics.widgets.HUD ;
 import src.user.* ;
-import src.util.Rand;
+import src.util.* ;
 
 
 
@@ -18,26 +18,11 @@ import src.util.Rand;
 public class Tripod extends Artilect implements BuildConstants {
   
   
-  /**  Construction and save/load methods-
-    */
-  final static String IMG_DIR = "media/Actors/artilects/" ;
-  final static Model
-    MODEL = MS3DModel.loadMS3D(
-      Tripod.class, IMG_DIR, "Tripod.ms3d", 0.025f
-    ).loadXMLInfo(IMG_DIR+"ArtilectModels.xml", "Tripod") ;
-  
-  
   final String name ;
   
   
   public Tripod() {
     super() ;
-    //profile.addTrait(BackgroundVocations.ARTILECT) ;
-    //profile.addTrait(BackgroundVocations.MINDLESS) ;
-    //training.raiseSkill(BackgroundVocations.REFLEX, 5) ;
-    //training.raiseSkill(BackgroundVocations.MARKSMANSHIP, 5) ;
-    //inventory().equipImplement(new Item(Economy.DISINTEGRATOR, this, 1, 1)) ;
-    //inventory().equipOutfit(new Item(Economy.GOLEM_ARMOUR, this, 1, 1)) ;
     
     traits.initAtts(30, 10, 5) ;
     health.initStats(
@@ -49,8 +34,15 @@ public class Tripod extends Artilect implements BuildConstants {
     ) ;
     health.setupHealth(0, Rand.avgNums(2), Rand.avgNums(2)) ;
     
-    attachSprite(MODEL.makeSprite()) ;
+    attachSprite(MODEL_TRIPOD.makeSprite()) ;
     name = nameWithBase("Tripod ") ;
+
+    //profile.addTrait(BackgroundVocations.ARTILECT) ;
+    //profile.addTrait(BackgroundVocations.MINDLESS) ;
+    //training.raiseSkill(BackgroundVocations.REFLEX, 5) ;
+    //training.raiseSkill(BackgroundVocations.MARKSMANSHIP, 5) ;
+    //inventory().equipImplement(new Item(Economy.DISINTEGRATOR, this, 1, 1)) ;
+    //inventory().equipOutfit(new Item(Economy.GOLEM_ARMOUR, this, 1, 1)) ;
   }
   
   
@@ -85,16 +77,6 @@ public class Tripod extends Artilect implements BuildConstants {
   
   public Composite portrait(HUD UI) {
     return null ;
-  }
-  
-  
-  static String nameWithBase(String base) {
-    final StringBuffer nB = new StringBuffer(base) ;
-    for (int n = 4 ; n-- > 0 ;) {
-      if (Rand.yes()) nB.append((char) ('0' + Rand.index(10))) ;
-      else nB.append((char) ('A'+Rand.index(26))) ;
-    }
-    return nB.toString() ;
   }
 }
 

@@ -56,7 +56,7 @@ public class Exploring extends Plan implements ActorConstants {
     */
   public float priorityFor(Actor actor) {
     final float p = rateExplorePoint(actor, lookedAt, 0) + priorityMod ;
-    if (BaseUI.isPicked(actor)) I.say("PRIORITY FOR EXPLORATION: "+p) ;
+    ///if (BaseUI.isPicked(actor)) I.say("PRIORITY FOR EXPLORATION: "+p) ;
     return p ;
   }
   
@@ -144,7 +144,11 @@ public class Exploring extends Plan implements ActorConstants {
       x = (x * 2) + picked.x ;
       y = (y * 2) + picked.y ;
     }
-    return intelMap.world().tileAt(x, y) ;
+    
+    final Tile looks = intelMap.world().tileAt(x, y) ;
+    if (intelMap.fogAt(looks) == 1) return null ;
+    if (looks.blocked()) return Spacing.nearestOpenTile(looks, target) ;
+    else return looks ;
   }
   
   

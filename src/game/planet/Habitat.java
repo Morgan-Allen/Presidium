@@ -144,7 +144,7 @@ public class Habitat {
     //  aside from Tundra habitats...
     
     BLACK_WASTES = new Habitat("Black Wastes",
-      "black_wastes_ground.gif", null,// WASTES_FLORA_MODELS,
+      "black_wastes_ground_old.png", null,// WASTES_FLORA_MODELS,
       -1, true, MOISTURE, 3, INSOLATION, 3, MINERALS, 7,
       IS_WASTE
     ),

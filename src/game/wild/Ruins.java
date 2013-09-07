@@ -26,13 +26,15 @@ public class Ruins extends Venue {
     "ruins_b.png",
     "ruins_c.png"
   ) ;
+  private static int NI = (int) (Math.random() * 3) ;
   
   
   public Ruins() {
     super(4, 2, ENTRANCE_EAST, null) ;
     structure.setupStats(1000, 100, 0, 0, false) ;
     personnel.setShiftType(SHIFTS_ALWAYS) ;
-    attachSprite(MODEL_RUINS[Rand.index(3)].makeSprite()) ;
+    final int index = (NI++ + Rand.index(1)) % 3 ;
+    attachSprite(MODEL_RUINS[index].makeSprite()) ;
   }
   
   

@@ -37,7 +37,9 @@ public class Colour {
     SOFT_CYAN    = new Colour().set(0, 1, 1, 0.5f),
     SOFT_MAGENTA = new Colour().set(1, 0, 1, 0.5f),
     
+    DARK_GREY   = new Colour().set(0.2f, 0.2f, 0.2f, 1),
     GREY        = new Colour().set(0.5f, 0.5f, 0.5f, 1),
+    LIGHT_GREY  = new Colour().set(0.8f, 0.8f, 0.8f, 1),
     BLACK       = new Colour().set(0, 0, 0, 1),
     TRANSLUCENT = new Colour().set(1, 1, 1, 0.5f) ;
   
@@ -71,7 +73,8 @@ public class Colour {
   public Colour(float r, float g, float b) {
     set(r, g, b, 1) ;
   }
-
+  
+  
   /**  Binds this colour to the given GL context.  Convenience method.
      */
   public void bindColour() {

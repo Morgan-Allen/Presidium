@@ -77,10 +77,13 @@ public class Hunting extends Combat implements BuildConstants {
     if (type == TYPE_FEEDS) {
       final float hunger = actor.health.hungerLevel() - 0.25f ;
       if (hunger < 0) return 0 ;
-      reward = hunger * PARAMOUNT / 0.75f ;
+      reward = CASUAL + (hunger * URGENT / 0.75f) ;
       if (BaseUI.isPicked(actor)) I.say("Base feeding priority: "+reward) ;
     }
     if (type == TYPE_HARVEST) {
+      float abundance = actor.world().ecology().relativeAbundance(prey) ;
+      ///I.say("Abundance of prey is: "+abundance) ;
+      if (abundance < 0.75f) return 0 ;
       reward = ROUTINE ;
     }
     reward += priorityMod ;
@@ -127,7 +130,7 @@ public class Hunting extends Combat implements BuildConstants {
       if (s.type != Species.Type.BROWSER) rating /= 2 ;
       rating -= Plan.rangePenalty(actor, f) ;
       if (rating < 0) continue ;
-      rating *= ecology.globalAbundance(s) ;
+      rating *= ecology.globalAbundance(s) * Rand.avgNums(2) ;
       //
       //  
       if (rating > bestRating) { pickedPrey = f ; bestRating = rating ; }
@@ -145,7 +148,25 @@ public class Hunting extends Combat implements BuildConstants {
     //  Close at normal speed until you are near your prey.  Then enter stealth
     //  mode to get closer.  If they spot you, charge.
     //float dist = Spacing.distance(actor, prey) ;
+    
+    if (prey.AI.canSee(actor)) {
+      
+    }
+    else if (actor.AI.canSee(prey)) {
+      
+    }
+    else {
+      
+    }
+    
+    //if (oldStage != newStage) actor.AI.swapActionFor(this, nextStep()) ;
     return super.monitor(actor) ;
+  }
+  
+  
+  protected Behaviour getNextClosing() {
+    //  Either close normally, or make it slow.  Then charge.
+    return null ;
   }
   
   
@@ -167,6 +188,9 @@ public class Hunting extends Combat implements BuildConstants {
   }
   
   
+  
+  /**  Routines for feeding on meat directly-
+    */
   protected Behaviour nextFeeding() {
     if (prey.health.conscious()) return super.getNextStep() ;
     if (actor.health.energyLevel() >= 1.5f) {
@@ -193,6 +217,7 @@ public class Hunting extends Combat implements BuildConstants {
     float taken = prey.health.injuryLevel() - before ;
     taken *= prey.health.maxHealth() * 10 ;
     actor.health.takeSustenance(taken, 1) ;
+    ///I.say("Energy level: "+actor.health.energyLevel()) ;
     return true ;
   }
   

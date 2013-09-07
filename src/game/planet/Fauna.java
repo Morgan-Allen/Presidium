@@ -152,7 +152,7 @@ public abstract class Fauna extends Actor {
     ) ;
     final float fatigue = health.fatigueLevel() - 0.25f ;
     if (fatigue < 0) return null ;
-    final float priority = fatigue * Action.PARAMOUNT / 0.75f ;
+    final float priority = Action.CASUAL + (fatigue * Action.URGENT / 0.75f) ;
     rest.setPriority(priority) ;
     return rest ;
   }
@@ -163,13 +163,11 @@ public abstract class Fauna extends Actor {
     final Lair lair = (Lair) actor.AI.home() ;
     if (lair != point) return true ;
     final float rating = lair.rateCurrentSite(world) ;
-    if (species == Species.MICOVORE) I.say("Rating for site: "+rating) ;
     if (rating < 0 || lair.crowding() > 1) return false ;
     //
     //  If the venue's not too crowded, consider reproducing.
-    if (Rand.index(4) > actor.health.agingStage()) return false ;
+    if (Rand.index(3) > actor.health.agingStage()) return false ;
     if (actor.health.hungerLevel() > 0.5f) return false ;
-    I.say("Giving birth to new "+actor.species.name+" at: "+point) ;
     //
     //  Don't breed if you're too young or too hungry.  Otherwise, produce
     //  offpsring in inverse proportion to lifespan-
@@ -181,6 +179,7 @@ public abstract class Fauna extends Actor {
       young.AI.setHomeVenue(lair) ;
       final Tile e = lair.mainEntrance() ;
       young.enterWorldAt(e.x, e.y, e.world) ;
+      I.say("Giving birth to new "+actor.species.name+" at: "+point) ;
     }
     return true ;
   }
@@ -287,9 +286,6 @@ public abstract class Fauna extends Actor {
   
   
   protected void addChoices(Choice choice) {
-    //
-    //  TODO:  Add the option to kill peers in cases of overcrowding, at least
-    //  for predators.
     if (species.browses()) choice.add(nextBrowsing()) ;
     if (species.goesHunt()) choice.add(nextHunting()) ;
     choice.add(nextDefence(null)) ;

@@ -99,7 +99,8 @@ public class Ecology {
   
   public void impingeFertility(Flora f, boolean gradual) {
     final Tile t = f.origin() ;
-    fertilities[t.x / SR][t.y / SR] += 10 * (gradual ? UPDATE_INC : 1) ;
+    final int g = f.growStage() ;
+    fertilities[t.x / SR][t.y / SR] += g * (gradual ? UPDATE_INC : 1) ;
   }
   
   
@@ -169,14 +170,6 @@ public class Ecology {
       numHunters += hunterDensityAt(t) ;
     }
     
-    /*
-    if (species == Species.MICOVORE) {
-      I.say("NUM PEERS: "+numPeers) ;
-      I.say("NUM PREY: "+numPrey) ;
-      I.say("NUM HUNTERS: "+numHunters) ;
-    }
-    //*/
-    
     final float idealPop, numOfType ;
     if (species.type == Species.Type.BROWSER) {
       idealPop = fertility / Lair.BROWSER_RATIO ;
@@ -189,7 +182,19 @@ public class Ecology {
     float rarity = (((numOfType + 1) / (numPeers + 1)) + 1) / 2f ;
     return numOfType / (idealPop * rarity) ;
   }
+  
+  
+  public float relativeAbundance(Object prey) {
+    if (! (prey instanceof Fauna)) return 0 ;
+    final Fauna f = (Fauna) prey ;
+    return relativeAbundanceAt(f.species, f.origin(), f.species.forageRange()) ;
+  }
 }
+
+
+
+
+
 
 
 

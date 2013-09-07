@@ -79,25 +79,28 @@ public class ActorHealth implements ActorConstants {
   
   private float
     lifespan    = DEFAULT_LIFESPAN,
-    currentAge  = 0,
-    lifeExtend  = 0,
-    calories    = DEFAULT_HEALTH / 2,
-    nutrition   = 0.5f,
-    ageMultiple = 1.0f ;
+    lifeExtend  = 0 ;
   private boolean
-    artilect = false ;
+    organic = true ;
   
   private float
-    maxHealth = DEFAULT_HEALTH,
-    injury    = 0,
-    fatigue   = 0 ;
+    currentAge = 0,
+    maxHealth  = DEFAULT_HEALTH,
+    calories   = DEFAULT_HEALTH / 2,
+    nutrition  = 0.5f,
+    injury     = 0,
+    fatigue    = 0 ;
   private boolean
     bleeds = false ;
   private float
     morale    = 0,
     psyPoints = 0 ;
+  
   private int
     state    = STATE_ACTIVE ;
+  private float
+    ageMultiple = 1.0f ;
+  //  Also, current stress, health and possibly combat strength
   
   
   
@@ -114,11 +117,12 @@ public class ActorHealth implements ActorConstants {
     lifespan    = s.loadFloat() ;
     currentAge  = s.loadFloat() ;
     lifeExtend  = s.loadFloat() ;
-    calories    = s.loadFloat() ;
-    nutrition   = s.loadFloat() ;
     ageMultiple = s.loadFloat() ;
+    organic     = s.loadBool () ;
     
     maxHealth = s.loadFloat() ;
+    calories  = s.loadFloat() ;
+    nutrition = s.loadFloat() ;
     injury    = s.loadFloat() ;
     fatigue   = s.loadFloat() ;
     bleeds    = s.loadBool () ;
@@ -137,11 +141,12 @@ public class ActorHealth implements ActorConstants {
     s.saveFloat(lifespan   ) ;
     s.saveFloat(currentAge ) ;
     s.saveFloat(lifeExtend ) ;
-    s.saveFloat(calories   ) ;
-    s.saveFloat(nutrition  ) ;
     s.saveFloat(ageMultiple) ;
+    s.saveBool (organic    ) ;
     
     s.saveFloat(maxHealth) ;
+    s.saveFloat(calories ) ;
+    s.saveFloat(nutrition) ;
     s.saveFloat(injury   ) ;
     s.saveFloat(fatigue  ) ;
     s.saveBool (bleeds   ) ;
@@ -159,13 +164,14 @@ public class ActorHealth implements ActorConstants {
     int lifespan,
     float baseBulk,
     float baseSight,
-    float baseSpeed
+    float baseSpeed,
+    boolean organic
   ) {
     this.lifespan = lifespan ;
     this.baseBulk  = baseBulk  * DEFAULT_BULK  ;
     this.baseSight = baseSight * DEFAULT_SIGHT ;
     this.baseSpeed = baseSpeed * DEFAULT_SPEED ;
-    ///I.say(actor+" has base bulk: "+baseBulk) ;
+    this.organic = organic ;
   }
   
   
@@ -224,6 +230,7 @@ public class ActorHealth implements ActorConstants {
   
   
   private float calcAgeMultiple() {
+    if (! organic) return 1 ;
     final float stage = agingStage() ;
     if (actor.species() != null) {  //Make this more precise.  Use Traits.
       return 0.5f + (stage * 0.25f) ;
@@ -252,7 +259,7 @@ public class ActorHealth implements ActorConstants {
   
   
   public boolean organic() {
-    return ! artilect ;
+    return organic ;
   }
   
   
@@ -277,7 +284,7 @@ public class ActorHealth implements ActorConstants {
     */
   public void takeInjury(float taken) {
     injury += taken ;
-    if (Rand.num() * maxHealth < injury) bleeds = true ;
+    if (organic && Rand.num() * maxHealth < injury) bleeds = true ;
     final float max ;
     if (deceased()) max = maxHealth * (MAX_INJURY + 1) ;
     else max = (maxHealth * MAX_INJURY) + 1 ;
@@ -371,6 +378,7 @@ public class ActorHealth implements ActorConstants {
   
   
   public float skillPenalty() {
+    if (! organic) return 0 ;
     //
     //  TODO:  Calculate this once every second or two, and cache it for
     //  reference?
@@ -378,9 +386,9 @@ public class ActorHealth implements ActorConstants {
     final float hunger = (1 - (calories / maxHealth)) + (1 - nutrition) ;
     if (hunger > 0.5f) sum += hunger - 0.5f ;
     if (bleeds) sum += 0.25f ;
-    sum -= moraleLevel() ;
+    sum -= moraleLevel() + 0.25f ;
     if (sum < 0) return 0 ;
-    return Visit.clamp(sum, 0, 1) ;
+    return Visit.clamp(sum * sum, 0, 1) ;
   }
   
   
@@ -446,17 +454,18 @@ public class ActorHealth implements ActorConstants {
     }
     //
     //  Deplete your current calories stockpile-
+    if (! organic) return ;
     calories -= (1f * maxHealth * baseSpeed) / STARVE_INTERVAL ;
     calories = Visit.clamp(calories, 0, maxHealth) ;
     if (calories <= 0) {
-      I.say(actor+" has died of hunger.") ;
+      I.say(actor+" has died from lack of energy.") ;
       state = STATE_DEAD ;
     }
   }
   
   
   private void updateStresses() {
-    if (state >= STATE_SUSPEND) return ;
+    if (state >= STATE_SUSPEND || ! organic) return ;
     final float DL = World.DEFAULT_DAY_LENGTH ;
     float MM = 1, FM = 1, IM = 1 ;
     
@@ -488,6 +497,7 @@ public class ActorHealth implements ActorConstants {
   
   
   private void advanceAge() {
+    if (! organic) return ;
     currentAge += World.DEFAULT_DAY_LENGTH * 1f / World.DEFAULT_YEAR_LENGTH ;
     if (currentAge > lifespan * (1 + (lifeExtend / 10))) {
       float deathDC = ROUTINE_DC * (1 + lifeExtend) ;

@@ -41,7 +41,8 @@ public class Quud extends Fauna {
       1,    //lifespan
       1,     //bulk bonus
       0.35f, //sight range
-      0.15f  //speed rate
+      0.15f, //speed rate
+      true   //organic
     ) ;
     gear.setDamage(2) ;
     gear.setArmour(15) ;

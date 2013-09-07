@@ -24,8 +24,10 @@ import src.game.building.TileSpread ;
 public class Exploring extends Plan implements ActorConstants {
   
   
-  Base base ;
-  Tile lookedAt ;
+  /**  Construction and save/load methods-
+    */
+  final Base base ;
+  private Tile lookedAt ;
   
   
   public Exploring(Actor actor, Base base, Tile lookedAt) {
@@ -49,48 +51,22 @@ public class Exploring extends Plan implements ActorConstants {
   }
   
   
-  protected Behaviour getNextStep() {
-    //
-    //  TODO:  Consider grabbing another nearby spot.
-    if (actor.base().intelMap.fogAt(lookedAt) == 1) return null ;
-    final Action looking = new Action(
-      actor, lookedAt,
-      this, "actionLook",
-      Action.LOOK, "Looking at "+lookedAt.habitat()
-    ) ;
-    //looking.setProperties(Action.RANGED) ;
-    return looking ;
-  }
   
-  
-  public boolean actionLook(Actor actor, Tile point) {
-    //  TODO:  Check for mission-completion here?
-    final IntelMap map = base.intelMap ;
-    map.liftFogAround(point, actor.health.sightRange() * 1.414f) ;
-    return true ;
-  }
-  
-  
-  
-  public float priorityFor(Actor actor) {
-    return rateExplorePoint(actor, lookedAt, 0) + priorityMod ;
-  }
-  
-  
-  public void describeBehaviour(Description d) {
-    d.append("Exploring") ;
-    d.append(" "+lookedAt.habitat().name) ;
-  }
-  
-  
-  
-  /**  Utility methods for grabbing working areas-
+  /**  Evaluating targets and priority-
     */
+  public float priorityFor(Actor actor) {
+    final float p = rateExplorePoint(actor, lookedAt, 0) + priorityMod ;
+    if (BaseUI.isPicked(actor)) I.say("PRIORITY FOR EXPLORATION: "+p) ;
+    return p ;
+  }
+  
+  
   public static float rateExplorePoint(
     Actor actor, Tile point, float winReward
   ) {
-    winReward += actor.traits.trueLevel(INQUISITIVE) / 2f ;
-    winReward -= actor.traits.trueLevel(INDOLENT) / 2f ;
+    winReward += actor.traits.trueLevel(INQUISITIVE) ;
+    winReward -= actor.traits.trueLevel(INDOLENT) ;
+    winReward += actor.traits.trueLevel(SURVEILLANCE) / 10f ;
     return winReward - Plan.rangePenalty(actor, point) ;
   }
   
@@ -128,28 +104,24 @@ public class Exploring extends Plan implements ActorConstants {
   }
   
   
-  
-  /**  This method is used by independent actors during spontaneous missions-
-    */
   public static Tile getUnexplored(
     IntelMap intelMap, Target target
   ) {
     final Vec3D pos = target.position(null) ;
     final MipMap map = intelMap.fogMap() ;
-    int high = map.high(), x = 0, y = 0, kX, kY ;
-    Coord kids[] = new Coord[] {
+    int high = map.high() + 1, x = 0, y = 0, kX, kY ;
+    final Coord kids[] = new Coord[] {
       new Coord(0, 0), new Coord(0, 1),
       new Coord(1, 0), new Coord(1, 1)
     } ;
     float mX, mY, rating = 0 ;
-    Float ratings[] = new Float[4] ;
     //
     //  Work your way down from the topmost sections, picking the most
     //  appealing child at each point.
     while (high-- > 1) {
       final float s = 1 << high ;
-      //Coord picked = null ;
-      //float bestRating = Float.NEGATIVE_INFINITY ;
+      Coord picked = null ;
+      float bestRating = 0 ;
       for (int i = 4 ; i-- > 0 ;) {
         //
         //  We calculate the coordinates for each child-section, both within
@@ -164,62 +136,55 @@ public class Exploring extends Plan implements ActorConstants {
         //  Otherwise, favour closer areas that are partially unexplored.
         final float level = map.getAvgAt(kX, kY, high - 1) < 1 ? 1 : 0 ;
         final float distance = pos.distance(mX, mY, 0) ;
-        rating = level * World.SECTION_RESOLUTION ;
-        rating /= distance + World.SECTION_RESOLUTION ;
-        //if (rating > bestRating) { picked = c ; bestRating = rating ; }
-        ratings[i] = rating ;
-        //sumRating += rating ;
+        rating = level * Rand.avgNums(2) ;
+        rating /= 1 + (distance / World.DEFAULT_SECTOR_SIZE) ;
+        if (rating > bestRating) { picked = c ; bestRating = rating ; }
       }
-      final Coord picked = (Coord) Rand.pickFrom(kids, ratings) ;
       if (picked == null) return null ;
       x = (x * 2) + picked.x ;
       y = (y * 2) + picked.y ;
     }
     return intelMap.world().tileAt(x, y) ;
   }
-}
-
-
-
-/**  Acquires the next unblocked, unexplored tile within the designated area
-  *  for exploration.
-public static Tile getUnexplored(
-  final Target point,
-  final Realm realm,
-  final Box2D area
-) {
-  final Vars.Ref <Tile> ref = new Vars.Ref <Tile> () ;
-  final Vars.Int
-    count = new Vars.Int(),
-    total = new Vars.Int() ;
-  final Vec2D workerPos = new Vec2D(point.targX(), point.targY()) ;
-  final NearInsertion insert = new NearInsertion(realm.world, workerPos, area) {
-    
-    protected float quadRating(QuadChild quad) {
-      total.val++ ;
-      //final int s = 1 << quad.quadHeight() ;
-      final float rating =
-        (1 - quad.blockLevel()) *
-        (1 - realm.fogMap.fogMipAt(
-          quad.quadX(),
-          quad.quadY(),
-          quad.quadHeight()
-        )) ;
-      if (rating > 0) count.val++ ;
-      return rating ;
+  
+  
+  
+  /**  Behaviour implementation-
+    */
+  protected Behaviour getNextStep() {
+    //
+    //  TODO:  Consider grabbing another nearby spot.
+    if (actor.base().intelMap.fogAt(lookedAt) == 1) {
+      ///I.say("TILE ALREADY EXPLORED!") ;
+      return null ;
     }
-    
-    protected boolean checkForFreeArea(Tile tile) { return true ; }
-    
-    protected boolean doPlacementAt(Tile t) {
-      ref.value = t ;
-      return true ;
-    }
-  } ;
-  insert.perform() ;
-  return ref.value ;
+    final Action looking = new Action(
+      actor, lookedAt,
+      this, "actionLook",
+      Action.LOOK, "Looking at "+lookedAt.habitat()
+    ) ;
+    //looking.setProperties(Action.RANGED) ;
+    return looking ;
+  }
+  
+  
+  public boolean actionLook(Actor actor, Tile point) {
+    //  TODO:  Check for mission-completion here?
+    final IntelMap map = base.intelMap ;
+    map.liftFogAround(point, actor.health.sightRange() * 1.414f) ;
+    return true ;
+  }
+  
+  
+  
+  /**  Rendering and interface methods-
+    */
+  public void describeBehaviour(Description d) {
+    d.append("Exploring") ;
+    d.append(" "+lookedAt.habitat().name) ;
+  }
+  
 }
-}
-//*/
+
 
 

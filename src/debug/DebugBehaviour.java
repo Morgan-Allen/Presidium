@@ -132,9 +132,9 @@ public class DebugBehaviour extends PlayLoop {
   protected void configureScenario(World world, Base base, HUD HUD) {
     
     I.say(" "+(String.class.isAssignableFrom(Object.class))) ;
-    natureScenario(world, base, HUD) ;
+    //natureScenario(world, base, HUD) ;
     //baseScenario(world, base, HUD) ;
-    //missionScenario(world, base, HUD) ;
+    missionScenario(world, base, HUD) ;
     //socialScenario(world, base, HUD) ;
   }
   
@@ -149,8 +149,6 @@ public class DebugBehaviour extends PlayLoop {
   
 
   protected void updateGameState() {
-    PlayLoop.setGameSpeed(25.0f) ;
-    ///PlayLoop.setGameSpeed(5.0f) ;
     super.updateGameState() ;
   }
   
@@ -160,8 +158,7 @@ public class DebugBehaviour extends PlayLoop {
     */
   private void natureScenario(World world, Base base, HUD UI) {
     GameSettings.noFog = true ;
-    
-    I.say("TESTING: "+Object.class.isAssignableFrom(String.class)) ;
+    PlayLoop.setGameSpeed(5.0f) ;
 
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;
@@ -169,27 +166,14 @@ public class DebugBehaviour extends PlayLoop {
     final Actor hunter = new Micovore() ;
     hunter.health.setupHealth(0.5f, 1, 0) ;
     hunter.enterWorldAt(6, 6, world) ;
-    ///hunter.health.loseSustenance(0.66f) ;
     ((BaseUI) UI).selection.pushSelection(hunter, true) ;
     
-    /*
-    for (int n = 9 ; n-- > 0 ;) {
-      final Actor competes = new Micovore() ;
-      final Tile e = Spacing.pickRandomTile(world.tileAt(8, 8), 4, world) ;
-      competes.health.setupHealth(Rand.num(), 1, 0) ;
-      competes.enterWorldAt(e.x, e.y, world) ;
-      ///((BaseUI) UI).selection.pushSelection(competes, true) ;
-    }
-    //*/
-    
-    //*
     for (int n = 16 ; n-- > 0 ;) {
       final Actor prey = Rand.yes() ? new Quud() : new Vareen() ;
       final Tile e = Spacing.pickRandomTile(world.tileAt(16, 16), 8, world) ;
       prey.health.setupHealth(Rand.num(), 1, 0) ;
       prey.enterWorldAt(e.x, e.y, world) ;
     }
-    //*/
   }
   
   
@@ -218,17 +202,34 @@ public class DebugBehaviour extends PlayLoop {
   private void missionScenario(World world, Base base, HUD UI) {
     //
     //  TODO:  TEST THIS WITH HOSTILE ROBOTS.  GET IT FINISHED AND DONE WITH.
-    GameSettings.noFog = true ;
+    ///GameSettings.noFog = true ;
     GameSettings.hireFree = true ;
+    PlayLoop.setGameSpeed(5.0f) ;
     
     final Actor actor = new Human(Vocation.SURVEYOR, base) ;
-    actor.enterWorldAt(10, 10, world) ;
-    establishVenue(new SurveyorRedoubt(base), 4, 4, true, actor) ;
+    actor.enterWorldAt(8, 8, world) ;
+    ///establishVenue(new SurveyorRedoubt(base), 4, 4, true, actor) ;
+    ((BaseUI) UI).selection.pushSelection(actor, true) ;
+    
+    final Tripod enemy = new Tripod() ;
+    enemy.enterWorldAt(16, 16, world) ;
+
+    final EcologyGen EG = new EcologyGen() ;
+    final Batch <Ruins> ruins = EG.populateRuins(actor.origin(), 16) ;
+    EG.populateFlora(world) ;
+    enemy.AI.setHomeVenue(ruins.atIndex(0)) ;
     
     
+    //*
+    //final Ruins lair = new Ruins() ;
+    //establishVenue(lair, 20, 20, true) ;
+    //enemy.AI.setHomeVenue(lair) ;
+    //*/
+    
+    /*
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;
-    EG.populateFauna(world, Species.VAREEN) ;
+    EG.populateFauna(world, Species.VAREEN, Species.QUUD) ;
     
     /*
     final Actor actorA = new Human(Vocation.RUNNER, base) ;

@@ -20,12 +20,16 @@ public class DebugSprites extends ViewLoop {
   
   
   final static String
-    DIR_PATH = "media/Actors/fauna/",
-    XML_PATH = DIR_PATH+"FaunaModels.xml",
+    //DIR_PATH = "media/Actors/fauna/",
+    //XML_PATH = DIR_PATH+"FaunaModels.xml",
+    DIR_PATH = "media/Actors/artilects/",
+    XML_PATH = DIR_PATH+"ArtilectModels.xml",
     NODE_NAMES[] = {
-      "Quud", "Vareen", "Micovore"
+      //"Quud", "Vareen", "Micovore"
+      "Defence Drone", "Recon Drone", "Blast Drone",
+      "Tripod", "Cranial", "Tesseract"
     },
-    ANIM_NAME = Model.AnimNames.MOVE ;
+    ANIM_NAME = Model.AnimNames.FALL ;
   private Batch <Sprite> sprites = new Batch <Sprite> () ;
   
   
@@ -44,12 +48,14 @@ public class DebugSprites extends ViewLoop {
       I.say("Loading model: "+name+", animations: "+model.animRanges().size()) ;
       
       final Sprite sprite = model.makeSprite() ;
-      ///sprite.setAnimation(ANIM_NAME, 0) ;
-      sprite.position.x = sprite.position.y = i++ ;
+      sprite.position.y = i ;
+      sprite.position.x = -i / 2f ;
       sprite.position.z = -0.0f ;
       sprites.add(sprite) ;
+      i++ ;
     }
-    rendering.port.cameraZoom = 10f / NODE_NAMES.length ;
+    rendering.port.cameraPosition.z += 1 ;
+    rendering.port.cameraZoom = 15f / NODE_NAMES.length ;
   }
   
   
@@ -57,10 +63,10 @@ public class DebugSprites extends ViewLoop {
     //
     //  Make sure the light is always in the right position to illuminate the
     //  models.
-    final Vec3D dirVec = new Vec3D(0, 0, 1) ;
-    dirVec.setTo(rendering.port.flatToIso(dirVec)) ;
-    rendering.lighting.direct(dirVec) ;
-    GL11.glClearColor(0.0f, 0.0f, 1.0f, 1.0f) ;
+    GL11.glClearColor(0.0f, 1.0f, 1.0f, 1.0f) ;
+    rendering.lighting.direct(
+      rendering.port.viewInvert(new Vec3D(0, 0, 1))
+    ) ;
     //
     //  Now, iterate across each sprite, update their animations, and draw
     //  them to the main view-

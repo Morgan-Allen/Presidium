@@ -170,14 +170,15 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     }
     choice.add(new Retreat(actor)) ;
     choice.add(new SickLeave(actor)) ;
+    //
+    //  TODO:  Picking up stray items!  Theft and looting!
+    //         ...What about surrendering/arrest for committing crimes?
   }
   
   
   protected void addWork(Choice choice) {
     //
     //  Find the next jobs waiting for you at work or home.
-    //  TODO:  What about shifts?  Only certain venues need those, but they
-    //  are important.
     if (work != null) {
       Behaviour atWork = work.jobFor(actor) ;
       if (atWork != null) choice.add(atWork) ;
@@ -204,10 +205,14 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     //  some kind.  That requires iterating over various venues.
     choice.add(Recreation.findRecreation(actor)) ;
     choice.add(new Resting(actor, Resting.pickRestPoint(actor))) ;
+    //  Also, dining/foraging might be made into it's own class!
     //
     //  As hobbies, consider hunting, exploration, assistance, and dialogue,
     //  with one chosen target each.
-    
+    Tile toExplore = Exploring.getUnexplored(actor.base().intelMap, actor) ;
+    if (toExplore != null) {
+      choice.add(new Exploring(actor, actor.base(), toExplore)) ;
+    }
   }
   
   

@@ -22,6 +22,12 @@ public final class Spacing implements TileConstants {
 
   private final static Vec3D pA = new Vec3D(), pB = new Vec3D() ;
   private final static Box2D tA = new Box2D(), tB = new Box2D() ;
+  public final static Tile
+    tempT4[] = new Tile[4],
+    tempT8[] = new Tile[8] ;
+  public final static Boardable
+    tempB4[] = new Boardable[4],
+    tempB8[] = new Boardable[8] ;
   
   final static Tile PERIM_ARRAYS[][] = {
     new Tile[8 ],
@@ -157,6 +163,17 @@ public final class Spacing implements TileConstants {
     
     for (int i = numNeighbours ; i-- > 0 ;) near[i].flagWith(null) ;
     return numNeighbours ;
+  }
+  
+  
+  public static boolean isEntrance(Tile t) {
+    for (Tile n : t.edgeAdjacent(tempT4)) {
+      if (n == null || ! (n.owner() instanceof Boardable)) continue ;
+      for (Boardable b : ((Boardable) n.owner()).canBoard(tempB4)) {
+        if (b == t) return true ;
+      }
+    }
+    return false ;
   }
   
   

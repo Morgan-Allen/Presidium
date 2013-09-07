@@ -28,11 +28,12 @@ public class Lair extends Venue {
   /**  Fields, constructors, and save/load methods-
     */
   final public static int
-    BROWSER_SAMPLE_RANGE  = 16,
-    PREDATOR_SAMPLE_RANGE = 32,
-    BROWSER_RATIO         = 12,
-    PREDATOR_RATIO        = 4,
-    LAIR_POPULATION       = 4 ;
+    BROWSER_SAMPLE_RANGE      = 16,
+    PREDATOR_SAMPLE_RANGE     = 32,
+    BROWSER_RATIO             = 12,
+    PREDATOR_RATIO            = 12,
+    BROWSER_LAIR_POPULATION   = 4,
+    PREDATOR_LAIR_POPULATION  = 2 ;
   
   
   final Species species ;
@@ -66,6 +67,7 @@ public class Lair extends Venue {
   public Behaviour jobFor(Actor actor) { return null ; }
   protected Vocation[] careers() { return null ; }
   protected Service[] services() { return null ; }
+  public int owningType() { return Element.ELEMENT_OWNS ; }
   
   
   

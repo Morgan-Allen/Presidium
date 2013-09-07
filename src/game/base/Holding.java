@@ -204,19 +204,22 @@ public class Holding extends Venue implements BuildConstants {
   
   public Batch <Item> goodsNeeded() {
     final Batch <Item> needed = new Batch <Item> () ;
+    //
+    //  Enough raw materials to allow construction-
     for (Item item : goodsNeeded(upgradeLevel + 1).raw) {
       if (item.type.form != BuildConstants.COMMODITY) continue ;
-      float amount = item.amount - stocks.amountOf(item) ;
+      final float amount = item.amount - stocks.amountOf(item) ;
       if (amount <= 0) continue ;
       needed.add(Item.withAmount(item, amount + 0.5f)) ;
     }
-    //  Labelling on deliveries needs to be fixed.
-    /*
-    final float foodNeed = personnel.residents().size() * (1 + 0.5f) * 2 ;
+    //
+    //  Enough food to last a typical inhabitant 5 days-
+    final float foodNeed = personnel.residents().size() * 1 ;
     for (Service t : ALL_FOOD_TYPES) {
-      needed.add(Item.withAmount(t, foodNeed)) ;
+      final float amount = foodNeed - stocks.amountOf(t) ;
+      if (amount <= 0) continue ;
+      needed.add(Item.withAmount(t, amount)) ;
     }
-    //*/
     return needed ;
   }
   
@@ -229,8 +232,9 @@ public class Holding extends Venue implements BuildConstants {
   
   /**  Rendering and interface methods-
     */
-  final static String IMG_DIR = "media/Buildings/merchant/" ;
-  final static Model
+  final static String
+    IMG_DIR = "media/Buildings/merchant/" ;
+  final public static Model
     FIELD_Q_MODEL = ImageModel.asIsometricModel(
       Holding.class, IMG_DIR+"field_tent.png", 2, 1
     ),
@@ -239,7 +243,12 @@ public class Holding extends Venue implements BuildConstants {
       4, 4, 2, ImageModel.TYPE_POPPED_BOX
     ),
     PALACE_MODELS[] = null,
-    SLUM_MODELS[][] = null ;
+    SLUM_MODELS[][] = null,
+    
+    EXTRA_MODELS[][] = ImageModel.fromTextureGrid(
+      Holding.class, Texture.loadTexture(IMG_DIR+"housing_props.png"),
+      3, 3, 1, ImageModel.TYPE_POPPED_BOX
+    ) ;
   
   
   private static Model modelFor(Holding holding) {
@@ -276,6 +285,7 @@ public class Holding extends Venue implements BuildConstants {
   public String[] infoCategories() {
     return new String[] { "Status", "Staff" } ;
   }
+  
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
     if (categoryID != 2) super.writeInformation(d, categoryID, UI) ;

@@ -57,15 +57,17 @@ public class SurveyorRedoubt extends Venue implements BuildConstants {
     final Actor p = Hunting.nextPreyFor(actor, World.DEFAULT_SECTOR_SIZE * 2) ;
     if (p != null) {
       final Hunting h = new Hunting(actor, p, Hunting.TYPE_HARVEST) ;
-      h.priorityMod = Plan.CASUAL ;
+      //h.priorityMod = Plan.ROUTINE ;
       choice.add(h) ;
     }
     final Tile t = Exploring.getUnexplored(actor.base().intelMap, actor) ;
     if (t != null) {
+      I.say("TILE FOUND IS: "+t) ;
       final Exploring e = new Exploring(actor, actor.base(), t) ;
-      e.priorityMod = Plan.CASUAL ;
+      e.priorityMod = Plan.ROUTINE ;
       choice.add(e) ;
     }
+    else I.say("NOTHING LEFT TO EXPLORE?") ;
     return choice.weightedPick(actor.AI.whimsy()) ;
   }
   

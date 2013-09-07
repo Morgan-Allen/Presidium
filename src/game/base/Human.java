@@ -32,10 +32,10 @@ public class Human extends Actor implements ActorConstants {
     XML_PATH = FILE_DIR+"HumanModels.xml" ;
   final public static Model
     MODEL_MALE = MS3DModel.loadMS3D(
-      Actor.class, FILE_DIR, "male_final.ms3d", 0.025f
+      Human.class, FILE_DIR, "male_final.ms3d", 0.025f
     ).loadXMLInfo(XML_PATH, "MalePrime"),
     MODEL_FEMALE = MS3DModel.loadMS3D(
-      Actor.class, FILE_DIR, "female_final.ms3d", 0.025f
+      Human.class, FILE_DIR, "female_final.ms3d", 0.025f
     ).loadXMLInfo(XML_PATH, "FemalePrime") ;
   
   final public static Texture

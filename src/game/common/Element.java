@@ -71,6 +71,7 @@ public abstract class Element implements
   public boolean canPlace() {
     if (location == null) return false ;
     if (location.blocked()) return false ;
+    if (Spacing.isEntrance(location)) return false ;
     return true ;
   }
   

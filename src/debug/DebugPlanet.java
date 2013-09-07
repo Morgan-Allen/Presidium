@@ -88,7 +88,7 @@ public class DebugPlanet extends PlayLoop {
   
   protected void updateGameState() {
     ///PlayLoop.setGameSpeed(25.0f) ;
-    PlayLoop.setGameSpeed(5.0f) ;
+    PlayLoop.setGameSpeed(25.0f) ;
     super.updateGameState() ;
   }
   

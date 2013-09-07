@@ -50,8 +50,7 @@ public class Retreat extends Plan implements ActorConstants {
   
   
   protected Behaviour getNextStep() {
-    ///if (actor.aboard() == safePoint) { I.say("AT HAVEN") ; return null ; }
-    ///if (priorityFor(actor) <= 0) { I.say("NO PRIORITY") ; return null ; }
+    if (priorityFor(actor) <= 0) { return null ; }
     if (safePoint == null || actor.aboard() == safePoint) {
       safePoint = nearestHaven(actor, null) ;
     }

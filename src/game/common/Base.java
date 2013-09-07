@@ -41,6 +41,8 @@ public class Base implements
   final public DangerMap dangerMap ;
   final public IntelMap intelMap = new IntelMap(this) ;
   
+  public Colour colour = Colour.BLUE ;
+  
   
   
   public Base(World world) {

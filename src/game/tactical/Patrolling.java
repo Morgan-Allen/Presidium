@@ -99,7 +99,7 @@ public class Patrolling extends Plan {
     return new Action(
       actor, goes,
       this, "actionPatrol",
-      Action.LOOK, "Patrolling"
+      Action.LOOK, "Wandering"
     ) ;
   }
   

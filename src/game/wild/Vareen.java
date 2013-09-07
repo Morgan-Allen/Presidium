@@ -52,7 +52,8 @@ public class Vareen extends Fauna {
       5,    //lifespan
       0.5f, //bulk bonus
       1.0f, //sight range
-      1.6f  //speed rate
+      1.6f, //speed rate
+      true  //organic
     ) ;
     gear.setDamage(4) ;
     gear.setArmour(2) ;

@@ -43,9 +43,9 @@ public class DebugHumanMedia extends ViewLoop {
   
   
   protected void update() {
-    final Vec3D dirVec = new Vec3D(0, 0, 1) ;
-    dirVec.setTo(rendering.port.flatToIso(dirVec)) ;
-    rendering.lighting.direct(dirVec) ;
+    rendering.lighting.direct(
+      rendering.port.viewInvert(new Vec3D(0, 0, 1))
+    ) ;
     Human selected = null ;
     //
     //  Render the generated humanoid sprites-

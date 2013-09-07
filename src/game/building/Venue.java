@@ -104,23 +104,19 @@ public abstract class Venue extends Fixture implements
   public boolean canPlace() {
     if (origin() == null) return false ;
     final World world = origin().world ;
-    
+    //
+    //  Make sure we don't displace any more important object-
     for (Tile t : world.tilesIn(area(), false)) {
       if (t == null || t.owningType() >= owningType()) return false ;
     }
     //
-    //  ...I'm not sure I remember what's happening here.  Figure out?
-    final Boardable tempB[] = new Boardable[4] ;
-    final Box2D tempA = new Box2D() ;
+    //  This step ensures that we don't occupy the entrance of any other
+    //  boardable object-
     for (Tile n : Spacing.perimeter(area(), world)) {
-      if (n == null) return false ;
-      if (! (n.owner() instanceof Boardable)) continue ;
-      for (Boardable b : ((Boardable) n.owner()).canBoard(tempB)) {
-        if (b == null) continue ;
-        if (area().intersects(b.area(tempA))) return false ;
-      }
+      if (n == null || Spacing.isEntrance(n)) return false ;
     }
-    
+    //
+    //  And make sure we don't create isolated areas of unreachable tiles-
     if (! Spacing.perimeterFits(this)) return false ;
     if (mainEntrance().owningType() >= owningType()) return false ;
     return true ;
@@ -510,6 +506,8 @@ public abstract class Venue extends Fixture implements
     healthbar.matchTo(buildSprite) ;
     healthbar.position.z += height() ;
     rendering.addClient(healthbar) ;
+    if (base() == null) healthbar.full = Colour.LIGHT_GREY ;
+    else healthbar.full = base().colour ;
     
     if (structure.needsUpgrade()) {
       Healthbar progBar = new Healthbar() ;

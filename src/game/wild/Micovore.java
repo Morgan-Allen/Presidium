@@ -43,7 +43,8 @@ public class Micovore extends Fauna {
       20,  //lifespan
       2.5f,//bulk bonus
       1.5f,//sight range
-      1.3f //move speed
+      1.3f,//move speed,
+      true //organic
     ) ;
     gear.setDamage(15) ;
     gear.setArmour(5) ;
@@ -96,6 +97,31 @@ public class Micovore extends Fauna {
       marking.setPriority(Action.CASUAL) ;
       choice.add(marking) ;
     }
+    /*
+    //
+    //  And determine whether you should feed your young-
+    if (AI.home() != null) for (Actor a : AI.home().personnel.residents()) {
+      //if (a.aboard() != AI.home() || a.health.conscious()) continue ;
+      final float hunger = 1 - a.health.energyLevel() ;
+      if (health.energyLevel() >= 0.75f && hunger > 0.5f) {
+        final Action feedOther = new Action(
+          this, a,
+          this, "actionFeedOther",
+          Action.STRIKE, "Feeding "+a
+        ) ;
+        feedOther.setPriority(Action.CASUAL * hunger) ;
+        choice.add(feedOther) ;
+      }
+    }
+    //*/
+  }
+  
+  
+  public boolean actionFeedOther(Fauna elder, Fauna child) {
+    I.say(elder+" IS FEEDING OTHER: "+child) ;
+    elder.health.loseSustenance(0.1f) ;
+    child.health.takeSustenance(0.1f * elder.health.maxHealth(), 1) ;
+    return true ;
   }
   
   

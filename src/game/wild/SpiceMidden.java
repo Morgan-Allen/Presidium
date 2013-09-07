@@ -5,8 +5,7 @@ package src.game.wild ;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.game.planet.* ;
-import src.graphics.common.Colour;
-import src.graphics.common.Rendering;
+import src.graphics.common.* ;
 import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
@@ -106,8 +105,8 @@ public class SpiceMidden extends Fixture implements Selectable {
     d.append(helpInfo()) ;
     d.append("\n\nContains: "+spice()) ;
   }
-
-
+  
+  
   public void whenClicked() {
     
   }
@@ -126,8 +125,8 @@ public class SpiceMidden extends Fixture implements Selectable {
   public void renderSelection(Rendering rendering, boolean hovered) {
     if (destroyed() || ! inWorld()) return ;
     Selection.renderPlane(
-      rendering, position(null), (xdim() / 2f) + 1,
-      hovered ? Colour.transparency(0.5f) : Colour.WHITE,
+      rendering, position(null), (xdim() / 2f) + 0.5f,
+      Colour.transparency(hovered ?  0.25f : 0.5f),
       Selection.SELECT_CIRCLE
     ) ;
   }

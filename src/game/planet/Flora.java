@@ -6,6 +6,7 @@
 
 package src.game.planet ;
 import src.game.common.* ;
+import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.ImageModel ;
 import src.util.* ;
@@ -67,9 +68,17 @@ public class Flora extends Element implements TileConstants {
     for (int i : N_INDEX) {
       final Tile n = world.tileAt(t.x + N_X[i], t.y + N_Y[i]) ;
       if (n == null || n.blocked()) numBlocked++ ;
-      if (n != null && n.owningType() > Element.ELEMENT_OWNS) {
-        numBlocked = 8 ;
-        break ;
+      if (n != null) {
+        if (n.owningType() > Element.ELEMENT_OWNS) {
+          numBlocked = 8 ;
+          break ;
+        }
+        if (n.owner() instanceof Boardable) {
+          if (t.isEntrance((Boardable) n.owner())) {
+            numBlocked = 8 ;
+            break ;
+          }
+        }
       }
     }
     

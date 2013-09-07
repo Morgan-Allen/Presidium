@@ -125,11 +125,14 @@ public class Resting extends Plan implements BuildConstants {
     final Batch <Service> menu = menuFor(place) ;
     final int numFoods = menu.size() ;
     if (numFoods > 0) {
+      //  FOOD TO BODY-MASS RATIO IS 1 TO 10.  So, 1 unit of food will last a
+      //  typical person 5 days.
       final Venue venue = (Venue) place ;
       for (Service type : menu) {
-        venue.inventory().removeItem(Item.withAmount(type, 1f / numFoods)) ;
+        final Item portion = Item.withAmount(type, 0.1f * 1f / numFoods) ;
+        venue.inventory().removeItem(portion) ;
       }
-      actor.health.takeSustenance(5, numFoods / (ALL_FOOD_TYPES.length - 1)) ;
+      actor.health.takeSustenance(1, numFoods / (ALL_FOOD_TYPES.length - 1)) ;
       return true ;
     }
     //

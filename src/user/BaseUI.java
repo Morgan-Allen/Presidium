@@ -64,6 +64,7 @@ public class BaseUI extends HUD implements UIConstants {
   
   private UIGroup currentPanel, newPanel ;
   private long panelInceptTime = -1 ;
+  private boolean capturePanel = false ;
   
   
   
@@ -196,6 +197,10 @@ public class BaseUI extends HUD implements UIConstants {
       if (newPanel != null) newPanel.attachTo(infoArea) ;
       currentPanel = newPanel ;
     }
+    if (capturePanel) {
+      panelFade = UINode.copyPixels(infoArea.trueBounds(), panelFade) ;
+      capturePanel = false ;
+    }
     
     final float TRANSITION_TIME = 0.33f ;
     float fade = System.currentTimeMillis() - panelInceptTime ;
@@ -204,12 +209,12 @@ public class BaseUI extends HUD implements UIConstants {
       GL11.glColor4f(1, 1, 1, 1 - fade) ;
       UINode.drawPixels(infoArea.trueBounds(), panelFade) ;
     }
-    else panelFade = UINode.copyPixels(infoArea.trueBounds(), panelFade) ;
   }
   
   
   protected void beginPanelFade() {
     panelInceptTime = System.currentTimeMillis() ;
+    capturePanel = true ;
   }
   
   

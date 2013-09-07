@@ -6,8 +6,9 @@
 
 
 package src.game.planet ;
-import src.game.building.VenueStructure;
 import src.game.common.* ;
+import src.game.building.* ;
+import src.game.wild.* ;
 import src.util.* ;
 
 
@@ -24,6 +25,87 @@ public class EcologyGen {
     */
   
   
+
+  
+  
+  
+  /**  Populates a given area of the map with ruins and ruin-associated
+    *  species.
+    */
+  public Batch <Ruins> populateRuins(Tile centre, float radius) {
+    
+    final World world = centre.world ;
+    final Box2D area = new Box2D() ;
+    final int maxRuins = 1 + (int) ((Rand.avgNums(2) + 0.5f) * radius / 4) ;
+    final Batch <Ruins> allRuins = new Batch <Ruins> () ;
+    final Batch <Tile> wastes = new Batch <Tile> () ;
+    final Batch <Tile> barrens = new Batch <Tile> () ;
+    Ruins ruins = null ;
+    Slag slag = null ;
+    
+    for (int d = 0 ; d < radius ; d++) {
+      area.set(centre.x - 0.5f, centre.y - 0.5f, 1, 1).expandBy(d) ;
+      for (Tile t : Spacing.perimeter(area, world)) if (t != null) {
+        final float distance = Spacing.distance(t, centre) / radius ;
+        if (distance > 1) continue ;
+        if (Rand.avgNums(2) > distance) {
+          if (Rand.index(5) == 0) wastes.add(t) ;
+          else barrens.add(t) ;
+        }
+        
+        if (allRuins.size() < maxRuins) {
+          if (ruins == null) ruins = new Ruins() ;
+          final int HS = ruins.size / 2 ;
+          if (t.x < HS || t.y < HS) continue ;
+          ruins.setPosition(t.x - HS, t.y - HS, t.world) ;
+          if (ruins.canPlace() && Spacing.perimeterFits(ruins)) {
+            ruins.clearSurrounds() ;
+            ruins.enterWorld() ;
+            ruins.structure.setState(
+              VenueStructure.STATE_INTACT,
+              (Rand.num() + 1) / 2f
+            ) ;
+            ruins.setAsEstablished(true) ;
+            allRuins.add(ruins) ;
+            for (Tile u : world.tilesIn(ruins.area(), false)) {
+              wastes.add(u) ;
+            } ;
+            ruins = null ;
+          }
+        }
+        
+        if (Rand.num() > distance && Rand.index(5) == 0) {
+          if (slag == null) slag = new Slag(true, 1) ;
+          slag.setPosition(t.x, t.y, t.world) ;
+          if (slag.canPlace() && Spacing.perimeterFits(slag)) {
+            slag = new Slag(true, 1 + Rand.num() - distance) ;
+            slag.setPosition(t.x, t.y, t.world) ;
+            slag.enterWorld() ;
+            slag = null ;
+            wastes.add(t) ;
+          }
+        }
+      }
+    }
+    
+    for (Tile t : wastes) for (Tile n : t.allAdjacent(Spacing.tempT8)) {
+      if (n == null || n.flaggedWith() != null) continue ;
+      n.flagWith(t) ;
+      barrens.add(n) ;
+    }
+    for (Tile t : barrens) {
+      world.terrain().setHabitat(t, Habitat.BARRENS) ;
+      t.flagWith(null) ;
+    }
+    for (Tile t : wastes) {
+      world.terrain().setHabitat(t, Habitat.BLACK_WASTES) ;
+    }
+    
+    return allRuins ;
+  }
+  
+  
+  
   
   /**  Methods for populating the world-
     */
@@ -36,9 +118,6 @@ public class EcologyGen {
   }
   
   
-  //
-  //  TODO:  This method needs to insert lairs, instead of inserting animals
-  //  directly.  (Then top up the population.)
   
   public void populateFauna(
     final World world, final Species... species
@@ -72,6 +151,15 @@ public class EcologyGen {
     scan.doFullScan() ;
   }
 }
+
+
+
+
+
+
+
+
+
 
 
 

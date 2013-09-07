@@ -143,12 +143,12 @@ public class Habitat {
     //  Replace the next two with those.  That should be everything required,
     //  aside from Tundra habitats...
     
-    BLACK_WASTES = new Habitat("Mesa",
-      "black_wastes_ground.gif", WASTES_FLORA_MODELS,
+    BLACK_WASTES = new Habitat("Black Wastes",
+      "black_wastes_ground.gif", null,// WASTES_FLORA_MODELS,
       -1, true, MOISTURE, 3, INSOLATION, 3, MINERALS, 7,
       IS_WASTE
     ),
-    GEOTHERMAL = new Habitat("Mesa",
+    GEOTHERMAL = new Habitat("Geothermal Vents",
       "geothermal_ground.gif", WASTES_FLORA_MODELS,
       -1, true, MOISTURE, 5, INSOLATION, 7, MINERALS, 9,
       IS_WASTE

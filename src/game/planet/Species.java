@@ -37,7 +37,7 @@ public abstract class Species {
       Species.class, LAIR_DIR+"nest_micovore.png", 3.5f, 2
     ),
     MODEL_MIDDENS[] = ImageModel.loadModels(
-      Species.class, 1.5f, 1, LAIR_DIR,
+      Species.class, 1.25f, 1, LAIR_DIR,
       "midden_a.png",
       "midden_b.png",
       "midden_c.png"
@@ -182,8 +182,8 @@ public abstract class Species {
   
   
   public int maxLairPop() {
-    if (type == Species.Type.PREDATOR) return Lair.LAIR_POPULATION / 2 ;
-    return Lair.LAIR_POPULATION ;
+    if (type == Species.Type.PREDATOR) return Lair.PREDATOR_LAIR_POPULATION ;
+    return Lair.BROWSER_LAIR_POPULATION ;
   }
   
   

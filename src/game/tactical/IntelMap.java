@@ -121,7 +121,7 @@ public class IntelMap {
       //  If there's been a change in fog value, update the reference and
       //  rendering data-
       if (oldVal != newVal) {
-        if (oldVal == 0) fogMap.set((byte) 1, t.x, t.y) ;
+        if (newVal == 1) fogMap.set((byte) 1, t.x, t.y) ;
         fogTex.putColour(Colour.transparency(1 - newVal), t.x, t.y) ;
       }
       tilesSeen += lift - oldVal ;

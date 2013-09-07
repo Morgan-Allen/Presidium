@@ -7,7 +7,7 @@
 package src.util ;
 
 
-public class Table <K, V> extends java.util.Hashtable <K, V> {
+public class Table <K, V> extends java.util.HashMap <K, V> {
   
   
   final static long serialVersionUID = 0 ;

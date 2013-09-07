@@ -244,10 +244,13 @@ public abstract class Actor extends Mobile implements
     final Sprite s = sprite() ;
     
     if (! health.deceased()) {
-      healthBar.level = (1 - health.injuryLevel()) * (1 - health.skillPenalty()) ;
+      healthBar.level =  (1 - health.injuryLevel()) ;
+      healthBar.level *= (1 - health.skillPenalty()) ;
       healthBar.size = 25 ;
       healthBar.matchTo(s) ;
       healthBar.position.z -= radius() ;
+      if (base() == null) healthBar.full = Colour.LIGHT_GREY ;
+      else healthBar.full = base().colour ;
       rendering.addClient(healthBar) ;
     }
     

@@ -99,7 +99,7 @@ public class Healthbar extends Sprite {
       (a.b * level) + (b.b * s),
       1
     ) ;
-    mix.setValue(1) ;
+    mix.setValue((a.value() * level) + (b.value() * s)) ;
     GL11.glColor4f(
       mix.r * c.r * f,
       mix.g * c.g * f,

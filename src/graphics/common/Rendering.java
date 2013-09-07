@@ -61,6 +61,8 @@ public class Rendering {
     lighting = new Lighting() ;
     lighting.setup(1.0f, 1.0f, 1.0f, true, true) ;
     lighting.direct(Lighting.DEFAULT_ANGLE.normalise()) ;
+
+    GL11.glClearColor(0.2f, 0.2f, 0.2f, 1) ;
   }
   
   
@@ -74,12 +76,7 @@ public class Rendering {
     GL11.glEnableClientState(GL11.GL_NORMAL_ARRAY) ;
     GL11.glEnableClientState(GL11.GL_TEXTURE_COORD_ARRAY) ;
     
-    //
-    //  Consider having most sprites ignore the depth test and depth-mask
-    //  functions.  Then you can just sort them manually.
-    
     GL11.glEnable(GL11.GL_NORMALIZE) ;  //  IF MISSING, COLOURS ARE TOO BRIGHT.
-    //GL11.glDisable(GL11.GL_DEPTH_TEST) ;
     GL11.glEnable(GL11.GL_DEPTH_TEST) ;
     GL11.glDepthFunc(GL11.GL_LEQUAL)  ;
     GL11.glDepthMask(true) ;
@@ -88,8 +85,8 @@ public class Rendering {
     
     GL11.glEnable(GL11.GL_BLEND) ;
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA) ;
-    GL11.glDisable(GL11.GL_ALPHA_TEST) ;
-    GL11.glAlphaFunc(GL11.GL_GREATER, 0.05f) ;
+    GL11.glEnable(GL11.GL_ALPHA_TEST) ;
+    GL11.glAlphaFunc(GL11.GL_GREATER, 0.1f) ;
     
     GL11.glEnable(GL11.GL_COLOR_MATERIAL) ;
     GL11.glColorMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_AMBIENT_AND_DIFFUSE) ;
@@ -149,7 +146,6 @@ public class Rendering {
   
   public void renderDisplay() {
     initSettings() ;
-    GL11.glClearColor(0.2f, 0.2f, 0.2f, 1) ;
     GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT) ;
     port.applyView() ;
     lighting.bindLight(0) ;
@@ -165,8 +161,6 @@ public class Rendering {
     clients.clear() ;
     
     if (HUD != null) {
-      //  Alpha blending doesn't seem to work here.  Fix this.
-      //GL11.glEnable(GL11.GL_COLOR_MATERIAL) ;
       HUD.renderHUD(new Box2D().set(0, 0, viewWide, viewHigh)) ;
     }
     

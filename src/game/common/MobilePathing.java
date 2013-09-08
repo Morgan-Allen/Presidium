@@ -132,10 +132,11 @@ public class MobilePathing {
   
   
   public boolean refreshPath() {
+    final Boardable origin = location(mobile) ;
     if (trueTarget == null) path = null ;
     else {
       pathTarget = location(trueTarget) ;
-      path = refreshPath(location(mobile), pathTarget) ;
+      path = refreshPath(origin, pathTarget) ;
     }
     if (path == null) {
       if (BaseUI.isPicked(mobile)) I.say("COULDN'T PATH TO: "+pathTarget) ;
@@ -144,7 +145,9 @@ public class MobilePathing {
       return false ;
     }
     else {
-      stepIndex = path.length > 1 ? 1 : 0 ;
+      int index = 0 ;
+      while (index < path.length) if (path[index++] == origin) break ;
+      stepIndex = Visit.clamp(index, path.length) ;
       return true ;
     }
   }

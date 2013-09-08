@@ -75,12 +75,12 @@
 
 
 <model
-  name="Elemental"
+  name="Trigox"
   format="MS3D"
   type="JOINT"
   path="media/Actors/fauna/"
-  file="Elemental.ms3d"
-  scale="0.1"
+  file="Trigox.ms3d"
+  scale="0.03"
   bound="1.0"
   stride="0.4"
   height="1.0"
@@ -100,7 +100,7 @@
   type="JOINT"
   path="media/Actors/fauna/"
   file="Drivodil.ms3d"
-  scale="0.035"
+  scale="0.02"
   bound="2"
   stride="0.6"
   height="1.2"
@@ -112,6 +112,24 @@
     <animation name="fall"       start="16" end="22" duration="4.0" />
   </animations>
 </model>
+
+
+<model
+  name="Gigans"
+  format="MS3D"
+  type="JOINT"
+  path="media/Actors/fauna/"
+  file="Gigans.ms3d"
+  scale="0.06"
+  bound="2"
+  stride="0.6"
+  height="1.2"
+>
+  <animations>
+    <animation name="stand"      start="0"  end="0"  duration="0.5" />
+  </animations>
+</model>
+
 
 
 

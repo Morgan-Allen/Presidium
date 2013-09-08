@@ -63,14 +63,14 @@ public class Quud extends Fauna {
       float eaten = origin().habitat().moisture() / 100f ;
       health.takeSustenance(eaten, 1) ;
     }
-    if (! amDoing("actionHunker")) gear.setArmour(15) ;
+    if (! isDoing("actionHunker", null)) gear.setArmour(15) ;
   }
   
 
   protected void addChoices(Choice choice) {
     final Behaviour defence = nextDefence(null) ;
     if (defence != null) {
-      if (! amDoing("actionHunker")) choice.add(defence) ;
+      if (! isDoing("actionHunker", null)) choice.add(defence) ;
       return ;
     }
     super.addChoices(choice) ;

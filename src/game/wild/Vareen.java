@@ -70,7 +70,9 @@ public class Vareen extends Fauna {
     */
   protected void updateAsMobile() {
     float idealHeight = 2.5f ;
-    if (amDoing("actionRest") || amDoing("actionBrowse")) idealHeight = 1.0f ;
+    if (isDoing("actionRest", null) || isDoing("actionBrowse", null)) {
+      idealHeight = 1.0f ;
+    }
     if (! health.conscious()) idealHeight = 0 ;
     flyHeight = Visit.clamp(idealHeight, flyHeight - 0.1f, flyHeight + 0.1f) ;
     super.updateAsMobile() ;

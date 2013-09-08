@@ -55,49 +55,15 @@ public class Combat extends Plan implements ActorConstants {
     */
   public float priorityFor(Actor actor) {
     if (isDead(target)) return 0 ;
-    //
-    //  TODO:  Move this evaluation below, to the combatPriority method?
     if (target instanceof Actor) {
       final Actor struck = (Actor) target ;
-      float relation = actor.AI.relation(struck) ;
-      relation *= PARAMOUNT ;
-      float reward = priorityMod - relation ;
-      
-      //
-      //  If they're actually attacking someone important, bump the importance
-      //  up-
-      //  TODO:  SIMPLIFY THIS LATER
-      final Action action = struck.currentAction() ;
-      /*
-      if (BaseUI.isPicked(actor)) {
-        I.say(actor+" EVALUATING COMBAT WITH "+struck) ;
-        if (action != null) {
-          I.say("ACTION IS: "+action+", TARGET: "+action.target()) ;
-          I.say(" BEHAVIOUR IS: "+struck.AI.rootBehaviour()) ;
-          I.say(" IS IN COMBAT? "+struck.isDoing(Combat.class)) ;
-        }
-      }
-      //*/
-      
-      if (struck.isDoing(Combat.class) && action != null) {
-        final Target t = action.target() ;
-        if (t == actor) {
-          ///I.say(actor+" DEFENDING SELF!") ;
-          //return PARAMOUNT ;
-          reward += PARAMOUNT ;
-        }
-        else if (t instanceof Actor) {
-          reward += PARAMOUNT * actor.AI.relation((Actor) t) ;
-        }
-      }
-      ///I.say(actor+" DEFENCE PRIORITY: "+reward) ;
-      //  TODO:  Modify by the aggressive/pacifist traits-
-      
-      return combatPriority(actor, struck, reward, PARAMOUNT) ;
+      float BP = combatPriority(actor, struck, priorityMod, PARAMOUNT) ;
+      return BP <= 0 ? 0 : BP + ROUTINE ;
     }
     if (target instanceof Venue) {
       final Venue struck = (Venue) target ;
-      return (priorityMod - actor.AI.relation(struck.base())) * ROUTINE ;
+      float BP = (priorityMod - actor.AI.relation(struck.base())) * ROUTINE ;
+      return BP <= 0 ? 0 : BP + ROUTINE ;
     }
     return -1 ;
   }
@@ -121,47 +87,70 @@ public class Combat extends Plan implements ActorConstants {
   public static float combatPriority(
     Actor actor, Actor enemy, float winReward, float lossCost
   ) {
-    //  TODO:  Retrofit this to work with buildings?  What about offensive
-    //  structures?
-    
-    if (actor == enemy || winReward <= 0) {
-      ///if (BaseUI.isPicked(actor)) I.say("  No combat reward!") ;
-      return 0 ;
+    if (actor == enemy) return 0 ;
+    //
+    //  Here, we estimate the danger presented by actors in the area, and
+    //  thereby guage the odds of survival/victory-
+    final Batch <Element> nearby = new Batch <Element> () ;
+    //
+    //  TODO:  Strictly speaking, this is cheating, since some of these targets
+    //  might not be visible to the player (or actor.)  Fix that?
+    for (Object m : actor.world().presences.matchesNear(
+      Mobile.class, enemy, actor.health.sightRange())
+    ) {
+      nearby.add((Element) m) ;
     }
-    final float
-      actorStrength = combatStrength(actor, enemy),
-      enemyStrength = combatStrength(enemy, actor),
-      chance = actorStrength / (actorStrength + enemyStrength) ;
+    float danger = Retreat.dangerAtSpot(enemy, actor, nearby) ;
+    /*  //TODO:  Fix up the Danger Map.  Needs to be smoother, area-wise.
+    if (actor.base() != null) {
+      final float areaDanger = actor.base().dangerMap.valAt(enemy.origin()) ;
+      danger = (danger + (areaDanger / combatStrength(actor, null))) / 2 ;
+    }
+    //*/
+    final float chance = 1 - danger ;
+    //
+    //  Then we calculate the risk/reward ratio associated with the act-
+    final Target victim = enemy.targetFor(Combat.class) ;
+    if (victim instanceof Actor) {
+      float mod = alliance(actor, (Actor) victim) * PARAMOUNT ;
+      lossCost -= mod / 2 ;
+      winReward += mod / 2 ;
+    }
     float appeal = 0 ;
-    appeal += actor.AI.relation(enemy) * -1 * ROUTINE ;
+    final float ER = alliance(actor, enemy) ;
+    appeal += ER * -1 * PARAMOUNT ;
     appeal += winReward ;
     
-    //*
-    if (BaseUI.isPicked(actor)) {
-      I.say("  "+actor+" considering COMBAT with "+enemy) ;
+    
+    final boolean reports = BaseUI.isPicked(actor) ;
+    if (reports) {
       I.say(
-        "  Actor/enemy strength: "+actorStrength+"/"+enemyStrength+
+        "  "+actor+" considering COMBAT with "+enemy+
+        ", time: "+actor.world().currentTime()
+      ) ;
+      I.say(
+        "  Danger level: "+danger+", relation: "+ER+
         "\n  Appeal before chance: "+appeal+", chance: "+chance
       ) ;
     }
-    //*/
-    appeal *= chance ;
-    appeal -= (1 - chance) * lossCost ;
-    if (BaseUI.isPicked(actor)) I.say("  Final combat appeal: "+appeal) ;
-    
-    //
-    //final float distance = Spacing.distance(enemy, actor) ;
-    //  You also need to incorporate an estimate of dangers en-route,
-    //  and subtract this (relative to the actor's combat strength.)
-    //...Some of this should be moved to the general Mission class.
-    //appeal /= Math.max(1, distance / Terrain.SECTOR_SIZE) ;
+    if (chance <= 0) {
+      if (reports) I.say("  No chance of victory!\n") ;
+      return 0 ;
+    }
+    appeal = (appeal * chance) - ((1 - chance) * lossCost) ;
+    if (reports) I.say("  Final appeal: "+appeal+"\n") ;
     return appeal ;
   }
   
   
+  public static float alliance(Actor a, Actor b) {
+    return Math.min(a.AI.relation(b), b.AI.relation(a)) ;
+  }
+  
+  
+  //
   //  TODO:  Actors may need to cache this value?  Maybe later.  Not urgent at
   //  the moment.
-  
   //
   //  Note:  it's acceptable to pass null as the enemy argument, for a general
   //  estimate of combat prowess.  (TODO:  Put in a separate method for that?)
@@ -258,7 +247,9 @@ public class Combat extends Plan implements ActorConstants {
   
   private void configRangedAction(Action strike, boolean razes, float danger) {
     final float range = actor.health.sightRange() ;
-    if (Rand.num() < danger) {
+    boolean underFire = actor.world().activities.includes(actor, Combat.class) ;
+    boolean tooFar = Spacing.distance(actor, target) > range ;
+    if ((Rand.num() < danger && underFire) || tooFar) {
       final Tile WP = Retreat.pickWithdrawPoint(actor, range, target, 0.1f) ;
       strike.setMoveTarget(WP) ;
       strike.setProperties(Action.QUICK) ;
@@ -271,7 +262,9 @@ public class Combat extends Plan implements ActorConstants {
       }
       else strike.setProperties(Action.RANGED | Action.QUICK) ;
     }
-    else strike.setProperties(Action.RANGED | Action.QUICK) ;
+    else {
+      strike.setProperties(Action.RANGED | Action.QUICK) ;
+    }
   }
   
   
@@ -306,11 +299,11 @@ public class Combat extends Plan implements ActorConstants {
     Skill offence, Skill defence
   ) {
     final boolean success = actor.traits.test(
-      offence, target, defence, 0 - rangePenalty(actor, target), 10
+      offence, target, defence, 0 - rangePenalty(actor, target), 1
     ) ;
     if (success) {
-      float damage = actor.gear.attackDamage() * Rand.avgNums(2) * 1.5f ;
-      damage -= target.gear.armourRating() * (Rand.avgNums(2) + 0.25f) ;
+      float damage = actor.gear.attackDamage() * Rand.avgNums(2) ;
+      damage -= target.gear.armourRating() * Rand.avgNums(2) ;
       if (damage > 0) target.health.takeInjury(damage) ;
     }
     DeviceType.applyFX(actor.gear.deviceType(), actor, target, success) ;
@@ -345,7 +338,7 @@ public class Combat extends Plan implements ActorConstants {
   
   
   static float rangePenalty(Actor a, Target t) {
-    final float range = Spacing.distance(a, t) ;
+    final float range = Spacing.distance(a, t) / 2 ;
     return range * 5 / (a.health.sightRange() + 1f) ;
   }
   

@@ -133,6 +133,7 @@ public class ActorTraits implements ActorConstants {
   
   
   public float useLevel(Trait type) {
+    if (! actor.health.conscious()) return 0 ;
     float level = trueLevel(type) ;
     if (type.type == PHYSICAL) {
       return level * actor.health.ageMultiple() ;

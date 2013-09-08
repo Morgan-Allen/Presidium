@@ -195,7 +195,8 @@ public abstract class Actor extends Mobile implements
   /**  Dealing with state changes-
     */
   protected void enterStateKO() {
-    if (amDoing("actionFall")) return ;
+    ///I.say(this+" HAS BEEN KO'D") ;
+    if (isDoing("actionFall", null)) return ;
     final Action falling = new Action(
       this, this, this, "actionFall",
       Action.FALL, "Stricken"
@@ -204,16 +205,16 @@ public abstract class Actor extends Mobile implements
     this.assignAction(falling) ;
   }
   
-  //
-  //  TODO:  POLISH THESE UP, GENERALISE, AND POSSIBLY MOVE TO AI CLASS?
   
-  public boolean amDoing(String actionName) {
-    if (actionTaken == null) return false ;
-    return actionTaken.methodName().equals(actionName) ;
+  public boolean actionFall(Actor actor, Actor fallen) {
+    return true ;
   }
   
   
-  public boolean isDoing(Class planClass) {
+  public boolean isDoing(Class planClass, Target target) {
+    if (target != null) {
+      if (actionTaken == null || actionTaken.target() != target) return false ;
+    }
     for (Behaviour b : AI.agenda()) {
       if (planClass.isAssignableFrom(b.getClass())) return true ;
     }
@@ -221,8 +222,17 @@ public abstract class Actor extends Mobile implements
   }
   
   
-  public boolean actionFall(Actor actor, Actor fallen) {
-    return true ;
+  public boolean isDoing(String actionMethod, Target target) {
+    if (actionTaken == null) return false ;
+    if (target != null && actionTaken.target() != target) return false ;
+    return actionTaken.methodName().equals(actionMethod) ;
+  }
+  
+  
+  public Target targetFor(Class planClass) {
+    if (actionTaken == null) return null ;
+    if (! isDoing(planClass, null)) return null ;
+    return actionTaken.target() ;
   }
   
   

@@ -34,7 +34,7 @@ public class Wreckage extends Fixture {
   public Wreckage(boolean permanent, int size) {
     super(size, size / 2) ;
     this.permanent = permanent ;
-    final int tier = size > 1 ? 0 : Rand.index(2) ;
+    final int tier = size > 1 ? Rand.index(2) : Rand.index(2) ;
     final Model model = SLAG_MODELS[Rand.index(3)][tier] ;
     attachSprite(model.makeSprite()) ;
     spriteSize = (size + Rand.num()) / 2f ;
@@ -70,7 +70,8 @@ public class Wreckage extends Fixture {
     */
   public static void reduceToSlag(Box2D area, World world) {
     for (Tile t : world.tilesIn(area, true)) {
-      final Wreckage heap = new Wreckage(false, Rand.index(2) + 1) ;
+      //  TODO:  Allow for 2x2 wreckage here...
+      final Wreckage heap = new Wreckage(false, 1) ;
       heap.enterWorldAt(t.x, t.y, world) ;
     }
   }

@@ -18,18 +18,25 @@ public class DebugSprites extends ViewLoop {
     DB.run() ;
   }
   
-  
+  /*
   final static String
-    //DIR_PATH = "media/Actors/fauna/",
-    //XML_PATH = DIR_PATH+"FaunaModels.xml",
     DIR_PATH = "media/Actors/artilects/",
     XML_PATH = DIR_PATH+"ArtilectModels.xml",
     NODE_NAMES[] = {
-      //"Quud", "Vareen", "Micovore"
       "Defence Drone", "Recon Drone", "Blast Drone",
       "Tripod", "Cranial", "Tesseract"
     },
     ANIM_NAME = Model.AnimNames.FALL ;
+  //*/
+  
+  final static String
+    DIR_PATH = "media/Actors/fauna/",
+    XML_PATH = DIR_PATH+"FaunaModels.xml",
+    NODE_NAMES[] = {
+      "Quud", "Vareen", "Micovore",
+      "Trigox", "Drivodil", "Gigans"
+    },
+    ANIM_NAME = Model.AnimNames.MOVE ;
   private Batch <Sprite> sprites = new Batch <Sprite> () ;
   
   

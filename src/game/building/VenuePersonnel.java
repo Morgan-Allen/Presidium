@@ -156,7 +156,7 @@ public class VenuePersonnel {
   
   public int assignedTo(Class planClass) {
     int num = 0 ; for (Actor actor : workers) {
-      if (actor.isDoing(planClass)) num++ ;
+      if (actor.isDoing(planClass, null)) num++ ;
     }
     return num ;
   }

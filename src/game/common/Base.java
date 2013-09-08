@@ -173,9 +173,8 @@ public class Base implements
     //
     //  Iterate across all personnel to get a sense of citizen mood, and
     //  compute community spirit.
-    
-    
     commerce.updateCommerce() ;
+    dangerMap.updateVals() ;
     for (Mission mission : missions) mission.updateMission() ;
     //paving.distribute(VenueConstants.ALL_PROVISIONS) ;
   }

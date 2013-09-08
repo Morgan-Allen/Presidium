@@ -164,7 +164,7 @@ public class Dropship extends Vehicle implements
   public boolean allAboard() {
     for (Actor c : crew()) {
       if (c.aboard() != this) return false ;
-      if (c.currentAction() != null && ! c.amDoing("actionBoard")) {
+      if (c.currentAction() != null && ! c.isDoing("actionBoard", null)) {
         return false ;
       }
     }

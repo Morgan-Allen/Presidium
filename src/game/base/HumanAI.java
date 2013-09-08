@@ -63,13 +63,13 @@ import src.util.* ;
 //  and venues for consideration.
 
 
-public class CitizenAI extends ActorAI implements ActorConstants {
+public class HumanAI extends ActorAI implements ActorConstants {
   
   
   
   /**  Constructor and save/load functions-
     */
-  protected CitizenAI(Actor actor) {
+  protected HumanAI(Actor actor) {
     super(actor) ;
   }
   
@@ -131,7 +131,7 @@ public class CitizenAI extends ActorAI implements ActorConstants {
   
 
   protected Behaviour reactionTo(Mobile seen) {
-    return null ;
+    return new Retreat(actor) ;
   }
   
   
@@ -205,14 +205,13 @@ public class CitizenAI extends ActorAI implements ActorConstants {
     //  some kind.  That requires iterating over various venues.
     choice.add(Recreation.findRecreation(actor)) ;
     choice.add(new Resting(actor, Resting.pickRestPoint(actor))) ;
-    //  Also, dining/foraging might be made into it's own class!
-    //
-    //  As hobbies, consider hunting, exploration, assistance, and dialogue,
-    //  with one chosen target each.
+    
+    //*
     Tile toExplore = Exploring.getUnexplored(actor.base().intelMap, actor) ;
     if (toExplore != null) {
       choice.add(new Exploring(actor, actor.base(), toExplore)) ;
     }
+    //*/
   }
   
   

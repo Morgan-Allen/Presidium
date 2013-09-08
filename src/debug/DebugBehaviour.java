@@ -21,31 +21,23 @@ import src.util.* ;
 
 
 //
-//  You also need to try scenarios between multiple actors, some of them
-//  hostile, and see how they respond.  Ideally, you don't want actors
-//  willingly running into situations that they then run away from.
-//
-//  Update farming/the vats/mining a bit.  Spontaneous missions, and a clearer
-//  factoring out of venue/actor batches in the AI.
-//  Squalor maps and pollution FX, integrated with the Ecology class.  Impact
-//  health/morale/disease/life-support.
+//  Update farming/the vats/mining a bit (including minimum spacing?)
+//  A clearer factoring out of venue/actor batches in the AI.
+//  Have pollution effects impact health/life-support, and possibly change the
+//  landscape.
 //  
 //  The Supply Depot.  That's the next thing you need, so you can perform
 //  offworld trade.  And make sure the stock exchange is working.
 //  
 //  Re-introduce external FX for items at venues.  Those were cool.
 /*
-Diplomatic conversion.  (Good relations are way too easy/quick at the moment.)
+Diplomacy and mood.  (Good relations are way too easy/quick at the moment.)
 
 Simplify the user interface, implement Powers, and add a Main Menu.  That's it.
 
 Walls/Roads and Power/Life Support are the next items, but those might require
 a bigger game.  Maybe *just* power.  Keep it simple.  Condensors for water, and
 from the Vault System.  Share with whole settlement.
-
-    //
-    //  TODO:  Establish that the redoubt needs to be at a minimum distance
-    //  from other structures, including housing.  Same with mines/farms.
 //*/
 
 
@@ -200,77 +192,51 @@ public class DebugBehaviour extends PlayLoop {
     *  contact missions.
     */
   private void missionScenario(World world, Base base, HUD UI) {
-    //
-    //  TODO:  TEST THIS WITH HOSTILE ROBOTS.  GET IT FINISHED AND DONE WITH.
+    
     //GameSettings.noFog = true ;
     //GameSettings.hireFree = true ;
-    PlayLoop.setGameSpeed(5.0f) ;
-    
-    final Actor actor = new Human(Vocation.SURVEYOR, base) ;
-    actor.enterWorldAt(8, 8, world) ;
-    ///establishVenue(new SurveyorRedoubt(base), 4, 4, true, actor) ;
-    ((BaseUI) UI).selection.pushSelection(actor, true) ;
-    
-    final EcologyGen EG = new EcologyGen() ;
-    final Batch <Ruins> ruins = EG.populateRuins(actor.origin(), 16) ;
-    EG.populateFlora(world) ;
-    
-    int lairNum = 0 ; for (Ruins r : ruins) {
-      if (lairNum++ > 0 && Rand.yes()) continue ;
-      final Tile e = r.mainEntrance() ;
-      int numT = Rand.index(3) == 0 ? 1 : 0, numD = 1 + Rand.index(2) ;
-      while (numT-- > 0) {
-        final Tripod tripod = new Tripod() ;
-        tripod.enterWorldAt(e.x, e.y, world) ;
-        tripod.AI.setHomeVenue(r) ;
-      }
-      while (numD-- > 0) {
-        final Drone drone = new Drone() ;
-        drone.enterWorldAt(e.x, e.y, world) ;
-        drone.AI.setHomeVenue(r) ;
-      }
-    }
-    
-    
-    /*
-    final EcologyGen EG = new EcologyGen() ;
-    EG.populateFlora(world) ;
-    EG.populateFauna(world, Species.VAREEN, Species.QUUD) ;
-    
-    /*
-    final Actor actorA = new Human(Vocation.RUNNER, base) ;
-    actorA.enterWorldAt(15, 15, world) ;
-    final Actor actorB = new Human(Vocation.VETERAN, base) ;
-    actorB.enterWorldAt(15, 3, world) ;
-    
-    final Actor target = new Quud() ;
-    target.health.setupHealth(0.5f, 1, 0) ;
-    target.enterWorldAt(5, 5, world) ;
+    PlayLoop.setGameSpeed(1.0f) ;
     
     final Base otherBase = new Base(world) ;
     world.registerBase(otherBase, true) ;
     base.setRelation(otherBase, -1) ;
     otherBase.setRelation(base, -1) ;
+    otherBase.colour = Colour.CYAN ;
     
-    final Venue garrison = new Garrison(otherBase) ;
-    establishVenue(garrison, 8, 8, true) ;
-    actorA.AI.assignBehaviour(new Combat(actorA, garrison)) ;
-    actorB.AI.assignBehaviour(new Combat(actorA, garrison)) ;
-    ((BaseUI) UI).selection.pushSelection(actorA, true) ;
+    //*
+    final Batch <Actor> allies = new Batch <Actor> () ;
+    float sumPower = 0 ;
+    for (int n = 5 ; n-- > 0 ;) {
+      final Actor actor = new Human(Vocation.SURVEYOR, base) ;
+      actor.setPosition(
+        24 + Rand.range(-4, 4),
+        24 + Rand.range(-4,  4),
+        world
+      ) ;
+      actor.enterWorld() ;
+      allies.add(actor) ;
+      sumPower += Combat.combatStrength(actor, null) ;
+      ///establishVenue(new SurveyorRedoubt(base), 4, 4, true, actor) ;
+    }
+    I.say("TOTAL POWER OF ALLIES: "+sumPower) ;
+    //*/
+    
+    //*
+    final EcologyGen EG = new EcologyGen() ;
+    final Batch <Ruins> ruins = EG.populateRuins(world.tileAt(8, 8), 16) ;
+    EG.populateArtilects(ruins, world) ;
+    EG.populateFlora(world) ;
     //*/
     
     /*
-    final Mission mission = new ReconMission(base, world.tileAt(20, 20)) ;
-    base.addMission(mission) ;
-    ((BaseUI) UI).selection.setSelected(mission) ;
-    ((BaseUI) UI).camera.zoomNow(mission.subject()) ;
+    final Actor enemy = new Tripod() ;
+    //enemy.assignBase(otherBase) ;
+    enemy.enterWorldAt(24, 24, world) ;
+    ((BaseUI) UI).selection.pushSelection(enemy, true) ;
+    
+    I.say("POWER OF ENEMY: "+Combat.combatStrength(enemy, null)) ;
     //*/
-    /*
-    final Mission mission = new StrikeMission(base, garrison) ;
-    mission.setApplicant(assails, true) ;
-    base.addMission(mission) ;
-    ((BaseUI) UI).selection.setSelected(mission) ;
-    //*/
+    //((BaseUI) UI).selection.pushSelection(allies.atIndex(0), true) ;
   }
   
   
@@ -320,5 +286,42 @@ public class DebugBehaviour extends PlayLoop {
 }
 
 
+
+
+
+/*
+final Actor actorA = new Human(Vocation.RUNNER, base) ;
+actorA.enterWorldAt(15, 15, world) ;
+final Actor actorB = new Human(Vocation.VETERAN, base) ;
+actorB.enterWorldAt(15, 3, world) ;
+
+final Actor target = new Quud() ;
+target.health.setupHealth(0.5f, 1, 0) ;
+target.enterWorldAt(5, 5, world) ;
+
+final Base otherBase = new Base(world) ;
+world.registerBase(otherBase, true) ;
+base.setRelation(otherBase, -1) ;
+otherBase.setRelation(base, -1) ;
+
+final Venue garrison = new Garrison(otherBase) ;
+establishVenue(garrison, 8, 8, true) ;
+actorA.AI.assignBehaviour(new Combat(actorA, garrison)) ;
+actorB.AI.assignBehaviour(new Combat(actorA, garrison)) ;
+((BaseUI) UI).selection.pushSelection(actorA, true) ;
+//*/
+
+/*
+final Mission mission = new ReconMission(base, world.tileAt(20, 20)) ;
+base.addMission(mission) ;
+((BaseUI) UI).selection.setSelected(mission) ;
+((BaseUI) UI).camera.zoomNow(mission.subject()) ;
+//*/
+/*
+final Mission mission = new StrikeMission(base, garrison) ;
+mission.setApplicant(assails, true) ;
+base.addMission(mission) ;
+((BaseUI) UI).selection.setSelected(mission) ;
+//*/
 
 

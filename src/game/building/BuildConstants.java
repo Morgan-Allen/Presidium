@@ -144,6 +144,13 @@ public interface BuildConstants extends ActorConstants {
       20, MELEE | PHYSICAL, 45,
       new Conversion(2, PARTS, 5, ASSEMBLY),
       "heavy blade"
+    ),
+    
+    INTRINSIC_MELEE = new DeviceType(
+      BC, "Intrinsic Melee", 0, MELEE | PHYSICAL, 0, null, null
+    ),
+    INTRINSIC_ENERGY_WEAPON = new DeviceType(
+      BC, "Intrinsic Energy Weapon", 0, RANGED | ENERGY, 0, null, null
     ) ;
   final public static Service
     ALL_IMPLEMENTS[] = Service.typesSoFar() ;
@@ -184,7 +191,9 @@ public interface BuildConstants extends ActorConstants {
     GOLEM_ARMOUR   = new OutfitType(
       BC, "Golem Armour"  , 20, 150,
       new Conversion(12, PARTS, Foundry.class, 20, ASSEMBLY)
-    ) ;
+    ),
+    
+    INTRINSIC_ARMOUR = new OutfitType(BC, "Intrinsic Armour", 0, 0, null) ;
   final public static Service
     ALL_OUTFITS[] = Service.typesSoFar() ;
   

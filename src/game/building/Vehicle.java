@@ -16,7 +16,7 @@ import src.util.* ;
 
 
 public abstract class Vehicle extends Mobile implements
-  Boardable, Inventory.Owner, CitizenAI.Employment, Selectable
+  Boardable, Inventory.Owner, HumanAI.Employment, Selectable
 {
   
   

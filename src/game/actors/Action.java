@@ -221,8 +221,11 @@ public class Action implements Behaviour, Model.AnimNames {
     }
     
     float minDist = 0 ;
-    if ((properties & RANGED) != 0) minDist = actor.health.sightRange() ;
-    if (inRange == 1) minDist += progress + 0.5f ;
+    if ((properties & RANGED) != 0) {
+      minDist = actor.health.sightRange() ;
+      if (inRange == 1) minDist *= 2 ;
+    }
+    else if (inRange == 1) minDist += progress + 0.5f ;
     
     final boolean
       closed = actor.pathing.closeEnough(moveTarget, minDist),
@@ -313,6 +316,7 @@ public class Action implements Behaviour, Model.AnimNames {
     //
     //  In the case of a pushing animation, you actually need to set different
     //  animations for the upper and lower body.
+    ///if (BaseUI.isPicked(actor)) I.say("Progress is: "+progress) ;
     sprite.setAnimation(animName(), animProgress()) ;
   }
   

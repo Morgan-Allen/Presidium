@@ -44,8 +44,8 @@ public class Retreat extends Plan implements ActorConstants {
   public float priorityFor(Actor actor) {
     float danger = dangerAtSpot(actor.origin(), actor, actor.AI.seen()) ;
     danger *= actor.traits.scaleLevel(NERVOUS) ;
-    ///I.say(actor+" IS IN DANGER: "+danger) ;
-    return Visit.clamp(danger * ROUTINE, 0, PARAMOUNT) ;
+    if (danger <= 0) return 0 ;
+    return Visit.clamp((danger + 1) * ROUTINE, 0, PARAMOUNT) ;
   }
   
   
@@ -90,9 +90,15 @@ public class Retreat extends Plan implements ActorConstants {
     Tile pick = actor.origin() ;
     float bestRating = dangerAtSpot(pick, actor, actor.AI.seen()) ;
     for (int i = numPicks ; i-- > 0 ;) {
+      
+      //
+      //  TODO:  Check by compass-point directions instead of purely at random.
       final Tile tried = Spacing.pickRandomTile(actor, range, actor.world()) ;
       if (tried == null) continue ;
       if (Spacing.distance(tried, target) > range * 2) continue ;
+      
+      //
+      //  TODO:  USE THE DANGER MAP INSTEAD.  Significantly cheaper.
       float tryRating = dangerAtSpot(tried, actor, actor.AI.seen()) ;
       tryRating += (Rand.num() - 0.5f) * salt ;
       if (tryRating < bestRating) { bestRating = tryRating ; pick = tried ; }
@@ -108,40 +114,56 @@ public class Retreat extends Plan implements ActorConstants {
     //  Get a reading of threats based on all actors visible to this one, and
     //  their distance from the spot in question.  TODO:  Retain awareness
     //  longer?
-    float seenDanger = 0 ;
+    final boolean report = BaseUI.isPicked(actor) ;
+    if (report) I.say("\n"+actor+" GETTING DANGER AT "+spot) ;
+    
+    //float sumDanger = 0, minDanger = 0 ;
+    float sumThreats = 0, sumAllies = Combat.combatStrength(actor, null) ;
+    
     final float range = World.DEFAULT_SECTOR_SIZE ;
     for (Element m : seen) {
       if (m == actor || ! (m instanceof Actor)) continue ;
       final Actor near = (Actor) m ;
       if (near.indoors() || ! near.health.conscious()) continue ;
-      float danger = Combat.combatStrength(near, actor) ;
-      //
-      //  More distant foes are less threatening.
-      final float dist = Spacing.distance(spot, near) / range ;
-      danger /= 1 + dist ;
+      float danger = 1 ;
       //
       //  Foes who aren't engaged in combat, or who aren't targeting you, are
       //  less threatening.  Either way, add or subtract from danger rating,
       //  depending on allegiance.
-      final Behaviour root = near.AI.rootBehaviour() ;
-      final Action action = near.currentAction() ;
-      float attitude = actor.AI.relation(near) ;
-      if (! (root instanceof Combat)) danger /= 2 ;
-      else if (action != null && action.target() == actor) {
-        danger *= 2 ;
-        attitude -= 1 ;
+      float attitude = Combat.alliance(actor, near) ;
+      final Target victim = near.targetFor(Combat.class) ;
+      if (victim instanceof Actor) {
+        attitude += -1 * Combat.alliance(actor, (Actor) victim) ;
       }
-      
+      else if (near.isDoing(Retreat.class, null)) {
+        danger *= 0.33f ;
+      }
+      else danger *= 0.66f ;
+      //
+      //  More distant foes are less threatening.
+      final float dist = Spacing.distance(spot, near) / range ;
+      if (dist > 1) danger /= 0.5f + dist ;
+      else danger /= 1 + (dist / 2) ;
+      //
+      //  Adjust danger estimate based on allegiance-
       if (attitude < 0) {
-        seenDanger += danger ;
+        danger *= Combat.combatStrength(near, actor) ;
+        sumThreats += danger ;
       }
       if (attitude > 0) {
-        seenDanger -= danger * attitude / 2 ;
+        danger *= Combat.combatStrength(near, null) ;
+        sumAllies += danger ;
+      }
+      if (report) {
+        I.say("Danger from "+near+" is "+danger+", attitude "+attitude) ;
       }
     }
-    final float selfPower = Combat.combatStrength(actor, null) ;
-    if (selfPower <= 0) return 100 ;
-    return Visit.clamp(seenDanger / selfPower, 0, 100) ;
+    if (report) I.say("Sum of allies/enemies: "+sumAllies+"/"+sumThreats) ;
+    if (sumThreats == 0) return 0 ;
+    if (sumAllies == 0) return 100 ;
+    final float estimate = sumThreats / (sumThreats + sumAllies) ;
+    if (report) I.say("Total danger is: "+estimate) ;
+    return estimate ;
   }
   
   

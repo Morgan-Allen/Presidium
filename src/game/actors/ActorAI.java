@@ -136,7 +136,7 @@ public abstract class ActorAI implements ActorConstants {
     //
     //  And react to anything fresh-
     for (Mobile NS : newSeen) {
-      ///if (BaseUI.isPicked(actor)) I.say("  "+actor+" CAN NOW SEE: "+NS) ;
+      if (BaseUI.isPicked(actor)) I.say("  "+actor+" REACTING TO: "+NS) ;
       final Behaviour reaction = reactionTo(NS) ;
       if (couldSwitchTo(reaction)) assignBehaviour(reaction) ;
     }
@@ -376,7 +376,6 @@ public abstract class ActorAI implements ActorConstants {
     final Relation r = relations.get(other) ;
     if (r == null) {
       return relation(other.base()) / 2 ;
-      //return 0 ;  //TODO:  Initialise a fresh relation?
     }
     return r.value() + (relation(other.base()) / 2) ;
   }

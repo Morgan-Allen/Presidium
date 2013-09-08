@@ -34,17 +34,15 @@ public class Drone extends Artilect implements BuildConstants {
       false//organic
     ) ;
     health.setupHealth(0, Rand.avgNums(2), Rand.avgNums(2)) ;
+
+    gear.setDamage(5) ;
+    gear.setArmour(10) ;
+    traits.setLevel(MARKSMANSHIP, 5) ;
+    gear.equipDevice(Item.withQuality(INTRINSIC_ENERGY_WEAPON, 0)) ;
     
     final Model model = DRONE_MODELS[Rand.index(3)] ;
     attachSprite(model.makeSprite()) ;
     name = nameWithBase("Drone ") ;
-    
-    //profile.addTrait(BackgroundVocations.ARTILECT) ;
-    //profile.addTrait(BackgroundVocations.MINDLESS) ;
-    //training.raiseSkill(BackgroundVocations.REFLEX, 5) ;
-    //training.raiseSkill(BackgroundVocations.MARKSMANSHIP, 5) ;
-    //inventory().equipImplement(new Item(Economy.DISINTEGRATOR, this, 1, 1)) ;
-    //inventory().equipOutfit(new Item(Economy.GOLEM_ARMOUR, this, 1, 1)) ;
   }
   
   
@@ -64,6 +62,11 @@ public class Drone extends Artilect implements BuildConstants {
   
   /**  Rendering and interface methods-
     */
+  public float aboveGroundHeight() {
+    return 0.5f ;
+  }
+  
+  
   public String fullName() {
     return name ;
   }

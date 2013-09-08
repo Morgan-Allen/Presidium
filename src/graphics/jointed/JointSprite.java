@@ -108,6 +108,7 @@ public class JointSprite extends Sprite {
   }
   
   
+  
   /**  Here we have methods related to adding and removing attachments-
     */
   public void overlayTexture(Texture overlaid) {
@@ -119,6 +120,7 @@ public class JointSprite extends Sprite {
     if (overlaid == null) return ;
     overlays.remove(overlaid) ;
   }
+  
   
   
   /**  Allows a given group to be enabled/disabled.

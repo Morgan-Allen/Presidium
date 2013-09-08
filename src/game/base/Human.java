@@ -82,7 +82,7 @@ public class Human extends Actor implements ActorConstants {
   }
   
   
-  protected ActorAI initAI() { return new CitizenAI(this) ; }
+  protected ActorAI initAI() { return new HumanAI(this) ; }
   
   public Vocation vocation() { return career.vocation() ; }
   
@@ -205,21 +205,9 @@ public class Human extends Actor implements ActorConstants {
     */
   public void renderFor(Rendering rendering, Base base) {
     final DeviceType DT = gear.deviceType() ;
-    final boolean IC = isDoing(Combat.class) ;
+    final boolean IC = isDoing(Combat.class, null) ;
     if (DT != null) ((JointSprite) sprite()).toggleGroup(DT.groupName, IC) ;
     super.renderFor(rendering, base) ;
-    /*
-    if (talkFX == null) talkFX = new TalkFX() ;
-    if (talkFX.numPhrases() == 0) {
-      talkFX.addPhrase("Testing, testing...", false) ;
-      talkFX.addPhrase("Hello World!", true) ;
-      talkFX.addPhrase("(Credits +25)", false) ;
-    }
-    viewPosition(talkFX.position) ;
-    talkFX.position.z += height() ;
-    talkFX.update() ;
-    rendering.addClient(talkFX) ;
-    //*/
   }
   
   

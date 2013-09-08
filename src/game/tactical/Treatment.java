@@ -90,6 +90,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   /**  Evaluating targets and priorities-
     */
   public float priorityFor(Actor actor) {
+    if (patient.health.deceased()) return 0 ;
     //
     //  ...You need to include distance and danger factors, et cetera.
     if (type == TYPE_MEDICATION) {
@@ -124,6 +125,12 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   }
   
   
+  public boolean valid() {
+    if (patient.health.deceased()) return false ;
+    return super.valid() ;
+  }
+  
+  
   /*
   public static Treatment nextTreatment(Actor treats) {
     
@@ -135,6 +142,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   /**  First Aid implementation-
     */
   Behaviour nextFirstAid() {
+    if (patient.health.deceased()) return null ;
     if (patient.health.bleeding()) {
       final Action firstAid = new Action(
         actor, patient,

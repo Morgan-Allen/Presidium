@@ -67,7 +67,7 @@ public class Relation {
     this.initTime = (int) world.currentTime() ;
     
     this.hash = Table.hashFor(object, subject) ;
-    this.attitude = init ;
+    this.attitude = init * MAX_ATT ;
     this.familiarity = 0 ;
   }
   

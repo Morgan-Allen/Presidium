@@ -113,7 +113,7 @@ public class Patrolling extends Plan {
   
   public float priorityFor(Actor actor) {
     //  Vary priority based on the observation skills of the actor in question?
-    return ROUTINE ;
+    return ROUTINE + priorityMod ;
   }
   
   

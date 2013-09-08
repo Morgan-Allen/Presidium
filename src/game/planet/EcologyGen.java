@@ -44,7 +44,11 @@ public class EcologyGen {
     
     for (int d = 0 ; d < radius ; d++) {
       area.set(centre.x - 0.5f, centre.y - 0.5f, 1, 1).expandBy(d) ;
-      for (Tile t : Spacing.perimeter(area, world)) if (t != null) {
+      final Tile perim[] = Spacing.perimeter(area, world) ;
+      final int off = Rand.index(perim.length) ;
+      for (int step = perim.length ; step-- > 0 ;) {
+        final Tile t = perim[(step + off) % perim.length] ;
+        if (t == null) continue ;
         final float distance = Spacing.distance(t, centre) / radius ;
         if (distance > 1) continue ;
         if (Rand.avgNums(2) > distance) {
@@ -54,8 +58,8 @@ public class EcologyGen {
         
         if (allRuins.size() < maxRuins) {
           if (ruins == null) ruins = new Ruins() ;
-          final int HS = ruins.size / 2 ;
-          final Tile i = world.tileAt(t.x - HS, t.y - HS) ;
+          //final int HS = ruins.size / 2 ;
+          final Tile i = t ;// world.tileAt(t.x - HS, t.y - HS) ;
           if (tryInsertion(ruins, i, wastes)) {
             ruins.clearSurrounds() ;
             ruins.structure.setState(
@@ -69,8 +73,8 @@ public class EcologyGen {
           }
         }
         
-        if (Rand.num() > distance && Rand.yes()) {
-          final Wreckage slag = new Wreckage(true, 1) ;
+        if (Rand.num() > distance) {
+          final Wreckage slag = new Wreckage(true, Rand.yes() ? 1 : 2) ;
           if (tryInsertion(slag, t, wastes)) continue ;
         }
       }
@@ -108,6 +112,31 @@ public class EcologyGen {
     }
     return false ;
   }
+  
+  
+  public void populateArtilects(Batch <Ruins> ruins, World world) {
+    int lairNum = 0 ; for (Ruins r : ruins) {
+      if (lairNum++ > 0 && Rand.yes()) continue ;
+      final Tile e = r.mainEntrance() ;
+      int numT = Rand.index(3) == 0 ? 1 : 0, numD = 1 + Rand.index(2) ;
+      while (numT-- > 0) {
+        final Tripod tripod = new Tripod() ;
+        tripod.enterWorldAt(e.x, e.y, world) ;
+        tripod.AI.setHomeVenue(r) ;
+      }
+      while (numD-- > 0) {
+        final Drone drone = new Drone() ;
+        drone.enterWorldAt(e.x, e.y, world) ;
+        drone.AI.setHomeVenue(r) ;
+      }
+      if (lairNum == 1 && Rand.yes()) {
+        final Cranial cranial = new Cranial() ;
+        cranial.enterWorldAt(e.x, e.y, e.world) ;
+        cranial.AI.setHomeVenue(r) ;
+      }
+    }
+  }
+  
   
   
   

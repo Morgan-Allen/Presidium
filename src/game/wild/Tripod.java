@@ -34,15 +34,13 @@ public class Tripod extends Artilect implements BuildConstants {
     ) ;
     health.setupHealth(0, Rand.avgNums(2), Rand.avgNums(2)) ;
     
+    gear.setDamage(20) ;
+    gear.setArmour(30) ;
+    traits.setLevel(MARKSMANSHIP, 10) ;
+    gear.equipDevice(Item.withQuality(INTRINSIC_ENERGY_WEAPON, 0)) ;
+    
     attachSprite(MODEL_TRIPOD.makeSprite()) ;
     name = nameWithBase("Tripod ") ;
-
-    //profile.addTrait(BackgroundVocations.ARTILECT) ;
-    //profile.addTrait(BackgroundVocations.MINDLESS) ;
-    //training.raiseSkill(BackgroundVocations.REFLEX, 5) ;
-    //training.raiseSkill(BackgroundVocations.MARKSMANSHIP, 5) ;
-    //inventory().equipImplement(new Item(Economy.DISINTEGRATOR, this, 1, 1)) ;
-    //inventory().equipOutfit(new Item(Economy.GOLEM_ARMOUR, this, 1, 1)) ;
   }
   
   

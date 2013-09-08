@@ -309,7 +309,7 @@ public class ActorGear extends Inventory implements BuildConstants {
   public void updateGear(int numUpdates) {
     if (outfit != null) regenerateShields() ;
     else currentShields = 0 ;
-    for (Item item : itemTable.keySet()) {
+    for (Item item : allItems()) {
       if (item.refers instanceof Action) {
         ((Action) item.refers).applyEffect() ;
       }

@@ -57,13 +57,19 @@ public class DangerMap {
   
   /**  Methods for regularly updating, adjusting and querying danger values-
     */
+  //*
   public void updateVals() {
     for (Coord c : Visit.grid(0, 0, SS, SS, 1)) {
       shortTermVals[c.x][c.y] *= (1 - SHORT_TERM_MULT) ;
       longTermVals [c.x][c.y] *= (1 -  LONG_TERM_MULT) ;
     }
+    
+    if (this.base == PlayLoop.played()) {
+      I.present(shortTermVals, "Danger map", 200, 200) ;
+    }
     //overallVal *= (1 - LONG_TERM_MULT) ;
   }
+  //*/
   
   
   public void impingeVal(Tile at, float power) {

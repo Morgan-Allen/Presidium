@@ -33,18 +33,24 @@ public abstract class Artilect extends Actor {
     
     MODEL_DEFENCE_DRONE = MS3DModel.loadMS3D(
       Artilect.class, IMG_DIR, "DefenceDrone.ms3d", 0.015f
-    ).loadXMLInfo(XML_PATH, "DefenceDrone"),
+    ).loadXMLInfo(XML_PATH, "Defence Drone"),
     MODEL_RECON_DRONE = MS3DModel.loadMS3D(
       Artilect.class, IMG_DIR, "ReconDrone.ms3d", 0.015f
-    ).loadXMLInfo(XML_PATH, "ReconDrone"),
+    ).loadXMLInfo(XML_PATH, "Recon Drone"),
     MODEL_BLAST_DRONE = MS3DModel.loadMS3D(
       Artilect.class, IMG_DIR, "BlastDrone.ms3d", 0.015f
-    ).loadXMLInfo(XML_PATH, "BlastDrone"),
+    ).loadXMLInfo(XML_PATH, "Blast Drone"),
     DRONE_MODELS[] = {
       MODEL_DEFENCE_DRONE, MODEL_RECON_DRONE, MODEL_BLAST_DRONE
-    }
+    },
     
+    MODEL_CRANIAL = MS3DModel.loadMS3D(
+      Artilect.class, IMG_DIR, "Cranial.ms3d", 0.025f
+    ).loadXMLInfo(XML_PATH, "Cranial"),
     
+    MODEL_TESSERACT = MS3DModel.loadMS3D(
+      Artilect.class, IMG_DIR, "Tesseract.ms3d", 0.025f
+    ).loadXMLInfo(XML_PATH, "Tesseract")
     ;
   
   
@@ -73,6 +79,7 @@ public abstract class Artilect extends Actor {
         return choice.weightedPick(0) ;
       }
       
+      
       protected void updateAI(int numUpdates) {
         super.updateAI(numUpdates) ;
         //
@@ -96,7 +103,9 @@ public abstract class Artilect extends Actor {
   
   
   protected Behaviour nextDefence(Actor near) {
-    return new Combat(this, near) ;
+    final Combat defence = new Combat(this, near) ;
+    defence.priorityMod = Plan.ROUTINE ;
+    return defence ;
   }
   
   
@@ -106,6 +115,10 @@ public abstract class Artilect extends Actor {
     if (AI.home() == null) choice.add(new Patrolling(this, this, 6)) ;
     else choice.add(new Patrolling(this, AI.home(), 6)) ;
     
+    for (Element e : AI.seen()) if (e instanceof Actor) {
+      choice.add(new Combat(this, (Actor) e)) ;
+    }
+    choice.add(new Retreat(this)) ;
     //
     //  Return to base for repairs/recharge.
     //
@@ -133,6 +146,28 @@ public abstract class Artilect extends Actor {
   public void writeInformation(Description d, int categoryID, HUD UI) {
     d.append("Is: ") ;
     super.describeStatus(d) ;
+    
+    d.append("\n\nCondition: ") ;
+    final Batch <String> healthDesc = health.conditionsDesc() ;
+    for (String desc : healthDesc) {
+      d.append("\n  "+desc) ;
+    }
+    final Batch <Condition> conditions = traits.conditions() ;
+    for (Condition c : conditions) {
+      d.append("\n  ") ;
+      d.append(traits.levelDesc(c)) ;
+    }
+    if (healthDesc.size() == 0 && conditions.size() == 0) {
+      d.append("\n  Okay") ;
+    }
+
+    d.append("\n\nSkills: ") ;
+    for (Skill skill : traits.skillSet()) {
+      final int level = (int) traits.trueLevel(skill) ;
+      d.append("\n  "+skill.name+" "+level+" ") ;
+      d.append(Skill.skillDesc(level), Skill.skillTone(level)) ;
+    }
+    
     d.append("\n\n") ;
     d.append(helpInfo()) ;
   }

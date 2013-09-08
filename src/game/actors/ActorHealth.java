@@ -182,9 +182,14 @@ public class ActorHealth implements ActorConstants {
   ) {
     this.currentAge = lifespan * agingFactor ;
     updateHealth(-1) ;
-    
-    calories = Visit.clamp(Rand.num() + (overallHealth / 2), 0, 1) * maxHealth ;
-    nutrition = Visit.clamp(Rand.num() + overallHealth, 0, 1) ;
+    if (organic) {
+      calories = Visit.clamp(Rand.num() + (overallHealth / 2), 0, 1) * maxHealth ;
+      nutrition = Visit.clamp(Rand.num() + overallHealth, 0, 1) ;
+    }
+    else {
+      nutrition = 1 ;
+      calories = maxHealth ;
+    }
     
     fatigue = Rand.num() * (1 - (calories / maxHealth)) * maxHealth / 2f ;
     injury = Rand.num() * accidentChance * maxHealth / 2f ;
@@ -352,7 +357,7 @@ public class ActorHealth implements ActorConstants {
   
   
   public boolean bleeding() {
-    return bleeds ;
+    return bleeds && ! deceased() ;
   }
   
   
@@ -418,6 +423,7 @@ public class ActorHealth implements ActorConstants {
       advanceAge() ;
     }
     if (oldState != state && state != STATE_ACTIVE) {
+      if (state < STATE_DEAD && ! organic) state = STATE_DEAD ;
       I.say(actor+" has entered a non-active state: "+stateDesc()) ;
       actor.enterStateKO() ;
     }
@@ -425,9 +431,9 @@ public class ActorHealth implements ActorConstants {
   
   
   private void checkStateChange() {
-    if (BaseUI.isPicked(actor)) {
-      ///I.say("Injury/fatigue:"+injury+"/"+fatigue+", max: "+maxHealth) ;
-      ///I.say("STATE IS: "+state) ;
+    if (false && BaseUI.isPicked(actor)) {
+      I.say("Injury/fatigue:"+injury+"/"+fatigue+", max: "+maxHealth) ;
+      I.say("STATE IS: "+state) ;
     }
     //
     //  Check for state effects-

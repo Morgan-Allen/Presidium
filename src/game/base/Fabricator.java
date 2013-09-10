@@ -99,7 +99,7 @@ public class Fabricator extends Venue implements BuildConstants {
   
   
   public String fullName() {
-    return "The Fabricator" ;
+    return "Fabricator" ;
   }
   
   

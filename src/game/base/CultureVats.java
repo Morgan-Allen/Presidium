@@ -102,7 +102,7 @@ public class CultureVats extends Venue implements BuildConstants {
   }
 
   public String fullName() {
-    return "The Culture Vats" ;
+    return "Culture Vats" ;
   }
   
   public String helpInfo() {

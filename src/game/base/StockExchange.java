@@ -126,7 +126,7 @@ public class StockExchange extends Venue implements BuildConstants {
   /**  Rendering and interface methods-
     */
   public String fullName() {
-    return "The Stock Exchange" ;
+    return "Stock Exchange" ;
   }
   
   

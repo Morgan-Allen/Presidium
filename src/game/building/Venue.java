@@ -105,16 +105,18 @@ public abstract class Venue extends Fixture implements
     if (origin() == null) return false ;
     final World world = origin().world ;
     //
-    //  Make sure we don't displace any more important object-
+    //  Make sure we don't displace any more important object, or occupy their
+    //  entrances.  In addition, the entrance must be clear.
+    if (mainEntrance() == null) return false ;
     for (Tile t : world.tilesIn(area(), false)) {
       if (t == null || t.owningType() >= owningType()) return false ;
+      if (Spacing.isEntrance(t)) return false ;
     }
-    //
-    //  This step ensures that we don't occupy the entrance of any other
-    //  boardable object-
+    /*
     for (Tile n : Spacing.perimeter(area(), world)) {
-      if (n == null || Spacing.isEntrance(n)) return false ;
+      if (n == null) return false ;
     }
+    //*/
     //
     //  And make sure we don't create isolated areas of unreachable tiles-
     if (! Spacing.perimeterFits(this)) return false ;
@@ -489,15 +491,7 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  public void renderFor(Rendering rendering, Base base) {
-    
-    position(buildSprite.position) ;
-    buildSprite.updateCondition(
-      structure.repairLevel(),
-      structure.intact(),
-      structure.burning()
-    ) ;
-    
+  protected void renderHealthbars(Rendering rendering, Base base) {
     if (healthbar == null) healthbar = new Healthbar() ;
     healthbar.level = structure.repairLevel() ;
     final int NU = structure.numUpgrades() ;
@@ -506,6 +500,7 @@ public abstract class Venue extends Fixture implements
     healthbar.matchTo(buildSprite) ;
     healthbar.position.z += height() ;
     rendering.addClient(healthbar) ;
+    
     if (base() == null) healthbar.full = Colour.LIGHT_GREY ;
     else healthbar.full = base().colour ;
     
@@ -520,6 +515,18 @@ public abstract class Venue extends Fixture implements
       progBar.colour = Colour.WHITE ; //paler version of main bar colour?
       rendering.addClient(progBar) ;
     }
+  }
+  
+  
+  public void renderFor(Rendering rendering, Base base) {
+    
+    position(buildSprite.position) ;
+    buildSprite.updateCondition(
+      structure.repairLevel(),
+      structure.intact(),
+      structure.burning()
+    ) ;
+    renderHealthbars(rendering, base) ;
     
     super.renderFor(rendering, base) ;
   }

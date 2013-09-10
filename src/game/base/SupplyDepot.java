@@ -89,7 +89,7 @@ public class SupplyDepot extends Venue implements BuildConstants {
   
   
   public String fullName() {
-    return "The Supply Depot" ;
+    return "Supply Depot" ;
   }
 
 

@@ -144,8 +144,8 @@ public class ImageModel extends Model {
   
   
   public static ImageModel[][] fromTextureGrid(
-    Class modelClass,
-    Texture tex, int gridX, int gridY, float tileSize, int type
+    Class modelClass, Texture tex,
+    int gridX, int gridY, float tileSize, int type
   ) {
     final String gridName = "IMAGE-MODEL-GRID-"+tex.name() ;
     Object cached = LoadService.getResource(gridName) ;

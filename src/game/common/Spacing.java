@@ -24,7 +24,8 @@ public final class Spacing implements TileConstants {
   private final static Box2D tA = new Box2D(), tB = new Box2D() ;
   public final static Tile
     tempT4[] = new Tile[4],
-    tempT8[] = new Tile[8] ;
+    tempT8[] = new Tile[8],
+    tempT9[] = new Tile[9] ;
   public final static Boardable
     tempB4[] = new Boardable[4],
     tempB8[] = new Boardable[8] ;
@@ -62,6 +63,13 @@ public final class Spacing implements TileConstants {
     for (tX = maxX ; tX-- > minX ;) perim[pI++] = world.tileAt(tX, maxY) ;
     for (tY = maxY ; tY-- > minY ;) perim[pI++] = world.tileAt(minX, tY) ;
     return perim ;
+  }
+  
+  
+  public static Tile[] under(Box2D area, World world) {
+    final Batch <Tile> under = new Batch <Tile> () ;
+    for (Tile t : world.tilesIn(area, true)) under.add(t) ;
+    return (Tile[]) under.toArray(Tile.class) ;
   }
   
 
@@ -198,15 +206,6 @@ public final class Spacing implements TileConstants {
       public float rate(Target t) { return 0 - distance(t, client) ; }
     } ;
     return v.pickBest((Series) targets) ;
-    /*
-    Target nearest = null ;
-    float minDist = Float.POSITIVE_INFINITY ;
-    for (Target t : targets) {
-      final float dist = distance(t, client) ;
-      if (dist < minDist) { nearest = t ; minDist = dist ; }
-    }
-    return nearest ;
-    //*/
   }
   
 
@@ -268,19 +267,22 @@ public final class Spacing implements TileConstants {
     //
     //  We want to avoid any tiles that are obstructed, including by other
     //  actors, and probably to stay in the same spot if possible.
-    final Tile l = ((Element) client).origin() ;
+    final Tile l = client.origin() ;
     final boolean inPerim = Visit.arrayIncludes(perim, l) ;
     ///if (inPerim && Rand.num() > 0.2f) return l ;
+    
     final Batch <Tile> free = new Batch <Tile> () ;
     final Batch <Float> weights = new Batch <Float> () ;
-    perimLoop: for (Tile p : perim) {
+    for (Tile p : perim) {
       if (p == null || p.blocked()) continue ;
-      if (inPerim && ! Spacing.adjacent(l, client)) continue ;
-      if (p.inside().size() > 0) continue perimLoop ;
+      if (p.inside().size() > 0) continue ;
       free.add(p) ;
-      weights.add(1 / (1 + Spacing.distance(p, l))) ;
+      final float dist = Spacing.distance(p, l) ;
+      if (inPerim && dist > 4) continue ;
+      weights.add(1 / (1 + dist)) ;
     }
     if (free.size() == 0) return (Tile) Rand.pickFrom(perim) ;
+    if (! inPerim) return (Tile) Spacing.nearest(free, client) ;
     return (Tile) Rand.pickFrom(free, weights) ;
   }
   
@@ -325,9 +327,15 @@ public final class Spacing implements TileConstants {
   }
   
   
-  public static int axisDist(Tile a, Tile b) {
+  public static int maxAxisDist(Tile a, Tile b) {
     final int xd = Math.abs(a.x - b.x), yd = Math.abs(a.y - b.y) ;
     return Math.max(xd, yd) ;
+  }
+  
+  
+  public static int sumAxisDist(Tile a, Tile b) {
+    final int xd = Math.abs(a.x - b.x), yd = Math.abs(a.y - b.y) ;
+    return xd + yd ;
   }
   
   

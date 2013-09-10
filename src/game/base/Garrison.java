@@ -61,7 +61,7 @@ public class Garrison extends Venue implements BuildConstants {
     ),
     MARKSMAN_TRAINING = new Upgrade(
       "Marksman Training",
-      "Prepares your soldiers for ranged combat.",
+      "Prepares your soldiers for ranged marksmanship.",
       150,
       MARKSMANSHIP, 3, null, ALL_UPGRADES
     ),
@@ -124,6 +124,9 @@ public class Garrison extends Venue implements BuildConstants {
     //
     //  TODO:  You also need an option to train in relevant skills here.
     
+    //
+    //  TODO:  Implement patrols along the perimeter fence/shield walls...
+    
     return null ;
   }
   
@@ -144,8 +147,7 @@ public class Garrison extends Venue implements BuildConstants {
   public String helpInfo() {
     return
       "The Garrison sends regular patrols of sentries to enforce the peace "+
-      "and keep a watch for raiders or outlaws.  It also provides logistic "+
-      "and engineering support to speed repairs and account for spending." ;
+      "and keep a watch out for raiders or outlaws." ;
   }
   
   

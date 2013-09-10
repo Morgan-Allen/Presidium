@@ -98,6 +98,9 @@ public class Paving {
     //
     //  Firstly, determine the correct current route.
     final Route route = new Route(a, b) ;
+    //
+    //  TODO:  Allow the road search to go through arbitrary Boardables, and
+    //  screen out any non-tiles or blocked tiles.
     final RoadSearch search = new RoadSearch(a, b, Element.FIXTURE_OWNS) ;
     search.doSearch() ;
     route.path = search.fullPath(Tile.class) ;
@@ -154,11 +157,9 @@ public class Paving {
   }
   
   
+  
   /**  Methods related to physical road construction-
     */
-  //
-  //  You'll eventually want to replace this with explicit construction of
-  //  roads...
   public static void clearRoad(Tile path[]) {
     for (Tile t : path) if (t.owningType() < Element.FIXTURE_OWNS) {
       if (t.owner() != null) t.owner().exitWorld() ;

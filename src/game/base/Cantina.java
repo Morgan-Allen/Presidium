@@ -157,7 +157,7 @@ public class Cantina extends Venue implements BuildConstants {
   
   
   public String fullName() {
-    if (nameID == -1) return "The Cantina" ;
+    if (nameID == -1) return "Cantina" ;
     return VENUE_NAMES[nameID] ;
   }
   

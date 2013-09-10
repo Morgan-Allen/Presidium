@@ -21,15 +21,18 @@ import src.util.* ;
 
 
 //
+//The Supply Depot.  That's the next thing you need, so you can perform
+//offworld trade.  And make sure the stock exchange is working.
+//
 //  Update farming/the vats/mining a bit (including minimum spacing?)
 //  A clearer factoring out of venue/actor batches in the AI.
 //  Have pollution effects impact health/life-support, and possibly change the
 //  landscape.
 //  
-//  The Supply Depot.  That's the next thing you need, so you can perform
-//  offworld trade.  And make sure the stock exchange is working.
-//  
 //  Re-introduce external FX for items at venues.  Those were cool.
+//
+//  Actors need to be automatically aware of persons attacking them, should
+//  call for help from allies, and need proper line of sight.
 /*
 Diplomacy and mood.  (Good relations are way too easy/quick at the moment.)
 
@@ -126,8 +129,8 @@ public class DebugBehaviour extends PlayLoop {
     I.say(" "+(String.class.isAssignableFrom(Object.class))) ;
     //natureScenario(world, base, HUD) ;
     //baseScenario(world, base, HUD) ;
-    missionScenario(world, base, HUD) ;
-    //socialScenario(world, base, HUD) ;
+    //missionScenario(world, base, HUD) ;
+    socialScenario(world, base, HUD) ;
   }
   
   
@@ -193,7 +196,7 @@ public class DebugBehaviour extends PlayLoop {
     */
   private void missionScenario(World world, Base base, HUD UI) {
     
-    //GameSettings.noFog = true ;
+    GameSettings.noFog = true ;
     //GameSettings.hireFree = true ;
     PlayLoop.setGameSpeed(1.0f) ;
     
@@ -247,10 +250,12 @@ public class DebugBehaviour extends PlayLoop {
   private void socialScenario(final World world, Base base, HUD UI) {
     base.incCredits(1000) ;
     GameSettings.noFog = true ;
+    GameSettings.buildFree = true ;
     
     final Actor actor = new Human(Vocation.PHYSICIAN, base) ;
     final Actor other = new Human(Vocation.VETERAN, base) ;
     other.health.takeInjury(other.health.maxHealth()) ;
+    ((BaseUI) UI).selection.pushSelection(actor, true) ;
     
     actor.enterWorldAt(4, 4, world) ;
     other.enterWorldAt(6, 6, world) ;

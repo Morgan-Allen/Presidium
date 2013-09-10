@@ -10,71 +10,44 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
 
 
-public class ShieldWallBlastDoors extends Venue implements TileConstants {
+public class BlastDoors extends ShieldWall implements TileConstants {
   
   
   
   /**  Fields, constants, constructors and save/load methods-
     */
-  final static String
-    IMG_DIR = "media/Buildings/military/" ;
-  final static ImageModel
-    DOORS_MODEL_LEFT = ImageModel.asIsometricModel(
-      ShieldWallBlastDoors.class, IMG_DIR+"wall_gate_left.png" , 2.5f, 1.5f
-    ),
-    DOORS_MODEL_RIGHT = ImageModel.asIsometricModel(
-      ShieldWallBlastDoors.class, IMG_DIR+"wall_gate_right.png", 2.5f, 1.5f
-    ) ;
-  
-  
-  private int facing ;
+  //private int facing ;
   private Tile entrances[] = null ;
   
   
   
-  public ShieldWallBlastDoors(Base base, int facing) {
-    super(3, 2, Venue.ENTRANCE_NONE, base) ;
+  public BlastDoors(Base base, int facing) {
+    super(TYPE_DOORS, 4, 2, base) ;
+    //*
     this.facing = facing ;
     if (facing == X_AXIS)
-      attachSprite(DOORS_MODEL_LEFT.makeSprite()) ;
+      attachSprite(ShieldWall.DOORS_MODEL_LEFT.makeSprite()) ;
     if (facing == Y_AXIS)
-      attachSprite(DOORS_MODEL_RIGHT.makeSprite()) ;
+      attachSprite(ShieldWall.DOORS_MODEL_RIGHT.makeSprite()) ;
+    //*/
   }
   
   
-  public ShieldWallBlastDoors(Session s) throws Exception {
+  public BlastDoors(Session s) throws Exception {
     super(s) ;
-    facing = s.loadInt() ;
+    //facing = s.loadInt() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveInt(facing) ;
-  }
-  
-  
-  
-  /**  Employment methods-
-    */
-  protected Vocation[] careers() {
-    return new Vocation[] {} ;
-  }
-  
-  
-  protected Service[] services() {
-    return new Service[] {} ;
-  }
-  
-  
-  public Behaviour jobFor(Actor actor) {
-    return null ;
+    //s.saveInt(facing) ;
   }
   
   
@@ -99,13 +72,13 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
     if (facing == X_AXIS) {
       return entrances = new Tile[] {
         o.world.tileAt(o.x + 1, o.y - 1),
-        o.world.tileAt(o.x + 1, o.y + 3)
+        o.world.tileAt(o.x + 1, o.y + 4)
       } ;
     }
     if (facing == Y_AXIS) {
       return entrances = new Tile[] {
         o.world.tileAt(o.x - 1, o.y + 1),
-        o.world.tileAt(o.x + 3, o.y + 1)
+        o.world.tileAt(o.x + 4, o.y + 1)
       } ;
     }
     return null ;
@@ -130,12 +103,22 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
   
   protected void updatePaving(boolean inWorld) {
     entrances() ;
-    final Tile s[] = surrounds() ;
-    if (inWorld) Paving.clearRoad(s) ;
-    world.terrain().maskAsPaved(s, inWorld) ;
+    base().paving.updatePerimeter(this, inWorld) ;
     for (Tile t : entrances()) {
       base().paving.updateJunction(t, inWorld) ;
     }
+  }
+  
+  
+  public void enterWorldAt(int x, int y, World world) {
+    super.enterWorldAt(x, y, world) ;
+    world.terrain().maskAsPaved(Spacing.under(area(), world), true) ;
+  }
+  
+  
+  public void exitWorld() {
+    world.terrain().maskAsPaved(Spacing.under(area(), world), false) ;
+    super.exitWorld() ;
   }
   
   
@@ -157,6 +140,11 @@ public class ShieldWallBlastDoors extends Venue implements TileConstants {
       "Blast Doors grant your citizens access to enclosed sector of your "+
       "base." ;
   }
+  
+  
+  //
+  //  TODO:  Allow the player to control access to a given area by restricting
+  //  what kind of personnel are allowed through given doors.
   
   
   public String buildCategory() {

@@ -7,25 +7,25 @@
 
 package src.game.base ;
 import src.game.common.* ;
-import src.game.planet.Planet ;
+//import src.game.planet.Planet ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
 
 
-public class TownVault extends Venue implements BuildConstants {
+public class VaultSystem extends Venue implements BuildConstants {
   
   
   
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    TownVault.class, "media/Buildings/merchant/town_vault.png", 4, 3
+    VaultSystem.class, "media/Buildings/merchant/town_vault.png", 4, 3
   ) ;
   
   List <Holding> holdings = new List <Holding> () ;
@@ -33,7 +33,7 @@ public class TownVault extends Venue implements BuildConstants {
   
   
   
-  public TownVault(Base belongs) {
+  public VaultSystem(Base belongs) {
     super(4, 2, ENTRANCE_EAST, belongs) ;
     structure.setupStats(500, 20, 350, 0, false) ;
     personnel.setShiftType(SHIFTS_ALWAYS) ;
@@ -41,7 +41,7 @@ public class TownVault extends Venue implements BuildConstants {
   }
   
   
-  public TownVault(Session s) throws Exception {
+  public VaultSystem(Session s) throws Exception {
     super(s) ;
     s.loadObjects(holdings) ;
     s.loadObjects(toHouse ) ;
@@ -84,7 +84,7 @@ public class TownVault extends Venue implements BuildConstants {
   /**  Rendering and interface methods-
     */
   public String fullName() {
-    return "The Town Vault" ;
+    return "Vault System" ;
   }
   
   
@@ -95,7 +95,7 @@ public class TownVault extends Venue implements BuildConstants {
   
   public String helpInfo() {
     return
-      "The Town Vault provides an emergency refuge for base personnel, "+
+      "The Vault System provides an emergency refuge for base personnel, "+
       "allowing goods to be stockpiled and providing a baseline degree of "+
       "power and life support." ;
   }

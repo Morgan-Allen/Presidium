@@ -158,7 +158,7 @@ public class Sickbay extends Venue implements BuildConstants {
   /**  Rendering and interface methods-
     */
   public String fullName() {
-    return "The Sickbay" ;
+    return "Sickbay" ;
   }
   
   
@@ -169,9 +169,9 @@ public class Sickbay extends Venue implements BuildConstants {
   
   public String helpInfo() {
     return
-      "The Sickbay allows your citizens' injuries, diseases and trauma to be"+
-      "treated quickly and effectively.  It also helps to regulate "+
-      "population growth and provide basic daycare and education facilities." ;
+      "The Sickbay allows your citizens' injuries, diseases and trauma to be "+
+      "treated quickly and effectively.  It also helps regulate population"+
+      "growth and provide basic daycare and counselling facilities." ;
   }
   
   

@@ -24,7 +24,7 @@ public class RoadSearch extends Search <Tile> {
   
   
   public RoadSearch(Tile start, Tile end, int priority) {
-    super(start, (Spacing.axisDist(start, end) * 20) + 20) ;
+    super(start, (Spacing.sumAxisDist(start, end) * 20) + 20) ;
     this.destination = end ;
     this.terrain = end.world.terrain() ;
     this.priority = priority ;
@@ -37,16 +37,13 @@ public class RoadSearch extends Search <Tile> {
   
   
   protected float estimate(Tile spot) {
-    final float
-      xd = spot.x - destination.x,
-      yd = spot.y - destination.y ;
-    return ((xd > 0 ? xd : -xd) + (yd > 0 ? yd : -yd)) / 2f ;
+    return Spacing.sumAxisDist(spot, destination) ;
   }
   
   
   protected float cost(Tile prior, Tile spot) {
-    if (terrain.isRoad(spot)) return 1 ;
-    return 2 ;
+    if (terrain.isRoad(spot)) return 0.5f ;
+    return 1 ;
   }
   
   
@@ -57,7 +54,6 @@ public class RoadSearch extends Search <Tile> {
   
   protected boolean canEnter(Tile t) {
     if (t == init || t == destination) return true ;
-    ///if (t == null) I.complain("TILE IS NULL!") ;
     return t.habitat().pathClear && (
       t.owner() == null ||
       t.owner().owningType() < priority

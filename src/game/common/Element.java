@@ -260,6 +260,11 @@ public abstract class Element implements
   }
   
   
+  protected void attachModel(Model model) {
+    attachSprite(model.makeSprite()) ;
+  }
+  
+  
   public Sprite sprite() {
     return sprite ;
   }

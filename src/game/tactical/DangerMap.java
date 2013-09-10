@@ -64,9 +64,11 @@ public class DangerMap {
       longTermVals [c.x][c.y] *= (1 -  LONG_TERM_MULT) ;
     }
     
+    /*
     if (this.base == PlayLoop.played()) {
       I.present(shortTermVals, "Danger map", 200, 200) ;
     }
+    //*/
     //overallVal *= (1 - LONG_TERM_MULT) ;
   }
   //*/

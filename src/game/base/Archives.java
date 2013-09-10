@@ -53,7 +53,7 @@ public class Archives extends Venue implements BuildConstants {
   //  really be contributing toward hit-points, for example.  Might be better
   //  to model them as imported items, or some kind of custom object?
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
-    Sickbay.class, "sickbay_upgrades"
+    Archives.class, "archives_upgrades"
   ) ;
   protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   static {
@@ -99,7 +99,7 @@ public class Archives extends Venue implements BuildConstants {
   /**  Rendering and interface-
     */
   public String fullName() {
-    return "The Archives" ;
+    return "Archives" ;
   }
   
   

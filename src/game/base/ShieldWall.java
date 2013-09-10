@@ -8,117 +8,137 @@
 package src.game.base ;
 import src.game.building.* ;
 import src.game.common.* ;
-import src.graphics.widgets.HUD;
-//import src.graphics.common.* ;
+import src.graphics.common.* ;
+import src.graphics.cutout.* ;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
 
 
-public class ShieldWall extends LineInstallation {
+public class ShieldWall extends Segment {
   
   
-  final Base base ;
-  private Tile path[] ;
-  final private Tile tempB[] = new Tile[8] ;
+  /**  Construction and save/load routines-
+    */
+  final static String
+    IMG_DIR = "media/Buildings/military/" ;
+  final static ImageModel
+    SECTION_MODELS[] = ImageModel.loadModels(
+      ShieldWall.class, 2, 4, IMG_DIR,
+      "wall_segment_left.png",
+      "wall_segment_right.png",
+      "wall_corner.png",
+      "wall_tower_left.png",
+      "wall_tower_right.png"
+    ),
+    SECTION_MODEL_LEFT   = SECTION_MODELS[0],
+    SECTION_MODEL_RIGHT  = SECTION_MODELS[1],
+    SECTION_MODEL_CORNER = SECTION_MODELS[2],
+    TOWER_MODEL_LEFT     = SECTION_MODELS[3],
+    TOWER_MODEL_RIGHT    = SECTION_MODELS[4],
+    DOORS_MODEL_LEFT = ImageModel.asIsometricModel(
+      ShieldWall.class, IMG_DIR+"wall_gate_left.png" , 4, 2
+    ),
+    DOORS_MODEL_RIGHT = ImageModel.asIsometricModel(
+      ShieldWall.class, IMG_DIR+"wall_gate_right.png", 4, 2
+    ) ;
+  
+  final protected static int
+    TYPE_SECTION = 0,
+    TYPE_TOWER   = 1,
+    TYPE_DOORS   = 2 ;
+  
   
   
   public ShieldWall(Base base) {
-    super() ;
-    this.base = base ;
+    super(2, 3, base) ;
+    structure.setupStats(75, 35, 40, 0, false) ;
   }
   
   
-  /**  Searching for a suitable path between tiles or venues-
+  protected ShieldWall(int type, int size, int high, Base base) {
+    super(size, high, base) ;
+    structure.setupStats(200, 35, 100, 0, false) ;
+    type = TYPE_DOORS ;
+  }
+  
+  
+  public ShieldWall(Session s) throws Exception {
+    super(s) ;
+  }
+  
+  
+  public void saveState(Session s) throws Exception {
+    super.saveState(s) ;
+  }
+  
+  
+  
+  /**  Configuring sections of the line-
     */
-  protected Batch <Tile> toClear(Tile from, Tile to) {
-    path = lineVicinityPath(
-      from, to, false, true, ShieldWallSection.class, MagLineNode.class
-    ) ;
-    return lineVicinity(path, ShieldWallSection.class, MagLineNode.class) ;
-  }
-  
-  
-  protected Batch <Element> toPlace(Tile from, Tile to) {
-    path = lineVicinityPath(
-      from, to, false, true, ShieldWallSection.class, MagLineNode.class
-    ) ;
-    if (path == null) return null ;
-    //
-    //  Firstly, we need to ascertain if we crossed over any mag lines.  If so,
-    //  we'll have to place blast doors over 'em.
-    int lineIndex = -1 ;
-    for (int i = path.length ; i-- > 0 ;) {
-      if (path[i].owner() instanceof MagLineNode) {
-        if (lineIndex != -1) return null ;
-        lineIndex = i ;
+  protected void configFromAdjacent(boolean[] near, int numNear) {
+    final Tile o = origin() ;
+    if (numNear == 2) {
+      type = TYPE_SECTION ;
+      if (near[N] && near[S]) {
+        facing = Y_AXIS ;
+        if (o.y % 8 == 0) {
+          type = TYPE_TOWER ;
+          attachModel(TOWER_MODEL_RIGHT) ;
+        }
+        else attachModel(SECTION_MODEL_RIGHT) ;
+        return ;
+      }
+      if (near[W] && near[E]) {
+        facing = X_AXIS ;
+        if (o.x % 8 == 0) {
+          type = TYPE_TOWER ;
+          attachModel(TOWER_MODEL_LEFT) ;
+        }
+        else attachModel(SECTION_MODEL_LEFT) ;
+        return ;
       }
     }
-    final Batch <Element> nodes = new Batch <Element> () ;
-    for (Tile t : path) t.flagWith(this) ;
+    facing = CORNER ;
+    attachModel(SECTION_MODEL_CORNER) ;
+  }
+  
+
+  protected List <Segment> installedBetween(Tile start, Tile end) {
+    final List <Segment> installed = super.installedBetween(start, end) ;
+    if (installed == null || installed.size() < 4) return installed ;
     //
-    //  Then, see if we have a valid location for blast doors-
-    Box2D doorsArea = null ;
-    final ShieldWallBlastDoors doors = doorsFor(path, lineIndex) ;
-    if (doors != null) {
-      doors.area(doorsArea = new Box2D()) ;
-      nodes.add(doors) ;
+    //  If the stretch to install is long enough, we cut out the middle two
+    //  segments and install a set of Blast Doors in their place-
+    final World world = start.world ;
+    final int cut = installed.size() / 2 ;
+    final ShieldWall
+      a = (ShieldWall) installed.atIndex(cut),
+      b = (ShieldWall) installed.atIndex(cut - 1) ;
+    if (a.facing != b.facing || a.facing == CORNER) return installed ;
+    //
+    //  The doors occupy the exact centre of this area, with the same facing-
+    final Vec3D centre = a.position(null).add(b.position(null)).scale(0.5f) ;
+    final BlastDoors doors = new BlastDoors(a.base(), a.facing) ;
+    doors.setPosition(centre.x - 1.5f, centre.y - 1.5f, world) ;
+    final Box2D bound = doors.area(null) ;
+    for (Venue v : installed) {
+      if (v == a || v == b) continue ;
+      if (v.area(null).cropBy(bound).area() > 0) return installed ;
     }
     //
-    //  And regardless, get the set of wall sections for the path-
-    setupSections(path, doorsArea, nodes) ;
-    for (Tile t : path) t.flagWith(null) ;
-    return nodes ;
+    //  Update and return the list-
+    installed.remove(a) ;
+    installed.remove(b) ;
+    installed.add(doors) ;
+    return installed ;
   }
   
-  
-  private ShieldWallSection sectionFor(Tile t) {
-    final ShieldWallSection node = new ShieldWallSection() ;
-    node.setPosition(t.x, t.y, t.world) ;
-    node.updateFacing() ;
-    return node ;
-  }
-  
-  
-  private ShieldWallBlastDoors doorsFor(Tile path[], int lineIndex) {
-    if (lineIndex == -1 && path.length <= 6) return null ;
-    final Tile under = path[lineIndex == -1 ? (path.length / 2) : lineIndex] ;
-    ShieldWallSection sample = sectionFor(under) ;
-    if (sample.facing() == CORNER) return null ;
-    final int facing = sample.facing() ;
-    ShieldWallBlastDoors doors = new ShieldWallBlastDoors(base, facing) ;
-    doors.setPosition(under.x - 1, under.y - 1, base.world) ;
-    boolean canPlace = true ;
-    for (Tile t : path) if (doors.area().contains(t.x, t.y)) {
-      if (sectionFor(t).facing() != facing) canPlace = false ;
-    }
-    return canPlace ? doors : null ;
-  }
-  
-  
-  private void setupSections(
-    Tile path[], Box2D doorsArea, Batch <Element> nodes
-  ) {
-    for (int i = 0, n = 0 ; i < path.length ; i++) {
-      final Tile t = path[i] ;
-      if (doorsArea != null && doorsArea.contains(t.x, t.y)) continue ;
-      final ShieldWallSection node = sectionFor(t) ;
-      boolean isTower = false ;
-      if (node.facing() == X_AXIS && t.x % 3 == 0) isTower = true ;
-      if (node.facing() == Y_AXIS && t.y % 3 == 0) isTower = true ;
-      node.setTower(isTower) ;
-      nodes.add(node) ;
-    }
-  }
   
   
   /**  Rendering and interface methods-
     */
-  public int buildCost() {
-    return 40 ;
-  }
-  
-  
   public String fullName() {
     return "Shield Wall" ;
   }
@@ -136,7 +156,7 @@ public class ShieldWall extends LineInstallation {
   
   
   public String buildCategory() {
-    return InstallTab.TYPE_HIDDEN ;
+    return InstallTab.TYPE_MILITANT ;
   }
 }
 

@@ -184,7 +184,7 @@ public class MagLineNode extends Element implements
     final Tile t = around[dir] ;
     if (t == null) return false ;
     return
-      t.flaggedWith() instanceof MagLine ||
+      t.flaggedWith() instanceof Causeway ||
       t.owner() instanceof MagLineNode ;
   }
 }  

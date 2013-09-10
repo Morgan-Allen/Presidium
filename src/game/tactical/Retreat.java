@@ -18,6 +18,7 @@ public class Retreat extends Plan implements ActorConstants {
   
   /**  Constants, field definitions, constructors and save/load methods-
     */
+  static boolean verbose = false ;
   Target safePoint = null ;
   
   
@@ -95,7 +96,7 @@ public class Retreat extends Plan implements ActorConstants {
       //  TODO:  Check by compass-point directions instead of purely at random.
       final Tile tried = Spacing.pickRandomTile(actor, range, actor.world()) ;
       if (tried == null) continue ;
-      if (Spacing.distance(tried, target) > range * 2) continue ;
+      if (Spacing.distance(tried, target) > range) continue ;
       
       //
       //  TODO:  USE THE DANGER MAP INSTEAD.  Significantly cheaper.
@@ -114,7 +115,7 @@ public class Retreat extends Plan implements ActorConstants {
     //  Get a reading of threats based on all actors visible to this one, and
     //  their distance from the spot in question.  TODO:  Retain awareness
     //  longer?
-    final boolean report = BaseUI.isPicked(actor) ;
+    final boolean report = verbose && BaseUI.isPicked(actor) ;
     if (report) I.say("\n"+actor+" GETTING DANGER AT "+spot) ;
     
     //float sumDanger = 0, minDanger = 0 ;

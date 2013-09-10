@@ -75,13 +75,14 @@ public class Bastion extends Venue implements BuildConstants {
   }
   
   
-  public String fullName() { return "The Bastion" ; }
+  public String fullName() { return "Bastion" ; }
   
   
   public String helpInfo() {
     return
       "The Bastion is your seat of command for the settlement as a "+
-      "whole, and houses your family, advisors and bodyguards." ;
+      "whole, houses your family, advisors and bodyguards, and provides "+
+      "basic logistic support." ;
   }
   
   
@@ -89,6 +90,5 @@ public class Bastion extends Venue implements BuildConstants {
     return InstallTab.TYPE_MILITANT ;
   }
 }
-
 
 

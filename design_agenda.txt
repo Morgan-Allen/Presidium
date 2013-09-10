@@ -1,9 +1,8 @@
 
 
-*  Extra critter models:  Gigans and cranial.
+*  Extra critter models:  Gigans and cranial (plus finish Trigox.)
 *  Extra humanoid models:  fat/skinny, young/old.
 *  Mutant/primitive/infected textures.
-*  The personnel tab might be simplified.
 
 16 commodity types to cover (everything else is minor)
   foodstuffs (3 types), spice
@@ -13,15 +12,6 @@
   power, water/life support
   devices/outfits
 
-Structure Types (more related to schools/preserves later on-)
-  Artificer:  culture vats, reactor, foundry, excavations and smelter
-  Ecologist:  botanical station, surveyor, solar array, air processor
-  Physician:  sickbay, minder's ward, detention bloc, counsel chamber
-  Military:  bastion, house garrison, arena, mercenary company HQ
-  Commerce:  supply depot, stock exchange, cantina, audit office
-  Aesthete:  fabricator, arcology, PLAZA, companion training house
-
-
 What are the tradeoffs involved in this game?
   The packing problem of placement of services and infrastructure while
   accomodating aura structures.
@@ -29,7 +19,6 @@ What are the tradeoffs involved in this game?
   you send them on at what times.
   The schools you invest in and large-scale politics, which become an
   increasingly binding commitment.
-
 
 Quest ideas-
   There's a large existing crime-ridden settlement.

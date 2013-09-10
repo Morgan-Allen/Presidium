@@ -210,6 +210,11 @@ public class Terrain implements TileConstants, Session.Saveable {
   }
   
   
+  public int varAt(Tile t) {
+    return varsIndex[t.x][t.y] ;
+  }
+  
+  
   
   /**  Pavements and overlays-
     */

@@ -118,11 +118,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
       if (this.home == null && this.work instanceof Venue) {
         final Holding newHome = Holding.findHoldingFor(actor) ;
         if (newHome != null) {
-          if (! newHome.inWorld()) {
-            newHome.clearSurrounds() ;
-            newHome.enterWorld() ;
-            newHome.structure.setState(VenueStructure.STATE_INSTALL, 0.0f) ;
-          }
+          if (! newHome.inWorld()) newHome.doPlace(newHome.origin(), null) ;
           setHomeVenue(newHome) ;
         }
       }

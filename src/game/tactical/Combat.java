@@ -20,10 +20,7 @@ public class Combat extends Plan implements ActorConstants {
   
   /**  
     */
-  ///public static interface Participant { CombatStats combatStats() ; }
-  
-  //  Also allow Venues as targets.
-  //final Actor target ;
+  static boolean verbose = false ;
   final Element target ;
   
   
@@ -101,6 +98,7 @@ public class Combat extends Plan implements ActorConstants {
       nearby.add((Element) m) ;
     }
     float danger = Retreat.dangerAtSpot(enemy, actor, nearby) ;
+    //
     /*  //TODO:  Fix up the Danger Map.  Needs to be smoother, area-wise.
     if (actor.base() != null) {
       final float areaDanger = actor.base().dangerMap.valAt(enemy.origin()) ;
@@ -122,7 +120,7 @@ public class Combat extends Plan implements ActorConstants {
     appeal += winReward ;
     
     
-    final boolean reports = BaseUI.isPicked(actor) ;
+    final boolean reports = verbose && BaseUI.isPicked(actor) ;
     if (reports) {
       I.say(
         "  "+actor+" considering COMBAT with "+enemy+
@@ -144,6 +142,10 @@ public class Combat extends Plan implements ActorConstants {
   
   
   public static float alliance(Actor a, Actor b) {
+    //
+    //  TODO:  Try averaging the two instead?  Or just base on one?  Replace
+    //  with a threatFrom() method, that includes things like retreat status,
+    //  et cetera?  ...Yes.  Factor it out.
     return Math.min(a.AI.relation(b), b.AI.relation(a)) ;
   }
   

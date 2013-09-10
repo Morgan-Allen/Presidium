@@ -87,7 +87,7 @@ public class AuditOffice extends Venue implements BuildConstants {
   /**  Rendering and interface methods-
     */
   public String fullName() {
-    return "The Audit Office" ;
+    return "Audit Office" ;
   }
   
 

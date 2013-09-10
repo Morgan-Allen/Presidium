@@ -62,7 +62,7 @@ public abstract class Fixture extends Element {
   public void clearSurrounds() {
     final Box2D around = new Box2D().setTo(area()).expandBy(1) ;
     final World world = origin().world ;
-    for (Tile t : world.tilesIn(around, false)) {
+    for (Tile t : world.tilesIn(around, false)) if (t != null) {
       if (t.owner() != null && t.owningType() < this.owningType()) {
         t.owner().exitWorld() ;
       }

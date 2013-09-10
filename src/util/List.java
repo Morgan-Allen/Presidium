@@ -8,6 +8,8 @@ package src.util ;
 import java.lang.reflect.Array;
 import java.util.Iterator ;
 
+import src.util.Batch.Sector;
+
 
 /**  This class essentially implements a doubly-linked list, the distinction
   *  being that each insertion returns an entry referencing that new element's
@@ -98,6 +100,7 @@ public class List <T> extends ListEntry <T> implements Series <T> {
     return null ;
   }
   
+  
   /**  Return the index of the given entry-
     */
   final public int indexOf(T t) {
@@ -106,6 +109,19 @@ public class List <T> extends ListEntry <T> implements Series <T> {
       if (t == l.refers) return i ;
     return -1 ;
   }
+  
+  
+  /**  Returns the member at the specified index-
+    */
+  public T atIndex(int i) {
+    if (i < 0 || i >= size) return null ;
+    int d = 0 ;
+    for (ListEntry <T> l = this ; (l = l.next) != this ; d++)
+      if (d == i) return l.refers ;
+    return null ;
+  }
+  
+  
   
   /**  Removes the specified entry from the list.  (This method has no effect if
     *  the given entry does not belong to the list.)

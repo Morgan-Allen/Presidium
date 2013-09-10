@@ -212,13 +212,14 @@ public class Box2D {
   
   /**  Crops this box to fit within the given argument.
     */
-  public void cropBy(Box2D box) {
+  public Box2D cropBy(Box2D box) {
     if (xpos < box.xpos) xpos = box.xpos ;
     if (ypos < box.ypos) ypos = box.ypos ;
     if (xmax > box.xmax) xmax = box.xmax ;
     if (ymax > box.ymax) ymax = box.ymax ;
     xdim = xmax - xpos ;
     ydim = ymax - ypos ;
+    return this ;
   }
   
   

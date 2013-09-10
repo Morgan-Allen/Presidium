@@ -235,9 +235,10 @@ public class VenueStructure extends Inventory {
   
   
   protected void checkMaintenance() {
-    final boolean needs = needsRepair() || needsUpgrade() ;
-    ///if (BaseUI.isPicked(venue)) I.say(venue+" needs maintenance? "+needs) ;
     final World world = venue.world() ;
+    final boolean needs =
+      (repairLevel() < 0.8f || state == STATE_SALVAGE) ||
+      needsUpgrade() ;
     world.presences.togglePresence(
       venue, world.tileAt(venue), needs, "damaged"
     ) ;

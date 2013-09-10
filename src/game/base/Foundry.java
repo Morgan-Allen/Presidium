@@ -192,7 +192,7 @@ public class Foundry extends Venue implements BuildConstants {
   
   
   public String fullName() {
-    return "The Foundry" ;
+    return "Foundry" ;
   }
   
   

@@ -122,6 +122,9 @@ public class Building extends Plan implements ActorConstants {
     //  Double the rate of repair again if you have proper tools and materials.
     final boolean salvage = built.structure.needsSalvage() ;
     int success = 1 ;
+    //
+    //  TODO:  Don't deduct credits during the install phase.  In principle,
+    //  that's already accounted for.
     if (salvage) {
       success *= actor.traits.test(ASSEMBLY, 5, 1) ? 2 : 1 ;
       final float amount = built.structure.repairBy(success * 5f / -2) ;

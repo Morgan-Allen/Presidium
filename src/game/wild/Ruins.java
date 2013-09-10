@@ -75,14 +75,13 @@ public class Ruins extends Venue {
   
   public String helpInfo() {
     return
-      "The legacy of the wars of a vanished age, ancient ruins dot the "+
-      "landscape of many worlds, in regions irradiated by nuclear fire or "+
-      "decimated by biological weapons.  Backward primitives, deformed "+
-      "mutants or stranger, more dangerous creatures often lurk in such "+
-      "forsaken places." ;
+      "Ancient ruins cover the landscape of many worlds in regions irradiated "+
+      "by nuclear fire or blighted by biological warfare.  Clans of ravenous "+
+      "infected, deformed mutant primitives or even decaying artilect "+
+      "sentinels may haunt such forsaken places." ;
   }
   
-
+  
   public String buildCategory() { return UIConstants.TYPE_HIDDEN ; }
   
   

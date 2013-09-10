@@ -95,29 +95,29 @@ public class Vocation implements BuildConstants {
     EXCAVATOR = new Vocation(
       "Excavator", "pyon_skin.gif", null,
       SLAVE_CLASS,
-      PRACTICED, HARD_LABOUR, NOVICE, GEOPHYSICS, ASSEMBLY,
+      EXPERT, HARD_LABOUR, PRACTICED, GEOPHYSICS, NOVICE, ASSEMBLY,
       OFTEN, STUBBORN, RARELY, NERVOUS, HANDSOME
     ),
     
     TECHNICIAN = new Vocation(
       "Technician", "artificer_skin.gif", "artificer_portrait.png",
       LOWER_CLASS,
-      PRACTICED, ASSEMBLY, LIFE_SUPPORT, NOVICE, HARD_LABOUR,
+      PRACTICED, ASSEMBLY, HARD_LABOUR, NOVICE, FIELD_THEORY,
       SOMETIMES, DUTIFUL, RARELY, INDOLENT
     ),
     
-    FABRICATOR = new Vocation(
-      "Fabricator", "citizen_skin.gif", null,
+    CORE_TECHNICIAN = new Vocation(
+      "Core Technician", "citizen_skin.gif", "artificer_portrait.png",
       MIDDLE_CLASS,
-      PRACTICED, CHEMISTRY, NOVICE, HARD_LABOUR, CHEMISTRY, GRAPHIC_MEDIA,
-      SOMETIMES, STUBBORN
+      EXPERT, FIELD_THEORY, PRACTICED, CHEMISTRY, NOVICE, SHIELD_AND_ARMOUR,
+      OFTEN, DUTIFUL, SOMETIMES, NERVOUS
     ),
     
     ARTIFICER = new Vocation(
       "Artificer", "artificer_skin.gif", "artificer_portrait.png",
       UPPER_CLASS,
       EXPERT, ASSEMBLY, PRACTICED, FIELD_THEORY, CHEMISTRY,
-      NOVICE, ANCIENT_LORE,
+      NOVICE, ANCIENT_LORE, LOGOS_MENSA,
       SOMETIMES, INQUISITIVE, RARELY, NATURALIST
     )
   ;
@@ -258,6 +258,13 @@ public class Vocation implements BuildConstants {
       UPPER_CLASS,
       EXPERT, SUASION, GRAPHIC_MEDIA, NOVICE, ADMINISTRATION,
       RARELY, HONOURABLE, INDOLENT, OFTEN, AMBITIOUS
+    ),
+    
+    FABRICATOR = new Vocation(
+      "Fabricator", "citizen_skin.gif", null,
+      MIDDLE_CLASS,
+      PRACTICED, CHEMISTRY, NOVICE, HARD_LABOUR, CHEMISTRY, GRAPHIC_MEDIA,
+      SOMETIMES, STUBBORN
     ),
     
     COMPANION = new Vocation(

@@ -204,7 +204,7 @@ public class Tile implements Target, TileConstants, Boardable {
     if (b instanceof Tile) {
       final Tile t = (Tile) b ;
       if (t.blocked()) return false ;
-      return Spacing.axisDist(this, t) < 2 ;
+      return Spacing.maxAxisDist(this, t) < 2 ;
     }
     return (b == null) ? false : b.isEntrance(this) ;
   }

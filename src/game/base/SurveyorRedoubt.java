@@ -93,7 +93,7 @@ public class SurveyorRedoubt extends Venue implements BuildConstants {
   /**  Rendering and interface-
     */
   public String fullName() {
-    return "The Surveyor's Redoubt" ;
+    return "Surveyor's Redoubt" ;
   }
   
   

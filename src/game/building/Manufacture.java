@@ -129,7 +129,7 @@ public class Manufacture extends Plan implements Behaviour {
     ///I.say(actor+" making "+made) ;
     final boolean hasNeeded = hasNeeded() ;
     if (GameSettings.hardCore && ! hasNeeded) {
-      abortStep() ;
+      abortBehaviour() ;
       return false ;
     }
     final Conversion c = conversion ;

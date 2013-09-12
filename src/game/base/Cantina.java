@@ -103,7 +103,7 @@ public class Cantina extends Venue implements BuildConstants {
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    stocks.setRequired(SOMA, 5) ;
+    stocks.incDemand(SOMA, 10, 0) ;
   }
   
   

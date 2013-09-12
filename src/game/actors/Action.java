@@ -153,7 +153,7 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-  public void abortStep() {
+  public void abortBehaviour() {
     progress = -1 ;
     inRange = -1 ;
     actor.AI.cancelBehaviour(this) ;
@@ -230,10 +230,12 @@ public class Action implements Behaviour, Model.AnimNames {
     final boolean
       closed = actor.pathing.closeEnough(moveTarget, minDist),
       facing = actor.pathing.facingTarget(actionTarget) ;
+    ///if (! facing && BaseUI.isPicked(actor)) I.say("NOT FACING!") ;
     if (! closed) actor.pathing.updateTarget(moveTarget) ;
     final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;
     
     if (moveOK) {
+      //if (! facing && BaseUI.isPicked(actor)) I.say("CHANGING HEADING") ;
       ///I.say("is moving... toward: "+faced+", closed? "+closed) ;
       actor.pathing.headTowards(faced, moveRate(), ! closed) ;
     }

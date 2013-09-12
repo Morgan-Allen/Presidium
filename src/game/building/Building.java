@@ -45,11 +45,10 @@ public class Building extends Plan implements ActorConstants {
   /**  Assessing targets and priority-
     */
   public float priorityFor(Actor actor) {
-    
-    final float competition = Plan.competition(
-      Building.class, built, actor.world()
-    ) ;
-    if (competition > built.structure.maxIntegrity() / 50) return 0 ;
+    //
+    //  TODO:  Don't factor competition if you're already at the site.
+    float competition = Plan.competition(Building.class, built, actor) ;
+    competition /= 1 + (built.structure.maxIntegrity() / 100f) ;
     
     float priority = Visit.clamp(actor.traits.useLevel(ASSEMBLY) / 10, 0, 1) ;
     float needRepair = (1 - built.structure.repairLevel()) * 1.33f ;
@@ -67,7 +66,7 @@ public class Building extends Plan implements ActorConstants {
     //  TODO:  You also need to modify by community spirit.
     
     priority *= actor.AI.relation(built.base()) ;
-    return (needRepair * priority * URGENT) + priorityMod ;
+    return (needRepair * priority * URGENT) + priorityMod - competition ;
   }
   
   

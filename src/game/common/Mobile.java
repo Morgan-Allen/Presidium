@@ -8,6 +8,7 @@
 package src.game.common ;
 import src.game.building.* ;
 import src.graphics.common.* ;
+import src.graphics.sfx.PlaneFX ;
 import src.user.* ;
 import src.util.* ;
 
@@ -16,6 +17,9 @@ import src.util.* ;
 public abstract class Mobile extends Element
   implements Schedule.Updates
 {
+
+  final public static Texture
+    GROUND_SHADOW = Texture.loadTexture("media/SFX/ground_shadow.png") ;
   
   final static int
     MAX_PATH_SCAN = World.DEFAULT_SECTOR_SIZE ;
@@ -84,6 +88,7 @@ public abstract class Mobile extends Element
   public boolean isMobile() { return true ; }
   
   
+  
   /**  Called whenever the mobile enters/exits the world...
    */
   public void enterWorldAt(int x, int y, World world) {
@@ -126,10 +131,12 @@ public abstract class Mobile extends Element
       pos.z += aboveGroundHeight() ;
       setHeading(pos, nextRotation, true, world) ;
     }
+    if (BaseUI.isPicked(this)) I.say("Now aboard: "+aboard) ;
   }
   
 
   public void setPosition(float xp, float yp, World world) {
+    if (BaseUI.isPicked(this)) I.say("SETTING POSITION") ;
     nextPosition.set(xp, yp, aboveGroundHeight()) ;
     setHeading(nextPosition, nextRotation, true, world) ;
   }
@@ -142,10 +149,10 @@ public abstract class Mobile extends Element
       oldTile = origin(),
       newTile = world.tileAt(pos.x, pos.y) ;
     super.setPosition(pos.x, pos.y, world) ;
-    nextPosition.setTo(pos) ;
-    nextRotation = rotation ;
+    if (pos != null) nextPosition.setTo(pos) ;
+    if (rotation != -1) nextRotation = rotation ;
     
-    if (aboard != newTile) {
+    if (aboard == null || ! aboard.area(null).contains(newTile.x, newTile.y)) {
       if (aboard != null) aboard.setInside(this, false) ;
       (aboard = newTile).setInside(this, true) ;
     }
@@ -177,38 +184,41 @@ public abstract class Mobile extends Element
       final Tile blocked = origin() ;
       final Tile free = Spacing.nearestOpenTile(blocked, this) ;
       if (free == null) I.complain("NO FREE TILE AVAILABLE!") ;
-      if (BaseUI.isPicked(this)) I.say("Escaping to free tile: "+free) ;
+      ///if (BaseUI.isPicked(this)) I.say("Escaping to free tile: "+free) ;
       setPosition(free.x, free.y, world) ;
       onMotionBlock(blocked) ;
       return ;
     }
     final Boardable next = pathing == null ? null : pathing.nextStep() ;
-    final Tile
-      oldTile = origin(),
-      newTile = world().tileAt(nextPosition.x, nextPosition.y) ;
+    final Tile oldTile = origin() ;
+    final Vec3D p = nextPosition ;
     //
-    //  We allow mobiles to 'jump' between dissimilar objects.
+    //  We allow mobiles to 'jump' between dissimilar objects-
     if (next != null && next.getClass() != aboard.getClass()) {
+      ///if (BaseUI.isPicked(this)) I.say("Jumping to: "+next) ;
       aboard.setInside(this, false) ;
       (aboard = next).setInside(this, true) ;
       next.position(nextPosition) ;
+    }
+    if (aboard instanceof Mobile && ! aboard.area(null).contains(p.x, p.y)) {
+      aboard.position(nextPosition) ;
     }
     //
     //  If you're not in either your current 'aboard' object, or the area
     //  corresponding to the next step in pathing, you need to default to the
     //  nearest clear tile.
+    final Tile newTile = world().tileAt(nextPosition.x, nextPosition.y) ;
     if (oldTile != newTile || ! aboard.inWorld()) {
       onTileChange(oldTile, newTile) ;
       final Box2D area = new Box2D() ;
+      ///if (BaseUI.isPicked(this)) I.say("Next on path: "+next) ;
       final boolean awry = next != null && Spacing.distance(next, this) > 1 ;
-      final Vec3D p = nextPosition ;
       if (next != null && next.area(area).contains(p.x, p.y)) {
-        ///I.say("Moving to next aboard: "+next) ;
         aboard.setInside(this, false) ;
         (aboard = next).setInside(this, true) ;
       }
       else {
-        ///I.say("Moving to next tile: "+newTile) ;
+        ///if (BaseUI.isPicked(this)) I.say("Moving to next tile: "+newTile) ;
         if (awry) onMotionBlock(newTile) ;
         aboard.setInside(this, false) ;
         (aboard = newTile).setInside(this, true) ;
@@ -216,7 +226,6 @@ public abstract class Mobile extends Element
     }
     //
     //  Either way, update position and check for tile changes-
-    ///I.say("Distance is: "+position.distance(nextPosition)) ;
     position.setTo(nextPosition) ;
     rotation = nextRotation ;
     super.setPosition(position.x, position.y, world) ;
@@ -224,8 +233,12 @@ public abstract class Mobile extends Element
   
   
   //  TODO:  Make this specific to tiles?  Might be simpler.
-  public boolean blocksMotion(Boardable t) {
-    if (t instanceof Tile) return ((Tile) t).blocked() ;
+  public boolean blocksMotion(Boardable b) {
+    if (b instanceof Tile) {
+      final Tile t = (Tile) b ;
+      if (t.blocked()) return true ;
+      //if (t.inside().size() > 2) return true ;
+    }
     return false ;
   }
   
@@ -250,6 +263,12 @@ public abstract class Mobile extends Element
   
   /**  Rendering and interface methods-
     */
+  public boolean visibleTo(Base base) {
+    if (indoors()) return false ;
+    return super.visibleTo(base) ;
+  }
+  
+  
   public Vec3D viewPosition(Vec3D v) {
     if (v == null) v = new Vec3D() ;
     final float alpha = PlayLoop.frameTime() ;
@@ -261,11 +280,34 @@ public abstract class Mobile extends Element
   
   public void renderFor(Rendering rendering, Base base) {
     final Sprite s = this.sprite() ;
+    final float scale = spriteScale() ;
+    s.scale = scale ;
+    //
+    //  Render your shadow, either on the ground or on top of occupants-
+    final float R2 = (float) Math.sqrt(2) ;
+    final PlaneFX shadow = new PlaneFX(
+      GROUND_SHADOW, radius() * scale * R2
+    ) ;
+    final Vec3D p = s.position ;
+    shadow.position.setTo(p) ;
+    shadow.position.z = shadowHeight(p) ;
+    rendering.addClient(shadow) ;
+    
     this.viewPosition(s.position) ;
     final float alpha = PlayLoop.frameTime() ;
     final float rotateChange = Vec2D.degreeDif(nextRotation, rotation) ;
     s.rotation = (rotation + (rotateChange * alpha) + 360) % 360 ;
     rendering.addClient(s) ;
+  }
+  
+  
+  protected float shadowHeight(Vec3D p) {
+    return world.terrain().trueHeight(p.x, p.y) ;
+  }
+  
+  
+  protected float spriteScale() {
+    return 1 ;
   }
   
   

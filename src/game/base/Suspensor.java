@@ -13,15 +13,20 @@ import src.util.* ;
 
 
 //
-//  Use for the bulk transport of goods from place to place?  Oh- have the
-//  actor board a vehicle for the purpose!
-public class Barge extends Mobile {
+//  TODO:  Only disappear once inside a venue.  Otherwise, stay where you are,
+//  and wait for someone to pick you up.
+
+public class Suspensor extends Mobile {
   
   
+
+  final static String
+    FILE_DIR = "media/Vehicles/",
+    XML_PATH = FILE_DIR+"VehicleModels.xml" ;
+  final static Model SUSPENSOR_MODEL = MS3DModel.loadMS3D(
+    Suspensor.class, FILE_DIR, "Barge.ms3d", 0.015f
+  ).loadXMLInfo(XML_PATH, "Suspensor") ;
   
-  final static Model BARGE_MODEL = MS3DModel.loadMS3D(
-    Barge.class, "media/Vehicles/", "Barge.ms3d", 0.015f
-  ) ;
   
   final Actor followed ;
   final Behaviour tracked ;
@@ -31,15 +36,15 @@ public class Barge extends Mobile {
   
   
   
-  public Barge(Actor followed, Behaviour tracked) {
+  public Suspensor(Actor followed, Behaviour tracked) {
     super() ;
     this.followed = followed ;
     this.tracked = tracked ;
-    attachSprite(BARGE_MODEL.makeSprite()) ;
+    attachSprite(SUSPENSOR_MODEL.makeSprite()) ;
   }
   
   
-  public Barge(Session s) throws Exception {
+  public Suspensor(Session s) throws Exception {
     super(s) ;
     followed = (Actor) s.loadObject() ;
     tracked = (Behaviour) s.loadObject() ;

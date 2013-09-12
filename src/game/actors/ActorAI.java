@@ -136,7 +136,7 @@ public abstract class ActorAI implements ActorConstants {
     //
     //  And react to anything fresh-
     for (Mobile NS : newSeen) {
-      if (BaseUI.isPicked(actor)) I.say("  "+actor+" REACTING TO: "+NS) ;
+      ///if (BaseUI.isPicked(actor)) I.say("  "+actor+" REACTING TO: "+NS) ;
       final Behaviour reaction = reactionTo(NS) ;
       if (couldSwitchTo(reaction)) assignBehaviour(reaction) ;
     }

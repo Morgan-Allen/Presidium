@@ -196,7 +196,7 @@ public class Auditing extends Plan {
     for (Venue v : batch) {
       rating = v.inventory().unTaxed() / 100f ;
       rating -= Plan.rangePenalty(v, actor) ;
-      rating -= Plan.competition(Auditing.class, v, world) ;
+      rating -= Plan.competition(Auditing.class, v, actor) ;
       if (rating > bestRating) { bestRating = rating ; picked = v ; }
     }
     return picked ;

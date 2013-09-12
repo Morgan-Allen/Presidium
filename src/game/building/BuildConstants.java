@@ -64,7 +64,7 @@ public interface BuildConstants extends ActorConstants {
     PRESSFEED   = new Service(BC, COMMODITY, "Pressfeed"  , 160),
     MEDICINE    = new Service(BC, COMMODITY, "Medicine"   , 200),
     
-    CARRIED_ITEM_TYPES[] = Service.typesSoFar(),
+    ALL_CARRIED_ITEMS[] = Service.typesSoFar(),
     
     WATER        = new Service(BC, PROVISION, "Water"       , 0),
     LIFE_SUPPORT = new Service(BC, PROVISION, "Life Support", 0),
@@ -76,7 +76,8 @@ public interface BuildConstants extends ActorConstants {
   final public static Service
     SERVICE_ADMIN   = new Service(BC, SERVICE, "Admin", 0),
     SERVICE_TREAT   = new Service(BC, SERVICE, "Treatment", 0),
-    SERVICE_PERFORM = new Service(BC, SERVICE, "Performance", 0) ;
+    SERVICE_PERFORM = new Service(BC, SERVICE, "Performance", 0),
+    SERVICE_DEPOT   = new Service(BC, SERVICE, "Depot", 0) ;
   
   
   final public static int
@@ -224,12 +225,12 @@ public interface BuildConstants extends ActorConstants {
     ),
     //*/
     METALS_TO_PARTS = new Conversion(
-      2, METALS, TO, 1, PARTS,
+      1, METALS, TO, 2, PARTS,
       Foundry.class, TRICKY_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
     ),
     
     CARBONS_TO_PLASTICS = new Conversion(
-      2, CARBONS, TO, 1, PLASTICS,
+      1, CARBONS, TO, 2, PLASTICS,
       Fabricator.class, TRICKY_DC, CHEMISTRY, SIMPLE_DC, GRAPHIC_MEDIA
     ),
     

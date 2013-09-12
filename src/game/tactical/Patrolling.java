@@ -104,7 +104,7 @@ public class Patrolling extends Plan {
   }
   
   
-  public void abortStep() {
+  public void abortBehaviour() {
     I.say("Aborting patrol...") ;
     numCircuits = 2 ;
     goes = null ;

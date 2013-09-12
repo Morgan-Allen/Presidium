@@ -152,21 +152,6 @@ public abstract class Segment extends Venue implements TileConstants {
   private List <Segment> toInstall = new List() ;
   
   
-  public boolean canPlace() {
-    if (super.canPlace()) return true ;
-    final Tile o = origin() ;
-    if (o == null || o.owner() == null) return false ;
-    if (o.owner().getClass() == this.getClass()) return true ;
-    return false ;
-  }
-  
-
-  public boolean pointsOkay(Tile from, Tile to) {
-    toInstall = installedBetween(from, to) ;
-    return toInstall != null ;
-  }
-  
-  
   private void superPlacing(List <Segment> prior) {
     
     final Tile o = origin() ;
@@ -189,6 +174,31 @@ public abstract class Segment extends Venue implements TileConstants {
   private void superPreview(boolean canPlace, Rendering rendering) {
     final Tile at = origin() ;
     super.preview(canPlace, rendering, at, at) ;
+  }
+  
+  
+  private boolean superPointsOkay() {
+    final Tile at = origin() ;
+    return super.pointsOkay(at, at) ;
+  }
+  
+  
+  public boolean canPlace() {
+    if (super.canPlace()) return true ;
+    final Tile o = origin() ;
+    if (o == null || o.owner() == null) return false ;
+    if (o.owner().getClass() == this.getClass()) return true ;
+    return false ;
+  }
+  
+
+  public boolean pointsOkay(Tile from, Tile to) {
+    toInstall = installedBetween(from, to) ;
+    if (toInstall == null) return false ;
+    for (Segment s : toInstall) {
+      if (! s.superPointsOkay()) return false ;
+    }
+    return true ;
   }
   
   

@@ -25,6 +25,7 @@ public abstract class Vehicle extends Mobile implements
   final public Inventory cargo = new Inventory(this) ;
   final protected List <Mobile> inside = new List <Mobile> () ;
   final protected List <Actor> crew = new List <Actor> () ;
+  public Actor pilots ;
   
   protected float entranceFace = Venue.ENTRANCE_NONE ;
   protected Boardable dropPoint ;
@@ -43,6 +44,7 @@ public abstract class Vehicle extends Mobile implements
     dropPoint = (Boardable) s.loadTarget() ;
     entranceFace = s.loadFloat() ;
     base = (Base) s.loadObject() ;
+    pilots = (Actor) s.loadObject() ;
   }
   
   public void saveState(Session s) throws Exception {
@@ -53,6 +55,7 @@ public abstract class Vehicle extends Mobile implements
     s.saveTarget(dropPoint) ;
     s.saveFloat(entranceFace) ;
     s.saveObject(base) ;
+    s.saveObject(pilots) ;
   }
   
   
@@ -67,13 +70,47 @@ public abstract class Vehicle extends Mobile implements
   
   
   
+  /**  Handling pathing-
+    */
+  protected MobilePathing initPathing() {
+    return new MobilePathing(this) ;
+  }
+  
+  
+  protected void updateAsMobile() {
+    super.updateAsMobile() ;
+    if (inside.contains(pilots) && pilots.currentAction() != null) {
+      pathing.updateTarget(pilots.currentAction().target()) ;
+      final Boardable step = pathing.nextStep() ;
+      if (step != null) pathing.headTowards(step, 1, true) ;
+    }
+    else world.schedule.scheduleNow(this) ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    if (! pathing.checkPathingOkay()) pathing.refreshPath() ;
+  }
+  
+  
+  //*
+  public boolean blocksMotion(Boardable b) {
+    if (super.blocksMotion(b)) return true ;
+    if (b instanceof Tile && b != aboard()) {
+      final Tile t = (Tile) b ;
+      if (Spacing.distance(t, origin()) > MobilePathing.MAX_PATH_SCAN) {
+        return false ; 
+      }
+      if (t.inside().size() > 0) return true ;
+    }
+    return false ;
+  }
+  //*/
+  
+  
   /**  TODO:  Include code here for assessing suitable landing sites?
     */
-  
-  
-  
-  
-  
+
   /**  Assigning jobs to crew members-
     */
   public Behaviour jobFor(Actor actor) {
@@ -89,6 +126,11 @@ public abstract class Vehicle extends Mobile implements
   
   public List <Actor> crew() {
     return crew ;
+  }
+  
+  
+  public boolean actionDrive(Actor actor, Vehicle driven) {
+    return true ;
   }
   
   
@@ -111,9 +153,10 @@ public abstract class Vehicle extends Mobile implements
   
 
   public Boardable[] canBoard(Boardable batch[]) {
-    if (batch == null) batch = new Boardable[1] ;
+    if (batch == null) batch = new Boardable[2] ;
     else for (int i = batch.length ; i-- > 0 ;) batch[i] = null ;
     batch[0] = dropPoint ;
+    if (aboard() != null) batch[1] = aboard ;
     return batch ;
   }
   
@@ -194,6 +237,73 @@ public abstract class Vehicle extends Mobile implements
 
 
 
+/*
+//  TODO:  Make this abstract?
+protected void pathingAbort() {
+}
+
+
+public boolean blocksMotion(Boardable spot) {
+  if (spot instanceof Tile) {
+    final Tile t = (Tile) spot ;
+    return ! (
+      canEnterTile(t, 0, 0) &&
+      canEnterTile(t, 0, 1) &&
+      canEnterTile(t, 1, 0) &&
+      canEnterTile(t, 1, 1)
+    ) ;
+  }
+  return false ;
+}
+
+
+private boolean canEnterTile(Tile core, int x, int y) {
+  final Tile t = world.tileAt(core.x + x, core.y + y) ;
+  if (t == null) return false ;
+  if (t.blocked()) {
+    if (t.owner() instanceof Boardable) {
+      ((Venue) t.owner()).canBoard(Spacing.tempB4) ;
+      return Visit.arrayIncludes(Spacing.tempB4, core) ;
+    }
+    return false ;
+  }
+  return true ;
+}
+//*/
+
+//
+//  TODO:  Modify pathing searches to accept larger sizes of mobile in
+//  general?
+/*
+return new MobilePathing(vehicle) {
+  protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
+    //
+    //  Pathing must allow a 2x2 corridor for passage.
+    final PathingSearch search = new PathingSearch(initB, destB, -1) {
+      protected boolean canEnter(Boardable spot) {
+        final boolean blocked = blocksMotion(spot) ;
+        if (blocked) I.say("  Blocked at: "+spot) ;
+        return ! blocked ;
+      }
+      //
+      //  Favour causeways!
+      protected float cost(Boardable prior, Boardable spot) {
+        if (
+          spot instanceof Tile &&
+          ((Tile) spot).owner() instanceof Causeway
+        ) {
+          return 0.1f ;
+        }
+        return super.cost(prior, spot) ;
+      }
+    } ;
+    //search.verbose = true ;
+    search.client = vehicle ;
+    search.doSearch() ;
+    return search.fullPath(Boardable.class) ;
+  }
+} ;
+//*/
 
 
 

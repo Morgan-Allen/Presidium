@@ -19,7 +19,8 @@ public class MobilePathing {
   
   /**  Field definitions, constructors, and save/load methods-
     */
-  final int MAX_PATH_SCAN = 8 ;
+  final public static int MAX_PATH_SCAN = 8 ;
+  private static boolean verbose = true ;
   
   final Mobile mobile ;
   Target trueTarget ;
@@ -59,6 +60,11 @@ public class MobilePathing {
   }
   
   
+  public Target target() {
+    return trueTarget ;
+  }
+  
+  
   public Boardable nextStep() {
     if (stepIndex == -1 || path == null) return null ;
     if (! path[stepIndex].inWorld()) return null ;
@@ -67,7 +73,7 @@ public class MobilePathing {
   
   
   protected Boardable location(Target t) {
-    if (t instanceof Boardable) return (Boardable) t ;
+    if (t instanceof Boardable && t != mobile) return (Boardable) t ;
     if (t instanceof Mobile) {
       final Mobile a = (Mobile) t ;
       if (a.aboard() != null) return a.aboard() ;
@@ -132,6 +138,8 @@ public class MobilePathing {
   
   
   public boolean refreshPath() {
+    if (verbose && BaseUI.isPicked(mobile)) I.say("REFRESHING PATH") ;
+    
     final Boardable origin = location(mobile) ;
     if (trueTarget == null) path = null ;
     else {
@@ -139,12 +147,18 @@ public class MobilePathing {
       path = refreshPath(origin, pathTarget) ;
     }
     if (path == null) {
-      if (BaseUI.isPicked(mobile)) I.say("COULDN'T PATH TO: "+pathTarget) ;
+      if (verbose && BaseUI.isPicked(mobile)) I.say(
+        "COULDN'T PATH TO: "+pathTarget
+      ) ;
       mobile.pathingAbort() ;
       stepIndex = -1 ;
       return false ;
     }
     else {
+      if (verbose && BaseUI.isPicked(mobile)) {
+        I.say("PATH IS: ") ;
+        for (Boardable b : path) I.add(b+" ") ;//+mobile.blocksMotion(b)+" ") ;
+      }
       int index = 0 ;
       while (index < path.length) if (path[index++] == origin) break ;
       stepIndex = Visit.clamp(index, path.length) ;
@@ -154,9 +168,9 @@ public class MobilePathing {
   
   
   protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
-    if (GameSettings.freePath) {
+    if (GameSettings.pathFree) {
       final PathingSearch search = new PathingSearch(initB, destB, -1) ;
-      //search.verbose = true ;
+      if (verbose && BaseUI.isPicked(mobile)) search.verbose = true ;
       search.client = mobile ;
       search.doSearch() ;
       return search.fullPath(Boardable.class) ;
@@ -223,6 +237,11 @@ public class MobilePathing {
       baseHigh = aboard.position(null).z ;
     }
     mobile.nextPosition.z = baseHigh + mobile.aboveGroundHeight() ;
+    /*
+    if (BaseUI.isPicked(mobile)) I.say(
+      "OLD/NEW HEADING: "+mobile.position+"/"+mobile.nextPosition
+    ) ;
+    //*/
   }
   
   

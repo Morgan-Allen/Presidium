@@ -51,7 +51,8 @@ public abstract class Venue extends Fixture implements
   List <Mobile> inside = new List <Mobile> () ;
   
   final public VenuePersonnel personnel = new VenuePersonnel(this) ;
-  final public VenueStocks stocks = new VenueStocks(this) ;
+  //final public VenueStocks stocks = new VenueStocks(this) ;
+  final public VenueStocks2 stocks = new VenueStocks2(this) ;
   final public VenueStructure structure = new VenueStructure(this) ;
   
   
@@ -211,9 +212,15 @@ public abstract class Venue extends Fixture implements
   
   
   public Boardable[] canBoard(Boardable batch[]) {
-    if (batch == null) batch = new Boardable[1] ;
+    final int minSize = 1 + inside.size() ;
+    if (batch == null || batch.length < minSize) {
+      batch = new Boardable[minSize] ;
+    }
     else for (int i = batch.length ; i-- > 1 ;) batch[i] = null ;
     batch[0] = entrance ;
+    int i = 1 ; for (Mobile m : inside) if (m instanceof Boardable) {
+      batch[i++] = (Boardable) m ;
+    }
     return batch ;
   }
   

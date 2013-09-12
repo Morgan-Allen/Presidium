@@ -22,8 +22,8 @@ public class Inventory {
   /**  Fields, constructors, and save/load methods-
     */
   final public Owner owner ;
-  final protected Table <Item, Item> itemTable = new Table(10) ;
   float credits, taxed ;
+  private Table <Item, Item> itemTable = new Table(10) ;
   
   
   public Inventory(Owner owner) {

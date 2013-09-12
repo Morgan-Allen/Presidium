@@ -5,9 +5,10 @@
   */
 
 package src.user ;
-import src.game.building.* ;
 import src.game.common.* ;
+import src.game.base.* ;
 import src.game.tactical.* ;
+import src.game.building.* ;
 import src.util.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
@@ -196,6 +197,7 @@ public class InstallTab extends InfoPanel {
     refreshSample(type, UI.played()) ;
     final InstallTask task = new InstallTask() ;
     task.UI = UI ;
+    task.type = type ;
     task.toInstall = type.sample ;
     UI.beginTask(task) ;
     refreshSample(type, null) ;
@@ -206,6 +208,7 @@ public class InstallTab extends InfoPanel {
     
     
     BaseUI UI ;
+    InstallType type ;
     Installation toInstall ;
     private boolean hasPressed = false ;
     Tile from, to ;
@@ -225,6 +228,7 @@ public class InstallTab extends InfoPanel {
           hasPressed = true ;
         }
       }
+      //
       //  TODO:  Consider a different rendering mode for stuck-in-fog.
       final boolean canPlace =
         (from == null || map.fogAt(from) > 0) &&
@@ -234,6 +238,9 @@ public class InstallTab extends InfoPanel {
       if (canPlace && hasPressed && ! UI.mouseDown()) {
         toInstall.doPlace(from, to) ;
         UI.endCurrentTask() ;
+        if (toInstall instanceof Segment) {
+          initInstallTask(UI, type) ;
+        }
       }
       else {
         UI.rendering.clearDepth() ;

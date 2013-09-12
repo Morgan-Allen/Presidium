@@ -118,19 +118,19 @@ public class Holding extends Venue implements BuildConstants {
   protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     TENT_LEVEL = new Upgrade(
-      "Tent Level", "", 0, null, 0, null, ALL_UPGRADES
+      "Field Tent", "", 0, null, 0, null, ALL_UPGRADES
     ),
     PYON_LEVEL = new Upgrade(
-      "Pyon Level", "", 0, null, 0, null, ALL_UPGRADES
+      "Pyon Shacks", "", 0, null, 0, null, ALL_UPGRADES
     ),
     FREEBORN_LEVEL = new Upgrade(
-      "Freeborn Level", "", 0, null, 0, PYON_LEVEL, ALL_UPGRADES
+      "Freeborn Holding", "", 0, null, 0, PYON_LEVEL, ALL_UPGRADES
     ),
     CITIZEN_LEVEL = new Upgrade(
-      "Citizen Level", "", 0, null, 0, FREEBORN_LEVEL, ALL_UPGRADES
+      "Citizen Apartment", "", 0, null, 0, FREEBORN_LEVEL, ALL_UPGRADES
     ),
     GUILDSMAN_LEVEL = new Upgrade(
-      "Guildsman Level", "", 0, null, 0, CITIZEN_LEVEL, ALL_UPGRADES
+      "Guildsman Manse", "", 0, null, 0, CITIZEN_LEVEL, ALL_UPGRADES
     ) ;
   
   
@@ -153,11 +153,11 @@ public class Holding extends Venue implements BuildConstants {
     }
     for (Item i : goodsNeeded(upgradeLevel + 1).raw) {
       if (! stocks.hasItem(i)) upgrade = false ;
-      stocks.setRequired(i.type, i.amount + margin) ;
+      stocks.incDemand(i.type, i.amount + margin, 0) ;
     }
     final float foodNeed = personnel.residents().size() * (1 + margin) * 2 ;
     for (Service t : ALL_FOOD_TYPES) {
-      stocks.setRequired(t, foodNeed) ;
+      stocks.incDemand(t, foodNeed, 0) ;
     }
     //
     //  If so, we update the target upgrade level for the venue-

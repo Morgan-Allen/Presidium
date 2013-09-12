@@ -118,13 +118,9 @@ public class PathingCache {
     return placesPath ;
   }
   
-  /*
-  public Object placesPathRef(Boardable initB, Boardable destB) {
-    return (Object) placesBetween(initB, destB) ;
-  }
-  //*/
   
-  
+  //
+  //  TODO:  Move this to the mobile pathing class?
   public Boardable[] getLocalPath(
     Boardable initB, Boardable destB, int maxLength, Mobile client
   ) {
@@ -456,6 +452,7 @@ public class PathingCache {
       tB = new Box2D() ;
     final PathingSearch search = new PathingSearch(a, b, -1) {
       protected boolean canEnter(Boardable spot) {
+        if (! super.canEnter(spot)) return false ;
         if (spot instanceof Tile) {
           final Tile t = (Tile) spot ;
           return cordon.contains(t.x, t.y) ;

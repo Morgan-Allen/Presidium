@@ -239,8 +239,9 @@ public abstract class PlayLoop implements Session.Saveable {
       //  this time:
       if (! paused) {
         checkTime = timeMS() ;
-        final int numUpdates = (int) (updateGap / UPDATE_INTERVAL) ;
-        ///I.say("Number of updates: "+numUpdates) ;
+        final int maxUpdates = 1 + (FRAME_INTERVAL / UPDATE_INTERVAL) ;
+        int numUpdates = (int) (updateGap / UPDATE_INTERVAL) ;
+        numUpdates = Math.min(numUpdates, maxUpdates) ;
         for (int n = numUpdates ; n-- > 0 ;) {
           updateGameState() ;
         }

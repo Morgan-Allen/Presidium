@@ -414,7 +414,7 @@ public class VenueStructure extends Inventory {
       final float damage = maxIntegrity() - integrity ;
       if (armouring > Rand.num() * damage) burning = false ;
     }
-    if (numUpdates % 10 == 0) {
+    if (numUpdates % 10 == 0 && ! GameSettings.buildFree) {
       final float wear = baseIntegrity * 1f / World.DEFAULT_DAY_LENGTH ;
       if (2 > Rand.num() * armouring) takeDamage(wear * Rand.num()) ;
     }

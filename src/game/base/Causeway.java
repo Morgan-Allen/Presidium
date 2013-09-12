@@ -17,7 +17,7 @@ public class Causeway extends Segment {
   
   final static ImageModel
     NODE_MODELS[] = ImageModel.loadModels(
-      MagLineNode.class, 2, 0.1f, "media/Buildings/merchant/",
+      Causeway.class, 2, 0.1f, "media/Buildings/merchant/",
       "causeway_terminal_left.png",
       "causeway_terminal_right.png",
       "causeway_centre.png",

@@ -17,24 +17,28 @@ import src.game.building.Inventory.Owner ;
 
 
 //
-//  You may also want to specify the vehicle employed, and how or if you get
-//  aboard it...
+//  TODO:  Now you have to specify a vehicle.
+
+
 public class Delivery extends Plan {
   
   
   final static int
-    STAGE_INIT = -1,
-    STAGE_PICKUP = 0,
-    STAGE_DROPOFF = 1,
-    STAGE_DONE = 2 ;
+    STAGE_INIT    = -1,
+    STAGE_PICKUP  =  0,
+    STAGE_DROPOFF =  1,
+    STAGE_RETURN  =  2,
+    STAGE_DONE    =  3 ;
+  final static int
+    MIN_BULK = 5 ;
   
   final public Owner origin, destination ;
   final public Item items[] ;
   final Actor passenger ;
   
   private byte stage = STAGE_INIT ;
-  private Barge barge ;
-  //private Vehicle driven ;  ...Use instead of the barge?
+  private Suspensor suspensor ;
+  public Vehicle driven ;  //...Use instead of the suspensor?
   
   
   
@@ -69,7 +73,8 @@ public class Delivery extends Plan {
     origin = (Owner) s.loadObject() ;
     destination = (Owner) s.loadObject() ;
     stage = (byte) s.loadInt() ;
-    barge = (Barge) s.loadObject() ;
+    suspensor = (Suspensor) s.loadObject() ;
+    driven = (Vehicle) s.loadObject() ;
   }
   
   
@@ -81,7 +86,8 @@ public class Delivery extends Plan {
     s.saveObject((Session.Saveable) origin) ;
     s.saveObject((Session.Saveable) destination) ;
     s.saveInt(stage) ;
-    s.saveObject(barge) ;
+    s.saveObject(suspensor) ;
+    s.saveObject(driven) ;
   }
   
   
@@ -91,12 +97,18 @@ public class Delivery extends Plan {
   /**  Assessing targets and priorities-
     */
   public float priorityFor(Actor actor) {
-    return ROUTINE ;
+    return ROUTINE + priorityMod ;
   }
   
   
   public boolean valid() {
     if (! super.valid()) return false ;
+    if (driven != null) {
+      if (driven.aboard() != origin && ! driven.inside().contains(actor)) {
+        return false ;
+      }
+    }
+    
     if (stage >= STAGE_PICKUP || origin == null) return true ;
     final World world = ((Element) origin).world() ;
     final Batch <Behaviour> doing = world.activities.targeting(origin) ;
@@ -127,6 +139,9 @@ public class Delivery extends Plan {
   }
   
   
+  
+  /**  Utility methods for generating deliveries to/from venues-
+    */
   public static Venue findBestVendor(Actor actor, Item items[]) {
     //
     //  TODO:  Base this off the list of venues the actor is aware of.
@@ -143,7 +158,7 @@ public class Delivery extends Plan {
         final Venue v = (Venue) t ;
         float rating = 0 ;
         for (Service s : v.services()) for (Item i : items) {
-          if (s == i.type) rating += i.amount * v.stocks.amountOf(i) ;
+          if (s == i.type) rating += v.stocks.amountOf(i) ;
         }
         final float dist = Spacing.distance(actor, v) ;
         rating /= 1 + (dist / World.DEFAULT_SECTOR_SIZE) ;
@@ -159,38 +174,68 @@ public class Delivery extends Plan {
   public static Delivery nextDeliveryFrom(
     Inventory.Owner venue, Actor actor, Service types[]
   ) {
-    //
-    //  Otherwise we iterate over every nearby venue, and see if they need what
-    //  we're selling, so to speak.
-    float maxUrgency = 0 ;
-    Delivery picked = null ;
+    final Batch <Venue> clients = new Batch <Venue> () ;
     final Presences presences = actor.world().presences ;
     final float SEARCH_RADIUS = World.DEFAULT_SECTOR_SIZE * 2 ;
-    final float ORDER_UNIT = VenueStocks.ORDER_UNIT ;
-    
     for (Object o : presences.matchesNear(
       actor.base(), venue, SEARCH_RADIUS
-    )) {
-      final Venue client = (Venue) o ;
-      final float distFactor = (SEARCH_RADIUS + Spacing.distance(
-        venue, client
-      )) / SEARCH_RADIUS ;
+    )) clients.add((Venue) o) ;
+    return nextDeliveryFrom(
+      venue, types,
+      clients, (int) VenueStocks2.ORDER_UNIT,
+      actor.world()
+    ) ;
+  }
+  
+
+  public static Delivery nextDeliveryFrom(
+    Inventory.Owner origin, Service types[],
+    Batch <Venue> clients, int orderLimit,
+    World world
+  ) {
+    final Venue VO ;
+    if (origin instanceof Venue) VO = (Venue) origin ;
+    else VO = null ;
+    //
+    //  We iterate over every nearby venue, and see if they need our services-
+    float maxUrgency = 0 ;
+    Delivery picked = null ;
+    for (Venue client : clients) {
       //
-      //  If we don't have enough of a given item to sell, we just pass over
-      //  that item type.  Conversely, if a venue has no shortage, it is
-      //  ignored.
+      //  First, we tally the total shortage of goods at this venue (which we
+      //  can provide,) which determines the urgency of delivery.
+      float totalShortage = 0 ;
       for (Service type : types) {
-        if (venue.inventory().amountOf(type) < ORDER_UNIT) continue ;
-        final float shortage = client.stocks.requiredShortage(type) ;
-        float urgency = shortage ;
-        if (urgency <= 0) continue ;
-        final Delivery order = new Delivery(
-          Item.withAmount(type, ORDER_UNIT), venue, client
-        ) ;
-        if (! order.valid()) continue ;
-        urgency /= distFactor ;
-        if (urgency > maxUrgency) { picked = order ; maxUrgency = urgency ; }
+        if (origin.inventory().amountOf(type) < MIN_BULK) continue ;
+        float shortage = client.stocks.shortageOf(type) ;
+        if (shortage <= 0) continue ;
+        totalShortage += shortage ;
       }
+      if (totalShortage == 0) continue ;
+      final float urgency = totalShortage / (1f + (
+        Spacing.distance(client, origin) / World.DEFAULT_SECTOR_SIZE
+      )) ;
+      //
+      //  Secondly, we assemble a batch of items within our load capacity, and
+      //  in proportion to local shortages.
+      final float batchLimit = Math.min(totalShortage, orderLimit) ;
+      final Batch <Item> toDeliver = new Batch <Item> () ;
+      for (Service type : types) {
+        if (origin.inventory().amountOf(type) < MIN_BULK) continue ;
+        final float shortage = client.stocks.shortageOf(type) ;
+        if (shortage <= 0) continue ;
+        float amount = shortage * batchLimit / totalShortage ;
+        amount = 5 * (1 + (int) (amount / 5)) ;
+        toDeliver.add(Item.withAmount(type, amount)) ;
+      }
+      //
+      //  Initialise the order, and compare it with the others-
+      final Delivery order = new Delivery(
+        toDeliver.toArray(Item.class),
+        origin, client
+      ) ;
+      if (! order.valid()) continue ;
+      if (urgency > maxUrgency) { picked = order ; maxUrgency = urgency ; }
     }
     return picked ;
   }
@@ -200,16 +245,10 @@ public class Delivery extends Plan {
   /**  Behaviour implementation-
     */
   public Behaviour getNextStep() {
-    //
-    //  Here, you need to check if you have enough of the goods?
     if (stage == STAGE_INIT) {
       stage = STAGE_PICKUP ;
     }
     if (stage == STAGE_PICKUP) {
-      //
-      //  Create a barge to follow the actor (which will dispose of itself
-      //  once the behaviour completes.)
-      I.say(actor+" Scheduling new pickup...") ;
       final Action pickup = new Action(
         actor, (passenger == null) ? origin : passenger,
         this, "actionPickup",
@@ -223,39 +262,60 @@ public class Delivery extends Plan {
         this, "actionDropoff",
         Action.REACH_DOWN, "Dropping off goods"
       ) ;
+      if (driven != null) dropoff.setMoveTarget(driven) ;
       dropoff.setProperties(Action.CARRIES) ;
-      //
-      //  If the destination isn't complete, drop off at the entrance?
       return dropoff ;
     }
-    ///I.say(this+" returning NULL!") ;
+    if (stage == STAGE_RETURN) {
+      final Action returns = new Action(
+        actor, origin,
+        this, "actionReturn",
+        Action.REACH_DOWN, "Returning in vehicle"
+      ) ;
+      returns.setMoveTarget(driven) ;
+      return returns ;
+    }
     return null ;
   }
   
 
   public boolean actionPickup(Actor actor, Target target) {
     if (stage != STAGE_PICKUP) return false ;
-    I.say(actor+" Performing pickup...") ;
     
-    boolean addBarge = true ;
+    
+    if (driven != null) {
+      I.say("Performing vehicle pickup...") ;
+      if (driven.aboard() != origin) {
+        I.say("VEHICLE UNAVAILABLE!") ;
+        abortBehaviour() ;
+      }
+      ///actor.goAboard(driven, actor.world()) ;
+      ///driven.pathing.updateTarget(destination) ;
+      for (Item i : items) origin.inventory().transfer(i, driven) ;
+      stage = STAGE_DROPOFF ;
+      return true ;
+    }
+    
+    
+    boolean addSuspensor = true ;
     if (target == origin) {
       float sum = 0 ;
       for (Item i : items) {
         float TA = origin.inventory().transfer(i, actor) ;
         sum += TA ;
       }
-      if (sum < 5) addBarge = false ;
+      if (sum < 5) addSuspensor = false ;
     }
-    if (passenger != null) addBarge = true ;
-    if (addBarge) {
-      final Barge barge = new Barge(actor, this) ;
+    if (passenger != null) addSuspensor = true ;
+    if (addSuspensor) {
+      final Suspensor suspensor = new Suspensor(actor, this) ;
       final Tile o = actor.origin() ;
-      barge.enterWorldAt(o.x, o.y, o.world) ;
-      this.barge = barge ;
+      suspensor.enterWorldAt(o.x, o.y, o.world) ;
+      this.suspensor = suspensor ;
     }
     
     if (target == passenger) {
-      barge.passenger = passenger ;
+      suspensor.passenger = passenger ;
     }
     stage = STAGE_DROPOFF ;
     return true ;
@@ -264,8 +324,21 @@ public class Delivery extends Plan {
   
   public boolean actionDropoff(Actor actor, Venue target) {
     if (stage != STAGE_DROPOFF) return false ;
-    I.say(actor+" Performing dropoff...") ;
-    if (barge != null && barge.inWorld()) barge.exitWorld() ;
+    
+    if (driven != null) {
+      ///I.say("Performing vehicle dropoff...") ;
+      driven.pilots = actor ;
+      if (driven.aboard() == target) {
+        I.say("Performing vehicle dropoff...") ;
+        for (Item i : items) driven.cargo.transfer(i, target) ;
+        stage = STAGE_RETURN ;
+        return true ;
+      }
+      return false ;
+    }
+    
+    ///I.say(actor+" Performing dropoff...") ;
+    if (suspensor != null && suspensor.inWorld()) suspensor.exitWorld() ;
     
     for (Item i : items) actor.gear.transfer(i, target) ;
     if (passenger != null) passenger.goAboard(target, target.world()) ;
@@ -274,10 +347,27 @@ public class Delivery extends Plan {
   }
   
   
+  public boolean actionReturn(Actor actor, Venue target) {
+    driven.pathing.updateTarget(target) ;
+    if (driven.aboard() == target) {
+      driven.pilots = null ;
+      actor.goAboard(target, actor.world()) ;
+      stage = STAGE_DONE ;
+      return true ;
+    }
+    return false ;
+  }
+  
+  
   
   /**  Rendering and interface methods-
     */
   public void describeBehaviour(Description d) {
+    
+    //
+    //  TODO:  You need to vary the description here, depending on phase and
+    //  type.
+    
     d.append("Delivering ") ;
     final Batch <Item> available = new Batch <Item> () ;
     for (Item i : items) {

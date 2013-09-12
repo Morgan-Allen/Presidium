@@ -6,7 +6,6 @@
 
 
 package src.game.common ;
-//import src.game.common.WorldSections.Section ;
 import src.game.building.* ;
 import src.util.* ;
 
@@ -29,10 +28,11 @@ public class PathingSearch extends Search <Boardable> {
   private Tile tileB[] = new Tile[8] ;
   
   //
-  //  TODO:  Incorporate the Places-search constraint code here?  Maybe.
-  //  Alternatively, you could discover those places as you go, allowing places
-  //  to be intermixed with tiles.  And fogged tiles can be travelled through
-  //  as standard.  That will solve the destination problem.
+  //  TODO:  Incorporate the Places-search constraint code here.
+  //  TODO:  Allow for airborne pathing.
+  //  TODO:  Allow for larger actors.
+  //  TODO:  In the case of tiles, perform diagonals-culling here.
+  //  private Place[] placesPath ;
   
   
   
@@ -126,7 +126,7 @@ public class PathingSearch extends Search <Boardable> {
     //
     //  TODO:  If the area or tile has other actors in it, increase the
     //         perceived cost.
-    //mods += spot.inside().size() / 2f ;
+    mods += spot.inside().size() ;
     //
     //  Finally, return a value based on pathing difficulties in the terrain-
     final float baseCost = Spacing.distance(prior, spot) ;
@@ -141,8 +141,8 @@ public class PathingSearch extends Search <Boardable> {
   
   
   protected boolean canEnter(Boardable spot) {
-    //  TODO:  You need to set the client!
-    return (client == null) ? true : spot.allowsEntry(client) ;
+    return (client == null) ? true :
+      spot.allowsEntry(client) && ! client.blocksMotion(spot) ;
   }
   
   

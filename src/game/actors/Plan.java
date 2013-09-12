@@ -97,7 +97,7 @@ public abstract class Plan implements Saveable, Behaviour {
   }
   
 
-  public void abortStep() {
+  public void abortBehaviour() {
     ///I.say("Aborting plan! "+this) ;
     actor.AI.cancelBehaviour(this) ;
   }
@@ -160,11 +160,14 @@ public abstract class Plan implements Saveable, Behaviour {
   }
   
   
-  public static float competition(Class planClass, Target t, World world) {
+  public static float competition(Class planClass, Target t, Actor actor) {
     float competition = 0 ;
+    final World world = actor.world() ;
     for (Behaviour b : world.activities.targeting(t)) {
-      if (b.getClass() == planClass) {
+      if (b instanceof Plan) {
         final Plan plan = (Plan) b ;
+        if (plan.getClass() != planClass) continue ;
+        if (plan.actor() == actor) continue ;
         competition += plan.successChance() ;
       }
     }

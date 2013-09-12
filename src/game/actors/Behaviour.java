@@ -29,7 +29,7 @@ public interface Behaviour extends Session.Saveable {
   
   float priorityFor(Actor actor) ;
   boolean complete() ;  //specify actor?  Return stage?
-  void abortStep() ;    //specify actor?
+  void abortBehaviour() ;    //specify actor?
   //boolean viable() ; ?
   //boolean begun() ; ?  ...No.  Return a Stage descriptor.
   

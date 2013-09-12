@@ -226,7 +226,7 @@ public class DebugPathing extends PlayLoop {
     final Boardable hovered = hovered(UI) ;
     if (picked != null && hovered != null) {
       
-      final PathingSearch search = (! GameSettings.freePath) ?
+      final PathingSearch search = (! GameSettings.pathFree) ?
         world().pathingCache.fullPathSearch(picked, hovered, null, 16) :
         new PathingSearch(picked, hovered) ;
       

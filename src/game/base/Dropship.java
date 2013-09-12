@@ -332,6 +332,7 @@ public class Dropship extends Vehicle implements
   
   
   public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
     if (stage == STAGE_DESCENT) {
       ///I.say("  LANDING AREA: "+landArea()) ;
       if (! checkLandingArea(world, landArea())) {

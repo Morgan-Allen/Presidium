@@ -76,7 +76,7 @@ public class Vareen extends Fauna {
     if (! health.conscious()) idealHeight = 0 ;
     flyHeight = Visit.clamp(idealHeight, flyHeight - 0.1f, flyHeight + 0.1f) ;
     super.updateAsMobile() ;
-    nextPosition.z = flyHeight + origin().elevation() ;
+    ///nextPosition.z = flyHeight + origin().elevation() ;
   }
   
 

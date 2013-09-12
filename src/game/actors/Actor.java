@@ -25,9 +25,6 @@ public abstract class Actor extends Mobile implements
   
   /**  Field definitions, constructors and save/load functionality-
     */
-  final public static Texture
-    GROUND_SHADOW = Texture.loadTexture("media/SFX/ground_shadow.png") ;
-  
   final public Healthbar healthBar = new Healthbar() ;
   final public TalkFX chat = new TalkFX() ;
   //  private ActorSprite actSprite ;
@@ -105,7 +102,7 @@ public abstract class Actor extends Mobile implements
     }
     AI.cancelBehaviour(AI.topBehaviour()) ;
     final Behaviour top = AI.topBehaviour() ;
-    if (top != null) top.abortStep() ;
+    if (top != null) top.abortBehaviour() ;
     assignAction(AI.getNextAction()) ;
   }
   
@@ -142,8 +139,9 @@ public abstract class Actor extends Mobile implements
   
   
   protected void updateAsMobile() {
+    ///if (BaseUI.isPicked(this)) I.say("UPDATING ACTOR") ;
     super.updateAsMobile() ;
-
+    
     final boolean OK = health.conscious() ;
     if (actionTaken != null && ! pathing.checkPathingOkay()) {
       world.schedule.scheduleNow(this) ;
@@ -162,6 +160,10 @@ public abstract class Actor extends Mobile implements
       }
       else if (! pathing.checkPathingOkay()) {
       }
+    }
+    
+    if (aboard instanceof Mobile) {
+      aboard.position(nextPosition) ;
     }
   }
   
@@ -239,18 +241,9 @@ public abstract class Actor extends Mobile implements
   
   /**  Rendering and interface methods-
     */
-  public boolean visibleTo(Base base) {
-    ///GameSettings.noFog = true ;
-    ///if (BaseUI.isPicked(this)) I.say("Fog: "+base.intelMap.fogAt(origin())+" at: "+origin()) ;
-    if (indoors()) return false ;
-    return super.visibleTo(base) ;
-  }
-  
-  
   public void renderFor(Rendering rendering, Base base) {
     //
     //  Make a few basic sanity checks for visibility-
-    final float scale = spriteScale() ;
     final Sprite s = sprite() ;
     
     if (! health.deceased()) {
@@ -263,22 +256,8 @@ public abstract class Actor extends Mobile implements
       else healthBar.full = base().colour ;
       rendering.addClient(healthBar) ;
     }
-    
-    //
-    //  Render your shadow, either on the ground or on top of occupants-
-    final float R2 = (float) Math.sqrt(2) ;
-    final PlaneFX shadow = new PlaneFX(
-      GROUND_SHADOW, radius() * scale * R2
-    ) ;
-    final Vec3D p = s.position ;
-    shadow.position.setTo(p) ;
-    shadow.position.z = shadowHeight(p) ;
-    rendering.addClient(shadow) ;
-    //
-    //  In either case, set the sprite's scale factor and animations correctly-
     //
     //  ...Maybe include equipment/costume configuration here as well?
-    s.scale = scale ;
     if (actionTaken != null) actionTaken.configSprite(s) ;
     ///I.say("Sprite height: "+s.position.z) ;
     super.renderFor(rendering, base) ;
@@ -293,21 +272,11 @@ public abstract class Actor extends Mobile implements
   }
   
   
-  protected float spriteScale() {
-    return 1 ;
-  }
-  
-  
   protected float moveAnimStride() {
     return 1 ;
   }
   
   
-  protected float shadowHeight(Vec3D p) {
-    return world.terrain().trueHeight(p.x, p.y) ;
-  }
-  
-
   public String[] infoCategories() {
     return null ;
   }

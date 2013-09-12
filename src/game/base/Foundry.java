@@ -34,6 +34,7 @@ public class Foundry extends Venue implements BuildConstants {
       200, 5, 350, VenueStructure.NORMAL_MAX_UPGRADES,
       false
     ) ;
+    personnel.setShiftType(SHIFTS_BY_DAY) ;
     this.attachSprite(MODEL.makeSprite()) ;
   }
   
@@ -128,24 +129,18 @@ public class Foundry extends Venue implements BuildConstants {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     
-    /*
-    if (stocks.amountOf(METALS) < 10) {
-      stocks.addItem(Item.withAmount(METALS, 10)) ;
-    }
-    //*/
-    if (stocks.receivedShortage(PARTS) < 5) stocks.setRequired(PARTS, 5) ;
+    if (stocks.shortageOf(PARTS) < 10) stocks.incDemand(PARTS, 10, 0) ;
     stocks.translateDemands(METALS_TO_PARTS) ;
   }
   
   
   public Behaviour jobFor(Actor actor) {
-    if (! structure.intact()) return null ;
-    
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
     
     final Building b = Building.getNextRepairFor(actor) ;
     if (b != null) {
-      b.priorityMod = Behaviour.CASUAL ;
+      b.priorityMod = Behaviour.ROUTINE ;
       choice.add(b) ;
     }
     
@@ -174,7 +169,6 @@ public class Foundry extends Venue implements BuildConstants {
     
     final Manufacture m = stocks.nextManufacture(actor, METALS_TO_PARTS) ;
     if (m != null) {
-      I.say("Next manufacture: "+m) ;
       m.checkBonus = structure.upgradeBonus(PARTS) ;
       choice.add(m) ;
     }

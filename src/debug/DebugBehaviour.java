@@ -21,8 +21,8 @@ import src.util.* ;
 
 
 //
-//The Supply Depot.  That's the next thing you need, so you can perform
-//offworld trade.  And make sure the stock exchange is working.
+//  Implement offworld trade, and vehicle trades.  Plus, add upgrades for the
+//  stock exchange.  Make it useful!
 //
 //  Update farming/the vats/mining a bit (including minimum spacing?)
 //  A clearer factoring out of venue/actor batches in the AI.
@@ -45,7 +45,7 @@ from the Vault System.  Share with whole settlement.
 
 
 
-public class DebugBehaviour extends PlayLoop {
+public class DebugBehaviour extends PlayLoop implements BuildConstants {
   
   
   
@@ -128,9 +128,9 @@ public class DebugBehaviour extends PlayLoop {
     
     I.say(" "+(String.class.isAssignableFrom(Object.class))) ;
     //natureScenario(world, base, HUD) ;
-    //baseScenario(world, base, HUD) ;
+    baseScenario(world, base, HUD) ;
     //missionScenario(world, base, HUD) ;
-    socialScenario(world, base, HUD) ;
+    //socialScenario(world, base, HUD) ;
   }
   
   
@@ -177,16 +177,23 @@ public class DebugBehaviour extends PlayLoop {
     *  construction of the settlement-
     */
   private void baseScenario(World world, Base base, HUD UI) {
+    GameSettings.noFog     = true ;
+    GameSettings.hireFree  = true ;
+    GameSettings.buildFree = true ;
     
-    final Foundry foundry = new Foundry(base) ;
-    this.establishVenue(foundry, 8, 8, true) ;
-    base.intelMap.liftFogAround(foundry, 5) ;
-    ((BaseUI) UI).selection.pushSelection(foundry, true) ;
+    final Actor pilot = new Human(Vocation.SUPPLY_CORPS, base) ;
+    pilot.enterWorldAt(2, 2, world) ;
+    final Venue DA = establishVenue(new SupplyDepot(base), 4, 4 , true, pilot) ;
+    final Venue DB = establishVenue(new SupplyDepot(base), 4, 20, true) ;
     
-    final Actor client = new Human(Vocation.VETERAN, base) ;
-    client.gear.incCredits(500) ;
-    client.enterWorldAt(4, 4, world) ;
-    establishVenue(new Garrison(base), 2, 6, true, client) ;
+    //final CargoBarge barge = ((SupplyDepot) DA).cargoBarge() ;
+    //barge.pathing.updateTarget(DB) ;
+    //((BaseUI) UI).selection.pushSelection(barge, true) ;
+    
+    final Venue foundry = establishVenue(new Foundry(base), 4, 25, true) ;
+    DA.stocks.addItem(Item.withAmount(METALS, 100)) ;
+
+    ///((BaseUI) UI).selection.pushSelection(DA, true) ;
   }
   
   

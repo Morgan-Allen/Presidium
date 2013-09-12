@@ -196,7 +196,7 @@ public abstract class Mission implements
   /**  Default behaviour implementation and utility methods-
     */
   public boolean monitor(Actor actor) { return false ; }
-  public void abortStep() {}
+  public void abortBehaviour() {}
   
   public void setPriority(float priority) { this.priority = priority ; }
   public float priorityFor(Actor actor) { return priority ; }

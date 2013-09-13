@@ -139,9 +139,6 @@ public class Holding extends Venue implements BuildConstants {
     */
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    //if (stocks.amountOf(PARTS) < 2) stocks.addItem(Item.withAmount(PARTS, 2)) ;
-    
-    ///I.say("AMOUNT OF PARTS: "+stocks.amountOf(PARTS)) ;
     //
     //  First of all, we check if we have enough of various material goods to
     //  justify an upgrade-
@@ -159,6 +156,10 @@ public class Holding extends Venue implements BuildConstants {
     for (Service t : ALL_FOOD_TYPES) {
       stocks.incDemand(t, foodNeed, 0) ;
     }
+    //
+    //  Update demands for power, water and life support-
+    stocks.incDemand(POWER, upgradeLevel + 1, 0) ;
+    stocks.removeItem(Item.withAmount(POWER, 0.1f)) ;
     //
     //  If so, we update the target upgrade level for the venue-
     int targetLevel = upgradeLevel ;

@@ -57,7 +57,7 @@ public class Reactor extends Venue implements BuildConstants {
   
   public Behaviour jobFor(Actor actor) {
     //
-    //  Manufacture atomics, or check to prevent meltdown.
+    //  Manufacture atomics/fuel rods, or check to prevent meltdown.
     return null ;
   }
   
@@ -81,7 +81,18 @@ public class Reactor extends Venue implements BuildConstants {
   }
   
   
-  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    //
+    //  TODO:  This should require frequent supervision.
+    if (stocks.amountOf(POWER) < 100) {
+      //
+      //  TODO:  UPGRADE THIS!  AND CONSUME ISOTOPES IN THE PROCESS!
+      stocks.addItem(Item.withAmount(POWER, 5)) ;
+    }
+  }
+
+
   /**  Rendering and interface-
     */
   public String fullName() {

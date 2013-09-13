@@ -185,8 +185,10 @@ THE FREE MARKET & MCHQ
   ...Allows open bounties to be placed on targets or target-types.
   ...Allows Mercenaries to be temporarily hired at will.
   Commander and 4-person Company as standard.
-
-
+  
+  Mech Trooper (Power armour), Rail Cannons, Commander, mercenaries.
+  Complement to the Garrison.  Reserves are paid for, instead of
+  coming out of your workforce.
 
 
 

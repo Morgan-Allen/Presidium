@@ -82,7 +82,7 @@ public class Causeway extends Segment {
     //  For some reason, switching the order in which these are called causes
     //  some roads to disappear.  TODO:  INVESTIGATE
     if (type != TYPE_SECTION) {
-      base().paving.updateJunction(origin(), inWorld) ;
+      base().paving.updateJunction(this, origin(), inWorld) ;
     }
     base().paving.updatePerimeter(this, inWorld) ;
   }

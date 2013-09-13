@@ -23,7 +23,7 @@ public class AuditOffice extends Venue implements BuildConstants {
   
 
   final public static Model MODEL = ImageModel.asIsometricModel(
-    Foundry.class, "media/Buildings/merchant/audit_office.png", 3, 2
+    Foundry.class, "media/Buildings/merchant/audit_office.png", 2.5f, 2
   ) ;
   
   

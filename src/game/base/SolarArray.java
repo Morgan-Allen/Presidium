@@ -3,6 +3,7 @@
 
 package src.game.base ;
 import src.game.common.* ;
+import src.game.planet.Planet;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
@@ -13,7 +14,7 @@ import src.util.* ;
 
 
 
-public class SolarArray extends Segment {
+public class SolarArray extends Segment implements BuildConstants {
   
   
   final static String
@@ -25,13 +26,20 @@ public class SolarArray extends Segment {
       "solar_array_right.png",
       "windtrap_left.png",
       "windtrap_right.png",
-      "power_hub.png"
+      "power_hub_left.png",
+      "power_hub_right.png"
     ),
-    ARRAY_LEFT       = ARRAY_MODELS[0],
-    ARRAY_RIGHT      = ARRAY_MODELS[1],
-    ARRAY_TRAP_LEFT  = ARRAY_MODELS[2],
-    ARRAY_TRAP_RIGHT = ARRAY_MODELS[3],
-    ARRAY_CENTRE     = ARRAY_MODELS[4] ;
+    MODEL_LEFT       = ARRAY_MODELS[0],
+    MODEL_RIGHT      = ARRAY_MODELS[1],
+    MODEL_TRAP_LEFT  = ARRAY_MODELS[2],
+    MODEL_TRAP_RIGHT = ARRAY_MODELS[3],
+    MODEL_HUB_LEFT   = ARRAY_MODELS[4],
+    MODEL_HUB_RIGHT  = ARRAY_MODELS[5] ;
+  
+  final int
+    TYPE_SOLAR = 0,
+    TYPE_WIND  = 1,
+    TYPE_HUB   = 2 ;
   
   
   
@@ -53,33 +61,78 @@ public class SolarArray extends Segment {
   
 
   protected void configFromAdjacent(boolean[] near, int numNear) {
-
     final Tile o = origin() ;
+    type = TYPE_SOLAR ;
+    
     if (numNear > 0 && numNear <= 2) {
       if (near[N] || near[S]) {
         facing = Y_AXIS ;
         if (o.y % 8 == 0) {
-          attachModel(ARRAY_TRAP_RIGHT) ;
+          type = TYPE_WIND ;
+          attachModel(MODEL_TRAP_RIGHT) ;
         }
-        else attachModel(ARRAY_RIGHT) ;
+        else attachModel(MODEL_RIGHT) ;
         return ;
       }
       if (near[W] || near[E]) {
         facing = X_AXIS ;
         if (o.x % 8 == 0) {
-          attachModel(ARRAY_TRAP_LEFT) ;
+          type = TYPE_WIND ;
+          attachModel(MODEL_TRAP_LEFT) ;
         }
-        else attachModel(ARRAY_LEFT) ;
+        else attachModel(MODEL_LEFT) ;
         return ;
       }
     }
     
     facing = CORNER ;
-    attachModel(ARRAY_LEFT) ;
+    attachModel(MODEL_LEFT) ;
   }
   
   //
   //  TODO:  Introduce road connections, and perhaps a secondary power hub.
+  
+
+  protected List <Segment> installedBetween(Tile start, Tile end) {
+    final List <Segment> installed = super.installedBetween(start, end) ;
+    if (installed == null) return installed ;
+    
+    final int hubIndex = installed.size() / 2 ;
+    final SolarArray hub = (SolarArray) installed.atIndex(hubIndex) ;
+    hub.type = TYPE_HUB ;
+    Model model = hub.facing == X_AXIS ? MODEL_HUB_LEFT : MODEL_HUB_RIGHT ;
+    hub.attachModel(model) ;
+    
+    return installed ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    //
+    //  TODO:  You'll have to conduct power through the other portions of the
+    //  array.  Likewise for Causeways.
+    
+    if (stocks.amountOf(POWER) < 10) {
+      final float dayVal = Planet.dayValue(world) ;
+      stocks.addItem(Item.withAmount(POWER, 5 * dayVal / 10f)) ;
+    }
+  }
+  
+  
+  protected void updatePaving(boolean inWorld) {
+    if (type != TYPE_HUB) return ;
+    base().paving.updatePerimeter(this, inWorld) ;
+    
+    final Tile o = origin() ;
+    base().paving.updateJunction(this, o, false) ;
+    
+    final Tile perim[] = Spacing.perimeter(area(), world) ;
+    for (int n = 0 ; n < perim.length ; n += 4) {
+      final Tile t = perim[n] ;
+      if (t != null) base().paving.updateJunction(this, t, inWorld) ;
+    }
+  }
   
   
   
@@ -88,8 +141,8 @@ public class SolarArray extends Segment {
   public String fullName() {
     return "Solar Array" ;
   }
-  
-  
+
+
   public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/solar_array_button.gif") ;
   }

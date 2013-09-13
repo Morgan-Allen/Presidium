@@ -200,21 +200,10 @@ public class Inventory {
   
   
   
-  /**  Returns the total amount of the given item type, for all owners and
-    *  qualities.
-    */
-  public float amountOf(Service type) {
-    return amountOf(Item.withType(type)) ;
-  }
-  
-  
-  
-  /**  Returns all matches with the given item.
+  /**  Finding matches and quantities-
     */
   public Batch <Item> matches(Item item) {
     final Batch <Item> matches = new Batch <Item> (4) ;
-    //final Stack <Item> ofType = types.get(item.type) ;
-    //if (ofType == null) return matches ;
     for (Item found : itemTable.values()) {
       if (item.matches(found)) matches.add(found) ;
     }
@@ -231,15 +220,17 @@ public class Inventory {
   }
   
   
-  
-  /**  Returns the sum total amount of all matches with the given item.
-    */
   public float amountOf(Item item) {
     float amount = 0 ;
     for (Item found : itemTable.values()) {
       if (item.matchKind(found)) amount += found.amount ;
     }
     return amount ;
+  }
+  
+  
+  public float amountOf(Service type) {
+    return amountOf(Item.withType(type)) ;
   }
   
   

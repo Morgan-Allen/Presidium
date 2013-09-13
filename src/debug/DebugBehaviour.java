@@ -20,6 +20,15 @@ import src.util.* ;
 
 
 
+
+
+//Where do people earn money from?  Presumably, the sale of goods and
+//services.  You tack something on top of average buying price to determine
+//the selling price, and split the difference between the number of workers
+//over a given time frame, plus taxes to the state.  That's fair, right?
+//Okay.  Cool.
+
+
 //
 //  Implement offworld trade, and vehicle trades.  Plus, add upgrades for the
 //  stock exchange.  Make it useful!

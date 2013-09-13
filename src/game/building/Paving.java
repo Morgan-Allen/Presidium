@@ -16,13 +16,23 @@ import src.util.* ;
 public class Paving {
   
   
-  
   /**  Field definitions, constructor and save/load methods-
     */
-  final static int PATH_RANGE = World.SECTION_RESOLUTION * 2 ;
+  final static int PATH_RANGE = World.DEFAULT_SECTOR_SIZE / 2 ;
   
   final World world ;
   PresenceMap junctions ;
+  
+  /*
+  class Junction {
+    final Venue source ;
+    final Tile tile ;
+    final Stack <Route> routes = new Stack <Route> () ;
+    
+    Junction(Venue s, Tile t) { source = s ; tile = t ; }
+  }
+  //*/
+  
   Table <Tile, List <Route>> tileRoutes = new Table(1000) ;
   Table <Route, Route> allRoutes = new Table <Route, Route> (1000) ;
   
@@ -76,7 +86,7 @@ public class Paving {
   }
   
   
-  public void updateJunction(Tile t, boolean isMember) {
+  public void updateJunction(Venue v, Tile t, boolean isMember) {
     if (t == null) I.complain("CANNOT SUPPLY NULL TILE AS JUNCTION") ;
     junctions.toggleMember(t, isMember) ;
     if (isMember) {
@@ -170,95 +180,104 @@ public class Paving {
   
   /**  Methods related to distribution of provisional goods-
     */
-  class Junction {
-    Target source ;
-    Tile tile ;
-    Stack <Route> routes = new Stack <Route> () ;
+  //
+  //  TODO:  YOU NEED TO RESTRICT THIS TO PARTICULAR BASES?  Or maybe you
+  //  could share, given suitable alliance status?
+  final private Batch <Target> tried = new Batch <Target> () ;
+  final private Stack <Target> agenda = new Stack <Target> () ;
+  
+  
+  private void insertA(Target t) {
+    if (t.flaggedWith() != null) return ;
+    t.flagWith(agenda) ;
+    agenda.add(t) ;
+    tried.add(t) ;
   }
   
   
-  private Tile[] junctionsReached(Base base, Tile init) {
-    final Batch <Tile> reached = new Batch <Tile> () ;
-    final Stack <Tile> working = new Stack <Tile> () ;
+  private Batch <Venue> venuesReached(Venue init) {
+    if (init.flaggedWith() != null) return null ;
+    final Batch <Venue> reached = new Batch <Venue> () ;
+    agenda.add(init) ;
     
-    working.add(init) ;
-    reached.add(init) ;
-    init.flagWith(reached) ;
-    
-    while (working.size() > 0) {
-      Tile next = working.removeFirst() ;
-      for (Route r : tileRoutes.get(next)) {
-        Tile toAdd = r.start == next ? r.end : r.start ;
-        if (toAdd.flaggedWith() != null) continue ;
-        working.add(toAdd) ;
-        reached.add(toAdd) ;
-        toAdd.flagWith(reached) ;
+    while (agenda.size() > 0) {
+      final Target next = agenda.removeFirst() ;
+      final List <Route> routes = tileRoutes.get(next) ;
+      
+      if (routes == null) {
+        final Venue v = (Venue) next ;
+        reached.add(v) ;
+        for (Tile t : Spacing.perimeter(v.area(), world)) {
+          if (t.owner() instanceof Venue) insertA(t.owner()) ;
+          else if (tileRoutes.get(t) != null) insertA(t) ;
+        }
+      }
+      
+      else for (Route r : routes) {
+        final Tile o = r.end == next ? r.start : r.end ;
+        if (o == null || o.flaggedWith() != null) continue ;
+        insertA(o) ;
+        for (Tile a : o.allAdjacent(Spacing.tempT8)) if (a != null) {
+          if (a.owner() instanceof Venue) insertA(a.owner()) ;
+        }
       }
     }
-    
-    for (Tile t : reached) t.flagWith(null) ;
-    return reached.toArray(Tile.class) ;
-  }
-}
-
-
-
-
-/*
-  public void distribute(Item.Type toDeliver[]) {
-    Batch <Junction[]> allCovered = new Batch <Junction[]> () ;
-    for (Object o : base.servicesNear(base, base.world.tileAt(0, 0), -1)) {
-      if (! (o instanceof Venue)) continue ;
-      final Venue venue = (Venue) o ;
-      if (venue.flaggedWith() == allCovered) continue ;
-      final Junction init = junctionAt(venue.mainEntrance()) ;
-      if (init == null) continue ;
-      final Junction reached[] = reachedFrom(init) ;
-      distributeTo(reached, toDeliver) ;
-      for (Junction j : reached) j.parent.flagWith(allCovered) ;
-      allCovered.add(reached) ;
-    }
-    for (Junction covered[] : allCovered) for (Junction j : covered) {
-      j.parent.flagWith(null) ;
-    }
-  }
-  
-  
-  private Junction[] reachedFrom(Junction init) {
-    final JunctionPathSearch search = new JunctionPathSearch(this, init, null) ;
-    search.doSearch() ;
-    final Junction reached[] = search.allSearched(Junction.class) ;
+    //
+    //  Clean up afterwards, and return-
+    for (Target t : tried) t.flagWith(null) ;
+    tried.clear() ;
+    agenda.clear() ;
+    for (Venue v : reached) v.flagWith(reached) ;
     return reached ;
   }
   
   
-  private void distributeTo(Junction reached[], Item.Type toDeliver[]) {
+  private void distributeTo(Batch <Venue> reached, Service provided[]) {
+    //
+    //  First, tabulate total supply and demand within the area-
     float
-      supply[] = new float[toDeliver.length],
-      demand[] = new float[toDeliver.length] ;
-    for (Junction j : reached) {
-      if (! (j.parent instanceof Venue)) continue ;
-      final Venue venue = (Venue) j.parent ;
-      for (int i = toDeliver.length ; i-- > 0 ;) {
-        final Item.Type type = toDeliver[i] ;
+      supply[] = new float[provided.length],
+      demand[] = new float[provided.length] ;
+    for (Venue venue : reached) {
+      for (int i = provided.length ; i-- > 0 ;) {
+        final Service type = provided[i] ;
         supply[i] += venue.stocks.amountOf(type) ;
-        venue.stocks.clearItems(type) ;
-        demand[i] += venue.orders.requiredShortage(type) ;
+        final float shortage = venue.stocks.shortageOf(type) ;
+        if (shortage > 0) demand[i] += shortage ;
       }
     }
     //
     //  Then top up demand in whole or in part, depending on how much supply
     //  is available-
-    for (int i = toDeliver.length ; i-- > 0 ;) {
-      final Item.Type type = toDeliver[i] ;
+    for (int i = provided.length ; i-- > 0 ;) {
+      if (demand[i] == 0) continue ;
+      final Service type = provided[i] ;
       final float supplyRatio = Visit.clamp(supply[i] / demand[i], 0, 1) ;
-      for (Junction j : reached) {
-        if (! (j.parent instanceof Venue)) continue ;
-        final Venue venue = (Venue) j.parent ;
-        final float localDemand = venue.orders.requiredShortage(type) ;
-        venue.stocks.addItem(new Item(type, localDemand * supplyRatio)) ;
+      for (Venue venue : reached) {
+        final float shortage = venue.stocks.shortageOf(type) ;
+        if (shortage < 0) continue ;
+        venue.stocks.addItem(Item.withAmount(type, shortage * supplyRatio)) ;
       }
     }
   }
+  
 
-//*/
+  public void distribute(Service provided[]) {
+    final Batch <Batch <Venue>> allReached = new Batch <Batch <Venue>> () ;
+    //
+    //  First, divide the set of all venues into discrete partitions based on
+    //  mutual paving connections-
+    final Tile at = world.tileAt(0, 0) ;
+    for (Object o : world.presences.matchesNear(Venue.class, at, -1)) {
+      final Batch <Venue> reached = venuesReached((Venue) o) ;
+      if (reached != null) allReached.add(reached) ;
+    }
+    //
+    //  Then, distribute water/power/et cetera within that area-
+    for (Batch <Venue> reached : allReached) {
+      distributeTo(reached, provided) ;
+      for (Venue v : reached) v.flagWith(null) ;
+    }
+  }
+}
+

@@ -182,7 +182,7 @@ public class Delivery extends Plan {
     )) clients.add((Venue) o) ;
     return nextDeliveryFrom(
       venue, types,
-      clients, (int) VenueStocks2.ORDER_UNIT,
+      clients, (int) VenueStocks.ORDER_UNIT,
       actor.world()
     ) ;
   }

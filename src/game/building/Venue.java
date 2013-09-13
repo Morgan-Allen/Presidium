@@ -52,7 +52,7 @@ public abstract class Venue extends Fixture implements
   
   final public VenuePersonnel personnel = new VenuePersonnel(this) ;
   //final public VenueStocks stocks = new VenueStocks(this) ;
-  final public VenueStocks2 stocks = new VenueStocks2(this) ;
+  final public VenueStocks stocks = new VenueStocks(this) ;
   final public VenueStructure structure = new VenueStructure(this) ;
   
   
@@ -257,11 +257,11 @@ public abstract class Venue extends Fixture implements
   
   protected void updatePaving(boolean inWorld) {
     if (inWorld) {
-      base.paving.updateJunction(mainEntrance(), true) ;
+      base.paving.updateJunction(this, mainEntrance(), true) ;
       base.paving.updatePerimeter(this, true) ;
     }
     else {
-      base.paving.updateJunction(mainEntrance(), false) ;
+      base.paving.updateJunction(this, mainEntrance(), false) ;
       base.paving.updatePerimeter(this, false) ;
     }
   }
@@ -285,6 +285,14 @@ public abstract class Venue extends Fixture implements
   //  at work?
   protected abstract Vocation[] careers() ;
   protected abstract Service[] services() ;
+  
+  
+  public boolean isManned() {
+    for (Actor a : personnel.workers) {
+      if (a.health.conscious() && a.aboard() == this) return true ;
+    }
+    return false ;
+  }
   
   
   

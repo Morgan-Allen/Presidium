@@ -105,7 +105,7 @@ public class BlastDoors extends ShieldWall implements TileConstants {
     entrances() ;
     base().paving.updatePerimeter(this, inWorld) ;
     for (Tile t : entrances()) {
-      base().paving.updateJunction(t, inWorld) ;
+      base().paving.updateJunction(this, t, inWorld) ;
     }
   }
   

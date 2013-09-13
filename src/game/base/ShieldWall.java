@@ -104,7 +104,7 @@ public class ShieldWall extends Segment {
     attachModel(SECTION_MODEL_CORNER) ;
   }
   
-
+  
   protected List <Segment> installedBetween(Tile start, Tile end) {
     final List <Segment> installed = super.installedBetween(start, end) ;
     if (installed == null || installed.size() < 4) return installed ;

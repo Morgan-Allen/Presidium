@@ -18,6 +18,10 @@ import src.util.* ;
 
 
 
+//
+//  However, the state has the power to increase cash in circulation based on
+//  the evaluation of total housing values.  This keeps prices more-or-less
+//  constant.  This happens at the Audit Office, directly.
 
 public class AuditOffice extends Venue implements BuildConstants {
   
@@ -51,12 +55,12 @@ public class AuditOffice extends Venue implements BuildConstants {
   public Behaviour jobFor(Actor actor) {
     if (! personnel.onShift(actor)) return null ;
     
-    if (actor.vocation() == Vocation.AUDITOR) {
+    if (actor.vocation() == Background.AUDITOR) {
       final Venue toAudit = Auditing.getNextAuditFor(actor) ;
       if (toAudit == null) return null ;
       else return new Auditing(actor, toAudit) ;
     }
-    if (actor.vocation() == Vocation.CENSOR) {
+    if (actor.vocation() == Background.PROPAGANDIST) {
       if (stocks.amountOf(PRESSFEED) >= 10) return null ;
       return new Manufacture(actor, this, PLASTICS_TO_PRESSFEED, null) ;
     }
@@ -65,20 +69,20 @@ public class AuditOffice extends Venue implements BuildConstants {
   }
   
   
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Vocation.AUDITOR) return nO + 1 ;
-    if (v == Vocation.CENSOR ) return nO + 1 ;
+    if (v == Background.AUDITOR) return nO + 1 ;
+    if (v == Background.PROPAGANDIST ) return nO + 1 ;
     return 0 ;
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.AUDITOR, Vocation.CENSOR } ;
+  protected Background[] careers() {
+    return new Background[] { Background.AUDITOR, Background.PROPAGANDIST } ;
   }
   
   
-  protected Service[] services() {
+  public Service[] services() {
     return new Service[] { PRESSFEED } ;
   }
   

@@ -62,21 +62,21 @@ public class Reactor extends Venue implements BuildConstants {
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.CORE_TECHNICIAN } ;
+  protected Background[] careers() {
+    return new Background[] { Background.CORE_TECHNICIAN } ;
   }
   
   
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Vocation.CORE_TECHNICIAN) {
+    if (v == Background.CORE_TECHNICIAN) {
       return nO + 2 ;
     }
     return 0 ;
   }
   
   
-  protected Service[] services() {
+  public Service[] services() {
     return new Service[] { POWER } ;
   }
   

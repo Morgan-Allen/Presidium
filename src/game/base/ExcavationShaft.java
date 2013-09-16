@@ -189,13 +189,13 @@ public class ExcavationShaft extends Venue implements
     
     promise += terrain.mineralsAt(
       face.origin(), Terrain.TYPE_CARBONS
-    ) * (structure.upgradeBonus(CARBONS)  + 2) ;
+    ) * (structure.upgradeBonus(P_CARBONS)  + 2) ;
     promise += terrain.mineralsAt(
       face.origin(), Terrain.TYPE_METALS
-    ) * (structure.upgradeBonus(METALS)   + 2) ;
+    ) * (structure.upgradeBonus(ORES)   + 2) ;
     promise += terrain.mineralsAt(
       face.origin(), Terrain.TYPE_ISOTOPES
-    ) * (structure.upgradeBonus(ISOTOPES) + 2) ;
+    ) * (structure.upgradeBonus(FUEL_CORES) + 2) ;
     
     final int MDR = MAX_DIG_RANGE ;
     promise *= MDR / (Spacing.distance(this, face) + MDR) ;
@@ -228,7 +228,7 @@ public class ExcavationShaft extends Venue implements
       "Allows deposits of complex hydrocarbons to be processed and stored "+
       "more efficiently.",
       100,
-      CARBONS, 1, null, ALL_UPGRADES
+      P_CARBONS, 1, null, ALL_UPGRADES
     ),
 
     METALS_SMELTING = new Upgrade(
@@ -236,7 +236,7 @@ public class ExcavationShaft extends Venue implements
       "Allows heavy metal deposits to be processed and extracted more "+
       "efficiently.",
       150,
-      METALS, 1, null, ALL_UPGRADES
+      ORES, 1, null, ALL_UPGRADES
     ),
 
     ISOTOPE_CAPTURE = new Upgrade(
@@ -244,7 +244,7 @@ public class ExcavationShaft extends Venue implements
       "Allows deposits of radiactive isotopes to be processed and stored "+
       "more efficiently.",
       200,
-      ISOTOPES, 1, null, ALL_UPGRADES
+      FUEL_CORES, 1, null, ALL_UPGRADES
     ),
     
     //  Include mantle drilling vs. safety features.
@@ -254,24 +254,24 @@ public class ExcavationShaft extends Venue implements
       "Excavators are responsible for seeking out subterranean mineral "+
       "deposits and bringing them to the surface.",
       50,
-      Vocation.EXCAVATOR, 2, null, ALL_UPGRADES
+      Background.EXCAVATOR, 2, null, ALL_UPGRADES
     ) ;
   
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.EXCAVATOR } ;
+  protected Background[] careers() {
+    return new Background[] { Background.EXCAVATOR } ;
   }
   
   
-  protected Service[] services() {
-    return new Service[] { CARBONS, METALS, ISOTOPES } ;
+  public Service[] services() {
+    return new Service[] { P_CARBONS, ORES, FUEL_CORES } ;
   }
   
   
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     final int NO = super.numOpenings(v) ;
-    if (v == Vocation.EXCAVATOR) return NO + 2 ;
+    if (v == Background.EXCAVATOR) return NO + 2 ;
     return 0 ;
   }
   

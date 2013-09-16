@@ -24,6 +24,8 @@ public abstract class Mobile extends Element
   final static int
     MAX_PATH_SCAN = World.DEFAULT_SECTOR_SIZE ;
   
+  private static boolean verbose = false ;
+  
   protected float
     rotation,
     nextRotation ;
@@ -131,12 +133,12 @@ public abstract class Mobile extends Element
       pos.z += aboveGroundHeight() ;
       setHeading(pos, nextRotation, true, world) ;
     }
-    if (BaseUI.isPicked(this)) I.say("Now aboard: "+aboard) ;
+    if (verbose && BaseUI.isPicked(this)) I.say("NOW aboard: "+aboard) ;
   }
   
 
   public void setPosition(float xp, float yp, World world) {
-    if (BaseUI.isPicked(this)) I.say("SETTING POSITION") ;
+    if (verbose && BaseUI.isPicked(this)) I.say("SETTING POSITION") ;
     nextPosition.set(xp, yp, aboveGroundHeight()) ;
     setHeading(nextPosition, nextRotation, true, world) ;
   }
@@ -155,6 +157,7 @@ public abstract class Mobile extends Element
     if (aboard == null || ! aboard.area(null).contains(newTile.x, newTile.y)) {
       if (aboard != null) aboard.setInside(this, false) ;
       (aboard = newTile).setInside(this, true) ;
+      if (verbose && BaseUI.isPicked(this)) I.say("FORCED aboard: "+aboard) ;
     }
     if (instant) {
       this.position.setTo(pos) ;
@@ -192,43 +195,51 @@ public abstract class Mobile extends Element
     final Boardable next = pathing == null ? null : pathing.nextStep() ;
     final Tile oldTile = origin() ;
     final Vec3D p = nextPosition ;
+    final boolean outOfBounds =
+      (! aboard.area(null).contains(p.x, p.y)) ||
+      (! aboard.inWorld()) ;
     //
-    //  We allow mobiles to 'jump' between dissimilar objects-
-    if (next != null && next.getClass() != aboard.getClass()) {
-      ///if (BaseUI.isPicked(this)) I.say("Jumping to: "+next) ;
+    //  We allow mobiles to 'jump' between dissimilar objects, or track the
+    //  sudden motions of mobile boardables (i.e, vehicles)-
+    if (aboard instanceof Mobile && outOfBounds) {
+      aboard.position(nextPosition) ;
+    }
+    else if (next != null && next.getClass() != aboard.getClass()) {
+      if (verbose && BaseUI.isPicked(this)) I.say("Jumping to: "+next) ;
       aboard.setInside(this, false) ;
       (aboard = next).setInside(this, true) ;
       next.position(nextPosition) ;
-    }
-    if (aboard instanceof Mobile && ! aboard.area(null).contains(p.x, p.y)) {
-      aboard.position(nextPosition) ;
     }
     //
     //  If you're not in either your current 'aboard' object, or the area
     //  corresponding to the next step in pathing, you need to default to the
     //  nearest clear tile.
     final Tile newTile = world().tileAt(nextPosition.x, nextPosition.y) ;
-    if (oldTile != newTile || ! aboard.inWorld()) {
-      onTileChange(oldTile, newTile) ;
-      final Box2D area = new Box2D() ;
-      ///if (BaseUI.isPicked(this)) I.say("Next on path: "+next) ;
+    if (oldTile != newTile || outOfBounds) {
+      if (oldTile != newTile) onTileChange(oldTile, newTile) ;
       final boolean awry = next != null && Spacing.distance(next, this) > 1 ;
-      if (next != null && next.area(area).contains(p.x, p.y)) {
+      
+      if (next != null && next.area(null).contains(p.x, p.y)) {
         aboard.setInside(this, false) ;
         (aboard = next).setInside(this, true) ;
       }
-      else {
-        ///if (BaseUI.isPicked(this)) I.say("Moving to next tile: "+newTile) ;
+      else if (outOfBounds) {
         if (awry) onMotionBlock(newTile) ;
+        if (verbose && BaseUI.isPicked(this)) I.say("Entering tile: "+newTile) ;
         aboard.setInside(this, false) ;
         (aboard = newTile).setInside(this, true) ;
       }
     }
     //
-    //  Either way, update position and check for tile changes-
+    //  Either way, update current position-
     position.setTo(nextPosition) ;
     rotation = nextRotation ;
     super.setPosition(position.x, position.y, world) ;
+    if (verbose && BaseUI.isPicked(this)) {
+      I.say("Aboard: "+aboard) ;
+      I.say("Position "+nextPosition) ;
+      I.say("Next step: "+next) ;
+    }
   }
   
   

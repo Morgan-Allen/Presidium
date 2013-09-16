@@ -72,19 +72,19 @@ public class SurveyorRedoubt extends Venue implements BuildConstants {
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.SURVEYOR } ;
+  protected Background[] careers() {
+    return new Background[] { Background.SURVEYOR } ;
   }
   
   
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Vocation.SURVEYOR) return nO + 2 ;
+    if (v == Background.SURVEYOR) return nO + 2 ;
     return 0 ;
   }
   
   
-  protected Service[] services() {
+  public Service[] services() {
     return new Service[] { WATER, PROTEIN, SPICE } ;
   }
   

@@ -197,9 +197,12 @@ Logician Sanctum (the Archives)
   Imprinted              (basic trainees)
   Logician Judicant      (admin, diplomacy and legal process)
   Logician Projector     (science, history and futurology)
-  Logician Activator     (intelligence and manipulation)
+  Logician Observant     (intelligence and manipulation)
   Palatine               (bodyguards and peacekeepers)
   First Speaker          (head of the school)
+  
+  Based on:  Asimov's Foundations, Trek Vulcans, Dune Mentats,
+             certain aspects of the Jedi and Firefly Alliance
 
 Initiate Complex (the Imperial Fane)
   Acolyte                (basic trainee)
@@ -208,20 +211,27 @@ Initiate Complex (the Imperial Fane)
   Initiate Genealogist   (medicine, genes and breeding)
   Oracle                 (static sentient super-computer)
   Reverend Father/Mother (head of the school)
+  
+  Based on:  A Canticle for Leibowitz, Dune Ixians, WH40K AdMech,
+             HAL and the Monoliths from 2001, a dash of Bene Gesserit
 
 Spacer Habitat (the Shipyard)
   Bondsman               (basic trainee)
   Spacer Caste Technical (maintenance and research)
-  Spacer Caste Pilot     (piloting and mechs)
+  Spacer Caste Pilot     (piloting and mech combat)
   Spacer Caste Syndicant (diplomacy and trade)
   Ship Mother            (reproductive installation)
   Navigator              (head of the school)
+  
+  Based on:  Dune Spacing Guild, The Stars My Destination, 'Grey Aliens',
+             The Ousters from Hyperion, Asimov's Spacer worlds
 
 
 //
 //  These might be overly formal.  The collective/symbiont/shapers are either
 //  less hierarchical or more chaotic than the above.  Different recruitment
 //  strategies may be in order...
+
 
 Collective Nexus (the Psyon Choir)
   Melded                 (basic trainees)
@@ -230,22 +240,36 @@ Collective Nexus (the Psyon Choir)
   Collective Choral      (psyon abilities and emotional rapport)
   Android                (inherent pacifism and memory retention)
   Nexus Vessel           (head of the school)
+  
+  Based on:  More Than Human, Gaia and Galaxia from the Foundation series,
+             aspects of Star Trek Borg and Stranger in a Strange Land
+  
 
 Symbiont Circle (the Former Node)
   Chosen                 (basic trainee)
   Symbiont of the Glaive (combat and infiltration suit)
   Symbiont of the Thread (ecology and terraforming)
   Symbiont of the Core   (power and manufacture)
-  Ascended               (unstable powerhouse)
+  Ascendant              (short-lifespan powerhouse)
   Demiurge               (head of the school)
+  
+  Based on:  Bleeding Edge Iron Man, Blood Music, possibly The Invincible
+             and various biomech armour anime, especially NGE Angels
+  
 
 Shaper Colony (the Sculptor's Studio)
   Host                   (basic trainee)
-  Shaper Metabolist      (physique, regen and basic psyonics)
-  Shaper Strain Weaver   (ecology, animals and mutation)
-  Shaper Face Shifter    (disguise, spying and seduction)
-  Xenopath               (potent psyonic abilities)
+  Shaper Metabolist      (physique, regen and crude psyonics)
+  Shaper Strain Weaver   (ecology, animal-bonding and mutation)
+  Shaper Face Dancer     (disguise, spying and seduction)
+  Xenopath               (potent but unstable psyonic abilities)
   Chrysalid              (head of the school)
+  
+  Base on:  Bene Tleilaxu from Dune, Last And First Men, the Hainish Cycle,
+            aspects of the Na'vi from Avatar and WH40K Chaos
+
+
+
 
 
 

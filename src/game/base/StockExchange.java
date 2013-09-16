@@ -15,6 +15,11 @@ import src.util.* ;
 
 
 
+//
+//  The Stock Exchange also creates a small amount of money 'ex nihilo' with
+//  every sales transaction.  And the supply depot makes money from offworld
+//  trades.
+
 public class StockExchange extends Venue implements BuildConstants {
   
   
@@ -26,6 +31,13 @@ public class StockExchange extends Venue implements BuildConstants {
       "media/Buildings/merchant/stock_exchange.png",
       4, 2
     ) ;
+  /*
+  final static Service EXCHANGE_GOODS[] = {
+    GREENS, SOMA, PRESSFEED, CIRCUITS,
+    TROPHIES, RELICS, DECOR, SPICE
+    //Geneseed, Neural Scans, Talisman
+  } ;
+  //*/
   
   
   
@@ -70,13 +82,13 @@ public class StockExchange extends Venue implements BuildConstants {
     ),
     RATIONS_STOCK = new Upgrade(
       "Rations Stock",
-      "Increases space available to starches, greens and protein, and "+
-      "augments profits from their sale.",
+      "Increases space available to carbs, greens and protein, and augments"+
+      "profits from their sale.",
       100, null, 1, null, ALL_UPGRADES
     ),
     ARMS_DEALING = new Upgrade(
       "Arms Dealing",
-      "Increases space available to medkits, power cells, arms and armour, "+
+      "Increases space available to stim kits, power cells, arms and armour, "+
       "and augments profit from their sale.",
       200, null, 1, null, ALL_UPGRADES
     ),
@@ -84,19 +96,22 @@ public class StockExchange extends Venue implements BuildConstants {
       "Vendor Quarters",
       "Vendors are responsible for transport and presentation of essential "+
       "commodities.",
-      50, Vocation.STOCK_VENDOR, 1, null, ALL_UPGRADES
+      50, Background.STOCK_VENDOR, 1, null, ALL_UPGRADES
     ) ;
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.STOCK_VENDOR } ;
+  protected Background[] careers() {
+    return new Background[] { Background.STOCK_VENDOR } ;
   }
   
   
-  protected Service[] services() {
+  public Service[] services() {
     return new Service[] {
-      PARTS, PLASTICS, INSCRIPTION, PRESSFEED,
-      STARCHES, PROTEIN, GREENS, SPICE
+      STIM_KITS, MEDICINE, SOMA,
+      PROTEIN, GREENS, SPICE,
+      PRESSFEED
+      //PARTS, PLASTICS, CIRCUITS, PRESSFEED,
+      //CARBS, PROTEIN, GREENS, SPICE
       //  Medkits and Power Cells.  Plus weapons/armour.
     } ;
   }

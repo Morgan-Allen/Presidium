@@ -31,6 +31,7 @@ public class ImageSprite extends Sprite {
   
   public void setAnimation(String animName, float progress) {
     final Model.AnimRange range = rangeFor(animName) ;
+    if (range == null) return ;
     animProgress = range.start + ((range.end - range.start) * (progress % 1)) ;
   }
   

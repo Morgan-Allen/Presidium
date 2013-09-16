@@ -19,8 +19,10 @@ public class Service implements Session.Saveable {
   private static int nextID = 0 ;
   private static Batch allTypes = new Batch(), soFar = new Batch() ;
   
-  final static String ITEM_PATH = "media/Items/" ;
-  final static String DEFAULT_PIC = ITEM_PATH+"crate.gif" ;
+  final static String
+    ITEM_PATH = "media/Items/" ;
+  final static Texture
+    DEFAULT_PIC = Texture.loadTexture(ITEM_PATH+"crate.gif") ;
   
   
   static Service[] typesSoFar() {
@@ -43,22 +45,31 @@ public class Service implements Session.Saveable {
   final public Model model ;
   
   
-  protected Service(Class typeClass, int form, String name, int basePrice) {
+  protected Service(
+    Class typeClass, int form, String name,
+    int basePrice
+  ) {
+    this(typeClass, name, null, form, basePrice) ;
+  }
+  
+  
+  protected Service(
+    Class typeClass, String name, String imgName,
+    int form, int basePrice
+  ) {
     this.form = form ;
     this.name = name ;
     this.basePrice = basePrice ;
-    final String imagePath = ITEM_PATH+name+".gif" ;
+    final String imagePath = ITEM_PATH+imgName ;
     if (new java.io.File(imagePath).exists()) {
       this.pic = Texture.loadTexture(imagePath) ;
-      this.model = ImageModel.asIsometricModel(
-        typeClass, imagePath, 0.5f, 0.5f
+      this.model = ImageModel.asFlatModel(
+        typeClass, Texture.loadTexture(imagePath), 0.5f
       ) ;
     }
     else {
-      this.pic = Texture.loadTexture(DEFAULT_PIC) ;
-      this.model = ImageModel.asIsometricModel(
-        typeClass, DEFAULT_PIC, 0.5f, 0.5f
-      ) ;
+      this.pic = DEFAULT_PIC ;
+      this.model = ImageModel.asFlatModel(typeClass, DEFAULT_PIC, 0.5f) ;
     }
     soFar.add(this) ;
     allTypes.add(this) ;
@@ -76,6 +87,14 @@ public class Service implements Session.Saveable {
   
   
   public Conversion materials() { return null ; }
+  
+  
+  public static interface Trade extends Inventory.Owner {
+    public float importShortage(Service type) ;
+    public float exportSurplus(Service type) ;
+    public float importDemand(Service type) ;
+    public float exportDemand(Service type) ;
+  }
   
   
   

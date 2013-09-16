@@ -41,8 +41,8 @@ public class BotanicalStation extends Venue implements BuildConstants {
       BotanicalStation.class, IMG_DIR+"grub_box.png", 1, 1
     ) ;
   final static Object CROP_SPECIES[][] = {
-    new Object[] { 0, STARCHES, CROP_MODELS[0] },
-    new Object[] { 1, STARCHES, CROP_MODELS[1] },
+    new Object[] { 0, CARBS, CROP_MODELS[0] },
+    new Object[] { 1, CARBS, CROP_MODELS[1] },
     new Object[] { 2, GREENS  , CROP_MODELS[3] },
     new Object[] { 3, GREENS  , CROP_MODELS[2] },
     new Object[] { 4, PROTEIN , new Model[] { GRUB_BOX_MODEL }}
@@ -185,7 +185,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "species, but lack the full range of nutrients required in a healthy "+
       "diet.",
       100,
-      STARCHES, 2,
+      CARBS, 2,
       null, ALL_UPGRADES
     ),
     BROADLEAF_LAB = new Upgrade(
@@ -201,7 +201,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "Hire additional field hands to plant and reap the harvest more "+
       "quickly, maintain equipment, and bring land under cultivation.",
       50,
-      Vocation.FIELD_HAND, 2,
+      Background.FIELD_HAND, 2,
       null, ALL_UPGRADES
     ),
     TREE_FARMING = new Upgrade(
@@ -209,7 +209,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "Forestry programs assist in terraforming efforts and climate "+
       "moderation, as well as providing carbons for plastic production.",
       100,
-      CARBONS, 1,
+      P_CARBONS, 1,
       BROADLEAF_LAB, ALL_UPGRADES
     ),
     INSECTRY_LAB = new Upgrade(
@@ -226,7 +226,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "Ecologists are highly-skilled students of plants, animals and gene "+
       "modification, capable of adapting species to local climate conditions.",
       150,
-      Vocation.ECOLOGIST, 1,
+      Background.ECOLOGIST, 1,
       TREE_FARMING, ALL_UPGRADES
     ) ;
   
@@ -236,21 +236,21 @@ public class BotanicalStation extends Venue implements BuildConstants {
   }
   
 
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     int num = super.numOpenings(v) ;
-    if (v == Vocation.FIELD_HAND) return num + 2 ;
-    if (v == Vocation.ECOLOGIST  ) return num + 0 ;
+    if (v == Background.FIELD_HAND) return num + 2 ;
+    if (v == Background.ECOLOGIST  ) return num + 0 ;
     return 0 ;
   }
   
   
-  protected Service[] services() {
-    return new Service[] { STARCHES, GREENS, PROTEIN } ;
+  public Service[] services() {
+    return new Service[] { CARBS, GREENS, PROTEIN } ;
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.ECOLOGIST, Vocation.FIELD_HAND } ;
+  protected Background[] careers() {
+    return new Background[] { Background.ECOLOGIST, Background.FIELD_HAND } ;
   }
   
 
@@ -273,7 +273,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
     float bonus = t.habitat().moisture() / 10f ;
     if (varID % 2 == 0) bonus = (1 - bonus) ;
     if (varID < 2) {
-      return (structure.upgradeBonus(STARCHES) + 2) * 0.5f * bonus ;
+      return (structure.upgradeBonus(CARBS) + 2) * 0.5f * bonus ;
     }
     else {
       return (structure.upgradeBonus(GREENS) + 2) * 0.5f * bonus ;

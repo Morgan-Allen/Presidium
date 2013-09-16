@@ -181,6 +181,7 @@ public abstract class Vehicle extends Mobile implements
   
 
   public Inventory inventory() { return cargo ; }
+  public float priceFor(Service service) { return service.basePrice ; }
   
   
   //  Intended for override by subclasses.

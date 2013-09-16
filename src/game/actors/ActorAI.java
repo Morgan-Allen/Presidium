@@ -169,8 +169,8 @@ public abstract class ActorAI implements ActorConstants {
   
   protected void updateAI(int numUpdates) {
     updateSeen() ;
-    if (home != null && ! home.inWorld()) home = null ;
-    if (work != null && ! work.inWorld()) work = null ;
+    if (home != null && home.destroyed()) home = null ;
+    if (work != null && work.destroyed()) work = null ;
     if (numUpdates % 10 == 0 && agenda.size() > 0) {
       for (Behaviour b : todoList) {
         if (b.complete()) {

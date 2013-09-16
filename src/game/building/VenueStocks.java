@@ -8,11 +8,26 @@
 package src.game.building ;
 import src.game.common.* ;
 import src.game.actors.* ;
+import src.graphics.sfx.TalkFX;
 import src.user.* ;
 import src.util.* ;
 
 
 
+//
+//  Implement budgeting effects, and paying for offworld trade.
+
+//  *  Paying for offworld goods.
+//  *  Selling goods offworld.
+//  *  Actors paying for home purchases.
+//  *  Venues and actors paying tax, or getting debts paid off.
+
+//  *  Actors receiving a basic salary.  (Tax is after expenses.)  That will
+//     have to be keyed off the venues too.
+
+//
+//  You may need a generalised system for raising prices based on the cost of
+//  imported goods, so that you make some minimum degree of profit.
 
 
 public class VenueStocks extends Inventory implements BuildConstants {
@@ -31,7 +46,9 @@ public class VenueStocks extends Inventory implements BuildConstants {
   
   static class Demand {
     Service type ;
-    float demandAmount, demandTier ;
+    
+    private float amountInc, demandAmount, demandTier ;
+    private float pricePaid ;
   }
   
   final Venue venue ;
@@ -52,8 +69,10 @@ public class VenueStocks extends Inventory implements BuildConstants {
     while (numC-- > 0) {
       final Demand d = new Demand() ;
       d.type = BuildConstants.ALL_ITEM_TYPES[s.loadInt()] ;
+      d.amountInc    = s.loadFloat() ;
       d.demandAmount = s.loadFloat() ;
       d.demandTier   = s.loadFloat() ;
+      d.pricePaid    = s.loadFloat() ;
       demands.put(d.type, d) ;
     }
   }
@@ -65,9 +84,40 @@ public class VenueStocks extends Inventory implements BuildConstants {
     s.saveInt(demands.size()) ;
     for (Demand d : demands.values()) {
       s.saveInt(d.type.typeID) ;
+      s.saveFloat(d.amountInc   ) ;
       s.saveFloat(d.demandAmount) ;
       s.saveFloat(d.demandTier  ) ;
+      s.saveFloat(d.pricePaid   ) ;
     }
+  }
+  
+  
+  public List <Manufacture> specialOrders() {
+    return specialOrders ;
+  }
+  
+  
+  public boolean addItem(Item item) {
+    final int oldAmount = (int) amountOf(item) ;
+    if (super.addItem(item)) {
+      final int inc = ((int) amountOf(item)) - oldAmount ;
+      if (venue.inWorld() && inc != 0) {
+        String phrase = inc >= 0 ? "+" : "-" ;
+        phrase+=" "+inc+" "+item.type.name ;
+        venue.chat.addPhrase(phrase, TalkFX.NOT_SPOKEN) ;
+      }
+      return true ;
+    }
+    return false ;
+  }
+  
+  
+  public void incCredits(int inc) {
+    super.incCredits(inc) ;
+    if (! venue.inWorld()) return ;
+    String phrase = inc >= 0 ? "+" : "-" ;
+    phrase+=" "+Math.abs(inc)+" credits" ;
+    venue.chat.addPhrase(phrase, TalkFX.NOT_SPOKEN) ;
   }
   
   
@@ -83,7 +133,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
     final Batch <Item> batch = new Batch <Item> () ;
     for (Demand d : demands.values()) {
       float amount = shortageOf(d.type) ;
-      //if (! requiredOnly) amount += receivedShortage(d.type) ;
+      if (amount <= 0) continue ;
       batch.add(Item.withAmount(d.type, amount)) ;
     }
     return batch ;
@@ -112,67 +162,22 @@ public class VenueStocks extends Inventory implements BuildConstants {
   
   
   
-  /**  Internal and external updates-
+  /**  Public accessor methods-
     */
-  private Demand demandFor(Service t) {
-    final Demand d = demands.get(t) ;
-    if (d != null) return d ;
-    Demand made = new Demand() ;
-    made.type = t ;
-    demands.put(t, made) ;
-    return made ;
-  }
-  
-  
-  public void clearDemands() {
-    for (Demand d : demands.values()) {
-      d.demandAmount = 0 ;
-      d.demandTier = 0 ;
-    }
-  }
-  
-  
-  public void translateDemands(Conversion cons) {
-    for (Item raw : cons.raw) {
-      final Demand d = demandFor(raw.type) ;
-      d.demandAmount = 0 ;
-      d.demandTier = 0 ;
-    }
-    final float demand = shortageOf(cons.out.type) ;
-    if (demand <= 0) return ;
-    
-    for (Item raw : cons.raw) {
-      final float inc = (raw.amount * demand / cons.out.amount) + 1 ;
-      demandFor(raw.type).demandAmount += inc ;
-    }
-    
-    if (verbose && BaseUI.isPicked(venue)) for (Item raw : cons.raw) {
-      final Demand d = demandFor(raw.type) ;
-      I.say(
-        "  "+raw.type+" demand: "+d.demandAmount+
-        " tier: "+d.demandTier
-      ) ;
-    }
-  }
-  
-  
-  public float incDemand(Service type, float amount, float tier) {
-    if (amount == 0) return -1 ;
-    final Demand d = demandFor(type) ;
-    final float oldAmount = d.demandAmount, inc = amount * POTENTIAL_INC ;
-    d.demandAmount += inc ;
-    d.demandTier = (d.demandTier * oldAmount) + (tier * inc) ;
-    if (verbose && BaseUI.isPicked(venue)) I.say(
-      "  "+type+" demand: "+amount
-    ) ;
+  public float demandFor(Service type) {
+    final Demand d = demands.get(type) ;
+    if (d == null) return 0 ;
     return d.demandAmount ;
   }
   
   
   public float shortageOf(Service type) {
-    final Demand d = demands.get(type) ;
-    if (d == null) return 0 - amountOf(type) ;
-    return d.demandAmount - amountOf(type) ;
+    return demandFor(type) - amountOf(type) ;
+  }
+  
+  
+  public float surplusOf(Service type) {
+    return amountOf(type) - demandFor(type) ;
   }
   
   
@@ -186,35 +191,101 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
-  public void updateStocks(int numUpdates) {
-    final Presences presences = venue.world().presences ;
-    final Service services[] = venue.services() ;
-    
+  public float priceFor(Service type) {
+    final Demand d = demands.get(type) ;
+    if (d == null) return type.basePrice ;
+    return d.pricePaid ;
+  }
+  
+  
+  
+  /**  Utility methods for setting and propagating various types of demand-
+    */
+  private Demand demandRecord(Service t) {
+    final Demand d = demands.get(t) ;
+    if (d != null) return d ;
+    Demand made = new Demand() ;
+    made.type = t ;
+    made.pricePaid = t.basePrice ;
+    demands.put(t, made) ;
+    return made ;
+  }
+  
+  
+  private void incDemand(Service type, float amount, float tier) {
+    if (amount == 0) return ;
+    final Demand d = demandRecord(type) ;
+    final float oldAmount = d.demandAmount, inc = amount * POTENTIAL_INC ;
+    d.amountInc += amount ;
+    d.demandTier = (d.demandTier * oldAmount) + (tier * inc) ;
+    /*
+    final float oldAmount = d.demandAmount, inc = amount * POTENTIAL_INC ;
+    d.demandAmount += inc ;
+    d.demandTier = (d.demandTier * oldAmount) + (tier * inc) ;
+    if (verbose && BaseUI.isPicked(venue)) I.say(
+      "  "+type+" demand: "+amount
+    ) ;
+    return d.demandAmount ;
+    //*/
+  }
+  
+  
+  private void incPrice(Service type, float toPrice) {
+    final Demand d = demandRecord(type) ;
+    d.pricePaid += (toPrice - type.basePrice) * POTENTIAL_INC ;
+  }
+  
+  
+  public void clearDemands() {
     for (Demand d : demands.values()) {
-      d.demandAmount *= (1 - POTENTIAL_INC) ;
-      if (Visit.arrayIncludes(services, d.type)) continue ;
-      
-      final Batch <Venue> suppliers = new Batch <Venue> () ;
-      for (int n = (int) MAX_CHECKED / 2 ; n-- > 0 ;) {
-        final Venue supplies = presences.randomMatchNear(
-          d.type, venue, SEARCH_RADIUS
-        ) ;
-        if (supplies == null) break ;
-        if (supplies == venue || supplies.flaggedWith() != null) continue ;
-        suppliers.add(supplies) ;
-        supplies.flagWith(suppliers) ;
-      }
-      
-      for (Object o : presences.matchesNear(d.type, venue, SEARCH_RADIUS)) {
-        final Venue supplies = (Venue) o ;
-        if (supplies == venue || supplies.flaggedWith() != null) continue ;
-        suppliers.add(supplies) ;
-        if (suppliers.size() >= MAX_CHECKED) break ;
-      }
-      
-      for (Venue s : suppliers) s.flagWith(null) ;
-      diffuseDemand(d.type, suppliers) ;
+      d.demandAmount = 0 ;
+      d.demandTier = 0 ;
     }
+  }
+  
+  
+  public void translateDemands(Conversion cons) {
+    //
+    //  Firstly, we check to see if the output good is in demand, and if so,
+    //  reset demand for the raw materials-
+    final float demand = shortageOf(cons.out.type) ;
+    if (demand <= 0) return ;
+    float priceBump = 1 ;
+    for (Item raw : cons.raw) {
+      final Demand d = demandRecord(raw.type) ;
+      d.demandAmount = 0 ;
+      d.demandTier = 0 ;
+      priceBump += priceFor(raw.type) / raw.type.basePrice ;
+    }
+    //
+    //  We adjust our prices to ensure we can make a profit, and adjust demand
+    //  for the inputs to match demand for the outputs-
+    final Demand o = demandRecord(cons.out.type) ;
+    o.pricePaid = o.type.basePrice * priceBump / (1f + cons.raw.length) ;
+    for (Item raw : cons.raw) {
+      final float inc = (raw.amount * demand / cons.out.amount) + 1 ;
+      demandRecord(raw.type).demandAmount += inc ;
+    }
+    //
+    //  (If desired, report the aftermath-)
+    if (verbose && BaseUI.isPicked(venue)) for (Item raw : cons.raw) {
+      final Demand d = demandRecord(raw.type) ;
+      I.say(
+        "  "+raw.type+" demand: "+d.demandAmount+
+        " tier: "+d.demandTier
+      ) ;
+    }
+  }
+  
+  
+  public void forceDemand(Service type, float amount) {
+    if (amount < 0) amount = 0 ;
+    final Demand d = demandRecord(type) ;
+    d.demandAmount = amount ;
+    d.demandTier = 0 ;
+    if (verbose && BaseUI.isPicked(venue)) I.say(
+      "  "+type+" demand: "+d.demandAmount
+    ) ;
   }
   
   
@@ -247,39 +318,76 @@ public class VenueStocks extends Inventory implements BuildConstants {
       sumRatings += rating ;
     }
     if (sumRatings == 0) return ;
+    float avgPriceBump = 0 ;
+    i = 0 ;
     
-    i = 0 ; for (Venue supplies : suppliers) {
+    for (Venue supplies : suppliers) {
       final float rating = ratings[i], distance = distances[i++] ;
       if (rating == 0) continue ;
-      final float amount = shortage * rating * 2 / sumRatings ;
-      supplies.stocks.incDemand(type, amount, d.demandTier + distance) ;
+      final float
+        weight = rating / sumRatings,
+        shortBump = shortage * weight,
+        priceBump = type.basePrice * distance / 10f ;
+      supplies.stocks.incDemand(type, shortBump, d.demandTier + distance) ;
+      avgPriceBump += (supplies.priceFor(type) + priceBump) * weight ;
     }
+    
+    incPrice(type, avgPriceBump) ;
   }
   
   
   
-  /**  Rendering and interface methods-
+  /**  Calling regular updates-
     */
-  public Batch <String> ordersDesc() {
-    final Batch <String> desc = new Batch <String> () ;
-    for (Demand demand : demands.values()) {
-      final int needed = (int) Math.ceil(demand.demandAmount) ;
-      final int amount = (int) Math.ceil(amountOf(demand.type)) ;
-      if (needed == 0 && amount == 0) continue ;
-      desc.add(demand.type.name+" ("+amount+"/"+needed+")") ;
-    }
-    for (Item item : super.allItems()) {
-      if (demands.get(item.type) != null) continue ;
-      desc.add(item+" (not needed)") ;
-    }
-    return desc ;
+  protected void updateStocks(int numUpdates) {
+    if (numUpdates % 10 == 0) diffuseExistingDemand() ;
   }
   
   
-  public List <Manufacture> specialOrders() {
-    return specialOrders ;
+  protected void diffuseExistingDemand() {
+    final Presences presences = venue.world().presences ;
+    final Service services[] = venue.services() ;
+    
+    for (Demand d : demands.values()) {
+      d.demandAmount += d.amountInc * POTENTIAL_INC ;
+      d.amountInc = 0 ;
+      d.demandAmount *= (1 - POTENTIAL_INC) ;
+      d.pricePaid -= d.type.basePrice ;
+      d.pricePaid *= (1 - POTENTIAL_INC) ;
+      d.pricePaid += d.type.basePrice ;
+      
+      if (services != null && Visit.arrayIncludes(services, d.type)) continue ;
+      
+      final Batch <Venue> suppliers = new Batch <Venue> () ;
+      for (int n = (int) MAX_CHECKED / 2 ; n-- > 0 ;) {
+        final Venue supplies = presences.randomMatchNear(
+          d.type, venue, SEARCH_RADIUS
+        ) ;
+        if (supplies == null) break ;
+        if (supplies == venue || supplies.flaggedWith() != null) continue ;
+        suppliers.add(supplies) ;
+        supplies.flagWith(suppliers) ;
+      }
+      
+      for (Object o : presences.matchesNear(d.type, venue, SEARCH_RADIUS)) {
+        final Venue supplies = (Venue) o ;
+        if (supplies == venue || supplies.flaggedWith() != null) continue ;
+        suppliers.add(supplies) ;
+        if (suppliers.size() >= MAX_CHECKED) break ;
+      }
+      
+      for (Venue s : suppliers) s.flagWith(null) ;
+      diffuseDemand(d.type, suppliers) ;
+    }
   }
 }
+
+
+
+
+
+
+
 
 
 

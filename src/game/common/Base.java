@@ -17,6 +17,12 @@ import src.util.* ;
 
 
 
+//
+//  As your settlement grows, however, a larger and larger portion of your
+//  revenue is siphoned back to the homeworld as tribute.  Getting your
+//  settlement into debt is an excellent way to lower your standing (get fired
+//  and demoted to some smaller or more dangerous post.)
+
 public class Base implements
   Session.Saveable, Schedule.Updates, Accountable
 {
@@ -157,7 +163,17 @@ public class Base implements
   
   
   public float communitySpirit() {
-    return 1.0f ;
+    return communitySpirit ;
+  }
+  
+  
+  public float crimeLevel() {
+    return crimeLevel ;
+  }
+  
+  
+  public float alertLevel() {
+    return alertLevel ;
   }
   
   
@@ -173,7 +189,7 @@ public class Base implements
     //
     //  Iterate across all personnel to get a sense of citizen mood, and
     //  compute community spirit.
-    commerce.updateCommerce() ;
+    commerce.updateCommerce(numUpdates) ;
     paving.distribute(BuildConstants.ALL_PROVISIONS) ;
     dangerMap.updateVals() ;
     for (Mission mission : missions) mission.updateMission() ;

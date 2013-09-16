@@ -57,12 +57,12 @@ public class Bastion extends Venue implements BuildConstants {
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] {} ;
+  protected Background[] careers() {
+    return new Background[] {} ;
   }
   
   
-  protected Service[] services() {
+  public Service[] services() {
     return new Service[] { SERVICE_ADMIN } ;
   }
   

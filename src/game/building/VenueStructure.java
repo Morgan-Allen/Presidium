@@ -281,6 +281,7 @@ public class VenueStructure extends Inventory {
   
   
   public Upgrade upgradeInProgress() {
+    if (upgradeIndex == -1) upgradeIndex = nextUpgradeIndex() ;
     if (upgradeIndex == -1) return null ;
     return upgrades[upgradeIndex] ;
   }

@@ -241,8 +241,9 @@ public class HumanAI extends ActorAI implements ActorConstants {
     //  together at the stock exchange.
     if (home instanceof Holding) {
       final Item items[] = ((Holding) home).goodsNeeded().toArray(Item.class) ;
-      final Venue shop = Delivery.findBestVendor(actor, items) ;
+      final Venue shop = Delivery.findBestVendor(home, items) ;
       if (shop != null) {
+        Delivery.compressOrder(items, 5) ;
         choice.add(new Delivery(items, shop, home)) ;
       }
     }

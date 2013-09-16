@@ -25,7 +25,7 @@ public class MoteFX extends SFX {
   
   public ImageSprite mote ;
   public float progress = 0 ;
-  ///public Vec3D drift ;
+  //public int labelID = -1 ;
   
   
   

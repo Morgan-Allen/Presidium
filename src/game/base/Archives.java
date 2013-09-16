@@ -76,22 +76,22 @@ public class Archives extends Venue implements BuildConstants {
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.ARCHIVIST } ;
+  protected Background[] careers() {
+    return new Background[] { Background.ARCHIVIST } ;
   }
   
   
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Vocation.ARCHIVIST) {
+    if (v == Background.ARCHIVIST) {
       return nO + 1 + (int) (structure.numUpgrades() / 3) ;
     }
     return 0 ;
   }
   
   
-  protected Service[] services() {
-    return new Service[] { INSCRIPTION } ;
+  public Service[] services() {
+    return new Service[] { CIRCUITS } ;
   }
   
   

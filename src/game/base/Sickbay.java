@@ -75,7 +75,7 @@ public class Sickbay extends Venue implements BuildConstants {
       "to diet and sanitary needs, but are only familiar with more common "+
       "medications and standard emergency protocol.",
       50,
-      Vocation.MINDER, 2, APOTHECARY, ALL_UPGRADES
+      Background.MINDER, 2, APOTHECARY, ALL_UPGRADES
     ),
     //
     //  Consider having this serve a different function?  Like providing the
@@ -103,7 +103,7 @@ public class Sickbay extends Venue implements BuildConstants {
       "metabolism and anatomy, are adept as surgeons, and can tailor their "+
       "treatments to the idiosyncracies of individual patients.",
       150,
-      Vocation.PHYSICIAN, 1, SURGERY_WARD, ALL_UPGRADES
+      Background.PHYSICIAN, 1, SURGERY_WARD, ALL_UPGRADES
     ) ;
   
   
@@ -135,20 +135,20 @@ public class Sickbay extends Venue implements BuildConstants {
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.MINDER, Vocation.PHYSICIAN } ;
+  protected Background[] careers() {
+    return new Background[] { Background.MINDER, Background.PHYSICIAN } ;
   }
   
   
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Vocation.MINDER) return nO + 2 ;
-    if (v == Vocation.PHYSICIAN) return nO + 1 ;
+    if (v == Background.MINDER) return nO + 2 ;
+    if (v == Background.PHYSICIAN) return nO + 1 ;
     return 0 ;
   }
   
   
-  protected Service[] services() {
+  public Service[] services() {
     return null ;
   }
   

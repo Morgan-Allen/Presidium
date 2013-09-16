@@ -28,6 +28,9 @@ public class Action implements Behaviour, Model.AnimNames {
     CARRIES  = 4,
     RANGED   = 8 ;
   
+  private static boolean verbose = false ;
+  
+  
   final public Actor actor ;
   final public Session.Saveable basis ;
   final public Method toCall ;
@@ -230,13 +233,16 @@ public class Action implements Behaviour, Model.AnimNames {
     final boolean
       closed = actor.pathing.closeEnough(moveTarget, minDist),
       facing = actor.pathing.facingTarget(actionTarget) ;
-    ///if (! facing && BaseUI.isPicked(actor)) I.say("NOT FACING!") ;
     if (! closed) actor.pathing.updateTarget(moveTarget) ;
     final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;
     
+    if (verbose && BaseUI.isPicked(actor)) {
+      I.say("Closed/facing: "+closed+"/"+facing+", move okay? "+moveOK) ;
+      I.say("Faced is: "+faced) ;
+    }
+    
+    
     if (moveOK) {
-      //if (! facing && BaseUI.isPicked(actor)) I.say("CHANGING HEADING") ;
-      ///I.say("is moving... toward: "+faced+", closed? "+closed) ;
       actor.pathing.headTowards(faced, moveRate(), ! closed) ;
     }
     //

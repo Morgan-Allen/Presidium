@@ -20,7 +20,7 @@ public class MobilePathing {
   /**  Field definitions, constructors, and save/load methods-
     */
   final public static int MAX_PATH_SCAN = 8 ;
-  private static boolean verbose = true ;
+  private static boolean verbose = false ;
   
   final Mobile mobile ;
   Target trueTarget ;
@@ -237,8 +237,8 @@ public class MobilePathing {
       baseHigh = aboard.position(null).z ;
     }
     mobile.nextPosition.z = baseHigh + mobile.aboveGroundHeight() ;
-    /*
-    if (BaseUI.isPicked(mobile)) I.say(
+    //*
+    if (verbose && BaseUI.isPicked(mobile)) I.say(
       "OLD/NEW HEADING: "+mobile.position+"/"+mobile.nextPosition
     ) ;
     //*/

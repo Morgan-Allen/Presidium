@@ -91,6 +91,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     */
   public float priorityFor(Actor actor) {
     if (patient.health.deceased()) return 0 ;
+    if (Plan.competition(Treatment.class, patient, actor) > 0) return 0 ;
     //
     //  ...You need to include distance and danger factors, et cetera.
     if (type == TYPE_MEDICATION) {

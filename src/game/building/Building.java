@@ -47,6 +47,7 @@ public class Building extends Plan implements ActorConstants {
   public float priorityFor(Actor actor) {
     //
     //  TODO:  Don't factor competition if you're already at the site.
+    if (built.base().credits() <= 0) return 0 ;
     float competition = Plan.competition(Building.class, built, actor) ;
     competition /= 1 + (built.structure.maxIntegrity() / 100f) ;
     
@@ -90,7 +91,13 @@ public class Building extends Plan implements ActorConstants {
   
   /**  Behaviour implementation-
     */
+  public boolean complete() {
+    return super.complete() || built.base().credits() <= 0 ;
+  }
+  
+  
   protected Behaviour getNextStep() {
+    if (built.base().credits() <= 0) return null ;
     if (built.structure.needsRepair()) {
       final Action building = new Action(
         actor, built,
@@ -144,7 +151,9 @@ public class Building extends Plan implements ActorConstants {
   
   public boolean actionUpgrade(Actor actor, Venue built) {
     final Upgrade upgrade = built.structure.upgradeInProgress() ;
+    ///if (upgrade == null) I.say("NO UPGRADE!") ;
     if (upgrade == null) return false ;
+    ///I.say("Advancing upgrade: "+upgrade.name) ;
     int success = 1 ;
     success *= actor.traits.test(ASSEMBLY, 10, 0.5f) ? 2 : 1 ;
     success *= actor.traits.test(ASSEMBLY, 20, 0.5f) ? 2 : 1 ;
@@ -153,6 +162,7 @@ public class Building extends Plan implements ActorConstants {
     built.base().incCredits((0 - cost)) ;
     return true ;
   }
+  
   
   
   /**  Rendering and interface methods-

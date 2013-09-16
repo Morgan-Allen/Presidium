@@ -33,6 +33,7 @@ public class Inventory {
   
   public static interface Owner extends Target, Session.Saveable {
     Inventory inventory() ;
+    float priceFor(Service service) ;
   }
   
   
@@ -139,7 +140,7 @@ public class Inventory {
     *  items can be added.
     */
   public boolean addItem(Item item) {
-    if (item.isMatch()) return false ;
+    if (item.isMatch() || item.amount == 0) return false ;
     //
     //  Check to see if a similar item already exists.
     final Item oldItem = itemTable.get(item) ;

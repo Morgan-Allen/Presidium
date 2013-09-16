@@ -5,8 +5,12 @@ package src.game.social ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
-import src.user.Description;
+import src.user.* ;
 
+
+//
+//  TODO:  Allow customised descriptions and basic training as standard.
+//  TODO:  Allow actors to perform minor dialogue without distraction.
 
 
 public class Supervision extends Plan {
@@ -65,7 +69,6 @@ public class Supervision extends Plan {
   
   
   public boolean actionSupervise(Actor actor, Venue venue) {
-    //  TODO:  Various small chores?  Study?  Maintenance?  Gossip?  etc.
     return true ;
   }
   

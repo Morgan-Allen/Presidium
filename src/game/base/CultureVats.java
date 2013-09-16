@@ -77,19 +77,19 @@ public class CultureVats extends Venue implements BuildConstants {
   }
   
   
-  protected Service[] services() {
-    return new Service[] { STARCHES, PROTEIN, SOMA, MEDICINE } ;
+  public Service[] services() {
+    return new Service[] { CARBS, PROTEIN, SOMA, MEDICINE } ;
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.VAT_BREEDER } ;
+  protected Background[] careers() {
+    return new Background[] { Background.VAT_BREEDER } ;
   }
   
   
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Vocation.VAT_BREEDER) return nO + 2 ;
+    if (v == Background.VAT_BREEDER) return nO + 2 ;
     return 0 ;
   }
   

@@ -123,15 +123,20 @@ public class Dropship extends Vehicle implements
     */
   public Behaviour jobFor(Actor actor) {
     
-    //  TODO:  You'll have to restrict deliveries to certain venues, I think.
-    //  Have the customer come to you instead.
-    /*
+    //
+    //  TODO:  Have the depots themselves perform this task.
+    
+    final Batch <Venue> depots = nearbyDepots() ;
     final Delivery d = Delivery.nextDeliveryFrom(
-      this, actor, CARRIED_ITEM_TYPES
+      this, BuildConstants.ALL_CARRIED_ITEMS,
+      depots, 5, world, true
     ) ;
-    if (d != null) return d ;
-    if (actor.isDoing(Delivery.class)) return null ;
-    //*/
+    if (d != null) {
+      return d ;
+    }
+    
+    final Delivery c = Delivery.selectExports(depots, this, 5) ;
+    if (c != null) return c ;
     
     if (stage == STAGE_BOARDING) {
       final Action boardAction = new Action(
@@ -144,6 +149,18 @@ public class Dropship extends Vehicle implements
       return boardAction ;
     }
     return null ;
+  }
+  
+  
+  private Batch <Venue> nearbyDepots() {
+    //
+    //  TODO:  Include stock exchanges as well.
+    final Batch <Venue> depots = new Batch <Venue> () ;
+    for (Object o : world.presences.matchesNear(SupplyDepot.class, this, -1)) {
+      if (o == this) continue ;
+      depots.add((Venue) o) ;
+    }
+    return depots ;
   }
   
   

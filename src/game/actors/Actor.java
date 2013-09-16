@@ -75,8 +75,9 @@ public abstract class Actor extends Mobile implements
   protected MobilePathing initPathing() { return new MobilePathing(this) ; }
   
   public ActorGear inventory() { return gear ; }
+  public float priceFor(Service service) { return service.basePrice ; }
   
-  public Vocation vocation() { return null ; }
+  public Background vocation() { return null ; }
   
   public Object species() { return null ; }
   
@@ -139,10 +140,14 @@ public abstract class Actor extends Mobile implements
   
   
   protected void updateAsMobile() {
-    ///if (BaseUI.isPicked(this)) I.say("UPDATING ACTOR") ;
     super.updateAsMobile() ;
-    
     final boolean OK = health.conscious() ;
+    
+    if (! OK) pathing.updateTarget(null) ;
+    if (aboard instanceof Mobile && (pathing.nextStep() == aboard || ! OK)) {
+      aboard.position(nextPosition) ;
+    }
+    
     if (actionTaken != null && ! pathing.checkPathingOkay()) {
       world.schedule.scheduleNow(this) ;
     }
@@ -160,10 +165,6 @@ public abstract class Actor extends Mobile implements
       }
       else if (! pathing.checkPathingOkay()) {
       }
-    }
-    
-    if (aboard instanceof Mobile) {
-      aboard.position(nextPosition) ;
     }
   }
   
@@ -203,6 +204,7 @@ public abstract class Actor extends Mobile implements
       this, this, this, "actionFall",
       Action.FALL, "Stricken"
     ) ;
+    pathing.updateTarget(null) ;
     AI.cancelBehaviour(AI.rootBehaviour()) ;
     this.assignAction(falling) ;
   }

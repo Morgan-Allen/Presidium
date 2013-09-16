@@ -20,38 +20,28 @@ import src.util.* ;
 
 
 
-
-
-//Where do people earn money from?  Presumably, the sale of goods and
-//services.  You tack something on top of average buying price to determine
-//the selling price, and split the difference between the number of workers
-//over a given time frame, plus taxes to the state.  That's fair, right?
-//Okay.  Cool.
-
-
 //
-//  Implement offworld trade, and vehicle trades.  Plus, add upgrades for the
-//  stock exchange.  Make it useful!
+//  Add upgrades/functions for the stock exchange.  Debug cargo exchange.
 //
 //  Update farming/the vats/mining a bit (including minimum spacing?)
 //  A clearer factoring out of venue/actor batches in the AI.
 //  Have pollution effects impact health/life-support, and possibly change the
 //  landscape.
-//  
-//  Re-introduce external FX for items at venues.  Those were cool.
 //
+//  Micovores are retreating from prey too easily!  Find out why!
+//  
 //  Actors need to be automatically aware of persons attacking them, should
-//  call for help from allies, and need proper line of sight.
-/*
-Diplomacy and mood.  (Good relations are way too easy/quick at the moment.)
-
-Simplify the user interface, implement Powers, and add a Main Menu.  That's it.
-
-Walls/Roads and Power/Life Support are the next items, but those might require
-a bigger game.  Maybe *just* power.  Keep it simple.  Condensors for water, and
-from the Vault System.  Share with whole settlement.
-//*/
-
+//  call for help from allies, and need proper line of sight.  Add Security and
+//  Contact missions.
+//
+//  Add water and life support from biomass and other buildings.
+//  Test out demolition/salvaging of structures.
+//
+//  Tweak mechanics for diplomacy and citizen mood.  (Good relations are way
+//  too easy/quick at the moment.)
+//
+//  Simplify the user interface, implement Powers, and add a Main Menu.  That's
+//  it.
 
 
 public class DebugBehaviour extends PlayLoop implements BuildConstants {
@@ -189,20 +179,27 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     GameSettings.noFog     = true ;
     GameSettings.hireFree  = true ;
     GameSettings.buildFree = true ;
+    ///PlayLoop.rendering().port.cameraZoom = 2.0f ;
     
-    final Actor pilot = new Human(Vocation.SUPPLY_CORPS, base) ;
-    pilot.enterWorldAt(2, 2, world) ;
-    final Venue DA = establishVenue(new SupplyDepot(base), 4, 4 , true, pilot) ;
-    final Venue DB = establishVenue(new SupplyDepot(base), 4, 20, true) ;
+    base.incCredits(2000) ;
+    base.commerce.assignHomeworld(Background.PLANET_HALIBAN) ;
     
-    //final CargoBarge barge = ((SupplyDepot) DA).cargoBarge() ;
-    //barge.pathing.updateTarget(DB) ;
-    //((BaseUI) UI).selection.pushSelection(barge, true) ;
+    //
+    //  TODO:  Test out long-range transport again.
+    
+    
+    //final Venue DA = establishVenue(new SupplyDepot(base), 4, 4 , true, pilot) ;
+    //final Venue DB = establishVenue(new SupplyDepot(base), 4, 20, true) ;
     
     final Venue foundry = establishVenue(new Foundry(base), 4, 25, true) ;
-    DA.stocks.addItem(Item.withAmount(METALS, 100)) ;
-
-    ///((BaseUI) UI).selection.pushSelection(DA, true) ;
+    foundry.stocks.addItem(Item.withAmount(PARTS, 25)) ;
+    
+    final Venue exchange = new StockExchange(base) ;
+    establishVenue(exchange, 6, 6, true) ;
+    for (Service s : exchange.services()) {
+      exchange.stocks.addItem(s, 5 + (20 * Rand.num())) ;
+    }
+    
   }
   
   
@@ -222,14 +219,13 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     otherBase.setRelation(base, -1) ;
     otherBase.colour = Colour.CYAN ;
     
-    //*
     final Batch <Actor> allies = new Batch <Actor> () ;
     float sumPower = 0 ;
     for (int n = 5 ; n-- > 0 ;) {
-      final Actor actor = new Human(Vocation.SURVEYOR, base) ;
+      final Actor actor = new Human(Background.SURVEYOR, base) ;
       actor.setPosition(
         24 + Rand.range(-4, 4),
-        24 + Rand.range(-4,  4),
+        24 + Rand.range(-4, 4),
         world
       ) ;
       actor.enterWorld() ;
@@ -237,8 +233,7 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
       sumPower += Combat.combatStrength(actor, null) ;
       ///establishVenue(new SurveyorRedoubt(base), 4, 4, true, actor) ;
     }
-    I.say("TOTAL POWER OF ALLIES: "+sumPower) ;
-    //*/
+    ///I.say("TOTAL POWER OF ALLIES: "+sumPower) ;
     
     //*
     final EcologyGen EG = new EcologyGen() ;
@@ -268,8 +263,8 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     GameSettings.noFog = true ;
     GameSettings.buildFree = true ;
     
-    final Actor actor = new Human(Vocation.PHYSICIAN, base) ;
-    final Actor other = new Human(Vocation.VETERAN, base) ;
+    final Actor actor = new Human(Background.PHYSICIAN, base) ;
+    final Actor other = new Human(Background.VETERAN, base) ;
     other.health.takeInjury(other.health.maxHealth()) ;
     ((BaseUI) UI).selection.pushSelection(actor, true) ;
     
@@ -282,7 +277,7 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     //*/
     
     final EcologyGen EG = new EcologyGen() ;
-    EG.populateFlora(world) ;
+    //EG.populateFlora(world) ;
     ///EG.populateFauna(world, Species.VAREEN) ;
   }
   

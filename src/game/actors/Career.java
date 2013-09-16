@@ -21,11 +21,11 @@ public class Career implements ActorConstants {
   
   
   private Actor subject ;
-  private Vocation vocation, birth, homeworld ;
+  private Background vocation, birth, homeworld ;
   private String fullName = null ;
   
   
-  public Career(Vocation root) {
+  public Career(Background root) {
     vocation = root ;
   }
   
@@ -37,9 +37,9 @@ public class Career implements ActorConstants {
   
   public void loadState(Session s) throws Exception {
     subject = (Actor) s.loadObject() ;
-    vocation = Vocation.ALL_VOCATIONS[s.loadInt()] ;
-    birth = Vocation.ALL_VOCATIONS[s.loadInt()] ;
-    homeworld = Vocation.ALL_VOCATIONS[s.loadInt()] ;
+    vocation = Background.ALL_BACKGROUNDS[s.loadInt()] ;
+    birth = Background.ALL_BACKGROUNDS[s.loadInt()] ;
+    homeworld = Background.ALL_BACKGROUNDS[s.loadInt()] ;
     fullName = s.loadString() ;
   }
   
@@ -53,17 +53,17 @@ public class Career implements ActorConstants {
   }
   
   
-  public Vocation vocation() {
+  public Background vocation() {
     return vocation ;
   }
   
   
-  public Vocation birth() {
+  public Background birth() {
     return birth ;
   }
   
   
-  public Vocation homeworld() {
+  public Background homeworld() {
     return homeworld ;
   }
   
@@ -78,22 +78,22 @@ public class Career implements ActorConstants {
     */
   public void applyCareer(Human actor) {
     subject = actor ;
-    Vocation root = vocation ;
+    Background root = vocation ;
     //
     //  Firstly, determine a basic background suitable to the root vocation-
     Batch <Float> weights = new Batch <Float> () ;
-    for (Vocation v : Vocation.ALL_CLASSES) {
+    for (Background v : Background.ALL_CLASSES) {
       weights.add(rateSimilarity(root, v)) ;
     }
-    birth = (Vocation) Rand.pickFrom(
-      Vocation.ALL_CLASSES, weights.toArray()
+    birth = (Background) Rand.pickFrom(
+      Background.ALL_CLASSES, weights.toArray()
     ) ;
     weights.clear() ;
-    for (Vocation v : Vocation.ALL_PLANETS) {
+    for (Background v : Background.ALL_PLANETS) {
       weights.add(rateSimilarity(root, v)) ;
     }
-    homeworld = (Vocation) Rand.pickFrom(
-      Vocation.ALL_PLANETS, weights.toArray()
+    homeworld = (Background) Rand.pickFrom(
+      Background.ALL_PLANETS, weights.toArray()
     ) ;
     applyVocation(homeworld, actor) ;
     applyVocation(birth    , actor) ;
@@ -189,7 +189,7 @@ public class Career implements ActorConstants {
   //
   //  TODO:  Rate the actor's similarity, rather than the vocation's?  And
   //  check for similar traits?
-  private float rateSimilarity(Vocation next, Vocation prior) {
+  private float rateSimilarity(Background next, Background prior) {
     float rating = 1 ;
     //
     //  Check for similar skills.
@@ -208,14 +208,14 @@ public class Career implements ActorConstants {
   }
   
   
-  private float rateSimilarity(Skill s, Vocation a, Vocation b) {
+  private float rateSimilarity(Skill s, Background a, Background b) {
     Integer aL = a.baseSkills.get(s), bL = b.baseSkills.get(s) ;
     if (aL == null || bL == null) return 0 ;
     return (aL > bL) ? (bL / aL) : (aL / bL) ;
   }
   
   
-  private void applyVocation(Vocation v, Actor actor) {
+  private void applyVocation(Background v, Actor actor) {
     ///I.say("Applying vocation: "+v) ;
     
     for (Skill s : v.baseSkills.keySet()) {
@@ -234,7 +234,7 @@ public class Career implements ActorConstants {
   }
   
   
-  private void applyGear(Vocation v, Actor actor) {
+  private void applyGear(Background v, Actor actor) {
     for (Service gear : v.gear) {
       if (gear instanceof DeviceType) {
         actor.gear.equipDevice(Item.withQuality(gear, 2)) ;

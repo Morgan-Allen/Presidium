@@ -27,6 +27,18 @@ import src.util.* ;
 //  Health and Entertainment (averaged over all occupants.)
 //  Safety and Ambience (by location.)
 
+//  Sort of power, water, and life support requirements.  (Bear in mind that a
+//  a degree of life support should be provided by global biomass.)
+
+//  Life support- 1 per inhabitant.
+//  Power- for freeborn holdings or higher, 1 per tier.
+//  Water- for citizen apartments or higher, 1 per tier.
+
+//  pressfeed- for citizen apartments or higher.  Inscription for guildsmen.
+
+//
+//  ...You have to make sure that provisions aren't made a target for
+//  deliveries.
 
 
 public class Holding extends Venue implements BuildConstants {
@@ -45,16 +57,20 @@ public class Holding extends Venue implements BuildConstants {
       TRIVIAL_DC, ASSEMBLY
     ),
     new Conversion(
-      1, PARTS, SIMPLE_DC, ASSEMBLY
+      1, PARTS,
+      SIMPLE_DC, ASSEMBLY
     ),
     new Conversion(
-      2, PARTS, 1, PLASTICS, ROUTINE_DC, ASSEMBLY
+      2, PARTS, 1, PLASTICS,
+      ROUTINE_DC, ASSEMBLY
     ),
     new Conversion(
-      3, PARTS, 2, PLASTICS, TRICKY_DC, ASSEMBLY
+      3, PARTS, 2, PLASTICS,
+      TRICKY_DC, ASSEMBLY
     ),
     new Conversion(
-      4, PARTS, 3, PLASTICS, 1, INSCRIPTION, DIFFICULT_DC, ASSEMBLY
+      4, PARTS, 3, PLASTICS, 1, CIRCUITS,
+      DIFFICULT_DC, ASSEMBLY
     ),
   } ;
   final static int
@@ -63,14 +79,15 @@ public class Holding extends Venue implements BuildConstants {
     INTEGRITIES[] = { 15, 35, 80, 125, 200 },
     BUILD_COSTS[] = { 25, 60, 135, 225, 350 } ;
   final static String LEVEL_NAMES[] = {
-    "Dreg Towers",
+    "Dreg Hives",
     "Scavenger Slums",
     "Field Tent",
     "Pyon Shacks",
     "Freeborn Holding",
     "Citizen Apartment",
-    "Guildsman Manse",
-    "Highborn Estate"
+    "Guilder Manse",
+    "Knighted Estate",
+    "Highborn Palace"
   } ;
   
   
@@ -130,7 +147,7 @@ public class Holding extends Venue implements BuildConstants {
       "Citizen Apartment", "", 0, null, 0, FREEBORN_LEVEL, ALL_UPGRADES
     ),
     GUILDSMAN_LEVEL = new Upgrade(
-      "Guildsman Manse", "", 0, null, 0, CITIZEN_LEVEL, ALL_UPGRADES
+      "Guilder Manse", "", 0, null, 0, CITIZEN_LEVEL, ALL_UPGRADES
     ) ;
   
   
@@ -150,19 +167,24 @@ public class Holding extends Venue implements BuildConstants {
     }
     for (Item i : goodsNeeded(upgradeLevel + 1).raw) {
       if (! stocks.hasItem(i)) upgrade = false ;
-      stocks.incDemand(i.type, i.amount + margin, 0) ;
+      stocks.forceDemand(i.type, i.amount + margin) ;
     }
     final float foodNeed = personnel.residents().size() * (1 + margin) * 2 ;
     for (Service t : ALL_FOOD_TYPES) {
-      stocks.incDemand(t, foodNeed, 0) ;
+      stocks.forceDemand(t, foodNeed) ;
     }
+    int targetLevel = upgradeLevel ;
     //
     //  Update demands for power, water and life support-
-    stocks.incDemand(POWER, upgradeLevel + 1, 0) ;
-    stocks.removeItem(Item.withAmount(POWER, 0.1f)) ;
+    //  TODO:  Put this in a separate method...
+    if (targetLevel > 1) {
+      stocks.forceDemand(POWER, targetLevel - 1) ;
+    }
+    if (upgradeLevel > 1) {
+      stocks.removeItem(Item.withAmount(POWER, 0.1f * (upgradeLevel - 1))) ;
+    }
     //
     //  If so, we update the target upgrade level for the venue-
-    int targetLevel = upgradeLevel ;
     if (devolve) targetLevel = upgradeLevel - 1 ;
     else if (upgrade) targetLevel = upgradeLevel + 1 ;
     targetLevel = Visit.clamp(targetLevel, NUM_LEVELS) ;
@@ -208,7 +230,7 @@ public class Holding extends Venue implements BuildConstants {
     //
     //  Enough raw materials to allow construction-
     for (Item item : goodsNeeded(upgradeLevel + 1).raw) {
-      if (item.type.form != BuildConstants.COMMODITY) continue ;
+      if (item.type.form != BuildConstants.FORM_COMMODITY) continue ;
       final float amount = item.amount - stocks.amountOf(item) ;
       if (amount <= 0) continue ;
       needed.add(Item.withAmount(item, amount + 0.5f)) ;
@@ -226,8 +248,13 @@ public class Holding extends Venue implements BuildConstants {
   
   
   public Behaviour jobFor(Actor actor) { return null ; }
-  protected Vocation[] careers() { return new Vocation[0] ; }
-  protected Service[] services() { return new Service[0] ; }
+  protected Background[] careers() { return new Background[0] ; }
+  public Service[] services() { return new Service[0] ; }
+  
+  
+  public boolean privateProperty() {
+    return true ;
+  }
   
   
   

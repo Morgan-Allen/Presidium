@@ -15,7 +15,7 @@ public class DebugHumanMedia extends ViewLoop {
   
   
   static int numHumans = 16 ;
-  static Vocation vocations[] = Vocation.ALL_VOCATIONS ;
+  static Background vocations[] = Background.ALL_BACKGROUNDS ;
   static String animName = Action.FIRE ;
   
   Batch <Human> generated = new Batch <Human> () ;
@@ -30,7 +30,7 @@ public class DebugHumanMedia extends ViewLoop {
     int i = 0 ;
     
     for (Coord c : Visit.grid(0, 0, gridSize, gridSize, 1)) {
-      final Vocation v = (Vocation) Rand.pickFrom(vocations) ;
+      final Background v = (Background) Rand.pickFrom(vocations) ;
       final Human human = new Human(v, null) ;
       generated.add(human) ;
       final JointSprite s = (JointSprite) human.sprite() ;

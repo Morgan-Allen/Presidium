@@ -73,20 +73,20 @@ public class Fabricator extends Venue implements BuildConstants {
   }
   
   
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     int NO = super.numOpenings(v) ;
-    if (v == Vocation.FABRICATOR) return NO + 2 ;
+    if (v == Background.FABRICATOR) return NO + 2 ;
     return 0 ;
   }
   
   
-  protected Service[] services() {
+  public Service[] services() {
     return new Service[] { PLASTICS, FINERY, CAMOUFLAGE, SEALSUIT } ;
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.FABRICATOR } ;
+  protected Background[] careers() {
+    return new Background[] { Background.FABRICATOR } ;
   }
   
   

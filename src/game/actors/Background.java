@@ -8,11 +8,12 @@
 package src.game.actors ;
 import src.game.building.* ;
 import src.graphics.common.* ;
+import src.game.campaign.System ;
 import src.util.* ;
 
 
 
-public class Vocation implements BuildConstants {
+public class Background implements BuildConstants {
   
   
   
@@ -35,85 +36,97 @@ public class Vocation implements BuildConstants {
     UPPER_CLASS  =  3,
     RULER_CLASS  =  4 ;
   final public static int HIRE_COSTS[] = {
-    50, 150, 250, 500, 1000
+    50, 150, 250, 500, 1000  //Represents 10 days' salary...
   } ;
   
   
+  final protected static Object
+    MAKES = new Object(),
+    NEEDS = new Object() ;
+  
   final static String COSTUME_DIR = "media/Actors/human/" ;
   
-  static int nextID = 0 ;
+  private static int nextID = 0 ;
   final public int ID = nextID++ ;
-  private static Batch <Vocation> all = new Batch() ;
+  private static Batch <Background> all = new Batch() ;
   
   
-  
-  final public static Vocation
+  final public static System
     //
     //  Some simplifying assumptions in place for now.  These will later be
     //  replaced by more detailed planetary descriptors, including gravity,
     //  culture, ruling house, local factional interests, et cetera.
-    PLANET_ASRA_NOVI = new Vocation(
-      "Asra Novi"  , null, null, -1,
-      ALWAYS, DESERT_BLOOD
+    PLANET_ASRA_NOVI = new System(
+      "Asra Novi"  , null, 0, 1,
+      ALWAYS, DESERT_BLOOD,
+      MAKES, SOMA, PLASTICS, DECOR,
+      NEEDS, WATER, SERVICE_CAPTIVES, SPICE
     ),
-    PLANET_PAREM_V = new Vocation(
-      "Parem V"  , null, null, -1,
-      ALWAYS, WASTES_BLOOD
+    PLANET_PAREM_V = new System(
+      "Parem V"  , null, 1, 1,
+      ALWAYS, WASTES_BLOOD,
+      MAKES, PARTS, DATALINKS, SERVICE_CAPTIVES,
+      NEEDS, P_CARBONS, DECOR, RELICS
     ),
-    PLANET_HALIBAN = new Vocation(
-      "Theta Rho", null, null, -1,
-      ALWAYS, FOREST_BLOOD
+    PLANET_HALIBAN = new System(
+      "Haliban", null, 0, 0,
+      ALWAYS, FOREST_BLOOD,
+      MAKES, CARBS, GREENS, P_CARBONS,
+      NEEDS, SERVICE_ARMAMENT, PARTS, MEDICINE
     ),
-    PLANET_AXIS_NOVENA = new Vocation(
-      "Axis Novena", null, null, -1,
-      ALWAYS, TUNDRA_BLOOD
+    PLANET_NOVENA = new System(
+      "Novena", null, 1, 0,
+      ALWAYS, TUNDRA_BLOOD,
+      MAKES, CIRCUITS, MEDICINE, SERVICE_SHIPPING,
+      NEEDS, GREENS, ORES, FUEL_CORES
     ),
+    
     ALL_PLANETS[] = {
-      PLANET_ASRA_NOVI, PLANET_PAREM_V, PLANET_HALIBAN, PLANET_AXIS_NOVENA
+      PLANET_ASRA_NOVI, PLANET_PAREM_V, PLANET_HALIBAN, PLANET_NOVENA
     } ;
   
   
-  final public static Vocation
-    NATIVE_BIRTH = new Vocation(
+  final public static Background
+    NATIVE_BIRTH = new Background(
       "Native Birth", "native_skin.gif", null, SLAVE_CLASS
     ),
-    PYON_BIRTH = new Vocation(
+    PYON_BIRTH = new Background(
       "Pyon Birth", "pyon_skin.gif", null, LOWER_CLASS
     ),
-    CITIZEN_BIRTH = new Vocation(
+    CITIZEN_BIRTH = new Background(
       "Citizen Birth", "citizen_skin.gif", null, UPPER_CLASS
     ),
-    HIGH_BIRTH = new Vocation(
+    HIGH_BIRTH = new Background(
       "High Birth", "highborn_male_skin.gif", null, RULER_CLASS
     ),
     ALL_CLASSES[] = { PYON_BIRTH, CITIZEN_BIRTH } ;
   
   
   
-  final public static Vocation
+  final public static Background
     
-    EXCAVATOR = new Vocation(
+    EXCAVATOR = new Background(
       "Excavator", "pyon_skin.gif", null,
       SLAVE_CLASS,
       EXPERT, HARD_LABOUR, PRACTICED, GEOPHYSICS, NOVICE, ASSEMBLY,
       OFTEN, STUBBORN, RARELY, NERVOUS, HANDSOME
     ),
     
-    TECHNICIAN = new Vocation(
+    TECHNICIAN = new Background(
       "Technician", "artificer_skin.gif", "artificer_portrait.png",
       LOWER_CLASS,
       PRACTICED, ASSEMBLY, HARD_LABOUR, NOVICE, FIELD_THEORY,
       SOMETIMES, DUTIFUL, RARELY, INDOLENT
     ),
     
-    CORE_TECHNICIAN = new Vocation(
+    CORE_TECHNICIAN = new Background(
       "Core Technician", "citizen_skin.gif", "artificer_portrait.png",
       MIDDLE_CLASS,
       EXPERT, FIELD_THEORY, PRACTICED, CHEMISTRY, NOVICE, SHIELD_AND_ARMOUR,
       OFTEN, DUTIFUL, SOMETIMES, NERVOUS
     ),
     
-    ARTIFICER = new Vocation(
+    ARTIFICER = new Background(
       "Artificer", "artificer_skin.gif", "artificer_portrait.png",
       UPPER_CLASS,
       EXPERT, ASSEMBLY, PRACTICED, FIELD_THEORY, CHEMISTRY,
@@ -122,30 +135,30 @@ public class Vocation implements BuildConstants {
     )
   ;
 
-  final public static Vocation
+  final public static Background
     
-    VAT_BREEDER = new Vocation(
-      "Vat Breeder", "citizen_skin.gif", null,
-      MIDDLE_CLASS,
-      PRACTICED, GENE_CULTURE, PHARMACY, NOVICE, CHEMISTRY, ASSEMBLY,
-      RARELY, DEBAUCHED, INDOLENT
-    ),
-    
-    MINDER = new Vocation(
+    MINDER = new Background(
       "Minder", "citizen_skin.gif", null,
       MIDDLE_CLASS,
       PRACTICED, DOMESTIC_SERVICE, SUASION, NOVICE, ANATOMY, PHARMACY,
       OFTEN, EMPATHIC, SOMETIMES, STUBBORN
     ),
     
-    ARCHIVIST = new Vocation(
+    VAT_BREEDER = new Background(
+      "Vat Breeder", "citizen_skin.gif", null,
+      MIDDLE_CLASS,
+      PRACTICED, GENE_CULTURE, PHARMACY, CHEMISTRY,
+      RARELY, DEBAUCHED, INDOLENT
+    ),
+    
+    ARCHIVIST = new Background(
       "Archivist", "citizen_skin.gif", null,
       MIDDLE_CLASS,
-      PRACTICED, ADMINISTRATION, LOGOS_MENSA, NOVICE, COUNSEL, ASSEMBLY,
+      PRACTICED, ADMINISTRATION, LOGOS_MENSA, NOVICE, COUNSEL,
       ALWAYS, INQUISITIVE, SOMETIMES, NERVOUS, IMPASSIVE
     ),
 
-    PHYSICIAN = new Vocation(
+    PHYSICIAN = new Background(
       "Physician", "physician_skin.gif", "physician_portrait.png",
       UPPER_CLASS,
       EXPERT, ANATOMY, PHARMACY, PRACTICED, GENE_CULTURE, LOGOS_MENSA,
@@ -154,16 +167,25 @@ public class Vocation implements BuildConstants {
     )
   ;
   
-  final public static Vocation
+  final public static Background
     
-    FIELD_HAND = new Vocation(
+    FIELD_HAND = new Background(
       "Field Hand", "pyon_skin.gif", null,
       LOWER_CLASS,
       PRACTICED, CULTIVATION, HARD_LABOUR, NOVICE, DOMESTIC_SERVICE,
       OFTEN, SOCIABLE, SOMETIMES, NATURALIST, RARELY, AMBITIOUS
     ),
     
-    SURVEYOR = new Vocation(
+    CLIMATE_ENGINEER = new Background(
+      "Climate Engineer", "ecologist_skin.gif", null,
+      MIDDLE_CLASS,
+      PRACTICED, GEOPHYSICS, ASSEMBLY, HARD_LABOUR,
+      NOVICE, GENE_CULTURE, XENOBIOLOGY, SURVEILLANCE,
+      RARELY, SOCIABLE, OFTEN, OPTIMISTIC,
+      CAMOUFLAGE
+    ),
+    
+    SURVEYOR = new Background(
       "Surveyor", "ecologist_skin.gif", "ecologist_portrait.png",
       MIDDLE_CLASS,
       EXPERT, XENOBIOLOGY, SURVEILLANCE, STEALTH_AND_COVER,
@@ -173,101 +195,116 @@ public class Vocation implements BuildConstants {
       PHASE_BLASTER, CAMOUFLAGE
     ),
     
-    ECOLOGIST = new Vocation(
+    ECOLOGIST = new Background(
       "Ecologist", "ecologist_skin.gif", "ecologist_portrait.png",
       UPPER_CLASS,
       EXPERT, CULTIVATION, PRACTICED, GENE_CULTURE, XENOBIOLOGY,
-      NOVICE, GEOPHYSICS, CHEMISTRY,
+      PRACTICED, GEOPHYSICS, CHEMISTRY,
       ALWAYS, NATURALIST, SOMETIMES, EMPATHIC, INQUISITIVE
     )
   ;
   
-  final public static Vocation
+  final public static Background
     
-    SUPPLY_CORPS = new Vocation(
+    SUPPLY_CORPS = new Background(
       "Supply Corps", "pyon_skin.gif", null,
       LOWER_CLASS,
-      NOVICE, PILOTING, ASSEMBLY, HARD_LABOUR,
+      NOVICE, PILOTING, HARD_LABOUR,
       OFTEN, INDOLENT, RARELY, AMBITIOUS
     ),
     
-    STOCK_VENDOR = new Vocation(
-      "Stock Vendor", "vendor_skin.gif", "vendor_portrait.png",
-      LOWER_CLASS,
-      NOVICE, SUASION, HARD_LABOUR, ADMINISTRATION
-    ),
-    
-    SOMA_VENDOR = new Vocation(
-      "Soma Vendor", "vendor_skin.gif", "vendor_portrait.png",
+    SOMA_VENDOR = new Background(
+      "Soma Vendor", "vendor_skin.gif", null,
       MIDDLE_CLASS,
       PRACTICED, COUNSEL, SUASION, NOVICE, DOMESTIC_SERVICE, CHEMISTRY,
       ADMINISTRATION,
       SOMETIMES, ACQUISITIVE
     ),
     
-    AUDITOR = new Vocation(
+    STOCK_VENDOR = new Background(
+      "Stock Vendor", "vendor_skin.gif", "vendor_portrait.png",
+      MIDDLE_CLASS,
+      NOVICE, SUASION, HARD_LABOUR, ADMINISTRATION
+    ),
+    
+    AUDITOR = new Background(
       "Auditor", "vendor_skin.gif", "vendor_portrait.png",
       UPPER_CLASS,
       EXPERT, COUNSEL, ADMINISTRATION, PRACTICED, COMMAND, LOGOS_MENSA,
       ALWAYS, STUBBORN, OFTEN, DUTIFUL,
       SOMETIMES, AMBITIOUS, IMPASSIVE, RARELY, DEBAUCHED
-    ) ;
+    )
+  ;
   
-  
-  final public static Vocation
+  final public static Background
     
-    //  Volunteer, Mercenary, Mech Trooper, etc.
-    VOLUNTEER = new Vocation(
+    VOLUNTEER = new Background(
       "Volunteer", "militant_skin.gif", "militant_portrait.png",
       LOWER_CLASS,
-      PRACTICED, CLOSE_COMBAT, MARKSMANSHIP, NOVICE, SURVEILLANCE,
-      ASSEMBLY, HARD_LABOUR,
-      SOMETIMES, DUTIFUL, AGGRESSIVE,
+      PRACTICED, CLOSE_COMBAT, MARKSMANSHIP,
+      NOVICE, SURVEILLANCE, ASSEMBLY, HARD_LABOUR, SHIELD_AND_ARMOUR,
+      SOMETIMES, DUTIFUL, AGGRESSIVE, RARELY, NERVOUS, FEMININE,
       SHOCK_STAFF, BODY_ARMOUR
     ),
     
-    VETERAN = new Vocation(
+    RUNNER = new Background(
+      "Runner", "runner_skin.gif", "vendor_portrait.png",
+      MIDDLE_CLASS,
+      EXPERT, PILOTING, MARKSMANSHIP, STEALTH_AND_COVER,
+      PRACTICED, SUASION, SURVEILLANCE, DISGUISE,
+      OFTEN, ACQUISITIVE, SOMETIMES, NERVOUS,
+      PHASE_BLASTER, CAMOUFLAGE
+    ),
+    
+    TECH_RESERVE = new Background(
+      "Tech Reserve", "artificer_skin.gif", "artificer_portrait.png",
+      MIDDLE_CLASS,
+      PRACTICED, HARD_LABOUR, ASSEMBLY, MARKSMANSHIP,
+      NOVICE, ANATOMY, PHARMACY, COMMAND,
+      RARELY, SOCIABLE, SOMETIMES, HONOURABLE,
+      PHASE_BLASTER
+    ),
+    
+    VETERAN = new Background(
       "Veteran", "militant_skin.gif", "militant_portrait.png",
       UPPER_CLASS,
       EXPERT, CLOSE_COMBAT, MARKSMANSHIP, PRACTICED, SURVEILLANCE,
-      BATTLE_TACTICS, COMMAND,
-      OFTEN, DUTIFUL, SOMETIMES, STUBBORN, AMBITIOUS,
+      BATTLE_TACTICS, COMMAND, SHIELD_AND_ARMOUR,
+      OFTEN, DUTIFUL, SOMETIMES, STUBBORN, AMBITIOUS, NEVER, NERVOUS,
       SHOCK_STAFF, BODY_ARMOUR
-    ),
-    
-    RUNNER = new Vocation(
-      "Runner", "runner_skin.gif", "vendor_portrait.png", LOWER_CLASS,
-      EXPERT, PILOTING, MARKSMANSHIP, STEALTH_AND_COVER,
-      PRACTICED, SUASION, SURVEILLANCE, DISGUISE,
-      OFTEN, ACQUISITIVE, NERVOUS,
-      PHASE_BLASTER, CAMOUFLAGE
     ) ;
   
   
-  final public static Vocation
+  final public static Background
     
-    PERFORMER = new Vocation(
+    PERFORMER = new Background(
       "Performer", "aesthete_male_skin.gif", "aesthete_portrait.png",
       LOWER_CLASS,
-      NOVICE, CARNAL_PLEASURE, DISGUISE, PRACTICED, MUSIC_AND_SONG,
-      OFTEN, HANDSOME, RARELY, STUBBORN
+      PRACTICED, MUSIC_AND_SONG, NOVICE, CARNAL_PLEASURE, DISGUISE,
+      OFTEN, HANDSOME, SOMETIMES, EMPATHIC
     ),
     
-    CENSOR = new Vocation(
-      "Censor", "citizen_skin.gif", null,
-      UPPER_CLASS,
-      EXPERT, SUASION, GRAPHIC_MEDIA, NOVICE, ADMINISTRATION,
-      RARELY, HONOURABLE, INDOLENT, OFTEN, AMBITIOUS
-    ),
-    
-    FABRICATOR = new Vocation(
+    FABRICATOR = new Background(
       "Fabricator", "citizen_skin.gif", null,
       MIDDLE_CLASS,
-      PRACTICED, CHEMISTRY, NOVICE, HARD_LABOUR, CHEMISTRY, GRAPHIC_MEDIA,
-      SOMETIMES, STUBBORN
+      PRACTICED, CHEMISTRY, GRAPHIC_MEDIA, NOVICE, HARD_LABOUR,
+      SOMETIMES, STUBBORN, NERVOUS
     ),
     
-    COMPANION = new Vocation(
+    //
+    //  TODO:  Cut out the Companion for now, replace with Sculptor?  I'm not
+    //  planning to implement their venue for a while.
+    //SCULPTOR = new Vocation(),
+    
+    PROPAGANDIST = new Background(
+      "Propagandist", "citizen_skin.gif", null,
+      UPPER_CLASS,
+      EXPERT, GRAPHIC_MEDIA, SUASION, PRACTICED, MUSIC_AND_SONG, COUNSEL,
+      NOVICE, ADMINISTRATION, LOGOS_MENSA,
+      RARELY, HONOURABLE, STUBBORN, OFTEN, AMBITIOUS
+    ),
+    
+    COMPANION = new Background(
       "Companion", "aesthete_male_skin.gif", "aesthete_portrait.png",
       UPPER_CLASS,
       EXPERT, CARNAL_PLEASURE, COUNSEL, SUASION, DISGUISE,
@@ -275,9 +312,8 @@ public class Vocation implements BuildConstants {
       ALWAYS, HANDSOME, OFTEN, FEMININE, EMPATHIC, TALL, RARELY, STOUT
     ) ;
   
-  
-  final public static Vocation
-    ALL_VOCATIONS[] = (Vocation[]) all.toArray(Vocation.class) ;
+  final public static Background
+    ALL_BACKGROUNDS[] = (Background[]) all.toArray(Background.class) ;
   
   
   
@@ -293,7 +329,7 @@ public class Vocation implements BuildConstants {
   
   
   
-  Vocation(
+  protected Background(
     String name, String costumeTex, String portraitTex,
     int standing, Object... args
   ) {

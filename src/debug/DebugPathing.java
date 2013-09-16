@@ -152,7 +152,7 @@ public class DebugPathing extends PlayLoop {
     */
   private void introduceCitizen(Tile free) {
     if (free == null) return ;
-    citizen = new Human(Vocation.ARTIFICER, played()) ;
+    citizen = new Human(Background.ARTIFICER, played()) ;
     citizen.enterWorldAt(free.x, free.y, world()) ;
     ((BaseUI) currentUI()).selection.pushSelection(citizen, true) ;
   }

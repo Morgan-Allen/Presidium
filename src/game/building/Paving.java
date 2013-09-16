@@ -207,7 +207,7 @@ public class Paving {
       if (routes == null) {
         final Venue v = (Venue) next ;
         reached.add(v) ;
-        for (Tile t : Spacing.perimeter(v.area(), world)) {
+        for (Tile t : Spacing.perimeter(v.area(), world)) if (t != null) {
           if (t.owner() instanceof Venue) insertA(t.owner()) ;
           else if (tileRoutes.get(t) != null) insertA(t) ;
         }

@@ -36,6 +36,7 @@ public class Foundry extends Venue implements BuildConstants {
     ) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     this.attachSprite(MODEL.makeSprite()) ;
+    //this.attachItemSprites(PARTS) ;
   }
   
   
@@ -78,7 +79,7 @@ public class Foundry extends Venue implements BuildConstants {
       "common machinery, but lack the theoretical grounding needed for "+
       "fundamental design or customisation.",
       50,
-      Vocation.TECHNICIAN, 2, null, ALL_UPGRADES
+      Background.TECHNICIAN, 2, null, ALL_UPGRADES
     ),
     COMPOSITE_MATERIALS = new Upgrade(
       "Composite Materials",
@@ -101,11 +102,11 @@ public class Foundry extends Venue implements BuildConstants {
       "tackle the most taxing commissions reliant on dangerous or arcane "+
       "technologies.",
       150,
-      Vocation.ARTIFICER, 1, TECHNICIAN_QUARTERS, ALL_UPGRADES
+      Background.ARTIFICER, 1, TECHNICIAN_QUARTERS, ALL_UPGRADES
     ) ;
   
   
-  protected Service[] services() {
+  public Service[] services() {
     return new Service[] {
       PARTS, SHOCK_STAFF, PHASE_BLASTER,
       SHIELD_BELT, BODY_ARMOUR, GOLEM_ARMOUR
@@ -113,15 +114,15 @@ public class Foundry extends Venue implements BuildConstants {
   }
   
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.TECHNICIAN, Vocation.ARTIFICER } ;
+  protected Background[] careers() {
+    return new Background[] { Background.TECHNICIAN, Background.ARTIFICER } ;
   }
   
   
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     int num = super.numOpenings(v) ;
-    if (v == Vocation.TECHNICIAN) return num + 2 ;
-    if (v == Vocation.ARTIFICER ) return num + 0 ;
+    if (v == Background.TECHNICIAN) return num + 2 ;
+    if (v == Background.ARTIFICER ) return num + 0 ;
     return 0 ;
   }
   
@@ -129,7 +130,7 @@ public class Foundry extends Venue implements BuildConstants {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     
-    if (stocks.shortageOf(PARTS) < 10) stocks.incDemand(PARTS, 10, 0) ;
+    if (stocks.demandFor(PARTS) < 10) stocks.forceDemand(PARTS, 10) ;
     stocks.translateDemands(METALS_TO_PARTS) ;
   }
   

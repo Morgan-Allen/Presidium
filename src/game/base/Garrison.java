@@ -83,30 +83,30 @@ public class Garrison extends Venue implements BuildConstants {
       "Dedicated in defence of their homes, a volunteer militia provides the "+
       "mainstay of your domestic forces.",
       50,
-      Vocation.VOLUNTEER, 2, null, ALL_UPGRADES
+      Background.VOLUNTEER, 2, null, ALL_UPGRADES
     ),
     VETERAN_QUARTERS = new Upgrade(
       "Veteran Quarters",
       "Seasoned professional soldiers, veterans provide the backbone of your "+
       "officer corps and command structure.",
       150,
-      Vocation.VETERAN, 1, null, ALL_UPGRADES
+      Background.VETERAN, 1, null, ALL_UPGRADES
     ) ;
   
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.VOLUNTEER, Vocation.VETERAN } ;
+  protected Background[] careers() {
+    return new Background[] { Background.VOLUNTEER, Background.VETERAN } ;
   }
   
   
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     int num = super.numOpenings(v) ;
-    if (v == Vocation.VOLUNTEER) return num + 4 ;
-    if (v == Vocation.VETERAN  ) return num + 1 ;
+    if (v == Background.VOLUNTEER) return num + 4 ;
+    if (v == Background.VETERAN  ) return num + 1 ;
     return 0 ;
   }
   
   
-  protected Service[] services() {
+  public Service[] services() {
     return new Service[] {} ;
   }
   

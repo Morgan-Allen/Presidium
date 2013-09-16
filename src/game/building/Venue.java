@@ -18,6 +18,7 @@ import src.util.* ;
 
 
 
+
 public abstract class Venue extends Fixture implements
   Schedule.Updates, Boardable, Installation,
   Inventory.Owner, ActorAI.Employment,
@@ -43,6 +44,7 @@ public abstract class Venue extends Fixture implements
   
   BuildingSprite buildSprite ;
   Healthbar healthbar ;
+  final public TalkFX chat = new TalkFX() ;
   
   int entranceFace ;
   Tile entrance ;
@@ -51,8 +53,7 @@ public abstract class Venue extends Fixture implements
   List <Mobile> inside = new List <Mobile> () ;
   
   final public VenuePersonnel personnel = new VenuePersonnel(this) ;
-  //final public VenueStocks stocks = new VenueStocks(this) ;
-  final public VenueStocks stocks = new VenueStocks(this) ;
+  final public VenueStocks    stocks    = new VenueStocks(this)    ;
   final public VenueStructure structure = new VenueStructure(this) ;
   
   
@@ -93,10 +94,14 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  public int owningType() { return VENUE_OWNS ; }
   public Inventory inventory() { return stocks ; }
-  public Base base() { return base ; }
+  public float priceFor(Service service) { return stocks.priceFor(service) ; }
   protected Index <Upgrade> allUpgrades() { return null ; }
+
+  public int owningType() { return VENUE_OWNS ; }
+  public Base base() { return base ; }
+  
+  protected BuildingSprite buildSprite() { return buildSprite ; }
   
   
   
@@ -275,7 +280,7 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     return structure.upgradeBonus(v) - personnel.numPositions(v) ;
   }
   
@@ -283,14 +288,19 @@ public abstract class Venue extends Fixture implements
   //  Careers, services, goods produced, and goods required.  Space has to be
   //  reserved for both item-orders and service-seating.  And what about shifts
   //  at work?
-  protected abstract Vocation[] careers() ;
-  protected abstract Service[] services() ;
+  protected abstract Background[] careers() ;
+  public abstract Service[] services() ;
   
   
   public boolean isManned() {
     for (Actor a : personnel.workers) {
       if (a.health.conscious() && a.aboard() == this) return true ;
     }
+    return false ;
+  }
+  
+  
+  public boolean privateProperty() {
     return false ;
   }
   
@@ -382,14 +392,37 @@ public abstract class Venue extends Fixture implements
     
     d.append("\n\nStocks and Orders:") ;
     boolean empty = true ;
-    for (String order : stocks.ordersDesc()) {
-      d.append("\n  "+order) ; empty = false ;
+    for (Service type : BuildConstants.ALL_ITEM_TYPES) {
+      if (describeStocks(type, d)) empty = false ;
     }
     for (Manufacture m : stocks.specialOrders()) {
       d.append("\n  ") ; m.describeBehaviour(d) ; empty = false ;
     }
     if (empty) d.append("\n  No stocks or orders.") ;
   }
+  
+  
+  protected boolean describeStocks(Service type, Description d) {
+    final int needed ;
+    if (this instanceof Service.Trade) {
+      final Service.Trade trade = (Service.Trade) this ;
+      needed = (int) Math.ceil(Math.max(
+        trade.exportDemand(type),
+        trade.importDemand(type)
+      )) ;
+    }
+    else needed = (int) Math.ceil(stocks.demandFor(type)) ;
+    final int amount = (int) Math.ceil(stocks.amountOf(type) ) ;
+    if (needed == 0 && amount == 0) return false ;
+    
+    if (Visit.arrayIncludes(services(), type)) {
+      final int price  = (int) Math.ceil(priceFor(type)) ;
+      d.append("\n  "+type.name+" "+amount+"/"+needed+" (Price "+price+")") ;
+    }
+    else d.append("\n  "+type.name+" "+amount+"/"+needed) ;
+    return true ;
+  }
+  
   
   
   private void describePersonnel(Description d, HUD UI) {
@@ -407,18 +440,19 @@ public abstract class Venue extends Fixture implements
     
     d.append("\n\nVacancies and Applications:") ;
     boolean none = true ;
-    if (careers() != null) for (Vocation v : careers()) {
+    if (careers() != null) for (Background v : careers()) {
       final int numOpen = numOpenings(v) ;
       if (numOpen > 0) none = false ;
       if (numOpen > 0) d.append("\n  "+numOpen+" "+v.name+" vacancies") ;
     }
-    for (final VenuePersonnel.Application app : personnel.applications) {
+    for (final VenuePersonnel.Position p : personnel.positions) {
+      if (p.wages != -1) continue ;
       none = false ;
       d.append("\n  ") ;
-      d.append(app.applies) ;
-      d.append("\n  ("+app.signingCost+" credits) ") ;
+      d.append(p.works) ;
+      d.append("\n  ("+p.salary+" credits) ") ;
       d.append(new Description.Link("HIRE") {
-        public void whenClicked() { personnel.confirmApplication(app) ; }
+        public void whenClicked() { personnel.confirmApplication(p) ; }
       }) ;
     }
     if (none) d.append("\n  No vacancies or applications.") ;
@@ -455,14 +489,14 @@ public abstract class Venue extends Fixture implements
         d.append(" (x"+structure.upgradeLevel(upgrade)+")") ;
       }
       if (lastCU != null) {
-        d.append("\n\nDescription: ") ;
-        d.append(lastCU.description) ;
-        if (lastCU.required != null) {
-          d.append("\nRequires: "+lastCU.required.name) ;
-        }
         d.append("\n\n") ;
+        d.append(lastCU.description) ;
+        d.append("\n  Cost: "+lastCU.buildCost+"   ") ;
+        if (lastCU.required != null) {
+          d.append("\n  Requires: "+lastCU.required.name) ;
+        }
         if (structure.upgradePossible(lastCU)) {
-          d.append(new Description.Link("BEGIN UPGRADE") {
+          d.append(new Description.Link("\n  BEGIN UPGRADE") {
             public void whenClicked() {
               structure.beginUpgrade(lastCU, false) ;
             }
@@ -533,6 +567,75 @@ public abstract class Venue extends Fixture implements
   }
   
   
+  protected void toggleStatusDisplay() {
+    final boolean burns = structure.burning() ;
+    buildSprite.toggleFX(BuildingSprite.BLAST_MODEL, burns) ;
+    
+    final float t = 0.5f ;
+    final boolean noLS = stocks.shortageOf(BuildConstants.LIFE_SUPPORT) >= t ;
+    buildSprite.toggleFX(BuildConstants.LIFE_SUPPORT.model, noLS) ;
+    final boolean noPower = stocks.shortageOf(BuildConstants.POWER) >= t ;
+    buildSprite.toggleFX(BuildConstants.POWER.model, noPower) ;
+    final boolean noWater = stocks.shortageOf(BuildConstants.WATER) >= t ;
+    buildSprite.toggleFX(BuildConstants.WATER.model, noWater) ;
+    final boolean noDL = stocks.shortageOf(BuildConstants.DATALINKS) >= t ;
+    buildSprite.toggleFX(BuildConstants.DATALINKS.model, noDL) ;
+  }
+  
+  
+  protected void renderChat(Rendering rendering, Base base) {
+    if (chat.numPhrases() > 0) {
+      chat.position.setTo(sprite().position) ;
+      chat.position.z += height() ;
+      chat.update() ;
+      rendering.addClient(chat) ;
+    }
+  }
+  
+  
+  //
+  //  TODO:  Allow this to be customised by subclasses.
+  final private static float ITEM_S_OFF[] = {
+     0, 0,
+    -1, 0,
+     0, 1,
+    -2, 0,
+    -3, 0,
+     0, 2,
+     0, 3,
+  } ;
+  
+  
+  private boolean canShow(Service type) {
+    if (type.form != BuildConstants.FORM_COMMODITY) return false ;
+    if (type.pic == Service.DEFAULT_PIC) return false ;
+    return true ;
+  }
+  
+  
+  protected void updateItemSprites() {
+    final Service services[] = services() ;
+    final float
+      initX = (size / 2f) - 0.5f,
+      initY = 0.5f - (size / 2f) ;
+    int index = -1 ;
+    for (Service s : services) if (canShow(s)) index += 2 ;
+    if (index < 0) return ;
+    index = Visit.clamp(index, ITEM_S_OFF.length) ;
+    
+    for (Service s : services) if (canShow(s)) {
+      if (index < 0) break ;
+      final float y = ITEM_S_OFF[index--], x = ITEM_S_OFF[index--] ;
+      if (y >= size || size <= -x) continue ;
+      
+      buildSprite.updateItemDisplay(
+        s.model, stocks.amountOf(s),
+        x + initX, y + initY
+      ) ;
+    }
+  }
+  
+  
   public void renderFor(Rendering rendering, Base base) {
     
     position(buildSprite.position) ;
@@ -541,7 +644,10 @@ public abstract class Venue extends Fixture implements
       structure.intact(),
       structure.burning()
     ) ;
+    toggleStatusDisplay() ;
+    updateItemSprites() ;
     renderHealthbars(rendering, base) ;
+    renderChat(rendering, base) ;
     
     super.renderFor(rendering, base) ;
   }

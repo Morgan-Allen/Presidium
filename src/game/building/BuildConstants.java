@@ -17,13 +17,16 @@ SPYCE_B = new Item.Type(C, COMMODITY, "Spyce B (Halebdynum)", 400),
 SPYCE_C = new Item.Type(C, COMMODITY, "Spyce C (Natrizoral)", 400),
 //*/
   /*
+    //TIMBER   = new Service(BC, FORM_COMMODITY, "Timber"  , 40 ),
+    //STONES   = new Service(BC, FORM_COMMODITY, "Stones"  , 70 ),
+    //HIDES    = new Service(BC, FORM_COMMODITY, "Hides"   , 150),
   OUTFITS  = new Item.Type(C, UNIQUE, "Outfits", 0),
   DEVICES  = new Item.Type(C, UNIQUE, "Devices", 0),
   ARMOURS  = new Item.Type(C, UNIQUE, "Armours", 0),
   
-  GENE_SAMPLE = new Item.Type(C, UNIQUE, "Gene Sample", 50 ),
-  NEURAL_SCAN = new Item.Type(C, UNIQUE, "Neural Scan", 500),
-  TROPHY      = new Item.Type(C, UNIQUE, "Trophy"     , 250)
+  GENE_SEED  = new Item.Type(C, UNIQUE, "Gene Sample", 50 ),
+  GHOST_LINE = new Item.Type(C, UNIQUE, "Neural Scan", 500),
+  TALISMAN   = new Item.Type(C, UNIQUE, "Talisman"   , 250)
   //*/
 
 
@@ -32,52 +35,72 @@ public interface BuildConstants extends ActorConstants {
   
   
   final public static int
-    COMMODITY      = 0,
-    PROVISION      = 1,
-    UNIQUE         = 2,
-    DEVICE         = 3,
-    OUTFIT         = 4,
-    SERVICE        = 5 ;
+    FORM_COMMODITY      = 0,
+    FORM_PROVISION      = 1,
+    FORM_UNIQUE         = 2,
+    FORM_DEVICE         = 3,
+    FORM_OUTFIT         = 4,
+    FORM_SERVICE        = 5 ;
   
   final static Class BC = BuildConstants.class ;
+  final static int FC = FORM_COMMODITY, FP = FORM_PROVISION ;
   
   final public static Service
     
-    STARCHES = new Service(BC, COMMODITY, "Starches", 10 ),
-    PROTEIN  = new Service(BC, COMMODITY, "Protein" , 20 ),
-    GREENS   = new Service(BC, COMMODITY, "Greens"  , 40 ),
-    SPICE    = new Service(BC, COMMODITY, "Spice"   , 100),
+    CARBS       = new Service(BC, "Carbs"     , "carbs.gif"      , FC, 10 ),
+    PROTEIN     = new Service(BC, "Protein"   , "protein.gif"    , FC, 20 ),
+    GREENS      = new Service(BC, "Greens"    , "greens.gif"     , FC, 50 ),
+    SPICE       = new Service(BC, "Spice"     , "spices.gif"     , FC, 100),
     
-    TIMBER   = new Service(BC, COMMODITY, "Timber"  , 40 ),
-    STONES   = new Service(BC, COMMODITY, "Stones"  , 70 ),
-    HIDES    = new Service(BC, COMMODITY, "Hides"   , 150),
+    ORES        = new Service(BC, "Ores"      , "ores.gif"       , FC, 15 ),
+    P_CARBONS   = new Service(BC, "P-Carbons" , "carbons.gif"    , FC, 35 ),
+    FUEL_CORES  = new Service(BC, "Fuel Cores", "fuel rods.gif"  , FC, 60 ),
     
-    METALS   = new Service(BC, COMMODITY, "Metals"  , 15 ),
-    CARBONS  = new Service(BC, COMMODITY, "Carbons" , 35 ),
-    ISOTOPES = new Service(BC, COMMODITY, "Isotopes", 60 ),
+    PARTS       = new Service(BC, "Parts"     , "parts.gif"      , FC, 50 ),
+    PLASTICS    = new Service(BC, "Plastics"  , "plastics.gif"   , FC, 75 ),
+    PRESSFEED   = new Service(BC, "Pressfeed" , "pressfeed.gif"  , FC, 110),
+    CIRCUITS    = new Service(BC, "Circuits"  , "inscription.gif", FC, 140),
     
-    PARTS    = new Service(BC, COMMODITY, "Parts"   , 50 ),
-    PLASTICS = new Service(BC, COMMODITY, "Plastics", 75 ),
-    SOMA     = new Service(BC, COMMODITY, "Soma"    , 100),
+    STIM_KITS   = new Service(BC, "Stim Kit"  , "stimkit.gif"    , FC, 40 ),
+    SOMA        = new Service(BC, "Soma"      , "soma.gif"       , FC, 70 ),
+    MEDICINE    = new Service(BC, "Medicine"  , "medicines.gif"  , FC, 200),
     
-    INSCRIPTION = new Service(BC, COMMODITY, "Inscription", 140),
-    PRESSFEED   = new Service(BC, COMMODITY, "Pressfeed"  , 160),
-    MEDICINE    = new Service(BC, COMMODITY, "Medicine"   , 200),
-    
+    ALL_FOOD_TYPES[] = { CARBS, PROTEIN, GREENS },
     ALL_CARRIED_ITEMS[] = Service.typesSoFar(),
     
-    WATER        = new Service(BC, PROVISION, "Water"       , 0),
-    LIFE_SUPPORT = new Service(BC, PROVISION, "Life Support", 0),
-    POWER        = new Service(BC, PROVISION, "Power"       , 0),
+    GENE_SEED   = new Service(BC, FORM_UNIQUE, "Gene Seed", 200 ),
+    GHOSTLINE   = new Service(BC, FORM_UNIQUE, "Ghostline", 200 ),
     
-    ALL_FOOD_TYPES[] = { STARCHES, PROTEIN, GREENS  },
-    ALL_PROVISIONS[] = { WATER, LIFE_SUPPORT, POWER } ;
-
+    TROPHIES    = new Service(BC, FORM_UNIQUE, "Trophy"   , 400 ),
+    DECOR       = new Service(BC, FORM_UNIQUE, "Decor"    , 400 ),
+    RELICS      = new Service(BC, FORM_UNIQUE, "Relic"    , 400 ),
+    
+    ATOMICS     = new Service(BC, FORM_UNIQUE, "Atomic"   , 1000),
+    
+    ALL_UNIQUE_ITEMS[] = Service.typesSoFar(),
+    
+    WATER        = new Service(BC, "Water"       , "water.png"    , FP, 0),
+    LIFE_SUPPORT = new Service(BC, "Life Support", "life_S.png"   , FP, 0),
+    POWER        = new Service(BC, "Power"       , "power.png"    , FP, 0),
+    DATALINKS    = new Service(BC, "Datalinks"   , "datalinks.png", FP, 0),
+    
+    ALL_PROVISIONS[] = Service.typesSoFar() ;
+  
+  
   final public static Service
-    SERVICE_ADMIN   = new Service(BC, SERVICE, "Admin", 0),
-    SERVICE_TREAT   = new Service(BC, SERVICE, "Treatment", 0),
-    SERVICE_PERFORM = new Service(BC, SERVICE, "Performance", 0),
-    SERVICE_DEPOT   = new Service(BC, SERVICE, "Depot", 0) ;
+    SERVICE_ADMIN   = new Service(BC, FORM_SERVICE, "Admin"      , 0),
+    SERVICE_TREAT   = new Service(BC, FORM_SERVICE, "Treatment"  , 0),
+    SERVICE_PERFORM = new Service(BC, FORM_SERVICE, "Performance", 0),
+    SERVICE_DEPOT   = new Service(BC, FORM_SERVICE, "Depot"      , 0),
+    
+    VENUE_SERVICES[] = Service.typesSoFar(),
+    
+    SERVICE_ARMAMENT = new Service(BC, FORM_SERVICE, "Armament", 0),
+    SERVICE_SHIPPING = new Service(BC, FORM_SERVICE, "Shipping", 0),
+    SERVICE_CAPTIVES = new Service(BC, FORM_SERVICE, "Captives", 0),
+    SERVICE_CONSORTS = new Service(BC, FORM_SERVICE, "Consorts", 0),
+    
+    PLANET_SERVICES[] = Service.typesSoFar() ;
   
   
   final public static int
@@ -128,7 +151,7 @@ public interface BuildConstants extends ActorConstants {
     ),
     CARVED_SPEAR = new DeviceType(BC, "Carved Spear",
       5, RANGED | MELEE | PHYSICAL, 5,
-      new Conversion(2, TIMBER, 5, ASSEMBLY),
+      new Conversion(5, ASSEMBLY),
       "spear"
     ),
     SHOCK_STAFF = new DeviceType(BC, "Shock Staff",
@@ -225,12 +248,12 @@ public interface BuildConstants extends ActorConstants {
     ),
     //*/
     METALS_TO_PARTS = new Conversion(
-      1, METALS, TO, 2, PARTS,
+      1, ORES, TO, 2, PARTS,
       Foundry.class, TRICKY_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
     ),
     
     CARBONS_TO_PLASTICS = new Conversion(
-      1, CARBONS, TO, 2, PLASTICS,
+      1, P_CARBONS, TO, 2, PLASTICS,
       Fabricator.class, TRICKY_DC, CHEMISTRY, SIMPLE_DC, GRAPHIC_MEDIA
     ),
     
@@ -246,7 +269,7 @@ public interface BuildConstants extends ActorConstants {
     ),
     
     NIL_TO_STARCHES = new Conversion(
-      TO, 1, STARCHES,
+      TO, 1, CARBS,
       CultureVats.class, SIMPLE_DC, CHEMISTRY
     ) ;
 }

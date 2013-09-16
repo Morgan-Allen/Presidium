@@ -56,8 +56,8 @@ public class Ruins extends Venue {
   }
   
   
-  protected Vocation[] careers() { return null ; }
-  protected Service[] services() { return null ; }
+  protected Background[] careers() { return null ; }
+  public Service[] services() { return null ; }
   
   
   

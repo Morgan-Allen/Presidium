@@ -187,7 +187,7 @@ public class Farming extends Plan implements BuildConstants {
   
   private Action returnHarvestAction(int amountNeeded) {
     if (
-      actor.inventory().amountOf(STARCHES) <= amountNeeded &&
+      actor.inventory().amountOf(CARBS) <= amountNeeded &&
       actor.inventory().amountOf(GREENS  ) <= amountNeeded
     ) return null ;
     final Action returnAction = new Action(
@@ -200,7 +200,7 @@ public class Farming extends Plan implements BuildConstants {
   
   
   public boolean actionReturnHarvest(Actor actor, Venue depot) {
-    actor.gear.transfer(STARCHES, depot) ;
+    actor.gear.transfer(CARBS, depot) ;
     actor.gear.transfer(GREENS, depot) ;
     return true ;
   }

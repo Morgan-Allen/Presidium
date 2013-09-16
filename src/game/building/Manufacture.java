@@ -27,7 +27,7 @@ public class Manufacture extends Plan implements Behaviour {
   /**  Fields, constructors, and save/load methods-
     */
   final static int
-    TIME_PER_UNIT = 10 ;
+    TIME_PER_UNIT = 30 ;
   
   final public Venue venue ;
   final public Conversion conversion ;

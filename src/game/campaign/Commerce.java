@@ -10,48 +10,60 @@ import src.util.* ;
 
 
 
-/*
-System
-  thisPlanet,
-  homePlanet,
-  housePlanets[] ;
-//*/
-
-
-public class Commerce {
+public class Commerce implements BuildConstants {
   
   
   /**  Fields definitions, constructor, save/load methods-
     */
   final static float
-    SUPPLY_INTERVAL = 10,
+    SUPPLY_INTERVAL = 10,  //TODO:  Increase these substantially.
     SUPPLY_DURATION = 10,
     
     MAX_APPLICANTS = 3 ;
   
   
   final Base base ;
+  System homeworld ;
+  List <System> partners = new List <System> () ;
   
   final Table <Venue, List <Actor>> candidates = new Table() ;
   final List <Actor> migrantsIn = new List <Actor> () ;
   
-  Dropship ship ;
-  float nextVisitTime ;
+  private Inventory shortages, surpluses ;
+  final Table <Service, Float>
+    importPrices = new Table <Service, Float> (),
+    exportPrices = new Table <Service, Float> () ;
+  
+  private Dropship ship ;
+  private float nextVisitTime ;
   
   
   
   public Commerce(Base base) {
     this.base = base ;
+    
+    for (Service type : ALL_CARRIED_ITEMS) {
+      importPrices.put(type, (float) type.basePrice) ;
+      exportPrices.put(type, (float) type.basePrice) ;
+    }
+    
     ship = new Dropship() ;
     ship.assignBase(base) ;
+    //
     //  TODO:  This crew will need to be updated every now and then.
     //  TODO:  Include a pilot, mechanic, et cetera?
-    addCrew(ship, Vocation.SUPPLY_CORPS, Vocation.SUPPLY_CORPS) ;
+    addCrew(ship, Background.SUPPLY_CORPS, Background.SUPPLY_CORPS) ;
     nextVisitTime = Rand.num() * SUPPLY_INTERVAL ;
   }
   
   
   public void loadState(Session s) throws Exception {
+    
+    final int hID = s.loadInt() ;
+    homeworld = hID == -1 ? null : (System) Background.ALL_BACKGROUNDS[hID] ;
+    for (int n = s.loadInt() ; n-- > 0 ;) {
+      partners.add((System) Background.ALL_BACKGROUNDS[s.loadInt()]) ;
+    }
     
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Venue venue = (Venue) s.loadObject() ;
@@ -64,6 +76,11 @@ public class Commerce {
       }
     }
     
+    for (Service type : ALL_CARRIED_ITEMS) {
+      importPrices.put(type, s.loadFloat()) ;
+      exportPrices.put(type, s.loadFloat()) ;
+    }
+    
     s.loadObjects(migrantsIn) ;
     ship = (Dropship) s.loadObject() ;
     nextVisitTime = s.loadFloat() ;
@@ -72,12 +89,21 @@ public class Commerce {
   
   public void saveState(Session s) throws Exception {
     
+    s.saveInt(homeworld == null ? -1 : homeworld.ID) ;
+    s.saveInt(partners.size()) ;
+    for (System p : partners) s.saveInt(p.ID) ;
+    
     s.saveInt(candidates.size()) ;
     for (Venue venue : candidates.keySet()) {
       s.saveObject(venue) ;
       final List <Actor> list = candidates.get(venue) ;
       s.saveInt(list.size()) ;
       for (Actor a : list) s.saveObject(a) ;
+    }
+
+    for (Service type : ALL_CARRIED_ITEMS) {
+      s.saveFloat(importPrices.get(type)) ;
+      s.saveFloat(exportPrices.get(type)) ;
     }
     
     s.saveObjects(migrantsIn) ;
@@ -86,10 +112,27 @@ public class Commerce {
   }
   
   
+  public void assignHomeworld(System s) {
+    homeworld = s ;
+    togglePartner(s, true) ;
+  }
+  
+  
+  public void togglePartner(System s, boolean is) {
+    if (is) {
+      partners.include(s) ;
+    }
+    else {
+      partners.remove(s) ;
+      if (s == homeworld) homeworld = null ;
+    }
+  }
+  
+  
   
   /**  Dealing with migrants and cargo-
     */
-  public boolean genCandidate(Vocation vocation, Venue venue, int numOpen) {
+  public boolean genCandidate(Background vocation, Venue venue, int numOpen) {
     //
     //  You might want to introduce limits on the probability of finding
     //  candidates based on the relative sizes of the source and destination
@@ -101,7 +144,7 @@ public class Commerce {
     //  This requires more work on the subject of pricing.  Some will join for
     //  free, but others need enticement, depending on distance and willingness
     //  to relocate, and the friendliness of the home system.
-    final int signingCost = Vocation.HIRE_COSTS[vocation.standing] ;
+    final int signingCost = Background.HIRE_COSTS[vocation.standing] ;
     venue.personnel.applyFor(vocation, candidate, signingCost) ;
     //
     //  Insert the candidate in local records, and return.
@@ -112,7 +155,7 @@ public class Commerce {
   }
   
   
-  public void cullCandidates(Vocation vocation, Venue venue) {
+  public void cullCandidates(Background vocation, Venue venue) {
     final List <Actor> list = candidates.get(venue) ;
     if (list == null) return ;
     final int numOpenings = venue.numOpenings(vocation) ;
@@ -136,35 +179,107 @@ public class Commerce {
   }
   
   
-  private void addCrew(Dropship ship, Vocation... positions) {
-    for (Vocation v : positions) {
-      final Human staff = new Human(new Career(v), base) ;
-      staff.AI.setEmployer(ship) ;
+  
+  /**  Assessing supply and demand associated with goods-
+    */
+  private void summariseDemand(Base base) {
+    shortages = new Inventory(null) ;
+    surpluses = new Inventory(null) ;
+    
+    final World world = base.world ;
+    final Tile t = world.tileAt(0, 0) ;
+    
+    for (Object o : world.presences.matchesNear(SupplyDepot.class, t, -1)) {
+      final SupplyDepot venue = (SupplyDepot) o ;
+      if (venue.base() != base) continue ;
+      for (Service type : ALL_CARRIED_ITEMS) {
+        final float shortage = venue.importShortage(type) ;
+        ////I.say("Shortage of: "+type+" is: "+shortage) ;
+        shortages.addItem(Item.withAmount(type, shortage)) ;
+        final float surplus = venue.exportSurplus(type) ;
+        surpluses.addItem(Item.withAmount(type, surplus)) ;
+      }
+    }
+    
+    for (Item item : shortages.allItems()) {
+      ///I.say("Shortage is: "+item) ;
+      shortages.removeItem(item) ;
+      final float bump = (float) Math.ceil(item.amount / 5f) * 5 ;
+      shortages.addItem(Item.withAmount(item, bump)) ;
     }
   }
   
   
-  
-  /**  Assessing supply and demand associated with goods-
-    */
-  Inventory summariseDemand(Base base) {
+  private void calculatePrices() {
     //
-    //  TODO:  Limit the amount of this the homeworld is willing to provide?
-    final Inventory summary = new Inventory(null) ;
-    final World world = base.world ;
-    for (Object o : world.presences.matchesNear(base, world.tileAt(0, 0), -1)) {
-      if (! (o instanceof Venue)) continue ;
-      final Venue venue = (Venue) o ;
-      for (Item item : venue.stocks.shortages()) {
-        summary.addItem(item) ;
+    //  Typically speaking, exports have their value halved and imports have
+    //  their price doubled if it's coming from offworld.  Anything coming from
+    //  another sector of your own planet has much milder cost differences, and
+    //  your homeworld will also cut you some slack, at least initially.
+    //
+    //  In addition, prices improve for exports particularly valued by your
+    //  partners (and worsen if already abundant,) and vice versa for imports.
+    //  Finally, the value of exports decreases, and of imports increases, with
+    //  volume, but this is only likely to be significant for larger
+    //  settlements.
+    //  TODO:  Charge more for smuggler vessels, and less for Spacers.
+    //  TODO:  Implement trade with settlements on the same planet(?)
+    
+    for (Service type : ALL_CARRIED_ITEMS) {
+      ///final boolean offworld = true ; //For now.
+      float
+        basePrice = 1 * type.basePrice,
+        importMul = 2 + (shortages.amountOf(type) / 1000f),
+        exportDiv = 2 + (surpluses.amountOf(type) / 1000f) ;
+      
+      for (System system : partners) {
+        if (Visit.arrayIncludes(system.goodsMade, type)) {
+          basePrice *= 0.75f ;
+          if (system == homeworld) importMul /= 1.50f ;
+        }
+        if (Visit.arrayIncludes(system.goodsNeeded, type)) {
+          basePrice *= 1.5f ;
+          if (system == homeworld) exportDiv *= 0.75f ;
+        }
       }
+      
+      importPrices.put(type, basePrice * importMul) ;
+      exportPrices.put(type, basePrice / exportDiv) ;
     }
-    for (Item item : summary.allItems()) {
-      summary.removeItem(item) ;
-      final float bump = (float) Math.ceil(item.amount / 5f) * 5 ;
-      summary.addItem(Item.withAmount(item, bump)) ;
+  }
+  
+  
+  public float importPrice(Service type) {
+    return importPrices.get(type) ;
+  }
+  
+  
+  public float exportPrice(Service type) {
+    return exportPrices.get(type) ;
+  }
+  
+  
+  
+  
+  /**  Dealing with shipping and crew complements-
+    */
+  private void refreshCrew(Dropship ship) {
+    //  Get rid of fatigue and hunger, modulate mood, et cetera- account for
+    //  the effects of time spent offworld.
+    for (Actor works : ship.crew()) {
+      final float MH = works.health.maxHealth() ;
+      works.health.liftFatigue(MH * Rand.num()) ;
+      works.health.takeSustenance(MH, 0.25f + Rand.num()) ;
+      works.health.adjustMorale(Rand.num() / 2f) ;
     }
-    return summary ;
+  }
+  
+  
+  private void addCrew(Dropship ship, Background... positions) {
+    for (Background v : positions) {
+      final Human staff = new Human(new Career(v), base) ;
+      staff.AI.setEmployer(ship) ;
+    }
   }
   
   
@@ -172,6 +287,9 @@ public class Commerce {
     Dropship ship, Inventory available, final boolean imports
   ) {
     ship.cargo.removeAllItems() ;
+    //
+    //  TODO:  Unify this with the compressOrder() function from the Delivery
+    //  class.
     //
     //  We prioritise items based on the amount of demand and the price of the
     //  goods in question-
@@ -198,12 +316,17 @@ public class Commerce {
   
   /**  Perform updates to trigger new events or assess local needs-
     */
-  public void updateCommerce() {
-    //  ...Make this a little less frequent?
+  public void updateCommerce(int numUpdates) {
     ///screenCandidates() ;
-    updateShipping() ;
+    if (numUpdates % 10 == 0) {
+      summariseDemand(base) ;
+      calculatePrices() ;
+      updateShipping() ;
+    }
   }
   
+  //
+  //  TODO:  Favour landing sites close to supply depots.
   
   protected void updateShipping() {
     
@@ -220,8 +343,8 @@ public class Commerce {
       }
     }
     if (! ship.inWorld()) {
-      final Inventory shortages = summariseDemand(base) ;
-      boolean shouldVisit = migrantsIn.size() > 0 ;// || ! shortages.empty() ;
+      boolean shouldVisit = migrantsIn.size() > 0 ;
+      if ((! shortages.empty()) || (! surpluses.empty())) shouldVisit = true ;
       shouldVisit &= base.world.currentTime() > nextVisitTime ;
       shouldVisit &= ship.timeAway(base.world) > SUPPLY_INTERVAL ;
       
@@ -237,6 +360,7 @@ public class Commerce {
         }
 
         loadCargo(ship, shortages, true) ;
+        refreshCrew(ship) ;
         for (Actor c : ship.crew()) ship.setInside(c, true) ;
         
         ship.beginDescent(zone, base.world) ;

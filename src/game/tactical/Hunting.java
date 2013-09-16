@@ -135,7 +135,7 @@ public class Hunting extends Combat implements BuildConstants {
       //  
       if (rating > bestRating) { pickedPrey = f ; bestRating = rating ; }
     }
-    ///if (pickedPrey == null) I.say("NO PREY FOUND FOR "+actor) ;
+    if (pickedPrey == null) I.say("NO PREY FOUND FOR "+actor) ;
     //else I.say("PREY IS: "+pickedPrey) ;
     return pickedPrey ;
   }

@@ -69,7 +69,7 @@ public class Wording implements ActorConstants {
     final int standing = actor.career().birth().standing ;
     final boolean female = actor.traits.hasTrait(GENDER, "Female") ;
     switch (standing) {
-      case (Vocation.SLAVE_CLASS) : {
+      case (Background.SLAVE_CLASS) : {
         final String pick[] = female ? NATIVE_FN : NATIVE_MN ;
         if (Rand.yes()) {
           final String parents[] = female ? NATIVE_FN : NATIVE_MN ;
@@ -84,17 +84,17 @@ public class Wording implements ActorConstants {
         }
         names.add((String) Rand.pickFrom(pick)) ;
       } break ;
-      case (Vocation.LOWER_CLASS) : {
+      case (Background.LOWER_CLASS) : {
         final String pick[] = female ? PYON_FN : PYON_MN ;
         names.add((String) Rand.pickFrom(pick)) ;
         names.add((String) Rand.pickFrom(CITIZEN_LN)) ;
       } break ;
-      case (Vocation.UPPER_CLASS) : {
+      case (Background.UPPER_CLASS) : {
         final String pick[] = female ? CITIZEN_FN : CITIZEN_MN ;
         names.add((String) Rand.pickFrom(pick)) ;
         names.add((String) Rand.pickFrom(CITIZEN_LN)) ;
       } break ;
-      case (Vocation.RULER_CLASS) : {
+      case (Background.RULER_CLASS) : {
         final String pick[] = female ? HIGHBORN_FN : HIGHBORN_MN ;
         names.add((String) Rand.pickFrom(pick)) ;
         names.add((String) Rand.pickFrom(HIGHBORN_HN)) ;

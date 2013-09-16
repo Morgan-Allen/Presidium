@@ -18,13 +18,6 @@ public class ImageModel extends Model {
     TYPE_FLAT = 0,
     TYPE_BOX = 1,
     TYPE_POPPED_BOX = 2 ;
-  /*
-  final public static ImageModel
-    DEFAULT_FLAT_MODEL = new ImageModel(
-      "default_flat_model", ImageModel.class,
-      Texture.WHITE_TEX, 1, 1, TYPE_FLAT
-    ) ;
-  //*/
   
   final public int type ;
   final Texture texture ;
@@ -60,6 +53,7 @@ public class ImageModel extends Model {
       this.coords = genBoxCoords(box, type == TYPE_POPPED_BOX) ;
       this.framesUV = new float[][] { this.getUVForBox(this.coords) } ;
     }
+    LoadService.cacheResource(this, modelName) ;
   }
   
   
@@ -168,11 +162,13 @@ public class ImageModel extends Model {
   
   
   public static ImageModel asFlatModel(
-    Class modelClass, Texture texture, float sSize, float sHigh
+    Class modelClass, Texture texture, float sSize
   ) {
     final String modelName = "IMAGE-MODEL-"+texture.name() ;
     Object cached = LoadService.getResource(modelName) ;
     if (cached != null) return (ImageModel) cached ;
+    final float sHigh = sSize * texture.maxV() / texture.maxU() ;
+    
     final ImageModel model = new ImageModel(
       modelName, modelClass,
       texture, sSize, sHigh, TYPE_FLAT

@@ -72,38 +72,38 @@ public class Cantina extends Venue implements BuildConstants {
 
   /**  Upgrades, services and economic functions-
     */
-  protected Vocation[] careers() {
-    return new Vocation[] { Vocation.SOMA_VENDOR, Vocation.PERFORMER } ;
+  protected Background[] careers() {
+    return new Background[] { Background.SOMA_VENDOR, Background.PERFORMER } ;
   }
   
   
-  public int numOpenings(Vocation v) {
+  public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Vocation.SOMA_VENDOR) return nO + 1 ;
-    if (v == Vocation.PERFORMER) return nO + 1 ;
+    if (v == Background.SOMA_VENDOR) return nO + 1 ;
+    if (v == Background.PERFORMER) return nO + 1 ;
     return 0 ;
   }
   
 
   public Behaviour jobFor(Actor actor) {
-    if (actor.vocation() == Vocation.SOMA_VENDOR) {
+    if (actor.vocation() == Background.SOMA_VENDOR) {
       return new Supervision(actor, this) ;
     }
-    if (actor.vocation() == Vocation.PERFORMER) {
+    if (actor.vocation() == Background.PERFORMER) {
       return new Performance(actor, this, ActorConstants.MUSIC_AND_SONG) ;
     }
     return null ;
   }
   
   
-  protected Service[] services() {
+  public Service[] services() {
     return new Service[] { SERVICE_PERFORM } ;
   }
   
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    stocks.incDemand(SOMA, 10, 0) ;
+    stocks.forceDemand(SOMA, 10) ;
   }
   
   

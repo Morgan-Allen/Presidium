@@ -63,13 +63,13 @@ public class VaultSystem extends Venue implements BuildConstants {
   }
   
   
-  protected Vocation[] careers() {
+  protected Background[] careers() {
     return null ;
     //return new Vocation[] { Vocation.TECHNICIAN } ;
   }
   
   
-  protected Service[] services() {
+  public Service[] services() {
     return null ;
     //return new Service[0] ;
   }

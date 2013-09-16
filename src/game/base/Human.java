@@ -55,7 +55,7 @@ public class Human extends Actor implements ActorConstants {
   Career career ;
   
   
-  public Human(Vocation vocation, Base base) {
+  public Human(Background vocation, Base base) {
     this(new Career(vocation), base) ;
   }
   
@@ -84,7 +84,7 @@ public class Human extends Actor implements ActorConstants {
   
   protected ActorAI initAI() { return new HumanAI(this) ; }
   
-  public Vocation vocation() { return career.vocation() ; }
+  public Background vocation() { return career.vocation() ; }
   
   public Career career() { return career ; }
   

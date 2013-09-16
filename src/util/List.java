@@ -113,7 +113,7 @@ public class List <T> extends ListEntry <T> implements Series <T> {
   
   /**  Returns the member at the specified index-
     */
-  public T atIndex(int i) {
+  final public T atIndex(int i) {
     if (i < 0 || i >= size) return null ;
     int d = 0 ;
     for (ListEntry <T> l = this ; (l = l.next) != this ; d++)

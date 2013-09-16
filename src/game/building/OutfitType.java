@@ -23,7 +23,7 @@ public class OutfitType extends Service implements BuildConstants {
     Class baseClass, String name, int defence, int basePrice,
     Conversion conversion
   ) {
-    super(baseClass, OUTFIT, name, basePrice) ;
+    super(baseClass, FORM_OUTFIT, name, basePrice) ;
     this.defence = defence ;
     this.shieldBonus = defence ;
     this.materials = conversion ;

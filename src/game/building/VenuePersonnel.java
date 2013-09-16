@@ -26,6 +26,12 @@ import src.util.* ;
 
 
 
+//
+//  TODO:  Make this into a Position instead.  With a balance of wages
+//  awaiting collection.
+//  TODO:  Half the signing fee goes to the actor immediately, tax free.
+
+
 public class VenuePersonnel {
   
   
@@ -33,18 +39,22 @@ public class VenuePersonnel {
     */
   final Venue venue ;
   
-  static class Application {
-    Vocation position ;
-    Actor applies ;
-    int signingCost ;
+  static class Position {
+    Background role ;
+    Actor works ;
+    
+    int salary ;
+    float wages = -1 ;  //If not hired yet.
   }
   
-  final List <Application>
-    applications = new List <Application> () ;
+  final List <Position>
+    positions = new List <Position> () ;
   final List <Actor>
     workers   = new List <Actor> (),
     residents = new List <Actor> () ;
-  private int shiftType = -1 ;
+  private int
+    shiftType = -1 ;
+  
   
   
   VenuePersonnel(Venue venue) {
@@ -58,10 +68,11 @@ public class VenuePersonnel {
     s.loadObjects(residents) ;
     
     for (int n = s.loadInt() ; n-- > 0 ;) {
-      final Application a = new Application() ;
-      a.position = Vocation.ALL_CLASSES[s.loadInt()] ;
-      a.applies = (Actor) s.loadObject() ;
-      a.signingCost = s.loadInt() ;
+      final Position a = new Position() ;
+      a.role = Background.ALL_BACKGROUNDS[s.loadInt()] ;
+      a.works = (Actor) s.loadObject() ;
+      a.salary = s.loadInt() ;
+      a.wages = s.loadFloat() ;
     }
   }
   
@@ -71,11 +82,12 @@ public class VenuePersonnel {
     s.saveObjects(workers) ;
     s.saveObjects(residents) ;
     
-    s.saveInt(applications.size()) ;
-    for (Application a : applications) {
-      s.saveInt(a.position.ID) ;
-      s.saveObject(a.applies) ;
-      s.saveInt(a.signingCost) ;
+    s.saveInt(positions.size()) ;
+    for (Position a : positions) {
+      s.saveInt(a.role.ID) ;
+      s.saveObject(a.works) ;
+      s.saveInt(a.salary) ;
+      s.saveFloat(a.wages) ;
     }
   }
   
@@ -163,41 +175,104 @@ public class VenuePersonnel {
   
   
   
-  /**  Handling applications and recruitment-
+  /**  Methods related to payment of wages-
     */
-  public void applyFor(Vocation v, Actor applies, int signingCost) {
-    final Application a = new Application() ;
-    a.position = v ;
-    a.applies = applies ;
-    a.signingCost = signingCost ;
-    applications.add(a) ;
+  protected void allocateWages() {
+    if (venue.privateProperty()) return ;
+    //
+    //  Firstly, allocate minimum wage-
+    float sumWages = 0 ;
+    for (Position p : positions) if (p.wages >= 0) {
+      final float wage = p.salary / 10f ;
+      p.wages += wage ;
+      sumWages += wage ;
+    }
+    venue.stocks.incCredits(0 - sumWages) ;
+    //
+    //  Then split any surplus (after tax) between employees in proportion to
+    //  basic salary.
+    final float surplus = venue.stocks.credits() ;
+    if (surplus > 0) {
+      float sumSalaries = 0 ;
+      for (Position p : positions) if (p.wages >= 0) sumSalaries += p.salary ;
+      for (Position p : positions) if (p.wages >= 0) {
+        p.wages += surplus * 0.1f * p.salary / sumSalaries ;
+      }
+      venue.stocks.incCredits(0 - surplus) ;
+    }
+    //
+    //  Finally, report your debts or windfall back to the base.  Debts may
+    //  be exaggerated and/or profits under-reported, unless skilled (and
+    //  honest) auditors get there first.
+    final Base base = venue.base() ;
+    final float balance = venue.stocks.credits() ;
+    final float waste = (Rand.num() + base.crimeLevel()) / 2f ;
+    if (balance > 0) {
+      final float paid = balance / (1 + waste) ;
+      base.incCredits(paid) ;
+      venue.stocks.incCredits(0 - paid) ;
+    }
+    if (balance < 0) {
+      final float paid = (0 - balance) * (1 + waste) ;
+      base.incCredits(0 - paid) ;
+      venue.stocks.incCredits(paid) ;
+    }
+    venue.stocks.taxDone() ;
   }
   
   
-  public void removeApplicant(Actor applied) {
-    for (Application a : applications) {
-      if (a.applies == applied) { applications.remove(a) ; return ; }
+  protected void checkWagePayment() {
+    for (Position p : positions) {
+      if (p.works.aboard() == venue) {
+        p.works.gear.incCredits(p.wages) ;
+        p.wages = 0 ;
+      }
     }
   }
   
   
-  public int numApplicants(Vocation v) {
+  
+  /**  Handling applications and recruitment-
+    */
+  public Position applyFor(Background v, Actor applies, int signingCost) {
+    final Position p = new Position() ;
+    p.role = v ;
+    p.works = applies ;
+    p.salary = signingCost ;
+    positions.add(p) ;
+    return p ;
+  }
+  
+  
+  protected Position positionFor(Actor works) {
+    for (Position p : positions) if (p.works == works) return p ;
+    return null ;
+  }
+  
+  
+  public void removeApplicant(Actor applied) {
+    final Position p = positionFor(applied) ;
+    if (p != null) positions.remove(p) ;
+  }
+  
+  
+  public int numApplicants(Background v) {
     int num = 0 ;
-    for (Application a : applications) if (a.position == v) num++ ;
+    for (Position a : positions) if (a.role == v && a.wages < 0) num++ ;
     return num ;
   }
   
   
-  protected void confirmApplication(Application app) {
-    applications.remove(app) ;
-    venue.base().incCredits(0 - app.signingCost) ;
-    app.applies.gear.incCredits(app.signingCost / 2) ;
+  protected void confirmApplication(Position app) {
+    venue.base().incCredits(0 - app.salary) ;
+    app.works.gear.incCredits(app.salary / 2) ;
+    app.works.gear.taxDone() ;
+    app.works.AI.setEmployer(venue) ;
     
-    app.applies.AI.setEmployer(venue) ;
-    if (! app.applies.inWorld()) {
+    if (! app.works.inWorld()) {
       final Commerce commerce = venue.base().commerce ;
-      commerce.cullCandidates(app.position, venue) ;
-      commerce.addImmigrant(app.applies) ;
+      commerce.cullCandidates(app.role, venue) ;
+      commerce.addImmigrant(app.works) ;
     }
   }
   
@@ -206,17 +281,19 @@ public class VenuePersonnel {
   /**  Life cycle, recruitment and updates-
     */
   protected void updatePersonnel(int numUpdates) {
+    checkWagePayment() ;
+    
     if (numUpdates % 10 == 0) {
       final World world = venue.world() ;
       //
       //  Clear out the office for anyone dead-
-      for (Actor a : workers) if (a.destroyed()) workers.remove(a) ;
-      for (Actor a : residents) if (a.destroyed()) residents.remove(a) ;
+      for (Actor a : workers) if (a.destroyed()) setWorker(a, false) ;
+      for (Actor a : residents) if (a.destroyed()) setResident(a, false) ;
       //
       //  If there's an unfilled opening, look for someone to fill it.
       //  TODO:  This should really be handled more from the Commerce class?
       if (venue.careers() == null) return ;
-      for (Vocation v : venue.careers()) {
+      for (Background v : venue.careers()) {
         final int numOpen = venue.numOpenings(v) ;
         if (numOpen <= 0) continue ;
         //
@@ -234,6 +311,8 @@ public class VenuePersonnel {
         }
       }
     }
+
+    if (numUpdates % World.DEFAULT_DAY_LENGTH == 100) allocateWages() ;
   }
   
   
@@ -248,8 +327,19 @@ public class VenuePersonnel {
   
   
   public void setWorker(Actor c, boolean is) {
-    if (is) workers.include(c) ;
-    else workers.remove(c) ;
+    if (is) {
+      Position p = positionFor(c) ;
+      if (p == null) {
+        final int cost = Background.HIRE_COSTS[c.vocation().standing] ;
+        p = applyFor(c.vocation(), c, cost) ;
+      }
+      p.wages = 0 ;
+      workers.include(c) ;
+    }
+    else {
+      removeApplicant(c) ;
+      workers.remove(c) ;
+    }
   }
   
   
@@ -259,9 +349,9 @@ public class VenuePersonnel {
   }
   
   
-  public int numPositions(Vocation... match) {
+  public int numPositions(Background... match) {
     int num = 0 ; for (Actor c : workers) {
-      for (Vocation v : match) if (c.vocation() == v) num++ ;
+      for (Background v : match) if (c.vocation() == v) num++ ;
     }
     return num ;
   }
@@ -272,7 +362,7 @@ public class VenuePersonnel {
     //  We automatically fill any positions available when the venue is
     //  established.  This is done for free, but candidates cannot be screened.
     if (venue.careers() == null) return ;
-    for (Vocation v : venue.careers()) {
+    for (Background v : venue.careers()) {
       final int numOpen = venue.numOpenings(v) ;
       if (numOpen <= 0) continue ;
       for (int i = numOpen ; i-- > 0 ;) {

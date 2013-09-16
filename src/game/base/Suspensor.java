@@ -78,6 +78,7 @@ public class Suspensor extends Mobile {
       ! followed.AI.agenda().includes(tracked)
     ) {
       if (passenger != null) {
+        ////I.say("Depositing passenger...") ;
         final Tile o = origin() ;
         passenger.setPosition(o.x, o.y, world) ;
       }
@@ -100,7 +101,8 @@ public class Suspensor extends Mobile {
     if (passenger != null) {
       if (followed.indoors()) {
         final Boardable toBoard = followed.aboard() ;
-        passenger.goAboard(followed.aboard(), world) ;
+        ///I.say("Transferring "+passenger+" to: "+toBoard) ;
+        passenger.goAboard(toBoard, world) ;
         passenger.setHeading(toBoard.position(null), 0, false, world) ;
       }
       else {

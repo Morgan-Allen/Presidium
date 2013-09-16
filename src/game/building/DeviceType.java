@@ -31,7 +31,7 @@ public class DeviceType extends Service implements BuildConstants {
     int basePrice, Conversion conversion,
     String groupName
   ) {
-    super(baseClass, DEVICE, name, basePrice) ;
+    super(baseClass, FORM_DEVICE, name, basePrice) ;
     this.baseDamage = baseDamage ;
     this.properties = properties ;
     this.materials = conversion ;

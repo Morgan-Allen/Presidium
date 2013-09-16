@@ -50,12 +50,12 @@ public class BulletinBoard extends Venue implements BuildConstants {
   }
   
   
-  protected Vocation[] careers() {
+  protected Background[] careers() {
     return null ;
   }
   
   
-  protected Service[] services() {
+  public Service[] services() {
     return null ;
   }
   

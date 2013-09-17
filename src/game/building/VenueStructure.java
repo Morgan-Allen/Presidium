@@ -63,7 +63,8 @@ public class VenueStructure extends Inventory {
     armouring = DEFAULT_ARMOUR ;
   private boolean organic ;
   //  private Item materials[] ;
-
+  //  TODO:  Introduce pollution and power consumption values!
+  
   private int state = STATE_INSTALL ;
   private float integrity = baseIntegrity ;
   private boolean burning ;
@@ -219,7 +220,12 @@ public class VenueStructure extends Inventory {
   }
   
   
-  public boolean needsRepair() {
+  public boolean goodCondition() {
+    return repairLevel() >= 0.8f ;
+  }
+  
+  
+  public boolean hasWear() {
     return needsSalvage() || integrity < maxIntegrity() ;
   }
   
@@ -237,8 +243,8 @@ public class VenueStructure extends Inventory {
   protected void checkMaintenance() {
     final World world = venue.world() ;
     final boolean needs =
-      (repairLevel() < 0.8f || state == STATE_SALVAGE) ||
-      needsUpgrade() ;
+      (state == STATE_SALVAGE) || (! goodCondition()) ||
+      needsUpgrade() || burning ;
     world.presences.togglePresence(
       venue, world.tileAt(venue), needs, "damaged"
     ) ;
@@ -314,6 +320,7 @@ public class VenueStructure extends Inventory {
   public void beginUpgrade(Upgrade upgrade, boolean checkExists) {
     int atIndex = -1 ;
     for (int i = 0 ; i < upgrades.length ; i++) {
+      ///I.sayAbout(venue, "Upgrade is: "+upgrades[i]) ;
       if (checkExists && upgrades[i] == upgrade) return ;
       if (upgrades[i] == null) { atIndex = i ; break ; }
     }

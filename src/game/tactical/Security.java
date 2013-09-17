@@ -42,7 +42,7 @@ public class Security extends Mission {
   
   /**  Behaviour implementation-
     */
-  public boolean complete() {
+  public boolean finished() {
     return false ;
   }
   

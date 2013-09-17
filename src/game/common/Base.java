@@ -38,7 +38,7 @@ public class Base implements
   Venue commandPost ;
   final List <Mission> missions = new List <Mission> () ;
   
-  float communitySpirit, alertLevel, crimeLevel ;
+  float communitySpirit, alertLevel, crimeLevel, averageMood ;
   final Table <Accountable, Relation> baseRelations = new Table() ;
   
   final public Paving paving ;
@@ -71,6 +71,7 @@ public class Base implements
     communitySpirit = s.loadFloat() ;
     alertLevel = s.loadFloat() ;
     crimeLevel = s.loadFloat() ;
+    averageMood = s.loadFloat() ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Relation r = Relation.loadFrom(s) ;
       baseRelations.put(r.subject, r) ;
@@ -95,6 +96,7 @@ public class Base implements
     s.saveFloat(communitySpirit) ;
     s.saveFloat(alertLevel) ;
     s.saveFloat(crimeLevel) ;
+    s.saveFloat(averageMood) ;
     s.saveInt(baseRelations.size()) ;
     for (Relation r : baseRelations.values()) Relation.saveTo(s, r) ;
     
@@ -186,13 +188,31 @@ public class Base implements
   
   
   public void updateAsScheduled(int numUpdates) {
-    //
-    //  Iterate across all personnel to get a sense of citizen mood, and
-    //  compute community spirit.
     commerce.updateCommerce(numUpdates) ;
     paving.distribute(BuildConstants.ALL_PROVISIONS) ;
     dangerMap.updateVals() ;
     for (Mission mission : missions) mission.updateMission() ;
+    //
+    //  Once per day, iterate across all personnel to get a sense of citizen
+    //  mood, and compute community spirit.  (This declines as your settlement
+    //  gets bigger.)
+    if (numUpdates % World.DEFAULT_DAY_LENGTH == 0) {
+      final Tile t = world.tileAt(0, 0) ;
+      int numResidents = 0 ;
+      averageMood = 0.5f ;
+      
+      for (Object o : world.presences.matchesNear(this, t, -1)) {
+        if (! (o instanceof Venue)) continue ;
+        final Venue v = (Venue) o ;
+        for (Actor resident : v.personnel.residents()) {
+          numResidents++ ;
+          averageMood += resident.health.moraleLevel() ;
+        }
+      }
+      
+      averageMood /= (numResidents + 1) ;
+      communitySpirit = 1f / (1 + (numResidents / 100f)) ;
+    }
   }
   
   

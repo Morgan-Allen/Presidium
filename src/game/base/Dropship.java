@@ -2,6 +2,7 @@
 
 
 package src.game.base ;
+import src.game.campaign.Commerce ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
@@ -16,11 +17,6 @@ import src.util.* ;
 
 /**  Trade ships come to deposit and collect personnel and cargo.
   */
-//
-//...You also need to try making deliveries/collections, based on what
-//nearby venues have either a shortage or excess of.  Particularly at the
-//supply depot.
-
 //
 //NOTE:  This class has been prone to bugs where sprite position appears to
 //'jitter' when passing over blocked tiles below, due to the mobile class
@@ -144,7 +140,7 @@ public class Dropship extends Vehicle implements
         this, "actionBoard",
         Action.STAND, "boarding "+this
       ) ;
-      final float priority = timeLanded() / 10 ;
+      final float priority = timeLanded() / Commerce.SUPPLY_DURATION ;
       boardAction.setPriority(Visit.clamp(priority, 0, Action.PARAMOUNT)) ;
       return boardAction ;
     }
@@ -466,13 +462,16 @@ public class Dropship extends Vehicle implements
   }
   
   
-  public void writeInformation(Description d, int categoryID, HUD UI) {
-    d.appendList("Crew: ", crew()) ;
-    d.appendList("\n\nPassengers: ", inside()) ;
-    d.appendList("\n\nCargo: ", cargo.allItems()) ;
-    d.append("\n\n") ; d.append(helpInfo()) ;
+  public void describeStatus(Description d) {
+    if (stage == STAGE_DESCENT) d.append("Descending to drop point") ;
+    else if (stage == STAGE_ASCENT) d.append("Taking off") ;
+    else if (stage == STAGE_AWAY) d.append("Offworld") ;
+    else super.describeStatus(d) ;
   }
 }
+
+
+
 
 
 

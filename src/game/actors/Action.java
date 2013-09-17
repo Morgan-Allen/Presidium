@@ -140,13 +140,13 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-  public boolean complete() {
+  public boolean finished() {
     return (inRange == 1) && (progress >= 1) ;
   }
   
   
   public Behaviour nextStepFor(Actor actor) {
-    if (complete()) return null ;
+    if (finished()) return null ;
     return this ;
   }
   
@@ -160,6 +160,11 @@ public class Action implements Behaviour, Model.AnimNames {
     progress = -1 ;
     inRange = -1 ;
     actor.AI.cancelBehaviour(this) ;
+  }
+  
+  
+  public boolean begun() {
+    return actor.currentAction() == this ;
   }
   
   
@@ -254,7 +259,7 @@ public class Action implements Behaviour, Model.AnimNames {
   
   
   protected void updateAction() {
-    if (complete()) { oldProgress = progress = 1 ; return ; }
+    if (finished()) { oldProgress = progress = 1 ; return ; }
     oldProgress = progress ;
     progress += progressPerUpdate() ;
     if (inRange == 1) advanceAction() ;
@@ -324,7 +329,7 @@ public class Action implements Behaviour, Model.AnimNames {
     //
     //  In the case of a pushing animation, you actually need to set different
     //  animations for the upper and lower body.
-    ///if (BaseUI.isPicked(actor)) I.say("Progress is: "+progress) ;
+    ///I.sayAbout(actor, "anim progress: "+animProgress());
     sprite.setAnimation(animName(), animProgress()) ;
   }
   

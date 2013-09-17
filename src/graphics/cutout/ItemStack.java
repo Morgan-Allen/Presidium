@@ -40,10 +40,10 @@ public class ItemStack extends GroupSprite {
     //
     //  First, determine how many crates and packets of the good should be
     //  shown-
-    int numPackets = (int) Math.ceil(newAmount / ITEM_UNIT), numCrates = 0 ;
-    while (numPackets > 4) { numPackets -= 4 ; numCrates++ ; }
+    int numPacks = (int) Math.ceil(newAmount * 1f / ITEM_UNIT), numCrates = 0 ;
+    while (numPacks > 4) { numPacks -= 4 ; numCrates++ ; }
     final int
-      total = numCrates + numPackets,
+      total = numCrates + numPacks,
       numLevels = total / 4,
       topOffset = (4 * (int) Math.ceil(total / 4f)) - total ;
     //

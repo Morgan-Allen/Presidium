@@ -25,11 +25,10 @@ public abstract class Actor extends Mobile implements
   
   /**  Field definitions, constructors and save/load functionality-
     */
+  private static boolean verbose = false ;
+  
   final public Healthbar healthBar = new Healthbar() ;
   final public TalkFX chat = new TalkFX() ;
-  //  private ActorSprite actSprite ;
-  //  private Healthbar healthBar ;
-  //  private TalkFX chat ;
   
   final public ActorHealth health = new ActorHealth(this) ;
   final public ActorTraits traits = new ActorTraits(this) ;
@@ -86,6 +85,9 @@ public abstract class Actor extends Mobile implements
   /**  Assigning behaviours and actions-
     */
   public void assignAction(Action action) {
+    if (I.talkAbout == this) {
+      I.sayIfAbout(verbose, this, "ASSIGNING ACTION: "+action) ;
+    }
     world.activities.toggleActive(this.actionTaken, false) ;
     this.actionTaken = action ;
     if (actionTaken != null) {
@@ -98,9 +100,7 @@ public abstract class Actor extends Mobile implements
   
   protected void pathingAbort() {
     if (actionTaken == null) return ;
-    if (BaseUI.isPicked(this)) {
-      I.say(this+" aborting "+actionTaken.methodName()) ;
-    }
+    I.sayIfAbout(verbose, this, "Aborting "+actionTaken.methodName()) ;
     AI.cancelBehaviour(AI.topBehaviour()) ;
     final Behaviour top = AI.topBehaviour() ;
     if (top != null) top.abortBehaviour() ;
@@ -144,9 +144,6 @@ public abstract class Actor extends Mobile implements
     final boolean OK = health.conscious() ;
     
     if (! OK) pathing.updateTarget(null) ;
-    if (aboard instanceof Mobile && (pathing.nextStep() == aboard || ! OK)) {
-      aboard.position(nextPosition) ;
-    }
     
     if (actionTaken != null && ! pathing.checkPathingOkay()) {
       world.schedule.scheduleNow(this) ;
@@ -156,15 +153,20 @@ public abstract class Actor extends Mobile implements
       actionTaken.updateAction() ;
       
       final Behaviour root = AI.rootBehaviour() ;
-      if (root != null && root.complete() && OK) {
-        assignAction(null) ;
+      if (root != null && root.finished() && OK) {
+        if (root.begun()) AI.cancelBehaviour(root) ;
         world.schedule.scheduleNow(this) ;
       }
-      else if (actionTaken.complete() && OK) {
+      else if (actionTaken.finished() && OK) {
         world.schedule.scheduleNow(this) ;
       }
       else if (! pathing.checkPathingOkay()) {
       }
+    }
+    
+    if (aboard instanceof Mobile && (pathing.nextStep() == aboard || ! OK)) {
+      ///I.sayAbout(this, "Tracking position: "+aboard) ;
+      aboard.position(nextPosition) ;
     }
   }
   
@@ -175,8 +177,10 @@ public abstract class Actor extends Mobile implements
     if (health.conscious()) {
       //
       //  Check to see if a new action needs to be decided on.
-      if (actionTaken == null || actionTaken.complete()) {
-        assignAction(AI.getNextAction()) ;
+      if (actionTaken == null || actionTaken.finished()) {
+        final Action action = AI.getNextAction() ;
+        I.sayIfAbout(verbose, this, "REFRESHING ACTION! "+action) ;
+        assignAction(action) ;
       }
       if (! pathing.checkPathingOkay()) pathing.refreshPath() ;
       AI.updateAI(numUpdates) ;

@@ -173,9 +173,7 @@ public class Human extends Actor implements ActorConstants {
     final boolean male = c.traits.hasTrait(Trait.GENDER, "Male") ;
     final JointSprite s ;
     if (c.sprite() == null) {
-      s = (JointSprite) (
-        male ? MODEL_FEMALE : MODEL_MALE
-      ).makeSprite() ;
+      s = (JointSprite) (male ? MODEL_MALE : MODEL_FEMALE).makeSprite() ;
       c.attachSprite(s) ;
     }
     else s = (JointSprite) c.sprite() ;

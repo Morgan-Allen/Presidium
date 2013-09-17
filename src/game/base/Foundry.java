@@ -108,8 +108,9 @@ public class Foundry extends Venue implements BuildConstants {
   
   public Service[] services() {
     return new Service[] {
-      PARTS, SHOCK_STAFF, PHASE_BLASTER,
-      SHIELD_BELT, BODY_ARMOUR, GOLEM_ARMOUR
+      PARTS, CIRCUITRY,
+      SHOCK_STAFF, PHASE_BLASTER, STUN_PISTOL,
+      SHIELD_BELT, PARTIAL_ARMOUR, BODY_ARMOUR, GOLEM_ARMOUR
     } ;
   }
   
@@ -130,7 +131,7 @@ public class Foundry extends Venue implements BuildConstants {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     
-    if (stocks.demandFor(PARTS) < 10) stocks.forceDemand(PARTS, 10) ;
+    if (stocks.demandFor(PARTS) < 10) stocks.forceDemand(PARTS, 10, 2) ;
     stocks.translateDemands(METALS_TO_PARTS) ;
   }
   

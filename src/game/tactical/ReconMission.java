@@ -78,7 +78,7 @@ public class ReconMission extends Mission {
   }
   
   
-  public boolean complete() {
+  public boolean finished() {
     return done ;
   }
   

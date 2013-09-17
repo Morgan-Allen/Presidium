@@ -21,7 +21,7 @@ import src.util.* ;
 
 
 //
-//  Add upgrades/functions for the stock exchange.  Debug cargo exchange.
+//  Add upgrades/functions for the stock exchange.
 //
 //  Update farming/the vats/mining a bit (including minimum spacing?)
 //  A clearer factoring out of venue/actor batches in the AI.
@@ -178,28 +178,35 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
   private void baseScenario(World world, Base base, HUD UI) {
     GameSettings.noFog     = true ;
     GameSettings.hireFree  = true ;
-    GameSettings.buildFree = true ;
-    ///PlayLoop.rendering().port.cameraZoom = 2.0f ;
+    //GameSettings.buildFree = true ;
+    PlayLoop.rendering().port.cameraZoom = 1.33f ;
     
     base.incCredits(2000) ;
     base.commerce.assignHomeworld(Background.PLANET_HALIBAN) ;
     
     //
-    //  TODO:  Test out long-range transport again.
+    //  TODO:  Test out long-range transport again.  Okay.  It seems to work
+    //  fine.
     
+    final Venue DA = establishVenue(new SupplyDepot(base), 4, 4 , true) ;
+    final Venue DB = establishVenue(new SupplyDepot(base), 4, 20, true) ;
+    DA.stocks.addItem(Item.withAmount(METAL_ORE, 50)) ;
+    DB.stocks.addItem(Item.withAmount(CARBS, 30)) ;
+    DB.stocks.addItem(Item.withAmount(PROTEIN, 20)) ;
     
-    //final Venue DA = establishVenue(new SupplyDepot(base), 4, 4 , true, pilot) ;
-    //final Venue DB = establishVenue(new SupplyDepot(base), 4, 20, true) ;
+    //
+    //  Import/export settings should apply to the base as a whole.
+    final Venue foundry = establishVenue(new Foundry(base), 9, 25, true) ;
+    foundry.stocks.addItem(Item.withAmount(PARTS, 12.5f)) ;
     
-    final Venue foundry = establishVenue(new Foundry(base), 4, 25, true) ;
-    foundry.stocks.addItem(Item.withAmount(PARTS, 25)) ;
-    
+    /*
     final Venue exchange = new StockExchange(base) ;
-    establishVenue(exchange, 6, 6, true) ;
+    establishVenue(exchange, 10, 6, true) ;
     for (Service s : exchange.services()) {
       exchange.stocks.addItem(s, 5 + (20 * Rand.num())) ;
     }
-    
+    //*/
+    //((BaseUI) UI).selection.pushSelection(exchange, true) ;
   }
   
   

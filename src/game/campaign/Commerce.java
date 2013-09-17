@@ -15,9 +15,9 @@ public class Commerce implements BuildConstants {
   
   /**  Fields definitions, constructor, save/load methods-
     */
-  final static float
-    SUPPLY_INTERVAL = 10,  //TODO:  Increase these substantially.
-    SUPPLY_DURATION = 10,
+  final public static float
+    SUPPLY_INTERVAL = 100,  //TODO:  Increase these substantially.
+    SUPPLY_DURATION = 100,
     
     MAX_APPLICANTS = 3 ;
   
@@ -271,6 +271,7 @@ public class Commerce implements BuildConstants {
       works.health.liftFatigue(MH * Rand.num()) ;
       works.health.takeSustenance(MH, 0.25f + Rand.num()) ;
       works.health.adjustMorale(Rand.num() / 2f) ;
+      works.AI.clearAgenda() ;
     }
   }
   

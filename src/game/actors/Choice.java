@@ -34,13 +34,8 @@ public class Choice {
   
   
   public boolean add(Behaviour plan) {
-    if (
-      plan == null || plan.complete() ||
-      plan.nextStepFor(actor) == null
-    ) {
-      if (verbose && BaseUI.isPicked(actor) && plan != null) {
-        I.say("  Rejected: "+plan) ;
-      }
+    if (plan == null || plan.finished() || plan.nextStepFor(actor) == null) {
+      if (verbose && plan != null) I.sayAbout(actor, "  Rejected: "+plan) ;
       return false ;
     }
     plans.add(plan) ;
@@ -56,7 +51,7 @@ public class Choice {
     //
     //  Firstly, acquire the priorities for each plan.  If the permitted range
     //  of priorities is zero, simply return the most promising.
-    if (verbose && BaseUI.isPicked(actor)) {
+    if (verbose && I.talkAbout == actor) {
       String label = "Actor" ;
       if (actor.vocation() != null) label = actor.vocation().name ;
       else if (actor.species() != null) label = actor.species().toString() ;
@@ -71,11 +66,12 @@ public class Choice {
       final float priority = plan.priorityFor(actor) ;
       if (priority > highestW) { highestW = priority ; bestP = plan ; }
       weights[i++] = priority ;
-      if (verbose && BaseUI.isPicked(actor)) I.say(
-        "  "+plan+" has priority: "+priority
-      ) ;
+      if (verbose) I.sayAbout(actor, "  "+plan+" has priority: "+priority) ;
     }
-    if (priorityRange == 0) return bestP ;
+    if (priorityRange == 0) {
+      if (verbose) I.sayAbout(actor, "    Picked: "+bestP) ;
+      return bestP ;
+    }
     //
     //  Eliminate all weights outside the permitted range, so that only plans
     //  of comparable attractiveness to the most important are considered-
@@ -84,7 +80,10 @@ public class Choice {
       weights[i] = Math.max(0, weights[i] - minPriority) ;
       sumWeights += weights[i] ;
     }
-    if (sumWeights == 0) return bestP ;
+    if (sumWeights == 0) {
+      if (verbose) I.sayAbout(actor, "    Picked: "+bestP) ;
+      return bestP ;
+    }
     //
     //  Finally, select a candidate at random using weights based on priority-
     Behaviour picked = null ;
@@ -95,6 +94,10 @@ public class Choice {
       if (randPick < chance) { picked = plan ; break ; }
       else randPick -= chance ;
     }
+    if (verbose) I.sayAbout(actor, "    Picked: "+picked) ;
     return picked ;
   }
 }
+
+
+

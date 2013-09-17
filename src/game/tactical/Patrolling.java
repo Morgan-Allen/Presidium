@@ -117,7 +117,7 @@ public class Patrolling extends Plan {
   }
   
   
-  public boolean complete() {
+  public boolean finished() {
     return numCircuits >= 2 ;
   }
   

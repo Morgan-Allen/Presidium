@@ -132,7 +132,7 @@ public abstract class Mission implements
   
   
   public boolean active() {
-    return begun && ! complete() ;
+    return begun && ! finished() ;
   }
   
   
@@ -203,7 +203,7 @@ public abstract class Mission implements
   
   
   public void updateMission() {
-    if (complete()) endMission(false) ;
+    if (finished()) endMission(false) ;
   }
   
   

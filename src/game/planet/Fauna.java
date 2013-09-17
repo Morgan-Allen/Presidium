@@ -11,6 +11,7 @@ import src.game.planet.* ;
 import src.game.building.* ;
 import src.game.tactical.* ;
 import src.game.actors.* ;
+import src.graphics.common.Colour;
 import src.graphics.widgets.* ;
 import src.user.* ;
 import src.util.* ;
@@ -339,7 +340,7 @@ public abstract class Fauna extends Actor {
     else d.appendList("", CD) ;
     
     d.append("\n\n") ;
-    d.append(species.info) ;
+    d.append(species.info, Colour.LIGHT_GREY) ;
   }
 }
 

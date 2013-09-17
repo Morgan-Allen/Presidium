@@ -228,11 +228,9 @@ public class BuildingSprite extends GroupSprite {
     else statusDisplayIndex = statusFX.size() - 1 ;
     
     if (stackFX.size() > 0) {
-      GL11.glDepthMask(false) ;
       GL11.glDisable(GL11.GL_DEPTH_TEST) ;
       for (ItemStack stack : stackFX) stack.renderTo(rendering) ;
       GL11.glEnable(GL11.GL_DEPTH_TEST) ;
-      GL11.glDepthMask(true) ;
     }
   }
   

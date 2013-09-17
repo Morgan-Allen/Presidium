@@ -44,7 +44,7 @@ public class Farming extends Plan implements BuildConstants {
   }
   
   
-  public boolean complete() {
+  public boolean finished() {
     return false ;
   }
   

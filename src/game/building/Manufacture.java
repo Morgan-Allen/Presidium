@@ -103,7 +103,7 @@ public class Manufacture extends Plan implements Behaviour {
   
   /**  Behaviour implementation-
     */
-  public boolean complete() {
+  public boolean finished() {
     return venue.stocks.hasItem(made) ;
   }
   

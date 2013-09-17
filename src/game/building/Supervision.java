@@ -1,16 +1,18 @@
 
 
 
-package src.game.social ;
+package src.game.building ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.user.* ;
+import src.util.I;
 
 
 //
 //  TODO:  Allow customised descriptions and basic training as standard.
 //  TODO:  Allow actors to perform minor dialogue without distraction.
+//  TODO:  HAVE THIS PLAN RESPONSIBLE FOR AUDITING IF NOBODY ELSE DOES IT FIRST
 
 
 public class Supervision extends Plan {
@@ -20,26 +22,26 @@ public class Supervision extends Plan {
     */
   final float WAIT_TIME = 20f ;
   
-  final Venue supervised ;
+  final Venue venue ;
   private float beginTime = -1 ;
   
   
   public Supervision(Actor actor, Venue supervised) {
     super(actor, supervised) ;
-    this.supervised = supervised ;
+    this.venue = supervised ;
   }
   
   
   public Supervision(Session s) throws Exception {
     super(s) ;
-    this.supervised = (Venue) s.loadObject() ;
+    this.venue = (Venue) s.loadObject() ;
     this.beginTime = s.loadFloat() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveObject(supervised) ;
+    s.saveObject(venue) ;
     s.saveFloat(beginTime) ;
   }
   
@@ -48,7 +50,8 @@ public class Supervision extends Plan {
   /**  Evaluating targets and priority-
     */
   public float priorityFor(Actor actor) {
-    return ROUTINE ;
+    if (Plan.competition(Supervision.class, venue, actor) > 0) return 0 ;
+    return CASUAL ;
   }
   
   
@@ -56,11 +59,17 @@ public class Supervision extends Plan {
     */
   protected Behaviour getNextStep() {
     if (beginTime == -1) beginTime = actor.world().currentTime() ;
-    if (actor.world().currentTime() - beginTime > WAIT_TIME) return null ;
-    if (! (supervised.jobFor(actor) instanceof Supervision)) return null ;
+    final float elapsed = actor.world().currentTime() - beginTime ;
+    if (elapsed > 1) {
+      final Behaviour nextJob = venue.jobFor(actor) ;
+      if (elapsed > WAIT_TIME || ! (nextJob instanceof Supervision)) {
+        abortBehaviour() ;
+        return null ;
+      }
+    }
     
     final Action supervise = new Action(
-      actor, supervised,
+      actor, venue,
       this, "actionSupervise",
       Action.LOOK, "Supervising"
     ) ;
@@ -75,7 +84,7 @@ public class Supervision extends Plan {
   
   public void describeBehaviour(Description d) {
     d.append("Supervising ") ;
-    d.append(supervised) ;
+    d.append(venue) ;
   }
 }
 

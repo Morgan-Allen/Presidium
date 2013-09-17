@@ -14,7 +14,6 @@ import src.user.* ;
 public interface Behaviour extends Session.Saveable {
   
   final public static float
-    
     IDLE     = 1,
     CASUAL   = 3,
     ROUTINE  = 5,
@@ -24,14 +23,13 @@ public interface Behaviour extends Session.Saveable {
   
   
   Behaviour nextStepFor(Actor actor) ;
-  boolean monitor(Actor actor) ;  //Get rid of these.
-  //void setPriority(float priority) ;  //...Not used for Plans.
+  boolean monitor(Actor actor) ;
   
   float priorityFor(Actor actor) ;
-  boolean complete() ;  //specify actor?  Return stage?
-  void abortBehaviour() ;    //specify actor?
-  //boolean viable() ; ?
-  //boolean begun() ; ?  ...No.  Return a Stage descriptor.
+  boolean finished() ;
+  void abortBehaviour() ;
+  //boolean viable() ;
+  boolean begun() ;
   
   void describeBehaviour(Description d) ;
 }

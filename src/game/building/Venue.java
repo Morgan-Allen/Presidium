@@ -399,6 +399,8 @@ public abstract class Venue extends Fixture implements
       d.append("\n  ") ; m.describeBehaviour(d) ; empty = false ;
     }
     if (empty) d.append("\n  No stocks or orders.") ;
+    d.append("\n\n") ;
+    d.append(helpInfo(), Colour.LIGHT_GREY) ;
   }
   
   
@@ -406,10 +408,10 @@ public abstract class Venue extends Fixture implements
     final int needed ;
     if (this instanceof Service.Trade) {
       final Service.Trade trade = (Service.Trade) this ;
-      needed = (int) Math.ceil(Math.max(
+      needed = (int) Math.ceil(Math.max(Math.max(
         trade.exportDemand(type),
         trade.importDemand(type)
-      )) ;
+      ), stocks.demandFor(type))) ;
     }
     else needed = (int) Math.ceil(stocks.demandFor(type)) ;
     final int amount = (int) Math.ceil(stocks.amountOf(type) ) ;
@@ -433,9 +435,14 @@ public abstract class Venue extends Fixture implements
     for (Mobile m : inside) considered.include(m) ;
     
     for (Mobile m : considered) {
-      d.append("\n  ") ; d.append(m) ;
-      d.append("\n  ") ; d.append(dutyDesc(m)) ;
-      d.append("\n  ") ; m.describeStatus(d) ;
+      d.append("\n  ") ;
+      d.append(m) ;
+      if (m instanceof Actor) {
+        d.append("\n  ") ;
+        d.append(descDuty((Actor) m)) ;
+      }
+      d.append("\n  ") ;
+      m.describeStatus(d) ;
     }
     
     d.append("\n\nVacancies and Applications:") ;
@@ -459,9 +466,7 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  private String dutyDesc(Mobile m) {
-    if (! (m instanceof Actor)) return "" ;
-    final Actor a = (Actor) m ;
+  private String descDuty(Actor a) {
     if (a.AI.home() == this) return "(Resident)" ;
     if (a.AI.work() != this) return "(Visitor)" ;
     final String duty = personnel.onShift(a) ? "On-Duty" : "Off-Duty" ;
@@ -615,6 +620,7 @@ public abstract class Venue extends Fixture implements
   
   protected void updateItemSprites() {
     final Service services[] = services() ;
+    if (services == null) return ;
     final float
       initX = (size / 2f) - 0.5f,
       initY = 0.5f - (size / 2f) ;

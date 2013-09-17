@@ -52,14 +52,14 @@ public interface BuildConstants extends ActorConstants {
     GREENS      = new Service(BC, "Greens"    , "greens.gif"     , FC, 50 ),
     SPICE       = new Service(BC, "Spice"     , "spices.gif"     , FC, 100),
     
-    ORES        = new Service(BC, "Ores"      , "ores.gif"       , FC, 15 ),
+    METAL_ORE   = new Service(BC, "Metal Ore" , "ores.gif"       , FC, 15 ),
     P_CARBONS   = new Service(BC, "P-Carbons" , "carbons.gif"    , FC, 35 ),
     FUEL_CORES  = new Service(BC, "Fuel Cores", "fuel rods.gif"  , FC, 60 ),
     
     PARTS       = new Service(BC, "Parts"     , "parts.gif"      , FC, 50 ),
     PLASTICS    = new Service(BC, "Plastics"  , "plastics.gif"   , FC, 75 ),
+    CIRCUITRY   = new Service(BC, "Circuitry" , "inscription.gif", FC, 140),
     PRESSFEED   = new Service(BC, "Pressfeed" , "pressfeed.gif"  , FC, 110),
-    CIRCUITS    = new Service(BC, "Circuits"  , "inscription.gif", FC, 140),
     
     STIM_KITS   = new Service(BC, "Stim Kit"  , "stimkit.gif"    , FC, 40 ),
     SOMA        = new Service(BC, "Soma"      , "soma.gif"       , FC, 70 ),
@@ -231,45 +231,29 @@ public interface BuildConstants extends ActorConstants {
   
   final public static Conversion
     
-    /*
-    TIMBER_TO_CARBONS = new Conversion(
-      1, TIMBER, TO, 2, CARBONS,
-      CuringShed.class, SIMPLE_DC, CHEMISTRY
-    ),
-    
-    STARCHES_TO_CARBONS = new Conversion(
-      1, STARCHES, TO, 1, CARBONS,
-      CuringShed.class, SIMPLE_DC, CHEMISTRY
-    ),
-    
-    ISOTOPES_TO_POWER = new Conversion(
-      1, ISOTOPES, TO, 100, POWER,
-      Reactor.class, DIFFICULT_DC, CHEMISTRY, ROUTINE_DC, FIELD_THEORY
-    ),
-    //*/
     METALS_TO_PARTS = new Conversion(
-      1, ORES, TO, 2, PARTS,
+      1, METAL_ORE, TO, 1, PARTS,
       Foundry.class, TRICKY_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
     ),
     
     CARBONS_TO_PLASTICS = new Conversion(
-      1, P_CARBONS, TO, 2, PLASTICS,
+      1, P_CARBONS, TO, 1, PLASTICS,
       Fabricator.class, TRICKY_DC, CHEMISTRY, SIMPLE_DC, GRAPHIC_MEDIA
     ),
     
     PLASTICS_TO_PRESSFEED = new Conversion(
-      1, PLASTICS, TO, 5, PRESSFEED,
+      1, PLASTICS, TO, 10, PRESSFEED,
       AuditOffice.class, SIMPLE_DC, ADMINISTRATION, DIFFICULT_DC, GRAPHIC_MEDIA
     ),
     
     
     NIL_TO_SOMA = new Conversion(
-      TO, 1, SOMA,
+      2, POWER, TO, 1, SOMA,
       CultureVats.class, ROUTINE_DC, CHEMISTRY, ROUTINE_DC, PHARMACY
     ),
     
     NIL_TO_STARCHES = new Conversion(
-      TO, 1, CARBS,
+      1, POWER, TO, 1, CARBS,
       CultureVats.class, SIMPLE_DC, CHEMISTRY
     ) ;
 }

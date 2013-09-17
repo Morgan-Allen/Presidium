@@ -11,6 +11,7 @@ import src.game.building.* ;
 import src.game.common.* ;
 import src.game.social.* ;
 import src.game.tactical.* ;
+import src.user.BaseUI;
 import src.util.* ;
 
 
@@ -93,7 +94,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
     if (mission != null && mission.active()) {
       choice.add(mission) ;
     }
-    if (mission != null && mission.complete()) {
+    if (mission != null && mission.finished()) {
       I.say("Mission completed: "+mission.fullName()) ;
       mission = null ;
     }
@@ -202,12 +203,10 @@ public class HumanAI extends ActorAI implements ActorConstants {
     choice.add(Recreation.findRecreation(actor)) ;
     choice.add(new Resting(actor, Resting.pickRestPoint(actor))) ;
     
-    //*
     Tile toExplore = Exploring.getUnexplored(actor.base().intelMap, actor) ;
     if (toExplore != null) {
       choice.add(new Exploring(actor, actor.base(), toExplore)) ;
     }
-    //*/
   }
   
   
@@ -241,13 +240,20 @@ public class HumanAI extends ActorAI implements ActorConstants {
     //  together at the stock exchange.
     if (home instanceof Holding) {
       final Item items[] = ((Holding) home).goodsNeeded().toArray(Item.class) ;
+      ///if (BaseUI.isPicked(actor)) I.say("Shopping!") ;
       final Venue shop = Delivery.findBestVendor(home, items) ;
       if (shop != null) {
+        ///if (BaseUI.isPicked(actor)) I.say("Shopping!") ;
         Delivery.compressOrder(items, 5) ;
         choice.add(new Delivery(items, shop, home)) ;
       }
     }
   }
 }
+
+
+
+
+
 
 

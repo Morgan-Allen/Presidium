@@ -127,6 +127,27 @@ public class Presences {
     if (map == null) return null ;
     return (Venue) map.pickRandomAround(client, range) ;
   }
+  
+  
+  public Series <Target> sampleTargets(
+    Object key, Target t, World world, int limit, Series sampled
+  ) {
+    if (sampled == null) sampled = new Batch() ;
+    for (int n = limit / 2 ; n-- > 0 ;) {
+      final Venue v = (Venue) randomMatchNear(key, t, -1) ;
+      if (v == t || v.flaggedWith() != null) continue ;
+      sampled.add(v) ;
+      v.flagWith(sampled) ;
+    }
+    for (Object o : matchesNear(key, t, -1)) {
+      if (o == t) continue ;
+      final Venue v = (Venue) o ;
+      if (v.flaggedWith() != null) continue ;
+      sampled.add(v) ;
+    }
+    for (Object o : sampled) ((Target) o).flagWith(null) ;
+    return sampled ;
+  }
 }
 
 

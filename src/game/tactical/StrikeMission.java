@@ -57,12 +57,12 @@ public class StrikeMission extends Mission {
   
   
   public Behaviour nextStepFor(Actor actor) {
-    if (complete()) return null ;
+    if (finished()) return null ;
     return new Combat(actor, (Element) subject) ;
   }
 
 
-  public boolean complete() {
+  public boolean finished() {
     if (Combat.isDead((Element) subject)) return true ;
     return false ;
   }

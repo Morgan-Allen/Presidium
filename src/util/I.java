@@ -22,23 +22,33 @@ import javax.swing.* ;
 public class I {
   
   
-  private static boolean mute = false ;
+  public static boolean mute = false ;
+  public static Object talkAbout = null ;
   
   
   public static final void add(String s) {
     if (! mute) {
       System.out.print(s) ;
-      //if (GameLoop.currentUI() != null)
-        //PlayerUI.pushMessage(s) ;
     }
   }
   
   public static final void say(String s) {
     if (! mute) {
-      System.out.print("\n") ;
-      System.out.print(s) ;
-      //if (GameLoop.currentUI() != null)
-        //GameLoop.currentUI().pushMessage(s) ;
+      System.out.println(s) ;
+    }
+  }
+  
+  
+  public static final void sayAbout(Object o, String s) {
+    if (talkAbout != null && o == talkAbout && ! mute) {
+      System.out.println(s) ;
+    }
+  }
+  
+  
+  public static final void sayIfAbout(boolean verbose, Object o, String s) {
+    if (verbose && talkAbout != null && o == talkAbout && ! mute) {
+      System.out.println(s) ;
     }
   }
   

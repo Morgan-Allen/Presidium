@@ -33,6 +33,8 @@ public abstract class ActorAI implements ActorConstants {
     MAX_RELATIONS = 100,
     MAX_VALUES    = 100 ;
   
+  private static boolean verbose = false ;
+  
   
   final protected Actor actor ;
   
@@ -171,12 +173,8 @@ public abstract class ActorAI implements ActorConstants {
     updateSeen() ;
     if (home != null && home.destroyed()) home = null ;
     if (work != null && work.destroyed()) work = null ;
-    if (numUpdates % 10 == 0 && agenda.size() > 0) {
-      for (Behaviour b : todoList) {
-        if (b.complete()) {
-          todoList.remove(b) ;
-        }
-      }
+    if (numUpdates % 10 == 0) {
+      for (Behaviour b : todoList) if (b.finished()) todoList.remove(b) ;
       final Behaviour
         last = rootBehaviour(),
         next = nextBehaviour() ;
@@ -191,6 +189,11 @@ public abstract class ActorAI implements ActorConstants {
       notDone = new Choice(actor, todoList).weightedPick(0),
       newChoice = createBehaviour(),
       taken = couldSwitch(notDone, newChoice) ? newChoice : notDone ;
+    if (verbose && I.talkAbout == actor) {
+      I.say("  TOP BEHAVIOUR: "+topBehaviour()) ;
+      I.say("  ROOT BEHAVIOUR: "+rootBehaviour()) ;
+      I.say("  NEW CHOICE: "+newChoice) ;
+    }
     return taken ;
   }
   
@@ -256,15 +259,13 @@ public abstract class ActorAI implements ActorConstants {
   
   public void assignBehaviour(Behaviour behaviour) {
     if (behaviour == null) I.complain("CANNOT ASSIGN NULL BEHAVIOUR.") ;
-    ///I.say("Assigning behaviour "+behaviour+" to "+actor) ;
+    I.sayIfAbout(verbose, actor, "Assigning behaviour "+behaviour) ;
     actor.assignAction(null) ;
     final Behaviour replaced = rootBehaviour() ;
     cancelBehaviour(replaced) ;
     pushBehaviour(behaviour) ;
-    if (replaced != null && ! replaced.complete()) {
-      if (BaseUI.isPicked(actor)) {
-        I.say(actor+" SAVING PLAN AS TODO: "+replaced+" "+replaced.hashCode()) ;
-      }
+    if (replaced != null && ! replaced.finished()) {
+      if (verbose) I.sayAbout(actor, " SAVING PLAN AS TODO: "+replaced) ;
       todoList.include(replaced) ;
     }
   }
@@ -287,6 +288,7 @@ public abstract class ActorAI implements ActorConstants {
       if (popped == b) break ;
     }
     if (agenda.includes(b)) I.complain("Duplicate behaviour!") ;
+    actor.assignAction(null) ;
   }
   
   
@@ -309,9 +311,24 @@ public abstract class ActorAI implements ActorConstants {
     if (! actor.health.conscious()) return false ;
     if (next == null) return false ;
     if (last == null) return true ;
+    if (targetFor(last) == targetFor(next)) return false ;
     return
       next.priorityFor(actor) >=
       (last.priorityFor(actor) + persistance()) ;
+  }
+  
+  
+  private Target targetFor(Behaviour b) {
+    final Behaviour n = b.nextStepFor(actor) ;
+    if (n instanceof Action) return ((Action) n).target() ;
+    else if (n == null || n.finished()) return null ;
+    else return targetFor(n) ;
+  }
+  
+  
+  public void clearAgenda() {
+    if (rootBehaviour() != null) cancelBehaviour(rootBehaviour()) ;
+    todoList.clear() ;
   }
   
   
@@ -324,7 +341,10 @@ public abstract class ActorAI implements ActorConstants {
       //  If all current behaviours are complete, generate a new one.
       if (agenda.size() == 0) {
         final Behaviour taken = nextBehaviour() ;
-        if (taken == null) return null ;
+        if (taken == null) {
+          I.sayIfAbout(true, actor, "No next behaviour!") ;
+          return null ;
+        }
         pushBehaviour(taken) ;
       }
       //
@@ -333,14 +353,17 @@ public abstract class ActorAI implements ActorConstants {
       //  their next step.
       final Behaviour current = topBehaviour() ;
       final Behaviour next = current.nextStepFor(actor) ;
-      final boolean isDone = current.complete() ;
+      final boolean isDone = current.finished() ;
       if (isDone || next == null) {
         if (current == rootBehaviour() && ! isDone) {
           todoList.add(current) ;
         }
         popBehaviour() ;
       }
-      else if (current instanceof Action) return (Action) current ;
+      else if (current instanceof Action) {
+        I.sayIfAbout(true, actor, "Next action: "+current) ;
+        return (Action) current ;
+      }
       else pushBehaviour(next) ;
     }
   }
@@ -422,9 +445,10 @@ public abstract class ActorAI implements ActorConstants {
     //
     //  Cut this down based on how many thousand credits the actor has ATM.
     float reserves = actor.gear.credits() / 1000f ;
+    ///I.sayFor(actor, "reserves are:" +reserves+" "+actor.gear.credits()) ;
     reserves /= actor.traits.scaleLevel(ACQUISITIVE) ;
-    val /= (0.5f + reserves) ;
-    ///I.say("Greed value: "+val) ;
+    if (reserves < 0) return val * 2 ;
+    else val /= (0.5f + reserves) ;
     return val ;
   }
   

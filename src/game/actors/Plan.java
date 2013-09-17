@@ -66,6 +66,7 @@ public abstract class Plan implements Saveable, Behaviour {
   
   
   public boolean matchesPlan(Plan p) {
+    if (p == null || p.getClass() != this.getClass()) return false ;
     for (int i = 0 ; i < signature.length ; i++) {
       final Object s = signature[i], pS = p.signature[i] ;
       if (s == null && pS != null) return false ;
@@ -73,6 +74,7 @@ public abstract class Plan implements Saveable, Behaviour {
     }
     return true ;
   }
+  
   
   public int planHash() {
     return hash ;
@@ -98,7 +100,9 @@ public abstract class Plan implements Saveable, Behaviour {
   
 
   public void abortBehaviour() {
-    ///I.say("Aborting plan! "+this) ;
+    if (! begun()) return ;
+    I.say(actor+" Aborting plan! "+this) ;
+    nextStep = null ;
     actor.AI.cancelBehaviour(this) ;
   }
   
@@ -112,7 +116,7 @@ public abstract class Plan implements Saveable, Behaviour {
       if (valid()) return getNextStep() ;
       else return null ;
     }
-    if (nextStep == null || nextStep.complete()) {
+    if (nextStep == null || nextStep.finished()) {
       if (valid()) nextStep = getNextStep() ;
       else { onceInvalid() ; nextStep = null ; }
     }
@@ -130,13 +134,13 @@ public abstract class Plan implements Saveable, Behaviour {
   }
   
   
-  public boolean complete() {
-    return begun() && nextStep() == null ;
+  public boolean finished() {
+    return actor != null && (nextStep() == null || priorityFor(actor) <= 0) ;
   }
   
   
   public boolean begun() {
-    return actor != null ;
+    return actor != null && nextStep != null ;
   }
   
   

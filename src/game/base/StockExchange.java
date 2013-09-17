@@ -14,6 +14,16 @@ import src.util.* ;
 
 
 
+/*
+return new Service[] {
+  STIM_KITS, MEDICINE, SOMA,
+  PROTEIN, GREENS, SPICE,
+  PRESSFEED
+  //PARTS, PLASTICS, CIRCUITS, PRESSFEED,
+  //CARBS, PROTEIN, GREENS, SPICE
+  //  Medkits and Power Cells.  Plus weapons/armour.
+} ;
+//*/
 
 //
 //  The Stock Exchange also creates a small amount of money 'ex nihilo' with
@@ -31,13 +41,10 @@ public class StockExchange extends Venue implements BuildConstants {
       "media/Buildings/merchant/stock_exchange.png",
       4, 2
     ) ;
-  /*
   final static Service EXCHANGE_GOODS[] = {
-    GREENS, SOMA, PRESSFEED, CIRCUITS,
-    TROPHIES, RELICS, DECOR, SPICE
-    //Geneseed, Neural Scans, Talisman
+    GREENS, SPICE, SOMA,
+    MEDICINE, CIRCUITRY, PRESSFEED
   } ;
-  //*/
   
   
   
@@ -106,14 +113,7 @@ public class StockExchange extends Venue implements BuildConstants {
   
   
   public Service[] services() {
-    return new Service[] {
-      STIM_KITS, MEDICINE, SOMA,
-      PROTEIN, GREENS, SPICE,
-      PRESSFEED
-      //PARTS, PLASTICS, CIRCUITS, PRESSFEED,
-      //CARBS, PROTEIN, GREENS, SPICE
-      //  Medkits and Power Cells.  Plus weapons/armour.
-    } ;
+    return EXCHANGE_GOODS ;
   }
   
   
@@ -121,6 +121,9 @@ public class StockExchange extends Venue implements BuildConstants {
     //
     //  TODO:  You need to return the list of possible deliveries to this
     //  venue... and arrange for bulk transport.
+    
+    
+    
     return new Supervision(actor, this) ;
   }
   

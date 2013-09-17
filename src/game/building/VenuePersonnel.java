@@ -25,13 +25,6 @@ import src.util.* ;
 //  both skills and personality.  (And they'd have to be given gear.)
 
 
-
-//
-//  TODO:  Make this into a Position instead.  With a balance of wages
-//  awaiting collection.
-//  TODO:  Half the signing fee goes to the actor immediately, tax free.
-
-
 public class VenuePersonnel {
   
   
@@ -174,6 +167,20 @@ public class VenuePersonnel {
   }
   
   
+  public int assignedTo(Plan matchPlan) {
+    if (matchPlan == null) return 0 ;
+    int count = 0 ;
+    for (Actor actor : workers) {
+      for (Behaviour b : actor.AI.agenda()) if (b instanceof Plan) {
+        if (((Plan) b).matchesPlan(matchPlan)) {
+          count++ ;
+        }
+      }
+    }
+    return count ;
+  }
+  
+  
   
   /**  Methods related to payment of wages-
     */
@@ -189,7 +196,7 @@ public class VenuePersonnel {
     }
     venue.stocks.incCredits(0 - sumWages) ;
     //
-    //  Then split any surplus (after tax) between employees in proportion to
+    //  Then split a portion of surplus between employees in proportion to
     //  basic salary.
     final float surplus = venue.stocks.credits() ;
     if (surplus > 0) {
@@ -210,11 +217,13 @@ public class VenuePersonnel {
     if (balance > 0) {
       final float paid = balance / (1 + waste) ;
       base.incCredits(paid) ;
+      venue.chat.addPhrase((int) paid+" credits in profit") ;
       venue.stocks.incCredits(0 - paid) ;
     }
     if (balance < 0) {
       final float paid = (0 - balance) * (1 + waste) ;
       base.incCredits(0 - paid) ;
+      venue.chat.addPhrase((int) paid+" credits in debt") ;
       venue.stocks.incCredits(paid) ;
     }
     venue.stocks.taxDone() ;
@@ -223,7 +232,8 @@ public class VenuePersonnel {
   
   protected void checkWagePayment() {
     for (Position p : positions) {
-      if (p.works.aboard() == venue) {
+      if (p.works.aboard() == venue && p.wages > 0) {
+        I.say("DISPENSING "+p.wages+" CREDITS IN WAGES TO "+p.works) ;
         p.works.gear.incCredits(p.wages) ;
         p.wages = 0 ;
       }

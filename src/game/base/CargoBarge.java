@@ -45,8 +45,6 @@ public class CargoBarge extends Vehicle implements
   }
   
   
-  //public int owningType() { return Element.VENUE_OWNS ; }
-  //public int pathType() { return Tile.PATH_BLOCKS ; }
   public float height() { return 1.0f ; }
   public float radius() { return 1.0f ; }
   
@@ -90,7 +88,7 @@ public class CargoBarge extends Vehicle implements
   /**  Rendering and interface methods-
     */
   public String fullName() {
-    return "Loader" ;
+    return "Cargo Barge" ;
   }
   
   
@@ -101,19 +99,13 @@ public class CargoBarge extends Vehicle implements
   
   public String helpInfo() {
     return
-      "Dropships ferry initial colonists and startup supplies to your "+
-      "fledgling settlement, courtesy of your homeworld's generosity." ;
-  }
-  
-  
-  public void writeInformation(Description d, int categoryID, HUD UI) {
-    d.appendList("Crew: ", crew()) ;
-    d.appendList("\n\nPassengers: ", inside()) ;
-    d.appendList("\n\nCargo: ", cargo.allItems()) ;
-    d.append("\n\n") ; d.append(helpInfo()) ;
+      "Cargo Barges shuttle goods in bulk between the more distant reaches "+
+      "of your settlement.\n\n"+
+      "  'She kicks like a mule and stinks of raw carbons, but she'll "+
+      "getcha from A to B.  Assuming B is downhill.'\n"+
+      "  -Tev Marlo, Supply Corps" ;
   }
 }
-
 
 
 

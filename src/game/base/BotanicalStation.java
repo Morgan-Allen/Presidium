@@ -255,7 +255,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
 
   public Behaviour jobFor(Actor actor) {
-    final Delivery d = Delivery.nextDeliveryFrom(this, actor, services()) ;
+    final Delivery d = Delivery.nextDeliveryFrom(this, actor, services(), 10) ;
     if (d != null) return d ;
     
     //if (true) return null ;

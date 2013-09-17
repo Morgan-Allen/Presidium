@@ -23,10 +23,18 @@ import src.util.* ;
 //  TODO:  Ensure only one actor at a time performs this kind of long-
 //  range delivery.  (In fact, long-range cargo-deposits need work in
 //  general.)
+
+//  ...Do I want stock exchanges to import stuff?  ...No.  Yes.  Maybe.  I
+//  think... perhaps they should do so automatically?
+
+
+//
+//  Okay.  I need to sort out the kinds of Delivery I need.
+
+
 //
 //  TODO:  Include a Landing Site right nextdoor.
-//  TODO:  This has to register for services, even if you are forcing demand.
-//         Do something similar for the Stock Exchange.
+
 
 //
 //  TODO:  What you want to do here is assign general priorities for the base
@@ -46,12 +54,12 @@ public class SupplyDepot extends Venue implements
     */
   final static Model
     MODEL = ImageModel.asIsometricModel(
-      SupplyDepot.class, "media/Buildings/merchant/supply_depot.png",
-      3, 2
+      SupplyDepot.class, "media/Buildings/merchant/supply_depot_big.png",
+      5, 3
     ) ;
   final static Service DEPOT_GOODS[] = {
-    CARBS, PROTEIN, PLASTICS, MEDICINE,
-    PARTS, ORES, P_CARBONS, FUEL_CORES
+    CARBS, PROTEIN, PLASTICS, STIM_KITS,
+    PARTS, METAL_ORE, P_CARBONS, FUEL_CORES
   } ;
   
   
@@ -61,7 +69,7 @@ public class SupplyDepot extends Venue implements
   
 
   public SupplyDepot(Base base) {
-    super(3, 2, ENTRANCE_NORTH, base) ;
+    super(5, 3, ENTRANCE_NORTH, base) ;
     
     structure.setupStats(100, 2, 200, 0, false) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
@@ -113,44 +121,40 @@ public class SupplyDepot extends Venue implements
   /**  Upgrades, economic functions and behaviour implementation-
     */
   public Behaviour jobFor(Actor actor) {
-    final Choice choice = new Choice(actor) ;
     
-    /*
-    final Building b = Building.getNextRepairFor(actor) ;
-    if (b != null) {
-      b.priorityMod = Plan.CASUAL ;
-      choice.add(b) ;
-    }
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
+    final Choice choice = new Choice(actor) ;
     
     final Batch <Venue> depots = nearbyDepots() ;
     final Delivery d = Delivery.nextDeliveryFrom(
-      this, DEPOT_GOODS,
-      depots, 50, world
+      this, DEPOT_GOODS, depots, 50, world, false
     ) ;
-    if (d != null && ! actor.isDoing(Delivery.class, null)) {
+    
+    if (d != null && personnel.assignedTo(d) < 1) {
       d.priorityMod = Plan.CASUAL ;
       d.driven = cargoBarge ;
       choice.add(d) ;
     }
-    //*/
     
     final Delivery lD = Delivery.nextDeliveryFrom(
-      this, actor, DEPOT_GOODS
+      this, actor, DEPOT_GOODS, 10
     ) ;
-    choice.add(lD) ;
+    if (lD != null && personnel.assignedTo(lD) < 1) choice.add(lD) ;
     
+    //
+    //  Don't collect from other depots.  Bulk deliveries serve that function.
     Item[] shortages = stocks.shortages().toArray(Item.class) ;
     final Venue CV = Delivery.findBestVendor(this, shortages) ;
     if (CV != null) {
-      shortages = Delivery.compressOrder(shortages, 5) ;
-      ///I.say("Should be collecting from: "+CV+" "+shortages[0]) ;
+      shortages = Delivery.compressOrder(shortages, 10) ;
       choice.add(new Delivery(shortages, CV, this)) ;
     }
+    choice.add(new Supervision(actor, this)) ;
     
     return choice.weightedPick(actor.AI.whimsy()) ;
   }
   
-  /*
+  
   private Batch <Venue> nearbyDepots() {
     final Batch <Venue> depots = new Batch <Venue> () ;
     for (Object o : world.presences.matchesNear(SupplyDepot.class, this, -1)) {
@@ -159,18 +163,18 @@ public class SupplyDepot extends Venue implements
     }
     return depots ;
   }
-  //*/
   
   
   public void updateAsScheduled(int numUpdates) {
+    ///if (mainEntrance().blocked()) I.say("BLOCKED ENTRANCE!") ;
     super.updateAsScheduled(numUpdates) ;
-    //final Batch <Venue> depots = nearbyDepots() ;
+    final Batch <Venue> depots = nearbyDepots() ;
     
     for (Service type : DEPOT_GOODS) {
       final Integer level = exportLevels.get(type) ;
-      if (level != null && level > 0) stocks.forceDemand(type, level) ;
-      else stocks.forceDemand(type, 0) ;
-      ///stocks.diffuseDemand(type, depots) ;
+      if (level != null && level > 0) stocks.forceDemand(type, level, 0) ;
+      //if (level != null && level < 0) stocks.forceDemand(type, 0, 1) ;
+      stocks.diffuseDemand(type, depots) ;
     }
   }
   

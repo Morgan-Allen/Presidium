@@ -16,12 +16,6 @@ import src.game.building.Inventory.Owner ;
 
 
 
-//
-//  TODO:  You now need to ensure that actors factor price into the purchasing
-//  decision when it comes to personal goods.  i.e, that it's the actor that
-//  pays for it, not their home.
-
-
 public class Delivery extends Plan implements BuildConstants {
   
   final public static int
@@ -39,6 +33,8 @@ public class Delivery extends Plan implements BuildConstants {
   final static int
     MIN_BULK = 5 ;
   
+  private static boolean verbose = false ;
+  
   
   final public Owner origin, destination ;
   final public Item items[] ;
@@ -46,7 +42,7 @@ public class Delivery extends Plan implements BuildConstants {
   
   private byte stage = STAGE_INIT ;
   private Suspensor suspensor ;
-  public Vehicle driven ;  //...Use instead of the suspensor?
+  public Vehicle driven ;
   
   
   
@@ -102,6 +98,18 @@ public class Delivery extends Plan implements BuildConstants {
   int stage() { return stage ; }
   
   
+  public boolean matchesPlan(Plan plan) {
+    if (! super.matchesPlan(plan)) return false ;
+    final Delivery d = (Delivery) plan ;
+    if (d.origin != origin || d.destination != destination) return false ;
+    boolean overlap = false;
+    for (Item i : items) {
+      for (Item dI : d.items) if (i.type == dI.type) overlap = true ;
+    }
+    return overlap ;
+  }
+  
+  
   
   /**  Assessing targets and priorities-
     */
@@ -111,12 +119,23 @@ public class Delivery extends Plan implements BuildConstants {
       ((Venue) destination).privateProperty() ;
   }
   
+  private float purchasePrice(Item i) {
+    final float TP = origin.priceFor(i.type) + destination.priceFor(i.type) ;
+    return i.amount * TP / 2f ;
+  }
+  
   
   private Batch <Item> available() {
     final Batch <Item> available = new Batch <Item> () ;
+    final boolean shopping = isShopping() ;
+    float sumPrice = 0 ;
     for (Item i : items) {
       if ((origin.inventory().amountOf(i) <= 0) && (! actor.gear.hasItem(i))) {
         continue ;
+      }
+      if (shopping && stage <= STAGE_PICKUP) {
+        sumPrice += purchasePrice(i) ;
+        if (sumPrice > actor.gear.credits() / 2f) break ;
       }
       available.add(i) ;
     }
@@ -130,20 +149,19 @@ public class Delivery extends Plan implements BuildConstants {
       Plan.rangePenalty(actor, destination) +
       Plan.rangePenalty(origin, destination)
     ) / (driven == null ? 2f : 10f) ;
-    
+
+    final Batch <Item> available = available() ;
+    if (available.size() == 0) return 0 ;
     if (isShopping()) {
-      final Batch <Item> available = available() ;
       int price = 0 ;
-      for (Item i : available) {
-        float TP = origin.priceFor(i.type) + destination.priceFor(i.type) ;
-        price += TP * i.amount / 2f ;
-      }
+      for (Item i : available) price += purchasePrice(i) ;
       if (price > actor.gear.credits()) return 0 ;
       float costVal = actor.AI.greedFor(price) * CASUAL ;
-      return ROUTINE + priorityMod - (costVal + rangePenalty) ;
+      return Visit.clamp(
+        ROUTINE + priorityMod - (costVal + rangePenalty), 0, URGENT
+      ) ;
     }
-    
-    return ROUTINE + priorityMod - rangePenalty ;
+    return Visit.clamp(ROUTINE + priorityMod - rangePenalty, 0, URGENT) ;
   }
   
   
@@ -168,7 +186,7 @@ public class Delivery extends Plan implements BuildConstants {
   }
   
   
-  public boolean complete() {
+  public boolean finished() {
     return stage == STAGE_DONE ;
   }
   
@@ -190,6 +208,9 @@ public class Delivery extends Plan implements BuildConstants {
   /**  Behaviour implementation-
     */
   public Behaviour getNextStep() {
+    if (verbose && BaseUI.isPicked(actor)) {
+      ///I.say("Delivery stage: "+stage+" "+this.hashCode()) ;
+    }
     if (stage == STAGE_INIT) {
       stage = STAGE_PICKUP ;
     }
@@ -199,10 +220,11 @@ public class Delivery extends Plan implements BuildConstants {
         this, "actionPickup",
         Action.REACH_DOWN, "Picking up goods"
       ) ;
+      ///if (verbose && BaseUI.isPicked(actor)) I.say("Returning pickup") ;
       return pickup ;
     }
     if (stage == STAGE_DROPOFF) {
-      if (BaseUI.isPicked(actor)) I.say("Returning dropoff action") ;
+      ///if (BaseUI.isPicked(actor)) I.say("Returning dropoff action") ;
       final Action dropoff = new Action(
         actor, destination,
         this, "actionDropoff",
@@ -226,28 +248,27 @@ public class Delivery extends Plan implements BuildConstants {
   
   
   private float transferGoods(Owner a, Owner b) {
-    float sum = 0 ;
+    if (a == null || b == null) return 0 ;
+    float sumItems = 0 ;
     float totalPrice = 0 ;
-    for (Item i : items) {
-      float TP = origin.priceFor(i.type) + destination.priceFor(i.type) ;
+    for (Item i : available()) {
       final float TA = a.inventory().transfer(i, b) ;
-      totalPrice += TP * TA / 2f ;
-      sum += TA ;
+      totalPrice += TA * purchasePrice(i) / i.amount ;
+      sumItems += TA ;
     }
-    ///I.say("Total price: "+totalPrice) ;
     origin.inventory().incCredits(totalPrice) ;
     if (isShopping()) actor.gear.incCredits(0 - totalPrice) ;
     else destination.inventory().incCredits(0 - totalPrice) ;
-    return sum ;
+    return sumItems ;
   }
   
 
   public boolean actionPickup(Actor actor, Target target) {
-    if (stage != STAGE_PICKUP || target != origin) return false ;
+    if (stage != STAGE_PICKUP) return false ;
     //
     //  Vehicles get special treatment-
     if (driven != null) {
-      I.say("Performing vehicle pickup...") ;
+      ///I.say("Performing vehicle pickup...") ;
       if (driven.aboard() != origin) {
         I.say("VEHICLE UNAVAILABLE!") ;
         abortBehaviour() ;
@@ -261,6 +282,7 @@ public class Delivery extends Plan implements BuildConstants {
     //  see if a suspensor is needed-
     final float sum = transferGoods(origin, actor) ;
     final boolean bulky = sum >= 5 || passenger != null ;
+    if (verbose && BaseUI.isPicked(actor)) I.say("Performing pickup!") ;
     //
     //  Passengers always require a suspensor.
     if (bulky) {
@@ -280,7 +302,7 @@ public class Delivery extends Plan implements BuildConstants {
     
     if (driven != null) {
       ///I.say("Performing vehicle dropoff...") ;
-      driven.pilots = actor ;
+      driven.pilot = actor ;
       if (driven.aboard() == target) {
         I.say("Performing vehicle dropoff...") ;
         for (Item i : items) driven.cargo.transfer(i, target) ;
@@ -304,7 +326,7 @@ public class Delivery extends Plan implements BuildConstants {
   public boolean actionReturn(Actor actor, Venue target) {
     driven.pathing.updateTarget(target) ;
     if (driven.aboard() == target) {
-      driven.pilots = null ;
+      driven.pilot = null ;
       actor.goAboard(target, actor.world()) ;
       stage = STAGE_DONE ;
       return true ;
@@ -321,6 +343,11 @@ public class Delivery extends Plan implements BuildConstants {
     //
     //  TODO:  You need to vary the description here, depending on phase and
     //  type.
+    if (stage == STAGE_RETURN) {
+      d.append("Returning to ") ;
+      d.append(origin) ;
+      return ;
+    }
     
     d.append("Delivering ") ;
     final Batch <Item> available = available() ;
@@ -342,17 +369,24 @@ public class Delivery extends Plan implements BuildConstants {
     //
     //  TODO:  Base this off the list of venues the actor is aware of.
     //  ...Which should, in turn, be updated gradually over time.
+    float sumItems = 0 ;
+    for (Item item : items) sumItems += item.amount ;
+    ///if (sumItems < 0.5f) return null ;
+    
     final World world = origin.world() ;
     final int maxTried = 3 ;
     Venue best = null ;
     float bestRating = 0 ;
+    Batch <Venue> tried = new Batch <Venue> () ;
     
     for (Item item : items) {
-      if (item.type.form != FORM_COMMODITY || item.amount < 1) continue ;
+      if (item.type.form != FORM_COMMODITY) continue ;
       int numTried = 0 ;
       for (Object t : world.presences.matchesNear(item.type, origin, null)) {
         final Venue v = (Venue) t ;
-        if (v == origin) continue ;
+        if (v == origin || v.flaggedWith() != null) continue ;
+        v.flagWith(tried) ;
+        tried.add(v) ;
         if (++numTried > maxTried) break ;
         
         float rating = 0 ;
@@ -365,10 +399,17 @@ public class Delivery extends Plan implements BuildConstants {
         }
         final float dist = Spacing.distance(origin, v) ;
         rating /= 1 + (dist / World.DEFAULT_SECTOR_SIZE) ;
-        ///I.say("Rating for "+v+" was: "+rating) ;
+
+        if (BaseUI.isPicked(origin)) {
+          I.say("\nRating for "+v+" was: "+rating) ;
+          I.say("  Origin urgency: "+origin.stocks.shortageUrgency(item.type)) ;
+          I.say("  Target urgency: "+v.stocks.shortageUrgency(item.type)) ;
+        }
         if (rating > bestRating) { best = v ; bestRating = rating ; }
       }
     }
+    
+    for (Venue v : tried) v.flagWith(null) ;
     ///I.say("Returning "+best) ;
     return best ;
   }
@@ -407,17 +448,17 @@ public class Delivery extends Plan implements BuildConstants {
   
   
   public static Delivery nextDeliveryFrom(
-    Inventory.Owner venue, Actor actor, Service types[]
+    Inventory.Owner venue, Actor actor, Service types[], int sizeLimit
   ) {
     final Batch <Venue> clients = new Batch <Venue> () ;
     final Presences presences = actor.world().presences ;
-    final float SEARCH_RADIUS = World.DEFAULT_SECTOR_SIZE * 2 ;
+    final float SEARCH_RADIUS = World.DEFAULT_SECTOR_SIZE ;// * 2 ;
     for (Object o : presences.matchesNear(
       actor.base(), venue, SEARCH_RADIUS
     )) clients.add((Venue) o) ;
     return nextDeliveryFrom(
       venue, types,
-      clients, (int) VenueStocks.ORDER_UNIT,
+      clients, sizeLimit,
       actor.world(), false
     ) ;
   }
@@ -436,7 +477,7 @@ public class Delivery extends Plan implements BuildConstants {
     float maxUrgency = 0 ;
     Delivery picked = null ;
     for (Venue client : clients) {
-      if (client == origin) continue ;
+      if (client == origin || client.privateProperty()) continue ;
       //
       //  First, we tally the total shortage of goods at this venue (which we
       //  can provide,) which determines the urgency of delivery.
@@ -483,12 +524,37 @@ public class Delivery extends Plan implements BuildConstants {
   
   
   public static Item[] compressOrder(Item order[], int sizeLimit) {
+    //
+    //  Firstly, we check whether compression is needed-
     float sumAmounts = 0 ;
     for (Item i : order) sumAmounts += i.amount ;
-    if (sumAmounts <= sizeLimit) return order ;
+    final float scale = (sumAmounts > sizeLimit) ?
+      (sizeLimit / sumAmounts) : 1 ;
+    //
+    //  Round up the quantities-
+    final int roundUnit = sizeLimit <= 5 ? 1 : 5 ;
+    final int amounts[] = new int[order.length] ;
+    sumAmounts = 0 ;
     for (int i = order.length ; i-- > 0 ;) {
-      final Item o = order[i] ;
-      order[i] = Item.withAmount(o, o.amount * sizeLimit / sumAmounts) ;
+      final float amount = order[i].amount * scale ;
+      final int rounded = roundUnit * (int) Math.ceil(amount / roundUnit) ;
+      sumAmounts += amounts[i] = rounded ;
+    }
+    //
+    //  Then trim off excess-
+    trimLoop: while (true) {
+      for (int i = order.length ; i-- > 0 ;) {
+        if (sumAmounts <= sizeLimit) break trimLoop ;
+        if (amounts[i] > 0) {
+          amounts[i] -= roundUnit ;
+          sumAmounts -= roundUnit ;
+        }
+      }
+    }
+    //
+    //  Compile and return results-
+    for (int i = order.length ; i-- > 0 ;) {
+      order[i] = Item.withAmount(order[i], amounts[i]) ;
     }
     return order ;
   }

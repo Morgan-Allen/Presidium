@@ -77,8 +77,8 @@ public class Background implements BuildConstants {
     PLANET_NOVENA = new System(
       "Novena", null, 1, 0,
       ALWAYS, TUNDRA_BLOOD,
-      MAKES, CIRCUITS, MEDICINE, SERVICE_SHIPPING,
-      NEEDS, GREENS, ORES, FUEL_CORES
+      MAKES, CIRCUITRY, MEDICINE, SERVICE_SHIPPING,
+      NEEDS, GREENS, METAL_ORE, FUEL_CORES
     ),
     
     ALL_PLANETS[] = {
@@ -272,7 +272,8 @@ public class Background implements BuildConstants {
       BATTLE_TACTICS, COMMAND, SHIELD_AND_ARMOUR,
       OFTEN, DUTIFUL, SOMETIMES, STUBBORN, AMBITIOUS, NEVER, NERVOUS,
       SHOCK_STAFF, BODY_ARMOUR
-    ) ;
+    )
+  ;
   
   
   final public static Background
@@ -299,8 +300,9 @@ public class Background implements BuildConstants {
     PROPAGANDIST = new Background(
       "Propagandist", "citizen_skin.gif", null,
       UPPER_CLASS,
-      EXPERT, GRAPHIC_MEDIA, SUASION, PRACTICED, MUSIC_AND_SONG, COUNSEL,
-      NOVICE, ADMINISTRATION, LOGOS_MENSA,
+      EXPERT, GRAPHIC_MEDIA, SUASION,
+      PRACTICED, MUSIC_AND_SONG, ADMINISTRATION,
+      NOVICE, COUNSEL, LOGOS_MENSA,
       RARELY, HONOURABLE, STUBBORN, OFTEN, AMBITIOUS
     ),
     

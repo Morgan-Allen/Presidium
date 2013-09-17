@@ -10,6 +10,7 @@ import src.game.actors.* ;
 import src.game.base.* ;
 import src.game.common.* ;
 import src.graphics.common.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
 
@@ -25,7 +26,9 @@ public abstract class Vehicle extends Mobile implements
   final public Inventory cargo = new Inventory(this) ;
   final protected List <Mobile> inside = new List <Mobile> () ;
   final protected List <Actor> crew = new List <Actor> () ;
-  public Actor pilots ;
+  
+  public Actor pilot ;  //  TODO:  Have this set explicitly by methods.
+  //protected Venue hangar ;
   
   protected float entranceFace = Venue.ENTRANCE_NONE ;
   protected Boardable dropPoint ;
@@ -44,7 +47,7 @@ public abstract class Vehicle extends Mobile implements
     dropPoint = (Boardable) s.loadTarget() ;
     entranceFace = s.loadFloat() ;
     base = (Base) s.loadObject() ;
-    pilots = (Actor) s.loadObject() ;
+    pilot = (Actor) s.loadObject() ;
   }
   
   public void saveState(Session s) throws Exception {
@@ -55,7 +58,7 @@ public abstract class Vehicle extends Mobile implements
     s.saveTarget(dropPoint) ;
     s.saveFloat(entranceFace) ;
     s.saveObject(base) ;
-    s.saveObject(pilots) ;
+    s.saveObject(pilot) ;
   }
   
   
@@ -79,8 +82,8 @@ public abstract class Vehicle extends Mobile implements
   
   protected void updateAsMobile() {
     super.updateAsMobile() ;
-    if (inside.contains(pilots) && pilots.currentAction() != null) {
-      pathing.updateTarget(pilots.currentAction().target()) ;
+    if (inside.contains(pilot) && pilot.currentAction() != null) {
+      pathing.updateTarget(pilot.currentAction().target()) ;
       final Boardable step = pathing.nextStep() ;
       if (step != null) pathing.headTowards(step, 1, true) ;
     }
@@ -234,82 +237,30 @@ public abstract class Vehicle extends Mobile implements
       ((BaseUI) PlayLoop.currentUI()).selection.pushSelection(this, false) ;
     }
   }
-}
-
-
-
-/*
-//  TODO:  Make this abstract?
-protected void pathingAbort() {
-}
-
-
-public boolean blocksMotion(Boardable spot) {
-  if (spot instanceof Tile) {
-    final Tile t = (Tile) spot ;
-    return ! (
-      canEnterTile(t, 0, 0) &&
-      canEnterTile(t, 0, 1) &&
-      canEnterTile(t, 1, 0) &&
-      canEnterTile(t, 1, 1)
-    ) ;
-  }
-  return false ;
-}
-
-
-private boolean canEnterTile(Tile core, int x, int y) {
-  final Tile t = world.tileAt(core.x + x, core.y + y) ;
-  if (t == null) return false ;
-  if (t.blocked()) {
-    if (t.owner() instanceof Boardable) {
-      ((Venue) t.owner()).canBoard(Spacing.tempB4) ;
-      return Visit.arrayIncludes(Spacing.tempB4, core) ;
+  
+  
+  public void describeStatus(Description d) {
+    if (pilot != null && pilot.AI.rootBehaviour() != null) {
+      pilot.AI.rootBehaviour().describeBehaviour(d) ;
     }
-    return false ;
+    else if (pathing.target() != null) {
+      d.append("Heading for ") ;
+      d.append(pathing.target()) ;
+    }
+    else {
+      d.append("Idling") ;
+    }
   }
-  return true ;
+  
+  
+  public void writeInformation(Description d, int categoryID, HUD UI) {
+    describeStatus(d) ;
+    d.appendList("\n\nCrew: ", crew()) ;
+    d.appendList("\n\nPassengers: ", inside()) ;
+    d.appendList("\n\nCargo: ", cargo.allItems()) ;
+    d.append("\n\n") ; d.append(helpInfo(), Colour.LIGHT_GREY) ;
+  }
 }
-//*/
-
-//
-//  TODO:  Modify pathing searches to accept larger sizes of mobile in
-//  general?
-/*
-return new MobilePathing(vehicle) {
-  protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
-    //
-    //  Pathing must allow a 2x2 corridor for passage.
-    final PathingSearch search = new PathingSearch(initB, destB, -1) {
-      protected boolean canEnter(Boardable spot) {
-        final boolean blocked = blocksMotion(spot) ;
-        if (blocked) I.say("  Blocked at: "+spot) ;
-        return ! blocked ;
-      }
-      //
-      //  Favour causeways!
-      protected float cost(Boardable prior, Boardable spot) {
-        if (
-          spot instanceof Tile &&
-          ((Tile) spot).owner() instanceof Causeway
-        ) {
-          return 0.1f ;
-        }
-        return super.cost(prior, spot) ;
-      }
-    } ;
-    //search.verbose = true ;
-    search.client = vehicle ;
-    search.doSearch() ;
-    return search.fullPath(Boardable.class) ;
-  }
-} ;
-//*/
-
-
-
-
-
 
 
 

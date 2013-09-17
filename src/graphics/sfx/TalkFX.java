@@ -96,7 +96,12 @@ public class TalkFX extends SFX {
     float xoff, yoff ;
     float alpha ;
   }
-
+  
+  
+  public void addPhrase(String phrase) {
+    addPhrase(phrase, NOT_SPOKEN) ;
+  }
+  
   
   public void addPhrase(String phrase, int bubbleType) {
     final Bubble b = new Bubble() ;

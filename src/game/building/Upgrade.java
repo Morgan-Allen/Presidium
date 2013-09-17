@@ -35,4 +35,9 @@ public class Upgrade extends Index.Member {
     this.bonus = bonus ;
     this.required = required ;
   }
+  
+  
+  public String toString() {
+    return name ;
+  }
 }

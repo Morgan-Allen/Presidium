@@ -127,6 +127,18 @@ public class Suspensor extends Mobile {
     if (origin().owner() != null) return ;
     super.renderFor(rendering, base) ;
   }
+  
+  
+  public void describeStatus(Description d) {
+    if (passenger != null) {
+      d.append("Carrying ") ;
+      d.append(passenger) ;
+    }
+    else if (cargo != null) {
+      d.append("Carrying "+cargo) ;
+    }
+    else d.append("Idling") ;
+  }
 }
 
 

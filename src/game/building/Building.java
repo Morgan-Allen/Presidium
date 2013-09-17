@@ -20,9 +20,6 @@ public class Building extends Plan implements ActorConstants {
   final Venue built ;
   
   
-  //
-  //  TODO:  Eventually, this should work off arbitrary Installations, and
-  //  perhaps even road tiles.
   public Building(Actor actor, Venue repaired) {
     super(actor, repaired) ;
     this.built = repaired ;
@@ -56,6 +53,8 @@ public class Building extends Plan implements ActorConstants {
     if (! built.structure.intact()) needRepair = 1.0f ;
     if (built.structure.needsUpgrade()) needRepair += 0.5f ;
     
+    //
+    //  
     if (needRepair > 0.5f) {
       //
       //  If damage is higher than 50%, priority converges to max, regardless
@@ -64,7 +63,8 @@ public class Building extends Plan implements ActorConstants {
       final float scale = (1 - needRepair) * 2 ;
       priority += (1 - priority) * scale ;
     }
-    //  TODO:  You also need to modify by community spirit.
+    //  TODO:  You also need to modify by community spirit.  Use competency as
+    //         your baseline then.
     
     priority *= actor.AI.relation(built.base()) ;
     return (needRepair * priority * URGENT) + priorityMod - competition ;
@@ -91,14 +91,25 @@ public class Building extends Plan implements ActorConstants {
   
   /**  Behaviour implementation-
     */
-  public boolean complete() {
-    return super.complete() || built.base().credits() <= 0 ;
+  public boolean finished() {
+    if (super.finished() || built.base().credits() <= 0) return true ;
+    if (built.structure.hasWear()) return false ;
+    if (built.structure.needsUpgrade()) return false ;
+    return true ;
   }
   
   
   protected Behaviour getNextStep() {
     if (built.base().credits() <= 0) return null ;
-    if (built.structure.needsRepair()) {
+    if (built.structure.needsUpgrade() && built.structure.goodCondition()) {
+      final Action upgrades = new Action(
+        actor, built,
+        this, "actionUpgrade",
+        Action.BUILD, "Upgrading "+built
+      ) ;
+      return upgrades ;
+    }
+    if (built.structure.hasWear()) {
       final Action building = new Action(
         actor, built,
         this, "actionBuild",
@@ -110,14 +121,6 @@ public class Building extends Plan implements ActorConstants {
       }
       else building.setMoveTarget(actor.origin()) ;
       return building ;
-    }
-    if (built.structure.needsUpgrade()) {
-      final Action upgrades = new Action(
-        actor, built,
-        this, "actionUpgrade",
-        Action.BUILD, "Upgrading "+built
-      ) ;
-      return upgrades ;
     }
     return null ;
   }

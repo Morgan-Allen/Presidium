@@ -8,26 +8,9 @@
 package src.game.building ;
 import src.game.common.* ;
 import src.game.actors.* ;
-import src.graphics.sfx.TalkFX;
 import src.user.* ;
 import src.util.* ;
 
-
-
-//
-//  Implement budgeting effects, and paying for offworld trade.
-
-//  *  Paying for offworld goods.
-//  *  Selling goods offworld.
-//  *  Actors paying for home purchases.
-//  *  Venues and actors paying tax, or getting debts paid off.
-
-//  *  Actors receiving a basic salary.  (Tax is after expenses.)  That will
-//     have to be keyed off the venues too.
-
-//
-//  You may need a generalised system for raising prices based on the cost of
-//  imported goods, so that you make some minimum degree of profit.
 
 
 public class VenueStocks extends Inventory implements BuildConstants {
@@ -104,7 +87,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
       if (venue.inWorld() && inc != 0) {
         String phrase = inc >= 0 ? "+" : "-" ;
         phrase+=" "+inc+" "+item.type.name ;
-        venue.chat.addPhrase(phrase, TalkFX.NOT_SPOKEN) ;
+        venue.chat.addPhrase(phrase) ;
       }
       return true ;
     }
@@ -112,12 +95,12 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
-  public void incCredits(int inc) {
+  public void incCredits(float inc) {
     super.incCredits(inc) ;
     if (! venue.inWorld()) return ;
     String phrase = inc >= 0 ? "+" : "-" ;
-    phrase+=" "+Math.abs(inc)+" credits" ;
-    venue.chat.addPhrase(phrase, TalkFX.NOT_SPOKEN) ;
+    phrase+=" "+(int) Math.abs(inc)+" credits" ;
+    venue.chat.addPhrase(phrase) ;
   }
   
   
@@ -143,7 +126,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
   public Manufacture nextSpecialOrder(Actor actor) {
     for (Manufacture order : specialOrders) {
       //I.say("Actor assigned "+order.actor()) ;
-      if (order.actor() != actor || order.complete()) continue ;
+      if (order.actor() != actor || order.finished()) continue ;
       return order ;
     }
     return null ;
@@ -251,38 +234,23 @@ public class VenueStocks extends Inventory implements BuildConstants {
     final float demand = shortageOf(cons.out.type) ;
     if (demand <= 0) return ;
     float priceBump = 1 ;
-    for (Item raw : cons.raw) {
-      final Demand d = demandRecord(raw.type) ;
-      d.demandAmount = 0 ;
-      d.demandTier = 0 ;
-      priceBump += priceFor(raw.type) / raw.type.basePrice ;
-    }
     //
     //  We adjust our prices to ensure we can make a profit, and adjust demand
     //  for the inputs to match demand for the outputs-
     final Demand o = demandRecord(cons.out.type) ;
     o.pricePaid = o.type.basePrice * priceBump / (1f + cons.raw.length) ;
     for (Item raw : cons.raw) {
-      final float inc = (raw.amount * demand / cons.out.amount) + 1 ;
-      demandRecord(raw.type).demandAmount += inc ;
-    }
-    //
-    //  (If desired, report the aftermath-)
-    if (verbose && BaseUI.isPicked(venue)) for (Item raw : cons.raw) {
-      final Demand d = demandRecord(raw.type) ;
-      I.say(
-        "  "+raw.type+" demand: "+d.demandAmount+
-        " tier: "+d.demandTier
-      ) ;
+      forceDemand(raw.type, raw.amount * demand / cons.out.amount, 0) ;
     }
   }
   
   
-  public void forceDemand(Service type, float amount) {
+  public void forceDemand(Service type, float amount, float tier) {
     if (amount < 0) amount = 0 ;
     final Demand d = demandRecord(type) ;
     d.demandAmount = amount ;
-    d.demandTier = 0 ;
+    d.demandTier = tier ;
+    d.amountInc = 0 ;
     if (verbose && BaseUI.isPicked(venue)) I.say(
       "  "+type+" demand: "+d.demandAmount
     ) ;
@@ -307,9 +275,6 @@ public class VenueStocks extends Inventory implements BuildConstants {
     
     int i = 0 ; for (Venue supplies : suppliers) {
       final float SU = supplies.stocks.shortageUrgency(type) ;
-      if (verbose && BaseUI.isPicked(venue)) I.say(
-        "  Considering supplier: "+supplies+", urgency: "+SU
-      ) ;
       if (SU >= urgency) { i++ ; continue ; }
       float rating = 10 / (1 + SU) ;
       distances[i] = Spacing.distance(supplies, venue) / SEARCH_RADIUS ;
@@ -328,6 +293,10 @@ public class VenueStocks extends Inventory implements BuildConstants {
         weight = rating / sumRatings,
         shortBump = shortage * weight,
         priceBump = type.basePrice * distance / 10f ;
+
+      if (verbose && BaseUI.isPicked(venue)) I.say(
+        "  Considering supplier: "+supplies+", rating: "+rating
+      ) ;
       supplies.stocks.incDemand(type, shortBump, d.demandTier + distance) ;
       avgPriceBump += (supplies.priceFor(type) + priceBump) * weight ;
     }
@@ -340,7 +309,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
   /**  Calling regular updates-
     */
   protected void updateStocks(int numUpdates) {
-    if (numUpdates % 10 == 0) diffuseExistingDemand() ;
+    if (numUpdates % 1 == 0) diffuseExistingDemand() ;
   }
   
   
@@ -349,9 +318,9 @@ public class VenueStocks extends Inventory implements BuildConstants {
     final Service services[] = venue.services() ;
     
     for (Demand d : demands.values()) {
+      d.demandAmount *= (1 - POTENTIAL_INC) ;
       d.demandAmount += d.amountInc * POTENTIAL_INC ;
       d.amountInc = 0 ;
-      d.demandAmount *= (1 - POTENTIAL_INC) ;
       d.pricePaid -= d.type.basePrice ;
       d.pricePaid *= (1 - POTENTIAL_INC) ;
       d.pricePaid += d.type.basePrice ;

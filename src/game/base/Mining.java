@@ -87,7 +87,7 @@ public class Mining extends Plan implements BuildConstants {
       Service itemType = null ;
       switch (rockType) {
         case (Terrain.TYPE_CARBONS ) : itemType = P_CARBONS  ; break ;
-        case (Terrain.TYPE_METALS  ) : itemType = ORES   ; break ;
+        case (Terrain.TYPE_METALS  ) : itemType = METAL_ORE   ; break ;
         case (Terrain.TYPE_ISOTOPES) : itemType = FUEL_CORES ; break ;
       }
       face.parent.openFace(face) ;
@@ -110,7 +110,7 @@ public class Mining extends Plan implements BuildConstants {
   private float oresCarried(Actor actor) {
     float total = 0 ;
     total += actor.gear.amountOf(P_CARBONS ) ;
-    total += actor.gear.amountOf(ORES  ) ;
+    total += actor.gear.amountOf(METAL_ORE  ) ;
     total += actor.gear.amountOf(FUEL_CORES) ;
     return total ;
   }
@@ -129,7 +129,7 @@ public class Mining extends Plan implements BuildConstants {
   public boolean actionDeliverOres(Actor actor, ExcavationShaft shaft) {
     I.say("Delivering ores to shaft...") ;
     actor.gear.transfer(P_CARBONS , shaft) ;
-    actor.gear.transfer(ORES  , shaft) ;
+    actor.gear.transfer(METAL_ORE  , shaft) ;
     actor.gear.transfer(FUEL_CORES, shaft) ;
     return true ;
   }

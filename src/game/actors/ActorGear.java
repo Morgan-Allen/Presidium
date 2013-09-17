@@ -9,10 +9,7 @@
 package src.game.actors ;
 import src.game.building.* ;
 import src.game.common.* ;
-import src.user.* ;
-import src.graphics.common.* ;
 import src.graphics.jointed.* ;
-import src.graphics.sfx.* ;
 import src.util.* ;
 
 
@@ -78,15 +75,6 @@ public class ActorGear extends Inventory implements BuildConstants {
   
   public void setArmour(float a) {
     baseArmour = a ;
-  }
-  
-  
-  public void incCredits(int inc) {
-    super.incCredits(inc) ;
-    if (! actor.inWorld()) return ;
-    String phrase = inc >= 0 ? "+" : "-" ;
-    phrase+=" "+Math.abs(inc)+" credits" ;
-    actor.chat.addPhrase(phrase, TalkFX.NOT_SPOKEN) ;
   }
   
   
@@ -307,6 +295,7 @@ public class ActorGear extends Inventory implements BuildConstants {
   /**  Maintenance, updates and spring cleaning-
     */
   public void updateGear(int numUpdates) {
+    if (Float.isNaN(credits)) credits = 0 ;
     if (outfit != null) regenerateShields() ;
     else currentShields = 0 ;
     for (Item item : allItems()) {
@@ -323,8 +312,18 @@ public class ActorGear extends Inventory implements BuildConstants {
     if      (item.type instanceof DeviceType) equipDevice(item) ;
     else if (item.type instanceof OutfitType) equipOutfit(item) ;
     else if (! super.addItem(item)) return false ;
-    if (actor.inWorld()) actor.chat.addPhrase("+"+item, TalkFX.NOT_SPOKEN) ;
+    if (actor.inWorld()) actor.chat.addPhrase("+"+item) ;
     return true ;
+  }
+  
+  
+  public void incCredits(float inc) {
+    if (Float.isNaN(inc)) I.complain("INC IS NOT-A-NUMBER!") ;
+    super.incCredits(inc) ;
+    if (! actor.inWorld()) return ;
+    String phrase = inc >= 0 ? "+" : "-" ;
+    phrase+=" "+(int) Math.abs(inc)+" credits" ;
+    actor.chat.addPhrase(phrase) ;
   }
 }
 

@@ -91,7 +91,7 @@ public class Archives extends Venue implements BuildConstants {
   
   
   public Service[] services() {
-    return new Service[] { CIRCUITS } ;
+    return new Service[] { CIRCUITRY } ;
   }
   
   

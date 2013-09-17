@@ -69,7 +69,7 @@ public class Holding extends Venue implements BuildConstants {
       TRICKY_DC, ASSEMBLY
     ),
     new Conversion(
-      4, PARTS, 3, PLASTICS, 1, CIRCUITS,
+      4, PARTS, 3, PLASTICS, 1, CIRCUITRY,
       DIFFICULT_DC, ASSEMBLY
     ),
   } ;
@@ -159,7 +159,7 @@ public class Holding extends Venue implements BuildConstants {
     //
     //  First of all, we check if we have enough of various material goods to
     //  justify an upgrade-
-    final float margin = 0.5f ;
+    final float margin = 0.51f ;
     boolean devolve = false, upgrade = true ;
     for (Item i : goodsNeeded(upgradeLevel).raw) {
       stocks.removeItem(Item.withAmount(i, 0.1f / World.DEFAULT_DAY_LENGTH)) ;
@@ -167,18 +167,18 @@ public class Holding extends Venue implements BuildConstants {
     }
     for (Item i : goodsNeeded(upgradeLevel + 1).raw) {
       if (! stocks.hasItem(i)) upgrade = false ;
-      stocks.forceDemand(i.type, i.amount + margin) ;
+      stocks.forceDemand(i.type, i.amount + margin, 0) ;
     }
     final float foodNeed = personnel.residents().size() * (1 + margin) * 2 ;
     for (Service t : ALL_FOOD_TYPES) {
-      stocks.forceDemand(t, foodNeed) ;
+      stocks.forceDemand(t, foodNeed, 0) ;
     }
     int targetLevel = upgradeLevel ;
     //
     //  Update demands for power, water and life support-
     //  TODO:  Put this in a separate method...
     if (targetLevel > 1) {
-      stocks.forceDemand(POWER, targetLevel - 1) ;
+      stocks.forceDemand(POWER, targetLevel - 1, 0) ;
     }
     if (upgradeLevel > 1) {
       stocks.removeItem(Item.withAmount(POWER, 0.1f * (upgradeLevel - 1))) ;
@@ -203,8 +203,7 @@ public class Holding extends Venue implements BuildConstants {
       final Upgrade target = (Upgrade) ALL_UPGRADES.members()[upgradeLevel] ;
       structure.resignUpgrade(target) ;
     }
-    
-    if ((! structure.needsUpgrade()) && (! structure.needsRepair())) {
+    if ((! structure.needsUpgrade()) && structure.goodCondition()) {
       upgradeLevel = targetLevel ;
       structure.updateStats(INTEGRITIES[targetLevel], 5) ;
       world.ephemera.addGhost(this, MAX_SIZE, sprite(), 2.0f) ;
@@ -228,21 +227,23 @@ public class Holding extends Venue implements BuildConstants {
   public Batch <Item> goodsNeeded() {
     final Batch <Item> needed = new Batch <Item> () ;
     //
-    //  Enough raw materials to allow construction-
-    for (Item item : goodsNeeded(upgradeLevel + 1).raw) {
-      if (item.type.form != BuildConstants.FORM_COMMODITY) continue ;
-      final float amount = item.amount - stocks.amountOf(item) ;
-      if (amount <= 0) continue ;
-      needed.add(Item.withAmount(item, amount + 0.5f)) ;
-    }
-    //
     //  Enough food to last a typical inhabitant 5 days-
     final float foodNeed = personnel.residents().size() * 1 ;
     for (Service t : ALL_FOOD_TYPES) {
       final float amount = foodNeed - stocks.amountOf(t) ;
       if (amount <= 0) continue ;
-      needed.add(Item.withAmount(t, amount)) ;
+      needed.add(Item.withAmount(t, 1)) ;
     }
+    //
+    //  Enough raw materials to allow construction-
+    for (Item item : goodsNeeded(upgradeLevel + 1).raw) {
+      if (item.type.form != BuildConstants.FORM_COMMODITY) continue ;
+      final float amount = item.amount - stocks.amountOf(item) ;
+      if (amount <= 0) continue ;
+      needed.add(Item.withAmount(item, 1)) ;
+    }
+    //
+    //  TODO:  RETURN SORTED BY PRICE
     return needed ;
   }
   
@@ -267,7 +268,7 @@ public class Holding extends Venue implements BuildConstants {
       Holding.class, IMG_DIR+"field_tent.png", 2, 1
     ),
     STANDARD_MODELS[][] = ImageModel.fromTextureGrid(
-      Holding.class, Texture.loadTexture(IMG_DIR+"all_housing.gif"),
+      Holding.class, Texture.loadTexture(IMG_DIR+"all_housing.png"),
       4, 4, 2, ImageModel.TYPE_POPPED_BOX
     ),
     PALACE_MODELS[] = null,
@@ -410,9 +411,9 @@ public class Holding extends Venue implements BuildConstants {
       final float rating = rateHolding(client, h, h.upgradeLevel) ;
       if (rating > bestRating) { bestRating = rating ; best = h ; }
     }
-    
-    if (true) {
-      final Holding h = newHoldingFor(client) ;
+
+    final Holding h = newHoldingFor(client) ;
+    if (h != null) {
       final float rating = rateHolding(client, h, h.upgradeLevel) ;
       if (rating > bestRating) { bestRating = rating ; best = h ; }
     }

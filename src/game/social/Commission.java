@@ -62,7 +62,7 @@ public class Commission extends Plan {
   /**  Assessing and locating targets-
     */
   public float priorityFor(Actor actor) {
-    if (order != null && ! order.complete()) return 0 ;
+    if (order != null && ! order.finished()) return 0 ;
     final int price = item.price() ;
     if (price > actor.gear.credits()) return 0 ;
     float costVal = actor.AI.greedFor(price) * CASUAL ;
@@ -84,7 +84,7 @@ public class Commission extends Plan {
   }
   
   
-  public boolean complete() {
+  public boolean finished() {
     if (expired()) return true ;
     return delivered ;
   }
@@ -94,10 +94,10 @@ public class Commission extends Plan {
   /**  Behaviour implementation-
     */
   protected Behaviour getNextStep() {
-    if (complete()) return null ;
+    if (finished()) return null ;
     //
     //  TODO:  Ensure someone is attending the shop.
-    if (order != null && order.complete()) {
+    if (order != null && order.finished()) {
       final Action pickup = new Action(
         actor, shop,
         this, "actionPickupItem",

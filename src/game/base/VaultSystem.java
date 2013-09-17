@@ -25,7 +25,7 @@ public class VaultSystem extends Venue implements BuildConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    VaultSystem.class, "media/Buildings/merchant/town_vault.png", 4, 3
+    VaultSystem.class, "media/Buildings/merchant/town_vault.png", 4, 2
   ) ;
   
   List <Holding> holdings = new List <Holding> () ;
@@ -59,19 +59,29 @@ public class VaultSystem extends Venue implements BuildConstants {
   /**  Upgrades, economic functions and behaviour implementation-
     */
   public Behaviour jobFor(Actor actor) {
+    Building b = Building.getNextRepairFor(actor) ;
+    if (b != null) {
+      b.priorityMod = Plan.CASUAL ;
+      return b ;
+    }
     return null ;
   }
   
   
+  public int numOpenings(Background b) {
+    final int nO = super.numOpenings(b) ;
+    if (b == Background.TECH_RESERVE) return nO + 2 ;
+    return 0 ;
+  }
+  
+  
   protected Background[] careers() {
-    return null ;
-    //return new Vocation[] { Vocation.TECHNICIAN } ;
+    return new Background[] { Background.TECH_RESERVE } ;
   }
   
   
   public Service[] services() {
     return null ;
-    //return new Service[0] ;
   }
   
   

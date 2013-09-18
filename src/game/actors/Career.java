@@ -82,11 +82,11 @@ public class Career implements ActorConstants {
     //
     //  Firstly, determine a basic background suitable to the root vocation-
     Batch <Float> weights = new Batch <Float> () ;
-    for (Background v : Background.ALL_CLASSES) {
+    for (Background v : Background.OPEN_CLASSES) {
       weights.add(rateSimilarity(root, v)) ;
     }
     birth = (Background) Rand.pickFrom(
-      Background.ALL_CLASSES, weights.toArray()
+      Background.OPEN_CLASSES, weights.toArray()
     ) ;
     weights.clear() ;
     for (Background v : Background.ALL_PLANETS) {

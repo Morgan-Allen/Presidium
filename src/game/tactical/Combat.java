@@ -166,18 +166,18 @@ public class Combat extends Plan implements ActorConstants {
     //
     if (enemy == null) {
       strength *= (
-        actor.traits.useLevel(CLOSE_COMBAT) +
+        actor.traits.useLevel(HAND_TO_HAND) +
         actor.traits.useLevel(MARKSMANSHIP)
       ) / 20 ;
       strength *= (
-        actor.traits.useLevel(CLOSE_COMBAT) +
+        actor.traits.useLevel(HAND_TO_HAND) +
         actor.traits.useLevel(STEALTH_AND_COVER)
       ) / 20 ;
     }
     else {
       final Skill attack, defend ;
       if (actor.gear.meleeWeapon()) {
-        attack = defend = CLOSE_COMBAT ;
+        attack = defend = HAND_TO_HAND ;
       }
       else {
         attack = MARKSMANSHIP ;
@@ -278,7 +278,7 @@ public class Combat extends Plan implements ActorConstants {
     //
     //  You may want a separate category for animals.
     if (actor.gear.meleeWeapon()) {
-      performStrike(actor, target, CLOSE_COMBAT, CLOSE_COMBAT) ;
+      performStrike(actor, target, HAND_TO_HAND, HAND_TO_HAND) ;
     }
     else {
       performStrike(actor, target, MARKSMANSHIP, STEALTH_AND_COVER) ;
@@ -317,7 +317,7 @@ public class Combat extends Plan implements ActorConstants {
   ) {
     boolean accurate = false ;
     if (actor.gear.meleeWeapon()) {
-      accurate = actor.traits.test(CLOSE_COMBAT, 0, 1) ;
+      accurate = actor.traits.test(HAND_TO_HAND, 0, 1) ;
     }
     else {
       final float penalty = rangePenalty(actor, besieged) ;

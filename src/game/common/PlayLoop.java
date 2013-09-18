@@ -149,6 +149,7 @@ public abstract class PlayLoop implements Session.Saveable {
   
   public static void saveGame(String saveFile) {
     if (currentGame == null) return ;
+    KeyInput.clearInputs() ;
     try { Session.saveSession(world(), currentGame, saveFile) ; }
     catch (Exception e) { I.report(e) ; }
   }
@@ -156,6 +157,8 @@ public abstract class PlayLoop implements Session.Saveable {
   
   public static void loadGame(String saveFile) {
     try {
+      KeyInput.clearInputs() ;
+      ///currentGame.UI.clearInputs() ;
       currentGame.gameStateWipe() ;
       currentGame = null ;
       final Session s = Session.loadSession(saveFile) ;
@@ -170,7 +173,7 @@ public abstract class PlayLoop implements Session.Saveable {
   /**  Methods for override by subclasses-
     */
   protected void updateGameInputs() {
-    UI.updateInput() ;
+    UI.updateMouse() ;
   }
   
   
@@ -242,6 +245,8 @@ public abstract class PlayLoop implements Session.Saveable {
         final int maxUpdates = 1 + (FRAME_INTERVAL / UPDATE_INTERVAL) ;
         int numUpdates = (int) (updateGap / UPDATE_INTERVAL) ;
         numUpdates = Math.min(numUpdates, maxUpdates) ;
+        
+        if (numUpdates > 0) KeyInput.updateKeyboard() ;
         for (int n = numUpdates ; n-- > 0 ;) {
           updateGameState() ;
         }

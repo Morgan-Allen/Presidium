@@ -38,23 +38,29 @@ public class Route {
   }
   
   
-  
   //
   //  We have to ensure a consistent ordering here so that the results of
   //  pathing searches between the two points remain stable.
   public Route(Tile a, Tile b) {
     final int s = a.world.size ;
-    final boolean flip = ((a.x * s) + a.y) > ((b.x * s) + b.y) ;
-    if (flip) { start = b ; end = a ; }
-    else      { start = a ; end = b ; }
-    hash = Table.hashFor(start, end) ;
+    final int cA = (a.x * s) + a.y, cB = (b.x * s) + b.y ;
+    final boolean flip = cA > cB ;
+    if (flip) {
+      start = b ; end = a ;
+      hash = (cA * 13) + (cB % 13) ;
+    }
+    else {
+      start = a ; end = b ;
+      hash = (cB * 13) + (cA % 13) ;
+    }
   }
   
   
   public boolean equals(Object o) {
     if (! (o instanceof Route)) return false ;
     final Route r = (Route) o ;
-    return r.start == start && r.end == end ;
+    return
+      (r.start == start && r.end == end) ;
   }
   
   
@@ -62,3 +68,6 @@ public class Route {
     return hash ;
   }
 }
+
+
+

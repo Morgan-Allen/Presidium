@@ -109,7 +109,7 @@ public class Foundry extends Venue implements BuildConstants {
   public Service[] services() {
     return new Service[] {
       PARTS, CIRCUITRY,
-      SHOCK_STAFF, PHASE_BLASTER, STUN_PISTOL,
+      TASE_STAFF, PHASE_BLASTER, STUN_PISTOL,
       SHIELD_BELT, PARTIAL_ARMOUR, BODY_ARMOUR, GOLEM_ARMOUR
     } ;
   }

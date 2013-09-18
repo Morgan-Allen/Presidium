@@ -188,7 +188,7 @@ THE FREE MARKET & MCHQ
   
   Mech Trooper (Power armour), Rail Cannons, Commander, mercenaries.
   Complement to the Garrison.  Reserves are paid for, instead of
-  coming out of your workforce.
+  coming out of your workforce.  Aces/Rail Drivers, perhaps.
 
 
 
@@ -196,19 +196,19 @@ THE FREE MARKET & MCHQ
 Logician Sanctum (the Archives)
   Imprinted              (basic trainees)
   Logician Judicant      (admin, diplomacy and legal process)
-  Logician Projector     (science, history and futurology)
+  Logician Projector     (hard science, history and futurology)
   Logician Observant     (intelligence and manipulation)
-  Palatine               (bodyguards and peacekeepers)
+  Palatine               (psyonic bodyguards and peacekeepers)
   First Speaker          (head of the school)
   
   Based on:  Asimov's Foundations, Trek Vulcans, Dune Mentats,
              certain aspects of the Jedi and Firefly Alliance
 
 Initiate Complex (the Imperial Fane)
-  Acolyte                (basic trainee)
+  Ardent/Acolyte         (basic trainee)
   Initiate Myrmidone     (soldiers and assassins)
-  Initiate Technologian  (arcane tech, relics and WoMD)
-  Initiate Genealogist   (medicine, genes and breeding)
+  Initiate Technologian  (arcane tech/relics, robotics and WoMD)
+  Initiate Genealogist   (induction, genes and breeding)
   Oracle                 (static sentient super-computer)
   Reverend Father/Mother (head of the school)
   
@@ -217,14 +217,14 @@ Initiate Complex (the Imperial Fane)
 
 Spacer Habitat (the Shipyard)
   Bondsman               (basic trainee)
-  Spacer Caste Technical (maintenance and research)
+  Spacer Caste Technical (maintenance, gene therapy)
   Spacer Caste Pilot     (piloting and mech combat)
   Spacer Caste Syndicant (diplomacy and trade)
   Ship Mother            (reproductive installation)
   Navigator              (head of the school)
   
   Based on:  Dune Spacing Guild, The Stars My Destination, 'Grey Aliens',
-             The Ousters from Hyperion, Asimov's Spacer worlds
+             The Hainish Ekumen, Asimov's Spacer worlds
 
 
 //
@@ -234,38 +234,36 @@ Spacer Habitat (the Shipyard)
 
 
 Collective Nexus (the Psyon Choir)
-  Melded                 (basic trainees)
+  Melded                 (basic trainee)
   Collective Gaian       (ecological balance and life support)
   Collective Integral    (maintenance of hardware and surgery)
   Collective Choral      (psyon abilities and emotional rapport)
-  Android                (inherent pacifism and memory retention)
+  Android/Replicant      (inherent pacifism and memory retention)
   Nexus Vessel           (head of the school)
   
   Based on:  More Than Human, Gaia and Galaxia from the Foundation series,
              aspects of Star Trek Borg and Stranger in a Strange Land
-  
 
 Symbiont Circle (the Former Node)
   Chosen                 (basic trainee)
   Symbiont of the Glaive (combat and infiltration suit)
-  Symbiont of the Thread (ecology and terraforming)
-  Symbiont of the Core   (power and manufacture)
-  Ascendant              (short-lifespan powerhouse)
+  Symbiont of Threads    (influence over silicate ecology)
+  Symbiont of the Core   (power/mineral output and manufacture)
+  Archon                 (short-lifespan powerhouse)
   Demiurge               (head of the school)
   
   Based on:  Bleeding Edge Iron Man, Blood Music, possibly The Invincible
-             and various anime biomech armours, including NGE Angels
-
+             and various anime biomech armours, including NGE Evas/Angels
 
 Shaper Colony (the Sculptor's Studio)
   Host                   (basic trainee)
   Shaper Metabolist      (physique, regen and crude psyonics)
   Shaper Strain Weaver   (ecology, animal-bonding and mutation)
-  Shaper Face Dancer     (disguise, spying and seduction)
+  Shaper Face Dancer     (the arts, disguise, spying and seduction)
   Xenopath               (potent but unstable psyonic abilities)
   Chrysalid              (head of the school)
   
-  Based on:  Bene Tleilaxu from Dune, Last And First Men, the Hainish Cycle,
+  Based on:  Bene Tleilaxu from Dune, Last And First Men, Hyperion's Ousters,
              aspects of the Na'vi from Avatar and WH40K Chaos
 
 

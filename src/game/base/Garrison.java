@@ -57,7 +57,7 @@ public class Garrison extends Venue implements BuildConstants {
       "Melee Training",
       "Prepares your soldiers for the rigours of close combat.",
       150,
-      CLOSE_COMBAT, 3, null, ALL_UPGRADES
+      HAND_TO_HAND, 3, null, ALL_UPGRADES
     ),
     MARKSMAN_TRAINING = new Upgrade(
       "Marksman Training",

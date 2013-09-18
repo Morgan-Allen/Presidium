@@ -23,7 +23,7 @@ public interface ActorConstants {
     TRIVIAL_DC     = -5 ,
     SIMPLE_DC      =  0 ,
     ROUTINE_DC     =  5 ,
-    TRICKY_DC      =  10,
+    MODERATE_DC    =  10,
     DIFFICULT_DC   =  15,
     STRENUOUS_DC   =  20,
     PUNISHING_DC   =  25,
@@ -50,68 +50,81 @@ public interface ActorConstants {
     ATTRIBUTES[] = Trait.skillsSoFar() ;
   
   final public static Skill
-    SCENTING     = new Skill("Scenting"    , FORM_INSTINCT, INSIGHT),
-    LIMB_AND_MAW = new Skill("Limb and Maw", FORM_INSTINCT, REFLEX ),
-    NESTING      = new Skill("Nesting"     , FORM_INSTINCT, INSIGHT),
-    MIMESIS      = new Skill("Mimesis"     , FORM_INSTINCT, REFLEX ),
+    //
+    //  For the benefit of animals and non-human species-
+    SCENTING       = new Skill("Scenting"      , FORM_INSTINCT, INSIGHT),
+    LIMB_AND_MAW   = new Skill("Limb and Maw"  , FORM_INSTINCT, REFLEX ),
+    NESTING        = new Skill("Nesting"       , FORM_INSTINCT, INSIGHT),
+    MIMESIS        = new Skill("Mimesis"       , FORM_INSTINCT, REFLEX ),
+    PHEREMONIST    = new Skill("Pheremonist"   , FORM_INSTINCT, WILL   ),
+    SUBSTANTIATION = new Skill("Substantiation", FORM_INSTINCT, WILL   ),
     
     INSTINCT_SKILLS[] = Trait.skillsSoFar() ;
   
   final public static Skill
-    CULTIVATION    = new Skill("Cultivation"   , FORM_COGNITIVE, INTELLECT),
-    XENOBIOLOGY    = new Skill("Xenobiology"   , FORM_COGNITIVE, INTELLECT),
-    GEOPHYSICS     = new Skill("Geophysics"    , FORM_COGNITIVE, INTELLECT),
-    LIFE_SUPPORT   = new Skill("Life Support"  , FORM_COGNITIVE, INTELLECT),
-
+    //
+    //  Artifice-related skills:
     ASSEMBLY       = new Skill("Assembly"      , FORM_COGNITIVE, INTELLECT),
-    FIELD_THEORY   = new Skill("Field Theory"  , FORM_COGNITIVE, INTELLECT),
     CHEMISTRY      = new Skill("Chemistry"     , FORM_COGNITIVE, INTELLECT),
-    GENE_CULTURE   = new Skill("Gene Culture"  , FORM_COGNITIVE, INTELLECT),
-    
+    FIELD_THEORY   = new Skill("Field Theory"  , FORM_COGNITIVE, INTELLECT),
+    ASTROGATION    = new Skill("Astrogation"   , FORM_COGNITIVE, INTELLECT),
+    //
+    //  Ecology-related skills:
+    HANDICRAFTS    = new Skill("Handicrafts"   , FORM_COGNITIVE, INTELLECT),
+    CULTIVATION    = new Skill("Cultivation"   , FORM_COGNITIVE, INTELLECT),
+    XENOZOOLOGY    = new Skill("Xenozoology"   , FORM_COGNITIVE, INTELLECT),
+    GEOPHYSICS     = new Skill("Geophysics"    , FORM_COGNITIVE, INTELLECT),
+    //
+    //  Physician-related skills:
     PHARMACY       = new Skill("Pharmacy"      , FORM_COGNITIVE, INTELLECT),
     ANATOMY        = new Skill("Anatomy"       , FORM_COGNITIVE, INTELLECT),
-    LOGOS_MENSA    = new Skill("Logos Mensa"   , FORM_COGNITIVE, INTELLECT),
+    GENE_CULTURE   = new Skill("Gene Culture"  , FORM_COGNITIVE, INTELLECT),
+    PSYCHOANALYSIS = new Skill("Psychoanalysis", FORM_COGNITIVE, INTELLECT),
+    //
+    //  Research and governance-related.
+    ANCIENT_LORE   = new Skill("Ancient Lore"  , FORM_COGNITIVE, INTELLECT),
+    BATTLE_TACTICS = new Skill("Battle Tactics", FORM_COGNITIVE, INTELLECT),
     ADMINISTRATION = new Skill("Administration", FORM_COGNITIVE, INTELLECT),
-    
-    WOOD_AND_DAUB  = new Skill("Wood and Daub" , FORM_COGNITIVE, WILL     ),
-    PHEREMONIST    = new Skill("Pheremonist"   , FORM_COGNITIVE, WILL     ),
-    SUBSTANTIATION = new Skill("Substantiation", FORM_COGNITIVE, WILL     ),
-    ANCIENT_LORE   = new Skill("Ancient Lore"  , FORM_COGNITIVE, WILL     ),
     
     COGNITIVE_SKILLS[] = Trait.skillsSoFar() ;
   
   final public static Skill
-    COMMAND           = new Skill("Command"          , FORM_SENSITIVE, INSIGHT),
-    SUASION           = new Skill("Suasion"          , FORM_SENSITIVE, INSIGHT),
-    COUNSEL           = new Skill("Counsel"          , FORM_SENSITIVE, INSIGHT),
-    
-    SURVEILLANCE      = new Skill("Surveillance"     , FORM_SENSITIVE, INSIGHT),
-    STEALTH_AND_COVER = new Skill("Stealth and Cover", FORM_SENSITIVE, INSIGHT),
-    BATTLE_TACTICS    = new Skill("Battle Tactics"   , FORM_SENSITIVE, INSIGHT),
-    
-    NATIVE_TABOO      = new Skill("Native Taboo"     , FORM_SENSITIVE, INSIGHT),
-    COMMON_CUSTOM     = new Skill("Common Custom"    , FORM_SENSITIVE, INSIGHT),
-    NOBLE_ETIQUETTE   = new Skill("Noble Etiquette"  , FORM_SENSITIVE, INSIGHT),
-    
-    GRAPHIC_MEDIA     = new Skill("Graphic Media"    , FORM_SENSITIVE, WILL   ),
+    //
+    //  Methods of persuasion-
+    COMMAND           = new Skill("Command"        , FORM_SENSITIVE, INSIGHT),
+    SUASION           = new Skill("Suasion"        , FORM_SENSITIVE, INSIGHT),
+    COUNSEL           = new Skill("Counsel"        , FORM_SENSITIVE, INSIGHT),
+    //
+    //  Knowing the language and culture-
+    NATIVE_TABOO      = new Skill("Native Taboo"   , FORM_SENSITIVE, INSIGHT),
+    COMMON_CUSTOM     = new Skill("Common Custom"  , FORM_SENSITIVE, INSIGHT),
+    NOBLE_ETIQUETTE   = new Skill("Noble Etiquette", FORM_SENSITIVE, INSIGHT),
+    //
+    //  Forms of artistic expression-
+    EROTIC_DANCE      = new Skill("Erotic Dance"   , FORM_SENSITIVE, REFLEX ),
+    DISGUISE          = new Skill("Disguise"       , FORM_SENSITIVE, REFLEX ),
+    MUSIC_AND_SONG    = new Skill("Music and Song" , FORM_SENSITIVE, INSIGHT),
+    GRAPHIC_DESIGN    = new Skill("Graphic Design" , FORM_SENSITIVE, INSIGHT),
     
     SENSITIVE_SKILLS[] = Trait.skillsSoFar() ;
   
   final public static Skill
+    //
+    //  Direct combat skills-
+    FORMATION_COMBAT  = new Skill("Formation Combat" , FORM_PHYSICAL, WILL  ),
     MARKSMANSHIP      = new Skill("Marksmanship"     , FORM_PHYSICAL, REFLEX),
-    CLOSE_COMBAT      = new Skill("Close Combat"     , FORM_PHYSICAL, REFLEX),
+    HAND_TO_HAND      = new Skill("Hand to Hand"     , FORM_PHYSICAL, REFLEX),
     SHIELD_AND_ARMOUR = new Skill("Shield and Armour", FORM_PHYSICAL, REFLEX),
-    
-    ATHLETICS         = new Skill("Athletics"        , FORM_PHYSICAL, REFLEX),
+    //
+    //  Exploration and mobility-
+    ATHLETICS         = new Skill("Athletics"        , FORM_PHYSICAL, WILL  ),
     PILOTING          = new Skill("Piloting"         , FORM_PHYSICAL, REFLEX),
-    ASTROGATION       = new Skill("Astrogation"      , FORM_PHYSICAL, REFLEX),
-    
-    CARNAL_PLEASURE   = new Skill("Carnal Pleasure"  , FORM_PHYSICAL, REFLEX),
-    MUSIC_AND_SONG    = new Skill("Music and Song"   , FORM_PHYSICAL, REFLEX),
-    DISGUISE          = new Skill("Disguise"         , FORM_PHYSICAL, REFLEX),
-    
+    SURVEILLANCE      = new Skill("Surveillance"     , FORM_PHYSICAL, REFLEX),
+    STEALTH_AND_COVER = new Skill("Stealth and Cover", FORM_PHYSICAL, REFLEX),
+    //
+    //  General elbow grease-
     HARD_LABOUR       = new Skill("Hard Labour"      , FORM_PHYSICAL, WILL  ),
-    DOMESTIC_SERVICE  = new Skill("Domestic Service" , FORM_PHYSICAL, WILL  ),
+    HOUSEKEEPING      = new Skill("Housekeeping"     , FORM_PHYSICAL, WILL  ),
     
     PHYSICAL_SKILLS[] = Trait.skillsSoFar() ;
   
@@ -467,7 +480,7 @@ public interface ActorConstants {
     ),
     RAGE_INFECTION = new Condition(
       "Infection Frenzy",
-      "Infection Atavism",
+      "Infection Fever",
       "Infection Onset",
       null
     ),

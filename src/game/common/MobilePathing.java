@@ -91,7 +91,7 @@ public class MobilePathing {
     final Target oldTarget = trueTarget ;
     this.trueTarget = moveTarget ;
     if (trueTarget != oldTarget) {
-      ///if (BaseUI.isPicked(mobile)) I.say("...TARGET HAS CHANGED") ;
+      if (verbose) I.sayAbout(mobile, "...TARGET HAS CHANGED") ;
       path = null ; stepIndex = -1 ; return ;
     }
     else if (inLocus(nextStep())) {
@@ -109,7 +109,6 @@ public class MobilePathing {
     //  Check to ensure that subsequent steps along this path are not blocked,
     //  and that the path target has not changed.
     validPath = nextStep() != null && pathTarget == dest ;
-    ///if (BaseUI.isPicked(mobile)) I.say("NEW TARGET? "+(pathTarget != dest)) ;
     
     if (validPath) for (int i = 0 ; i < MAX_PATH_SCAN ; i++) {
       final int index = stepIndex + i ;
@@ -120,7 +119,7 @@ public class MobilePathing {
       if (t == dest) nearTarget = true ;
     }
     if (blocked) {
-      ///if (BaseUI.isPicked(mobile)) I.say("PATH IS BLOCKED") ;
+      if (verbose) I.sayAbout(mobile, "PATH IS BLOCKED") ;
       validPath = false ;
     }
     //
@@ -129,7 +128,7 @@ public class MobilePathing {
     if (validPath && (! nearTarget) && (Visit.last(path) != dest)) {
       final int dist = path.length - (stepIndex + 1) ;
       if (dist < World.SECTION_RESOLUTION / 2) {
-        ///if (BaseUI.isPicked(mobile)) I.say("NEAR END OF PATH") ;
+        if (verbose) I.sayAbout(mobile, "NEAR END OF PATH") ;
         validPath = false ;
       }
     }
@@ -138,26 +137,26 @@ public class MobilePathing {
   
   
   public boolean refreshPath() {
-    if (verbose && BaseUI.isPicked(mobile)) I.say("REFRESHING PATH") ;
+    if (verbose) I.sayAbout(mobile, "REFRESHING PATH TO: "+trueTarget) ;
     
     final Boardable origin = location(mobile) ;
     if (trueTarget == null) path = null ;
     else {
       pathTarget = location(trueTarget) ;
+      if (verbose) I.sayAbout(mobile, "BLOCKED? "+mobile.blocksMotion(pathTarget)) ;
+      if (verbose) I.sayAbout(mobile, "BETWEEN: "+origin+" AND "+pathTarget) ;
       path = refreshPath(origin, pathTarget) ;
     }
     if (path == null) {
-      if (verbose && BaseUI.isPicked(mobile)) I.say(
-        "COULDN'T PATH TO: "+pathTarget
-      ) ;
+      if (verbose) I.sayAbout(mobile, "COULDN'T PATH TO: "+pathTarget) ;
       mobile.pathingAbort() ;
       stepIndex = -1 ;
       return false ;
     }
     else {
-      if (verbose && BaseUI.isPicked(mobile)) {
+      if (verbose && I.talkAbout == mobile) {
         I.say("PATH IS: ") ;
-        for (Boardable b : path) I.add(b+" ") ;//+mobile.blocksMotion(b)+" ") ;
+        for (Boardable b : path) I.add(b+" "+mobile.blocksMotion(b)+" ") ;
       }
       int index = 0 ;
       while (index < path.length) if (path[index++] == origin) break ;
@@ -237,11 +236,10 @@ public class MobilePathing {
       baseHigh = aboard.position(null).z ;
     }
     mobile.nextPosition.z = baseHigh + mobile.aboveGroundHeight() ;
-    //*
-    if (verbose && BaseUI.isPicked(mobile)) I.say(
+    
+    if (verbose) I.sayAbout(mobile,
       "OLD/NEW HEADING: "+mobile.position+"/"+mobile.nextPosition
     ) ;
-    //*/
   }
   
   

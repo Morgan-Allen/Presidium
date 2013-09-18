@@ -140,7 +140,7 @@ public class Resting extends Plan implements BuildConstants {
     else {
       final boolean
         canGrub = actor.traits.test(HARD_LABOUR, SCAVENGE_DC, 1),
-        goodStuff = actor.traits.test(XENOBIOLOGY, FORAGING_DC, 1) ;
+        goodStuff = actor.traits.test(XENOZOOLOGY, FORAGING_DC, 1) ;
       if (canGrub) actor.health.takeSustenance(1, goodStuff ? 0.5f : 0) ;
       return true ;
     }

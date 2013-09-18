@@ -13,18 +13,6 @@ import src.util.* ;
 
 
 
-
-/*
-return new Service[] {
-  STIM_KITS, MEDICINE, SOMA,
-  PROTEIN, GREENS, SPICE,
-  PRESSFEED
-  //PARTS, PLASTICS, CIRCUITS, PRESSFEED,
-  //CARBS, PROTEIN, GREENS, SPICE
-  //  Medkits and Power Cells.  Plus weapons/armour.
-} ;
-//*/
-
 //
 //  The Stock Exchange also creates a small amount of money 'ex nihilo' with
 //  every sales transaction.  And the supply depot makes money from offworld
@@ -42,8 +30,9 @@ public class StockExchange extends Venue implements BuildConstants {
       4, 2
     ) ;
   final static Service EXCHANGE_GOODS[] = {
-    GREENS, SPICE, SOMA,
-    MEDICINE, CIRCUITRY, PRESSFEED
+    GREENS, SPICE,
+    SOMA, MEDICINE,
+    CIRCUITRY, DECOR
   } ;
   
   
@@ -55,11 +44,6 @@ public class StockExchange extends Venue implements BuildConstants {
       VenueStructure.SMALL_MAX_UPGRADES, false
     ) ;
     attachSprite(MODEL.makeSprite()) ;
-    /*
-    int i = 0 ; for (ItemType type : Economy.ALL_COMMODITIES) {
-      attachStackFor(type, i / 3, 1 + (i++ % 3)) ;
-    }
-    //*/
   }
   
   
@@ -122,10 +106,11 @@ public class StockExchange extends Venue implements BuildConstants {
     //  TODO:  You need to return the list of possible deliveries to this
     //  venue... and arrange for bulk transport.
     
-    
-    
     return new Supervision(actor, this) ;
   }
+  
+  //
+  //  Okay.  So... cargo loaders in both positions.
   
   
   public void updateAsScheduled(int numUpdates) {

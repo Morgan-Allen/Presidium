@@ -45,9 +45,7 @@ public class HUD extends UIGroup {
   }
   
   
-  public void updateInput() {
-    KeyInput.updateKeyboard() ;
-    
+  public void updateMouse() {
     nextMB = Mouse.isButtonDown(0) ;
     nextMP.x = Mouse.getX() ;
     nextMP.y = Mouse.getY() ;

@@ -66,7 +66,7 @@ public class Holding extends Venue implements BuildConstants {
     ),
     new Conversion(
       3, PARTS, 2, PLASTICS,
-      TRICKY_DC, ASSEMBLY
+      MODERATE_DC, ASSEMBLY
     ),
     new Conversion(
       4, PARTS, 3, PLASTICS, 1, CIRCUITRY,

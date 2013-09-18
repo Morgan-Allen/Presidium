@@ -379,10 +379,7 @@ public class VenuePersonnel {
         final Human worker = new Human(v, venue.base()) ;
         worker.AI.setEmployer(venue) ;
         final Tile e = venue.mainEntrance() ;
-        if (GameSettings.hireFree) {
-          worker.enterWorldAt(e.x, e.y, venue.world()) ;
-        }
-        else venue.base().commerce.addImmigrant(worker) ;
+        worker.enterWorldAt(e.x, e.y, venue.world()) ;
       }
     }
   }

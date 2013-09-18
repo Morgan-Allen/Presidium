@@ -151,8 +151,8 @@ public class BaseUI extends HUD implements UIConstants {
   
   /**  Core update and rendering methods, in order of execution per-frame.
     */
-  public void updateInput() {
-    super.updateInput() ;
+  public void updateMouse() {
+    super.updateMouse() ;
     
     if (readout != null) {
       final int credits = played.credits() ;

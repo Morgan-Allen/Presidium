@@ -35,7 +35,6 @@ import src.util.* ;
 //  Contact missions.
 //
 //  Add water and life support from biomass and other buildings.
-//  Test out demolition/salvaging of structures.
 //
 //  Tweak mechanics for diplomacy and citizen mood.  (Good relations are way
 //  too easy/quick at the moment.)
@@ -177,16 +176,11 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     */
   private void baseScenario(World world, Base base, HUD UI) {
     GameSettings.noFog     = true ;
-    GameSettings.hireFree  = true ;
-    //GameSettings.buildFree = true ;
+    ///GameSettings.hireFree  = true ;
     PlayLoop.rendering().port.cameraZoom = 1.33f ;
     
     base.incCredits(2000) ;
     base.commerce.assignHomeworld(Background.PLANET_HALIBAN) ;
-    
-    //
-    //  TODO:  Test out long-range transport again.  Okay.  It seems to work
-    //  fine.
     
     final Venue DA = establishVenue(new SupplyDepot(base), 4, 4 , true) ;
     final Venue DB = establishVenue(new SupplyDepot(base), 4, 20, true) ;

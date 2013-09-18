@@ -259,7 +259,7 @@ public abstract class ActorAI implements ActorConstants {
   
   public void assignBehaviour(Behaviour behaviour) {
     if (behaviour == null) I.complain("CANNOT ASSIGN NULL BEHAVIOUR.") ;
-    I.sayIfAbout(verbose, actor, "Assigning behaviour "+behaviour) ;
+    if (verbose) I.sayAbout(actor, "Assigning behaviour "+behaviour) ;
     actor.assignAction(null) ;
     final Behaviour replaced = rootBehaviour() ;
     cancelBehaviour(replaced) ;
@@ -342,7 +342,7 @@ public abstract class ActorAI implements ActorConstants {
       if (agenda.size() == 0) {
         final Behaviour taken = nextBehaviour() ;
         if (taken == null) {
-          I.sayIfAbout(true, actor, "No next behaviour!") ;
+          if (verbose) I.sayAbout(actor, "No next behaviour!") ;
           return null ;
         }
         pushBehaviour(taken) ;
@@ -361,7 +361,7 @@ public abstract class ActorAI implements ActorConstants {
         popBehaviour() ;
       }
       else if (current instanceof Action) {
-        I.sayIfAbout(true, actor, "Next action: "+current) ;
+        if (verbose) I.sayAbout(actor, "Next action: "+current) ;
         return (Action) current ;
       }
       else pushBehaviour(next) ;
@@ -392,6 +392,14 @@ public abstract class ActorAI implements ActorConstants {
     if (base == AB) return 1 ;
     else if (AB != null && base != null) return AB.relationWith(base) ;
     else return 0 ;
+  }
+  
+  
+  public float relation(Venue venue) {
+    if (venue == null) return 0 ;
+    if (venue == home) return 1.0f ;
+    if (venue == work) return 0.5f ;
+    return relation(venue.base()) / 2f ;
   }
   
   

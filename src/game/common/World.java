@@ -281,9 +281,6 @@ public class World {
         allVisible.add(active) ;
       }
     }
-    for (Visible ghost : ephemera.visibleFor(rendering)) {
-      allVisible.add(ghost) ;
-    }
     //
     //  Then we register their associated media for rendering, in the correctly
     //  sorted order.
@@ -299,6 +296,16 @@ public class World {
       final Sprite sprite = visible.sprite() ;
       rendering.port.viewMatrix(deep.setTo(sprite.position)) ;
       sprite.depth = 0 - deep.z ;
+    }
+    allVisible.queueSort() ;
+    for (Visible visible : allVisible) {
+      visible.renderFor(rendering, base) ;
+    }
+    //
+    //  Ephemera are rendered last, to accommodate transparency effects-
+    allVisible.clear() ;
+    for (Visible ghost : ephemera.visibleFor(rendering)) {
+      allVisible.add(ghost) ;
     }
     allVisible.queueSort() ;
     for (Visible visible : allVisible) {

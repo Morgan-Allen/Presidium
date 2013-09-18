@@ -23,16 +23,6 @@ public class Paving {
   final World world ;
   PresenceMap junctions ;
   
-  /*
-  class Junction {
-    final Venue source ;
-    final Tile tile ;
-    final Stack <Route> routes = new Stack <Route> () ;
-    
-    Junction(Venue s, Tile t) { source = s ; tile = t ; }
-  }
-  //*/
-  
   Table <Tile, List <Route>> tileRoutes = new Table(1000) ;
   Table <Route, Route> allRoutes = new Table <Route, Route> (1000) ;
   
@@ -70,8 +60,10 @@ public class Paving {
     */
   public void updatePerimeter(Venue v, boolean isMember) {
     final Tile o = v.origin() ;
+    
     final Route key = new Route(o, o), match = allRoutes.get(key) ;
     if (match != null) world.terrain().maskAsPaved(match.path, false) ;
+    
     if (isMember) {
       final Batch <Tile> around = new Batch <Tile> () ;
       for (Tile t : Spacing.perimeter(v.area(), world)) if (t != null) {
@@ -172,7 +164,7 @@ public class Paving {
     */
   public static void clearRoad(Tile path[]) {
     for (Tile t : path) if (t.owningType() < Element.FIXTURE_OWNS) {
-      if (t.owner() != null) t.owner().exitWorld() ;
+      if (t.owner() != null) t.owner().setAsDestroyed() ;
     }
   }
   

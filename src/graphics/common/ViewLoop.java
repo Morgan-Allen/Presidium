@@ -52,7 +52,7 @@ public abstract class ViewLoop {
       //
       //  Perform the actual loop updates, as required:
       rendering.updateViews() ;
-      HUD.updateInput() ;
+      HUD.updateMouse() ;
       final Viewport port = rendering.port ;
       if (KeyInput.isKeyDown(Keyboard.KEY_UP   )) {
         port.cameraPosition.x-- ;

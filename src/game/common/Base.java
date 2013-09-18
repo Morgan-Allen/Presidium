@@ -212,6 +212,7 @@ public class Base implements
       
       averageMood /= (numResidents + 1) ;
       communitySpirit = 1f / (1 + (numResidents / 100f)) ;
+      communitySpirit = (communitySpirit + averageMood) / 2f ;
     }
   }
   

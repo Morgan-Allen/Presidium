@@ -49,10 +49,7 @@ public class Commerce implements BuildConstants {
     
     ship = new Dropship() ;
     ship.assignBase(base) ;
-    //
-    //  TODO:  This crew will need to be updated every now and then.
-    //  TODO:  Include a pilot, mechanic, et cetera?
-    addCrew(ship, Background.SUPPLY_CORPS, Background.SUPPLY_CORPS) ;
+    addCrew(ship, Background.SHIP_CAPTAIN, Background.SHIP_MECHANIC) ;
     nextVisitTime = Rand.num() * SUPPLY_INTERVAL ;
   }
   
@@ -264,6 +261,10 @@ public class Commerce implements BuildConstants {
   /**  Dealing with shipping and crew complements-
     */
   private void refreshCrew(Dropship ship) {
+    //
+    //  TODO:  This crew will need to be updated every now and then- in the
+    //         sense of changing the roster.
+    //
     //  Get rid of fatigue and hunger, modulate mood, et cetera- account for
     //  the effects of time spent offworld.
     for (Actor works : ship.crew()) {
@@ -352,7 +353,7 @@ public class Commerce implements BuildConstants {
       if (shouldVisit) {
         final Box2D zone = Dropship.findLandingSite(ship, base) ;
         if (zone == null) return ;
-        I.say("Sending ship to land at: "+zone) ;
+        ///I.say("Sending ship to land at: "+zone) ;
         
         while (ship.inside().size() < Dropship.MAX_PASSENGERS) {
           if (migrantsIn.size() == 0) break ;

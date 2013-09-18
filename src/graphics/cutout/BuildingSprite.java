@@ -164,8 +164,6 @@ public class BuildingSprite extends GroupSprite {
   }
   
   
-  //
-  //  TODO:  This should be coupled to world updates, not the rendering cycle?
   public void updateCondition(
     float newCondition, boolean normalState, boolean burning
   ) {
@@ -189,7 +187,7 @@ public class BuildingSprite extends GroupSprite {
       final int oldStage = scaffoldStage(size, high, oldCondition) ;
       final int newStage = scaffoldStage(size, high, newCondition) ;
       if (oldStage == newStage) return ;
-      //clearAllAttachments() ;
+      clearAllAttachments() ;
       scaffolding = scaffoldFor(size, high, newCondition) ;
       attach(scaffolding, 0, 0, 0) ;
     }

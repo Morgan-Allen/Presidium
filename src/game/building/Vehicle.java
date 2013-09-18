@@ -28,7 +28,7 @@ public abstract class Vehicle extends Mobile implements
   final protected List <Actor> crew = new List <Actor> () ;
   
   public Actor pilot ;  //  TODO:  Have this set explicitly by methods.
-  //protected Venue hangar ;
+  //protected Venue hangar ;  //TODO:  Salvage if destroyed.
   
   protected float entranceFace = Venue.ENTRANCE_NONE ;
   protected Boardable dropPoint ;
@@ -244,7 +244,8 @@ public abstract class Vehicle extends Mobile implements
       pilot.AI.rootBehaviour().describeBehaviour(d) ;
     }
     else if (pathing.target() != null) {
-      d.append("Heading for ") ;
+      if (pathing.target() == aboard()) d.append("Aboard ") ;
+      else d.append("Heading for ") ;
       d.append(pathing.target()) ;
     }
     else {

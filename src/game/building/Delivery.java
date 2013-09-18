@@ -305,7 +305,7 @@ public class Delivery extends Plan implements BuildConstants {
       driven.pilot = actor ;
       if (driven.aboard() == target) {
         I.say("Performing vehicle dropoff...") ;
-        for (Item i : items) driven.cargo.transfer(i, target) ;
+        for (Item i : items) driven.cargo.transfer(i.type, target) ;
         stage = STAGE_RETURN ;
         return true ;
       }
@@ -314,7 +314,7 @@ public class Delivery extends Plan implements BuildConstants {
     
     if (suspensor != null && suspensor.inWorld()) suspensor.exitWorld() ;
     
-    for (Item i : items) actor.gear.transfer(i, target) ;
+    for (Item i : items) actor.gear.transfer(i.type, target) ;
     if (passenger != null) {
       passenger.goAboard((Boardable) target, actor.world()) ;
     }
@@ -399,8 +399,8 @@ public class Delivery extends Plan implements BuildConstants {
         }
         final float dist = Spacing.distance(origin, v) ;
         rating /= 1 + (dist / World.DEFAULT_SECTOR_SIZE) ;
-
-        if (BaseUI.isPicked(origin)) {
+        
+        if (verbose && I.talkAbout == origin) {
           I.say("\nRating for "+v+" was: "+rating) ;
           I.say("  Origin urgency: "+origin.stocks.shortageUrgency(item.type)) ;
           I.say("  Target urgency: "+v.stocks.shortageUrgency(item.type)) ;

@@ -86,7 +86,7 @@ public abstract class Actor extends Mobile implements
     */
   public void assignAction(Action action) {
     if (I.talkAbout == this) {
-      I.sayIfAbout(verbose, this, "ASSIGNING ACTION: "+action) ;
+      if (verbose) I.sayAbout(this, "ASSIGNING ACTION: "+action) ;
     }
     world.activities.toggleActive(this.actionTaken, false) ;
     this.actionTaken = action ;
@@ -100,7 +100,7 @@ public abstract class Actor extends Mobile implements
   
   protected void pathingAbort() {
     if (actionTaken == null) return ;
-    I.sayIfAbout(verbose, this, "Aborting "+actionTaken.methodName()) ;
+    if (verbose) I.sayAbout(this, "Aborting "+actionTaken.methodName()) ;
     AI.cancelBehaviour(AI.topBehaviour()) ;
     final Behaviour top = AI.topBehaviour() ;
     if (top != null) top.abortBehaviour() ;
@@ -179,7 +179,7 @@ public abstract class Actor extends Mobile implements
       //  Check to see if a new action needs to be decided on.
       if (actionTaken == null || actionTaken.finished()) {
         final Action action = AI.getNextAction() ;
-        I.sayIfAbout(verbose, this, "REFRESHING ACTION! "+action) ;
+        if (verbose) I.sayAbout(this, "REFRESHING ACTION! "+action) ;
         assignAction(action) ;
       }
       if (! pathing.checkPathingOkay()) pathing.refreshPath() ;

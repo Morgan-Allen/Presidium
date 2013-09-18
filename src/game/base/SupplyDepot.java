@@ -16,31 +16,28 @@ import src.user.* ;
 import src.util.* ;
 
 
-
-
+//
+//  TODO:  Include a Landing Site right nextdoor?
 
 //
-//  TODO:  Ensure only one actor at a time performs this kind of long-
-//  range delivery.  (In fact, long-range cargo-deposits need work in
-//  general.)
-
-//  ...Do I want stock exchanges to import stuff?  ...No.  Yes.  Maybe.  I
-//  think... perhaps they should do so automatically?
+//  TODO:  HAVE STOCKEXCHANGE EXTEND THE SUPPLYDEPOT CLASS?
+//         ...Might be simpler.  They'd behave very similarly, just using
+//         different goods.
 
 
-//
-//  Okay.  I need to sort out the kinds of Delivery I need.
-
+//  ***  If the supply depot monopolises ALL offworld trade, then it has to
+//       accept ALL good types.
+//  ***  Conversely, if the supply depot does NOT accept all good types, then
+//       it CANNOT monopolise offworld trade.
 
 //
-//  TODO:  Include a Landing Site right nextdoor.
-
+//  ***  If you are responsible for controlling the amounts of different goods,
+//       then having explicit upgrades may be somewhat redundant.  Then again,
+//       ...maybe that's how you signal your desire to export certain goods!
 
 //
-//  TODO:  What you want to do here is assign general priorities for the base
-//         as a whole, while using the depot as the interface.
-//
-//  Light/Medium/Heavy imports/exports- or leave to discretion, or none.
+//  Foodstuffs.  Medical supplies.  Mineral wealth.  Building materials.
+
 
 
 
@@ -55,7 +52,7 @@ public class SupplyDepot extends Venue implements
   final static Model
     MODEL = ImageModel.asIsometricModel(
       SupplyDepot.class, "media/Buildings/merchant/supply_depot_big.png",
-      5, 3
+      5, 2
     ) ;
   final static Service DEPOT_GOODS[] = {
     CARBS, PROTEIN, PLASTICS, STIM_KITS,
@@ -69,7 +66,7 @@ public class SupplyDepot extends Venue implements
   
 
   public SupplyDepot(Base base) {
-    super(5, 3, ENTRANCE_NORTH, base) ;
+    super(5, 2, ENTRANCE_NORTH, base) ;
     
     structure.setupStats(100, 2, 200, 0, false) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;

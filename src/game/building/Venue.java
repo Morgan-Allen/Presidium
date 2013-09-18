@@ -114,19 +114,20 @@ public abstract class Venue extends Fixture implements
     //  Make sure we don't displace any more important object, or occupy their
     //  entrances.  In addition, the entrance must be clear.
     if (mainEntrance() == null) return false ;
+    final int OT = owningType() ;
     for (Tile t : world.tilesIn(area(), false)) {
-      if (t == null || t.owningType() >= owningType()) return false ;
+      if (t == null || t.owningType() >= OT) return false ;
       if (Spacing.isEntrance(t)) return false ;
     }
-    /*
+    //
+    //  Don't abut on anything of higher priority-
     for (Tile n : Spacing.perimeter(area(), world)) {
-      if (n == null) return false ;
+      if (n != null && n.owningType() > OT) return false ;
     }
-    //*/
     //
     //  And make sure we don't create isolated areas of unreachable tiles-
     if (! Spacing.perimeterFits(this)) return false ;
-    if (mainEntrance().owningType() >= owningType()) return false ;
+    if (mainEntrance().owningType() >= OT) return false ;
     return true ;
   }
   
@@ -249,11 +250,13 @@ public abstract class Venue extends Fixture implements
   
   
   public void updateAsScheduled(int numUpdates) {
-    if (! structure.intact()) {
+    if (structure.intact()) {
+      if (base != null && numUpdates % 10 == 0) updatePaving(true) ;
+    }
+    else {
       personnel.updatePersonnel(numUpdates) ;
       return ;
     }
-    if (base != null && numUpdates % 10 == 0) updatePaving(true) ;
     stocks.updateStocks(numUpdates) ;
     personnel.updatePersonnel(numUpdates) ;
     structure.updateStructure(numUpdates) ;
@@ -368,14 +371,15 @@ public abstract class Venue extends Fixture implements
   
   
   public String[] infoCategories() {
-    return new String[] { "STATUS", "STAFF", "UPGRADES" } ;
+    return new String[] { "STATUS", "STAFF", "STOCK", "UPGRADES" } ;
   }
   
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
     if (categoryID == 0) describeCondition(d, UI) ;
     if (categoryID == 1) describePersonnel(d, UI) ;
-    if (categoryID == 2) describeUpgrades(d, UI) ;
+    if (categoryID == 2) describeStocks(d, UI) ;
+    if (categoryID == 3) describeUpgrades(d, UI) ;
   }
   
   
@@ -389,8 +393,38 @@ public abstract class Venue extends Fixture implements
     if (CUD != null) d.append("\n  "+CUD) ;
     d.append("\n  Materials Needed: "+"None") ;
     d.append("\n  Untaxed Credits: "+(int) stocks.credits()) ;
+    d.append("\n\n") ;
     
-    d.append("\n\nStocks and Orders:") ;
+    if (PlayLoop.played() == base && ! privateProperty()) {
+      d.append("Orders: ") ;
+      final Venue v = this ;
+      if (structure.needsSalvage()) {
+        d.append(new Description.Link("\n  Cancel Salvage") {
+          public void whenClicked() {
+            final float condition = structure.repairLevel() ;
+            structure.setState(VenueStructure.STATE_INTACT, condition) ;
+            world.ephemera.addGhost(v, size, buildSprite.scaffolding(), 2.0f) ;
+          }
+        }) ;
+      }
+      else {
+        d.append(new Description.Link("\n  Begin Salvage") {
+          public void whenClicked() {
+            final float condition = structure.repairLevel() ;
+            structure.setState(VenueStructure.STATE_SALVAGE, condition) ;
+            world.ephemera.addGhost(v, size, buildSprite.baseSprite(), 2.0f) ;
+          }
+        }) ;
+      }
+      // TODO:  Allow relocation functions?  Defend/strike flags?
+      d.append("\n\n") ;
+    }
+    d.append(helpInfo(), Colour.LIGHT_GREY) ;
+  }
+  
+  
+  protected void describeStocks(Description d, HUD UI) {
+    d.append("Stocks and Orders:") ;
     boolean empty = true ;
     for (Service type : BuildConstants.ALL_ITEM_TYPES) {
       if (describeStocks(type, d)) empty = false ;
@@ -399,8 +433,6 @@ public abstract class Venue extends Fixture implements
       d.append("\n  ") ; m.describeBehaviour(d) ; empty = false ;
     }
     if (empty) d.append("\n  No stocks or orders.") ;
-    d.append("\n\n") ;
-    d.append(helpInfo(), Colour.LIGHT_GREY) ;
   }
   
   
@@ -621,6 +653,8 @@ public abstract class Venue extends Fixture implements
   protected void updateItemSprites() {
     final Service services[] = services() ;
     if (services == null) return ;
+    
+    final boolean hide = ! structure.intact() ;
     final float
       initX = (size / 2f) - 0.5f,
       initY = 0.5f - (size / 2f) ;
@@ -635,7 +669,7 @@ public abstract class Venue extends Fixture implements
       if (y >= size || size <= -x) continue ;
       
       buildSprite.updateItemDisplay(
-        s.model, stocks.amountOf(s),
+        s.model, hide ? 0 : stocks.amountOf(s),
         x + initX, y + initY
       ) ;
     }
@@ -645,9 +679,10 @@ public abstract class Venue extends Fixture implements
   public void renderFor(Rendering rendering, Base base) {
     
     position(buildSprite.position) ;
+    ///I.sayAbout(this, "repair level: "+structure.repairLevel()) ;
     buildSprite.updateCondition(
       structure.repairLevel(),
-      structure.intact(),
+      structure.intact(),// || structure.goodCondition(),
       structure.burning()
     ) ;
     toggleStatusDisplay() ;

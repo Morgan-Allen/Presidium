@@ -59,7 +59,7 @@ public interface BuildConstants extends ActorConstants {
     PARTS       = new Service(BC, "Parts"     , "parts.gif"      , FC, 50 ),
     PLASTICS    = new Service(BC, "Plastics"  , "plastics.gif"   , FC, 75 ),
     CIRCUITRY   = new Service(BC, "Circuitry" , "inscription.gif", FC, 140),
-    PRESSFEED   = new Service(BC, "Pressfeed" , "pressfeed.gif"  , FC, 110),
+    DECOR       = new Service(BC, "Decor"     , "pressfeed.gif"  , FC, 300),
     
     STIM_KITS   = new Service(BC, "Stim Kit"  , "stimkit.gif"    , FC, 40 ),
     SOMA        = new Service(BC, "Soma"      , "soma.gif"       , FC, 70 ),
@@ -70,9 +70,9 @@ public interface BuildConstants extends ActorConstants {
     
     GENE_SEED   = new Service(BC, FORM_UNIQUE, "Gene Seed", 200 ),
     GHOSTLINE   = new Service(BC, FORM_UNIQUE, "Ghostline", 200 ),
+    PRESSFEED   = new Service(BC, FORM_UNIQUE, "Pressfeed", 200 ),
     
     TROPHIES    = new Service(BC, FORM_UNIQUE, "Trophy"   , 400 ),
-    DECOR       = new Service(BC, FORM_UNIQUE, "Decor"    , 400 ),
     RELICS      = new Service(BC, FORM_UNIQUE, "Relic"    , 400 ),
     
     ATOMICS     = new Service(BC, FORM_UNIQUE, "Atomic"   , 1000),
@@ -120,10 +120,9 @@ public interface BuildConstants extends ActorConstants {
     TRANSMORPHIC = 256,
     ENERGY_DRAIN = 512 ;
   
-  //
-  //  TODO:  These prices are far too low next to the value of the raw
-  //  materials.  Also, you need medical devices and so on.
+  
   final public static DeviceType
+    
     MANIPLES = new DeviceType(BC, "Maniples",
       2, GRAPPLE | MELEE | PHYSICAL, 10,
       new Conversion(3, PARTS, 5, ASSEMBLY),
@@ -139,6 +138,7 @@ public interface BuildConstants extends ActorConstants {
       new Conversion(2, PARTS, 15, ASSEMBLY),
       "bicorder"
     ),
+    
     STUN_PISTOL = new DeviceType(BC, "Stun Pistol",
       10, RANGED | PHYSICAL | STUN, 35,
       new Conversion(1, PARTS, 10, ASSEMBLY),
@@ -154,7 +154,8 @@ public interface BuildConstants extends ActorConstants {
       new Conversion(5, ASSEMBLY),
       "spear"
     ),
-    SHOCK_STAFF = new DeviceType(BC, "Shock Staff",
+    
+    TASE_STAFF = new DeviceType(BC, "Shock Staff",
       15, MELEE | RANGED | PHYSICAL | STUN, 40,
       new Conversion(2, PARTS, 10, ASSEMBLY),
       "staff"
@@ -181,11 +182,11 @@ public interface BuildConstants extends ActorConstants {
   
   
   //
-  //  TODO:  Should have skins associated with these?
+  //  TODO:  You should have skins associated with some of these.
   final public static OutfitType
     FINERY         = new OutfitType(
       BC, "Finery"        , 2 , 100,
-      new Conversion(3, PLASTICS, Fabricator.class, 15, GRAPHIC_MEDIA)
+      new Conversion(3, PLASTICS, Fabricator.class, 15, GRAPHIC_DESIGN)
     ),
     OVERALLS       = new OutfitType(
       BC, "Overalls"      , 2, 25,
@@ -193,7 +194,7 @@ public interface BuildConstants extends ActorConstants {
     ),
     CAMOUFLAGE     = new OutfitType(
       BC, "Camouflage"    , 3 , 35,
-      new Conversion(2, PLASTICS, Fabricator.class, 10, GRAPHIC_MEDIA)
+      new Conversion(2, PLASTICS, Fabricator.class, 10, GRAPHIC_DESIGN)
     ),
     SEALSUIT       = new OutfitType(
       BC, "Sealsuit"      , 4 , 75,
@@ -202,19 +203,23 @@ public interface BuildConstants extends ActorConstants {
     
     SHIELD_BELT = new OutfitType(
       BC, "Shield Belt"   , 5 , 25,
-      new Conversion(2, PARTS, Foundry.class, 5, ASSEMBLY)
+      new Conversion(1, PARTS, Foundry.class, 5, ASSEMBLY)
     ),
     PARTIAL_ARMOUR = new OutfitType(
       BC, "Partial Armour", 10, 50,
-      new Conversion(3, PARTS, Foundry.class, 10, ASSEMBLY)
+      new Conversion(2, PARTS, Foundry.class, 10, ASSEMBLY)
     ),
     BODY_ARMOUR    = new OutfitType(
       BC, "Body Armour"   , 15, 75,
       new Conversion(5, PARTS, Foundry.class, 15, ASSEMBLY)
     ),
+    POWER_ARMOUR   = new OutfitType(
+      BC, "Power Armour"  , 20, 105,
+      new Conversion(8, PARTS, Foundry.class, 20, ASSEMBLY)
+    ),
     GOLEM_ARMOUR   = new OutfitType(
-      BC, "Golem Armour"  , 20, 150,
-      new Conversion(12, PARTS, Foundry.class, 20, ASSEMBLY)
+      BC, "Golem Armour"  , 25, 150,
+      new Conversion(12, PARTS, Foundry.class, 25, ASSEMBLY)
     ),
     
     INTRINSIC_ARMOUR = new OutfitType(BC, "Intrinsic Armour", 0, 0, null) ;
@@ -233,17 +238,17 @@ public interface BuildConstants extends ActorConstants {
     
     METALS_TO_PARTS = new Conversion(
       1, METAL_ORE, TO, 1, PARTS,
-      Foundry.class, TRICKY_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
+      Foundry.class, MODERATE_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
     ),
     
     CARBONS_TO_PLASTICS = new Conversion(
       1, P_CARBONS, TO, 1, PLASTICS,
-      Fabricator.class, TRICKY_DC, CHEMISTRY, SIMPLE_DC, GRAPHIC_MEDIA
+      Fabricator.class, MODERATE_DC, CHEMISTRY, SIMPLE_DC, GRAPHIC_DESIGN
     ),
     
     PLASTICS_TO_PRESSFEED = new Conversion(
       1, PLASTICS, TO, 10, PRESSFEED,
-      AuditOffice.class, SIMPLE_DC, ADMINISTRATION, DIFFICULT_DC, GRAPHIC_MEDIA
+      AuditOffice.class, SIMPLE_DC, ADMINISTRATION, DIFFICULT_DC, GRAPHIC_DESIGN
     ),
     
     

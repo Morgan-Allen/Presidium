@@ -234,22 +234,21 @@ public class Action implements Behaviour, Model.AnimNames {
       if (inRange == 1) minDist *= 2 ;
     }
     else if (inRange == 1) minDist += progress + 0.5f ;
-    
+
     final boolean
       closed = actor.pathing.closeEnough(moveTarget, minDist),
       facing = actor.pathing.facingTarget(actionTarget) ;
-    if (! closed) actor.pathing.updateTarget(moveTarget) ;
+    actor.pathing.updateTarget(moveTarget) ;
     final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;
     
-    if (verbose && BaseUI.isPicked(actor)) {
+    if (verbose && I.talkAbout == actor) {
+      I.say("Action target is: "+actionTarget) ;
+      I.say("Move target is: "+moveTarget) ;
       I.say("Closed/facing: "+closed+"/"+facing+", move okay? "+moveOK) ;
       I.say("Faced is: "+faced) ;
     }
     
-    
-    if (moveOK) {
-      actor.pathing.headTowards(faced, moveRate(), ! closed) ;
-    }
+    if (moveOK) actor.pathing.headTowards(faced, moveRate(), ! closed) ;
     //
     //  Check for state changes-
     final byte oldRange = inRange ;

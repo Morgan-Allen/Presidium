@@ -38,7 +38,7 @@ public class Cranial extends Artilect implements BuildConstants {
     gear.setDamage(15) ;
     gear.setArmour(10) ;
     gear.equipDevice(Item.withQuality(INTRINSIC_MELEE, 0)) ;
-    traits.setLevel(CLOSE_COMBAT, 5) ;
+    traits.setLevel(HAND_TO_HAND, 5) ;
     traits.setLevel(ASSEMBLY, 10) ;
     traits.setLevel(ANATOMY, 20) ;
     

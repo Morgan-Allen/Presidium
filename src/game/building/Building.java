@@ -17,6 +17,8 @@ public class Building extends Plan implements ActorConstants {
   
   /**  Field definitions, constants and save/load methods-
     */
+  private static boolean verbose = false ;
+  
   final Venue built ;
   
   
@@ -43,31 +45,48 @@ public class Building extends Plan implements ActorConstants {
     */
   public float priorityFor(Actor actor) {
     //
-    //  TODO:  Don't factor competition if you're already at the site.
-    if (built.base().credits() <= 0) return 0 ;
-    float competition = Plan.competition(Building.class, built, actor) ;
-    competition /= 1 + (built.structure.maxIntegrity() / 100f) ;
-    
-    float priority = Visit.clamp(actor.traits.useLevel(ASSEMBLY) / 10, 0, 1) ;
-    float needRepair = (1 - built.structure.repairLevel()) * 1.33f ;
+    //  By default, the impetus to repair something is based on qualification
+    //  for the task and personality.
+    final float attachment = Math.max(
+      actor.base().communitySpirit(),
+      actor.AI.relation(built)
+    ) ;
+    final float skillRating = actor.traits.chance(ASSEMBLY, null, null, -10) ;
+    final boolean broke = built.base().credits() <= 0 ;
+    float impetus = skillRating / 2f ;
+    impetus -= actor.traits.trueLevel(NATURALIST) / 10f ;
+    impetus -= actor.traits.trueLevel(INDOLENT) / 10f ;
+    if (broke || impetus <= 0 || attachment <= 0) impetus = 0 ;
+    else impetus *= attachment ;
+    //
+    //  If damage is higher than 50%, priority converges to maximum, regardless
+    //  of competency, but only when you have altruistic motives.
+    float needRepair = (1 - built.structure.repairLevel()) * 1.5f ;
     if (! built.structure.intact()) needRepair = 1.0f ;
     if (built.structure.needsUpgrade()) needRepair += 0.5f ;
-    
-    //
-    //  
+    if (built.structure.burning()) needRepair++ ;
     if (needRepair > 0.5f) {
-      //
-      //  If damage is higher than 50%, priority converges to max, regardless
-      //  of competency.
       if (needRepair > 1) needRepair = 1 ;
-      final float scale = (1 - needRepair) * 2 ;
-      priority += (1 - priority) * scale ;
+      final float urgency = (needRepair - 0.5f) * 2 ;
+      impetus += (1 - impetus) * urgency * attachment * (1 + skillRating) / 2 ;
+      if (verbose) I.sayAbout(actor, "Attachment "+attachment) ;
+      if (verbose) I.sayAbout(actor, "Need for repair: "+needRepair) ;
     }
-    //  TODO:  You also need to modify by community spirit.  Use competency as
-    //         your baseline then.
-    
-    priority *= actor.AI.relation(built.base()) ;
-    return (needRepair * priority * URGENT) + priorityMod - competition ;
+    //
+    //  During initial consideration, include competition as a decision factor,
+    //  so that you don't get dozens of actors converging on a minor breakdown.
+    float competition = 0 ;
+    if (! begun()) {
+      competition = Plan.competition(Building.class, built, actor) ;
+      competition /= 1 + (built.structure.maxIntegrity() / 100f) ;
+    }
+    //
+    //  Finally, scale, offset and clamp appropriately-
+    impetus = (impetus * needRepair * URGENT) - competition ;
+    impetus -= Plan.rangePenalty(actor, built) ;
+    if (! broke) impetus += priorityMod ;
+    if (verbose) I.sayAbout(actor, "Priority for "+this+" is "+impetus) ;
+    return Visit.clamp(impetus, 0, URGENT) ;
   }
   
   
@@ -84,7 +103,7 @@ public class Building extends Plan implements ActorConstants {
       choice.add(new Building(client, near)) ;
       if (++numR > reactLimit) break ;
     }
-    return (Building) choice.weightedPick(client.AI.whimsy()) ;
+    return (Building) choice.weightedPick(0) ;
   }
   
   
@@ -132,11 +151,12 @@ public class Building extends Plan implements ActorConstants {
     final boolean salvage = built.structure.needsSalvage() ;
     int success = 1 ;
     //
-    //  TODO:  Don't deduct credits during the install phase.  In principle,
-    //  that's already accounted for.
+    //  TODO:  Deduct credits for the venue itself, rather than the base.  That
+    //  way, you can allocate funds for construction immediately, and recoup
+    //  any differences in outlay afterwards.
     if (salvage) {
       success *= actor.traits.test(ASSEMBLY, 5, 1) ? 2 : 1 ;
-      final float amount = built.structure.repairBy(success * 5f / -2) ;
+      final float amount = 0 - built.structure.repairBy(success * 5f / -2) ;
       final float cost = amount * built.structure.buildCost() ;
       built.base().incCredits(cost * 0.5f) ;
     }

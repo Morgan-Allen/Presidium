@@ -143,8 +143,8 @@ public class Item implements BuildConstants {
   
   public int price() {
     final int q = quality ;
-    if (q == 1) return type.basePrice ;
-    return (int) (type.basePrice * PRICE_MULTS[q]) ;
+    if (q == -1) return (int) (type.basePrice * amount) ;
+    return (int) (type.basePrice * PRICE_MULTS[q] * amount) ;
   }
   
   

@@ -45,12 +45,13 @@ public class I {
     }
   }
   
-  
-  public static final void sayIfAbout(boolean verbose, Object o, String s) {
+  /*
+  public static final void sayWhen(boolean verbose, Object o, String s) {
     if (verbose && talkAbout != null && o == talkAbout && ! mute) {
       System.out.println(s) ;
     }
   }
+  //*/
   
   
   public static final void complain(String e) {

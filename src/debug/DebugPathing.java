@@ -27,7 +27,7 @@ public class DebugPathing extends PlayLoop {
     */
   public static void main(String args[]) {
     DebugPathing test = new DebugPathing() ;
-    test.runLoop() ;
+    PlayLoop.runLoop(test) ;
   }
   
   
@@ -36,7 +36,7 @@ public class DebugPathing extends PlayLoop {
   
   
   protected DebugPathing() {
-    super(true) ;
+    super() ;
   }
   
   public DebugPathing(Session s) throws Exception {
@@ -130,7 +130,7 @@ public class DebugPathing extends PlayLoop {
       return false ;
     }
     if (KeyInput.wasKeyPressed('f')) {
-      GameSettings.frozen = ! GameSettings.frozen ;
+      PlayLoop.setPaused(! PlayLoop.paused()) ;
     }
     if (KeyInput.wasKeyPressed('s')) {
       I.say("SAVING GAME...") ;

@@ -15,20 +15,11 @@ import src.game.base.* ;
 SPYCE_A = new Item.Type(C, COMMODITY, "Spyce A (Tinerazine)", 400),
 SPYCE_B = new Item.Type(C, COMMODITY, "Spyce B (Halebdynum)", 400),
 SPYCE_C = new Item.Type(C, COMMODITY, "Spyce C (Natrizoral)", 400),
+TALISMAN   = new Item.Type(C, UNIQUE, "Talisman"   , 250)
 //*/
-  /*
-    //TIMBER   = new Service(BC, FORM_COMMODITY, "Timber"  , 40 ),
-    //STONES   = new Service(BC, FORM_COMMODITY, "Stones"  , 70 ),
-    //HIDES    = new Service(BC, FORM_COMMODITY, "Hides"   , 150),
-  OUTFITS  = new Item.Type(C, UNIQUE, "Outfits", 0),
-  DEVICES  = new Item.Type(C, UNIQUE, "Devices", 0),
-  ARMOURS  = new Item.Type(C, UNIQUE, "Armours", 0),
-  
-  GENE_SEED  = new Item.Type(C, UNIQUE, "Gene Sample", 50 ),
-  GHOST_LINE = new Item.Type(C, UNIQUE, "Neural Scan", 500),
-  TALISMAN   = new Item.Type(C, UNIQUE, "Talisman"   , 250)
-  //*/
 
+//
+//  TODO:  What about cultured organs/clones?  Tensile materials?  Antimatter.
 
 
 public interface BuildConstants extends ActorConstants {
@@ -46,28 +37,36 @@ public interface BuildConstants extends ActorConstants {
   final static int FC = FORM_COMMODITY, FP = FORM_PROVISION ;
   
   final public static Service
-    
+    //
+    //  Food types-
     CARBS       = new Service(BC, "Carbs"     , "carbs.gif"      , FC, 10 ),
     PROTEIN     = new Service(BC, "Protein"   , "protein.gif"    , FC, 20 ),
     GREENS      = new Service(BC, "Greens"    , "greens.gif"     , FC, 50 ),
     SPICE       = new Service(BC, "Spice"     , "spices.gif"     , FC, 100),
-    
+    //
+    //  Mineral wealth-
     METAL_ORE   = new Service(BC, "Metal Ore" , "ores.gif"       , FC, 15 ),
-    P_CARBONS   = new Service(BC, "P-Carbons" , "carbons.gif"    , FC, 35 ),
-    FUEL_CORES  = new Service(BC, "Fuel Cores", "fuel rods.gif"  , FC, 60 ),
-    
+    PETROCARBS  = new Service(BC, "Petrocarbs", "carbons.gif"    , FC, 35 ),
+    FUEL_CORES  = new Service(BC, "Fuel Cores", "fuel rods.gif"  , FC, 75 ),
+    //
+    //  Building materials-
     PARTS       = new Service(BC, "Parts"     , "parts.gif"      , FC, 50 ),
     PLASTICS    = new Service(BC, "Plastics"  , "plastics.gif"   , FC, 75 ),
     CIRCUITRY   = new Service(BC, "Circuitry" , "inscription.gif", FC, 140),
     DECOR       = new Service(BC, "Decor"     , "pressfeed.gif"  , FC, 300),
-    
+    //
+    //  Medical supplies-
     STIM_KITS   = new Service(BC, "Stim Kit"  , "stimkit.gif"    , FC, 40 ),
     SOMA        = new Service(BC, "Soma"      , "soma.gif"       , FC, 70 ),
     MEDICINE    = new Service(BC, "Medicine"  , "medicines.gif"  , FC, 200),
     
     ALL_FOOD_TYPES[] = { CARBS, PROTEIN, GREENS },
-    ALL_CARRIED_ITEMS[] = Service.typesSoFar(),
-    
+    ALL_COMMODITIES[] = Service.typesSoFar() ;
+  
+  final public static Service
+    CRATES = new Service(BC, "Crates", "crates_big.gif", FC, -1) ;
+  
+  final public static Service
     GENE_SEED   = new Service(BC, FORM_UNIQUE, "Gene Seed", 200 ),
     GHOSTLINE   = new Service(BC, FORM_UNIQUE, "Ghostline", 200 ),
     PRESSFEED   = new Service(BC, FORM_UNIQUE, "Pressfeed", 200 ),
@@ -77,8 +76,9 @@ public interface BuildConstants extends ActorConstants {
     
     ATOMICS     = new Service(BC, FORM_UNIQUE, "Atomic"   , 1000),
     
-    ALL_UNIQUE_ITEMS[] = Service.typesSoFar(),
-    
+    ALL_UNIQUE_ITEMS[] = Service.typesSoFar() ;
+  
+  final public static Service
     WATER        = new Service(BC, "Water"       , "water.png"    , FP, 0),
     LIFE_SUPPORT = new Service(BC, "Life Support", "life_S.png"   , FP, 0),
     POWER        = new Service(BC, "Power"       , "power.png"    , FP, 0),
@@ -86,21 +86,20 @@ public interface BuildConstants extends ActorConstants {
     
     ALL_PROVISIONS[] = Service.typesSoFar() ;
   
-  
   final public static Service
-    SERVICE_ADMIN   = new Service(BC, FORM_SERVICE, "Admin"      , 0),
-    SERVICE_TREAT   = new Service(BC, FORM_SERVICE, "Treatment"  , 0),
-    SERVICE_PERFORM = new Service(BC, FORM_SERVICE, "Performance", 0),
-    SERVICE_DEPOT   = new Service(BC, FORM_SERVICE, "Depot"      , 0),
+    SERVICE_ADMIN    = new Service(BC, FORM_SERVICE, "Admin"      , 0),
+    SERVICE_TREAT    = new Service(BC, FORM_SERVICE, "Treatment"  , 0),
+    SERVICE_PERFORM  = new Service(BC, FORM_SERVICE, "Performance", 0),
+    SERVICE_DEPOT    = new Service(BC, FORM_SERVICE, "Depot"      , 0),
+    SERVICE_REFUGE   = new Service(BC, FORM_SERVICE, "Refuge"     , 0),
+    SERVICE_ARMAMENT = new Service(BC, FORM_SERVICE, "Armament"   , 0),
+    SERVICE_SHIPPING = new Service(BC, FORM_SERVICE, "Shipping"   , 0),
+    SERVICE_CAPTIVES = new Service(BC, FORM_SERVICE, "Captives"   , 0),
+    SERVICE_CONSORTS = new Service(BC, FORM_SERVICE, "Consorts"   , 0),
     
-    VENUE_SERVICES[] = Service.typesSoFar(),
-    
-    SERVICE_ARMAMENT = new Service(BC, FORM_SERVICE, "Armament", 0),
-    SERVICE_SHIPPING = new Service(BC, FORM_SERVICE, "Shipping", 0),
-    SERVICE_CAPTIVES = new Service(BC, FORM_SERVICE, "Captives", 0),
-    SERVICE_CONSORTS = new Service(BC, FORM_SERVICE, "Consorts", 0),
-    
-    PLANET_SERVICES[] = Service.typesSoFar() ;
+    ALL_ABSTRACT_SERVICES[] = Service.typesSoFar() ;
+  
+  
   
   
   final public static int
@@ -238,41 +237,66 @@ public interface BuildConstants extends ActorConstants {
     
     METALS_TO_PARTS = new Conversion(
       1, METAL_ORE, TO, 1, PARTS,
-      Foundry.class, MODERATE_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
+      Foundry.class,
+      MODERATE_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
     ),
     
     CARBONS_TO_PLASTICS = new Conversion(
-      1, P_CARBONS, TO, 1, PLASTICS,
-      Fabricator.class, MODERATE_DC, CHEMISTRY, SIMPLE_DC, GRAPHIC_DESIGN
+      1, PETROCARBS, TO, 1, PLASTICS,
+      Fabricator.class,
+      MODERATE_DC, CHEMISTRY, SIMPLE_DC, GRAPHIC_DESIGN
     ),
     
     PLASTICS_TO_PRESSFEED = new Conversion(
       1, PLASTICS, TO, 10, PRESSFEED,
-      AuditOffice.class, SIMPLE_DC, ADMINISTRATION, DIFFICULT_DC, GRAPHIC_DESIGN
+      AuditOffice.class,
+      SIMPLE_DC, ADMINISTRATION, DIFFICULT_DC, GRAPHIC_DESIGN
     ),
     
-    
-    NIL_TO_SOMA = new Conversion(
-      2, POWER, TO, 1, SOMA,
-      CultureVats.class, ROUTINE_DC, CHEMISTRY, ROUTINE_DC, PHARMACY
+    METALS_TO_FUEL = new Conversion(
+      5, METAL_ORE, TO, 1, FUEL_CORES,
+      Reactor.class,
+      MODERATE_DC, CHEMISTRY, MODERATE_DC, FIELD_THEORY
     ),
     
-    NIL_TO_STARCHES = new Conversion(
+    //
+    //  Culture Vats conversions-
+    POWER_TO_STARCHES = new Conversion(
       1, POWER, TO, 1, CARBS,
-      CultureVats.class, SIMPLE_DC, CHEMISTRY
+      CultureVats.class,
+      SIMPLE_DC, CHEMISTRY
+    ),
+    
+    POWER_TO_PROTEIN = new Conversion(
+      2, POWER, TO, 1, PROTEIN,
+      CultureVats.class,
+      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GENE_CULTURE
+    ),
+    
+    POWER_TO_SOMA = new Conversion(
+      2, POWER, TO, 1, SOMA,
+      CultureVats.class,
+      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, PHARMACY
+    ),
+    
+    POWER_TO_MEDICINE = new Conversion(
+      5, POWER, TO, 1, MEDICINE,
+      CultureVats.class,
+      MODERATE_DC, CHEMISTRY, MODERATE_DC, PHARMACY, ROUTINE_DC, GENE_CULTURE
+    ),
+    
+    SPICE_TO_SOMA = new Conversion(
+      2, POWER, 1, SPICE, 1, GREENS, TO, 10, SOMA,
+      CultureVats.class,
+      ROUTINE_DC, CHEMISTRY, SIMPLE_DC, PHARMACY
+    ),
+    
+    SPICE_TO_MEDICINE = new Conversion(
+      5, POWER, 1, SPICE, 1, GREENS, TO, 5, MEDICINE,
+      CultureVats.class,
+      MODERATE_DC, CHEMISTRY, ROUTINE_DC, PHARMACY
     ) ;
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 

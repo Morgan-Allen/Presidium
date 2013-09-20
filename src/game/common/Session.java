@@ -124,6 +124,7 @@ public class Session {
   public PlayLoop loop() { return playLoop ; }
   
   
+  
   /**  NOTE:  Classes that implement this interface must ALSO implement a
     *  public constructor taking a Session as it's sole argument, with a
     *  cacheInstance call made right away, OR, a static loadConstant method
@@ -152,6 +153,7 @@ public class Session {
     for (int n = count ; n-- > 0 ;) objects.add(loadObject()) ;
     return objects ;
   }
+  
   
   
   /**  Saving and loading of targets-
@@ -214,6 +216,7 @@ public class Session {
   }
   
   
+  
   /**  Saving and Loading of classes themselves-
     */
   public void saveClass(Class c) throws Exception {
@@ -231,6 +234,7 @@ public class Session {
     else out.writeInt(classID) ;
   }
   
+  
   public Class loadClass() throws Exception {
     final int classID = in.readInt() ;
     if (classID == -1) return null ;
@@ -240,6 +244,7 @@ public class Session {
     else
       return ((Method) loadMethod).getDeclaringClass() ;
   }
+  
   
   
   /**  Caches the initialisation method (static or constructor) used to create
@@ -262,6 +267,7 @@ public class Session {
     }
     return loadMethod ;
   }
+  
   
   public void saveObject(Saveable s) throws Exception {
     if (s == null) { out.writeInt(-1) ; return ; }
@@ -291,6 +297,7 @@ public class Session {
   }
   
   
+  
   /**  This method is intended to help avoid self-referential loop conditions by
     *  being called by setupDone objects IMMEDIATELY after being initialised and
     *  BEFORE any member fields or variables have been loaded.  (NOTE:  This
@@ -305,6 +312,7 @@ public class Session {
     public void saveState(Session s) throws Exception {}
     
   } ;
+  
   
   public Saveable loadObject() throws Exception {
     //I.say("Loading object...") ;
@@ -366,6 +374,7 @@ public class Session {
     bytesIn = initBytes ;
     return loaded ;
   }
+  
   
   
   /**  These methods allow Saveable objects to import/export their internal

@@ -23,16 +23,16 @@ public abstract class Vehicle extends Mobile implements
   
   /**  Fields, constants, constructors and save/load methods-
     */
+  protected Base base ;
   final public Inventory cargo = new Inventory(this) ;
   final protected List <Mobile> inside = new List <Mobile> () ;
   final protected List <Actor> crew = new List <Actor> () ;
   
   public Actor pilot ;  //  TODO:  Have this set explicitly by methods.
-  //protected Venue hangar ;  //TODO:  Salvage if destroyed.
+  ///protected Venue hangar = null ;  //TODO:  Salvage if destroyed.
   
   protected float entranceFace = Venue.ENTRANCE_NONE ;
   protected Boardable dropPoint ;
-  protected Base base ;
   
   
   public Vehicle() {
@@ -71,6 +71,10 @@ public abstract class Vehicle extends Mobile implements
     return base ;
   }
   
+
+  public Inventory inventory() { return cargo ; }
+  public float priceFor(Service service) { return service.basePrice ; }
+  
   
   
   /**  Handling pathing-
@@ -96,7 +100,6 @@ public abstract class Vehicle extends Mobile implements
   }
   
   
-  //*
   public boolean blocksMotion(Boardable b) {
     if (super.blocksMotion(b)) return true ;
     if (b instanceof Tile && b != aboard()) {
@@ -108,7 +111,7 @@ public abstract class Vehicle extends Mobile implements
     }
     return false ;
   }
-  //*/
+  
   
   
   /**  TODO:  Include code here for assessing suitable landing sites?
@@ -154,7 +157,7 @@ public abstract class Vehicle extends Mobile implements
     return inside ;
   }
   
-
+  
   public Boardable[] canBoard(Boardable batch[]) {
     if (batch == null) batch = new Boardable[2] ;
     else for (int i = batch.length ; i-- > 0 ;) batch[i] = null ;
@@ -182,14 +185,14 @@ public abstract class Vehicle extends Mobile implements
     return put ;
   }
   
-
-  public Inventory inventory() { return cargo ; }
-  public float priceFor(Service service) { return service.basePrice ; }
   
-  
-  //  Intended for override by subclasses.
   public boolean landed() {
     return true ;
+  }
+  
+  
+  public Boardable dropPoint() {
+    return dropPoint ;
   }
   
   

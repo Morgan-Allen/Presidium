@@ -16,7 +16,7 @@ public class Commerce implements BuildConstants {
   /**  Fields definitions, constructor, save/load methods-
     */
   final public static float
-    SUPPLY_INTERVAL = 100,  //TODO:  Increase these substantially.
+    SUPPLY_INTERVAL = 200,
     SUPPLY_DURATION = 100,
     
     MAX_APPLICANTS = 3 ;
@@ -29,7 +29,9 @@ public class Commerce implements BuildConstants {
   final Table <Venue, List <Actor>> candidates = new Table() ;
   final List <Actor> migrantsIn = new List <Actor> () ;
   
-  private Inventory shortages, surpluses ;
+  final Inventory
+    shortages = new Inventory(null),
+    surpluses = new Inventory(null) ;
   final Table <Service, Float>
     importPrices = new Table <Service, Float> (),
     exportPrices = new Table <Service, Float> () ;
@@ -42,7 +44,7 @@ public class Commerce implements BuildConstants {
   public Commerce(Base base) {
     this.base = base ;
     
-    for (Service type : ALL_CARRIED_ITEMS) {
+    for (Service type : ALL_COMMODITIES) {
       importPrices.put(type, (float) type.basePrice) ;
       exportPrices.put(type, (float) type.basePrice) ;
     }
@@ -73,7 +75,9 @@ public class Commerce implements BuildConstants {
       }
     }
     
-    for (Service type : ALL_CARRIED_ITEMS) {
+    shortages.loadState(s) ;
+    surpluses.loadState(s) ;
+    for (Service type : ALL_COMMODITIES) {
       importPrices.put(type, s.loadFloat()) ;
       exportPrices.put(type, s.loadFloat()) ;
     }
@@ -97,8 +101,10 @@ public class Commerce implements BuildConstants {
       s.saveInt(list.size()) ;
       for (Actor a : list) s.saveObject(a) ;
     }
-
-    for (Service type : ALL_CARRIED_ITEMS) {
+    
+    shortages.saveState(s) ;
+    surpluses.saveState(s) ;
+    for (Service type : ALL_COMMODITIES) {
       s.saveFloat(importPrices.get(type)) ;
       s.saveFloat(exportPrices.get(type)) ;
     }
@@ -115,6 +121,11 @@ public class Commerce implements BuildConstants {
   }
   
   
+  public System homeworld() {
+    return homeworld ;
+  }
+  
+  
   public void togglePartner(System s, boolean is) {
     if (is) {
       partners.include(s) ;
@@ -123,6 +134,11 @@ public class Commerce implements BuildConstants {
       partners.remove(s) ;
       if (s == homeworld) homeworld = null ;
     }
+  }
+  
+  
+  public List <System> partners() {
+    return partners ;
   }
   
   
@@ -180,8 +196,8 @@ public class Commerce implements BuildConstants {
   /**  Assessing supply and demand associated with goods-
     */
   private void summariseDemand(Base base) {
-    shortages = new Inventory(null) ;
-    surpluses = new Inventory(null) ;
+    shortages.removeAllItems() ;
+    surpluses.removeAllItems() ;
     
     final World world = base.world ;
     final Tile t = world.tileAt(0, 0) ;
@@ -189,9 +205,8 @@ public class Commerce implements BuildConstants {
     for (Object o : world.presences.matchesNear(SupplyDepot.class, t, -1)) {
       final SupplyDepot venue = (SupplyDepot) o ;
       if (venue.base() != base) continue ;
-      for (Service type : ALL_CARRIED_ITEMS) {
+      for (Service type : ALL_COMMODITIES) {
         final float shortage = venue.importShortage(type) ;
-        ////I.say("Shortage of: "+type+" is: "+shortage) ;
         shortages.addItem(Item.withAmount(type, shortage)) ;
         final float surplus = venue.exportSurplus(type) ;
         surpluses.addItem(Item.withAmount(type, surplus)) ;
@@ -199,7 +214,6 @@ public class Commerce implements BuildConstants {
     }
     
     for (Item item : shortages.allItems()) {
-      ///I.say("Shortage is: "+item) ;
       shortages.removeItem(item) ;
       final float bump = (float) Math.ceil(item.amount / 5f) * 5 ;
       shortages.addItem(Item.withAmount(item, bump)) ;
@@ -222,7 +236,7 @@ public class Commerce implements BuildConstants {
     //  TODO:  Charge more for smuggler vessels, and less for Spacers.
     //  TODO:  Implement trade with settlements on the same planet(?)
     
-    for (Service type : ALL_CARRIED_ITEMS) {
+    for (Service type : ALL_COMMODITIES) {
       ///final boolean offworld = true ; //For now.
       float
         basePrice = 1 * type.basePrice,
@@ -247,12 +261,16 @@ public class Commerce implements BuildConstants {
   
   
   public float importPrice(Service type) {
-    return importPrices.get(type) ;
+    final Float price = importPrices.get(type) ;
+    if (price == null) return type.basePrice * 10f ;
+    return price ;
   }
   
   
   public float exportPrice(Service type) {
-    return exportPrices.get(type) ;
+    final Float price = exportPrices.get(type) ;
+    if (price == null) return type.basePrice / 10f ;
+    return price ;
   }
   
   
@@ -289,6 +307,7 @@ public class Commerce implements BuildConstants {
     Dropship ship, Inventory available, final boolean imports
   ) {
     ship.cargo.removeAllItems() ;
+    I.say("Loading cargo...") ;
     //
     //  TODO:  Unify this with the compressOrder() function from the Delivery
     //  class.
@@ -311,6 +330,7 @@ public class Commerce implements BuildConstants {
       available.removeItem(item) ;
       ship.cargo.addItem(item) ;
       totalAmount += item.amount ;
+      I.say("Loading cargo: "+item) ;
     }
   }
   
@@ -323,8 +343,8 @@ public class Commerce implements BuildConstants {
     if (numUpdates % 10 == 0) {
       summariseDemand(base) ;
       calculatePrices() ;
-      updateShipping() ;
     }
+    updateShipping() ;
   }
   
   //
@@ -335,12 +355,12 @@ public class Commerce implements BuildConstants {
     final int shipStage = ship.flightStage() ;
     if (ship.landed()) {
       final float sinceDescent = ship.timeLanded() ;
-      ///I.say("All aboard? "+ship.allAboard()+", time: "+sinceDescent) ;
       if (sinceDescent > SUPPLY_DURATION) {
-        ///I.say("Ship stage: "+shipStage) ;
         if (shipStage == Dropship.STAGE_LANDED) ship.beginBoarding() ;
         if (ship.allAboard() && shipStage == Dropship.STAGE_BOARDING) {
           ship.beginAscent() ;
+          nextVisitTime = base.world.currentTime() ;
+          nextVisitTime += SUPPLY_INTERVAL * (0.5f + Rand.num()) ;
         }
       }
     }
@@ -351,23 +371,25 @@ public class Commerce implements BuildConstants {
       shouldVisit &= ship.timeAway(base.world) > SUPPLY_INTERVAL ;
       
       if (shouldVisit) {
+        final boolean canLand = ship.findLandingSite(base) ;
+        if (! canLand) return ;
+        /*
         final Box2D zone = Dropship.findLandingSite(ship, base) ;
         if (zone == null) return ;
-        ///I.say("Sending ship to land at: "+zone) ;
+        //*/
+        I.say("Sending ship to land at: "+ship.dropPoint()) ;
         
         while (ship.inside().size() < Dropship.MAX_PASSENGERS) {
           if (migrantsIn.size() == 0) break ;
           final Actor migrant = migrantsIn.removeFirst() ;
           ship.setInside(migrant, true) ;
         }
-
+        
         loadCargo(ship, shortages, true) ;
         refreshCrew(ship) ;
         for (Actor c : ship.crew()) ship.setInside(c, true) ;
         
-        ship.beginDescent(zone, base.world) ;
-        nextVisitTime = base.world.currentTime() + SUPPLY_DURATION ;
-        nextVisitTime += SUPPLY_INTERVAL * (1 + Rand.num()) ;
+        ship.beginDescent(base.world) ;
       }
     }
   }

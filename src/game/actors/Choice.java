@@ -6,7 +6,6 @@
 
 package src.game.actors ;
 import src.game.common.* ;
-import src.user.BaseUI ;
 import src.util.* ;
 
 

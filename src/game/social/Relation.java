@@ -60,14 +60,14 @@ public class Relation {
   
   
   public Relation(
-    Accountable object, Accountable subject, float init, World world
+    Accountable object, Accountable subject, float initLevel, int initTime
   ) {
     this.object = object ;
     this.subject = subject ;
-    this.initTime = (int) world.currentTime() ;
+    this.initTime = initTime ;
     
     this.hash = Table.hashFor(object, subject) ;
-    this.attitude = init * MAX_ATT ;
+    this.attitude = initLevel * MAX_ATT ;
     this.familiarity = 0 ;
   }
   

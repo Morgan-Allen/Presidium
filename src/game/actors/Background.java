@@ -97,8 +97,8 @@ public class Background implements BuildConstants {
     
     EXCAVATOR = new Background(
       "Excavator", "pyon_skin.gif", null,
-      SLAVE_CLASS,
-      EXPERT, HARD_LABOUR, PRACTICED, GEOPHYSICS, NOVICE, ASSEMBLY,
+      LOWER_CLASS,
+      EXPERT, HARD_LABOUR, NOVICE, GEOPHYSICS, ASSEMBLY, CHEMISTRY,
       OFTEN, STUBBORN, RARELY, NERVOUS, HANDSOME
     ),
     
@@ -112,15 +112,17 @@ public class Background implements BuildConstants {
     CORE_TECHNICIAN = new Background(
       "Core Technician", "citizen_skin.gif", "artificer_portrait.png",
       MIDDLE_CLASS,
-      EXPERT, FIELD_THEORY, PRACTICED, CHEMISTRY, NOVICE, SHIELD_AND_ARMOUR,
-      OFTEN, DUTIFUL, SOMETIMES, NERVOUS
+      EXPERT, FIELD_THEORY, PRACTICED, CHEMISTRY, ASSEMBLY,
+      NOVICE, SHIELD_AND_ARMOUR,
+      OFTEN, DUTIFUL, SOMETIMES, NERVOUS,
+      SEALSUIT
     ),
     
     ARTIFICER = new Background(
       "Artificer", "artificer_skin.gif", "artificer_portrait.png",
       UPPER_CLASS,
-      EXPERT, ASSEMBLY, PRACTICED, FIELD_THEORY, CHEMISTRY,
-      NOVICE, ANCIENT_LORE, PSYCHOANALYSIS,
+      EXPERT, ASSEMBLY, PRACTICED, FIELD_THEORY, SHIELD_AND_ARMOUR,
+      NOVICE, ANCIENT_LORE, CHEMISTRY,
       SOMETIMES, INQUISITIVE, RARELY, NATURALIST
     ),
     
@@ -131,8 +133,8 @@ public class Background implements BuildConstants {
     
     MINDER = new Background(
       "Minder", "citizen_skin.gif", null,
-      MIDDLE_CLASS,
-      PRACTICED, HOUSEKEEPING, SUASION, NOVICE, ANATOMY, PHARMACY,
+      LOWER_CLASS,
+      PRACTICED, HOUSEKEEPING, SUASION, NOVICE, ANATOMY, PHARMACY, COUNSEL,
       OFTEN, EMPATHIC, SOMETIMES, STUBBORN
     ),
     
@@ -146,15 +148,26 @@ public class Background implements BuildConstants {
     ARCHIVIST = new Background(
       "Archivist", "citizen_skin.gif", null,
       MIDDLE_CLASS,
-      PRACTICED, ADMINISTRATION, PSYCHOANALYSIS, NOVICE, COUNSEL,
+      EXPERT, ADMINISTRATION, ANCIENT_LORE, NOVICE, COUNSEL, ASSEMBLY,
       ALWAYS, INQUISITIVE, SOMETIMES, NERVOUS, IMPASSIVE
     ),
-
+    
+    //  TODO:  Also include the Psychoanalyst
+    /*
+    MONITOR = new Background(
+      "Monitor", "citizen_skin.gif", null,
+      MIDDLE_CLASS,
+      EXPERT, COUNSEL, PRACTICED, SUASION, COMMAND, PSYCHOANALYSIS,
+      NOVICE, COMMON_CUSTOM, ADMINISTRATION,
+      OFTEN, EMPATHIC, TRADITIONAL, RARELY, DEBAUCHED
+    ),
+    //*/
+    
     PHYSICIAN = new Background(
       "Physician", "physician_skin.gif", "physician_portrait.png",
       UPPER_CLASS,
-      EXPERT, ANATOMY, PHARMACY, PRACTICED, GENE_CULTURE, PSYCHOANALYSIS,
-      NOVICE, COUNSEL, SUASION,
+      EXPERT, ANATOMY, PHARMACY,
+      PRACTICED, GENE_CULTURE, NEUROSCIENCE, COUNSEL, SUASION,
       OFTEN, INQUISITIVE, SOMETIMES, HONOURABLE, IMPASSIVE, RARELY, DEBAUCHED
     ),
     
@@ -245,6 +258,15 @@ public class Background implements BuildConstants {
       TASE_STAFF, PHASE_BLASTER, PARTIAL_ARMOUR
     ),
     
+    MECHANIC = new Background(
+      "Mechanic", "artificer_skin.gif", "artificer_portrait.png",
+      LOWER_CLASS,
+      PRACTICED, HARD_LABOUR, ASSEMBLY,
+      NOVICE, ANATOMY, PHARMACY, MARKSMANSHIP,
+      RARELY, SOCIABLE, SOMETIMES, HONOURABLE,
+      STUN_PISTOL, SHIELD_BELT
+    ),
+    
     RUNNER = new Background(
       "Runner", "runner_skin.gif", "vendor_portrait.png",
       MIDDLE_CLASS,
@@ -252,15 +274,6 @@ public class Background implements BuildConstants {
       PRACTICED, SUASION, SURVEILLANCE, DISGUISE,
       OFTEN, ACQUISITIVE, SOMETIMES, NERVOUS, RARELY, HONOURABLE,
       PHASE_BLASTER, CAMOUFLAGE
-    ),
-    
-    TECH_RESERVE = new Background(
-      "Tech Reserve", "artificer_skin.gif", "artificer_portrait.png",
-      MIDDLE_CLASS,
-      PRACTICED, HARD_LABOUR, ASSEMBLY, MARKSMANSHIP,
-      NOVICE, ANATOMY, PHARMACY, COMMAND,
-      RARELY, SOCIABLE, SOMETIMES, HONOURABLE,
-      PHASE_BLASTER, SHIELD_BELT
     ),
     
     VETERAN = new Background(
@@ -272,17 +285,22 @@ public class Background implements BuildConstants {
       TASE_STAFF, PHASE_BLASTER, BODY_ARMOUR
     ),
     
-    MILITARY_CIRCLES[] = { VOLUNTEER, RUNNER, TECH_RESERVE, VETERAN }
+    MILITARY_CIRCLES[] = { VOLUNTEER, MECHANIC, RUNNER, VETERAN }
   ;
   
   final public static Background
     
     PERFORMER = new Background(
-      "Performer", "aesthete_male_skin.gif", "aesthete_portrait.png",
+      "Performer", "aesthete_female_skin.gif", "aesthete_portrait.png",
       LOWER_CLASS,
-      PRACTICED, MUSIC_AND_SONG, NOVICE, EROTIC_DANCE, DISGUISE,
+      PRACTICED, MUSIC_AND_SONG, NOVICE, EROTICS, DISGUISE,
       OFTEN, HANDSOME, RARELY, STOUT, SOMETIMES, EMPATHIC, DEBAUCHED
-    ),
+    ) {
+      final Texture male_skin = costumeFor("aesthete_male_skin.gif") ;
+      public Texture costumeFor(Actor actor) {
+        return actor.traits.female() ? costume : male_skin ;
+      }
+    },
     
     FABRICATOR = new Background(
       "Fabricator", "citizen_skin.gif", null,
@@ -303,7 +321,7 @@ public class Background implements BuildConstants {
       UPPER_CLASS,
       EXPERT, GRAPHIC_DESIGN, SUASION,
       PRACTICED, MUSIC_AND_SONG, ADMINISTRATION,
-      NOVICE, COUNSEL, PSYCHOANALYSIS,
+      NOVICE, COUNSEL, NEUROSCIENCE,
       RARELY, HONOURABLE, STUBBORN, OFTEN, AMBITIOUS
     ),
     
@@ -339,12 +357,17 @@ public class Background implements BuildConstants {
     //  Companions won't generally stay put, but might visit your settlement if
     //  the place is nice.
     COMPANION = new Background(
-      "Companion", "aesthete_male_skin.gif", "aesthete_portrait.png",
+      "Companion", "aesthete_female_skin.gif", "aesthete_portrait.png",
       UPPER_CLASS,
-      EXPERT, EROTIC_DANCE, COUNSEL, SUASION, DISGUISE, NOBLE_ETIQUETTE,
+      EXPERT, EROTICS, COUNSEL, SUASION, DISGUISE, NOBLE_ETIQUETTE,
       PRACTICED, HOUSEKEEPING, MUSIC_AND_SONG, COMMAND, HAND_TO_HAND,
       ALWAYS, HANDSOME, OFTEN, FEMININE, EMPATHIC, TALL, RARELY, STOUT
-    ),
+    ) {
+    final Texture male_skin = costumeFor("aesthete_male_skin.gif") ;
+      public Texture costumeFor(Actor actor) {
+        return actor.traits.female() ? costume : male_skin ;
+      }
+    },
     
     MIGRANT_CIRCLES[] = { SCAVENGER, SHIP_MECHANIC, SHIP_CAPTAIN, COMPANION } ;
   
@@ -380,7 +403,7 @@ public class Background implements BuildConstants {
       "Pariah", "native_skin.gif", null,
       MIDDLE_CLASS,
       PRACTICED, MUSIC_AND_SONG, NATIVE_TABOO, DISGUISE,
-      NOVICE, EROTIC_DANCE, HANDICRAFTS,
+      NOVICE, EROTICS, HANDICRAFTS,
       LEARNING, METABOLISM, SYNESTHESIA,
       ALWAYS, GIFTED, SOMETIMES, MUTATION, RARELY, LOVING
     ),
@@ -406,27 +429,62 @@ public class Background implements BuildConstants {
     } ;
   
   
-  final static Background
+  final public static Background
     //
-    //  These positions don't have any particular skill-sets associated.
-    //  Instead the player is expected to fill them solely based on their own
-    //  evaluation of fitness for the post (or possibly have them selected
-    //  during game setup.)  TODO:  Consider the right setup for this...
-    //
-    //  Aristocratic titles start you off with more power, but limit subsequent
-    //  advancement somewhat.
-    KNIGHTED = null,
-    COUNT    = null,
+    //  Aristocratic titles are for the benefit of the player-character:
+    KNIGHTED = new Background(
+      "Knighted", "highborn_male_skin.gif", null,
+      RULER_CLASS,
+      PRACTICED, HAND_TO_HAND, BATTLE_TACTICS, SHIELD_AND_ARMOUR, COMMAND,
+      NOBLE_ETIQUETTE, NOVICE, ADMINISTRATION, ANCIENT_LORE, COMMON_CUSTOM,
+      SUGGESTION, PREMONITION,
+      SOMETIMES, GIFTED, OFTEN, TRADITIONAL, RARELY, NERVOUS
+    ) {
+      final Texture female_skin = costumeFor("highborn_male_skin.gif") ;
+      public String nameFor(Actor actor) {
+        return actor.traits.male() ? "Knighted Lord" : "Knighted Lady" ;
+      }
+      public Texture costumeFor(Actor actor) {
+        return actor.traits.male() ? costume : female_skin ;
+      }
+    },
     BARON    = null,
+    COUNT    = null,
     DUKE     = null,
+    //  TODO:  What about Prince/Lord Solar and Emperor/Empress?
+    RULING_POSITIONS[] = { KNIGHTED, COUNT, BARON, DUKE },
     //
-    //  Elected titles take more effort to earn, but do afford more scope for
-    //  ambition.  (Consuls, in principle, are on an equal footing with the
-    //  System Lords and Empress.)
-    PREFECT  = null,
-    GOVERNOR = null,
-    SENATOR  = null,
-    CONSUL   = null,
+    //  Your family, servants, bodyguards and captives-
+    CONSORT = new Background(
+      "Consort", "highborn_female_skin.gif", null,
+      RULER_CLASS,
+      PRACTICED, COMMAND, SUASION, NOVICE, EROTICS, DISGUISE, HOUSEKEEPING,
+      RARELY, IMPASSIVE, STUBBORN, OFTEN, AMBITIOUS, ACQUISITIVE,
+      SOMETIMES, LOVING
+    ) {
+      final Texture male_skin = costumeFor("highborn_female_skin.gif") ;
+      public String nameFor(Actor actor) {
+        final boolean male = actor.traits.male() ;
+        final Background rank = actor.base().ruler().vocation() ;
+        if (rank == KNIGHTED) return male ? "Lord Consort" : "Lady Consort" ;
+        if (rank == COUNT) return male ? "Count Consort" : "Countess Consort" ;
+        if (rank == BARON) return male ? "Baron Consort" : "Baroness Consort" ;
+        if (rank == DUKE ) return male ? "Duke Consort"  : "Duchess Consort"  ;
+        return name ;
+      }
+      public Texture costumeFor(Actor actor) {
+        return actor.traits.female() ? costume : male_skin ;
+      }
+    },
+    STEWARD = new Background(
+      "Steward", "citizen_skin.gif", null,
+      UPPER_CLASS,
+      EXPERT, HOUSEKEEPING, PRACTICED, PHARMACY, ANATOMY, COUNSEL,
+      GENE_CULTURE, NOVICE, NOBLE_ETIQUETTE,
+      ALWAYS, DUTIFUL, OFTEN, TRADITIONAL, NEVER, AGGRESSIVE
+    ),
+    HONOUR_GUARD = null,
+    HOSTAGE      = null,
     //
     //  Ministers confer the benefits of a portion of their skills on the
     //  planet as a whole (including stuff off the main map.)
@@ -437,12 +495,21 @@ public class Background implements BuildConstants {
     WARMASTER                = null,
     PLANETOLOGIST            = null,
     //
-    //  Your family, bodyguards, servants and prisoners/hostages-
-    CONSORT      = null,
-    HONOUR_GUARD = null,
-    STEWARD      = null,
-    CAPTIVE      = null ;
-  
+    //  These positions are for the benefit of citizens elected at the Counsel
+    //  Chamber.  TODO:  Add these later.
+    PREFECT = new Background(
+      "Prefect", "physician_skin.gif", null,
+      RULER_CLASS,
+      PRACTICED, COUNSEL, SUASION, ADMINISTRATION, COMMON_CUSTOM,
+      NOVICE, NOBLE_ETIQUETTE, NEUROSCIENCE, BATTLE_TACTICS, COMMAND,
+      OFTEN, SOCIABLE, AMBITIOUS, SOMETIMES, ACQUISITIVE
+    ),
+    GOVERNOR = null,
+    SENATOR  = null,
+    CONSUL   = null
+    //
+    //  TODO:  Do you need positions for leadership within the Strains?
+  ;
   
   
   final public static int
@@ -454,43 +521,45 @@ public class Background implements BuildConstants {
   
   final public static System
     //
-    //  Some simplifying assumptions in place for now.  These will later be
-    //  replaced by more detailed planetary descriptors, including gravity,
-    //  culture, ruling house, local factional interests, et cetera.
+    //  TODO:  List ruling houses and common names.
+    //         Introduce Calivor and Theta Rho.
+    //         Give each system a brief text description.
     PLANET_ASRA_NOVI = new System(
       "Asra Novi", null, 0, 1,
-      ALWAYS, DESERT_BLOOD,
+      DESERT_BLOOD, MILD_GRAVITY,
       MAKES, SOMA, PLASTICS, DECOR, SPICE,
       NEEDS, WATER, SERVICE_CONSORTS, DATALINKS,
       FREE_BIRTH,
       OFTEN, ECOLOGIST_CIRCLES, AESTHETE_CIRCLES
+      //  House Suhail
     ),
     PLANET_PAREM_V = new System(
       "Parem V", null, 1, 1,
-      ALWAYS, WASTES_BLOOD,
+      WASTES_BLOOD, NORMAL_GRAVITY,
       MAKES, PARTS, DATALINKS, SERVICE_CAPTIVES,
-      NEEDS, P_CARBONS, DECOR, RELICS,
+      NEEDS, PETROCARBS, DECOR, RELICS,
       HIVES_BIRTH, PYON_BIRTH,
       OFTEN, ARTIFICER_CIRCLES, RARELY, ECOLOGIST_CIRCLES
+      //  House Procyon
     ),
     PLANET_HALIBAN = new System(
       "Haliban", null, 0, 0,
-      ALWAYS, FOREST_BLOOD,
-      MAKES, CARBS, GREENS, P_CARBONS,
+      FOREST_BLOOD, STRONG_GRAVITY,
+      MAKES, CARBS, GREENS, PETROCARBS,
       NEEDS, SERVICE_ARMAMENT, PARTS, MEDICINE,
       GUILDER_BIRTH, FREE_BIRTH,
       OFTEN, MILITARY_CIRCLES, PHYSICIAN_CIRCLES, RARELY, VENDOR_CIRCLES
+      //  House Altair
     ),
     PLANET_NOVENA = new System(
       "Novena", null, 1, 0,
-      ALWAYS, TUNDRA_BLOOD,
+      TUNDRA_BLOOD, NOMINAL_GRAVITY,
       MAKES, CIRCUITRY, MEDICINE, SERVICE_SHIPPING,
       NEEDS, GREENS, METAL_ORE, FUEL_CORES,
       HIVES_BIRTH, GUILDER_BIRTH,
       OFTEN, VENDOR_CIRCLES, ARTIFICER_CIRCLES, RARELY, AESTHETE_CIRCLES
+      //  House Taygeta
     ),
-    //
-    //  TODO:  Introduce Calivor and Theta Rho.
     
     ALL_PLANETS[] = {
       PLANET_ASRA_NOVI, PLANET_PAREM_V, PLANET_HALIBAN, PLANET_NOVENA
@@ -505,7 +574,7 @@ public class Background implements BuildConstants {
   
   
   final public String name ;
-  final public Texture costume, portrait ;
+  final protected Texture costume, portrait ;
   
   final public int standing ;
   Table <Skill, Integer> baseSkills = new Table() ;
@@ -545,15 +614,30 @@ public class Background implements BuildConstants {
   }
   
   
+  protected Texture costumeFor(String texName) {
+    return Texture.loadTexture(COSTUME_DIR+texName) ;
+  }
+  
+  
   public String toString() {
     return name ;
   }
+  
+  
+  public String nameFor(Actor actor) {
+    return name ;
+  }
+  
+  
+  public Texture costumeFor(Actor actor) {
+    return costume ;
+  }
+  
+  
+  public Texture portraitFor(Actor actor) {
+    return portrait ;
+  }
 }
-
-
-
-
-
 
 
 

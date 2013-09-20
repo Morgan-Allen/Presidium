@@ -32,7 +32,8 @@ import src.util.* ;
 //  
 //  Actors need to be automatically aware of persons attacking them, should
 //  call for help from allies, and need proper line of sight.  Add Security and
-//  Contact missions.
+//  Contact missions.  Use the threatLevel() function for both retreat and
+//  attack.  Have missions modify choice priorities.
 //
 //  Add water and life support from biomass and other buildings.
 //
@@ -51,12 +52,12 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     */
   public static void main(String args[]) {
     DebugBehaviour test = new DebugBehaviour() ;
-    test.runLoop() ;
+    PlayLoop.runLoop(test) ;
   }
   
   
   protected DebugBehaviour() {
-    super(true) ;
+    super() ;
   }
   
   
@@ -79,7 +80,8 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
       return false ;
     }
     if (KeyInput.wasKeyPressed('f')) {
-      GameSettings.frozen = ! GameSettings.frozen ;
+      I.say("Paused? "+PlayLoop.paused()) ;
+      PlayLoop.setPaused(! PlayLoop.paused()) ;
     }
     if (KeyInput.wasKeyPressed('s')) {
       I.say("SAVING GAME...") ;
@@ -122,9 +124,24 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
   }
   
   
+  protected boolean loadedAtStartup() {
+    try {
+      PlayLoop.loadGame("saves/test_session.rep") ;
+      final Base base = PlayLoop.played() ;
+      if (base.credits() < 2000) base.incCredits(2000) ;
+      return true ;
+    }
+    catch (Exception e) { I.report(e) ; return false ; }
+  }
+  
+  
+  protected void finalize() throws Throwable {
+    I.say(this+" BEING GARBAGE COLLECTED!") ;
+    super.finalize() ;
+  }
+
+
   protected void configureScenario(World world, Base base, HUD HUD) {
-    
-    I.say(" "+(String.class.isAssignableFrom(Object.class))) ;
     //natureScenario(world, base, HUD) ;
     baseScenario(world, base, HUD) ;
     //missionScenario(world, base, HUD) ;
@@ -175,32 +192,37 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     *  construction of the settlement-
     */
   private void baseScenario(World world, Base base, HUD UI) {
-    GameSettings.noFog     = true ;
-    ///GameSettings.hireFree  = true ;
-    PlayLoop.rendering().port.cameraZoom = 1.33f ;
     
+    ///PlayLoop.rendering().port.cameraZoom = 1.33f ;
     base.incCredits(2000) ;
     base.commerce.assignHomeworld(Background.PLANET_HALIBAN) ;
-    
-    final Venue DA = establishVenue(new SupplyDepot(base), 4, 4 , true) ;
-    final Venue DB = establishVenue(new SupplyDepot(base), 4, 20, true) ;
-    DA.stocks.addItem(Item.withAmount(METAL_ORE, 50)) ;
-    DB.stocks.addItem(Item.withAmount(CARBS, 30)) ;
-    DB.stocks.addItem(Item.withAmount(PROTEIN, 20)) ;
+    final Bastion bastion = new Bastion(base) ;
     
     //
-    //  Import/export settings should apply to the base as a whole.
-    final Venue foundry = establishVenue(new Foundry(base), 9, 25, true) ;
-    foundry.stocks.addItem(Item.withAmount(PARTS, 12.5f)) ;
-    
-    /*
-    final Venue exchange = new StockExchange(base) ;
-    establishVenue(exchange, 10, 6, true) ;
-    for (Service s : exchange.services()) {
-      exchange.stocks.addItem(s, 5 + (20 * Rand.num())) ;
+    //  TODO:  Aristocrats like these might need different behavioural routines.
+    final Human knight = new Human(Background.KNIGHTED, base) ;
+    Human spouse = null ;
+    float bestRating = Float.NEGATIVE_INFINITY ;
+    for (int n = 10 ; n-- > 0 ;) {
+      final Human match = new Human(Background.CONSORT, base) ;
+      final float rating =
+        knight.AI.attraction(match) +
+        (match.AI.attraction(knight) / 2) ;
+      if (rating > bestRating) { spouse = match ; bestRating = rating ; }
     }
-    //*/
-    //((BaseUI) UI).selection.pushSelection(exchange, true) ;
+    
+    knight.AI.setHomeVenue(bastion) ;
+    spouse.AI.setHomeVenue(bastion) ;
+    final int initTime = 0 - Rand.index(100) ;
+    final float relation = bestRating * Rand.avgNums(2) ;
+    knight.AI.setRelation(spouse, relation, initTime) ;
+    spouse.AI.setRelation(knight, relation, initTime) ;
+    
+    base.assignRuler(knight) ;
+    establishVenue(bastion, 9, 9, true, knight, spouse) ;
+    ((BaseUI) UI).selection.pushSelection(knight, true) ;
+    
+    establishVenue(new SupplyDepot(base), 20, 10, true) ;
   }
   
   
@@ -287,7 +309,8 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     Venue v, int atX, int atY, boolean intact,
     Actor... employed
   ) {
-    v.enterWorldAt(atX, atY, PlayLoop.world()) ;
+    final World world = PlayLoop.world() ;
+    v.enterWorldAt(atX, atY, world) ;
     if (intact) {
       v.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
       v.onCompletion() ;
@@ -295,7 +318,14 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     else {
       v.structure.setState(VenueStructure.STATE_INSTALL, 0.0f) ;
     }
-    for (Actor a : employed) a.AI.setEmployer(v) ;
+    final Tile e = world.tileAt(v) ;
+    for (Actor a : employed) {
+      a.AI.setEmployer(v) ;
+      if (! a.inWorld()) {
+        a.enterWorldAt(e.x, e.y, world) ;
+        a.goAboard(v, world) ;
+      }
+    }
     VenuePersonnel.fillVacancies(v) ;
     v.setAsEstablished(true) ;
     return v ;

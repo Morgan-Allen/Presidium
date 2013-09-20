@@ -40,29 +40,34 @@ public class BuildingSprite extends GroupSprite {
   
   final static String DIR = "media/Buildings/artificer/" ;
   final public static Model SCAFF_MODELS[] = {
-    ImageModel.asPoppedModel(C, DIR+"scaff_0.png", 1.0f, 1),
-    ImageModel.asPoppedModel(C, DIR+"scaff_1.png", 1.2f, 1),
-    ImageModel.asPoppedModel(C, DIR+"scaff_2.png", 2.2f, 1),
-    ImageModel.asPoppedModel(C, DIR+"scaff_3.png", 3.2f, 1),
-    ImageModel.asPoppedModel(C, DIR+"scaff_4.png", 4.2f, 1),
+    ImageModel.asIsometricModel(C, DIR+"scaff_0.png", 1.0f, 1),
+    ImageModel.asPoppedModel(C, DIR+"scaff_1.png", 1.2f, 0),
+    ImageModel.asPoppedModel(C, DIR+"scaff_2.png", 2.2f, 0),
+    ImageModel.asPoppedModel(C, DIR+"scaff_3.png", 3.2f, 0),
+    ImageModel.asPoppedModel(C, DIR+"scaff_4.png", 4.2f, 0),
+    ImageModel.asPoppedModel(C, DIR+"scaff_5.png", 5.2f, 0),
+    ImageModel.asPoppedModel(C, DIR+"scaff_5.png", 6.2f, 0),
+    ImageModel.asPoppedModel(C, DIR+"scaff_6.png", 7.2f, 0),
+    ImageModel.asPoppedModel(C, DIR+"scaff_6.png", 8.2f, 0),
   } ;
   
   
   Sprite scaffolding = null ;
   Sprite baseSprite  = null ;
-
+  
   int statusDisplayIndex = -1 ;
   List <MoteFX> statusFX = new List <MoteFX> () ;
   List <ItemStack> stackFX = new List <ItemStack> () ;
   
   
-  int size, high ;
+  int size, high, maxStages ;
   float condition = 0 ;
   
   
   public BuildingSprite(Sprite baseSprite, int size, int high) {
     this.size = size ;
     this.high = high ;
+    this.maxStages = maxStages() ;
     this.baseSprite = baseSprite ;
     attach(baseSprite, 0, 0, 0) ;
   }
@@ -76,6 +81,7 @@ public class BuildingSprite extends GroupSprite {
     super.loadFrom(in) ;
     size = in.readInt() ;
     high = in.readInt() ;
+    this.maxStages = maxStages() ;
     condition = in.readFloat() ;
     
     final int baseIndex = in.readInt() ;
@@ -239,14 +245,22 @@ public class BuildingSprite extends GroupSprite {
   
   /**  Producing and updating scaffold sprites-
     */
-  public static int scaffoldStage(int size, int high, float condition) {
-    final int maxStages = (size - 1) * (size - 1) * high ;
+  private int maxStages() {
+    int max = 0 ;
+    for (int z = 0 ; z < high ; z++)
+      for (int x = 1 ; x < (size - z) ; x++)
+        for (int y = 1 + z ; y < size ; y++) max++ ;
+    return max ;
+  }
+  
+  
+  private int scaffoldStage(int size, int high, float condition) {
     final int newStage = (int) (condition * (maxStages + 1)) ;
     return newStage ;
   }
   
   
-  public static Sprite scaffoldFor(int size, int high, float condition) {
+  private Sprite scaffoldFor(int size, int high, float condition) {
     if (size == 1) return SCAFF_MODELS[0].makeSprite() ;
     if (condition < 0) condition = 0 ;
     if (condition > 1) condition = 1 ;
@@ -262,11 +276,16 @@ public class BuildingSprite extends GroupSprite {
     //
     //  Iterate over the entire coordinate space as required-
     loop: for (int z = 0 ; z < high ; z++) {
-      for (int x = 1 ; x < size ; x++) {
-        for (int y = 1 ; y < size ; y++) {
+      final float l = z * 1f / high, h = z - (l * l), i = z / 2f ;
+      for (int x = 1 ; x < (size - z) ; x++) {
+        for (int y = 1 + z ; y < size ; y++) {
           if (++numS > stage) break loop ;
-          final float h = (z * 0.9f) + 0.1f ;
-          sprite.attach(SCAFF_MODELS[0], x - xoff, y - yoff, h) ;
+          sprite.attach(
+            SCAFF_MODELS[0],
+            x + i - xoff,
+            y - (yoff + i),
+            h
+          ) ;
         }
       }
     }

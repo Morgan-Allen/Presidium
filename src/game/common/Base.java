@@ -125,6 +125,16 @@ public class Base implements
   }
   
   
+  public Actor ruler() {
+    return ruler ;
+  }
+  
+  
+  public void assignRuler(Actor rules) {
+    this.ruler = rules ;
+  }
+  
+  
   
   /**  Dealing with finances, trade and taxation-
     */
@@ -150,7 +160,7 @@ public class Base implements
   /**  Dealing with admin functions-
     */
   public void setRelation(Base base, float attitude) {
-    baseRelations.put(base, new Relation(this, base, attitude, world)) ;
+    baseRelations.put(base, new Relation(this, base, attitude, -1)) ;
   }
   
   

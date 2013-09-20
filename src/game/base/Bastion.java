@@ -9,27 +9,30 @@ package src.game.base ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
+import src.game.social.Auditing;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD;
 import src.user.InstallTab;
 import src.user.Composite;
+import src.util.Index;
 
 
 
 public class Bastion extends Venue implements BuildConstants {
   
   
+  
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    Bastion.class, "media/Buildings/military/bastion.png", 7, 5
+    Bastion.class, "media/Buildings/military/bastion.png", 7, 4
   ) ;
   
   
   public Bastion(Base base) {
-    super(7, 5, ENTRANCE_EAST, base) ;
+    super(7, 4, ENTRANCE_EAST, base) ;
     structure.setupStats(
       650, 15, 1000,
       VenueStructure.BIG_MAX_UPGRADES, false
@@ -50,20 +53,141 @@ public class Bastion extends Venue implements BuildConstants {
   
   
   
-  /**  Implementation of employee behaviour-
+  /**  Upgrades, economic functions and behaviour implementation-
     */
+  final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
+    Bastion.class, "bastion_upgrades"
+  ) ;
+  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  final public static Upgrade
+    LOGISTIC_SUPPORT = new Upgrade(
+      "Logistic Support",
+      "Provides more openings for your Reservists and Auditors, thereby "+
+      "aiding construction efforts and revenue flow.",
+      200,
+      null, 1, null, ALL_UPGRADES
+    ),
+    SECURITY_MEASURES = new Upgrade(
+      "Security Measures",
+      "Increases patrols of Veterans in and around your settlement and "+
+      "augments your Bastion's output of power and life support.",
+      300,
+      null, 1, null, ALL_UPGRADES
+    ),
+    NOBLE_QUARTERS = new Upgrade(
+      "Noble Quarters",
+      "Increases the space available to your family, advisors, honour guard "+
+      "and honoured guests.",
+      400,
+      null, 1, null, ALL_UPGRADES
+    ),
+    GUEST_QUARTERS = new Upgrade(
+      "Guest Quarters",
+      "Makes more space for prisoners and hostages, and creates openings for "+
+      "Stewards in your employ.",
+      250,
+      null, 1, null, ALL_UPGRADES
+    ),
+    BLAST_SHIELDS = new Upgrade(
+      "Blast Shields",
+      "Increases the structural integrity of the Bastion, particularly vital "+
+      "in the event of atomic attack.",
+      450,
+      null, 1, null, ALL_UPGRADES
+    ),
+    SEAT_OF_POWER = new Upgrade(
+      "Seat of Power",
+      "Augments the strength and range of your psyonic powers and capacity "+
+      "to function without sleep or rest.",
+      500,
+      null, 1, null, ALL_UPGRADES
+    ) ;
+
+  
+  
+  public int numOpenings(Background b) {
+    final int nO = super.numOpenings(b) ;
+    if (b == Background.VETERAN) {
+      return nO + 1 + structure.upgradeLevel(SECURITY_MEASURES) ;
+    }
+    if (b == Background.MECHANIC) {
+      return nO + 2 + structure.upgradeLevel(LOGISTIC_SUPPORT) ;
+    }
+    if (b == Background.AUDITOR) {
+      return nO + ((1 + structure.upgradeLevel(LOGISTIC_SUPPORT)) / 2) ;
+    }
+    if (b == Background.STEWARD) {
+      return nO + ((1 + structure.upgradeLevel(GUEST_QUARTERS)) / 2) ;
+    }
+    //
+    //  TODO:  Return the amount of space open to hostages and guests as well.
+    return 0 ;
+  }
+  
+  
   public Behaviour jobFor(Actor actor) {
-    return new Patrolling(actor, this, this.radius()) ;
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
+    final Background v = actor.vocation() ;
+    
+    if (v == Background.VETERAN) {
+      return new Patrolling(actor, this, this.radius()) ;
+    }
+    if (v == Background.MECHANIC) {
+      return Building.getNextRepairFor(actor) ;
+    }
+    if (v == Background.AUDITOR) {
+      final Venue toAudit = Auditing.getNextAuditFor(actor) ;
+      return toAudit == null ? null : new Auditing(actor, toAudit) ;
+    }
+    if (v == Background.STEWARD) {
+      return new Supervision(actor, this) ;
+    }
+    return new Supervision(actor, this) ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact()) return ;
+    //
+    //  Provide power and life support-
+    final float condition = (structure.repairLevel() + 1f) / 2 ;
+    final int SB = structure.upgradeLevel(SECURITY_MEASURES) ;
+    int powerLimit = 20 + (SB * 10), lifeSLimit = 10 + (SB * 5) ;
+    powerLimit *= condition ;
+    lifeSLimit *= condition ;
+    if (stocks.amountOf(POWER) < powerLimit) {
+      stocks.addItem(Item.withAmount(POWER, 1)) ;
+    }
+    if (stocks.amountOf(LIFE_SUPPORT) < lifeSLimit) {
+      stocks.addItem(Item.withAmount(LIFE_SUPPORT, 1)) ;
+    }
+    //
+    //  Demand provisions-
+    final int foodNeed = personnel.residents().size() + 5 ;
+    stocks.forceDemand(CARBS  , foodNeed * 2, 0) ;
+    stocks.forceDemand(PROTEIN, foodNeed    , 0) ;
+    stocks.forceDemand(GREENS , foodNeed    , 0) ;
+    stocks.forceDemand(SPICE  , foodNeed / 2, 0) ;
+    //
+    //  Modify maximum health based on upgrades-
+    final int BB = structure.upgradeLevel(BLAST_SHIELDS) ;
+    structure.updateStats(650 + 250 * BB, 15 + 5 * BB) ;
   }
   
   
   protected Background[] careers() {
-    return new Background[] {} ;
+    return new Background[] {
+      Background.MECHANIC, Background.VETERAN,
+      Background.AUDITOR, Background.STEWARD
+    } ;
   }
   
   
   public Service[] services() {
-    return new Service[] { SERVICE_ADMIN } ;
+    return new Service[] {
+      SERVICE_ADMIN, SERVICE_REFUGE, POWER, LIFE_SUPPORT
+    } ;
   }
   
   

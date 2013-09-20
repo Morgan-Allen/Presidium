@@ -22,12 +22,12 @@ public class DebugPlanet extends PlayLoop {
     */
   public static void main(String args[]) {
     DebugPlanet test = new DebugPlanet() ;
-    test.runLoop() ;
+    PlayLoop.runLoop(test) ;
   }
   
   
   protected DebugPlanet() {
-    super(true) ;
+    super() ;
   }
   
   
@@ -99,7 +99,7 @@ public class DebugPlanet extends PlayLoop {
       return false ;
     }
     if (KeyInput.wasKeyPressed('f')) {
-      GameSettings.frozen = ! GameSettings.frozen ;
+      PlayLoop.setPaused(! PlayLoop.paused()) ;
     }
     if (KeyInput.wasKeyPressed('s')) {
       I.say("\nSAVING GAME...") ;

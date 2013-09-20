@@ -60,16 +60,15 @@ public class Foundry extends Venue implements BuildConstants {
   final public static Upgrade
     ASSEMBLY_LINE = new Upgrade(
       "Assembly Line",
-      "An assembly line allows standardised parts to manufactured quickly, "+
-      "cheaply and in greater abundance.",
+      "Allows standardised parts to manufactured quickly, cheaply and in "+
+      "greater abundance.",
       200,
       PARTS, 2, null, ALL_UPGRADES
     ),
     MOLDING_PRESS = new Upgrade(
       "Molding Press",
-      "The molding press allows materials to be recycled and sculpted to fit "+
-      "new purposes, reducing waste and pollution, and speeding production "+
-      "of custom-made parts.",
+      "Allows materials to be recycled and sculpted to fit new purposes, "+
+      "reducing waste and pollution, and speeding production of custom parts.",
       150,
       PLASTICS, 1, null, ALL_UPGRADES
     ),
@@ -83,16 +82,15 @@ public class Foundry extends Venue implements BuildConstants {
     ),
     COMPOSITE_MATERIALS = new Upgrade(
       "Composite Materials",
-      "Composite materials enhance the production of lightweight and "+
-      "flexible armours, as well as close-range melee weaponry.",
+      "Enhances the production of lightweight and flexible armours, as well "+
+      "as close-range melee weaponry.",
       200,
       null, 2, MOLDING_PRESS, ALL_UPGRADES
     ),
     FLUX_CONTAINMENT = new Upgrade(
       "Flux Containment",
-      "Flux containment allows high-energy plasmas to be generated and "+
-      "controlled, permitting refinements to shield technology and ranged "+
-      "energy weapons.",
+      "Allows high-energy plasmas to be generated and controlled, permitting "+
+      "refinements to shield technology and ranged energy weapons.",
       250,
       null, 2, TECHNICIAN_QUARTERS, ALL_UPGRADES
     ),

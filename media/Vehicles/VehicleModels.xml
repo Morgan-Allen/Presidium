@@ -5,10 +5,10 @@
   type="JOINT"
   path="media/Vehicles/"
   file="dropship.ms3d"
-  scale="0.08"
+  scale="0.075"
   bound="3.0"
   stride="1.0"
-  height="2.5"
+  height="2.0"
 >
   <animations>
     <animation name="stand"      start="1"  end="3"  duration="0.35" />

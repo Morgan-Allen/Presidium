@@ -102,7 +102,6 @@ public abstract class Element implements
       location.setOwner(null) ;
     }
     this.toggleProperty(PROP_IN_WORLD, false) ;
-    //this.world = null ;
   }
   
   
@@ -175,8 +174,7 @@ public abstract class Element implements
   
   /**  Timing-associated methods-
     */
-  public void onGrowth() {
-  }
+  public void onGrowth() {}
   
   
   public void setAsEstablished(boolean isGrown) {

@@ -22,6 +22,8 @@ public class Resting extends Plan implements BuildConstants {
   
   /**  Static constants, field definitions, constructors and save/load methods-
     */
+  private static boolean verbose = false ;
+  
   final static int
     SCAVENGE_DC = 5,
     FORAGING_DC = 10 ;
@@ -125,6 +127,7 @@ public class Resting extends Plan implements BuildConstants {
     final Batch <Service> menu = menuFor(place) ;
     final int numFoods = menu.size() ;
     if (numFoods > 0) {
+      //
       //  FOOD TO BODY-MASS RATIO IS 1 TO 10.  So, 1 unit of food will last a
       //  typical person 5 days.
       final Venue venue = (Venue) place ;
@@ -140,7 +143,7 @@ public class Resting extends Plan implements BuildConstants {
     else {
       final boolean
         canGrub = actor.traits.test(HARD_LABOUR, SCAVENGE_DC, 1),
-        goodStuff = actor.traits.test(XENOZOOLOGY, FORAGING_DC, 1) ;
+        goodStuff = actor.traits.test(CULTIVATION, FORAGING_DC, 1) ;
       if (canGrub) actor.health.takeSustenance(1, goodStuff ? 0.5f : 0) ;
       return true ;
     }
@@ -159,20 +162,9 @@ public class Resting extends Plan implements BuildConstants {
   
   
   public boolean actionRest(Actor actor, Boardable place) {
-    //  TODO:  If you're in a public venue, you'll have to pay the
-    //  admission fee.  Also, should the actor just enter sleep mode?
+    //  TODO:  If you're in a Cantina, you'll have to pay the
+    //  admission fee.
     actor.health.setState(ActorHealth.STATE_RESTING) ;
-    /*
-    final int restBonus = 3 ;
-    float liftF = ActorHealth.FATIGUE_GROW_PER_DAY * actor.health.maxHealth() ;
-    liftF *= restBonus * 1f / World.DEFAULT_DAY_LENGTH ;
-    actor.health.liftFatigue(liftF) ;
-    
-    float comfort = (ratePoint(actor, place) - 2) ;
-    comfort *= actor.health.maxHealth() / 10 ;
-    comfort *= restBonus * 1f / World.DEFAULT_DAY_LENGTH ;
-    actor.health.adjustMorale(comfort) ;
-    //*/
     return true ;
   }
   
@@ -192,6 +184,11 @@ public class Resting extends Plan implements BuildConstants {
     final Boardable picked = new Visit <Boardable> () {
       public float rate(Boardable b) { return ratePoint(actor, b) ; }
     }.pickBest(safePoints) ;
+    
+    if (verbose) I.sayAbout(
+      actor, "Have picked "+picked+", home rating: "+
+      ratePoint(actor, actor.AI.home())
+    ) ;
     return picked ;
   }
   
@@ -200,20 +197,19 @@ public class Resting extends Plan implements BuildConstants {
     if (point == null) return -1 ;
     if (point instanceof Venue && ! ((Venue) point).structure.intact()) return -1 ;
     float baseRating = 0 ;
-    if (point instanceof Tile) {
-      baseRating += 1 ;
-    }
-    else if (point == actor.AI.work()) {
-      baseRating += 2 ;
+    if (point == actor.AI.home()) {
+      baseRating += 4 ;
     }
     else if (point instanceof Cantina) {
       //  Modify this by the cost of paying for accomodations, and whether
       //  there's space available.
       baseRating += 3 ;
     }
-    else if (point == actor.AI.home()) {
-      //  Modify this by the upgrade level of your dwelling?
-      baseRating += 4 ;
+    else if (point == actor.AI.work()) {
+      baseRating += 2 ;
+    }
+    else if (point instanceof Tile) {
+      baseRating += 1 ;
     }
     //
     //  If the venue doesn't belong to the same base, reduce the attraction.

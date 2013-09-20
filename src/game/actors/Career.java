@@ -9,8 +9,7 @@
 package src.game.actors ;
 import src.game.base.* ;
 import src.game.building.* ;
-import src.game.actors.* ;
-//import src.game.campaign.* ;
+import src.game.campaign.System ;
 import src.game.common.* ;
 import src.util.* ;
 
@@ -81,20 +80,30 @@ public class Career implements ActorConstants {
     Background root = vocation ;
     //
     //  Firstly, determine a basic background suitable to the root vocation-
-    Batch <Float> weights = new Batch <Float> () ;
-    for (Background v : Background.OPEN_CLASSES) {
-      weights.add(rateSimilarity(root, v)) ;
+    if (root.standing == Background.RULER_CLASS && Rand.index(10) > 0) {
+      birth = Background.HIGH_BIRTH ;
+      if (Visit.arrayIncludes(Background.RULING_POSITIONS, vocation)) {
+        homeworld = actor.base().commerce.homeworld() ;
+      }
     }
-    birth = (Background) Rand.pickFrom(
-      Background.OPEN_CLASSES, weights.toArray()
-    ) ;
-    weights.clear() ;
-    for (Background v : Background.ALL_PLANETS) {
-      weights.add(rateSimilarity(root, v)) ;
+    else {
+      final Batch <Float> weights = new Batch <Float> () ;
+      for (Background v : Background.OPEN_CLASSES) {
+        weights.add(rateSimilarity(root, v)) ;
+      }
+      birth = (Background) Rand.pickFrom(
+        Background.OPEN_CLASSES, weights.toArray()
+      ) ;
     }
-    homeworld = (Background) Rand.pickFrom(
-      Background.ALL_PLANETS, weights.toArray()
-    ) ;
+    if (homeworld == null) {
+      final Batch <Float> weights = new Batch <Float> () ;
+      for (Background v : Background.ALL_PLANETS) {
+        weights.add(rateSimilarity(root, v)) ;
+      }
+      homeworld = (Background) Rand.pickFrom(
+        Background.ALL_PLANETS, weights.toArray()
+      ) ;
+    }
     applyVocation(homeworld, actor) ;
     applyVocation(birth    , actor) ;
     applyVocation(vocation , actor) ;
@@ -119,9 +128,9 @@ public class Career implements ActorConstants {
       actor.traits.incLevel(t, Rand.range(-2, 2)) ;
       if (numP >= 3 && Rand.yes()) break ;
     }
-    actor.traits.incLevel(HANDSOME, Rand.rangeAvg(-2, 4, 2)) ;
+    actor.traits.incLevel(HANDSOME, Rand.rangeAvg(-3, 3, 2)) ;
     actor.traits.incLevel(TALL    , Rand.rangeAvg(-3, 3, 2)) ;
-    actor.traits.incLevel(STOUT   , Rand.rangeAvg(-4, 2, 2)) ;
+    actor.traits.incLevel(STOUT   , Rand.rangeAvg(-3, 3, 2)) ;
     applySex(actor) ;
     //
     //  Finally, specify name and (TODO:) a few other details of appearance.
@@ -170,19 +179,54 @@ public class Career implements ActorConstants {
     //
     //  TODO:  Some of these traits need to be rendered 'dormant' in younger
     //  citizens...
+    float ST = Visit.clamp(Rand.rangeAvg(-1, 3, 2), 0, 3) ;
+    if (Rand.index(20) == 0) ST *= -1 ;
     if (Rand.yes()) {
       actor.traits.setLevel(GENDER, "Female") ;
-      actor.traits.setLevel(FEMININE, Rand.rangeAvg(-1, 3, 2)) ;
+      actor.traits.setLevel(FEMININE, ST) ;
     }
     else {
       actor.traits.setLevel(GENDER, "Male") ;
-      actor.traits.setLevel(FEMININE, Rand.rangeAvg(-3, 1, 2)) ;
+      actor.traits.setLevel(FEMININE, 0 - ST) ;
     }
     actor.traits.setLevel(
       ORIENTATION,
       Rand.index(10) != 0 ? "Heterosexual" :
       (Rand.yes() ? "Homosexual" : "Bisexual")
     ) ;
+  }
+  
+  
+  //
+  //  TODO:  Try incorporating these trait-FX into the rankings first.
+  private void applySystem(System world, Actor actor) {
+    //
+    //  Assign skin texture based on prevailing climate-
+    //  TODO:  Blend these a bit more, once you have the graphics in order.
+    final Trait bloods[] = {
+      DESERT_BLOOD,
+      FOREST_BLOOD,
+      TUNDRA_BLOOD,
+      WASTES_BLOOD
+    } ;
+    Trait pickBlood = null ;
+    for (int n = 4 ; n-- > 0 ;) {
+      if (bloods[n] == world.climate) {
+        final float roll = Rand.num() ;
+        final int index ;
+        if (roll < 0.65f) index = 0 ;
+        else if (roll < 0.80f) index = 1 ;
+        else if (roll < 0.95f) index = 3 ;
+        else index = 2 ;
+        pickBlood = bloods[(n + index) % 4] ;
+      }
+    }
+    if (pickBlood != null) actor.traits.setLevel(pickBlood, 1) ;
+    //
+    //  Vary height/build based on gravity-
+    //  TODO:  Have the citizen models actually reflect this.
+    actor.traits.incLevel(TALL, Rand.num() * -1 * world.gravity) ;
+    actor.traits.incLevel(STOUT, Rand.num() * 1 * world.gravity) ;
   }
   
   
@@ -201,7 +245,7 @@ public class Career implements ActorConstants {
     }
     rating /= 1 + next.baseSkills.size() + prior.baseSkills.size() ;
     //
-    //  Favour transition to more presitigous vocations-
+    //  Favour transition to more prestigous vocations-
     if (next.standing < prior.standing) return rating / 10f ;
     //if (next.standing == prior.standing) rating /= 5 ;
     return rating ;

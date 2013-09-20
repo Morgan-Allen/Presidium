@@ -378,33 +378,17 @@ public class VenuePersonnel {
       for (int i = numOpen ; i-- > 0 ;) {
         final Human worker = new Human(v, venue.base()) ;
         worker.AI.setEmployer(venue) ;
-        final Tile e = venue.mainEntrance() ;
-        worker.enterWorldAt(e.x, e.y, venue.world()) ;
+        
+        if (GameSettings.hireFree) {
+          final Tile e = venue.mainEntrance() ;
+          worker.enterWorldAt(e.x, e.y, venue.world()) ;
+        }
+        else {
+          venue.base.commerce.addImmigrant(worker) ;
+        }
       }
     }
   }
 }
-
-
-
-
-
-
-/*
-public void recruitWorker(Vocation v) {
-  //
-  // You also need to determine the worker's home planet environment, full
-  // name, and maybe links to family or one or two past career events.
-  final Career career = new Career(v) ;
-  final Human citizen = new Human(career, venue.base()) ;
-  citizen.AI.setEmployer(venue) ;
-  if (GameSettings.hireFree) {
-    final Tile t = venue.mainEntrance() ;
-    citizen.enterWorldAt(t.x, t.y, venue.world()) ;
-  }
-  else I.complain("SORT OUT THE FREIGHTER.  CRIPES.") ;
-  //else venue.base.offworld.addImmigrant(citizen) ;
-}
-//*/
 
 

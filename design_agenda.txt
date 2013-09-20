@@ -70,23 +70,11 @@ STOCK EXCHANGE & AUDIT OFFICE
 
 
 GARRISON & BASTION
-  Logistic support.  (More taxes/maintenance.)
-  More space for captives in dungeon.
-  More room for noble guests/hostages.
-  Space for you and your family/better throne room/seat of power.
-  Expanding the Household and Honour Guard.
-  Recruiting Veterans.
-  
-  Melee training.  (close combat and armour.)
-  Marksmanship training.  (ranged fire and stealth.)
-  Technical/piloting training.  (vehicles/Mechs and assembly.)
-  Recruiting Volunteers.
-  
   What about Shield Walls/Perimeter Fence?
   ...Restrict access to particular personnel.
   ...Afford chance to upgrade along length.
   ...Activate shields/man the defences.
-  One Sentry per 2 segments, as standard.
+  2 Sentries at Blast Door, as standard.
 
 
 

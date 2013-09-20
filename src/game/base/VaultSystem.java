@@ -70,23 +70,33 @@ public class VaultSystem extends Venue implements BuildConstants {
   
   public int numOpenings(Background b) {
     final int nO = super.numOpenings(b) ;
-    if (b == Background.TECH_RESERVE) return nO + 2 ;
+    if (b == Background.MECHANIC) return nO + 2 ;
     return 0 ;
   }
   
   
   protected Background[] careers() {
-    return new Background[] { Background.TECH_RESERVE } ;
+    return new Background[] { Background.MECHANIC } ;
   }
   
   
   public Service[] services() {
-    return null ;
+    return new Service[] { POWER, LIFE_SUPPORT } ;
   }
   
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
+    final float condition = (structure.repairLevel() + 1f) / 2 ;
+    int powerLimit = 5, lifeSLimit = 10 ;
+    powerLimit *= condition ;
+    lifeSLimit *= condition ;
+    if (stocks.amountOf(POWER) < powerLimit) {
+      stocks.addItem(Item.withAmount(POWER, 1)) ;
+    }
+    if (stocks.amountOf(LIFE_SUPPORT) < lifeSLimit) {
+      stocks.addItem(Item.withAmount(LIFE_SUPPORT, 1)) ;
+    }
   }
   
   

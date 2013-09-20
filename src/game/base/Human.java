@@ -131,7 +131,7 @@ public class Human extends Actor implements ActorConstants {
     
     final Composite composite = new Composite(UI) ;
     final int bloodID = bloodID(c) ;
-    final boolean male = c.traits.hasTrait(Trait.GENDER, "Male") ;
+    final boolean male = c.traits.male() ;
     final int ageStage = c.health.agingStage() ;
     ///I.say("Blood/male/age-stage: "+bloodID+" "+male+" "+ageStage) ;
     
@@ -160,8 +160,8 @@ public class Human extends Actor implements ActorConstants {
       int fringeOff[] = (male ? M_HAIR_OFF : F_HAIR_OFF)[hairID] ;
       composite.addLayer(BASE_FACES, fringeOff[0], fringeOff[1], 6, 6) ;
       
-      Texture portrait = c.career.vocation().portrait ;
-      if (portrait == null) portrait = c.career.birth().portrait ;
+      Texture portrait = c.career.vocation().portraitFor(c) ;
+      if (portrait == null) portrait = c.career.birth().portraitFor(c) ;
       composite.addLayer(portrait, 0, 0, 1, 1) ;
     }
     
@@ -170,7 +170,7 @@ public class Human extends Actor implements ActorConstants {
   
   
   private static void initSpriteFor(Human c) {
-    final boolean male = c.traits.hasTrait(Trait.GENDER, "Male") ;
+    final boolean male = c.traits.male() ;
     final JointSprite s ;
     if (c.sprite() == null) {
       s = (JointSprite) (male ? MODEL_MALE : MODEL_FEMALE).makeSprite() ;
@@ -179,8 +179,8 @@ public class Human extends Actor implements ActorConstants {
     else s = (JointSprite) c.sprite() ;
     
     s.overlayTexture(BLOOD_SKINS[bloodID(c)]) ;
-    Texture costume = c.career.vocation().costume ;
-    if (costume == null) costume = c.career.birth().costume ;
+    Texture costume = c.career.vocation().costumeFor(c) ;
+    if (costume == null) costume = c.career.birth().costumeFor(c) ;
     s.overlayTexture(costume) ;
     toggleSpriteGroups(c, s) ;
   }
@@ -259,7 +259,7 @@ public class Human extends Actor implements ActorConstants {
     //
     //  Describe your job, place of work, and current residence:
     d.append("Is: ") ; describeStatus(d) ;
-    d.append("\nVocation: "+this.vocation().name) ;
+    d.append("\nVocation: "+vocation().nameFor(this)) ;
     d.append("\nWorkplace: ") ;
     if (AI.work() != null) {
       d.append(AI.work()) ;
@@ -316,11 +316,22 @@ public class Human extends Actor implements ActorConstants {
       d.append(Skill.attDesc(level), Skill.skillTone(level)) ;
     }
     d.append("\n\nSkills: ") ;
-    for (Skill skill : traits.skillSet()) {
+    final List <Skill> sorting = new List <Skill> () {
+      protected float queuePriority(Skill skill) {
+        return traits.trueLevel(skill) ;
+      }
+    } ;
+    
+    for (Skill skill : traits.skillSet()) sorting.add(skill) ;
+    sorting.queueSort() ;
+    for (Skill skill : sorting) {
       final int level = (int) traits.trueLevel(skill) ;
-      d.append("\n  "+skill.name+" "+level+" ") ;
-      d.append(Skill.skillDesc(level), Skill.skillTone(level)) ;
+      final int rootBonus = traits.rootBonus(skill) ;
+      final Colour tone = Skill.skillTone(level) ;
+      d.append("\n  "+skill.name+" "+level+" ", tone) ;
+      d.append((rootBonus >= 0 ? "(+" : "(-")+Math.abs(rootBonus)+")") ;
     }
+    
     /*
     d.append("\n\nTechniques: ") ;
     for (Power p : traits.powers()) {
@@ -338,11 +349,11 @@ public class Human extends Actor implements ActorConstants {
     d.append("\n  "+traits.levelDesc(ORIENTATION)) ;
     d.append(" "+traits.levelDesc(GENDER)) ;
     d.append("\n  "+career.birth()+" on "+career.homeworld()) ;
-    d.append("\n  Trained as "+career.vocation()) ;
+    d.append("\n  Trained as "+career.vocation().nameFor(this)) ;
     d.append("\n  Age: "+health.exactAge()+" ("+health.agingDesc()+")") ;
     
-    //d.appendList("\n\nPhysique: ", traits.physique()) ;
-    d.appendList("\n\nPersonality: ", traits.personality()) ;
+    d.appendList("\n\nAppearance: ", descTraits(traits.physique())) ;
+    d.appendList("\n\nPersonality: ", descTraits(traits.personality())) ;
     
     d.append("\n\nRelationships: ") ;
     for (Relation r : AI.relations()) {
@@ -350,6 +361,12 @@ public class Human extends Actor implements ActorConstants {
       d.append(r.subject) ;
       d.append(" ("+r.descriptor()+")") ;
     }
+  }
+  
+  private Batch <String> descTraits(Batch <Trait> traits) {
+    final Batch <String> desc = new Batch <String> () ;
+    for (Trait t : traits) desc.add(this.traits.levelDesc(t)) ;
+    return desc ;
   }
 }
 

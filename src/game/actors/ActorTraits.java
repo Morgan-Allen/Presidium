@@ -122,6 +122,16 @@ public class ActorTraits implements ActorConstants {
   }
   
   
+  public boolean male() {
+    return hasTrait(Trait.GENDER, "Male") ;
+  }
+  
+  
+  public boolean female() {
+    return hasTrait(Trait.GENDER, "Female") ;
+  }
+  
+  
   
   /**  Methods for querying and modifying the levels of assorted traits-
     */
@@ -129,6 +139,12 @@ public class ActorTraits implements ActorConstants {
     final Level level = levels.get(type) ;
     if (level == null) return 0 ;
     return Visit.clamp(level.value, type.minVal, type.maxVal) ;
+  }
+  
+  
+  public int rootBonus(Skill skill) {
+    final float ageMult = actor.health.ageMultiple() ;
+    return (int) (0.5f + (trueLevel(skill.parent) * ageMult / 5f)) ;
   }
   
   
@@ -144,7 +160,7 @@ public class ActorTraits implements ActorConstants {
         return level * actor.health.ageMultiple() ;
       }
       else {
-        level += (useLevel(skill.parent) / 5f) ;
+        level += rootBonus(skill) ;
       }
       level *= 1 - actor.health.skillPenalty() ;
     }

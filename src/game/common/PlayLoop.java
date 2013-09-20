@@ -9,13 +9,8 @@ import src.graphics.widgets.* ;
 import src.util.* ;
 import src.graphics.common.* ;
 import src.user.* ;
-//import jlibs.core.lang.RuntimeUtil ;
+//import jlibs.core.lang.RuntimeUtil ;  //  TODO:  RESTORE THIS.
 
-
-
-//
-//  TODO:  You'll have to wait until the loop is finished before you exit
-//  and start the new loop.
 
 
 public abstract class PlayLoop implements Session.Saveable {
@@ -31,14 +26,19 @@ public abstract class PlayLoop implements Session.Saveable {
     DEFAULT_HEIGHT = 600,
     DEFAULT_HERTZ  = 60,
     
+    MIN_SLEEP    = 10,
     SLEEP_MARGIN = 2 ;
   final public static String
     SAVE_PATH = "saves/test_session.rep" ;
+
+  private static boolean verbose = false ;
   
   
   private static PlayLoop currentGame ;
   private static Rendering rendering ;
-  //private static Operation operation ;
+  private static long lastFrame, lastUpdate, sT, rT ;
+  private static float frameTime ;
+  
   
   private HUD UI ;
   private World world ;
@@ -51,8 +51,6 @@ public abstract class PlayLoop implements Session.Saveable {
   
   private int frameRate = FRAMES_PER_SECOND ;
   private float speedMultiple = 1.0f ;
-  private long lastFrame, lastUpdate ;
-  private float frameTime ;
   
   
   
@@ -81,20 +79,7 @@ public abstract class PlayLoop implements Session.Saveable {
   
   /**  Overall loop setup, control, and execution.
     */
-  protected PlayLoop(boolean setup) {
-    if (rendering == null) rendering = new Rendering(
-    	  DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_HERTZ, false
-    	) ;
-    currentGame = this ;
-    LoadService.loadClassesInDir("src/", "src") ;
-    if (setup) gameSetup() ;
-  }
-  
-  
-  protected void gameSetup() {
-    GameSettings.buildFree = false ;
-    GameSettings.noFog = false ;
-    resetGame() ;
+  protected PlayLoop() {
   }
   
   
@@ -104,6 +89,11 @@ public abstract class PlayLoop implements Session.Saveable {
     UI = null ;
     rendering.clearAll() ;
     //RuntimeUtil.gc() ;  //  TODO:  RESTORE THIS.
+  }
+  
+  
+  protected boolean loadedAtStartup() {
+    return false ;
   }
   
   
@@ -127,14 +117,10 @@ public abstract class PlayLoop implements Session.Saveable {
   
   /**  Save and load functionality-
     */
-  //  Okay.  I understand the problem now.  This is being initialised too early
-  //  during the loading process.  And it's making indirect references.
   public PlayLoop(Session s) throws Exception {
-    this(false) ;
-    ///I.say("  ...CACHING PLAYLOOP INSTANCE: "+this) ;
+    this() ;
     s.cacheInstance(this) ;
     world = s.world() ;
-    ///I.say("FINISHED LOADING WORLD") ;
     played = (Base) s.loadObject() ;
     UI = createUI(played, rendering) ;
     if (UI instanceof BaseUI) ((BaseUI) UI).loadState(s) ;
@@ -158,12 +144,10 @@ public abstract class PlayLoop implements Session.Saveable {
   public static void loadGame(String saveFile) {
     try {
       KeyInput.clearInputs() ;
-      ///currentGame.UI.clearInputs() ;
       currentGame.gameStateWipe() ;
       currentGame = null ;
       final Session s = Session.loadSession(saveFile) ;
       currentGame = s.loop() ;
-      currentGame.runLoop() ;
     }
     catch (Exception e) { I.report(e) ; }
   }
@@ -194,91 +178,116 @@ public abstract class PlayLoop implements Session.Saveable {
   }
   
   
-  public void runLoop() {
-    updateGameState() ;
+  
+  /**  The big static runLoop method-
+    */
+  public static void runLoop(PlayLoop toLoop) {
+    if (rendering == null) rendering = new Rendering(
+      DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_HERTZ, false
+    ) ;
+    LoadService.loadClassesInDir("src/", "src") ;
+    
+    currentGame = toLoop ;
+    if (currentGame != null) {
+      if (! currentGame.loadedAtStartup()) currentGame.resetGame() ;
+      currentGame.updateGameState() ;
+    }
+
     lastUpdate = lastFrame = timeMS() ;
-    long simTime = 0, renderTime = 0, sT = 0, rT = 0, loopNum = 0 ;
-    while (loop) {
-      //
-      //  If you've just come out of pausing, update for the last frame.
-      if (started) {
-        lastUpdate = lastFrame ;
-        started = false ;
-      }
-      //
-      //  Calculate the time gaps for screen and world updates:
-      long checkTime = 0 ;
-      final long
-        time = timeMS(),
-        frameGap  = time - lastFrame,
-        updateGap = time - lastUpdate ;
-      final int FRAME_INTERVAL  = 1000 / frameRate ;
-      final int UPDATE_INTERVAL = (int) (
-        1000 / (UPDATES_PER_SECOND * speedMultiple)
-      ) ;
-      //
-      //  Update rendering on-screen.  (The relative frame-time between update
-      //  gaps must be provided to ensure smooth interpolation of sprites.)
-      if (frameGap > FRAME_INTERVAL) {
-        checkTime = timeMS() ;
-        if (paused) {
-          frameTime = 1.0f ;
-        }
-        else {
-          frameTime = (updateGap - FRAME_INTERVAL) * 1.0f / UPDATE_INTERVAL ;
-          frameTime = Math.max(0, Math.min(1, frameTime)) ;
-        }
-        rendering.updateViews() ;
-        updateGameInputs() ;
-        if (shouldExitLoop()) break ;
-        renderGameGraphics() ;
-        rendering.assignHUD(UI) ;
-        rendering.renderDisplay() ;
-        lastFrame = time ;
-        rT = timeMS() - checkTime ;
-      }
-      //
-      //  And perform any neccesary world updates that would have occured in
-      //  this time:
-      if (! paused) {
-        checkTime = timeMS() ;
-        final int maxUpdates = 1 + (FRAME_INTERVAL / UPDATE_INTERVAL) ;
-        int numUpdates = (int) (updateGap / UPDATE_INTERVAL) ;
-        numUpdates = Math.min(numUpdates, maxUpdates) ;
-        
-        if (numUpdates > 0) KeyInput.updateKeyboard() ;
-        for (int n = numUpdates ; n-- > 0 ;) {
-          updateGameState() ;
-        }
-        //
-        //  Now we essentially 'pretend' that updates were occurring once every
-        //  UPDATE_INTERVAL milliseconds:
-        lastUpdate += numUpdates * UPDATE_INTERVAL ;
-        sT = timeMS() - checkTime ;
+    long simTime = 0, renderTime = 0, loopNum = 0 ;
+    while (currentGame == null || currentGame.loop) {
+      final long time = timeMS() ;
+      if (currentGame != null) {
+        currentGame.playLoop() ;
       }
       //
       //  Go to sleep until the next round of updates are called for:
       try {
+        final int FRAME_INTERVAL = currentGame == null ?
+          MIN_SLEEP : (1000 / currentGame.frameRate) ;
         final int
           taken = (int) (timeMS() - time),
-          sleeps = Math.max(FRAME_INTERVAL + SLEEP_MARGIN - taken, 0) ;
-        Thread.sleep(sleeps) ;
+          sleeps = Math.max(FRAME_INTERVAL + (SLEEP_MARGIN - taken), 0) ;
+        if (sleeps > 0) Thread.sleep(sleeps) ;
         simTime += sT ;
         renderTime += rT ;
         //
         //  Print out a report on rendering/update times- if desired.
-        final boolean verbose = false ;
         if (++loopNum >= 100) {
+          final long totalTime = simTime + renderTime ;
           if (verbose) I.say(
             "Time spent on graphics/sim/total: " +
              (renderTime / loopNum) + " / " +
              (simTime    / loopNum) + " / " +
-            ((renderTime + simTime) / loopNum)
+            (totalTime / loopNum)
           ) ;
           simTime = renderTime = loopNum = 0 ;
         }
       }
       catch (InterruptedException e) {}
+    }
+  }
+  
+  
+  protected void playLoop() {
+    //
+    //  If you've just come out of pausing, update for the last frame.
+    if (started) {
+      lastUpdate = lastFrame ;
+      started = false ;
+    }
+    //
+    //  Calculate the time gaps for screen and world updates:
+    long checkTime = 0 ;
+    final long
+      time = timeMS(),
+      frameGap  = time - lastFrame,
+      updateGap = time - lastUpdate ;
+    final int FRAME_INTERVAL  = 1000 / frameRate ;
+    final int UPDATE_INTERVAL = (int) (
+      1000 / (UPDATES_PER_SECOND * speedMultiple)
+    ) ;
+    //
+    //  Update rendering on-screen.  (The relative frame-time between update
+    //  gaps must be provided to ensure smooth interpolation of sprites.)
+    if (frameGap > FRAME_INTERVAL) {
+      checkTime = timeMS() ;
+      if (paused) {
+        frameTime = 1.0f ;
+      }
+      else {
+        frameTime = (updateGap - FRAME_INTERVAL) * 1.0f / UPDATE_INTERVAL ;
+        frameTime = Math.max(0, Math.min(1, frameTime)) ;
+      }
+      rendering.updateViews() ;
+      
+      KeyInput.updateKeyboard() ;
+      updateGameInputs() ;
+      if (shouldExitLoop()) return ;
+      
+      renderGameGraphics() ;
+      rendering.assignHUD(UI) ;
+      rendering.renderDisplay() ;
+      lastFrame = time ;
+      rT = timeMS() - checkTime ;
+    }
+    //
+    //  And perform any necessary world updates that would have occurred in
+    //  this time:
+    if (! paused) {
+      checkTime = timeMS() ;
+      final int maxUpdates = 1 + (FRAME_INTERVAL / UPDATE_INTERVAL) ;
+      int numUpdates = (int) (updateGap / UPDATE_INTERVAL) ;
+      numUpdates = Math.min(numUpdates, maxUpdates) ;
+      
+      for (int n = numUpdates ; n-- > 0 ;) {
+        updateGameState() ;
+      }
+      //
+      //  Now we essentially 'pretend' that updates were occurring once every
+      //  UPDATE_INTERVAL milliseconds:
+      lastUpdate += numUpdates * UPDATE_INTERVAL ;
+      sT = timeMS() - checkTime ;
     }
   }
   
@@ -291,18 +300,27 @@ public abstract class PlayLoop implements Session.Saveable {
     */
   public static float frameTime() {
     if (currentGame == null) return 0 ;
-    return currentGame.frameTime ;
+    return frameTime ;
   }
+  
+  
+  public static boolean paused() {
+    if (currentGame == null) return false ;
+    return currentGame.paused ;
+  }
+  
   
   public static void setGameSpeed(float mult) {
     if (currentGame == null) return ;
     currentGame.speedMultiple = Math.max(0, mult) ;
   }
   
+  
   public static void setFrameRate(int rate) {
     if (currentGame == null) return ;
-    currentGame.frameRate = rate ;
+    currentGame.frameRate = Math.max(0, rate) ;
   }
+  
   
   public static void setPaused(boolean p) {
     if (currentGame == null) return ;

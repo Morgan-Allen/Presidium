@@ -135,7 +135,7 @@ public class Presences {
     if (sampled == null) sampled = new Batch() ;
     for (int n = limit / 2 ; n-- > 0 ;) {
       final Venue v = (Venue) randomMatchNear(key, t, -1) ;
-      if (v == t || v.flaggedWith() != null) continue ;
+      if (v == t || v == null || v.flaggedWith() != null) continue ;
       sampled.add(v) ;
       v.flagWith(sampled) ;
     }

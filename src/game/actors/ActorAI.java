@@ -384,55 +384,10 @@ public abstract class ActorAI implements ActorConstants {
   }
   
   
-  
-  /**  Methods related to relationships-
-    */
-  public float relation(Base base) {
-    final Base AB = actor.base() ;
-    if (base == AB) return 1 ;
-    else if (AB != null && base != null) return AB.relationWith(base) ;
-    else return 0 ;
-  }
-  
-  
-  public float relation(Venue venue) {
-    if (venue == null) return 0 ;
-    if (venue == home) return 1.0f ;
-    if (venue == work) return 0.5f ;
-    return relation(venue.base()) / 2f ;
-  }
-  
-  
-  public float relation(Actor other) {
-    final Relation r = relations.get(other) ;
-    if (r == null) {
-      return relation(other.base()) / 2 ;
-    }
-    return r.value() + (relation(other.base()) / 2) ;
-  }
-  
-  
-  public float novelty(Actor other) {
-    final Relation r = relations.get(other) ;
-    if (r == null) return 1 ;
-    return r.novelty(actor.world()) ;
-  }
-  
-  
-  public void incRelation(Accountable other, float inc) {
-    Relation r = relations.get(other) ;
-    if (r == null) {
-      r = new Relation(actor, other, 0, actor.world()) ;
-      relations.put(other, r) ;
-    }
-    r.incValue(inc) ;
-  }
-  
-  
-  public Batch <Relation> relations() {
-    final Batch <Relation> all = new Batch <Relation> () ;
-    for (Relation r : relations.values()) all.add(r) ;
-    return all ;
+  public boolean hasToDo(Class planClass) {
+    for (Behaviour b : agenda) if (b.getClass() == planClass) return true ;
+    for (Behaviour b : todoList) if (b.getClass() == planClass) return true ;
+    return false ;
   }
   
   
@@ -470,8 +425,6 @@ public abstract class ActorAI implements ActorConstants {
     return 2 / actor.traits.scaleLevel(STUBBORN) ;
   }
   
-
-  
   
   
   /**  Supplementary methods for behaviour-
@@ -505,6 +458,73 @@ public abstract class ActorAI implements ActorConstants {
       matchO = (actorG * otherG > 0) ? 1 : 0.33f ;
     }
     return attraction * matchO / 10f ;
+  }
+  
+  
+  public String preferredGender() {
+    final boolean male = actor.traits.male() ;
+    if (actor.traits.hasTrait(ORIENTATION, "Heterosexual")) {
+      return male ? "Female" : "Male" ;
+    }
+    if (actor.traits.hasTrait(ORIENTATION, "Homosexual")) {
+      return male ? "Male" : "Female" ;
+    }
+    return Rand.yes() ? "Male" : "Female" ;
+  }
+  
+  
+  public void setRelation(Actor other, float level, int initTime) {
+    final Relation r = new Relation(actor, other, level, initTime) ;
+    relations.put(other, r) ;
+  }
+  
+  
+  public float relation(Base base) {
+    final Base AB = actor.base() ;
+    if (base == AB) return 1 ;
+    else if (AB != null && base != null) return AB.relationWith(base) ;
+    else return 0 ;
+  }
+  
+  
+  public float relation(Venue venue) {
+    if (venue == null) return 0 ;
+    if (venue == home) return 1.0f ;
+    if (venue == work) return 0.5f ;
+    return relation(venue.base()) / 2f ;
+  }
+  
+  
+  public float relation(Actor other) {
+    final Relation r = relations.get(other) ;
+    if (r == null) {
+      return relation(other.base()) / 2 ;
+    }
+    return r.value() + (relation(other.base()) / 2) ;
+  }
+  
+  
+  public float novelty(Actor other) {
+    final Relation r = relations.get(other) ;
+    if (r == null) return 1 ;
+    return r.novelty(actor.world()) ;
+  }
+  
+  
+  public void incRelation(Accountable other, float inc) {
+    Relation r = relations.get(other) ;
+    if (r == null) {
+      r = new Relation(actor, other, 0, (int) actor.world().currentTime()) ;
+      relations.put(other, r) ;
+    }
+    r.incValue(inc) ;
+  }
+  
+  
+  public Batch <Relation> relations() {
+    final Batch <Relation> all = new Batch <Relation> () ;
+    for (Relation r : relations.values()) all.add(r) ;
+    return all ;
   }
 }
 

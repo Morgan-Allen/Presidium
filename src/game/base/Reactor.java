@@ -23,6 +23,8 @@ public class Reactor extends Venue implements BuildConstants {
     Reactor.class, "media/Buildings/artificer/reactor.png", 4, 2
   ) ;
   
+  private float meltdown = 0.0f ;
+  
 
   public Reactor(Base base) {
     super(4, 2, Venue.ENTRANCE_EAST, base) ;
@@ -37,11 +39,13 @@ public class Reactor extends Venue implements BuildConstants {
   
   public Reactor(Session s) throws Exception {
     super(s) ;
+    meltdown = s.loadFloat() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveFloat(meltdown) ;
   }
   
   
@@ -52,13 +56,205 @@ public class Reactor extends Venue implements BuildConstants {
     Reactor.class, "reactor_upgrades"
   ) ;
   protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  final public static Upgrade
+    WASTE_PROCESSING = new Upgrade(
+      "Waste Processing",
+      "Reduces the rate at which fuel rods are consumed and ameliorates "+
+      "pollution.",
+      350,
+      null, 1, null, ALL_UPGRADES
+    ),
+    
+    ISOTOPE_CONVERSION = new Upgrade(
+      "Isotope Conversion",
+      "Allows metal ores to be synthesised into fuel rods and facilitates "+
+      "production of atomics.",
+      500,
+      null, 1, WASTE_PROCESSING, ALL_UPGRADES
+    ),
+    
+    FEEDBACK_SENSORS = new Upgrade(
+      "Feedback Sensors",
+      "Reduces the likelihood of meltdown occuring when the reactor is "+
+      "damaged or under-supervised, and reduces the likelihood of sabotage.",
+      400,
+      null, 1, null, ALL_UPGRADES
+    ),
+    
+    FUSION_CONFINEMENT = new Upgrade(
+      "Fusion Confinement",
+      "Increases power output while limiting pollution and decreasing the "+
+      "severity of any meltdowns.",
+      350,
+      null, 1, FEEDBACK_SENSORS, ALL_UPGRADES
+    ),
+    
+    QUALIA_WAVEFORM_INTERFACE = new Upgrade(
+      "Qualia Waveform Interface",
+      "Allows reactor output to contribute slightly towards regeneration of "+
+      "psi points and range of psyon abilities.",
+      250,
+      null, 1, FEEDBACK_SENSORS, ALL_UPGRADES
+    ),
+    
+    CORE_TECHNICIAN_QUARTERS = new Upgrade(
+      "Core Technician Quarters",
+      "Core Technicians provide the expertise and vigilance neccesary to "+
+      "monitor reactor output and synthesises nuclear biproducts.",
+      50,
+      Background.CORE_TECHNICIAN, 1, null, ALL_UPGRADES
+    )
+  ;
   
   
   
   public Behaviour jobFor(Actor actor) {
+    if (! structure.intact()) return null ;
     //
-    //  Manufacture atomics/fuel rods, or check to prevent meltdown.
-    return null ;
+    //  First and foremost, check to see whether a meltdown is in progress, and
+    //  arrest it if possible:
+    final Choice choice = new Choice(actor) ;
+    if (meltdown >= 0.1f) {
+      final Action check = new Action(
+        actor, this,
+        this, "actionCheckMeltdown",
+        Action.LOOK,
+        meltdown < 0.5f ? "Checking core condition" : "Containing Meltdown!"
+      ) ;
+      check.setPriority(Action.CRITICAL * (meltdown + 0.5f)) ;
+      choice.add(check) ;
+    }
+    if (! personnel.onShift(actor)) return null ;
+    //
+    //  Then check to see if anything needs manufacture-
+    final Manufacture m = stocks.nextManufacture(actor, METALS_TO_FUEL) ;
+    if (m != null && stocks.amountOf(METAL_ORE) >= 1) {
+      m.checkBonus = 5 * structure.upgradeLevel(ISOTOPE_CONVERSION) ;
+      choice.add(m) ;
+    }
+    final Manufacture o = stocks.nextSpecialOrder(actor) ;
+    if (o != null) {
+      o.checkBonus = 5 * structure.upgradeLevel(ISOTOPE_CONVERSION) ;
+      choice.add(o) ;
+    }
+    //
+    //  Failing that, just keep the place in order-
+    choice.add(new Supervision(actor, this)) ;
+    return choice.weightedPick(0) ;
+  }
+  
+  
+  public boolean actionCheckMeltdown(Actor actor, Reactor reactor) {
+    float diagnoseDC = 5 + ((1 - meltdown) * 20) ;
+    final int FB = structure.upgradeLevel(FEEDBACK_SENSORS) ;
+    diagnoseDC -= FB * 5 ;
+    
+    boolean success = true ;
+    if (Rand.yes()) {
+      success &= actor.traits.test(FIELD_THEORY, diagnoseDC, 0.5f) ;
+      success &= actor.traits.test(CHEMISTRY, 5, 0.5f) ;
+    }
+    else {
+      success &= actor.traits.test(ASSEMBLY, diagnoseDC, 0.5f) ;
+      success &= actor.traits.test(SHIELD_AND_ARMOUR, 5, 0.5f) ;
+    }
+    if (success) {
+      meltdown -= (1f + FB) / World.DEFAULT_DAY_LENGTH ;
+    }
+    return true ;
+  }
+  
+  
+  public int numOpenings(Background v) {
+    final int nO = super.numOpenings(v) ;
+    if (v == Background.CORE_TECHNICIAN) {
+      return nO + 1 ;
+    }
+    return 0 ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    checkMeltdownAdvance() ;
+    if (! structure.intact()) return ;
+    //
+    //  Calculate output of power and consumption of fuel-
+    float fuelConsumed = 0.01f, powerOutput = 5 ;
+    fuelConsumed *= 2 / (2f + structure.upgradeLevel(WASTE_PROCESSING)) ;
+    powerOutput *= (2f + structure.upgradeLevel(FUSION_CONFINEMENT)) / 2 ;
+    if (stocks.amountOf(POWER) >= 50 + (powerOutput * 10)) {
+      fuelConsumed /= 10 ;
+      powerOutput = 0 ;
+    }
+    final Item fuel = Item.withAmount(FUEL_CORES, fuelConsumed) ;
+    if (stocks.hasItem(fuel)) stocks.removeItem(fuel) ;
+    else powerOutput /= 5 ;
+    stocks.addItem(Item.withAmount(POWER, powerOutput)) ;
+    //
+    //  Update demand for raw materials-
+    stocks.forceDemand(FUEL_CORES, stocks.demandFor(POWER) / 5f, 0) ;
+    if (structure.upgradeLevel(ISOTOPE_CONVERSION) > 0) {
+      stocks.translateDemands(METALS_TO_FUEL) ;
+    }
+    //
+    //  If possible, assist in recovery of psi points-
+    final int PB = structure.upgradeLevel(QUALIA_WAVEFORM_INTERFACE) ;
+    final Actor ruler = base().ruler() ;
+    if (PB > 0 && ruler != null && ruler.aboard() instanceof Bastion) {
+      ruler.health.adjustPsy(PB / 100f) ;
+    }
+    //
+    //  Output pollution-
+    int pollution = 10 ;
+    pollution -= structure.upgradeLevel(WASTE_PROCESSING) * 2 ;
+    pollution -= structure.upgradeLevel(FUSION_CONFINEMENT) ;
+    final Tile centre = world.tileAt(this) ;
+    world.ecology().impingeSqualor(pollution, centre, true) ;
+  }
+  
+  
+  protected void checkMeltdownAdvance() {
+    if ((! structure.intact()) && meltdown == 0) return ;
+    //
+    //  Firstly, calculate the overall risk of a meltdown occurring-
+    float meltdownChance = 1 - structure.repairLevel() ;
+    meltdownChance *= 1 + (stocks.demandFor(POWER) / 20f) ;
+    if (! isManned()) meltdownChance *= 2 ;
+    if (stocks.amountOf(FUEL_CORES) == 0) meltdownChance /= 5 ;
+    meltdownChance /= (1f + structure.upgradeLevel(FEEDBACK_SENSORS)) ;
+    //
+    //  ...and inflict any actual damage, if your luck is poor.
+    if (Rand.num() < (meltdownChance / World.DEFAULT_DAY_LENGTH)) {
+      final float melt = 0.1f * Rand.num() ;
+      meltdown += melt ;
+      if (meltdown >= 1) performMeltdown() ;
+      final float damage = melt * meltdown * 2 * Rand.num() ;
+      structure.takeDamage(damage) ;
+    }
+  }
+  
+  
+  protected void onDestruction() {
+    performMeltdown() ;
+  }
+  
+  
+  protected void performMeltdown() {
+    final int safety = 1 + structure.upgradeLevel(FUSION_CONFINEMENT) ;
+    //
+    //  TODO:  INTRODUCE RADIATION VALUES.
+    int radiationVal = (125 / safety) - 25 ;
+    radiationVal *= meltdown * Rand.avgNums(3) * 2 ;
+    final Tile centre = world.tileAt(this) ;
+    world.ecology().impingeSqualor(radiationVal, centre, false) ;
+    //
+    //  TODO:  Add Explosion FX and damage nearby structures (and citizens.)
+    //
+    //  Damage the structure, but cut back the meltdown somewhat:
+    final float damage = structure.repairLevel() * structure.maxIntegrity() ;
+    structure.takeDamage(damage * meltdown / safety) ;
+    meltdown /= 1 + (Rand.num() * safety) ;
   }
   
   
@@ -67,32 +263,12 @@ public class Reactor extends Venue implements BuildConstants {
   }
   
   
-  public int numOpenings(Background v) {
-    final int nO = super.numOpenings(v) ;
-    if (v == Background.CORE_TECHNICIAN) {
-      return nO + 2 ;
-    }
-    return 0 ;
-  }
-  
-  
   public Service[] services() {
-    return new Service[] { POWER } ;
+    return new Service[] { POWER, ATOMICS } ;
   }
   
   
-  public void updateAsScheduled(int numUpdates) {
-    super.updateAsScheduled(numUpdates) ;
-    //
-    //  TODO:  This should require frequent supervision.
-    if (stocks.amountOf(POWER) < 100) {
-      //
-      //  TODO:  UPGRADE THIS!  AND CONSUME ISOTOPES IN THE PROCESS!
-      stocks.addItem(Item.withAmount(POWER, 5)) ;
-    }
-  }
-
-
+  
   /**  Rendering and interface-
     */
   public String fullName() {

@@ -136,6 +136,10 @@ public class Building extends Plan implements ActorConstants {
       ) ;
       if (! Spacing.adjacent(actor.origin(), built) || Rand.num() < 0.2f) {
         final Tile t = Spacing.pickFreeTileAround(built, actor) ;
+        if (t == null) {
+          abortBehaviour() ;
+          return null ;
+        }
         building.setMoveTarget(t) ;
       }
       else building.setMoveTarget(actor.origin()) ;

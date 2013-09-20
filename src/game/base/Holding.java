@@ -78,13 +78,17 @@ public class Holding extends Venue implements BuildConstants {
     TAX_LEVELS[]  = { 0, 5, 10, 20, 35 },
     INTEGRITIES[] = { 15, 35, 80, 125, 200 },
     BUILD_COSTS[] = { 25, 60, 135, 225, 350 } ;
+  
   final static String LEVEL_NAMES[] = {
+    
     "Dreg Hives",
     "Scavenger Slums",
     "Field Tent",
+    
     "Pyon Shacks",
     "Freeborn Holding",
     "Citizen Apartment",
+    
     "Guilder Manse",
     "Knighted Estate",
     "Highborn Palace"
@@ -224,6 +228,14 @@ public class Holding extends Venue implements BuildConstants {
   }
   
   
+  public Service[] goodsNeeded() {
+    return new Service[] {
+      CARBS, PARTS, PROTEIN, PLASTICS, GREENS, CIRCUITRY
+    } ;
+  }
+  
+  
+  /*
   public Batch <Item> goodsNeeded() {
     final Batch <Item> needed = new Batch <Item> () ;
     //
@@ -246,6 +258,7 @@ public class Holding extends Venue implements BuildConstants {
     //  TODO:  RETURN SORTED BY PRICE
     return needed ;
   }
+  //*/
   
   
   public Behaviour jobFor(Actor actor) { return null ; }
@@ -312,26 +325,13 @@ public class Holding extends Venue implements BuildConstants {
   
   
   public String[] infoCategories() {
-    return new String[] { "Status", "Staff" } ;
+    return new String[] { "STATUS", "STAFF", "STOCKS" } ;
   }
   
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
-    if (categoryID != 2) super.writeInformation(d, categoryID, UI) ;
-    /*
-    d.append("Condition: ") ;
-    d.append(structure.repair()+" / "+structure.maxIntegrity()) ;
-    d.appendList("\n\nHome of: ", personnel.residents()) ;
-    
-    //
-    //  TODO:  List current as well as desired stocks-
-    d.append("\n\nStocks:") ;
-    for (String order : stocks.ordersDesc()) {
-      d.append("\n  "+order) ;
-    }
-    /*
-    d.appendList("Needed for upgrade: ", goodsNeeded()) ;
-    //*/
+    if (categoryID >= 3) return ;
+    else super.writeInformation(d, categoryID, UI) ;
   }
 
 

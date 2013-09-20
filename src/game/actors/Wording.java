@@ -9,7 +9,8 @@ import src.game.building.* ;
 import src.util.* ;
 
 
-
+//
+//  TODO:  SPLIT THIS INTO DIFFERENT CLASSES
 
 public class Wording implements ActorConstants {
   
@@ -24,7 +25,7 @@ public class Wording implements ActorConstants {
     //  Natives only have first names, but might use son/daughter of X as a
     //  title, or a conspicuous trait.
     NATIVE_MN[] = {
-      "Duor", "Huno", "Umun", "Tunto", "Parab", "Xsumo", "Zhaka", "Hoka"
+      "Duor", "Huno", "Umun", "Tunto", "Parab", "Sxumo", "Zhaka", "Hoka"
     },
     NATIVE_FN[] = {
       "Khasi", "Mari", "Tesza", "Borab", "Hana", "Kaeli", "Hlara", "Ote"
@@ -69,6 +70,8 @@ public class Wording implements ActorConstants {
       "Prime", "Secundus", "Tertius", "Minor",
       "Alpha", "Beta", "Gamma", "Major"
     },
+    //
+    //  TODO:  HOUSE NAMES ***MUST*** BE CUSTOMISED BY HOMEWORLD.
     HIGHBORN_HN[] = {
       "Rigel", "Ursa", "Alyph", "Rana", "Maia", "Fomalhaut", "Aldebaran",
       "Regulus", "Suhail", "Antares", "Paleides", "Algol", "Orion",
@@ -96,24 +99,28 @@ public class Wording implements ActorConstants {
         names.add("the "+actor.traits.levelDesc(desc)) ;
       }
     }
+    
     if (birth == Background.PYON_BIRTH || birth == Background.HIVES_BIRTH) {
       final String pick[] = female ? PYON_FN : PYON_MN ;
       names.add((String) Rand.pickFrom(pick)) ;
       final String LN[] = Rand.yes() ? PYON_LN : pick ;
       names.add((String) Rand.pickFrom(LN)) ;
     }
+    
     if (birth == Background.FREE_BIRTH || birth == Background.GUILDER_BIRTH) {
       final String pick[] = female ? CITIZEN_FN : CITIZEN_MN ;
       names.add((String) Rand.pickFrom(pick)) ;
       names.add((String) Rand.pickFrom(CITIZEN_LN)) ;
     }
+    
     if (birth == Background.HIGH_BIRTH) {
       final String pick[] = female ? HIGHBORN_FN : HIGHBORN_MN ;
       names.add((String) Rand.pickFrom(pick)) ;
-      names.add((String) Rand.pickFrom(HIGHBORN_TN)) ;
       names.add((String) Rand.pickFrom(HIGHBORN_HN)) ;
+      if (Rand.yes()) names.add((String) Rand.pickFrom(HIGHBORN_TN)) ;
       names.add("of "+actor.career().homeworld()) ;
     }
+    
     return names.toArray(String.class) ;
   }
   

@@ -59,7 +59,6 @@ public class Healthbar extends Sprite {
       y = (int) (base.y + yoff - (BAR_HEIGHT / 2)) ;
     //
     //  Begin actual rendering-
-    //GL11.glDisable(GL11.GL_DEPTH_TEST) ;
     rendering.port.setScreenMode() ;
     Texture.WHITE_TEX.bindTex() ;
     GL11.glBegin(GL11.GL_QUADS) ;
@@ -114,7 +113,6 @@ public class Healthbar extends Sprite {
     //  And finish off-
     GL11.glEnd() ;
     rendering.port.setIsoMode() ;
-    //GL11.glEnable(GL11.GL_DEPTH_TEST) ;
   }
 }
 

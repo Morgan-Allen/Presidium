@@ -15,8 +15,11 @@ import src.util.* ;
 
 //
 //  The Stock Exchange also creates a small amount of money 'ex nihilo' with
-//  every sales transaction.  And the supply depot makes money from offworld
-//  trades.
+//  every sales transaction.
+//  
+//  TODO:  Have this be responsible for long-range cargo transport(?)  Or do
+//  I just make the supply depot a simpler version of the same basic premise?
+
 
 public class StockExchange extends Venue implements BuildConstants {
   
@@ -29,11 +32,7 @@ public class StockExchange extends Venue implements BuildConstants {
       "media/Buildings/merchant/stock_exchange.png",
       4, 2
     ) ;
-  final static Service EXCHANGE_GOODS[] = {
-    GREENS, SPICE,
-    SOMA, MEDICINE,
-    CIRCUITRY, DECOR
-  } ;
+  private CargoBarge cargoBarge ;
   
   
   
@@ -49,13 +48,24 @@ public class StockExchange extends Venue implements BuildConstants {
   
   public StockExchange(Session s) throws Exception {
     super(s) ;
+    cargoBarge = (CargoBarge) s.loadObject() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveObject(cargoBarge) ;
   }
   
+  
+  public void onCompletion() {
+    super.onCompletion() ;
+    cargoBarge = new CargoBarge() ;
+    cargoBarge.assignBase(base()) ;
+    final Tile o = origin() ;
+    cargoBarge.enterWorldAt(o.x, o.y, world) ;
+    cargoBarge.goAboard(this, world) ;
+  }
   
   
   /**  Upgrades, behaviour and economic functions-
@@ -97,35 +107,37 @@ public class StockExchange extends Venue implements BuildConstants {
   
   
   public Service[] services() {
-    return EXCHANGE_GOODS ;
+    return ALL_COMMODITIES ;
   }
   
   
   public Behaviour jobFor(Actor actor) {
-    //
-    //  TODO:  You need to return the list of possible deliveries to this
-    //  venue... and arrange for bulk transport.
+    
+    final Batch <Venue> depots = Deliveries.nearbyDepots(this, world) ;
+    final Delivery d = Deliveries.nextDeliveryFrom(
+      this, ALL_COMMODITIES, depots, 50, world
+    ) ;
+    
+    if (d != null && personnel.assignedTo(d) < 1) {
+      d.priorityMod = Plan.CASUAL ;
+      d.driven = cargoBarge ;
+      return d ;
+    }
     
     return new Supervision(actor, this) ;
   }
   
-  //
-  //  Okay.  So... cargo loaders in both positions.
-  
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    //
-    //  TODO:  You need to translate all demands made at this venue into orders
-    //  placed elsewhere...
+    final Batch <Venue> depots = Deliveries.nearbyDepots(this, world) ;
+    for (Service type : ALL_COMMODITIES) {
+      stocks.diffuseDemand(type, depots) ;
+    }
   }
   
   
   
-  /**  Rendering has to be tweaked a little here.  The idea is that the item-
-    *  stacks will be sandwiched between the back-model and front-model, and
-    *  effectively shown 'inside' the venue.  TODO  ...that?
-    */
   /**  Rendering and interface methods-
     */
   public String fullName() {
@@ -141,7 +153,7 @@ public class StockExchange extends Venue implements BuildConstants {
   public String helpInfo() {
     return
       "The Stock Exchange facilitates small-scale purchases within the "+
-      "neighbourhood, and bulk trade between settlements." ;
+      "neighbourhood, and bulk transactions between local merchants." ;
   }
 
 

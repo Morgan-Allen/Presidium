@@ -178,11 +178,13 @@ public abstract class Venue extends Fixture implements
   }
   
   
+  protected void onDestruction() {
+    Wreckage.reduceToSlag(area(), world) ;
+  }
+  
+  
   public void setAsDestroyed() {
-    final World world = this.world ;
-    final Box2D area = this.area() ;
     super.setAsDestroyed() ;
-    Wreckage.reduceToSlag(area, world) ;
   }
   
   
@@ -250,16 +252,14 @@ public abstract class Venue extends Fixture implements
   
   
   public void updateAsScheduled(int numUpdates) {
-    if (structure.intact()) {
-      if (base != null && numUpdates % 10 == 0) updatePaving(true) ;
-    }
-    else {
-      personnel.updatePersonnel(numUpdates) ;
-      return ;
-    }
-    stocks.updateStocks(numUpdates) ;
-    personnel.updatePersonnel(numUpdates) ;
     structure.updateStructure(numUpdates) ;
+    if (! structure.needsSalvage()) {
+      if (base != null && numUpdates % 10 == 0) updatePaving(true) ;
+      personnel.updatePersonnel(numUpdates) ;
+    }
+    if (structure.intact()) {
+      stocks.updateStocks(numUpdates) ;
+    }
   }
   
   
@@ -499,10 +499,11 @@ public abstract class Venue extends Fixture implements
   
   
   private String descDuty(Actor a) {
-    if (a.AI.home() == this) return "(Resident)" ;
-    if (a.AI.work() != this) return "(Visitor)" ;
+    final String VN = a.vocation().nameFor(a) ;
+    if (a.AI.home() == this) return "(Resident "+VN+")" ;
+    if (a.AI.work() != this) return "(Visiting "+VN+")" ;
     final String duty = personnel.onShift(a) ? "On-Duty" : "Off-Duty" ;
-    return "("+duty+" "+a.vocation()+")" ;
+    return "("+duty+" "+VN+")" ;
   }
   
   
@@ -510,10 +511,11 @@ public abstract class Venue extends Fixture implements
   
   private void describeUpgrades(Description d, HUD UI) {
     
-    final Batch <String> DU = structure.descUpgrades() ;
+    final Batch <String> DU = structure.descOngoingUpgrades() ;
     final int numU = structure.numUpgrades(), maxU = structure.maxUpgrades() ;
     d.append("Upgrade slots ("+numU+"/"+maxU+")") ;
     for (String s : DU) d.append("\n  "+s) ;
+    
     
     d.append("\n\nUpgrades available: ") ;
     final Index <Upgrade> upgrades = allUpgrades() ;
@@ -533,7 +535,7 @@ public abstract class Venue extends Fixture implements
           d.append("\n  Requires: "+lastCU.required.name) ;
         }
         if (structure.upgradePossible(lastCU)) {
-          d.append(new Description.Link("\n  BEGIN UPGRADE") {
+          d.append(new Description.Link("\n\n  BEGIN UPGRADE") {
             public void whenClicked() {
               structure.beginUpgrade(lastCU, false) ;
             }
@@ -563,9 +565,6 @@ public abstract class Venue extends Fixture implements
   /**  Rendering methods-
     */
   protected void attachSprite(Sprite sprite) {
-    if (! (sprite instanceof ImageSprite)) {
-      I.complain("VENUES MUST HAVE IMAGE-BASED SPRITES!") ;
-    }
     buildSprite = new BuildingSprite(sprite, size, high) ;
     super.attachSprite(buildSprite) ;
   }
@@ -630,8 +629,14 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  //
-  //  TODO:  Allow this to be customised by subclasses.
+  
+  private boolean canShow(Service type) {
+    if (type.form != BuildConstants.FORM_COMMODITY) return false ;
+    if (type.pic == Service.DEFAULT_PIC) return false ;
+    return true ;
+  }
+
+  
   final private static float ITEM_S_OFF[] = {
      0, 0,
     -1, 0,
@@ -643,15 +648,24 @@ public abstract class Venue extends Fixture implements
   } ;
   
   
-  private boolean canShow(Service type) {
-    if (type.form != BuildConstants.FORM_COMMODITY) return false ;
-    if (type.pic == Service.DEFAULT_PIC) return false ;
-    return true ;
+  protected float[] goodDisplayOffsets() {
+    return ITEM_S_OFF ;
+  }
+  
+  
+  protected Service[] goodsToShow() {
+    return services() ;
+  }
+  
+  
+  protected float goodDisplayAmount(Service good) {
+    return stocks.amountOf(good) ;
   }
   
   
   protected void updateItemSprites() {
-    final Service services[] = services() ;
+    final Service services[] = goodsToShow() ;
+    final float offsets[] = goodDisplayOffsets() ;
     if (services == null) return ;
     
     final boolean hide = ! structure.intact() ;
@@ -661,15 +675,14 @@ public abstract class Venue extends Fixture implements
     int index = -1 ;
     for (Service s : services) if (canShow(s)) index += 2 ;
     if (index < 0) return ;
-    index = Visit.clamp(index, ITEM_S_OFF.length) ;
+    index = Visit.clamp(index, offsets.length) ;
     
     for (Service s : services) if (canShow(s)) {
       if (index < 0) break ;
-      final float y = ITEM_S_OFF[index--], x = ITEM_S_OFF[index--] ;
+      final float y = offsets[index--], x = offsets[index--] ;
       if (y >= size || size <= -x) continue ;
-      
       buildSprite.updateItemDisplay(
-        s.model, hide ? 0 : stocks.amountOf(s),
+        s.model, hide ? 0 : goodDisplayAmount(s),
         x + initX, y + initY
       ) ;
     }
@@ -677,19 +690,16 @@ public abstract class Venue extends Fixture implements
   
   
   public void renderFor(Rendering rendering, Base base) {
-    
     position(buildSprite.position) ;
-    ///I.sayAbout(this, "repair level: "+structure.repairLevel()) ;
     buildSprite.updateCondition(
       structure.repairLevel(),
-      structure.intact(),// || structure.goodCondition(),
+      structure.intact(),
       structure.burning()
     ) ;
     toggleStatusDisplay() ;
     updateItemSprites() ;
     renderHealthbars(rendering, base) ;
     renderChat(rendering, base) ;
-    
     super.renderFor(rendering, base) ;
   }
   

@@ -17,100 +17,143 @@ import src.util.* ;
 
 
 //
-//  TODO:  Include a Landing Site right nextdoor?
+//  TODO:  Include a Landing Site right nextdoor?  Yes.
 
-//
-//  TODO:  HAVE STOCKEXCHANGE EXTEND THE SUPPLYDEPOT CLASS?
-//         ...Might be simpler.  They'd behave very similarly, just using
-//         different goods.
-
-
-//  ***  If the supply depot monopolises ALL offworld trade, then it has to
-//       accept ALL good types.
-//  ***  Conversely, if the supply depot does NOT accept all good types, then
-//       it CANNOT monopolise offworld trade.
-
-//
-//  ***  If you are responsible for controlling the amounts of different goods,
-//       then having explicit upgrades may be somewhat redundant.  Then again,
-//       ...maybe that's how you signal your desire to export certain goods!
-
-//
-//  Foodstuffs.  Medical supplies.  Mineral wealth.  Building materials.
-
-
+//  TODO:  Have dropships come and land directly at the depot!
 
 
 public class SupplyDepot extends Venue implements
   BuildConstants, Service.Trade
 {
   
-  
-  
-  /**  Data fields, constructors and save/load methods-
+  /**  Other data fields, constructors and save/load methods-
     */
   final static Model
-    MODEL = ImageModel.asIsometricModel(
-      SupplyDepot.class, "media/Buildings/merchant/supply_depot_big.png",
-      5, 2
+    MODEL_UNDER = ImageModel.asIsometricModel(
+      SupplyDepot.class, "media/Buildings/merchant/depot_under.gif",
+      5.0f, 0
+    ),
+    MODEL_CORE = ImageModel.asIsometricModel(
+      SupplyDepot.class, "media/Buildings/merchant/depot_core.png",
+      3, 2
     ) ;
-  final static Service DEPOT_GOODS[] = {
-    CARBS, PROTEIN, PLASTICS, STIM_KITS,
-    PARTS, METAL_ORE, P_CARBONS, FUEL_CORES
+  
+  final static int
+    LEVEL_FOODS    = 0,
+    LEVEL_MINERALS = 1,
+    LEVEL_MEDICAL  = 2,
+    LEVEL_BUILDING = 3,
+    LEVEL_LUXURY   = 4,
+    NUM_PREFS = 5 ;
+  final static String PREF_TITLES[] = {
+    "Foodstuffs",
+    "Mineral wealth",
+    "Medical supplies",
+    "Building materials",
+    "Luxury goods"
+  } ;
+  final static int PREF_LEVELS[] = {
+    10, 25, 50, 0, -10, -25, -50
+  }, NUM_LEVELS = 7 ;
+  final static String LEVEL_TITLES[] = {
+    "Light Exports", "Medium Exports", "Heavy Exports",
+    "No Imports/Exports",
+    "Light Imports", "Medium Imports", "Heavy Imports",
+  } ;
+  final private static Colour PREF_COLOURS[] = {
+    //  TODO:  Blend the colours a bit more.
+    Colour.RED, Colour.RED, Colour.RED,
+    Colour.LIGHT_GREY,
+    Colour.GREEN, Colour.GREEN, Colour.GREEN,
   } ;
   
+  final static Table SERVICE_KEY = Table.make(
+    CARBS, 0,
+    PROTEIN, 0,
+    GREENS, 0,
+    
+    METAL_ORE, 1,
+    PETROCARBS, 1,
+    FUEL_CORES, 1,
+    
+    STIM_KITS, 2,
+    MEDICINE, 2,
+    GENE_SEED, 2,
+    
+    PARTS, 3,
+    PLASTICS, 3,
+    CIRCUITRY, 3,
+    
+    DECOR, 4,
+    SOMA, 4,
+    SPICE, 4
+  ) ;
   
-  private Table <Service, Integer>
-    exportLevels = new Table <Service, Integer> () ;
-  private CargoBarge cargoBarge ;
   
-
+  final private int exportLevels[] = {
+    -10, -10, 10, 10, 0
+  } ;
+  Dropship docking = null ;
+  
+  
+  
   public SupplyDepot(Base base) {
     super(5, 2, ENTRANCE_NORTH, base) ;
     
     structure.setupStats(100, 2, 200, 0, false) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     
-    attachSprite(MODEL.makeSprite()) ;
+    final GroupSprite sprite = new GroupSprite() ;
+    sprite.attach(MODEL_UNDER, 0, 0, -0.05f) ;
+    sprite.attach(MODEL_CORE, -0.5f, 0.5f, 0) ;
+    attachSprite(sprite) ;
   }
   
   
   public SupplyDepot(Session s) throws Exception {
     super(s) ;
-    
-    for (int n = s.loadInt() ; n-- > 0 ;) {
-      final Service type = ALL_ITEM_TYPES[s.loadInt()] ;
-      exportLevels.put(type, s.loadInt()) ;
-    }
-    
-    cargoBarge = (CargoBarge) s.loadObject() ;
+    for (int n = NUM_PREFS ; n-- > 0 ;) exportLevels[n] = s.loadInt() ;
+    docking = (Dropship) s.loadObject() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    
-    s.saveInt(exportLevels.size()) ;
-    for (Service type : exportLevels.keySet()) {
-      s.saveInt(type.typeID) ;
-      s.saveInt(exportLevels.get(type)) ;
-    }
-    
-    s.saveObject(cargoBarge) ;
+    for (int n = NUM_PREFS ; n-- > 0 ;) s.saveInt(exportLevels[n]) ;
+    s.saveObject(docking) ;
   }
   
   
-  public CargoBarge cargoBarge() {
-    return cargoBarge ;
+  private int exportLevel(Service service) {
+    final Integer key = (Integer) SERVICE_KEY.get(service) ;
+    if (key == null) return 0 ;
+    return exportLevels[key] ;
   }
   
   
   public float priceFor(Service service) {
-    final Integer level = exportLevels.get(service) ;
-    if (level == null || level == 0) return super.priceFor(service) ;
-    if (level < 0) return base().commerce.importPrice(service) ;
-    if (level > 0) return base().commerce.exportPrice(service) ;
-    else return service.basePrice ;
+    final int level = exportLevel(service) ;
+    if (level <= 0) return base().commerce.importPrice(service) ;
+    else return base().commerce.exportPrice(service) ;
+  }
+  
+  
+  public Dropship docking() {
+    return docking ;
+  }
+  
+  
+  public void setToDock(Dropship ship) {
+    docking = ship ;
+  }
+  
+  
+  public Boardable[] canBoard(Boardable batch[]) {
+    if (batch.length < 2) batch = new Boardable[2] ;
+    else for (int n = batch.length ; n-- > 2 ;) batch[n] = null ;
+    batch[0] = mainEntrance() ;
+    batch[1] = (docking != null && docking.landed()) ? docking : null ;
+    return batch ;
   }
   
   
@@ -121,72 +164,53 @@ public class SupplyDepot extends Venue implements
     
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
-    
-    final Batch <Venue> depots = nearbyDepots() ;
-    final Delivery d = Delivery.nextDeliveryFrom(
-      this, DEPOT_GOODS, depots, 50, world, false
+
+    final Delivery d = Deliveries.nextDeliveryFrom(
+      this, services(), 10, world
     ) ;
+    if (d != null && personnel.assignedTo(d) < 1) choice.add(d) ;
     
-    if (d != null && personnel.assignedTo(d) < 1) {
-      d.priorityMod = Plan.CASUAL ;
-      d.driven = cargoBarge ;
-      choice.add(d) ;
-    }
-    
-    final Delivery lD = Delivery.nextDeliveryFrom(
-      this, actor, DEPOT_GOODS, 10
+    final Delivery c = Deliveries.nextCollectionFor(
+      this, services(), 10, null, world
     ) ;
-    if (lD != null && personnel.assignedTo(lD) < 1) choice.add(lD) ;
+    if (c != null && personnel.assignedTo(c) < 1) choice.add(c) ;
     
-    //
-    //  Don't collect from other depots.  Bulk deliveries serve that function.
-    Item[] shortages = stocks.shortages().toArray(Item.class) ;
-    final Venue CV = Delivery.findBestVendor(this, shortages) ;
-    if (CV != null) {
-      shortages = Delivery.compressOrder(shortages, 10) ;
-      choice.add(new Delivery(shortages, CV, this)) ;
-    }
     choice.add(new Supervision(actor, this)) ;
-    
     return choice.weightedPick(actor.AI.whimsy()) ;
   }
   
   
-  private Batch <Venue> nearbyDepots() {
-    final Batch <Venue> depots = new Batch <Venue> () ;
-    for (Object o : world.presences.matchesNear(SupplyDepot.class, this, -1)) {
-      if (o == this) continue ;
-      depots.add((Venue) o) ;
-    }
-    return depots ;
-  }
-  
-  
   public void updateAsScheduled(int numUpdates) {
-    ///if (mainEntrance().blocked()) I.say("BLOCKED ENTRANCE!") ;
     super.updateAsScheduled(numUpdates) ;
-    final Batch <Venue> depots = nearbyDepots() ;
-    
-    for (Service type : DEPOT_GOODS) {
-      final Integer level = exportLevels.get(type) ;
-      if (level != null && level > 0) stocks.forceDemand(type, level, 0) ;
-      //if (level != null && level < 0) stocks.forceDemand(type, 0, 1) ;
+    if (docking != null && ! docking.inWorld()) docking = null ;
+    if (! structure.intact()) return ;
+    final Batch <Venue> depots = Deliveries.nearbyDepots(this, world) ;
+    for (Service type : ALL_COMMODITIES) {
+      final int level = exportLevel(type) ;
+      if (level > 0) {
+        stocks.forceDemand(type, exportDemand(type), 0) ;
+      }
       stocks.diffuseDemand(type, depots) ;
     }
   }
   
   
   public float importDemand(Service type) {
-    final Integer level = exportLevels.get(type) ;
-    if (level == null || level >= 0) return 0 ;
-    return 0 - level ;
+    if (type.form != FORM_COMMODITY) return 0 ;
+    final int level = exportLevel(type) ;
+    if (level > 0) return 0 ;
+    final float demand = stocks.demandFor(type) ;
+    return Math.min(0 - level, demand * level / -10f) ;
   }
   
   
   public float exportDemand(Service type) {
-    final Integer level = exportLevels.get(type) ;
-    if (level == null || level <= 0) return 0 ;
-    return level ;
+    if (type.form != FORM_COMMODITY) return 0 ;
+    final int level = exportLevel(type) ;
+    if (level < 0) return 0 ;
+    final float price = base().commerce.exportPrice(type) ;
+    if (price < type.basePrice) return level ;
+    else return level + (10 * ((price / type.basePrice) - 1)) ;
   }
   
   
@@ -214,81 +238,63 @@ public class SupplyDepot extends Venue implements
   
   
   public Service[] services() {
-    return DEPOT_GOODS ;
-  }
-  
-  
-  public void onCompletion() {
-    super.onCompletion() ;
-    cargoBarge = new CargoBarge() ;
-    cargoBarge.assignBase(base()) ;
-    final Tile o = origin() ;
-    cargoBarge.enterWorldAt(o.x, o.y, world) ;
-    cargoBarge.goAboard(this, world) ;
+    return ALL_COMMODITIES ;
   }
   
   
   
   /**  Rendering and interface methods-
     */
+  protected float[] goodDisplayOffsets() {
+    return new float[] { -3.5f, 0.5f } ;
+  }
+  
+  
+  protected Service[] goodsToShow() {
+    return new Service[] { CRATES } ;
+  }
+  
+  
+  protected float goodDisplayAmount(Service good) {
+    float amount = 0 ;
+    for (Item i : stocks.allItems()) amount += i.amount ;
+    return amount ;
+  }
+  
+  
   public String[] infoCategories() {
-    return new String[] { "STATUS", "STAFF", "ORDERS" } ;
+    return new String[] { "STATUS", "STAFF", "STOCK", "ORDERS" } ;
   }
   
 
   public void writeInformation(Description d, int categoryID, HUD UI) {
-    if (categoryID == 2) {
-      d.append("Trade Quotas (Per Day)") ;
-      descStock(d, exportLevels) ;
+    if (categoryID == 3) {
+      d.append("Trade Quotas (Click to change)\n") ;
+      for (int n = 0 ; n < NUM_PREFS ; n++) {
+        descPref(n, PREF_TITLES[n], d) ;
+      }
     }
     else super.writeInformation(d, categoryID, UI) ;
   }
   
   
-  final private static Colour PREF_COLOURS[] = {
-    Colour.YELLOW, Colour.RED, Colour.MAGENTA,
-    Colour.BLUE, Colour.CYAN, Colour.GREEN,
-  } ;
-  
-  
-  private void descStock(Description d, final Table <Service, Integer> prefs) {
-    
-    for (final Service type : DEPOT_GOODS) {
-      
-      Integer level = prefs.get(type) ;
-      if (level == null) level = 0 ;
-      final boolean imports = level < 0 ;
-      final int oldPref = imports ? (0 - level) : level ;
-      final Colour tone = PREF_COLOURS[(oldPref + 5) / 10] ;
-      
-      final int amount = (int) Math.ceil(stocks.amountOf(type)) ;
-      if (oldPref == 0) d.append("\n  Not trading "+type.name, tone) ;
-      else {
-        d.append("\n  "+(imports ? "Import " : "Export "), tone) ;
-        d.append(oldPref+" "+type.name+" (have "+amount+")", tone) ;
+  private void descPref(final int index, String title, Description d) {
+    int level = exportLevels[index] ;
+    d.append("\n"+title) ;
+    for (int n = 0 ; n < NUM_LEVELS ; n++) {
+      if (level == PREF_LEVELS[n]) {
+        final int setting = n ;
+        d.append("\n  ") ;
+        d.append(new Description.Link(LEVEL_TITLES[n]) {
+          public void whenClicked() {
+            exportLevels[index] = PREF_LEVELS[(setting + 1) % NUM_LEVELS] ;
+          }
+        }, PREF_COLOURS[setting]) ;
       }
-      
-      d.append("\n    ") ;
-      d.append(new Description.Link("Export ") {
-        public void whenClicked() {
-          if (imports) prefs.put(type, 5) ;
-          else {
-            if (oldPref >= 50) return ;
-            prefs.put(type, oldPref + 5) ;
-          }
-        }
-      }) ;
-      d.append(new Description.Link("Import ") {
-        public void whenClicked() {
-          if (imports) {
-            if (oldPref >= 50) return ;
-            prefs.put(type, 0 - (oldPref + 5)) ;
-          }
-          else prefs.put(type, -5) ;
-        }
-      }) ;
     }
   }
+  
+  
   
   
   public String fullName() {
@@ -312,8 +318,6 @@ public class SupplyDepot extends Venue implements
     return UIConstants.TYPE_MERCHANT ;
   }
 }
-
-
 
 
 

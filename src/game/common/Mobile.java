@@ -104,7 +104,16 @@ public abstract class Mobile extends Element
   public void exitWorld() {
     world.toggleActive(this, false) ;
     world().schedule.unschedule(this) ;
+    //
+    //  To be on the safe side, unregister from both current and next tiles-
+    final Vec3D nP = nextPosition ;
+    final Tile nT = world.tileAt(nP.x, nP.y) ;
+    world.presences.togglePresence(this, nT, false) ;
     if (aboard != null) aboard.setInside(this, false) ;
+    //
+    //  And update position, so you don't get odd jitter effects if selected-
+    position.setTo(nextPosition) ;
+    rotation = nextRotation ;
     super.exitWorld() ;
   }
   
@@ -197,7 +206,7 @@ public abstract class Mobile extends Element
     final Vec3D p = nextPosition ;
     final boolean outOfBounds =
       (! aboard.area(null).contains(p.x, p.y)) ||
-      (! aboard.inWorld()) ;
+      (aboard.destroyed()) ;
     //
     //  We allow mobiles to 'jump' between dissimilar objects, or track the
     //  sudden motions of mobile boardables (i.e, vehicles)-
@@ -235,11 +244,13 @@ public abstract class Mobile extends Element
     position.setTo(nextPosition) ;
     rotation = nextRotation ;
     super.setPosition(position.x, position.y, world) ;
+    /*
     if (verbose && BaseUI.isPicked(this)) {
       I.say("Aboard: "+aboard) ;
       I.say("Position "+nextPosition) ;
       I.say("Next step: "+next) ;
     }
+    //*/
   }
   
   

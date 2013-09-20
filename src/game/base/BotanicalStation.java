@@ -209,7 +209,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "Forestry programs assist in terraforming efforts and climate "+
       "moderation, as well as providing carbons for plastic production.",
       100,
-      P_CARBONS, 1,
+      PETROCARBS, 1,
       BROADLEAF_LAB, ALL_UPGRADES
     ),
     INSECTRY_LAB = new Upgrade(
@@ -255,7 +255,9 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
 
   public Behaviour jobFor(Actor actor) {
-    final Delivery d = Delivery.nextDeliveryFrom(this, actor, services(), 10) ;
+    final Delivery d = Deliveries.nextDeliveryFrom(
+      this, services(), 10, world
+    ) ;
     if (d != null) return d ;
     
     //if (true) return null ;

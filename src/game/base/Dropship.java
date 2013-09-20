@@ -110,47 +110,42 @@ public class Dropship extends Vehicle implements
   
   public int owningType() { return Element.VENUE_OWNS ; }
   public int pathType() { return Tile.PATH_BLOCKS ; }
-  public float height() { return 2.0f ; }
-  public float radius() { return 2.0f ; }
+  public float height() { return 1.5f ; }
+  public float radius() { return 1.5f ; }
   
   
   
   /**  Economic and behavioural functions-
     */
   public Behaviour jobFor(Actor actor) {
+    if (actor.AI.hasToDo(Delivery.class)) return null ;
     
-    //
-    //  TODO:  Have the depots themselves perform this task.
-    
-    final Batch <Venue> depots = nearbyDepots() ;
-    final Delivery d = Delivery.nextDeliveryFrom(
-      this, BuildConstants.ALL_CARRIED_ITEMS,
-      depots, 5, world, true
-    ) ;
-    if (d != null) {
-      return d ;
-    }
-    
-    final Delivery c = Delivery.selectExports(depots, this, 5) ;
-    if (c != null) return c ;
-    
-    if (stage == STAGE_BOARDING) {
+    if (stage >= STAGE_BOARDING) {
       final Action boardAction = new Action(
         actor, this,
         this, "actionBoard",
         Action.STAND, "boarding "+this
       ) ;
-      final float priority = timeLanded() / Commerce.SUPPLY_DURATION ;
-      boardAction.setPriority(Visit.clamp(priority, 0, Action.PARAMOUNT)) ;
+      boardAction.setPriority(stage == STAGE_BOARDING ? Action.CRITICAL : 100) ;
       return boardAction ;
     }
+    
+    final Batch <Venue> depots = nearbyDepots() ;
+    final Delivery d = Deliveries.nextImportDelivery(
+      this, ALL_COMMODITIES, depots, 10, world
+    ) ;
+    if (d != null) return d ;
+    
+    final Delivery c = Deliveries.nextExportCollection(
+      this, ALL_COMMODITIES, depots, 10, world
+    ) ;
+    if (c != null) return c ;
     return null ;
   }
   
   
+  //*
   private Batch <Venue> nearbyDepots() {
-    //
-    //  TODO:  Include stock exchanges as well.
     final Batch <Venue> depots = new Batch <Venue> () ;
     for (Object o : world.presences.matchesNear(SupplyDepot.class, this, -1)) {
       if (o == this) continue ;
@@ -158,12 +153,11 @@ public class Dropship extends Vehicle implements
     }
     return depots ;
   }
+  //*/
   
   
   public boolean actionBoard(Actor actor, Dropship ship) {
     ship.setInside(actor, true) ;
-    //  TODO:  Consider doing this when the ship gets away instead.
-    actor.exitWorld() ;
     return true ;
   }
   
@@ -186,15 +180,12 @@ public class Dropship extends Vehicle implements
   
   
   protected void offloadPassengers() {
-    final int size = 2 * (int) Math.ceil(radius()) ;
-    final int EC[] = Spacing.entranceCoords(size, size, entranceFace) ;
-    final Box2D site = this.area(null) ;
-    final Tile o = world.tileAt(site.xpos() + 0.5f, site.ypos() + 0.5f) ;
-    final Tile exit = world.tileAt(o.x + EC[0], o.y + EC[1]) ;
-    this.dropPoint = exit ;
+    final Vec3D p = dropPoint.position(null) ;
     
     for (Mobile m : inside()) if (! m.inWorld()) {
-      m.enterWorldAt(exit.x, exit.y, world) ;
+      m.setPosition(p.x, p.y, world) ;
+      m.enterWorld() ;
+      m.goAboard(dropPoint, world) ;
     }
     inside.clear() ;
   }
@@ -203,13 +194,8 @@ public class Dropship extends Vehicle implements
   
   /**  Handling the business of ascent and landing-
     */
-  public void beginDescent(Box2D site, World world) {
-    ///I.say("BEGINNING DESCENT") ;
-    aimPos.set(
-      site.xpos() + (site.xdim() / 2),
-      site.ypos() + (site.ydim() / 2),
-      0
-    ) ;
+  public void beginDescent(World world) {
+    I.sayAbout(this, "BEGINNING DESCENT") ;
     final Tile entry = Spacing.pickRandomTile(
       world.tileAt(aimPos.x, aimPos.y), INIT_DIST, world
     ) ;
@@ -217,27 +203,33 @@ public class Dropship extends Vehicle implements
     nextPosition.set(entry.x, entry.y, INIT_HIGH) ;
     nextRotation = 0 ;
     setHeading(nextPosition, nextRotation, true, world) ;
-    entranceFace = Venue.ENTRANCE_SOUTH ;
+    entranceFace = Venue.ENTRANCE_EAST ;
     stage = STAGE_DESCENT ;
     stageInceptTime = world.currentTime() ;
   }
   
   
   private void performLanding(World world, Box2D site) {
-    //
-    //  Clear any detritus around the perimeter-
-    for (Tile t : world.tilesIn(site, false)) {
-      if (t.owner() != null) t.owner().setAsDestroyed() ;
-    }
-    //
-    //  Claim tiles in the middle as owned, and evacuate any occupants-
-    site = new Box2D().setTo(site).expandBy(-1) ;
-    for (Tile t : world.tilesIn(site, false)) t.setOwner(this) ;
-    for (Tile t : world.tilesIn(site, false)) {
-      for (Mobile m : t.inside()) if (m != this) {
-        final Tile e = Spacing.nearestOpenTile(m.origin(), m) ;
-        m.setPosition(e.x, e.y, world) ;
+    if (! (dropPoint instanceof Venue)) {
+      //
+      //  Clear any detritus around the perimeter, Claim tiles in the middle as
+      //  owned, and evacuate any occupants-
+      for (Tile t : world.tilesIn(site, false)) {
+        if (t.owner() != null) t.owner().setAsDestroyed() ;
       }
+      site = new Box2D().setTo(site).expandBy(-1) ;
+      for (Tile t : world.tilesIn(site, false)) t.setOwner(this) ;
+      for (Tile t : world.tilesIn(site, false)) {
+        for (Mobile m : t.inside()) if (m != this) {
+          final Tile e = Spacing.nearestOpenTile(m.origin(), m) ;
+          m.setPosition(e.x, e.y, world) ;
+        }
+      }
+      final int size = 2 * (int) Math.ceil(radius()) ;
+      final int EC[] = Spacing.entranceCoords(size, size, entranceFace) ;
+      final Tile o = world.tileAt(site.xpos() + 0.5f, site.ypos() + 0.5f) ;
+      final Tile exit = world.tileAt(o.x + EC[0], o.y + EC[1]) ;
+      this.dropPoint = exit ;
     }
     //
     //  Offload cargo and passengers-
@@ -247,7 +239,10 @@ public class Dropship extends Vehicle implements
   
   public void beginAscent() {
     ///I.say("BEGINNING ASCENT") ;
-    if (landed()) {
+    if (dropPoint instanceof SupplyDepot) {
+      ((SupplyDepot) dropPoint).setToDock(null) ;
+    }
+    else if (landed()) {
       final Box2D site = new Box2D().setTo(landArea()).expandBy(-1) ;
       for (Tile t : world.tilesIn(site, false)) t.setOwner(null) ;
     }
@@ -296,6 +291,7 @@ public class Dropship extends Vehicle implements
     //
     //  Check to see if ascent or descent are complete-
     if (stage == STAGE_ASCENT && height >= 1) {
+      for (Mobile m : inside()) m.exitWorld() ;
       exitWorld() ;
       stage = STAGE_AWAY ;
       stageInceptTime = world.currentTime() ;
@@ -320,19 +316,19 @@ public class Dropship extends Vehicle implements
     //
     //  Calculate rate of lateral speed and descent-
     final float UPS = 1f / PlayLoop.UPDATES_PER_SECOND ;
-    final float dist = heading.length() / INIT_DIST ;
-    final float speed = (((dist * dist) * TOP_SPEED) + 1) * UPS ;
+    final float speed = TOP_SPEED * height * UPS ;
     float ascent = TOP_SPEED * UPS / 4 ;
     ascent = Math.min(ascent, Math.abs(position.z - aimPos.z)) ;
     if (stage == STAGE_DESCENT) ascent *= -1 ;
     //
     //  Then head toward the aim point-
     if (disp.length() > speed) disp.scale(speed / disp.length()) ;
+    disp.z = 0 ;
     nextPosition.setTo(position).add(disp) ;
     nextPosition.z = position.z + ascent ;
     //
     //  And adjust rotation-
-    float angle = (heading.toAngle() * height) + (0 * (1 - height)) ;
+    float angle = (heading.toAngle() * height) + (90 * (1 - height)) ;
     final float
       angleDif = Vec2D.degreeDif(angle, rotation),
       absDif   = Math.abs(angleDif), maxRotate = 90 * UPS ;
@@ -347,11 +343,16 @@ public class Dropship extends Vehicle implements
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (stage == STAGE_DESCENT) {
-      ///I.say("  LANDING AREA: "+landArea()) ;
       if (! checkLandingArea(world, landArea())) {
         beginAscent() ;
       }
     }
+  }
+  
+
+  public Boardable[] canBoard(Boardable batch[]) {
+    if (landed()) return super.canBoard(batch) ;
+    else return new Boardable[0] ;
   }
   
   
@@ -371,7 +372,10 @@ public class Dropship extends Vehicle implements
   
   
   protected boolean checkLandingArea(World world, Box2D area) {
-    for (Tile t : world.tilesIn(area, false)) {
+    if (dropPoint instanceof Venue) {
+      return dropPoint.inWorld() ;
+    }
+    else for (Tile t : world.tilesIn(area, false)) {
       if (t == null) return false ;
       if (t.owner() == this) continue ;
       if (t.owningType() > Element.ELEMENT_OWNS) return false ;
@@ -380,39 +384,75 @@ public class Dropship extends Vehicle implements
   }
   
   
-  public static Box2D findLandingSite(Dropship landing, final Base base) {
-    //
-    //  Firstly, determine a reasonable starting position-
+  public boolean findLandingSite(final Base base) {
+    this.assignBase(base) ;
+    
+    SupplyDepot pick = null ;
+    float bestRating = Float.NEGATIVE_INFINITY ;
+    
+    for (Object o : world.presences.matchesNear(SupplyDepot.class, this, -1)) {
+      final SupplyDepot venue = (SupplyDepot) o ;
+      if (venue.docking() != null || ! venue.structure.intact()) continue ;
+      float rating = 0 ; for (Service good : ALL_COMMODITIES) {
+        rating += venue.exportDemand(good) + venue.importShortage(good) ;
+      }
+      rating /= 2 * ALL_COMMODITIES.length ;
+      if (rating > bestRating) { pick = venue ; bestRating = rating ; }
+    }
+    
+    if (pick != null) {
+      final SupplyDepot venue = (SupplyDepot) pick ;
+      venue.position(aimPos) ;
+      aimPos.x += 1 ;
+      aimPos.y -= 1 ;
+      dropPoint = venue ;
+      venue.setToDock(this) ;
+      I.say("Landing at depot: "+dropPoint) ;
+      return true ;
+    }
+    
     final World world = base.world ;
     final Tile midTile = world.tileAt(world.size / 2, world.size / 2) ;
     final Target nearest = world.presences.randomMatchNear(base, midTile, -1) ;
-    if (nearest == null) return null ;
+    if (nearest == null) return false ;
+    
     final Tile init = Spacing.nearestOpenTile(world.tileAt(nearest), midTile) ;
-    if (init == null) return null ;
-    return findLandingSite(landing, init, base) ;
+    if (init == null) return false ;
+    return findLandingSite(init, base) ;
   }
+
   
-  
-  public static Box2D findLandingSite(
-    final Dropship landing, final Tile init, final Base base
+  private boolean findLandingSite(
+    final Tile init, final Base base
   ) {
     //
     //  Then, spread out to try and find a decent landing site-
-    final Box2D area = landing.landArea() ;
+    final Box2D area = landArea() ;
+    final int maxDist = World.DEFAULT_SECTOR_SIZE * 2 ;
     final TileSpread spread = new TileSpread(init) {
       protected boolean canAccess(Tile t) {
-        if (Spacing.distance(t, init) > World.DEFAULT_SECTOR_SIZE) return false ;
+        if (Spacing.distance(t, init) > maxDist) return false ;
         return ! t.blocked() ;
       }
       protected boolean canPlaceAt(Tile t) {
         area.xpos(t.x - 0.5f) ;
         area.ypos(t.y - 0.5f) ;
-        return landing.checkLandingArea(base.world, area) ;
+        return checkLandingArea(base.world, area) ;
       }
     } ;
     spread.doSearch() ;
-    if (spread.success()) return area ;
-    return null ;
+    if (spread.success()) {
+      aimPos.set(
+        area.xpos() + (area.xdim() / 2f),
+        area.ypos() + (area.ydim() / 2f),
+        0
+      ) ;
+      aimPos.z = base.world.terrain().trueHeight(aimPos.x, aimPos.y) ;
+      dropPoint = null ;
+      I.say("Landing at point: "+aimPos) ;
+      return true ;
+    }
+    return false ;
   }
   
   

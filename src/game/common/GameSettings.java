@@ -16,7 +16,7 @@ public class GameSettings {
     hireFree  = false,
     noFog     = false,
     pathFree  = false,
-    frozen    = false,
+    
     hardCore  = false ;
   
   

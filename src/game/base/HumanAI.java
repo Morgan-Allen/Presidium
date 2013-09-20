@@ -212,13 +212,10 @@ public class HumanAI extends ActorAI implements ActorConstants {
   
   private void addPurchases(Choice choice) {
     //
-    //  If you already have something ordered, don't place a second order.
-    if (rootBehaviour() instanceof Commission) return ;
-    for (Behaviour b : todoList) if (b instanceof Commission) return ;
-    //
-    //  Otherwise, consider upgrading weapons or armour.
+    //  Consider upgrading weapons or armour.
+    final boolean hasCommission = hasToDo(Commission.class) ;
     final Service DT = actor.gear.deviceType() ;
-    if (DT != null) {
+    if (DT != null && ! hasCommission) {
       final int DQ = actor.gear.deviceEquipped().quality ;
       if (DQ < Item.MAX_QUALITY) {
         final Item nextDevice = Item.withQuality(DT, DQ + 1) ;
@@ -227,7 +224,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
       }
     }
     final Service OT = actor.gear.outfitType() ;
-    if (OT != null) {
+    if (OT != null && ! hasCommission) {
       final int OQ = actor.gear.outfitEquipped().quality ;
       if (OQ < Item.MAX_QUALITY) {
         final Item nextOutfit = Item.withQuality(OT, OQ + 1) ;
@@ -238,15 +235,12 @@ public class HumanAI extends ActorAI implements ActorConstants {
     //
     //  Also, consider buying new items for your home, either individually or
     //  together at the stock exchange.
-    if (home instanceof Holding) {
-      final Item items[] = ((Holding) home).goodsNeeded().toArray(Item.class) ;
-      ///if (BaseUI.isPicked(actor)) I.say("Shopping!") ;
-      final Venue shop = Delivery.findBestVendor(home, items) ;
-      if (shop != null) {
-        ///if (BaseUI.isPicked(actor)) I.say("Shopping!") ;
-        Delivery.compressOrder(items, 5) ;
-        choice.add(new Delivery(items, shop, home)) ;
-      }
+    final boolean hasDelivery = hasToDo(Delivery.class) ;
+    if (home instanceof Holding && ! hasDelivery) {
+      final Service goods[] = ((Holding) home).goodsNeeded() ;
+      choice.add(Deliveries.nextCollectionFor(
+        home, goods, 5, actor, actor.world())
+      ) ;
     }
   }
 }

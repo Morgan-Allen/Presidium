@@ -200,6 +200,7 @@ public class VenueStructure extends Inventory {
     if (damage < 0) I.complain("NEGATIVE DAMAGE!") ;
     adjustRepair(0 - damage) ;
     if (damage > Rand.num() * maxIntegrity()) burning = true ;
+    if (integrity <= 0) venue.onDestruction() ;
   }
   
   
@@ -210,6 +211,7 @@ public class VenueStructure extends Inventory {
       state = STATE_RAZED ;
       venue.setAsDestroyed() ;
       integrity = 0 ;
+      checkMaintenance() ;
     }
     else if (integrity >= max) {
       if (state == STATE_INSTALL) venue.onCompletion() ;
@@ -242,9 +244,10 @@ public class VenueStructure extends Inventory {
   
   protected void checkMaintenance() {
     final World world = venue.world() ;
-    final boolean needs =
+    final boolean needs = (state != STATE_RAZED) && (
       (state == STATE_SALVAGE) || (! goodCondition()) ||
-      needsUpgrade() || burning ;
+      needsUpgrade() || burning
+    ) ;
     world.presences.togglePresence(
       venue, world.tileAt(venue), needs, "damaged"
     ) ;
@@ -422,7 +425,7 @@ public class VenueStructure extends Inventory {
       final float damage = maxIntegrity() - integrity ;
       if (armouring > Rand.num() * damage) burning = false ;
     }
-    if (numUpdates % 10 == 0 && ! GameSettings.buildFree) {
+    if (integrity > 0 && numUpdates % 10 == 0 && ! GameSettings.buildFree) {
       final float wear = baseIntegrity * 1f / World.DEFAULT_DAY_LENGTH ;
       if (2 > Rand.num() * armouring) takeDamage(wear * Rand.num()) ;
     }
@@ -438,12 +441,13 @@ public class VenueStructure extends Inventory {
     "No more than 3 upgrades of a single type."
   } ;
   
-  protected Batch <String> descUpgrades() {
+  
+  protected Batch <String> descOngoingUpgrades() {
     final Batch <String> desc = new Batch <String> () ;
     if (upgrades == null) return desc ;
     for (int i = 0 ; i < upgrades.length ; i++) {
-      if (upgrades[i] == null) desc.add("Empty") ;
-      else desc.add(upgrades[i].name+" ("+STATE_DESC[upgradeStates[i]]+")") ;
+      if (upgrades[i] == null || upgradeStates[i] == STATE_INTACT) continue ;
+      desc.add(upgrades[i].name+" ("+STATE_DESC[upgradeStates[i]]+")") ;
     }
     return desc ;
   }

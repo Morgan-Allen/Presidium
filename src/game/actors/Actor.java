@@ -142,25 +142,23 @@ public abstract class Actor extends Mobile implements
   protected void updateAsMobile() {
     super.updateAsMobile() ;
     final boolean OK = health.conscious() ;
-    
     if (! OK) pathing.updateTarget(null) ;
     
     if (actionTaken != null && ! pathing.checkPathingOkay()) {
       world.schedule.scheduleNow(this) ;
     }
+    
     if (actionTaken != null) {
       actionTaken.updateMotion(OK) ;
       actionTaken.updateAction() ;
       
       final Behaviour root = AI.rootBehaviour() ;
       if (root != null && root.finished() && OK) {
-        if (root.begun()) AI.cancelBehaviour(root) ;
+        if (root.begun() && root != actionTaken) AI.cancelBehaviour(root) ;
         world.schedule.scheduleNow(this) ;
       }
-      else if (actionTaken.finished() && OK) {
+      else if (actionTaken != null && actionTaken.finished() && OK) {
         world.schedule.scheduleNow(this) ;
-      }
-      else if (! pathing.checkPathingOkay()) {
       }
     }
     

@@ -24,15 +24,21 @@ public class System extends Background {
   final Vec2D starCoords ;
   
   final Service goodsMade[], goodsNeeded[] ;
+  final public Trait climate ;
+  final public int gravity ;
+  
   
   
   public System(
     String name, String imgName, float starX, float starY,
-    Object... args
+    Trait climate, int gravity, Object... args
   ) {
     super(name, null, null, -1, args) ;
     this.image = imgName == null ? null : Texture.loadTexture(imgName) ;
     this.starCoords = new Vec2D(starX, starY) ;
+    
+    this.climate = climate ;
+    this.gravity = gravity ;
     
     final Batch <Service> madeB = new Batch(), needB = new Batch() ;
     Object tag = null ;

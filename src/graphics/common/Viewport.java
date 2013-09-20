@@ -3,12 +3,11 @@
   *  I intend to slap on some kind of open-source license here in a while, but
   *  for now, feel free to poke around for non-commercial purposes.
   */
-
 package src.graphics.common ;
 import org.lwjgl.opengl.* ;
-//import src.ui.*;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.HUD ;
 import src.util.* ;
+
 
 
 /**  The Viewport represents a given portion of the screen, and the various view
@@ -18,7 +17,7 @@ import src.util.* ;
   */
 public class Viewport {
   
-
+  
   final public static float
     DEFAULT_SCALE = 40.0F,
     DEFAULT_ROTATE = (float) Math.toRadians(45),
@@ -61,7 +60,7 @@ public class Viewport {
     screenX = (viewBounds.xpos() + viewBounds.xmax()) / 2 ;
     screenY = (viewBounds.ypos() + viewBounds.ymax()) / 2 ;  //-centre of view on screen.
     screenS = cameraZoom * DEFAULT_SCALE ;
-    invertS = 1 / screenS ;
+    invertS = 1f / screenS ;
     projectMode = MODE_INIT ;
   }
   
@@ -225,7 +224,7 @@ public class Viewport {
     GL11.glOrtho(
       0 - wide, wide,
       0 - high, high,
-      -100 / cameraZoom, 100 / cameraZoom //minDepth / screenS, maxDepth / screenS
+      -100 / cameraZoom, 100 / cameraZoom
     ) ;
   }
   
@@ -259,7 +258,7 @@ public class Viewport {
   public Vec3D screenToIso(Vec3D StI) {
     StI.x = (StI.x - screenX) * invertS ;
     StI.y = (StI.y - screenY) * invertS ;
-    StI.z *= invertS ;
+    StI.z = StI.z * invertS / cameraZoom ;
     viewInvert.trans(StI) ;
     StI.add(cameraPosition) ;
     return StI ;
@@ -273,7 +272,10 @@ public class Viewport {
     viewMatrix.trans(ItS) ;
     ItS.x = (ItS.x * screenS) + screenX ;
     ItS.y = (ItS.y * screenS) + screenY ;
-    ItS.z *= screenS ;
+    ItS.z = ItS.z * cameraZoom * screenS ;
     return ItS ;
   }
 }
+
+
+

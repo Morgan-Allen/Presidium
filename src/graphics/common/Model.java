@@ -5,6 +5,7 @@
   */
 
 package src.graphics.common ;
+import src.game.common.* ;
 import src.util.* ;
 import java.io.* ;
 import java.lang.reflect.* ;
@@ -66,8 +67,11 @@ public abstract class Model {
     final String className = LoadService.readString(in) ;
     ClassLoader.getSystemClassLoader().loadClass(className) ;
     loaded = modelCache.get(modelName) ;
-    if (loaded == null)
-      I.complain("MODEL NO LONGER DEFINED IN SPECIFIED CLASS: "+className) ;
+    
+    if (loaded == null) I.complain(
+      "MODEL NAMED: "+modelName+
+      "\nNO LONGER DEFINED IN SPECIFIED CLASS: "+className
+    ) ;
     IDModels.put(modelID, loaded) ;
     return loaded ;
   }

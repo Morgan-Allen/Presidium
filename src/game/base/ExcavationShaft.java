@@ -189,7 +189,7 @@ public class ExcavationShaft extends Venue implements
     
     promise += terrain.mineralsAt(
       face.origin(), Terrain.TYPE_CARBONS
-    ) * (structure.upgradeBonus(P_CARBONS)  + 2) ;
+    ) * (structure.upgradeBonus(PETROCARBS)  + 2) ;
     promise += terrain.mineralsAt(
       face.origin(), Terrain.TYPE_METALS
     ) * (structure.upgradeBonus(METAL_ORE)   + 2) ;
@@ -228,7 +228,7 @@ public class ExcavationShaft extends Venue implements
       "Allows deposits of complex hydrocarbons to be processed and stored "+
       "more efficiently.",
       100,
-      P_CARBONS, 1, null, ALL_UPGRADES
+      PETROCARBS, 1, null, ALL_UPGRADES
     ),
 
     METALS_SMELTING = new Upgrade(
@@ -265,7 +265,7 @@ public class ExcavationShaft extends Venue implements
   
   
   public Service[] services() {
-    return new Service[] { P_CARBONS, METAL_ORE, FUEL_CORES } ;
+    return new Service[] { PETROCARBS, METAL_ORE, FUEL_CORES } ;
   }
   
   
@@ -278,7 +278,9 @@ public class ExcavationShaft extends Venue implements
   
   public Behaviour jobFor(Actor actor) {
     
-    final Delivery d = Delivery.nextDeliveryFrom(this, actor, services(), 10) ;
+    final Delivery d = Deliveries.nextDeliveryFrom(
+      this, services(), 10, world
+    ) ;
     if (d != null) return d ;
     
     final MineFace opening = findNextFace() ;

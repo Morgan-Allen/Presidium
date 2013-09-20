@@ -23,12 +23,12 @@ public class CultureVats extends Venue implements BuildConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    CultureVats.class, "media/Buildings/physician/culture_vats.png", 3, 3
+    CultureVats.class, "media/Buildings/physician/culture_vats.png", 3.66f, 3
   ) ;
   
   
   public CultureVats(Base base) {
-    super(3, 3, ENTRANCE_NORTH, base) ;
+    super(4, 3, ENTRANCE_NORTH, base) ;
     structure.setupStats(
       400, 3, 450,
       VenueStructure.NORMAL_MAX_UPGRADES, false
@@ -52,8 +52,8 @@ public class CultureVats extends Venue implements BuildConstants {
     */
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    stocks.translateDemands(NIL_TO_SOMA) ;
-    stocks.translateDemands(NIL_TO_STARCHES) ;
+    stocks.translateDemands(POWER_TO_SOMA) ;
+    stocks.translateDemands(POWER_TO_STARCHES) ;
   }
   
   
@@ -66,8 +66,8 @@ public class CultureVats extends Venue implements BuildConstants {
     if (o != null) return o ;
     
     for (Conversion c : new Conversion[] {
-      NIL_TO_STARCHES,
-      NIL_TO_SOMA
+      POWER_TO_STARCHES,
+      POWER_TO_SOMA
     }) {
       final Manufacture m = stocks.nextManufacture(actor, c) ;
       if (m != null) return m ;

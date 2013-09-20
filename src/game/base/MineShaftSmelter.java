@@ -51,7 +51,7 @@ public class MineShaftSmelter extends Venue implements BuildConstants {
   final static int
     MOLD_COOL_TIME = 8 ;
   final static Service
-    MINED_TYPES[] = { FUEL_CORES, METAL_ORE, P_CARBONS } ;
+    MINED_TYPES[] = { FUEL_CORES, METAL_ORE, PETROCARBS } ;
   
   
   static class Mold {
@@ -127,8 +127,9 @@ public class MineShaftSmelter extends Venue implements BuildConstants {
   
   
   public Behaviour jobFor(Actor actor) {
-
-    final Delivery d = Delivery.nextDeliveryFrom(this, actor, services(), 10) ;
+    final Delivery d = Deliveries.nextDeliveryFrom(
+      this, services(), 10, world
+    ) ;
     if (d != null) return d ;
     
     if (stocks.amountOf(mined) > 50) return null ;

@@ -242,7 +242,7 @@ public class Inventory {
   public boolean hasItem(Item item) {
     final float amount = amountOf(item) ;
     if (item.amount == Item.ANY) return amount > 0 ;
-    else return amount >= item.amount ;
+    else return item.amount > 0 && amount >= item.amount ;
   }
 }
 

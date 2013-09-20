@@ -91,7 +91,8 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
   private void loadMember(Session s) throws Exception {
     final int pX = s.loadInt(), pY = s.loadInt() ;
     final Target t = s.loadTarget() ;
-    toggleAt(root, pX, pY, t, true) ;
+    if (! t.inWorld()) I.say(t+" NOT IN WORLD! "+this.key) ;
+    else toggleAt(root, pX, pY, t, true) ;
   }
   
   

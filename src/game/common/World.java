@@ -182,12 +182,10 @@ public class World {
     */
   public void updateWorld() {
     sections.updateBounds() ;
-    if (! GameSettings.frozen) {
-      currentTime += 1f / PlayLoop.UPDATES_PER_SECOND ;
-      schedule.advanceSchedule(currentTime) ;
-      ecology.updateEcology() ;
-      for (Mobile m : mobiles) m.updateAsMobile() ;
-    }
+    currentTime += 1f / PlayLoop.UPDATES_PER_SECOND ;
+    schedule.advanceSchedule(currentTime) ;
+    ecology.updateEcology() ;
+    for (Mobile m : mobiles) m.updateAsMobile() ;
   }
   
   

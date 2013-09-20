@@ -57,7 +57,7 @@ public interface ActorConstants {
     NESTING        = new Skill("Nesting"       , FORM_INSTINCT, INSIGHT),
     MIMESIS        = new Skill("Mimesis"       , FORM_INSTINCT, REFLEX ),
     PHEREMONIST    = new Skill("Pheremonist"   , FORM_INSTINCT, WILL   ),
-    SUBSTANTIATION = new Skill("Substantiation", FORM_INSTINCT, WILL   ),
+    IMMANENCE      = new Skill("Immanence"     , FORM_INSTINCT, WILL   ),
     
     INSTINCT_SKILLS[] = Trait.skillsSoFar() ;
   
@@ -79,7 +79,7 @@ public interface ActorConstants {
     PHARMACY       = new Skill("Pharmacy"      , FORM_COGNITIVE, INTELLECT),
     ANATOMY        = new Skill("Anatomy"       , FORM_COGNITIVE, INTELLECT),
     GENE_CULTURE   = new Skill("Gene Culture"  , FORM_COGNITIVE, INTELLECT),
-    PSYCHOANALYSIS = new Skill("Psychoanalysis", FORM_COGNITIVE, INTELLECT),
+    NEUROSCIENCE   = new Skill("Neuroscience"  , FORM_COGNITIVE, INTELLECT),
     //
     //  Research and governance-related.
     ANCIENT_LORE   = new Skill("Ancient Lore"  , FORM_COGNITIVE, INTELLECT),
@@ -100,8 +100,8 @@ public interface ActorConstants {
     COMMON_CUSTOM     = new Skill("Common Custom"  , FORM_SENSITIVE, INSIGHT),
     NOBLE_ETIQUETTE   = new Skill("Noble Etiquette", FORM_SENSITIVE, INSIGHT),
     //
-    //  Forms of artistic expression-
-    EROTIC_DANCE      = new Skill("Erotic Dance"   , FORM_SENSITIVE, REFLEX ),
+    //  Forms of artistic expression/entertainment-
+    EROTICS           = new Skill("Erotics"        , FORM_SENSITIVE, REFLEX ),
     DISGUISE          = new Skill("Disguise"       , FORM_SENSITIVE, REFLEX ),
     MUSIC_AND_SONG    = new Skill("Music and Song" , FORM_SENSITIVE, INSIGHT),
     GRAPHIC_DESIGN    = new Skill("Graphic Design" , FORM_SENSITIVE, INSIGHT),
@@ -288,7 +288,7 @@ public interface ActorConstants {
     ),
     ACQUISITIVE = new Trait(PERSONALITY,
       "Avaricious",
-      "Thrifty",
+      "Acquisitive",
       "Prudent",
       null,
       "Generous",

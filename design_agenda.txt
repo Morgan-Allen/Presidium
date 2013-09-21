@@ -27,7 +27,23 @@ Quest ideas-
   There's a virgin wilderness filled with dangerous animals.
   Two small settlements need to be rebuilt and defended.
   An imperial fortress is held by a trio of champions.
-
+  
+  Action takes place on the planet of Diapsor/Diaspora.
+  (Places named after Mars)
+  Pavonis Sector, Vallis Sector, Olympus Sector,
+  Elysium Sector, Acheron Sector, Tharsis Sector
+  
+  Other worlds/powers in setting:
+  House Maia (aesthete)     House Fomalhaut (trade)
+    Nordsei system            Solipsus system
+  House Procyon (artificer) House Taygeta (science)
+    Parem V system            Axis Novena system
+  House Altair (military)   House Suhail (ecology)
+    Haliban system            Asra Novi system
+  Calivor (capital/Senate)  Theta Rho (krech)
+  Urym Hive (imperial)      Albedo C97 (changeling)
+  The World Forge (strain)  The Homeworld (jovian)
+  Lightly-settled worlds:  Tovet, Xiridu, Termagant
 
 
 
@@ -39,11 +55,10 @@ CULTURE VATS
   Drug Synthesis  (requires Soma Culture, makes medicines)
   Cloning Vats  (requires Tissue Banks, allows cloning from samples)
 
-
-RANGER REDOUBT  (plus list of Species)
+EXPLORER REDOUBT  (plus list of Species)
   Enhanced Camouflage
   Birthing Pens
-  Ranger Quarters
+  Explorer Quarters
   Water Capture
   Spice Capture (requires Water Capture)
   Riding Pens (requires Birthing Pens)
@@ -78,18 +93,13 @@ GARRISON & BASTION
 
 
 
-FABRICATOR & TRAINING HOUSE
+THE FABRICATOR
   Faster production of plastics.
   Faster production of garments.
   Faster production of furnishings.
   Production of standalone artwork/landscaping.
   Recruiting Fabricators.
   Recruiting Sculptors.
-  
-  Music and Song and Dance.
-  Physical pleasure/carnal delights.
-  Mystic trance/guided meditation.
-  Recruiting Companions.
 
 
 
@@ -105,28 +115,28 @@ THE AIR PROCESSOR
   Water Cycle Integration.  (Bonus near deserts/oceans.)
   ...automated crawler as standard.
 
-
-
 THE REACTOR
-  Lower pollution/risk of meltdown.
-  Higher power output.
-  Better manufacture of fuel cells/antimatter.
-  Boost to shield generation.
-  Better security measures and defence.
-  Recruiting Core Technicians.
-  
   What about the Vault System/Service Hatches?
   ...Allows you to stockpile set amounts of various goods, for
      release in case of shortfall.
   ...Provides a baseline degree of power and life support.
   ...Provides an emergency shelter in times of invasion/disaster.
 
-
-
 THE ARCHIVES
   ...Manufactures Inscription for holdings.
   ...Allows skills to be researched (after you install their Datalinks.)
   Archivists as a standard complement, based on no. of datalinks.
+
+
+
+//
+//  THESE WILL HAVE TO BE IMPLEMENTED LATER, I THINK
+
+THE TRAINING HOUSE
+  Music and Song and Dance.
+  Physical pleasure/carnal delights.
+  Mystic trance/guided meditation.
+  Recruiting Companions.
 
 THE CHILDREN'S CRECHE & DETENTION BLOC
   Physical Ed/Augment.  (boost vigour/brawn  , related skills)

@@ -45,14 +45,6 @@ public class I {
     }
   }
   
-  /*
-  public static final void sayWhen(boolean verbose, Object o, String s) {
-    if (verbose && talkAbout != null && o == talkAbout && ! mute) {
-      System.out.println(s) ;
-    }
-  }
-  //*/
-  
   
   public static final void complain(String e) {
     say(e) ;
@@ -72,8 +64,22 @@ public class I {
   
   
   
+  /**  A few utility printing methods-
+    */
+  public static String shorten(float f, int decimals) {
+    final int i = (int) f ;
+    final float r = f - i ;
+    if (r == 0) return ""+i ;
+    final String fraction = r+"" ;
+    final int trim = Math.min(decimals + 2, fraction.length()) ;
+    return i+(fraction.substring(1, trim)) ;
+  }
   
   
+  
+  
+  /**  Visual presentations-
+    */
   private final static int
     MODE_GREY   = 0,
     MODE_COLOUR = 1 ;

@@ -110,7 +110,7 @@ public class Bastion extends Venue implements BuildConstants {
     if (b == Background.VETERAN) {
       return nO + 1 + structure.upgradeLevel(SECURITY_MEASURES) ;
     }
-    if (b == Background.MECHANIC) {
+    if (b == Background.RESERVIST) {
       return nO + 2 + structure.upgradeLevel(LOGISTIC_SUPPORT) ;
     }
     if (b == Background.AUDITOR) {
@@ -132,7 +132,7 @@ public class Bastion extends Venue implements BuildConstants {
     if (v == Background.VETERAN) {
       return new Patrolling(actor, this, this.radius()) ;
     }
-    if (v == Background.MECHANIC) {
+    if (v == Background.RESERVIST) {
       return Building.getNextRepairFor(actor) ;
     }
     if (v == Background.AUDITOR) {
@@ -178,7 +178,7 @@ public class Bastion extends Venue implements BuildConstants {
   
   protected Background[] careers() {
     return new Background[] {
-      Background.MECHANIC, Background.VETERAN,
+      Background.RESERVIST, Background.VETERAN,
       Background.AUDITOR, Background.STEWARD
     } ;
   }

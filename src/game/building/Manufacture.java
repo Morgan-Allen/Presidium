@@ -14,10 +14,6 @@ import src.util.* ;
 
 
 
-//
-//  TODO:  Problem!  You need to keep track of how many parts are actually
-//  required at the venue, because that might go down...
-
 
 public class Manufacture extends Plan implements Behaviour {
   
@@ -31,10 +27,9 @@ public class Manufacture extends Plan implements Behaviour {
   
   final public Venue venue ;
   final public Conversion conversion ;
-  final public Item made, needed[] ;
   
+  private Item made, needed[] ;
   public int checkBonus = 0, timeMult = 1 ;
-  //private float timeTaken = 0 ;
   
   
   
@@ -46,8 +41,6 @@ public class Manufacture extends Plan implements Behaviour {
     this.made = made == null ? conversion.out : made ;
     this.conversion = conversion ;
     this.needed = conversion.raw ;
-    //timeTaken += this.made.amount ;
-    //timeTaken *= TIME_PER_UNIT * timeMult ;
   }
   
   
@@ -74,21 +67,45 @@ public class Manufacture extends Plan implements Behaviour {
   }
   
   
+  public Item made() {
+    return made ;
+  }
+  
+  
+  public Item[] needed() {
+    return needed ;
+  }
+  
+  
   
   /**  Vary this based on delay since inception and demand at the venue-
     */
   public float priorityFor(Actor actor) {
     if (GameSettings.hardCore && ! hasNeeded()) return 0 ;
     //
+    //  Don't work on this outside your shift (or at least make it more
+    //  casual.)  TODO:  Implement 'secondary shifts'?  Maybe 'overtime'?
+    final Venue venue = (Venue) actor.AI.work() ;
+    if (! venue.personnel.onShift(actor)) {
+      return 0 ;
+    }
+    //
     //  Vary priority based on how qualified to perform the task you are.
-    
-    return ROUTINE ;
+    final Conversion c = conversion ;
+    float chance = 1.0f ;
+    for (int i = c.skills.length ; i-- > 0 ;) {
+      chance *= actor.traits.chance(
+        c.skills[i], null, null, checkBonus - c.skillDCs[i]
+      ) ;
+    }
+    chance = (chance + 1) / 2f ;
+    return URGENT * chance ;
   }
   
   
   public boolean valid() {
     if (GameSettings.hardCore && ! hasNeeded()) return false ;
-    return true ;
+    return super.valid() ;
   }
   
   
@@ -104,11 +121,14 @@ public class Manufacture extends Plan implements Behaviour {
   /**  Behaviour implementation-
     */
   public boolean finished() {
+    if (super.finished()) return true ;
     return venue.stocks.hasItem(made) ;
   }
   
   
   public Behaviour getNextStep() {
+    final float demand = venue.stocks.demandFor(made.type) ;
+    if (demand > 0) made = Item.withAmount(made, demand + 5) ;
     if (venue.stocks.hasItem(made)) {
       return null ;
     }
@@ -143,7 +163,7 @@ public class Manufacture extends Plan implements Behaviour {
     for (int i = c.skills.length ; i-- > 0 ;) {
       success &= actor.traits.test(c.skills[i], c.skillDCs[i] + checkMod, 1) ;
     }
-    if (success || GameSettings.hardCore) {
+    if (success || GameSettings.hardCore && progInc > 0) {
       for (Item r : c.raw) {
         final Item used = Item.withAmount(r, r.amount * progInc) ;
         venue.inventory().removeItem(used) ;

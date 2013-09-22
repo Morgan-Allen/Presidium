@@ -14,6 +14,10 @@ import src.util.* ;
 
 
 
+//
+//  TODO:  The Cantina should appear by itself once your settlement gets big
+//  enough.  It counts as private property.  (Which is why you can't get rid of
+//  the criminal element!)
 
 
 public class Cantina extends Venue implements BuildConstants {

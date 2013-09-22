@@ -196,8 +196,8 @@ public class BotanicalStation extends Venue implements BuildConstants {
       GREENS, 2,
       null, ALL_UPGRADES
     ),
-    FIELD_HAND_QUARTERS = new Upgrade(
-      "Field Hand Quarters",
+    FIELD_HAND_STATION = new Upgrade(
+      "Field Hand Station",
       "Hire additional field hands to plant and reap the harvest more "+
       "quickly, maintain equipment, and bring land under cultivation.",
       50,
@@ -221,8 +221,8 @@ public class BotanicalStation extends Venue implements BuildConstants {
       PROTEIN, 1,
       BROADLEAF_LAB, ALL_UPGRADES
     ),
-    ECOLOGIST_QUARTERS = new Upgrade(
-      "Ecologist Quarters",
+    ECOLOGIST_STATION = new Upgrade(
+      "Ecologist Station",
       "Ecologists are highly-skilled students of plants, animals and gene "+
       "modification, capable of adapting species to local climate conditions.",
       150,
@@ -238,14 +238,14 @@ public class BotanicalStation extends Venue implements BuildConstants {
 
   public int numOpenings(Background v) {
     int num = super.numOpenings(v) ;
-    if (v == Background.FIELD_HAND) return num + 2 ;
-    if (v == Background.ECOLOGIST  ) return num + 0 ;
+    if (v == Background.FIELD_HAND) return num + 1 ;
+    if (v == Background.ECOLOGIST ) return num + 1 ;
     return 0 ;
   }
   
   
   public Service[] services() {
-    return new Service[] { CARBS, GREENS, PROTEIN } ;
+    return new Service[] { CARBS, GREENS, PROTEIN, PETROCARBS } ;
   }
   
   

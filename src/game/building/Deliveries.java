@@ -1,4 +1,8 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 
 package src.game.building ;
@@ -9,7 +13,15 @@ import src.game.building.Inventory.Owner ;
 import src.util.* ;
 
 
+//
+//  The problem here is that for sufficiently finely-balanced demands, the act
+//  of transport will itself change the balance of demands made.
 
+
+
+/**  This class implements a big bunch of helper methods to search for
+  *  optimal delivery venues and amounts-
+  */
 public class Deliveries implements BuildConstants {
   
   
@@ -17,6 +29,8 @@ public class Deliveries implements BuildConstants {
     IS_TRADE = 0,
     IS_IMPORT = 1,
     IS_EXPORT = 2 ;  
+  
+  private static boolean verbose = false ;
   
   
   public static Delivery nextDeliveryFrom(
@@ -36,6 +50,11 @@ public class Deliveries implements BuildConstants {
     final Owner client = bestClient(
       goods, origin, (Batch) clients, IS_TRADE
     ) ;
+    if (verbose && I.talkAbout == origin) {
+      I.say("\nCLIENTS ARE:") ;
+      for (Venue v : clients) I.say("  "+v) ;
+      I.say("BEST CLIENT IS: "+client+"\n") ;
+    }
     if (client == null) return null ;
     final Item order[] = configDelivery(
       goods, origin, client, null, sizeLimit, world, IS_TRADE
@@ -51,6 +70,13 @@ public class Deliveries implements BuildConstants {
     final Batch <Venue> vendors = Deliveries.nearbyVendors(
       goods, client, world
     ) ;
+    /*
+    if (verbose && I.talkAbout == pays) {
+      for (Venue v : vendors) I.say("Rating is: "+Deliveries.rateTrading(
+        goods, v, client, IS_TRADE
+      )+" FOR "+v) ;
+    }
+    //*/
     return nextCollectionFor(client, goods, vendors, sizeLimit, pays, world) ;
   }
   
@@ -115,9 +141,20 @@ public class Deliveries implements BuildConstants {
     //  First, get the amount of each item available for trade at the point of
     //  origin, and desired by the destination/client, which constrains the
     //  quantities involved-
+    if (verbose) I.sayAbout(
+      origin, "Evaluating delivery from "+origin+" to "+client
+    ) ;
+    final int
+      roundUnit = sizeLimit <= 5 ? 1 : 5,
+      pickUnit  = sizeLimit <= 5 ? 0 : 3 ;
+    final boolean ration =
+      pays != null &&
+      pays.vocation().guild == Background.GUILD_MILITANT ;
+    
+    
     final List <Item> viable = new List <Item> () {
       protected float queuePriority(Item i) {
-        return (i.amount + 1f) / (1 + i.type.basePrice) ;
+        return (1f + i.type.basePrice) / (i.amount + 1) ;
       }
     } ;
     final Batch <Behaviour>
@@ -142,9 +179,27 @@ public class Deliveries implements BuildConstants {
       }
       maxSold -= reservedForCollection(OD, good) ;
       maxBuys -= reservedForCollection(CD, good) ;
-      final float amount = Math.min(maxSold, maxBuys) / 2f ;
-      if (amount <= 0) continue ;
-      viable.queueAdd(Item.withAmount(good, amount)) ;
+      final float amount = Math.min(maxSold, maxBuys) ;
+      
+      final float rateTrade = tradeType == IS_TRADE ? (Deliveries.rateTrading(
+        good, origin, client, tradeType
+      ) / (amount + 1)) : 2 ;
+      
+      /*
+      if (origin == I.talkAbout && good == PARTS && tradeType == IS_TRADE) {
+        I.say("Urgency at origin: "+((Venue) origin).stocks.shortageUrgency(good)) ;
+        I.say("Urgency at client: "+((Venue) client).stocks.shortageUrgency(good)) ;
+        I.sayAbout(origin, "Trade rating is: "+rateTrade) ;
+        I.say("Trade amount is: "+(amount * rateTrade)) ;
+      }
+      //*/
+      
+      if ((amount * rateTrade) < pickUnit) continue ;
+      if (rateTrade >= 1) {
+        viable.queueAdd(Item.withAmount(good, amount)) ;
+        continue ;
+      }
+      viable.queueAdd(Item.withAmount(good, amount * rateTrade)) ;
     }
     //
     //  We then compress the quantities of items to fit within prescribed size
@@ -153,7 +208,10 @@ public class Deliveries implements BuildConstants {
     float sumAmounts = 0, sumPrice = 0, scale = 1 ;
     for (Item i : viable) {
       sumAmounts += i.amount ;
-      sumPrice += i.price() ;
+      float price = origin.priceFor(i.type) ;
+      if (ration) price -= 50 ;
+      if (price <= 0) continue ;
+      sumPrice += price * i.amount ;
     }
     if (sumAmounts > sizeLimit) {
       scale = sizeLimit / sumAmounts ;
@@ -165,9 +223,13 @@ public class Deliveries implements BuildConstants {
     if (sumPrice > priceLimit) {
       scale *= priceLimit / sumPrice ;
     }
+    
+    if (verbose && I.talkAbout == origin) {
+      I.say("Size/price limits: "+sizeLimit+" "+priceLimit+", goods:") ;
+      for (Item v : viable) I.say("  "+v) ;
+    }
     //
     //  In so doing, however, we must round up to the nearest order-unit...
-    final int roundUnit = sizeLimit <= 5 ? 1 : 5 ;
     int i = 0 ;
     sumAmounts = 0 ;
     sumPrice = 0 ;
@@ -179,21 +241,36 @@ public class Deliveries implements BuildConstants {
     }
     //
     //  ...which then necessitates trimming off possible excess-
-    //
-    //  TODO:  You also have to fit under the actual amount of the given good
-    //  available for transport at the origin!
-    
-    trimLoop: while (viable.size() != 0) {
+    if (viable.size() != 0) while (true) {
+      boolean noneTrimmed = true ;
       i = 0 ; for (Item v : viable) {
-        if (sumAmounts <= sizeLimit && sumPrice <= priceLimit) break trimLoop ;
-        if (amounts[i] > 0) {
+        float price = origin.priceFor(v.type) ;
+        if (ration) price -= 50 ;
+        if (price <= 0) price = 0 ;
+        
+        final boolean mustTrim =
+          sumAmounts > sizeLimit ||
+          (sumPrice > priceLimit && price > 0) ||
+          origin.inventory().amountOf(v) < amounts[i] ;
+        if (amounts[i] > 0 && mustTrim) {
           amounts[i] -= roundUnit ;
           sumAmounts -= roundUnit ;
-          sumPrice -= roundUnit * v.price() / v.amount ;
+          sumPrice -= roundUnit * price / v.amount ;
+          noneTrimmed = false ;
         }
         i++ ;
       }
+      if (noneTrimmed) break ;
     }
+    
+    if (verbose && I.talkAbout == origin) {
+      I.say("AFTER TRIM") ;
+      i = 0 ;
+      for (Item v : viable) {
+        I.say("  "+v.type+" "+amounts[i++]) ;
+      }
+    }
+    
     //
     //  Finally, we compile and return the quantities as items:
     final Batch <Item> trimmed = new Batch <Item> () ;
@@ -271,26 +348,44 @@ public class Deliveries implements BuildConstants {
     //  The basic purpose of this comparison is to ensure that deliveries are
     //  non-symmetric.
     if (tradeType == IS_IMPORT) {
+      //final int capacity = origin.spaceFor(good) ;
       return Math.min(
         ((Service.Trade) client).importShortage(good),
         origin.inventory().amountOf(good)
-      ) ;
+      ) / 10f ;//capacity ;
     }
     if (tradeType == IS_EXPORT) {
+      final int capacity = client.spaceFor(good) ;
       return Math.min(
         ((Service.Trade) origin).exportSurplus(good),
-        1000 //  TODO:  Put in limit based on cargo capacity
-      ) ;
+        capacity
+      ) / 10f ;//capacity ;
     }
     final float originUrgency = (origin instanceof Venue) ?
       ((Venue) origin).stocks.shortageUrgency(good) : 0 ;
     final float clientUrgency = (client instanceof Venue) ?
       ((Venue) client).stocks.shortageUrgency(good) : 0 ;
-      
+    
+    /*
+    if (I.talkAbout == origin) {
+      I.say("ORE URGENCY: "+originUrgency+"/"+clientUrgency) ;
+    }
+    //*/
     if (clientUrgency <= originUrgency) return 0 ;
-    final float TP = client.priceFor(good) + origin.priceFor(good) ;
-    float rating = clientUrgency - originUrgency ;
-    return rating * TP / 2f ;
+    /*
+    if (clientUrgency + originUrgency == 0) return 0 ;
+    //final float TP = client.priceFor(good) + origin.priceFor(good) ;
+    float rating =
+      (clientUrgency - originUrgency) * 2f /
+      (clientUrgency + originUrgency) ;
+    //*/
+    float rating = 1 ;
+    
+    rating *= origin.inventory().amountOf(good) / 10f ;
+    rating *= ((Venue) client).stocks.shortageOf(good) / 10f ;
+    //  TODO:  Make sure the client inventory has space!
+    
+    return rating ;
   }
   
   
@@ -308,9 +403,14 @@ public class Deliveries implements BuildConstants {
   
   public static Batch <Venue> nearbyCustomers(Target target, World world) {
     final Batch <Venue> nearby = new Batch <Venue> () ;
-    //  TODO:  Skip over any depots.
     world.presences.sampleTargets(Venue.class, target, world, 10, nearby) ;
-    return nearby ;
+    final Batch <Venue> returned = new Batch <Venue> () ;
+    for (Venue v : nearby) {
+      if (v.privateProperty()) continue ;
+      if ((v instanceof SupplyDepot) || (v instanceof StockExchange)) continue ;
+      returned.add(v) ;
+    }
+    return returned ;
   }
   
   
@@ -318,6 +418,15 @@ public class Deliveries implements BuildConstants {
     final Batch <Vehicle> nearby = new Batch <Vehicle> () ;
     world.presences.sampleTargets(Dropship.class, target, world, 10, nearby) ;
     return nearby ;
+  }
+  
+  
+  public static Batch <Venue> nearbyVendors(
+    Service type, Target target, World world
+  ) {
+    final Batch <Venue> vendors = new Batch <Venue> () ;
+    world.presences.sampleTargets(type, target, world, 5, vendors) ;
+    return vendors ;
   }
   
   

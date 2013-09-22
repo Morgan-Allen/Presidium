@@ -123,14 +123,18 @@ public class Auditing extends Plan {
   
   /**  Data fields, constructors and save/load functions-
     */
-  final static float
+  final public static float
     BASE_INCOME_TAX  = 0.50f,
     BASE_SAVINGS_TAX = 0.05f,
     BASE_CAPITAL_TAX = 0.50f,
     MAX_INFLATION    = 1.10f,
+    
     BASE_ALMS_PAY    = 10,
+    MILITANT_BONUS   = 2.0f,
+    
     BASE_SAVINGS     = 1000,
     BASE_CAPITAL     = 100 ;
+  
   final static int
     STAGE_EVAL   = -1,
     STAGE_AUDIT  =  0,

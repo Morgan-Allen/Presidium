@@ -45,6 +45,8 @@ public class DebugPlanet extends PlayLoop {
   /**  Setup and updates-
     */
   protected World createWorld() {
+    GameSettings.noFog = true ;
+    
     final TerrainGen TG = new TerrainGen(
       64, 0.33f,
       Habitat.OCEAN  , 0.33f,
@@ -54,6 +56,8 @@ public class DebugPlanet extends PlayLoop {
       Habitat.DESERT , 0.2f
     ) ;
     final World world = new World(TG.generateTerrain()) ;
+    
+    //*
     TG.setupMinerals(world, 0, 0, 0) ;
     TG.setupOutcrops(world) ;
     ///TG.presentMineralMap(world, world.terrain()) ;
@@ -64,6 +68,7 @@ public class DebugPlanet extends PlayLoop {
     
     EG.populateFauna(world, Species.VAREEN, Species.QUUD) ;
     EG.populateFauna(world, Species.MICOVORE) ;
+    //*/
     
     return world ;
   }

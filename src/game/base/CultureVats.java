@@ -52,33 +52,40 @@ public class CultureVats extends Venue implements BuildConstants {
     */
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    stocks.translateDemands(POWER_TO_SOMA) ;
-    stocks.translateDemands(POWER_TO_STARCHES) ;
+    if (! structure.intact()) return ;
+    
+    stocks.translateDemands(POWER_TO_STARCHES, 1) ;
+    stocks.translateDemands(POWER_TO_PROTEIN , 1) ;
+    stocks.translateDemands(POWER_TO_SOMA    , 1) ;
+    stocks.translateDemands(POWER_TO_MEDICINE, 1) ;
+    
+    float needPower = 5 ;
+    if (! isManned()) needPower /= 2 ;
+    stocks.incDemand(POWER, needPower, 1) ;
+    stocks.bumpItem(POWER, needPower * -0.1f) ;
   }
   
   
   public Behaviour jobFor(Actor actor) {
-    
-    //final Delivery d = stocks.nextDelivery(actor, services()) ;
-    //if (d != null) return d ;
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
+    final Choice choice = new Choice(actor) ;
     
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
-    if (o != null) return o ;
+    if (o != null) choice.add(o) ;
     
-    for (Conversion c : new Conversion[] {
-      POWER_TO_STARCHES,
-      POWER_TO_SOMA
-    }) {
-      final Manufacture m = stocks.nextManufacture(actor, c) ;
-      if (m != null) return m ;
-    }
+    choice.add(stocks.nextManufacture(actor, POWER_TO_STARCHES)) ;
+    choice.add(stocks.nextManufacture(actor, POWER_TO_PROTEIN)) ;
+    choice.add(stocks.nextManufacture(actor, POWER_TO_SOMA)) ;
+    choice.add(stocks.nextManufacture(actor, POWER_TO_MEDICINE)) ;
     
-    return null ;
+    return choice.weightedPick(actor.AI.whimsy()) ;
   }
   
   
   public Service[] services() {
-    return new Service[] { CARBS, PROTEIN, SOMA, MEDICINE } ;
+    return new Service[] {
+      CARBS, PROTEIN, SOMA, MEDICINE
+    } ;
   }
   
   

@@ -192,6 +192,14 @@ public abstract class Mission implements
   }
   
   
+  public boolean valid() {
+    return ! subject.destroyed() ;
+  }
+  
+  
+  public void onSuspend() {}
+  
+  
   
   /**  Default behaviour implementation and utility methods-
     */

@@ -36,6 +36,7 @@ public class TalkFX extends SFX {
     LINE_SPACE = LINE_HIGH + 10,
     FADE_RATE  = 1f / 25 ;
   
+  public float fadeRate = 1.0f ;
   final Stack <Bubble> toShow  = new Stack <Bubble> () ;
   final Stack <Bubble> showing = new Stack <Bubble> () ;
   
@@ -125,13 +126,13 @@ public class TalkFX extends SFX {
         showBubble(toShow.removeFirst()) ;
       }
       else for (Bubble b : showing) {
-        b.yoff += FADE_RATE * LINE_SPACE ;
+        b.yoff += FADE_RATE * fadeRate * LINE_SPACE ;
       }
     }
     //
     //  In either case, gradually fate out existing bubbles-
     for (Bubble b : showing) {
-      b.alpha -= FADE_RATE / MAX_LINES ;
+      b.alpha -= FADE_RATE * fadeRate / MAX_LINES ;
       if (b.alpha <= 0) showing.remove(b) ;
     }
   }
@@ -151,8 +152,8 @@ public class TalkFX extends SFX {
     b.width = width ;
     b.yoff = 5 ;
     if (b.type == NOT_SPOKEN) b.xoff = width / -2 ;
-    if (b.type == FROM_LEFT ) b.xoff = 20 - width ;
-    if (b.type == FROM_RIGHT) b.xoff = -20 ;
+    if (b.type == FROM_LEFT ) b.xoff = width / -2 ;//20 - width ;
+    if (b.type == FROM_RIGHT) b.xoff = width / -2 ;//-20 ;
     b.alpha = 1.5f ;
     showing.addFirst(b) ;
   }

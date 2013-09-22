@@ -19,7 +19,7 @@ import src.util.* ;
 
 
 
-public class DebugPathing extends PlayLoop {
+public class DebugPathing extends PlayLoop implements BuildConstants {
   
   
   
@@ -60,15 +60,15 @@ public class DebugPathing extends PlayLoop {
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(
       128, 0.2f,
-      Habitat.OCEAN  , 0.33f,
+      //Habitat.OCEAN  , 0.33f,
       Habitat.ESTUARY, 0.25f,
       Habitat.MEADOW , 0.5f,
       Habitat.BARRENS, 0.3f,
       Habitat.DESERT , 0.2f
     ) ;
     final World world = new World(TG.generateTerrain()) ;
-    TG.setupMinerals(world, 0.55f, 0.3f, 0.15f) ;
-    TG.setupOutcrops(world) ;
+    //TG.setupMinerals(world, 0.55f, 0.3f, 0.15f) ;
+    //TG.setupOutcrops(world) ;
     return world ;
   }
   
@@ -87,22 +87,21 @@ public class DebugPathing extends PlayLoop {
   
   
   protected void configureScenario(World world, Base base, HUD HUD) {
-    //
-    //  Now, just plonk down buildings instantly, deduct credits, and add
-    //  workers!
     I.say("Configuring world...") ;
-    Tile free = null ;
-    
-    for (Coord c : Visit.grid(0, 0, world.size, world.size, 1)) {
-      Flora.tryGrowthAt(c.x, c.y, world, true) ;
-      final Tile t = world.tileAt(c.x, c.y) ;
-      if (! t.blocked()) free = t ;
-    }
     
     GameSettings.noFog = true ;
-    //GameSettings.freePath = true ;
     GameSettings.hireFree = true ;
-    //introduceCitizen(free) ;
+    GameSettings.buildFree = true ;
+    
+    final StockExchange EA = new StockExchange(base) ;
+    DebugBehaviour.establishVenue(EA, 5, 5, true) ;
+    EA.stocks.bumpItem(DECOR, 50) ;
+    
+    final StockExchange EB = new StockExchange(base) ;
+    DebugBehaviour.establishVenue(EB, 15, 5, true) ;
+    EB.stocks.forceDemand(DECOR, 5000, 0) ;
+    
+    ((BaseUI) HUD).selection.pushSelection(EA.cargoBarge(), true) ;
   }
   
   
@@ -117,6 +116,7 @@ public class DebugPathing extends PlayLoop {
   
   protected void renderGameGraphics() {
     super.renderGameGraphics() ;
+    if (true) return ;
     if (((BaseUI) currentUI()).currentTask() == null) {
       highlightPlace() ;
       highlightPath() ;

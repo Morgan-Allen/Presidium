@@ -163,7 +163,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
     for (Actor near : actorB) {
       choice.add(new Combat(actor, near)) ;
       choice.add(new Treatment(actor, near)) ;
-      choice.add(new Dialogue(actor, near, true)) ;
+      choice.add(new Dialogue(actor, near, null)) ;
     }
     choice.add(new Retreat(actor)) ;
     choice.add(new SickLeave(actor)) ;
@@ -184,6 +184,9 @@ public class HumanAI extends ActorAI implements ActorConstants {
       Behaviour atHome = home.jobFor(actor) ;
       if (atHome != null) choice.add(atHome) ;
     }
+    //
+    //  Consider getting paid-
+    if (work != null) choice.add(new Payday(actor, work)) ;
     //
     //  Consider repairing nearby buildings-
     choice.add(Building.getNextRepairFor(actor)) ;
@@ -238,9 +241,10 @@ public class HumanAI extends ActorAI implements ActorConstants {
     final boolean hasDelivery = hasToDo(Delivery.class) ;
     if (home instanceof Holding && ! hasDelivery) {
       final Service goods[] = ((Holding) home).goodsNeeded() ;
-      choice.add(Deliveries.nextCollectionFor(
-        home, goods, 5, actor, actor.world())
+      final Delivery d = Deliveries.nextCollectionFor(
+        home, goods, 5, actor, actor.world()
       ) ;
+      choice.add(d) ;
     }
   }
 }

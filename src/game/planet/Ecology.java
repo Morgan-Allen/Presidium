@@ -104,8 +104,14 @@ public class Ecology {
   }
   
   
-  public void impingeSqualor(int squalorVal, Tile t, boolean gradual) {
+  public void impingeSqualor(float squalorVal, Tile t, boolean gradual) {
     squalorMap[t.x / SR][t.y / SR] += squalorVal * (gradual ? UPDATE_INC : 1) ;
+  }
+  
+  
+  public void impingePollution(float squalorVal, Fixture f, boolean gradual) {
+    final Tile centre = world.tileAt(f) ;
+    impingeSqualor(squalorVal, centre, gradual) ;
   }
   
   

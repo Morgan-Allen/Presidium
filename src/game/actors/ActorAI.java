@@ -96,8 +96,6 @@ public abstract class ActorAI implements ActorConstants {
   /**  Dealing with seen objects and reactions to them-
     *  TODO:  This needs to handle stealth effects, which can affect how
     *  easily an actor is spotted and how easily they can be missed.
-    *  TODO:  You'll need to refresh reactions whenever an actor changes their
-    *  root behaviour too.  Key the 'seen' table off those.
     */
   //
   //    TODO:  Use this as the basis for all other behaviours that work with
@@ -253,6 +251,7 @@ public abstract class ActorAI implements ActorConstants {
   private Behaviour popBehaviour() {
     final Behaviour b = agenda.removeFirst() ;
     actor.world().activities.toggleActive(b, false) ;
+    if (b != null) b.onSuspend() ;
     return b ;
   }
   

@@ -5,7 +5,6 @@
   */
 
 
-
 package src.game.building ;
 import src.game.common.* ;
 import src.game.actors.* ;
@@ -124,14 +123,17 @@ public class Delivery extends Plan implements BuildConstants {
   
   
   private float purchasePrice(Item i) {
-    final float TP = origin.priceFor(i.type) + destination.priceFor(i.type) ;
-    return i.amount * TP / 2f ;
+    float TP = origin.priceFor(i.type) ;
+    if (actor.vocation().guild == Background.GUILD_MILITANT) TP -= 50 ;
+    if (TP <= 0) return 0 ;
+    return i.amount * TP ;
   }
   
   
   private Batch <Item> available() {
     final Batch <Item> available = new Batch <Item> () ;
     final boolean shopping = isShopping() ;
+    final Owner carrier = driven == null ? actor : driven ;
     
     if (stage <= STAGE_PICKUP) {
       float sumPrice = 0 ;
@@ -147,8 +149,8 @@ public class Delivery extends Plan implements BuildConstants {
     }
     else {
       for (Item i : items) {
-        if (! actor.gear.hasItem(i)) {
-          final float amount = actor.gear.amountOf(i) ;
+        if (! carrier.inventory().hasItem(i)) {
+          final float amount = carrier.inventory().amountOf(i) ;
           if (amount > 0) available.add(Item.withAmount(i, amount)) ;
           continue ;
         }
@@ -185,11 +187,10 @@ public class Delivery extends Plan implements BuildConstants {
   public boolean valid() {
     if (! super.valid()) return false ;
     if (driven != null) {
-      if (driven.aboard() != origin && ! driven.inside().contains(actor)) {
-        return false ;
-      }
+      if (driven.destroyed()) return false ;
+      if (! driven.canPilot(actor)) return false ;
     }
-    if (available().size() == 0) return false ;
+    if (stage < STAGE_RETURN && available().size() == 0) return false ;
     return true ;
   }
   
@@ -199,15 +200,26 @@ public class Delivery extends Plan implements BuildConstants {
   }
   
   
+  public void onSuspend() {
+    if (driven != null) driven.setPilot(null) ;
+  }
+  
+  
   
   /**  Behaviour implementation-
     */
   public Behaviour getNextStep() {
-    if (verbose && BaseUI.isPicked(actor)) {
-      ///I.say("Delivery stage: "+stage+" "+this.hashCode()) ;
-    }
+    
     if (stage == STAGE_INIT) {
-      stage = STAGE_PICKUP ;
+      if (driven != null) {
+        final Action boarding = new Action(
+          actor, driven,
+          this, "actionBoardVehicle",
+          Action.STAND, "Boarding vehicle"
+        ) ;
+        return boarding ;
+      }
+      else stage = STAGE_PICKUP ;
     }
     if (stage == STAGE_PICKUP) {
       final Action pickup = new Action(
@@ -215,23 +227,22 @@ public class Delivery extends Plan implements BuildConstants {
         this, "actionPickup",
         Action.REACH_DOWN, "Picking up goods"
       ) ;
-      ///if (verbose && BaseUI.isPicked(actor)) I.say("Returning pickup") ;
+      if (driven != null) pickup.setMoveTarget(driven) ;
       return pickup ;
     }
     if (stage == STAGE_DROPOFF) {
-      ///if (BaseUI.isPicked(actor)) I.say("Returning dropoff action") ;
       final Action dropoff = new Action(
         actor, destination,
         this, "actionDropoff",
         Action.REACH_DOWN, "Dropping off goods"
       ) ;
       if (driven != null) dropoff.setMoveTarget(driven) ;
-      dropoff.setProperties(Action.CARRIES) ;
+      else dropoff.setProperties(Action.CARRIES) ;
       return dropoff ;
     }
-    if (stage == STAGE_RETURN) {
+    if (stage == STAGE_RETURN && driven != null && driven.hangar() != null) {
       final Action returns = new Action(
-        actor, origin,
+        actor, driven.hangar(),
         this, "actionReturn",
         Action.REACH_DOWN, "Returning in vehicle"
       ) ;
@@ -239,6 +250,14 @@ public class Delivery extends Plan implements BuildConstants {
       return returns ;
     }
     return null ;
+  }
+  
+  
+  public boolean actionBoardVehicle(Actor actor, Vehicle driven) {
+    actor.goAboard(driven, actor.world()) ;
+    if (! driven.setPilot(actor)) abortBehaviour() ;
+    stage = STAGE_PICKUP ;
+    return true ;
   }
   
   
@@ -263,21 +282,21 @@ public class Delivery extends Plan implements BuildConstants {
     //
     //  Vehicles get special treatment-
     if (driven != null) {
-      ///I.say("Performing vehicle pickup...") ;
-      if (driven.aboard() != origin) {
-        I.say("VEHICLE UNAVAILABLE!") ;
-        abortBehaviour() ;
+      if (! driven.setPilot(actor)) abortBehaviour() ;
+      driven.pathing.updateTarget(target) ;
+      if (driven.aboard() == target) {
+        transferGoods(origin, driven) ;
+        stage = STAGE_DROPOFF ;
+        return true ;
       }
-      transferGoods(origin, driven) ;
-      stage = STAGE_DROPOFF ;
-      return true ;
+      return false ;
     }
     //
     //  Perform the actual transfer of goods, make the payment required, and
     //  see if a suspensor is needed-
     final float sum = transferGoods(origin, actor) ;
     final boolean bulky = sum >= 5 || passenger != null ;
-    if (verbose && BaseUI.isPicked(actor)) I.say("Performing pickup!") ;
+    if (verbose) I.sayAbout(actor, "Performing pickup!") ;
     //
     //  Passengers always require a suspensor.
     if (bulky) {
@@ -296,11 +315,13 @@ public class Delivery extends Plan implements BuildConstants {
     if (stage != STAGE_DROPOFF) return false ;
     
     if (driven != null) {
-      ///I.say("Performing vehicle dropoff...") ;
-      driven.pilot = actor ;
+      if (! driven.setPilot(actor)) abortBehaviour() ;
+      driven.pathing.updateTarget(target) ;
       if (driven.aboard() == target) {
-        I.say("Performing vehicle dropoff...") ;
-        for (Item i : items) driven.cargo.transfer(i.type, target) ;
+        for (Service t : ALL_COMMODITIES) {
+          driven.cargo.transfer(t, target) ;
+        }
+        //for (Item i : items) driven.cargo.transfer(i.type, target) ;
         stage = STAGE_RETURN ;
         return true ;
       }
@@ -319,9 +340,10 @@ public class Delivery extends Plan implements BuildConstants {
   
   
   public boolean actionReturn(Actor actor, Venue target) {
+    if (! driven.setPilot(actor)) abortBehaviour() ;
     driven.pathing.updateTarget(target) ;
     if (driven.aboard() == target) {
-      driven.pilot = null ;
+      driven.setPilot(null) ;
       actor.goAboard(target, actor.world()) ;
       stage = STAGE_DONE ;
       return true ;
@@ -350,258 +372,5 @@ public class Delivery extends Plan implements BuildConstants {
     d.append(destination) ;
   }
 }
-
-
-
-
-
-
-
-
-  
-  
-  /**  Utility methods for generating deliveries to/from venues-
-    */
-  //  TODO:  These methods need to be replaced.
-  
-  /*
-  public static Venue findBestVendor(Venue origin, Item items[]) {
-    if (items == null || items.length == 0) return null ;
-    //
-    //  TODO:  Base this off the list of venues the actor is aware of.
-    //  ...Which should, in turn, be updated gradually over time.
-    float sumItems = 0 ;
-    for (Item item : items) sumItems += item.amount ;
-    ///if (sumItems < 0.5f) return null ;
-    
-    final World world = origin.world() ;
-    final int maxTried = 3 ;
-    Venue best = null ;
-    float bestRating = 0 ;
-    Batch <Venue> tried = new Batch <Venue> () ;
-    
-    for (Item item : items) {
-      if (item.type.form != FORM_COMMODITY) continue ;
-      int numTried = 0 ;
-      for (Object t : world.presences.matchesNear(item.type, origin, null)) {
-        final Venue v = (Venue) t ;
-        if (v == origin || v.flaggedWith() != null) continue ;
-        v.flagWith(tried) ;
-        tried.add(v) ;
-        if (++numTried > maxTried) break ;
-        
-        float rating = 0 ;
-        for (Service s : v.services()) for (Item i : items) {
-          if (
-            v.stocks.shortageUrgency(i.type) >=
-            origin.stocks.shortageUrgency(i.type)
-          ) continue ;
-          if (s == i.type) rating += v.stocks.amountOf(i) ;
-        }
-        final float dist = Spacing.distance(origin, v) ;
-        rating /= 1 + (dist / World.DEFAULT_SECTOR_SIZE) ;
-        
-        if (verbose && I.talkAbout == origin) {
-          I.say("\nRating for "+v+" was: "+rating) ;
-          I.say("  Origin urgency: "+origin.stocks.shortageUrgency(item.type)) ;
-          I.say("  Target urgency: "+v.stocks.shortageUrgency(item.type)) ;
-        }
-        if (rating > bestRating) { best = v ; bestRating = rating ; }
-      }
-    }
-    
-    for (Venue v : tried) v.flagWith(null) ;
-    ///I.say("Returning "+best) ;
-    return best ;
-  }
-  
-  
-  public static Delivery selectExports(
-    Batch <Venue> traders, Dropship origin, int orderLimit
-  ) {
-    //
-    //  TODO:  SELECT GOODS WHICH ARE MOST VALUABLE TO THE HOMEWORLD OF THE
-    //  SHIP IN QUESTION
-    Delivery picked = null ;
-    float maxRating = 0 ;
-    
-    for (Venue venue : traders) {
-      //
-      //  TODO:  IMPLEMENT ORDER LIMITS- ROUNDED OFF TO NEAREST UNIT OF 5
-      final Service.Trade trade = (Service.Trade) venue ;
-      float rating = 0 ;
-      Batch <Item> items = new Batch <Item> () ;
-      for (Service good : ALL_COMMODITIES) {
-        final float surplus = trade.exportSurplus(good) ;
-        if (surplus <= 0) continue ;
-        rating += surplus * origin.priceFor(good) ;
-        items.add(Item.withAmount(good, surplus)) ;
-      }
-      
-      if (rating > maxRating) {
-        maxRating = rating ;
-        picked = new Delivery(items.toArray(Item.class), venue, origin) ;
-      }
-    }
-    
-    return picked ;
-  }
-  
-  
-  public static Delivery nextDeliveryFrom(
-    Inventory.Owner venue, Actor actor, Service types[], int sizeLimit
-  ) {
-    final Batch <Venue> clients = new Batch <Venue> () ;
-    final Presences presences = actor.world().presences ;
-    final float SEARCH_RADIUS = World.DEFAULT_SECTOR_SIZE ;// * 2 ;
-    for (Object o : presences.matchesNear(
-      actor.base(), venue, SEARCH_RADIUS
-    )) clients.add((Venue) o) ;
-    return nextDeliveryFrom(
-      venue, types,
-      clients, sizeLimit,
-      actor.world(), false
-    ) ;
-  }
-  
-
-  public static Delivery nextDeliveryFrom(
-    Inventory.Owner origin, Service types[],
-    Batch <Venue> clients, int orderLimit,
-    World world, boolean offworld
-  ) {
-    final Venue VO ;
-    if (origin instanceof Venue) VO = (Venue) origin ;
-    else VO = null ;
-    //
-    //  We iterate over every nearby venue, and see if they need our services-
-    float maxUrgency = 0 ;
-    Delivery picked = null ;
-    for (Venue client : clients) {
-      if (client == origin || client.privateProperty()) continue ;
-      //
-      //  First, we tally the total shortage of goods at this venue (which we
-      //  can provide,) which determines the urgency of delivery.
-      float totalShortage = 0 ;
-      final Batch <Item> shortages = new Batch <Item> () ;
-      
-      for (Service type : types) {
-        if (origin.inventory().amountOf(type) < MIN_BULK) continue ;
-        if (
-          VO != null && VO.stocks.shortageUrgency(type) >=
-          client.stocks.shortageUrgency(type)
-        ) continue ;
-        
-        final float shortage = offworld ?
-          ((Service.Trade) client).importShortage(type) :
-          client.stocks.shortageOf(type) ;
-          
-        if (shortage > 0) {
-          totalShortage += shortage ;
-          shortages.add(Item.withAmount(type, shortage)) ;
-        }
-      }
-      
-      if (totalShortage < 5) continue ;
-      final float urgency = totalShortage / (1f + (
-        Spacing.distance(client, origin) / World.DEFAULT_SECTOR_SIZE
-      )) ;
-      //
-      //  Initialise the order, and compare it with the others-
-      final Delivery order = new Delivery(
-        compressOrder(shortages.toArray(Item.class), orderLimit),
-        origin, client
-      ) ;
-      if (! order.valid()) continue ;
-      if (urgency > maxUrgency) { picked = order ; maxUrgency = urgency ; }
-    }
-    return picked ;
-  }
-  
-  
-  public static Item[] compressOrder(
-    Item order[], int sizeLimit, Venue supplies
-  ) {
-    final Batch <Item> culled = new Batch <Item> () ;
-    for (int i = order.length ; i-- > 0 ;) {
-      final Item o = order[i] ;
-      final float amount = supplies.stocks.amountOf(o) / 2f ;
-      if (amount == 0) continue ;
-      culled.add(Item.withAmount(o, Math.min(o.amount, amount))) ;
-    }
-    if (culled.size() == 0) return new Item[0] ;
-    return compressOrder(culled.toArray(Item.class), sizeLimit) ;
-  }
-  
-  
-  private static Item[] compressOrder(Item order[], int sizeLimit) {
-    //
-    //  Firstly, we check whether compression is needed-
-    float sumAmounts = 0 ;
-    for (Item i : order) sumAmounts += i.amount ;
-    final float scale = (sumAmounts > sizeLimit) ?
-      (sizeLimit / sumAmounts) : 1 ;
-    //
-    //  Round up the quantities-
-    final int roundUnit = sizeLimit <= 5 ? 1 : 5 ;
-    final int amounts[] = new int[order.length] ;
-    sumAmounts = 0 ;
-    for (int i = order.length ; i-- > 0 ;) {
-      final float amount = order[i].amount * scale ;
-      final int rounded = roundUnit * (int) Math.ceil(amount / roundUnit) ;
-      sumAmounts += amounts[i] = rounded ;
-    }
-    //
-    //  Then trim off excess-
-    trimLoop: while (true) {
-      for (int i = order.length ; i-- > 0 ;) {
-        if (sumAmounts <= sizeLimit) break trimLoop ;
-        if (amounts[i] > 0) {
-          amounts[i] -= roundUnit ;
-          sumAmounts -= roundUnit ;
-        }
-      }
-    }
-    //
-    //  Compile and return results-
-    for (int i = order.length ; i-- > 0 ;) {
-      order[i] = Item.withAmount(order[i], amounts[i]) ;
-    }
-    return order ;
-  }
-  
-
-  
-  
-  public static Batch <Venue> nearbyDepots(Target t, World world) {
-    final Batch <Venue> depots = new Batch <Venue> () ;
-    //  TODO:  Key this off the SERVICE_DEPOT service instead?
-    world.presences.sampleTargets(SupplyDepot.class, t, world, 5, depots) ;
-    world.presences.sampleTargets(StockExchange.class, t, world, 5, depots) ;
-    return depots ;
-  }
-  
-  
-  public static Batch <Venue> nearbyCustomers(Target target, World world) {
-    final Batch <Venue> nearby = new Batch <Venue> () ;
-    //  TODO:  Skip over any depots.
-    world.presences.sampleTargets(Venue.class, target, world, 10, nearby) ;
-    return nearby ;
-  }
-  
-  
-  public static Batch <Vehicle> nearbyTraders(Target target, World world) {
-    final Batch <Vehicle> nearby = new Batch <Vehicle> () ;
-    world.presences.sampleTargets(Dropship.class, target, world, 10, nearby) ;
-    return nearby ;
-  }
-  //*/
-//}
-
-
-
-
-
-
 
 

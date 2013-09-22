@@ -20,7 +20,7 @@ import src.util.* ;
 
 
 public abstract class Venue extends Fixture implements
-  Schedule.Updates, Boardable, Installation,
+  Schedule.Updates, Boardable, Structural,
   Inventory.Owner, ActorAI.Employment,
   Selectable
 {
@@ -92,16 +92,33 @@ public abstract class Venue extends Fixture implements
     stocks.saveState(s) ;
     structure.saveState(s) ;
   }
-  
-  
-  public Inventory inventory() { return stocks ; }
-  public float priceFor(Service service) { return stocks.priceFor(service) ; }
+
+
   protected Index <Upgrade> allUpgrades() { return null ; }
 
   public int owningType() { return VENUE_OWNS ; }
   public Base base() { return base ; }
   
   protected BuildingSprite buildSprite() { return buildSprite ; }
+  
+  
+  
+  /**  Dealing with items and inventory-
+    */
+  public Inventory inventory() {
+    return stocks ;
+  }
+  
+  public float priceFor(Service service) {
+    return stocks.priceFor(service) ;
+  }
+  
+  public int spaceFor(Service good) {
+    return structure.maxIntegrity() ;
+  }
+  
+  public void afterTransaction(Item item, float amount) {
+  }
   
   
   
@@ -437,23 +454,27 @@ public abstract class Venue extends Fixture implements
   
   
   protected boolean describeStocks(Service type, Description d) {
-    final int needed ;
+    final float needed ;
     if (this instanceof Service.Trade) {
       final Service.Trade trade = (Service.Trade) this ;
-      needed = (int) Math.ceil(Math.max(Math.max(
+      needed = Math.max(Math.max(
         trade.exportDemand(type),
         trade.importDemand(type)
-      ), stocks.demandFor(type))) ;
+      ), stocks.demandFor(type)) ;
     }
-    else needed = (int) Math.ceil(stocks.demandFor(type)) ;
-    final int amount = (int) Math.ceil(stocks.amountOf(type) ) ;
+    else needed = stocks.demandFor(type) ;
+    final float amount = stocks.amountOf(type) ;
     if (needed == 0 && amount == 0) return false ;
+    
+    final String
+      aS = I.shorten(amount, 1),
+      nS = I.shorten(needed, 1) ;
     
     if (Visit.arrayIncludes(services(), type)) {
       final int price  = (int) Math.ceil(priceFor(type)) ;
-      d.append("\n  "+type.name+" "+amount+"/"+needed+" (Price "+price+")") ;
+      d.append("\n  "+type.name+" "+aS+"/"+nS+" (Price "+price+")") ;
     }
-    else d.append("\n  "+type.name+" "+amount+"/"+needed) ;
+    else d.append("\n  "+type.name+" "+aS+"/"+nS) ;
     return true ;
   }
   
@@ -579,6 +600,14 @@ public abstract class Venue extends Fixture implements
   protected void renderHealthbars(Rendering rendering, Base base) {
     if (healthbar == null) healthbar = new Healthbar() ;
     healthbar.level = structure.repairLevel() ;
+    
+    final BaseUI UI = (BaseUI) PlayLoop.currentUI() ;
+    if (
+      UI.selection.selected() != this &&
+      UI.selection.hovered()  != this &&
+      healthbar.level > 0.5f
+    ) return ;
+    
     final int NU = structure.numUpgrades() ;
     healthbar.size = (radius() * 50) ;
     healthbar.size *= 1 + VenueStructure.UPGRADE_HP_BONUSES[NU] ;
@@ -603,19 +632,21 @@ public abstract class Venue extends Fixture implements
   }
   
   
+  protected void toggleStatusFor(Service need) {
+    final float
+      shortage = stocks.shortageOf(need),
+      demand = stocks.demandFor(need) ;
+    buildSprite.toggleFX(need.model, shortage > demand / 2) ;
+  }
+  
+  
   protected void toggleStatusDisplay() {
     final boolean burns = structure.burning() ;
     buildSprite.toggleFX(BuildingSprite.BLAST_MODEL, burns) ;
-    
-    final float t = 0.5f ;
-    final boolean noLS = stocks.shortageOf(BuildConstants.LIFE_SUPPORT) >= t ;
-    buildSprite.toggleFX(BuildConstants.LIFE_SUPPORT.model, noLS) ;
-    final boolean noPower = stocks.shortageOf(BuildConstants.POWER) >= t ;
-    buildSprite.toggleFX(BuildConstants.POWER.model, noPower) ;
-    final boolean noWater = stocks.shortageOf(BuildConstants.WATER) >= t ;
-    buildSprite.toggleFX(BuildConstants.WATER.model, noWater) ;
-    final boolean noDL = stocks.shortageOf(BuildConstants.DATALINKS) >= t ;
-    buildSprite.toggleFX(BuildConstants.DATALINKS.model, noDL) ;
+    toggleStatusFor(BuildConstants.LIFE_SUPPORT) ;
+    toggleStatusFor(BuildConstants.POWER       ) ;
+    toggleStatusFor(BuildConstants.WATER       ) ;
+    toggleStatusFor(BuildConstants.DATALINKS   ) ;
   }
   
   
@@ -637,19 +668,19 @@ public abstract class Venue extends Fixture implements
   }
 
   
-  final private static float ITEM_S_OFF[] = {
+  final protected static float STANDARD_GOOD_SPRITE_OFFSETS[] = {
      0, 0,
-    -1, 0,
      0, 1,
-    -2, 0,
-    -3, 0,
+    -1, 0,
      0, 2,
+    -2, 0,
      0, 3,
+    -3, 0,
   } ;
   
   
   protected float[] goodDisplayOffsets() {
-    return ITEM_S_OFF ;
+    return STANDARD_GOOD_SPRITE_OFFSETS ;
   }
   
   

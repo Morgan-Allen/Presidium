@@ -190,12 +190,12 @@ public class Reactor extends Venue implements BuildConstants {
     final Item fuel = Item.withAmount(FUEL_CORES, fuelConsumed) ;
     if (stocks.hasItem(fuel)) stocks.removeItem(fuel) ;
     else powerOutput /= 5 ;
-    stocks.addItem(Item.withAmount(POWER, powerOutput)) ;
+    stocks.bumpItem(POWER, powerOutput) ;
     //
     //  Update demand for raw materials-
     stocks.forceDemand(FUEL_CORES, stocks.demandFor(POWER) / 5f, 0) ;
     if (structure.upgradeLevel(ISOTOPE_CONVERSION) > 0) {
-      stocks.translateDemands(METALS_TO_FUEL) ;
+      stocks.translateDemands(METALS_TO_FUEL, 1) ;
     }
     //
     //  If possible, assist in recovery of psi points-
@@ -209,8 +209,7 @@ public class Reactor extends Venue implements BuildConstants {
     int pollution = 10 ;
     pollution -= structure.upgradeLevel(WASTE_PROCESSING) * 2 ;
     pollution -= structure.upgradeLevel(FUSION_CONFINEMENT) ;
-    final Tile centre = world.tileAt(this) ;
-    world.ecology().impingeSqualor(pollution, centre, true) ;
+    world.ecology().impingePollution(pollution, this, true) ;
   }
   
   

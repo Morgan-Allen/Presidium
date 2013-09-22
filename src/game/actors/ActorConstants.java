@@ -40,6 +40,8 @@ public interface ActorConstants {
   
   
   final public static Skill
+    //
+    //  TODO:  Simplify these to just 3 attributes?  Physique/senses/cognition?
     VIGOUR    = new Skill("Vigour"   , FORM_NATURAL, null),
     BRAWN     = new Skill("Brawn"    , FORM_NATURAL, null),
     REFLEX    = new Skill("Reflex"   , FORM_NATURAL, null),
@@ -172,14 +174,16 @@ public interface ActorConstants {
       "Gentle",
       "Pacifist"
     ),
-    LOVING = new Trait(PERSONALITY,
-      "Faithful",
-      "Loving",
-      "Warm",
+    //
+    //  TODO:  Merge with the sociable/empathic trait?
+    FRIENDLY = new Trait(PERSONALITY,
+      "Fawning",
+      "Complimentary",
+      "Friendly",
       null,
-      "Cold",
-      "Detached",
-      "Callous"
+      "Reserved",
+      "Critical",
+      "Caustic"
     ),
     OPTIMISTIC = new Trait(PERSONALITY,
       "Blithe",

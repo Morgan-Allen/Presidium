@@ -207,9 +207,9 @@ public class Commerce implements BuildConstants {
       if (venue.base() != base) continue ;
       for (Service type : ALL_COMMODITIES) {
         final float shortage = venue.importShortage(type) ;
-        shortages.addItem(Item.withAmount(type, shortage)) ;
+        if (shortage > 0) shortages.addItem(Item.withAmount(type, shortage)) ;
         final float surplus = venue.exportSurplus(type) ;
-        surpluses.addItem(Item.withAmount(type, surplus)) ;
+        if (surplus  > 0) surpluses.addItem(Item.withAmount(type, surplus )) ;
       }
     }
     

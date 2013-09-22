@@ -19,9 +19,6 @@ import src.user.* ;
 import src.util.* ;
 
 
-
-//
-//  Add upgrades/functions for the stock exchange.
 //
 //  Update farming/the vats/mining a bit (including minimum spacing?)
 //  A clearer factoring out of venue/actor batches in the AI.
@@ -245,7 +242,7 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     final Batch <Actor> allies = new Batch <Actor> () ;
     float sumPower = 0 ;
     for (int n = 5 ; n-- > 0 ;) {
-      final Actor actor = new Human(Background.SURVEYOR, base) ;
+      final Actor actor = new Human(Background.EXPLORER, base) ;
       actor.setPosition(
         24 + Rand.range(-4, 4),
         24 + Rand.range(-4, 4),
@@ -305,7 +302,7 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
   }
   
   
-  private Venue establishVenue(
+  public static Venue establishVenue(
     Venue v, int atX, int atY, boolean intact,
     Actor... employed
   ) {

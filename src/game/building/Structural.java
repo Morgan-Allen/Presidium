@@ -11,7 +11,7 @@ import src.user.* ;
 /**  This class is intended specifically to work with the InstallTab class to
   *  enable placement of irregularly-shaped fixtures and venues.
   */
-public interface Installation {
+public interface Structural {
   
   int buildCost() ;
   boolean pointsOkay(Tile from, Tile to) ;
@@ -22,6 +22,9 @@ public interface Installation {
   Composite portrait(HUD UI) ;
   String helpInfo() ;
   String buildCategory() ;
+  
+  //
+  //  TODO:  Have this return a VenueStructure object!  So vehicles can use it!
 }
 
 

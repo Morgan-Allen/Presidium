@@ -28,6 +28,7 @@ public abstract class Plan implements Saveable, Behaviour {
   protected Behaviour nextStep = null ;
   
   public float priorityMod = 0 ;
+  ///public boolean isWork = false ;
   
   
   
@@ -87,7 +88,25 @@ public abstract class Plan implements Saveable, Behaviour {
       if (! t.inWorld()) return false ;
     }
     if (actor != null && ! actor.inWorld()) return false ;
+    /*
+    if (actor != null && isWork) {
+      final Venue work = (Venue) actor.AI.work() ;
+      if ((! work.structure.intact()) || (! work.personnel.onShift(actor))) {
+        return false ;
+      }
+    }
+    //*/
     return true ;
+  }
+  
+  
+  public void onSuspend() {
+    /*
+    I.sayAbout(actor, "\n"+actor+" Suspending plan! "+this+" "+this.hashCode()) ;
+    if (this instanceof src.game.building.Delivery && I.talkAbout == actor) {
+      I.complain("BAD!") ;
+    }
+    //*/
   }
   
   
@@ -102,7 +121,6 @@ public abstract class Plan implements Saveable, Behaviour {
   public void abortBehaviour() {
     if (! begun()) return ;
     I.sayAbout(actor, "\n"+actor+" Aborting plan! "+this+" "+this.hashCode()) ;
-    ///I.complain("BAD") ;
     nextStep = null ;
     actor.AI.cancelBehaviour(this) ;
   }

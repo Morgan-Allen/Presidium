@@ -144,7 +144,6 @@ public class Dropship extends Vehicle implements
   }
   
   
-  //*
   private Batch <Venue> nearbyDepots() {
     final Batch <Venue> depots = new Batch <Venue> () ;
     for (Object o : world.presences.matchesNear(SupplyDepot.class, this, -1)) {
@@ -153,7 +152,6 @@ public class Dropship extends Vehicle implements
     }
     return depots ;
   }
-  //*/
   
   
   public boolean actionBoard(Actor actor, Dropship ship) {
@@ -188,6 +186,11 @@ public class Dropship extends Vehicle implements
       m.goAboard(dropPoint, world) ;
     }
     inside.clear() ;
+  }
+  
+  
+  public int spaceFor(Service good) {
+    return MAX_CAPACITY ;
   }
   
   

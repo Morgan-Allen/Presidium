@@ -92,6 +92,7 @@ public class Ephemera {
           final Sprite s = ghost.sprite ;
           if (! port.intersects(s.position, ghost.size)) continue ;
           s.colour = Colour.transparency((duration - timeGone) / duration) ;
+          s.update() ;
           results.add(ghost) ;
         }
       }

@@ -191,7 +191,7 @@ public class MineShaftSmelter extends Venue implements BuildConstants {
       m.minerals = 0 ;
     }
     collected *= (avgMinerals() / NUM_MOLDS) ;
-    stocks.addItem(mined, collected) ;
+    stocks.bumpItem(mined, collected) ;
     return true ;
   }
   

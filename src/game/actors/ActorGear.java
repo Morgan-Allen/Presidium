@@ -296,6 +296,7 @@ public class ActorGear extends Inventory implements BuildConstants {
     */
   public void updateGear(int numUpdates) {
     if (Float.isNaN(credits)) credits = 0 ;
+    if (Float.isNaN(taxed)) taxed = 0 ;
     if (outfit != null) regenerateShields() ;
     else currentShields = 0 ;
     for (Item item : allItems()) {

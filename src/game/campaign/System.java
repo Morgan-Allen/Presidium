@@ -33,7 +33,7 @@ public class System extends Background {
     String name, String imgName, float starX, float starY,
     Trait climate, int gravity, Object... args
   ) {
-    super(name, null, null, -1, args) ;
+    super(name, null, null, -1, NOT_A_GUILD, args) ;
     this.image = imgName == null ? null : Texture.loadTexture(imgName) ;
     this.starCoords = new Vec2D(starX, starY) ;
     

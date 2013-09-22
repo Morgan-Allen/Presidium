@@ -20,7 +20,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
   /**  Fields, constructors, and save/load methods-
     */
   final public static float
-    ORDER_UNIT    = 5,
+    UPDATE_PERIOD = 1,
     POTENTIAL_INC = 0.15f,
     SEARCH_RADIUS = 16,
     MAX_CHECKED   = 5 ;
@@ -80,6 +80,10 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
+  
+  
+  /**  Overrides of standard inventory methods-
+    */
   public boolean addItem(Item item) {
     final int oldAmount = (int) amountOf(item) ;
     if (super.addItem(item)) {
@@ -96,6 +100,8 @@ public class VenueStocks extends Inventory implements BuildConstants {
   
   
   public void incCredits(float inc) {
+    if (Float.isNaN(inc)) I.complain("INC IS NOT-A-NUMBER!") ;
+    if (Float.isNaN(credits)) credits = 0 ;
     super.incCredits(inc) ;
     if (! venue.inWorld()) return ;
     String phrase = inc >= 0 ? "+" : "-" ;
@@ -135,11 +141,12 @@ public class VenueStocks extends Inventory implements BuildConstants {
   
   public Manufacture nextManufacture(Actor actor, Conversion c) {
     final float shortage = shortageOf(c.out.type) ;
-    ///I.say(c.out.type+" shortage is: "+shortage) ;
     if (shortage <= 0) return null ;
+    //
+    //  TODO:  Manufactures need to update the amount required...
     return new Manufacture(
       actor, venue, c,
-      Item.withAmount(c.out, shortage + ORDER_UNIT)
+      Item.withAmount(c.out, shortage + 5)
     ) ;
   }
   
@@ -168,6 +175,12 @@ public class VenueStocks extends Inventory implements BuildConstants {
     final Demand d = demands.get(type) ;
     if (d == null) return 0 ;
     final float amount = amountOf(type), shortage = d.demandAmount - amount ;
+    /*
+    if (type == METAL_ORE && I.talkAbout == venue) {
+      I.say("ORE SHORTAGE: "+shortage) ;
+    }
+    //*/
+
     if (shortage < 0) return 0 ;
     final float urgency = shortage / ((amount + 5) * (2 + d.demandTier)) ;
     return urgency ;
@@ -195,21 +208,27 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
-  private void incDemand(Service type, float amount, float tier) {
+  //
+  //  TODO:  Merge with the method below?
+  public void incDemand(Service type, float amount, int period) {
     if (amount == 0) return ;
     final Demand d = demandRecord(type) ;
-    final float oldAmount = d.demandAmount, inc = amount * POTENTIAL_INC ;
-    d.amountInc += amount ;
-    d.demandTier = (d.demandTier * oldAmount) + (tier * inc) ;
-    /*
-    final float oldAmount = d.demandAmount, inc = amount * POTENTIAL_INC ;
-    d.demandAmount += inc ;
-    d.demandTier = (d.demandTier * oldAmount) + (tier * inc) ;
-    if (verbose && BaseUI.isPicked(venue)) I.say(
-      "  "+type+" demand: "+amount
+    incDemand(type, amount, d.demandTier, period) ;
+  }
+  
+  
+  private void incDemand(Service type, float amount, float tier, int period) {
+    if (amount == 0) return ;
+    final Demand d = demandRecord(type) ;
+    final float inc = POTENTIAL_INC * period ;
+    if (inc >= 1) I.complain("DEMAND INCREMENT TOO HIGH") ;
+    d.amountInc += amount * inc ;
+    if (verbose && type == PARTS) I.sayAbout(
+      venue, "Demand inc is: "+d.amountInc+" bump: "+amount+
+      " for: "+type
     ) ;
-    return d.demandAmount ;
-    //*/
+    d.demandTier *= (1 - inc) ;
+    d.demandTier += (tier * inc) ;
   }
   
   
@@ -227,7 +246,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
-  public void translateDemands(Conversion cons) {
+  public void translateDemands(Conversion cons, int period) {
     //
     //  Firstly, we check to see if the output good is in demand, and if so,
     //  reset demand for the raw materials-
@@ -240,7 +259,10 @@ public class VenueStocks extends Inventory implements BuildConstants {
     final Demand o = demandRecord(cons.out.type) ;
     o.pricePaid = o.type.basePrice * priceBump / (1f + cons.raw.length) ;
     for (Item raw : cons.raw) {
-      forceDemand(raw.type, raw.amount * demand / cons.out.amount, 0) ;
+      ///I.sayAbout(venue, "Needs "+raw) ;
+      final float needed = raw.amount * demand / cons.out.amount ;
+      this.incDemand(raw.type, needed, 0, period) ;
+      //forceDemand(raw.type, , 0) ;
     }
   }
   
@@ -251,9 +273,9 @@ public class VenueStocks extends Inventory implements BuildConstants {
     d.demandAmount = amount ;
     d.demandTier = tier ;
     d.amountInc = 0 ;
-    if (verbose && BaseUI.isPicked(venue)) I.say(
-      "  "+type+" demand: "+d.demandAmount
-    ) ;
+    if (verbose && BaseUI.isPicked(venue) && type == PARTS) { I.say(
+      "  "+type+" demand forced to: "+d.demandAmount
+    ) ; }
   }
   
   
@@ -279,6 +301,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
       float rating = 10 / (1 + SU) ;
       distances[i] = Spacing.distance(supplies, venue) / SEARCH_RADIUS ;
       rating /= 1 + distances[i] ;
+      rating *= (supplies.stocks.amountOf(type) + 5) / 10f ;
       ratings[i++] = rating ;
       sumRatings += rating ;
     }
@@ -295,9 +318,12 @@ public class VenueStocks extends Inventory implements BuildConstants {
         priceBump = type.basePrice * distance / 10f ;
 
       if (verbose && BaseUI.isPicked(venue)) I.say(
-        "  Considering supplier: "+supplies+", rating: "+rating
+        "  Considering supplier: "+supplies+", rating: "+rating+
+        "\n  BUMP IS: "+shortBump
       ) ;
-      supplies.stocks.incDemand(type, shortBump, d.demandTier + distance) ;
+      supplies.stocks.incDemand(
+        type, shortBump, d.demandTier + distance + 1, (int) UPDATE_PERIOD
+      ) ;
       avgPriceBump += (supplies.priceFor(type) + priceBump) * weight ;
     }
     
@@ -305,11 +331,21 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
+  public void diffuseDemand(Service type) {
+    final Batch <Venue> suppliers = Deliveries.nearbyVendors(
+      type, venue, venue.world()
+    ) ;
+    diffuseDemand(type, suppliers) ;
+  }
+  
+  
   
   /**  Calling regular updates-
     */
   protected void updateStocks(int numUpdates) {
-    if (numUpdates % 1 == 0) diffuseExistingDemand() ;
+    if (Float.isNaN(credits)) credits = 0 ;
+    if (Float.isNaN(taxed)) taxed = 0 ;
+    if (numUpdates % UPDATE_PERIOD == 0) diffuseExistingDemand() ;
   }
   
   
@@ -319,34 +355,19 @@ public class VenueStocks extends Inventory implements BuildConstants {
     
     for (Demand d : demands.values()) {
       d.demandAmount *= (1 - POTENTIAL_INC) ;
-      d.demandAmount += d.amountInc * POTENTIAL_INC ;
+      d.demandAmount += d.amountInc ;
       d.amountInc = 0 ;
       d.pricePaid -= d.type.basePrice ;
       d.pricePaid *= (1 - POTENTIAL_INC) ;
       d.pricePaid += d.type.basePrice ;
+      if (verbose && d.type == PARTS) I.sayAbout(
+        venue, d.type+" demand is: "+d.demandAmount
+      ) ;
       
-      if (services != null && Visit.arrayIncludes(services, d.type)) continue ;
-      
-      final Batch <Venue> suppliers = new Batch <Venue> () ;
-      for (int n = (int) MAX_CHECKED / 2 ; n-- > 0 ;) {
-        final Venue supplies = presences.randomMatchNear(
-          d.type, venue, SEARCH_RADIUS
-        ) ;
-        if (supplies == null) break ;
-        if (supplies == venue || supplies.flaggedWith() != null) continue ;
-        suppliers.add(supplies) ;
-        supplies.flagWith(suppliers) ;
+      if (services != null && Visit.arrayIncludes(services, d.type)) {
+        continue ;
       }
-      
-      for (Object o : presences.matchesNear(d.type, venue, SEARCH_RADIUS)) {
-        final Venue supplies = (Venue) o ;
-        if (supplies == venue || supplies.flaggedWith() != null) continue ;
-        suppliers.add(supplies) ;
-        if (suppliers.size() >= MAX_CHECKED) break ;
-      }
-      
-      for (Venue s : suppliers) s.flagWith(null) ;
-      diffuseDemand(d.type, suppliers) ;
+      diffuseDemand(d.type) ;
     }
   }
 }

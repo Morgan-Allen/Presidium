@@ -28,6 +28,9 @@ import src.util.* ;
 //    Dispute/Sex Escalation
 //    Kinship Modifiers/Exceptions
 
+//
+//  TODO:  You want the chat FX to persist a while after expiry.
+
 
 public class Dialogue extends Plan implements ActorConstants {
   
@@ -45,41 +48,57 @@ public class Dialogue extends Plan implements ActorConstants {
     FINISH_CHANCE = 0.1f ;
   
   final Actor other ;
-  final boolean inits ;
+  final Dialogue inits ;
   
   private int stage = STAGE_INIT ;
   private Boardable location = null ;
   private boolean speaking = false ;
   
+  final public TalkFX chat ;
   
   
-  public Dialogue(Actor actor, Actor other, boolean inits) {
+  
+  public Dialogue(Actor actor, Actor other, Dialogue inits) {
     super(actor, actor, other) ;
     this.other = other ;
-    this.inits = inits ;
-    this.speaking = inits ;
+    this.inits = inits == null ? this : inits ;
+    this.speaking = inits == null ;
+    if (speaking || inits.chat == null) chat = new TalkFX() ;
+    else chat = inits.chat ;
+    chat.fadeRate = 2.5f ;
   }
   
   
   public Dialogue(Session s) throws Exception {
     super(s) ;
     this.other = (Actor) s.loadObject() ;
-    this.inits = s.loadBool() ;
+    this.inits = (Dialogue) s.loadObject() ;
     
     this.stage = s.loadInt() ;
     this.location = (Boardable) s.loadTarget() ;
     this.speaking = s.loadBool() ;
+    
+    if (inits == this || inits.chat == null) chat = new TalkFX() ;
+    else chat = inits.chat ;
+    chat.fadeRate = 2.5f ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveObject(other) ;
-    s.saveBool(inits) ;
+    s.saveObject(inits) ;
     
     s.saveInt(stage) ;
     s.saveTarget(location) ;
     s.saveBool(speaking) ;
+  }
+  
+  
+  public void onSuspend() {
+    if (BaseUI.isPicked(actor)) {
+      actor.world().ephemera.addGhost(null, 4, chat, 0.5f) ;
+    }
   }
   
   
@@ -97,8 +116,8 @@ public class Dialogue extends Plan implements ActorConstants {
       return OD.other == actor ;
     }
     else if (stage < STAGE_TALKING) {
-      if (inits) {
-        final Dialogue OD = new Dialogue(other, actor, false) ;
+      if (inits == this) {
+        final Dialogue OD = new Dialogue(other, actor, this) ;
         final boolean canSwitch =
             root == null ||
             root.priorityFor(other) < OD.priorityFor(other) ;
@@ -146,7 +165,7 @@ public class Dialogue extends Plan implements ActorConstants {
       finishDialogue() ;
       return null ;
     }
-    if (inits && location == null) {
+    if (inits == this && location == null) {
       stage = STAGE_GREETING ;
       final Action greet = new Action(
         actor, other,
@@ -174,7 +193,7 @@ public class Dialogue extends Plan implements ActorConstants {
     if (canTalk(other, actor)) {
       location = pickLocation(this) ;
 
-      final Dialogue forOther = new Dialogue(other, actor, false) ;
+      final Dialogue forOther = new Dialogue(other, actor, this) ;
       if (location instanceof Tile) {
         final Box2D a = location.area(null) ;
         forOther.location = Spacing.nearestOpenTile(a, other, actor.world()) ;
@@ -337,6 +356,7 @@ public class Dialogue extends Plan implements ActorConstants {
     */
   final static Vec3D forwardVec = new Vec3D(1, 1, 0) ;
   
+  
   private boolean onRight(Actor a, Actor b) {
     final Vec3D disp = a.position(null).sub(b.position(null)) ;
     return disp.dot(forwardVec) > 0 ;
@@ -344,10 +364,11 @@ public class Dialogue extends Plan implements ActorConstants {
   
   
   private void utters(Actor a, String s) {
-    if (a.chat.numPhrases() > 3 || a.indoors()) return ;
+    if (chat.numPhrases() > 3 || a.indoors()) return ;
     final Actor opposite = a == actor ? other : actor ;
     final boolean onRight = onRight(a, opposite) ;
-    a.chat.addPhrase(s, onRight ? TalkFX.FROM_RIGHT : TalkFX.FROM_LEFT) ;
+    final int side = onRight ? TalkFX.FROM_RIGHT : TalkFX.FROM_LEFT ;
+    chat.addPhrase(s, side) ;
   }
   
   
@@ -356,55 +377,6 @@ public class Dialogue extends Plan implements ActorConstants {
     d.append(other) ;
   }
 }
-
-
-
-
-/*
-//
-//  The attraction here really needs to be based on how much information the
-//  two have to exchange.
-//  Basic info- homeworld, birth, vocation.
-//  Recent events- last couple of behaviours known.
-//  Fields of interest- skills and traits.
-//  Acquaintances- friends, foes and family.
-//  Trigger based on association?
-
-
-private void introduce(Actor actor, Actor other) {
-  //
-  //  Compare vocations, physical traits and appearance, and proper manners.
-  //  Set up initial relationships.
-}
-
-//*/
-
-
-
-
-/*
-//
-//  Returns whether Actor is listening to Other.
-static boolean isListening(Actor actor, Actor other) {
-  final Behaviour root = actor.AI.rootBehaviour() ;
-  if (! (root instanceof Dialogue)) return false ;
-  final Dialogue OD = (Dialogue) root ;
-  return OD.other == other && ! OD.inits ;
-}
-//
-//  Returns whether Actor can talk to Other.
-//  TODO:  Base this off possession of mutual etiquette/language skills?
-public static boolean canTalk(Actor actor, Actor other) {
-  if (actor == other || other.species() != Species.HUMAN) return false ;
-  if (isListening(actor, other)) return true ;
-  return actor.AI.couldSwitch(
-    actor.AI.rootBehaviour(), new Dialogue(actor, other, false)
-  ) ;
-}
-//*/
-
-
-
 
 
 

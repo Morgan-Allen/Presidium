@@ -69,13 +69,13 @@ public class Sickbay extends Venue implements BuildConstants {
       300,
       null, 1, null, ALL_UPGRADES
     ),
-    MINDER_QUARTERS = new Upgrade(
-      "Minder Quarters",
+    MINDER_STATION = new Upgrade(
+      "Minder Station",
       "Minders are essential to monitoring patients' condition and tending "+
       "to diet and sanitary needs, but are only familiar with more common "+
       "medications and standard emergency protocol.",
       50,
-      Background.MINDER, 2, APOTHECARY, ALL_UPGRADES
+      Background.MINDER, 1, APOTHECARY, ALL_UPGRADES
     ),
     //
     //  Consider having this serve a different function?  Like providing the
@@ -95,10 +95,10 @@ public class Sickbay extends Venue implements BuildConstants {
       "gradual comeback, covering everything from life support and tissue "+
       "reconstruction to cybernetic prosthesis and engram backups.",
       400,
-      null, 1, MINDER_QUARTERS, ALL_UPGRADES
+      null, 1, MINDER_STATION, ALL_UPGRADES
     ),
-    PHYSICIAN_QUARTERS = new Upgrade(
-      "Physician Quarters",
+    PHYSICIAN_STATION = new Upgrade(
+      "Physician Station",
       "Physicians undergo extensive education in every aspect of human "+
       "metabolism and anatomy, are adept as surgeons, and can tailor their "+
       "treatments to the idiosyncracies of individual patients.",
@@ -142,7 +142,7 @@ public class Sickbay extends Venue implements BuildConstants {
   
   public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Background.MINDER) return nO + 2 ;
+    if (v == Background.MINDER) return nO + 1 ;
     if (v == Background.PHYSICIAN) return nO + 1 ;
     return 0 ;
   }

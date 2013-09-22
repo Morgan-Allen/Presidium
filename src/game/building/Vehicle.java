@@ -16,6 +16,11 @@ import src.util.* ;
 
 
 
+
+//
+//  TODO:  This probably needs to implement the Structural interface.
+
+
 public abstract class Vehicle extends Mobile implements
   Boardable, Inventory.Owner, HumanAI.Employment, Selectable
 {
@@ -28,8 +33,8 @@ public abstract class Vehicle extends Mobile implements
   final protected List <Mobile> inside = new List <Mobile> () ;
   final protected List <Actor> crew = new List <Actor> () ;
   
-  public Actor pilot ;  //  TODO:  Have this set explicitly by methods.
-  ///protected Venue hangar = null ;  //TODO:  Salvage if destroyed.
+  private Actor pilot ;
+  private Venue hangar ;
   
   protected float entranceFace = Venue.ENTRANCE_NONE ;
   protected Boardable dropPoint ;
@@ -48,7 +53,9 @@ public abstract class Vehicle extends Mobile implements
     entranceFace = s.loadFloat() ;
     base = (Base) s.loadObject() ;
     pilot = (Actor) s.loadObject() ;
+    hangar = (Venue) s.loadObject() ;
   }
+  
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
@@ -59,6 +66,7 @@ public abstract class Vehicle extends Mobile implements
     s.saveFloat(entranceFace) ;
     s.saveObject(base) ;
     s.saveObject(pilot) ;
+    s.saveObject(hangar) ;
   }
   
   
@@ -71,9 +79,64 @@ public abstract class Vehicle extends Mobile implements
     return base ;
   }
   
-
-  public Inventory inventory() { return cargo ; }
-  public float priceFor(Service service) { return service.basePrice ; }
+  
+  
+  /**  Pilot and hangar configuration-
+    */
+  public boolean canPilot(Actor actor) {
+    if (pilot != null && actor != null && actor != pilot) {
+      return false ;
+    }
+    return true ;
+  }
+  
+  
+  public boolean setPilot(Actor actor) {
+    if (! canPilot(actor)) {
+      //I.complain("CANNOT SET AS PILOT") ;
+      return false ;
+    }
+    this.pilot = actor ;
+    return true ;
+  }
+  
+  
+  public Actor pilot() {
+    return pilot ;
+  }
+  
+  
+  public void setHangar(Venue hangar) {
+    this.hangar = hangar ;
+  }
+  
+  
+  public Venue hangar() {
+    return hangar ;
+  }
+  
+  
+  
+  /**  Dealing with items and inventory-
+    */
+  public Inventory inventory() {
+    return cargo ;
+  }
+  
+  
+  public float priceFor(Service service) {
+    return service.basePrice ;
+  }
+  
+  
+  public int spaceFor(Service good) {
+    return 1000 ;
+    //return structure.maxIntegrity() - cargo.spaceUsed() ;
+  }
+  
+  
+  public void afterTransaction(Item item, float amount) {
+  }
   
   
   
@@ -86,10 +149,18 @@ public abstract class Vehicle extends Mobile implements
   
   protected void updateAsMobile() {
     super.updateAsMobile() ;
-    if (inside.contains(pilot) && pilot.currentAction() != null) {
-      pathing.updateTarget(pilot.currentAction().target()) ;
-      final Boardable step = pathing.nextStep() ;
-      if (step != null) pathing.headTowards(step, 1, true) ;
+    if (pilot == null) {
+      pathing.updateTarget(null) ;
+      return ;
+    }
+    if (pilot.currentAction() == null) return ;
+    pathing.updateTarget(pilot.currentAction().target()) ;
+    final Boardable step = pathing.nextStep() ;
+    if (pathing.checkPathingOkay() && step != null) {
+      float moveRate = 1 ;
+      if (origin().pathType() == Tile.PATH_ROAD) moveRate *= 1.5f ;
+      if (origin().owner() instanceof Causeway) moveRate *= 1.5f ;
+      pathing.headTowards(step, moveRate, true) ;
     }
     else world.schedule.scheduleNow(this) ;
   }
@@ -97,9 +168,10 @@ public abstract class Vehicle extends Mobile implements
   
   public void updateAsScheduled(int numUpdates) {
     if (! pathing.checkPathingOkay()) pathing.refreshPath() ;
+    if (pilot != null && pilot.aboard() != this) pilot = null ;
   }
   
-  
+  /*
   public boolean blocksMotion(Boardable b) {
     if (super.blocksMotion(b)) return true ;
     if (b instanceof Tile && b != aboard()) {
@@ -111,6 +183,7 @@ public abstract class Vehicle extends Mobile implements
     }
     return false ;
   }
+  //*/
   
   
   

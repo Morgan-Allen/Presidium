@@ -202,21 +202,36 @@ public class Human extends Actor implements ActorConstants {
   /**  More usual rendering and interface methods-
     */
   public void renderFor(Rendering rendering, Base base) {
+    
+    //
+    //  If you're in combat, equip the right gear-
     final DeviceType DT = gear.deviceType() ;
     final boolean IC = isDoing(Combat.class, null) ;
     if (DT != null) ((JointSprite) sprite()).toggleGroup(DT.groupName, IC) ;
+    
+    //
+    //  If you're in dialogue, and selected, render the chat-
+    if (isDoing(Dialogue.class, null) && BaseUI.isPicked(this)) {
+      final Dialogue d = (Dialogue) AI.rootBehaviour() ;
+      d.chat.position.setTo(this.position) ;
+      d.chat.position.z += this.height() ;
+      d.chat.update() ;
+      rendering.addClient(d.chat) ;
+    }
+    
     super.renderFor(rendering, base) ;
   }
   
   
   protected float spriteScale() {
     //
-    //  TODO:  make this a general scaling vector, and incorporate other
+    //  TODO:  make this a general 3D scaling vector, and incorporate other
     //  physical traits.
     final int stage = health.agingStage() ;
-    if (stage == 0) return 0.8f ;
-    if (stage == 2) return 0.95f ;
-    return 1f ;
+    final float scale = (float) Math.pow(traits.scaleLevel(TALL), 0.1f) ;
+    if (stage == 0) return 0.8f * scale ;
+    if (stage >= 2) return 0.95f * scale ;
+    return 1f * scale ;
   }
 
 

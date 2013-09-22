@@ -178,7 +178,7 @@ public class Farming extends Plan implements BuildConstants {
   public boolean actionHarvest(Actor actor, Crop crop) {
     if (! crop.inWorld()) return false ;
     final float yield = crop.health ;
-    actor.gear.addItem(BotanicalStation.speciesYield(crop.varID), yield) ;
+    actor.gear.bumpItem(BotanicalStation.speciesYield(crop.varID), yield) ;
     crop.exitWorld() ;
     actionPlant(actor, crop.origin()) ;
     return true ;

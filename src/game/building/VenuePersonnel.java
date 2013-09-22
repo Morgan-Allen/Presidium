@@ -9,6 +9,7 @@ package src.game.building ;
 import src.game.base.* ;
 import src.game.campaign.* ;
 import src.game.common.* ;
+import src.game.social.Auditing;
 import src.game.actors.* ;
 import src.util.* ;
 
@@ -30,6 +31,12 @@ public class VenuePersonnel {
   
   /**  Fields, constructors, and save/load methods-
     */
+  final static int
+    REFRESH_INTERVAL = 10,
+    AUDIT_INTERVAL   = World.DEFAULT_DAY_LENGTH ;
+  
+  
+  
   final Venue venue ;
   
   static class Position {
@@ -61,11 +68,12 @@ public class VenuePersonnel {
     s.loadObjects(residents) ;
     
     for (int n = s.loadInt() ; n-- > 0 ;) {
-      final Position a = new Position() ;
-      a.role = Background.ALL_BACKGROUNDS[s.loadInt()] ;
-      a.works = (Actor) s.loadObject() ;
-      a.salary = s.loadInt() ;
-      a.wages = s.loadFloat() ;
+      final Position p = new Position() ;
+      p.role = Background.ALL_BACKGROUNDS[s.loadInt()] ;
+      p.works = (Actor) s.loadObject() ;
+      p.salary = s.loadInt() ;
+      p.wages = s.loadFloat() ;
+      positions.add(p) ;
     }
   }
   
@@ -186,11 +194,23 @@ public class VenuePersonnel {
     */
   protected void allocateWages() {
     if (venue.privateProperty()) return ;
+    
+    I.sayAbout(venue, venue+" ALLOCATING WAGES, "+positions.size()+" WORK?") ;
     //
-    //  Firstly, allocate minimum wage-
+    //  Firstly, allocate basic salary plus minimum wage.  (Ruler-class
+    //  citizens receive no wage, drawing directly on the resources of the
+    //  state.)  TODO:  Should that be the case...?
     float sumWages = 0 ;
-    for (Position p : positions) if (p.wages >= 0) {
-      final float wage = p.salary / 10f ;
+    for (Position p : positions) if (p.wages > 0) {
+      if (p.role.standing == Background.RULER_CLASS) {
+        p.wages = 0 ;
+        continue ;
+      }
+      float wage = (p.salary + Auditing.BASE_ALMS_PAY) / 10f ;
+      if (p.role.guild == Background.GUILD_MILITANT) {
+        wage *= Auditing.MILITANT_BONUS ;
+      }
+      wage *= AUDIT_INTERVAL * 1f / World.DEFAULT_DAY_LENGTH ;
       p.wages += wage ;
       sumWages += wage ;
     }
@@ -201,8 +221,12 @@ public class VenuePersonnel {
     final float surplus = venue.stocks.credits() ;
     if (surplus > 0) {
       float sumSalaries = 0 ;
-      for (Position p : positions) if (p.wages >= 0) sumSalaries += p.salary ;
       for (Position p : positions) if (p.wages >= 0) {
+        if (p.role.standing == Background.RULER_CLASS) continue ;
+        sumSalaries += p.salary ;
+      }
+      for (Position p : positions) if (p.wages >= 0) {
+        if (p.role.standing == Background.RULER_CLASS) continue ;
         p.wages += surplus * 0.1f * p.salary / sumSalaries ;
       }
       venue.stocks.incCredits(0 - surplus) ;
@@ -227,9 +251,32 @@ public class VenuePersonnel {
       venue.stocks.incCredits(paid) ;
     }
     venue.stocks.taxDone() ;
+    
+    if (I.talkAbout == venue) for (Position p : positions) {
+      if (p.wages > 0) I.say(p.works+" has "+p.wages+" credits in wages") ;
+    }
   }
   
   
+  public int wagesFor(Actor actor) {
+    for (Position p : positions) {
+      if (p.works == actor && p.wages > 0) return (int) p.wages ;
+    }
+    return 0 ;
+  }
+  
+  
+  public void dispenseWages(Actor actor) {
+    for (Position p : positions) {
+      if (p.works != actor || p.wages <= 0) continue ;
+      actor.gear.incCredits(p.wages) ;
+      p.wages = 0 ;
+      return ;
+    }
+  }
+  
+  
+  /*
   protected void checkWagePayment() {
     for (Position p : positions) {
       if (p.works.aboard() == venue && p.wages > 0) {
@@ -239,6 +286,7 @@ public class VenuePersonnel {
       }
     }
   }
+  //*/
   
   
   
@@ -291,9 +339,9 @@ public class VenuePersonnel {
   /**  Life cycle, recruitment and updates-
     */
   protected void updatePersonnel(int numUpdates) {
-    checkWagePayment() ;
+    //checkWagePayment() ;
     
-    if (numUpdates % 10 == 0) {
+    if (numUpdates % REFRESH_INTERVAL == 0) {
       final World world = venue.world() ;
       //
       //  Clear out the office for anyone dead-
@@ -321,8 +369,8 @@ public class VenuePersonnel {
         }
       }
     }
-
-    if (numUpdates % World.DEFAULT_DAY_LENGTH == 100) allocateWages() ;
+    
+    if (numUpdates % AUDIT_INTERVAL == (AUDIT_INTERVAL - 1)) allocateWages() ;
   }
   
   

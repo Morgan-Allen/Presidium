@@ -173,8 +173,13 @@ public class Holding extends Venue implements BuildConstants {
       if (! stocks.hasItem(i)) upgrade = false ;
       stocks.forceDemand(i.type, i.amount + margin, 0) ;
     }
-    final float foodNeed = personnel.residents().size() * (1 + margin) * 2 ;
+    final float foodNeed = personnel.residents().size() * 1 ;
     for (Service t : ALL_FOOD_TYPES) {
+      if (t == SPICE) {
+        //  TODO:  Only noble households demand spice.
+        stocks.forceDemand(t, 0, 0) ;
+        continue ;
+      }
       stocks.forceDemand(t, foodNeed, 0) ;
     }
     int targetLevel = upgradeLevel ;
@@ -233,32 +238,6 @@ public class Holding extends Venue implements BuildConstants {
       CARBS, PARTS, PROTEIN, PLASTICS, GREENS, CIRCUITRY
     } ;
   }
-  
-  
-  /*
-  public Batch <Item> goodsNeeded() {
-    final Batch <Item> needed = new Batch <Item> () ;
-    //
-    //  Enough food to last a typical inhabitant 5 days-
-    final float foodNeed = personnel.residents().size() * 1 ;
-    for (Service t : ALL_FOOD_TYPES) {
-      final float amount = foodNeed - stocks.amountOf(t) ;
-      if (amount <= 0) continue ;
-      needed.add(Item.withAmount(t, 1)) ;
-    }
-    //
-    //  Enough raw materials to allow construction-
-    for (Item item : goodsNeeded(upgradeLevel + 1).raw) {
-      if (item.type.form != BuildConstants.FORM_COMMODITY) continue ;
-      final float amount = item.amount - stocks.amountOf(item) ;
-      if (amount <= 0) continue ;
-      needed.add(Item.withAmount(item, 1)) ;
-    }
-    //
-    //  TODO:  RETURN SORTED BY PRICE
-    return needed ;
-  }
-  //*/
   
   
   public Behaviour jobFor(Actor actor) { return null ; }

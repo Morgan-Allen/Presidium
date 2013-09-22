@@ -38,11 +38,13 @@ public interface BuildConstants extends ActorConstants {
   
   final public static Service
     //
+    //  TODO:  Re-organise these into broad categories.
+    //
     //  Food types-
     CARBS       = new Service(BC, "Carbs"     , "carbs.gif"      , FC, 10 ),
     PROTEIN     = new Service(BC, "Protein"   , "protein.gif"    , FC, 20 ),
     GREENS      = new Service(BC, "Greens"    , "greens.gif"     , FC, 50 ),
-    SPICE       = new Service(BC, "Spice"     , "spices.gif"     , FC, 100),
+    SOMA        = new Service(BC, "Soma"      , "soma.gif"       , FC, 70 ),
     //
     //  Mineral wealth-
     METAL_ORE   = new Service(BC, "Metal Ore" , "ores.gif"       , FC, 15 ),
@@ -57,22 +59,23 @@ public interface BuildConstants extends ActorConstants {
     //
     //  Medical supplies-
     STIM_KITS   = new Service(BC, "Stim Kit"  , "stimkit.gif"    , FC, 40 ),
-    SOMA        = new Service(BC, "Soma"      , "soma.gif"       , FC, 70 ),
+    SPICE       = new Service(BC, "Spice"     , "spices.gif"     , FC, 100),
     MEDICINE    = new Service(BC, "Medicine"  , "medicines.gif"  , FC, 200),
     
-    ALL_FOOD_TYPES[] = { CARBS, PROTEIN, GREENS },
+    ALL_FOOD_TYPES[] = { CARBS, PROTEIN, GREENS, SPICE },
     ALL_COMMODITIES[] = Service.typesSoFar() ;
   
   final public static Service
-    CRATES = new Service(BC, "Crates", "crates_big.gif", FC, -1) ;
+    CRATES  = new Service(BC, "Crates", "crates_big.gif", FC, -1),
+    CREDITS = new Service(BC, "Credits", null           , FP, -1) ;
   
   final public static Service
-    GENE_SEED   = new Service(BC, FORM_UNIQUE, "Gene Seed", 200 ),
-    GHOSTLINE   = new Service(BC, FORM_UNIQUE, "Ghostline", 200 ),
-    PRESSFEED   = new Service(BC, FORM_UNIQUE, "Pressfeed", 200 ),
+    TROPHIES    = new Service(BC, FORM_UNIQUE, "Trophy"     , 100 ),
+    RARITIES    = new Service(BC, FORM_UNIQUE, "Rarity"     , 100 ),
     
-    TROPHIES    = new Service(BC, FORM_UNIQUE, "Trophy"   , 400 ),
-    RELICS      = new Service(BC, FORM_UNIQUE, "Relic"    , 400 ),
+    GENE_SEED   = new Service(BC, FORM_UNIQUE, "Gene Seed"  , 200 ),
+    GHOSTLINE   = new Service(BC, FORM_UNIQUE, "Ghostline"  , 200 ),
+    PRESSFEED   = new Service(BC, FORM_UNIQUE, "Pressfeed"  , 200 ),
     
     ATOMICS     = new Service(BC, FORM_UNIQUE, "Atomic"   , 1000),
     
@@ -234,17 +237,46 @@ public interface BuildConstants extends ActorConstants {
   final public static Object TO = new Object() ;
   
   final public static Conversion
-    
+    //
+    //  Artificer conversions-
     METALS_TO_PARTS = new Conversion(
       1, METAL_ORE, TO, 1, PARTS,
       Foundry.class,
       MODERATE_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
     ),
     
-    CARBONS_TO_PLASTICS = new Conversion(
+    PARTS_TO_CIRCUITRY = new Conversion(
+      1, PARTS, TO, 5, CIRCUITRY,
+      Foundry.class,
+      STRENUOUS_DC, ASSEMBLY, MODERATE_DC, FIELD_THEORY
+    ),
+    
+    //
+    //  Fabricator conversions-
+    PETROCARBS_TO_PLASTICS = new Conversion(
       1, PETROCARBS, TO, 1, PLASTICS,
       Fabricator.class,
-      MODERATE_DC, CHEMISTRY, SIMPLE_DC, GRAPHIC_DESIGN
+      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_DESIGN
+    ),
+    
+    CARBS_TO_PLASTICS = new Conversion(
+      2, CARBS, TO, 1, PLASTICS,
+      Fabricator.class,
+      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_DESIGN
+    ),
+    
+    PLASTICS_TO_DECOR = new Conversion(
+      1, PLASTICS, TO, 2, DECOR,
+      Fabricator.class,
+      STRENUOUS_DC, GRAPHIC_DESIGN, MODERATE_DC, HANDICRAFTS
+    ),
+    
+    //
+    //  Audit Office conversions-
+    PLASTICS_TO_CREDITS = new Conversion(
+      1, PLASTICS, TO, 500, CREDITS,
+      AuditOffice.class,
+      MODERATE_DC, ADMINISTRATION, MODERATE_DC, GRAPHIC_DESIGN
     ),
     
     PLASTICS_TO_PRESSFEED = new Conversion(
@@ -253,6 +285,8 @@ public interface BuildConstants extends ActorConstants {
       SIMPLE_DC, ADMINISTRATION, DIFFICULT_DC, GRAPHIC_DESIGN
     ),
     
+    //
+    //  Reactor conversions-
     METALS_TO_FUEL = new Conversion(
       5, METAL_ORE, TO, 1, FUEL_CORES,
       Reactor.class,

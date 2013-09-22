@@ -179,6 +179,22 @@ public class Tile implements Target, TileConstants, Boardable {
     */
   public Boardable[] canBoard(Boardable batch[]) {
     if (batch == null) batch = new Boardable[8] ;
+    
+    if (inside != null) {
+      int numB = 0 ;
+      for (Mobile m : inside) {
+        if (m instanceof Boardable) numB++ ;
+      }
+      if (numB > 0) {
+        batch = new Boardable[8 + numB] ;
+        for (Mobile m : inside) {
+          if (m instanceof Boardable) {
+            batch[8 + --numB] = (Boardable) m ;
+          }
+        }
+      }
+    }
+    
     if (blocked() && owner() instanceof Boardable) {
       return ((Boardable) owner()).canBoard(batch) ;
     }

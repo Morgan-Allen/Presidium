@@ -60,8 +60,8 @@ public class Foundry extends Venue implements BuildConstants {
   final public static Upgrade
     ASSEMBLY_LINE = new Upgrade(
       "Assembly Line",
-      "Allows standardised parts to manufactured quickly, cheaply and in "+
-      "greater abundance.",
+      "Allows standardised parts and miniaturised circuitry to manufactured "+
+      "quickly and in greater abundance.",
       200,
       PARTS, 2, null, ALL_UPGRADES
     ),
@@ -72,13 +72,13 @@ public class Foundry extends Venue implements BuildConstants {
       150,
       PLASTICS, 1, null, ALL_UPGRADES
     ),
-    TECHNICIAN_QUARTERS = new Upgrade(
-      "Technician Quarters",
+    TECHNICIAN_STATION = new Upgrade(
+      "Technician Station",
       "Technicians are trained to operate and perform routine maintenance on "+
       "common machinery, but lack the theoretical grounding needed for "+
       "fundamental design or customisation.",
       50,
-      Background.TECHNICIAN, 2, null, ALL_UPGRADES
+      Background.TECHNICIAN, 1, null, ALL_UPGRADES
     ),
     COMPOSITE_MATERIALS = new Upgrade(
       "Composite Materials",
@@ -92,15 +92,15 @@ public class Foundry extends Venue implements BuildConstants {
       "Allows high-energy plasmas to be generated and controlled, permitting "+
       "refinements to shield technology and ranged energy weapons.",
       250,
-      null, 2, TECHNICIAN_QUARTERS, ALL_UPGRADES
+      null, 2, TECHNICIAN_STATION, ALL_UPGRADES
     ),
-    ARTIFICER_QUARTERS = new Upgrade(
-      "Artificer Quarters",
+    ARTIFICER_STATION = new Upgrade(
+      "Artificer Station",
       "Artificers are highly-skilled as physicists and engineers, and can "+
       "tackle the most taxing commissions reliant on dangerous or arcane "+
       "technologies.",
       150,
-      Background.ARTIFICER, 1, TECHNICIAN_QUARTERS, ALL_UPGRADES
+      Background.ARTIFICER, 1, TECHNICIAN_STATION, ALL_UPGRADES
     ) ;
   
   
@@ -120,59 +120,87 @@ public class Foundry extends Venue implements BuildConstants {
   
   public int numOpenings(Background v) {
     int num = super.numOpenings(v) ;
-    if (v == Background.TECHNICIAN) return num + 2 ;
-    if (v == Background.ARTIFICER ) return num + 0 ;
+    if (v == Background.TECHNICIAN) return num + 1 ;
+    if (v == Background.ARTIFICER ) return num + 1 ;
     return 0 ;
   }
   
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    
-    if (stocks.demandFor(PARTS) < 10) stocks.forceDemand(PARTS, 10, 2) ;
-    stocks.translateDemands(METALS_TO_PARTS) ;
+    if (! structure.intact()) return ;
+    stocks.translateDemands(PARTS_TO_CIRCUITRY, 1) ;
+    stocks.incDemand(PARTS, 10, 1) ;
+    stocks.translateDemands(METALS_TO_PARTS, 1) ;
+    //
+    //  Output squalor and demand power-
+    float pollution = 5, powerNeed = 5 ;
+    if (! isManned()) {
+      pollution /= 2 ;
+      powerNeed /= 2 ;
+    }
+    powerNeed *= (2 + structure.numUpgrades()) / 2 ;
+    pollution *= 2 / (2 + structure.upgradeLevel(MOLDING_PRESS)) ;
+    world.ecology().impingePollution(pollution, this, true) ;
+    stocks.forceDemand(POWER, powerNeed, 0) ;
+    stocks.removeItem(Item.withAmount(POWER, 0.1f * powerNeed)) ;
   }
   
   
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
-    
+    //
+    //  Consider contributing toward local repairs-
     final Building b = Building.getNextRepairFor(actor) ;
     if (b != null) {
-      b.priorityMod = Behaviour.ROUTINE ;
+      b.priorityMod = Behaviour.CASUAL ;
       choice.add(b) ;
     }
+    //
+    //  Consider special commissions for weapons and armour-
+    //
+    //  TODO:  Have efficiency impacted by power levels.
+    final int powerCut = stocks.amountOf(POWER) < 1 ? 10 : 0 ;
     
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
     if (o != null) {
-      o.checkBonus = structure.upgradeLevel(MOLDING_PRESS) + 2 ;
+      o.checkBonus = structure.upgradeLevel(MOLDING_PRESS) ;
       final int CMB = structure.upgradeLevel(COMPOSITE_MATERIALS) + 2 ;
       final int FCB = structure.upgradeBonus(FLUX_CONTAINMENT) + 2 ;
+      final Service made = o.made().type ;
       
-      if (o.made.type instanceof DeviceType) {
-        final DeviceType DT = (DeviceType) o.made.type ;
+      if (made instanceof DeviceType) {
+        final DeviceType DT = (DeviceType) made ;
         if (DT.hasProperty(PHYSICAL)) o.checkBonus += CMB ;
         if (DT.hasProperty(ENERGY)) o.checkBonus += FCB ;
       }
-      if (o.made.type instanceof OutfitType) {
+      if (made instanceof OutfitType) {
         //
         //  TODO:  Have separate ratings for shield and armour values
         //  associated with armour, and scale appropriately.
-        final OutfitType OT = (OutfitType) o.made.type ;
+        final OutfitType OT = (OutfitType) made ;
         if (OT.defence <= 10) o.checkBonus += FCB ;
         else o.checkBonus += CMB ;
       }
-      o.timeMult = 4 ;
+      o.timeMult = 5 ;
       choice.add(o) ;
     }
-    
-    final Manufacture m = stocks.nextManufacture(actor, METALS_TO_PARTS) ;
-    if (m != null) {
-      m.checkBonus = structure.upgradeBonus(PARTS) ;
-      choice.add(m) ;
+    //
+    //  Finally, consider the production of general bulk commodities-
+    final int PB = 1 + structure.upgradeLevel(ASSEMBLY_LINE) ;
+    final Manufacture mP = stocks.nextManufacture(actor, METALS_TO_PARTS) ;
+    if (mP != null) {
+      mP.checkBonus = (PB * 5) / 2 ;
+      choice.add(mP) ;
     }
-    
+    final Manufacture mC = stocks.nextManufacture(actor, PARTS_TO_CIRCUITRY) ;
+    if (mC != null) {
+      mC.checkBonus = (PB * 5) / 2 ;
+      choice.add(mC) ;
+    }
+    //
+    //  And return whatever suits the actor best-
     return choice.weightedPick(actor.AI.whimsy()) ;
   }
   
@@ -180,11 +208,16 @@ public class Foundry extends Venue implements BuildConstants {
   
   /**  Rendering and interface methods-
     */
-  public Composite portrait(HUD UI) {
-    return new Composite(UI, "media/GUI/Buttons/artificer_button.gif") ;
+  protected Service[] goodsToShow() {
+    return new Service[] { METAL_ORE, CIRCUITRY, PARTS } ;
   }
   
   
+  public Composite portrait(HUD UI) {
+    return new Composite(UI, "media/GUI/Buttons/artificer_button.gif") ;
+  }
+
+
   public String fullName() {
     return "Foundry" ;
   }

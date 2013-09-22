@@ -27,7 +27,7 @@ public abstract class Actor extends Mobile implements
     */
   private static boolean verbose = false ;
   
-  final public Healthbar healthBar = new Healthbar() ;
+  final public Healthbar healthbar = new Healthbar() ;
   final public TalkFX chat = new TalkFX() ;
   
   final public ActorHealth health = new ActorHealth(this) ;
@@ -73,12 +73,31 @@ public abstract class Actor extends Mobile implements
   
   protected MobilePathing initPathing() { return new MobilePathing(this) ; }
   
-  public ActorGear inventory() { return gear ; }
-  public float priceFor(Service service) { return service.basePrice ; }
-  
   public Background vocation() { return null ; }
   
   public Object species() { return null ; }
+  
+  
+  
+  /**  Dealing with items and inventory-
+    */
+  public ActorGear inventory() {
+    return gear ;
+  }
+  
+  
+  public float priceFor(Service service) {
+    return service.basePrice * 2 ;
+  }
+  
+  
+  public int spaceFor(Service good) {
+    return (int) health.maxHealth() / 2 ;
+  }
+  
+  
+  public void afterTransaction(Item item, float amount) {
+  }
   
   
   
@@ -247,21 +266,9 @@ public abstract class Actor extends Mobile implements
     */
   public void renderFor(Rendering rendering, Base base) {
     //
-    //  Make a few basic sanity checks for visibility-
-    final Sprite s = sprite() ;
-    
-    if (! health.deceased()) {
-      healthBar.level =  (1 - health.injuryLevel()) ;
-      healthBar.level *= (1 - health.skillPenalty()) ;
-      healthBar.size = 25 ;
-      healthBar.matchTo(s) ;
-      healthBar.position.z -= radius() ;
-      if (base() == null) healthBar.full = Colour.LIGHT_GREY ;
-      else healthBar.full = base().colour ;
-      rendering.addClient(healthBar) ;
-    }
-    //
     //  ...Maybe include equipment/costume configuration here as well?
+    final Sprite s = sprite() ;
+    renderHealthbars(rendering, base) ;
     if (actionTaken != null) actionTaken.configSprite(s) ;
     ///I.say("Sprite height: "+s.position.z) ;
     super.renderFor(rendering, base) ;
@@ -273,6 +280,27 @@ public abstract class Actor extends Mobile implements
       chat.update() ;
       rendering.addClient(chat) ;
     }
+  }
+  
+  
+  protected void renderHealthbars(Rendering rendering, Base base) {
+    healthbar.level =  (1 - health.injuryLevel()) ;
+    healthbar.level *= (1 - health.skillPenalty()) ;
+    
+    final BaseUI UI = (BaseUI) PlayLoop.currentUI() ;
+    if (
+      UI.selection.selected() != this &&
+      UI.selection.hovered()  != this &&
+      healthbar.level > 0.5f
+    ) return ;
+    
+    if (health.deceased()) return ;
+    healthbar.size = 25 ;
+    healthbar.matchTo(sprite()) ;
+    healthbar.position.z -= radius() ;
+    if (base() == null) healthbar.full = Colour.LIGHT_GREY ;
+    else healthbar.full = base().colour ;
+    rendering.addClient(healthbar) ;
   }
   
   

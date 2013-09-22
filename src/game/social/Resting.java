@@ -105,10 +105,12 @@ public class Resting extends Plan implements BuildConstants {
       ) ;
       final Batch <Service> menu = menuFor(restPoint) ;
       if (menu.size() == 0) {
+        //
+        //  TODO:  Make foraging/gathering into a separate behaviour.
         if (actor.health.hungerLevel() > 0.6f) {
           final Tile t = Spacing.pickFreeTileAround(restPoint, actor) ;
           eats.setMoveTarget(t) ;
-          eats.setProperties(Action.CAREFUL) ;
+          ///eats.setProperties(Action.CAREFUL) ;
           currentMode = MODE_SCAVENGE ;
           return eats ;
         }

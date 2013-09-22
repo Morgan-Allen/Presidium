@@ -7,7 +7,6 @@
 package src.game.building ;
 import src.game.actors.* ;
 import src.game.common.* ;
-import src.user.BaseUI;
 import src.util.* ;
 
 
@@ -61,9 +60,9 @@ public class VenueStructure extends Inventory {
   private int
     buildCost = DEFAULT_BUILD_COST,
     armouring = DEFAULT_ARMOUR ;
-  private boolean organic ;
+  private boolean
+    organic ;
   //  private Item materials[] ;
-  //  TODO:  Introduce pollution and power consumption values!
   
   private int state = STATE_INSTALL ;
   private float integrity = baseIntegrity ;

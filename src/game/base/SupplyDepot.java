@@ -19,9 +19,6 @@ import src.util.* ;
 //
 //  TODO:  Include a Landing Site right nextdoor?  Yes.
 
-//  TODO:  Have dropships come and land directly at the depot!
-
-
 public class SupplyDepot extends Venue implements
   BuildConstants, Service.Trade
 {
@@ -39,25 +36,25 @@ public class SupplyDepot extends Venue implements
     ) ;
   
   final static int
-    LEVEL_FOODS    = 0,
-    LEVEL_MINERALS = 1,
-    LEVEL_MEDICAL  = 2,
-    LEVEL_BUILDING = 3,
-    LEVEL_LUXURY   = 4,
+    KEY_RATIONS     = 0,
+    KEY_MINERALS    = 1,
+    KEY_MEDICAL     = 2,
+    KEY_BUILDING    = 3,
+    KEY_SPECIALTIES = 4,
     NUM_PREFS = 5 ;
   final static String PREF_TITLES[] = {
-    "Foodstuffs",
+    "Basic rations",
     "Mineral wealth",
     "Medical supplies",
     "Building materials",
-    "Luxury goods"
+    "Specialty items"
   } ;
   final static int PREF_LEVELS[] = {
     10, 25, 50, 0, -10, -25, -50
   }, NUM_LEVELS = 7 ;
   final static String LEVEL_TITLES[] = {
     "Light Exports", "Medium Exports", "Heavy Exports",
-    "No Imports/Exports",
+    "Not Trading",
     "Light Imports", "Medium Imports", "Heavy Imports",
   } ;
   final private static Colour PREF_COLOURS[] = {
@@ -67,26 +64,27 @@ public class SupplyDepot extends Venue implements
     Colour.GREEN, Colour.GREEN, Colour.GREEN,
   } ;
   
-  final static Table SERVICE_KEY = Table.make(
-    CARBS, 0,
-    PROTEIN, 0,
-    GREENS, 0,
+  final public static Table SERVICE_KEY = Table.make(
     
-    METAL_ORE, 1,
-    PETROCARBS, 1,
-    FUEL_CORES, 1,
+    CARBS     , KEY_RATIONS ,
+    PROTEIN   , KEY_RATIONS ,
+    GREENS    , KEY_RATIONS ,
+    SOMA      , KEY_RATIONS ,
     
-    STIM_KITS, 2,
-    MEDICINE, 2,
-    GENE_SEED, 2,
+    METAL_ORE , KEY_MINERALS,
+    PETROCARBS, KEY_MINERALS,
+    FUEL_CORES, KEY_MINERALS,
+    RARITIES  , KEY_MINERALS,
     
-    PARTS, 3,
-    PLASTICS, 3,
-    CIRCUITRY, 3,
+    STIM_KITS , KEY_MEDICAL ,
+    SPICE     , KEY_MEDICAL ,
+    MEDICINE  , KEY_MEDICAL ,
+    GENE_SEED , KEY_MEDICAL ,
     
-    DECOR, 4,
-    SOMA, 4,
-    SPICE, 4
+    PARTS     , KEY_BUILDING,
+    PLASTICS  , KEY_BUILDING,
+    CIRCUITRY , KEY_BUILDING,
+    DECOR     , KEY_BUILDING 
   ) ;
   
   
@@ -101,7 +99,7 @@ public class SupplyDepot extends Venue implements
     super(5, 2, ENTRANCE_NORTH, base) ;
     
     structure.setupStats(100, 2, 200, 0, false) ;
-    personnel.setShiftType(SHIFTS_BY_DAY) ;
+    personnel.setShiftType(SHIFTS_ALWAYS) ;
     
     final GroupSprite sprite = new GroupSprite() ;
     sprite.attach(MODEL_UNDER, 0, 0, -0.05f) ;
@@ -149,10 +147,16 @@ public class SupplyDepot extends Venue implements
   
   
   public Boardable[] canBoard(Boardable batch[]) {
-    if (batch.length < 2) batch = new Boardable[2] ;
-    else for (int n = batch.length ; n-- > 2 ;) batch[n] = null ;
+    final int minSize = 2 + inside().size() ;
+    if (batch == null || batch.length < minSize) {
+      batch = new Boardable[minSize] ;
+    }
+    else for (int i = batch.length ; i-- > 1 ;) batch[i] = null ;
     batch[0] = mainEntrance() ;
     batch[1] = (docking != null && docking.landed()) ? docking : null ;
+    int i = 2 ; for (Mobile m : inside()) if (m instanceof Boardable) {
+      batch[i++] = (Boardable) m ;
+    }
     return batch ;
   }
   
@@ -161,14 +165,17 @@ public class SupplyDepot extends Venue implements
   /**  Upgrades, economic functions and behaviour implementation-
     */
   public Behaviour jobFor(Actor actor) {
-    
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
 
     final Delivery d = Deliveries.nextDeliveryFrom(
       this, services(), 10, world
     ) ;
-    if (d != null && personnel.assignedTo(d) < 1) choice.add(d) ;
+    if (d != null && personnel.assignedTo(d) < 1) {
+      //d.nextStepFor(actor) ;
+      //I.sayAbout(this, "next delivery: "+d) ;
+      choice.add(d) ;
+    }
     
     final Delivery c = Deliveries.nextCollectionFor(
       this, services(), 10, null, world
@@ -184,6 +191,7 @@ public class SupplyDepot extends Venue implements
     super.updateAsScheduled(numUpdates) ;
     if (docking != null && ! docking.inWorld()) docking = null ;
     if (! structure.intact()) return ;
+    
     final Batch <Venue> depots = Deliveries.nearbyDepots(this, world) ;
     for (Service type : ALL_COMMODITIES) {
       final int level = exportLevel(type) ;
@@ -191,6 +199,7 @@ public class SupplyDepot extends Venue implements
         stocks.forceDemand(type, exportDemand(type), 0) ;
       }
       stocks.diffuseDemand(type, depots) ;
+      stocks.diffuseDemand(type) ;
     }
   }
   

@@ -28,8 +28,9 @@ public interface Behaviour extends Session.Saveable {
   float priorityFor(Actor actor) ;
   boolean finished() ;
   void abortBehaviour() ;
-  //boolean viable() ;
+  boolean valid() ;
   boolean begun() ;
+  void onSuspend() ;
   
   void describeBehaviour(Description d) ;
 }

@@ -23,9 +23,9 @@ public class InstallTab extends InfoPanel {
   /**  Field, constant and internal class definitions-
     */
   static class InstallType {
-    Class <Installation> buildClass ;
+    Class <Structural> buildClass ;
     Constructor buildCons ;
-    Installation sample ;
+    Structural sample ;
   }
   
   
@@ -57,7 +57,7 @@ public class InstallTab extends InfoPanel {
       //
       //  Firstly, we need to ensure that the class refers to a type of venue
       //  and has an appropriate constructor.
-      if (! Installation.class.isAssignableFrom(baseClass)) continue ;
+      if (! Structural.class.isAssignableFrom(baseClass)) continue ;
       final Constructor cons ;
       try { cons = baseClass.getConstructor(Base.class) ; }
       catch (Exception e) { continue ; }
@@ -85,7 +85,7 @@ public class InstallTab extends InfoPanel {
   
   private static void refreshSample(InstallType type, Base base) {
     try {
-      type.sample = (Installation) type.buildCons.newInstance(base) ;
+      type.sample = (Structural) type.buildCons.newInstance(base) ;
     }
     catch (Exception e) {
       I.say("PROBLEM REFRESHING SAMPLE OF: "+type.buildCons.getName()) ;
@@ -160,12 +160,12 @@ public class InstallTab extends InfoPanel {
         detailText.append("\n") ;
       }
       if (listShown == type) {
-        final Batch <Installation> installed = listInstalled(UI, type) ;
+        final Batch <Structural> installed = listInstalled(UI, type) ;
         int ID = 0 ;
         if (installed.size() == 0) {
           detailText.append("\n  (no current installations)") ;
         }
-        else for (Installation i : installed) {
+        else for (Structural i : installed) {
           detailText.append("\n    ") ;
           final String label = i.fullName()+" No. "+(++ID) ;
           detailText.append(label, (Text.Clickable) i) ;
@@ -178,13 +178,13 @@ public class InstallTab extends InfoPanel {
   }
   
   
-  Batch <Installation> listInstalled(BaseUI UI, InstallType type) {
-    Batch <Installation> installed = new Batch <Installation> () ;
+  Batch <Structural> listInstalled(BaseUI UI, InstallType type) {
+    Batch <Structural> installed = new Batch <Structural> () ;
     final Tile zero = UI.world().tileAt(0, 0) ;
     final Presences presences = UI.world().presences ;
     for (Object o : presences.matchesNear(type.buildClass, zero, -1)) {
-      if (! (o instanceof Installation)) continue ;
-      installed.add((Installation) o) ;
+      if (! (o instanceof Structural)) continue ;
+      installed.add((Structural) o) ;
     }
     return installed ;
   }
@@ -209,7 +209,7 @@ public class InstallTab extends InfoPanel {
     
     BaseUI UI ;
     InstallType type ;
-    Installation toInstall ;
+    Structural toInstall ;
     private boolean hasPressed = false ;
     Tile from, to ;
     

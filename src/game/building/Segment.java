@@ -216,6 +216,7 @@ public abstract class Segment extends Venue implements TileConstants {
   }
   
   
+  /*
   protected void renderHealthbars(Rendering rendering, Base base) {
     final BaseUI UI = (BaseUI) PlayLoop.currentUI() ;
     if (
@@ -224,6 +225,7 @@ public abstract class Segment extends Venue implements TileConstants {
     ) super.renderHealthbars(rendering, base) ;
     else return ;
   }
+  //*/
   
 
   public void renderSelection(Rendering rendering, boolean hovered) {

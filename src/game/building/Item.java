@@ -33,7 +33,7 @@ public class Item implements BuildConstants {
   
   /**  Field definitions, standard constructors and save/load functionality-
     */
-  final public static float ANY = Float.NEGATIVE_INFINITY ;
+  final public static int ANY = -1 ;
   final public static int MAX_QUALITY = 4 ;
   
   final public Service type ;
@@ -68,7 +68,7 @@ public class Item implements BuildConstants {
   
   
   public static Item withType(Service type) {
-    return new Item(type, null, -1, -1) ;
+    return new Item(type, null, ANY, ANY) ;
   }
   
   
@@ -131,6 +131,7 @@ public class Item implements BuildConstants {
   
   public boolean matches(Item item) {
     if (item == null) return false ;
+    if (quality != ANY && item.quality != this.quality) return false ;
     if (amount != ANY && item.amount < this.amount) return false ;
     return matchKind(item) ;
   }
@@ -143,7 +144,7 @@ public class Item implements BuildConstants {
   
   public int price() {
     final int q = quality ;
-    if (q == -1) return (int) (type.basePrice * amount) ;
+    if (q == ANY) return (int) (type.basePrice * amount) ;
     return (int) (type.basePrice * PRICE_MULTS[q] * amount) ;
   }
   

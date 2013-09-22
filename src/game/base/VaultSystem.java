@@ -70,13 +70,13 @@ public class VaultSystem extends Venue implements BuildConstants {
   
   public int numOpenings(Background b) {
     final int nO = super.numOpenings(b) ;
-    if (b == Background.MECHANIC) return nO + 2 ;
+    if (b == Background.RESERVIST) return nO + 2 ;
     return 0 ;
   }
   
   
   protected Background[] careers() {
-    return new Background[] { Background.MECHANIC } ;
+    return new Background[] { Background.RESERVIST } ;
   }
   
   

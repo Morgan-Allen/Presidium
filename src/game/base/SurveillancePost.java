@@ -14,17 +14,17 @@ import src.util.* ;
 
 
 
-public class SurveyorRedoubt extends Venue implements BuildConstants {
+public class SurveillancePost extends Venue implements BuildConstants {
   
   
   /**  Data fields, constructors and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    SurveyorRedoubt.class, "media/Buildings/ecologist/surveyor.png", 4, 1
+    SurveillancePost.class, "media/Buildings/ecologist/surveyor.png", 4, 1
   ) ;
   
   
-  public SurveyorRedoubt(Base base) {
+  public SurveillancePost(Base base) {
     super(4, 1, Venue.ENTRANCE_EAST, base) ;
     structure.setupStats(
       100, 4, 150,
@@ -35,7 +35,7 @@ public class SurveyorRedoubt extends Venue implements BuildConstants {
   }
   
   
-  public SurveyorRedoubt(Session s) throws Exception {
+  public SurveillancePost(Session s) throws Exception {
     super(s) ;
   }
   
@@ -73,13 +73,13 @@ public class SurveyorRedoubt extends Venue implements BuildConstants {
   
   
   protected Background[] careers() {
-    return new Background[] { Background.SURVEYOR } ;
+    return new Background[] { Background.EXPLORER } ;
   }
   
   
   public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Background.SURVEYOR) return nO + 2 ;
+    if (v == Background.EXPLORER) return nO + 2 ;
     return 0 ;
   }
   
@@ -93,7 +93,7 @@ public class SurveyorRedoubt extends Venue implements BuildConstants {
   /**  Rendering and interface-
     */
   public String fullName() {
-    return "Surveyor's Redoubt" ;
+    return "Surveillance Post" ;
   }
   
   

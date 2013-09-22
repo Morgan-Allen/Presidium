@@ -27,6 +27,8 @@ public class Paving {
   Table <Route, Route> allRoutes = new Table <Route, Route> (1000) ;
   
   
+  
+  
   public Paving(World world) {
     this.world = world ;
     junctions = new PresenceMap(world, "junctions") ;
@@ -83,7 +85,7 @@ public class Paving {
     junctions.toggleMember(t, isMember) ;
     if (isMember) {
       ///I.say("Updating road junction "+t) ;
-      for (Target o : junctions.visitNear(t, PATH_RANGE, null)) {
+      for (Target o : junctions.visitNear(v, PATH_RANGE + 1, null)) {
         final Tile jT = (Tile) o ;
         routeBetween(t, jT) ;
       }
@@ -103,7 +105,9 @@ public class Paving {
     //
     //  TODO:  Allow the road search to go through arbitrary Boardables, and
     //  screen out any non-tiles or blocked tiles.
-    final RoadSearch search = new RoadSearch(a, b, Element.FIXTURE_OWNS) ;
+    final RoadSearch search = new RoadSearch(
+      route.start, route.end, Element.FIXTURE_OWNS
+    ) ;
     search.doSearch() ;
     route.path = search.fullPath(Tile.class) ;
     route.cost = search.totalCost() ;
@@ -247,7 +251,7 @@ public class Paving {
       final float supplyRatio = Visit.clamp(supply[i] / demand[i], 0, 1) ;
       for (Venue venue : reached) {
         final float shortage = venue.stocks.shortageOf(type) ;
-        if (shortage < 0) continue ;
+        if (shortage <= 0) continue ;
         venue.stocks.addItem(Item.withAmount(type, shortage * supplyRatio)) ;
       }
     }

@@ -163,6 +163,17 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
+  public boolean valid() {
+    return
+      actor.inWorld() && moveTarget.inWorld() &&
+      ! actionTarget.destroyed() ;
+  }
+  
+  
+  public void onSuspend() {
+  }
+  
+  
   public boolean begun() {
     return actor.currentAction() == this ;
   }

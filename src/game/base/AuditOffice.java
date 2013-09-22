@@ -53,7 +53,7 @@ public class AuditOffice extends Venue implements BuildConstants {
   /**  Economic functions, upgrades and behaviour implementation-
     */
   public Behaviour jobFor(Actor actor) {
-    if (! personnel.onShift(actor)) return null ;
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     
     if (actor.vocation() == Background.AUDITOR) {
       final Venue toAudit = Auditing.getNextAuditFor(actor) ;
@@ -74,6 +74,16 @@ public class AuditOffice extends Venue implements BuildConstants {
     if (v == Background.AUDITOR) return nO + 1 ;
     if (v == Background.PROPAGANDIST ) return nO + 1 ;
     return 0 ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact()) return ;
+    float needPower = 2 ;
+    if (! isManned()) needPower = 0 ;
+    stocks.forceDemand(POWER, needPower, 0) ;
+    stocks.bumpItem(POWER, needPower * -0.1f) ;
   }
   
   

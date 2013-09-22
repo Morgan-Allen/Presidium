@@ -23,7 +23,9 @@ public class Inventory {
     */
   final public Owner owner ;
   protected float credits, taxed ;
-  protected Table <Item, Item> itemTable = new Table(10) ;
+  
+  private Table <Item, Item> itemTable = new Table(10) ;
+  //  private int sumGoods ;
   
   
   public Inventory(Owner owner) {
@@ -34,6 +36,8 @@ public class Inventory {
   public static interface Owner extends Target, Session.Saveable {
     Inventory inventory() ;
     float priceFor(Service service) ;
+    int spaceFor(Service good) ;
+    void afterTransaction(Item item, float amount) ;
   }
   
   
@@ -140,7 +144,11 @@ public class Inventory {
     *  items can be added.
     */
   public boolean addItem(Item item) {
-    if (item.isMatch() || item.amount == 0) return false ;
+    if (item.isMatch() || item.amount <= 0) {
+      I.sayAbout(owner, "Adding null item... "+item.amount) ;
+      new Exception().printStackTrace() ;
+      return false ;
+    }
     //
     //  Check to see if a similar item already exists.
     final Item oldItem = itemTable.get(item) ;
@@ -148,13 +156,15 @@ public class Inventory {
     if (oldItem != null) amount += oldItem.amount ;
     final Item entered = Item.withAmount(item, amount) ;
     itemTable.put(entered, entered) ;
-    //owner.afterTransaction() ;
+    if (owner != null) owner.afterTransaction(item, item.amount) ;
     return true ;
   }
   
   
-  public void addItem(Service type, float amount) {
-    addItem(Item.withAmount(type, amount)) ;
+  public void bumpItem(Service type, float amount) {
+    if (amount == 0) return ;
+    if (amount > 0) addItem(Item.withAmount(type, amount)) ;
+    else removeItem(Item.withAmount(type, 0 - amount)) ;
   }
   
   
@@ -164,18 +174,24 @@ public class Inventory {
     *  false otherwise.
     */
   public boolean removeItem(Item item) {
+    if (item.isMatch() || item.amount <= 0) {
+      I.sayAbout(owner, "Adding null item... "+item.amount) ;
+      new Exception().printStackTrace() ;
+      return false ;
+    }
+    //
+    //  Check to see if the item already exists-
     final Item oldItem = itemTable.get(item) ;
-    if (oldItem == null || oldItem.amount < item.amount) {
+    if (oldItem == null) return false ;
+    if (oldItem.amount <= item.amount) {
       itemTable.remove(item) ;
+      if (owner != null) owner.afterTransaction(item, oldItem.amount) ;
       return false ;
     }
     final float newAmount = oldItem.amount - item.amount ;
-    if (newAmount <= 0) itemTable.remove(oldItem) ;
-    else {
-      final Item entered = Item.withAmount(item, newAmount) ;
-      itemTable.put(entered, entered) ;
-    }
-    //owner.afterTransaction() ;
+    final Item entered = Item.withAmount(item, newAmount) ;
+    itemTable.put(entered, entered) ;
+    if (owner != null) owner.afterTransaction(item, item.amount - newAmount) ;
     return true ;
   }
   
@@ -222,11 +238,17 @@ public class Inventory {
   
   
   public float amountOf(Item item) {
-    float amount = 0 ;
-    for (Item found : itemTable.values()) {
-      if (item.matchKind(found)) amount += found.amount ;
+    if (item.isMatch()) {
+      float amount = 0 ;
+      for (Item found : itemTable.values()) {
+        if (item.matchKind(found)) amount += found.amount ;
+      }
+      return amount ;
     }
-    return amount ;
+    else {
+      final Item found = itemTable.get(item) ;
+      return found == null ? 0 : found.amount ;
+    }
   }
   
   

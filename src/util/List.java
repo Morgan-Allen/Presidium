@@ -27,13 +27,15 @@ public class List <T> extends ListEntry <T> implements Series <T> {
   /**  Returns an array with identical contents to this List- unless the list
     *  has zero elements- in which case null is returned.
     */
-  final public Object[] toArray(Class typeClass) {
+  final public T[] toArray(Class typeClass) {
     final Object[] array = (Object[]) Array.newInstance(typeClass, size) ;
     int i = 0 ; for (T t : this) array[i++] = t ;
-    return array ;
+    return (T[]) array ;
   }
   
-  final public Object[] toArray() { return toArray(Object.class) ; }
+  final public Object[] toArray() {
+    return toArray(Object.class) ;
+  }
   
   final public void add(final T r) { addLast(r) ; }
   

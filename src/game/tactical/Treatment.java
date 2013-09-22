@@ -279,7 +279,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     
     if (type == TYPE_FIRST_AID) {
       float HPD = ActorHealth.INJURY_REGEN_PER_DAY ;
-      HPD /= World.DEFAULT_DAY_LENGTH ;
+      HPD /= World.STANDARD_DAY_LENGTH ;
       patient.health.liftInjury(HPD * 10 * effectiveness) ;
       patient.gear.removeItem(Item.withAmount(treatment, 0.01f)) ;
     }

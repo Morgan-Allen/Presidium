@@ -33,7 +33,7 @@ public class VenuePersonnel {
     */
   final static int
     REFRESH_INTERVAL = 10,
-    AUDIT_INTERVAL   = World.DEFAULT_DAY_LENGTH ;
+    AUDIT_INTERVAL   = World.STANDARD_DAY_LENGTH ;
   
   
   
@@ -116,7 +116,7 @@ public class VenuePersonnel {
     if (shiftType == Venue.SHIFTS_ALWAYS) return true ;
     //
     //  Firstly, determine proper indices for the shift and the roster-
-    final float time = venue.world().currentTime() / World.DEFAULT_DAY_LENGTH ;
+    final float time = venue.world().currentTime() / World.STANDARD_DAY_LENGTH ;
     int currentShift = 0, shiftCycle = 0, workerIndex = 0 ;
     int numShifts = 0 ;
     if (shiftType == Venue.SHIFTS_BY_HOURS) {
@@ -196,6 +196,8 @@ public class VenuePersonnel {
     if (venue.privateProperty()) return ;
     
     I.sayAbout(venue, venue+" ALLOCATING WAGES, "+positions.size()+" WORK?") ;
+    
+    I.sayAbout(venue, "  CREDITS ARE: "+venue.stocks.credits()) ;
     //
     //  Firstly, allocate basic salary plus minimum wage.  (Ruler-class
     //  citizens receive no wage, drawing directly on the resources of the
@@ -210,7 +212,7 @@ public class VenuePersonnel {
       if (p.role.guild == Background.GUILD_MILITANT) {
         wage *= Auditing.MILITANT_BONUS ;
       }
-      wage *= AUDIT_INTERVAL * 1f / World.DEFAULT_DAY_LENGTH ;
+      wage *= AUDIT_INTERVAL * 1f / World.STANDARD_DAY_LENGTH ;
       p.wages += wage ;
       sumWages += wage ;
     }
@@ -220,16 +222,18 @@ public class VenuePersonnel {
     //  basic salary.
     final float surplus = venue.stocks.credits() ;
     if (surplus > 0) {
-      float sumSalaries = 0 ;
+      float sumSalaries = 0, sumShared = 0 ;
       for (Position p : positions) if (p.wages >= 0) {
         if (p.role.standing == Background.RULER_CLASS) continue ;
         sumSalaries += p.salary ;
       }
       for (Position p : positions) if (p.wages >= 0) {
         if (p.role.standing == Background.RULER_CLASS) continue ;
-        p.wages += surplus * 0.1f * p.salary / sumSalaries ;
+        final float shared = surplus * 0.1f * p.salary / sumSalaries ;
+        p.wages += shared ;
+        sumShared += shared ;
       }
-      venue.stocks.incCredits(0 - surplus) ;
+      venue.stocks.incCredits(0 - sumShared) ;
     }
     //
     //  Finally, report your debts or windfall back to the base.  Debts may
@@ -238,6 +242,7 @@ public class VenuePersonnel {
     final Base base = venue.base() ;
     final float balance = venue.stocks.credits() ;
     final float waste = (Rand.num() + base.crimeLevel()) / 2f ;
+    I.sayAbout(venue, "   BALANCE IS: "+balance+", waste: "+waste) ;
     if (balance > 0) {
       final float paid = balance / (1 + waste) ;
       base.incCredits(paid) ;

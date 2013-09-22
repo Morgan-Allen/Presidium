@@ -129,10 +129,31 @@ public class Presences {
   }
   
   
-  public Series <Target> sampleTargets(
-    Object key, Target t, World world, int limit, Series sampled
+  public Series <Target> sampleFromKeys(
+    Target t, World world, int limit, Series sampled, Object... keys
   ) {
     if (sampled == null) sampled = new Batch() ;
+    for (Object key : keys) {
+      sampleTargets(key, t, world, limit, sampled) ;
+    }
+    for (Object o : sampled) ((Target) o).flagWith(null) ;
+    return sampled ;
+  }
+  
+
+  public Series <Target> sampleFromKey(
+    Target t, World world, int limit, Series sampled, Object key
+  ) {
+    if (sampled == null) sampled = new Batch() ;
+    sampleTargets(key, t, world, limit, sampled) ;
+    for (Object o : sampled) ((Target) o).flagWith(null) ;
+    return sampled ;
+  }
+  
+  
+  private Series <Target> sampleTargets(
+    Object key, Target t, World world, int limit, Series sampled
+  ) {
     for (int n = limit / 2 ; n-- > 0 ;) {
       final Venue v = (Venue) randomMatchNear(key, t, -1) ;
       if (v == t || v == null || v.flaggedWith() != null) continue ;
@@ -145,7 +166,6 @@ public class Presences {
       if (v.flaggedWith() != null) continue ;
       sampled.add(v) ;
     }
-    for (Object o : sampled) ((Target) o).flagWith(null) ;
     return sampled ;
   }
 }
@@ -154,3 +174,6 @@ public class Presences {
 
 
 
+
+  
+  

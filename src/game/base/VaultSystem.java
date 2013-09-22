@@ -59,9 +59,8 @@ public class VaultSystem extends Venue implements BuildConstants {
   /**  Upgrades, economic functions and behaviour implementation-
     */
   public Behaviour jobFor(Actor actor) {
-    Building b = Building.getNextRepairFor(actor) ;
+    Building b = Building.getNextRepairFor(actor, Plan.CASUAL) ;
     if (b != null) {
-      b.priorityMod = Plan.CASUAL ;
       return b ;
     }
     return null ;

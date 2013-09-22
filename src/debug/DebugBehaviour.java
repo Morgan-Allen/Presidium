@@ -19,6 +19,7 @@ import src.user.* ;
 import src.util.* ;
 
 
+//  Cantina.  Archives.  Audit Office.  Vault System.  Holdings.  Air Processor.
 //
 //  Update farming/the vats/mining a bit (including minimum spacing?)
 //  A clearer factoring out of venue/actor batches in the AI.

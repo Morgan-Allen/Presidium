@@ -11,7 +11,7 @@ import src.game.building.* ;
 import src.game.common.* ;
 import src.game.social.* ;
 import src.game.tactical.* ;
-import src.user.BaseUI;
+import src.user.BaseUI ;
 import src.util.* ;
 
 
@@ -163,7 +163,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
     for (Actor near : actorB) {
       choice.add(new Combat(actor, near)) ;
       choice.add(new Treatment(actor, near)) ;
-      choice.add(new Dialogue(actor, near, null)) ;
+      ///choice.add(new Dialogue(actor, near, null)) ;
     }
     choice.add(new Retreat(actor)) ;
     choice.add(new SickLeave(actor)) ;
@@ -189,7 +189,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
     if (work != null) choice.add(new Payday(actor, work)) ;
     //
     //  Consider repairing nearby buildings-
-    choice.add(Building.getNextRepairFor(actor)) ;
+    choice.add(Building.getNextRepairFor(actor, 0)) ;
 	}
   
   
@@ -238,11 +238,11 @@ public class HumanAI extends ActorAI implements ActorConstants {
     //
     //  Also, consider buying new items for your home, either individually or
     //  together at the stock exchange.
-    final boolean hasDelivery = hasToDo(Delivery.class) ;
+    final boolean hasDelivery = false ;// hasToDo(Delivery.class) ;
     if (home instanceof Holding && ! hasDelivery) {
       final Service goods[] = ((Holding) home).goodsNeeded() ;
       final Delivery d = Deliveries.nextCollectionFor(
-        home, goods, 5, actor, actor.world()
+        actor, home, goods, 5, actor, actor.world()
       ) ;
       choice.add(d) ;
     }

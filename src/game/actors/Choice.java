@@ -34,7 +34,11 @@ public class Choice {
   
   public boolean add(Behaviour plan) {
     if (plan == null || plan.finished() || plan.nextStepFor(actor) == null) {
-      if (verbose && plan != null) I.sayAbout(actor, "  Rejected: "+plan) ;
+      if (verbose && plan != null && I.talkAbout == actor) {
+        I.say("  Rejected: "+plan) ;
+        I.say("  Finished/valid: "+plan.finished()+"/"+plan.valid()) ;
+        I.say("  Next step: "+plan.nextStepFor(actor)) ;
+      }
       return false ;
     }
     plans.add(plan) ;

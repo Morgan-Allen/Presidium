@@ -41,7 +41,7 @@ public class Planet {
   /**  Interpolating daylight values-
     */
   public static float dayValue(World world) {
-    final float time = (world.currentTime() / World.DEFAULT_DAY_LENGTH) % 1 ;
+    final float time = (world.currentTime() / World.STANDARD_DAY_LENGTH) % 1 ;
     
     if (time <= morning_end  ) return (time + HF) / fade ;
     if (time <= evening_start) return 1 ;
@@ -80,19 +80,19 @@ public class Planet {
   
   
   public static boolean isMorning(World world) {
-    final float time = (world.currentTime() / World.DEFAULT_DAY_LENGTH) % 1 ;
+    final float time = (world.currentTime() / World.STANDARD_DAY_LENGTH) % 1 ;
     return time > morning_start || time <= midday ;
   }
   
   
   public static boolean isEvening(World world) {
-    final float time = (world.currentTime() / World.DEFAULT_DAY_LENGTH) % 1 ;
+    final float time = (world.currentTime() / World.STANDARD_DAY_LENGTH) % 1 ;
     return time > midday && time <= evening_end ;
   }
   
   
   public static boolean isNight(World world) {
-    final float time = (world.currentTime() / World.DEFAULT_DAY_LENGTH) % 1 ;
+    final float time = (world.currentTime() / World.STANDARD_DAY_LENGTH) % 1 ;
     return time > evening_end && time <= morning_start ;
   }
   

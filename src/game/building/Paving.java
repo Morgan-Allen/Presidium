@@ -177,6 +177,11 @@ public class Paving {
   /**  Methods related to distribution of provisional goods-
     */
   //
+  //  TODO:  See if there's any way you can make the provision less...
+  //         distracting.  It keeps flickering on and off.
+  
+  
+  //
   //  TODO:  YOU NEED TO RESTRICT THIS TO PARTICULAR BASES?  Or maybe you
   //  could share, given suitable alliance status?
   final private Batch <Target> tried = new Batch <Target> () ;

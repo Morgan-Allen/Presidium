@@ -55,10 +55,10 @@ CULTURE VATS
   Drug Synthesis  (requires Soma Culture, makes medicines)
   Cloning Vats  (requires Tissue Banks, allows cloning from samples)
 
-EXPLORER REDOUBT  (plus list of Species)
+SURVEILLANCE POST  (plus list of Species)
   Enhanced Camouflage
   Birthing Pens
-  Explorer Quarters
+  Explorer Station
   Water Capture
   Spice Capture (requires Water Capture)
   Riding Pens (requires Birthing Pens)
@@ -67,7 +67,7 @@ EXPLORER REDOUBT  (plus list of Species)
 
 STOCK EXCHANGE & AUDIT OFFICE
   Making Money & propaganda directly.
-  Hearing of criminal cases.
+  Hearing of criminal cases.  (implement later.)
   Recruiting Auditors.
   Recruiting Censors.
 
@@ -123,7 +123,7 @@ THE REACTOR
   ...Provides an emergency shelter in times of invasion/disaster.
 
 THE ARCHIVES
-  ...Manufactures Inscription for holdings.
+  (requires circuitry)
   ...Allows skills to be researched (after you install their Datalinks.)
   Archivists as a standard complement, based on no. of datalinks.
 

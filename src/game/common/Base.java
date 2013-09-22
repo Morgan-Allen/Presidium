@@ -206,7 +206,7 @@ public class Base implements
     //  Once per day, iterate across all personnel to get a sense of citizen
     //  mood, and compute community spirit.  (This declines as your settlement
     //  gets bigger.)
-    if (numUpdates % World.DEFAULT_DAY_LENGTH == 0) {
+    if (numUpdates % World.STANDARD_DAY_LENGTH == 0) {
       final Tile t = world.tileAt(0, 0) ;
       int numResidents = 0 ;
       averageMood = 0.5f ;

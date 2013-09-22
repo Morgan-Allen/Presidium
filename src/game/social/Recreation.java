@@ -50,6 +50,9 @@ public class Recreation extends Plan implements BuildConstants {
   
   
   public static Recreation findRecreation(Actor actor) {
+    //
+    //  TODO:  Also, consider just hanging around at home.
+    
     Venue venue = actor.world().presences.randomMatchNear(
       Cantina.class, actor, World.DEFAULT_SECTOR_SIZE
     ) ;
@@ -88,7 +91,7 @@ public class Recreation extends Plan implements BuildConstants {
   
   
   public boolean actionCantinaRelax(Actor actor, Venue venue) {
-    final float interval = 1f / World.DEFAULT_DAY_LENGTH ;
+    final float interval = 1f / World.STANDARD_DAY_LENGTH ;
     float comfort = rateVenue(venue) ;
     if (venue.stocks.amountOf(SOMA) > 0) {
       //  TODO:  You need to pay for this.  Also, what about intoxication?

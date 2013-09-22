@@ -120,7 +120,7 @@ public class Relation {
   
   public float novelty(World world) {
     float delay = world.currentTime() - initTime ;
-    delay /= World.DEFAULT_DAY_LENGTH ;
+    delay /= World.STANDARD_DAY_LENGTH ;
     return delay + 1 - (familiarity / 10f) ;
   }
   

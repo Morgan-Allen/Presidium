@@ -18,7 +18,7 @@ public class DangerMap {
     */
   final static float
     SHORT_TERM_MULT = 0.1f,
-    LONG_TERM_MULT  = 1f / World.DEFAULT_DAY_LENGTH ;
+    LONG_TERM_MULT  = 1f / World.STANDARD_DAY_LENGTH ;
   
   final World world ;
   final Base base ;

@@ -117,7 +117,7 @@ public class StockExchange extends Venue implements BuildConstants {
       "Vendor Station",
       "Vendors are responsible for transport and presentation of both "+
       "essential commodities and luxury goods.",
-      50, Background.STOCK_VENDOR, 1, null, ALL_UPGRADES
+      100, Background.STOCK_VENDOR, 1, null, ALL_UPGRADES
     ),
     
     ARMS_DEALING = new Upgrade(
@@ -142,8 +142,8 @@ public class StockExchange extends Venue implements BuildConstants {
     //
     //  See if there's a bulk delivery to be made-
     final Batch <Venue> depots = Deliveries.nearbyDepots(this, world) ;
-    final Delivery bD = Deliveries.nextDeliveryFrom(
-      this, ALL_COMMODITIES, depots, 50, world
+    final Delivery bD = Deliveries.nextDeliveryFor(
+      actor, this, ALL_COMMODITIES, depots, 50, world
     ) ;
     if (bD != null && personnel.assignedTo(bD) < 1) {
       bD.priorityMod = Plan.CASUAL ;
@@ -151,7 +151,7 @@ public class StockExchange extends Venue implements BuildConstants {
       choice.add(bD) ;
     }
     final Delivery bC = Deliveries.nextCollectionFor(
-      this, ALL_COMMODITIES, depots, 50, null, world
+      actor, this, ALL_COMMODITIES, depots, 50, null, world
     ) ;
     if (bC != null && personnel.assignedTo(bC) < 1) {
       bC.priorityMod = Plan.CASUAL ;
@@ -160,12 +160,12 @@ public class StockExchange extends Venue implements BuildConstants {
     }
     //
     //  Otherwise, consider local deliveries and supervision of the venue-
-    final Delivery d = Deliveries.nextDeliveryFrom(
-      this, services(), 10, world
+    final Delivery d = Deliveries.nextDeliveryFor(
+      actor, this, services(), 10, world
     ) ;
     if (d != null && personnel.assignedTo(d) < 1) choice.add(d) ;
     final Delivery c = Deliveries.nextCollectionFor(
-      this, services(), 10, null, world
+      actor, this, services(), 10, null, world
     ) ;
     if (c != null && personnel.assignedTo(c) < 1) choice.add(c) ;
     choice.add(new Supervision(actor, this)) ;

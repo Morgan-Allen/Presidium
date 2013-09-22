@@ -17,6 +17,7 @@ public class Crop extends Element {
   
   
   final static int
+    NOT_PLANTED = -1,
     MAX_GROWTH = 3 ;
   
   final BotanicalStation parent ;
@@ -54,6 +55,7 @@ public class Crop extends Element {
   
   
   public void onGrowth() {
+    if (growStage == NOT_PLANTED) return ;
     final float growChance = Visit.clamp(
       origin().habitat().moisture() / 10f, 0.2f, 0.8f
     ) ;
@@ -68,7 +70,7 @@ public class Crop extends Element {
   
   public void exitWorld() {
     super.exitWorld() ;
-    parent.planted.remove(this) ;
+    ///parent.planted.remove(this) ;
   }
   
   

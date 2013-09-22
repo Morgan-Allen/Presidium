@@ -173,7 +173,7 @@ public class Hunting extends Combat implements BuildConstants {
   protected Behaviour getNextStep() {
     if (beginTime == -1) beginTime = actor.world().currentTime() ;
     final float timeSpent = actor.world().currentTime() - beginTime ;
-    if (timeSpent > World.DEFAULT_DAY_LENGTH / 3) {
+    if (timeSpent > World.STANDARD_DAY_LENGTH / 3) {
       return null ;
     }
 

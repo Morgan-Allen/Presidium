@@ -72,6 +72,8 @@ public class Building extends Plan implements ActorConstants {
       if (verbose) I.sayAbout(actor, "Attachment "+attachment) ;
       if (verbose) I.sayAbout(actor, "Need for repair: "+needRepair) ;
     }
+    else if (needRepair == 0) return 0 ;
+    //else needRepair = (needRepair + 0.5f) / 2 ;
     //
     //  During initial consideration, include competition as a decision factor,
     //  so that you don't get dozens of actors converging on a minor breakdown.
@@ -90,19 +92,20 @@ public class Building extends Plan implements ActorConstants {
   }
   
   
-  public static Building getNextRepairFor(Actor client) {
+  public static Building getNextRepairFor(Actor client, float priorityMod) {
     final World world = client.world() ;
-    final PresenceMap repairs = world.presences.mapFor("damaged") ;
+    final Batch <Venue> toRepair = new Batch <Venue> () ;
+    world.presences.sampleFromKeys(
+      client, world, 10, toRepair, "damaged", Venue.class
+    ) ;
     final Choice choice = new Choice(client) ;
-    
-    final int reactLimit = 10 ;
-    int numR = 0 ;
-    
-    for (Target t : repairs.visitNear(client, -1, null)) {
-      final Venue near = (Venue) t ;
-      choice.add(new Building(client, near)) ;
-      if (++numR > reactLimit) break ;
+    for (Venue near : toRepair) {
+      if (near.structure.repairLevel() == 1) continue ;
+      final Building b = new Building(client, near) ;
+      b.priorityMod = priorityMod ;
+      choice.add(b) ;
     }
+    
     return (Building) choice.weightedPick(0) ;
   }
   

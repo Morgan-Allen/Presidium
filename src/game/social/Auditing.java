@@ -130,7 +130,10 @@ public class Auditing extends Plan {
     MAX_INFLATION    = 1.10f,
     
     BASE_ALMS_PAY    = 10,
+    //
+    //  Soldiers get higher than usual pay and some perks in purchasing.
     MILITANT_BONUS   = 2.0f,
+    MILITANT_RATION  = 50,
     
     BASE_SAVINGS     = 1000,
     BASE_CAPITAL     = 100 ;

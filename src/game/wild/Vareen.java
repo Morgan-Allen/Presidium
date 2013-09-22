@@ -84,7 +84,7 @@ public class Vareen extends Fauna {
     //
     //  TODO:  Base nutritional value on daylight values...
     if (! indoors()) {
-      final float value = 0.5f / World.DEFAULT_DAY_LENGTH ;
+      final float value = 0.5f / World.STANDARD_DAY_LENGTH ;
       health.takeSustenance(value, 1) ;
     }
     super.updateAsScheduled(numUpdates) ;

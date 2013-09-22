@@ -156,7 +156,7 @@ public class BaseUI extends HUD implements UIConstants {
     
     if (readout != null) {
       final int credits = played.credits() ;
-      final float days = world.currentTime() / World.DEFAULT_DAY_LENGTH ;
+      final float days = world.currentTime() / World.STANDARD_DAY_LENGTH ;
       final String dS = (""+days+"0000").substring(0, 4) ;
       int psyPoints = 0 ;/// played.ruler().health.psy() ;
       readout.setText(credits+" Credits   "+dS+" Days   Psy Points:") ;

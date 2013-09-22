@@ -100,8 +100,8 @@ public class Reactor extends Venue implements BuildConstants {
     CORE_TECHNICIAN_QUARTERS = new Upgrade(
       "Core Technician Quarters",
       "Core Technicians provide the expertise and vigilance neccesary to "+
-      "monitor reactor output and synthesises nuclear biproducts.",
-      50,
+      "monitor reactor output and synthesise nuclear biproducts.",
+      100,
       Background.CORE_TECHNICIAN, 1, null, ALL_UPGRADES
     )
   ;
@@ -124,7 +124,7 @@ public class Reactor extends Venue implements BuildConstants {
       check.setPriority(Action.CRITICAL * (meltdown + 0.5f)) ;
       choice.add(check) ;
     }
-    if (! personnel.onShift(actor)) return null ;
+    if (! personnel.onShift(actor)) return choice.weightedPick(0) ;
     //
     //  Then check to see if anything needs manufacture-
     final Manufacture m = stocks.nextManufacture(actor, METALS_TO_FUEL) ;
@@ -159,7 +159,7 @@ public class Reactor extends Venue implements BuildConstants {
       success &= actor.traits.test(SHIELD_AND_ARMOUR, 5, 0.5f) ;
     }
     if (success) {
-      meltdown -= (1f + FB) / World.DEFAULT_DAY_LENGTH ;
+      meltdown -= (1f + FB) / World.STANDARD_DAY_LENGTH ;
     }
     return true ;
   }
@@ -224,7 +224,7 @@ public class Reactor extends Venue implements BuildConstants {
     meltdownChance /= (1f + structure.upgradeLevel(FEEDBACK_SENSORS)) ;
     //
     //  ...and inflict any actual damage, if your luck is poor.
-    if (Rand.num() < (meltdownChance / World.DEFAULT_DAY_LENGTH)) {
+    if (Rand.num() < (meltdownChance / World.STANDARD_DAY_LENGTH)) {
       final float melt = 0.1f * Rand.num() ;
       meltdown += melt ;
       if (meltdown >= 1) performMeltdown() ;

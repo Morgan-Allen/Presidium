@@ -149,14 +149,6 @@ public class Foundry extends Venue implements BuildConstants {
   
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
-    final Choice choice = new Choice(actor) ;
-    //
-    //  Consider contributing toward local repairs-
-    final Building b = Building.getNextRepairFor(actor) ;
-    if (b != null) {
-      b.priorityMod = Behaviour.CASUAL ;
-      choice.add(b) ;
-    }
     //
     //  Consider special commissions for weapons and armour-
     //
@@ -164,8 +156,8 @@ public class Foundry extends Venue implements BuildConstants {
     final int powerCut = stocks.amountOf(POWER) < 1 ? 10 : 0 ;
     
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
-    if (o != null) {
-      o.checkBonus = structure.upgradeLevel(MOLDING_PRESS) ;
+    if (o != null && personnel.assignedTo(o) < 1) {
+      o.checkBonus = structure.upgradeLevel(MOLDING_PRESS) + 5 ;
       final int CMB = structure.upgradeLevel(COMPOSITE_MATERIALS) + 2 ;
       final int FCB = structure.upgradeBonus(FLUX_CONTAINMENT) + 2 ;
       final Service made = o.made().type ;
@@ -184,8 +176,14 @@ public class Foundry extends Venue implements BuildConstants {
         else o.checkBonus += CMB ;
       }
       o.timeMult = 5 ;
-      choice.add(o) ;
+      o.priorityMod = Plan.ROUTINE ;
+      return o ;
+      //choice.add(o) ;
     }
+    //
+    //  Consider contributing toward local repairs-
+    final Choice choice = new Choice(actor) ;
+    choice.add(Building.getNextRepairFor(actor, Plan.CASUAL)) ;
     //
     //  Finally, consider the production of general bulk commodities-
     final int PB = 1 + structure.upgradeLevel(ASSEMBLY_LINE) ;

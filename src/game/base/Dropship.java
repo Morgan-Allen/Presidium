@@ -132,12 +132,12 @@ public class Dropship extends Vehicle implements
     
     final Batch <Venue> depots = nearbyDepots() ;
     final Delivery d = Deliveries.nextImportDelivery(
-      this, ALL_COMMODITIES, depots, 10, world
+      actor, this, ALL_COMMODITIES, depots, 10, world
     ) ;
     if (d != null) return d ;
     
     final Delivery c = Deliveries.nextExportCollection(
-      this, ALL_COMMODITIES, depots, 10, world
+      actor, this, ALL_COMMODITIES, depots, 10, world
     ) ;
     if (c != null) return c ;
     return null ;

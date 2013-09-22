@@ -166,7 +166,7 @@ public class Holding extends Venue implements BuildConstants {
     final float margin = 0.51f ;
     boolean devolve = false, upgrade = true ;
     for (Item i : goodsNeeded(upgradeLevel).raw) {
-      stocks.removeItem(Item.withAmount(i, 0.1f / World.DEFAULT_DAY_LENGTH)) ;
+      stocks.removeItem(Item.withAmount(i, 0.1f / World.STANDARD_DAY_LENGTH)) ;
       if (stocks.amountOf(i) < i.amount - margin) devolve = true ;
     }
     for (Item i : goodsNeeded(upgradeLevel + 1).raw) {

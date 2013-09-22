@@ -168,8 +168,8 @@ public class SupplyDepot extends Venue implements
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
 
-    final Delivery d = Deliveries.nextDeliveryFrom(
-      this, services(), 10, world
+    final Delivery d = Deliveries.nextDeliveryFor(
+      actor, this, services(), 10, world
     ) ;
     if (d != null && personnel.assignedTo(d) < 1) {
       //d.nextStepFor(actor) ;
@@ -178,7 +178,7 @@ public class SupplyDepot extends Venue implements
     }
     
     final Delivery c = Deliveries.nextCollectionFor(
-      this, services(), 10, null, world
+      actor, this, services(), 10, null, world
     ) ;
     if (c != null && personnel.assignedTo(c) < 1) choice.add(c) ;
     
@@ -260,6 +260,7 @@ public class SupplyDepot extends Venue implements
   
   
   protected Service[] goodsToShow() {
+    //  TODO:  Have different colours of crate for each category.
     return new Service[] { CRATES } ;
   }
   

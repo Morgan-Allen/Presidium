@@ -30,7 +30,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       BotanicalStation.class, IMG_DIR+"botanical_station.png", 4, 3
     ),
     NURSERY_MODEL = ImageModel.asIsometricModel(
-      BotanicalStation.class, IMG_DIR+"nursery.png", 2, 2
+      BotanicalStation.class, IMG_DIR+"curing_shed.png", 2, 2
     ),
     CROP_MODELS[][] = ImageModel.fromTextureGrid(
       BotanicalStation.class,
@@ -46,9 +46,11 @@ public class BotanicalStation extends Venue implements BuildConstants {
     new Object[] { 2, GREENS  , CROP_MODELS[3] },
     new Object[] { 3, GREENS  , CROP_MODELS[2] },
     new Object[] { 4, PROTEIN , new Model[] { GRUB_BOX_MODEL }}
-    //new Object[] { 0, TIMBER  , CROP_MODELS[0] },
   } ;
   
+  public static Service speciesYield(int varID) {
+    return (Service) CROP_SPECIES[varID][1] ;
+  }
   
   public static Model speciesModel(int varID, int growStage) {
     final Model seq[] = (Model[]) CROP_SPECIES[varID][2] ;
@@ -56,17 +58,10 @@ public class BotanicalStation extends Venue implements BuildConstants {
   }
   
   
-  public static Service speciesYield(int varID) {
-    return (Service) CROP_SPECIES[varID][1] ;
-  }
   
+  final static int MAX_PLANT_RANGE = 16 ;
   
-  final static int
-    MAX_PLANT_RANGE = 4 ;
-  
-  final List <Tile> toPlant = new List <Tile> () ;
-  final List <Crop> planted = new List <Crop> () ;
-  private int onceGrabbed = 0 ;
+  final List <Plantation> allotments = new List <Plantation> () ;
   
   
   
@@ -83,101 +78,23 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   public BotanicalStation(Session s) throws Exception {
     super(s) ;
-    s.loadTargets((Series) toPlant) ;
-    s.loadObjects(planted) ;
-    onceGrabbed = s.loadInt() ;
+    s.loadObjects(allotments) ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveTargets((Series) toPlant) ;
-    s.saveObjects(planted) ;
-    s.saveInt(onceGrabbed) ;
-  }
-  
-  
-  
-  /**  Grabbing areas suitable for plantation-
-    */
-  protected float ratePlantArea() {
-    if (inWorld()) I.complain("Only intended for rating potential sites!") ;
-    if (origin() == null) I.complain("Must set position first!") ;
-    grabPlantArea() ;
-    
-    float rating = 0 ;
-    for (Tile t : toPlant) {
-      rating += t.habitat().moisture() ;
-    }
-    final int dim = 2 + (MAX_PLANT_RANGE * 2) ;
-    return rating / (dim * dim) ;
-  }
-  
-  
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
-    toPlant.clear() ;
-    onceGrabbed = 0 ;
-  }
-  
-  
-  protected void grabPlantArea() {
-    final Tile o = origin() ;
-    final int r = MAX_PLANT_RANGE, span = r + size + r ;
-    final Box2D area = new Box2D().set(
-      (o.x - r) - 0.5f, (o.y - r) - 0.5f,
-      span, span
-    ) ;
-    toPlant.clear() ;
-    
-    //
-    //  TODO:  You also want to put a Nursery someplace nearby.  But this will
-    //  do for now.
-    
-    final BotanicalStation nursery = this ;
-    final TileSpread spread = new TileSpread(o) {
-      protected boolean canAccess(Tile t) {
-        return nursery.canAccess(t, area) ;
-      }
-      protected boolean canPlaceAt(Tile t) {
-        if ((t.y - o.y) % 3 == 0) return false ;
-        if (nursery.canPlant(t)) toPlant.add(t) ;
-        return false ;
-      }
-    } ;
-    spread.doSearch() ;
-    onceGrabbed = toPlant.size() + planted.size() ;
-  }
-  
-
-  protected boolean canAccess(Tile t, Box2D area) {
-    if (! t.habitat().pathClear) return false ;
-    if (! area.contains(t.x, t.y)) return false ;
-    if (t.owner() == this) return true ;
-    if (t.owningType() >= Element.FIXTURE_OWNS) return false ;
-    return true ;
-  }
-  
-  
-  protected boolean canPlant(Tile t) {
-    if (t.pathType() == Tile.PATH_ROAD) return false ;
-    if (t.owner() == this) return false ;
-    if (t.owner() instanceof Crop) return false ;
-    if (t.owningType() >= Element.FIXTURE_OWNS) return false ;
-    return true ;
-  }
-  
-  
-  protected int onceGrabbed() {
-    return onceGrabbed ;
+    s.saveObjects(allotments) ;
   }
   
   
   
   /**  Handling upgrades and economic functions-
     */
-  final static Index <Upgrade>
-    ALL_UPGRADES = new Index(BotanicalStation.class, "botanical_upgrades") ;
+  final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
+    BotanicalStation.class, "botanical_upgrades"
+  ) ;
+  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     CEREAL_LAB = new Upgrade(
       "Cereal Lab",
@@ -230,9 +147,48 @@ public class BotanicalStation extends Venue implements BuildConstants {
       TREE_FARMING, ALL_UPGRADES
     ) ;
   
+
+  public Behaviour jobFor(Actor actor) {
+    final Delivery d = Deliveries.nextDeliveryFor(
+      actor, this, services(), 10, world
+    ) ;
+    if (d != null) return d ;
+    
+    //*
+    final Farming f = new Farming(actor, this) ;
+    if (f.nextStep() != null) return f ;
+    //*/
+    
+    return null ;
+  }
   
-  protected Index <Upgrade> allUpgrades() {
-    return ALL_UPGRADES ;
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact()) return ;
+    //
+    //  You could make this much more occasional, if you wanted.  Every
+    //  hundred seconds ought to do the trick.  TODO:  That
+    if (numUpdates % 5 == 0) {
+      int maxAllots = 3 + (structure.upgradeBonus(Background.FIELD_HAND) * 2) ;
+      maxAllots *= 9 ;
+      
+      if (maxAllots > allotments.size()) {
+        Plantation allots[] = Plantation.placeAllotment(this, 3) ;
+        if (allots != null) for (Plantation p : allots) {
+          allotments.add(p) ;
+        }
+      }
+      if (maxAllots + 3 < allotments.size()) {
+        for (int n = 3 ; n-- > 0 ;) {
+          final Plantation p = allotments.removeLast() ;
+          //
+          //  TODO:  Flag for salvage instead.
+          I.say("Deleting plantation: "+p) ;
+          p.exitWorld() ;
+        }
+      }
+    }
   }
   
 
@@ -244,31 +200,14 @@ public class BotanicalStation extends Venue implements BuildConstants {
   }
   
   
-  public Service[] services() {
-    return new Service[] { CARBS, GREENS, PROTEIN, PETROCARBS } ;
-  }
-  
-  
-  protected Background[] careers() {
-    return new Background[] { Background.ECOLOGIST, Background.FIELD_HAND } ;
-  }
-  
-
-  public Behaviour jobFor(Actor actor) {
-    final Delivery d = Deliveries.nextDeliveryFrom(
-      this, services(), 10, world
-    ) ;
-    if (d != null) return d ;
-    
-    //if (true) return null ;
-    final Farming f = new Farming(actor, this) ;
-    if (f.nextStep() != null) return f ;
-    
-    return null ;
+  protected List <Plantation> allotments() {
+    return allotments ;
   }
   
   
   float growBonus(Tile t, int varID) {
+    //
+    //  TODO:  Subtract pollution FX...
     if (varID == 4) {
       return (structure.upgradeBonus(PROTEIN) + 2) * 0.25f ;
     }
@@ -292,6 +231,16 @@ public class BotanicalStation extends Venue implements BuildConstants {
       parent.growBonus(t, 4),
     } ;
     return (Integer) ((Object[]) Rand.pickFrom(CROP_SPECIES, chances))[0] ;
+  }
+  
+  
+  public Service[] services() {
+    return new Service[] { CARBS, GREENS, PROTEIN, PETROCARBS } ;
+  }
+  
+  
+  protected Background[] careers() {
+    return new Background[] { Background.ECOLOGIST, Background.FIELD_HAND } ;
   }
   
   
@@ -324,6 +273,87 @@ public class BotanicalStation extends Venue implements BuildConstants {
 
 
 
+
+
+/**  Grabbing areas suitable for plantation-
+  */
+
+//final List <Tile> toPlant = new List <Tile> () ;
+//final List <Crop> planted = new List <Crop> () ;
+//private int onceGrabbed = 0 ;
+/*
+protected float ratePlantArea() {
+  if (inWorld()) I.complain("Only intended for rating potential sites!") ;
+  if (origin() == null) I.complain("Must set position first!") ;
+  grabPlantArea() ;
+  
+  float rating = 0 ;
+  for (Tile t : toPlant) {
+    rating += t.habitat().moisture() ;
+  }
+  final int dim = 2 + (MAX_PLANT_RANGE * 2) ;
+  return rating / (dim * dim) ;
+}
+
+
+public void enterWorldAt(int x, int y, World world) {
+  super.enterWorldAt(x, y, world) ;
+  toPlant.clear() ;
+  onceGrabbed = 0 ;
+}
+
+
+protected void grabPlantArea() {
+  final Tile o = origin() ;
+  final int r = MAX_PLANT_RANGE, span = r + size + r ;
+  final Box2D area = new Box2D().set(
+    (o.x - r) - 0.5f, (o.y - r) - 0.5f,
+    span, span
+  ) ;
+  toPlant.clear() ;
+  
+  //
+  //  TODO:  You also want to put a Nursery someplace nearby.  But this will
+  //  do for now.
+  
+  final BotanicalStation nursery = this ;
+  final TileSpread spread = new TileSpread(o) {
+    protected boolean canAccess(Tile t) {
+      return nursery.canAccess(t, area) ;
+    }
+    protected boolean canPlaceAt(Tile t) {
+      if ((t.y - o.y) % 3 == 0) return false ;
+      if (nursery.canPlant(t)) toPlant.add(t) ;
+      return false ;
+    }
+  } ;
+  spread.doSearch() ;
+  onceGrabbed = toPlant.size() + planted.size() ;
+}
+
+
+protected boolean canAccess(Tile t, Box2D area) {
+  if (! t.habitat().pathClear) return false ;
+  if (! area.contains(t.x, t.y)) return false ;
+  if (t.owner() == this) return true ;
+  if (t.owningType() >= Element.FIXTURE_OWNS) return false ;
+  return true ;
+}
+
+
+protected boolean canPlant(Tile t) {
+  if (t.pathType() == Tile.PATH_ROAD) return false ;
+  if (t.owner() == this) return false ;
+  if (t.owner() instanceof Crop) return false ;
+  if (t.owningType() >= Element.FIXTURE_OWNS) return false ;
+  return true ;
+}
+
+
+protected int onceGrabbed() {
+  return onceGrabbed ;
+}
+//*/
 
 
 

@@ -63,12 +63,12 @@ public class Commission extends Plan {
     */
   public float priorityFor(Actor actor) {
     if (order != null && ! order.finished()) return 0 ;
+    final float business = shop.stocks.specialOrders().size() ;
     final int price = item.price() ;
     if (price > actor.gear.credits()) return 0 ;
-    float costVal = actor.AI.greedFor(price) * CASUAL ;
-    final float priority = Visit.clamp(URGENT - costVal, 0, URGENT) ;
-    ///I.say(actor+" purchase of "+item+" has priority: "+priority) ;
-    return priority ;
+    final float costVal = actor.AI.greedFor(price) * CASUAL ;
+    float priority = 1 + ROUTINE - (costVal + business) ;
+    return Visit.clamp(priority, 0, ROUTINE) ;
   }
   
   
@@ -80,13 +80,18 @@ public class Commission extends Plan {
   
   private boolean expired() {
     if (orderDate == -1) return false ;
-    return shop.world().currentTime() - orderDate > World.DEFAULT_DAY_LENGTH ;
+    final int maxTime = World.STANDARD_DAY_LENGTH * 2 ;
+    if (actor.world().currentTime() - orderDate > maxTime) return true ;
+    final boolean
+      ongoing = shop.stocks.specialOrders().contains(order),
+      hasItem = shop.stocks.hasItem(item) ;
+    if (ongoing || hasItem) return false ;
+    return true ;
   }
   
   
   public boolean finished() {
-    if (expired()) return true ;
-    return delivered ;
+    return delivered || expired() ;
   }
   
   
@@ -96,7 +101,7 @@ public class Commission extends Plan {
   protected Behaviour getNextStep() {
     if (finished()) return null ;
     //
-    //  TODO:  Ensure someone is attending the shop.
+    //  TODO:  Check that someone is attending the shop.
     if (order != null && order.finished()) {
       final Action pickup = new Action(
         actor, shop,
@@ -127,7 +132,7 @@ public class Commission extends Plan {
   
   
   public boolean actionPickupItem(Actor actor, Venue shop) {
-    final int price = item.type.basePrice ;
+    final int price = item.price() ;
     shop.inventory().incCredits(price) ;
     actor.inventory().incCredits(0 - price) ;
     

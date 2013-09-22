@@ -137,7 +137,7 @@ public class Resting extends Plan implements BuildConstants {
         final Item portion = Item.withAmount(type, 0.1f * 1f / numFoods) ;
         venue.inventory().removeItem(portion) ;
       }
-      actor.health.takeSustenance(1, numFoods / (ALL_FOOD_TYPES.length - 1)) ;
+      actor.health.takeSustenance(1, numFoods / 2) ;
       return true ;
     }
     //

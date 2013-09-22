@@ -88,7 +88,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
     final int oldAmount = (int) amountOf(item) ;
     if (super.addItem(item)) {
       final int inc = ((int) amountOf(item)) - oldAmount ;
-      if (venue.inWorld() && inc != 0) {
+      if (venue.inWorld() && inc != 0 && item.type.form != FORM_PROVISION) {
         String phrase = inc >= 0 ? "+" : "-" ;
         phrase+=" "+inc+" "+item.type.name ;
         venue.chat.addPhrase(phrase) ;
@@ -130,12 +130,9 @@ public class VenueStocks extends Inventory implements BuildConstants {
   
   
   public Manufacture nextSpecialOrder(Actor actor) {
-    for (Manufacture order : specialOrders) {
-      //I.say("Actor assigned "+order.actor()) ;
-      if (order.actor() != actor || order.finished()) continue ;
-      return order ;
-    }
-    return null ;
+    final Choice choice = new Choice(actor) ;
+    for (Manufacture order : specialOrders) choice.add(order) ;
+    return (Manufacture) choice.weightedPick(0) ;
   }
   
   
@@ -346,6 +343,9 @@ public class VenueStocks extends Inventory implements BuildConstants {
     if (Float.isNaN(credits)) credits = 0 ;
     if (Float.isNaN(taxed)) taxed = 0 ;
     if (numUpdates % UPDATE_PERIOD == 0) diffuseExistingDemand() ;
+    for (Manufacture m : specialOrders) {
+      if (m.finished()) specialOrders.remove(m) ;
+    }
   }
   
   

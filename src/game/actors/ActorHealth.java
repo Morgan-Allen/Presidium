@@ -55,7 +55,7 @@ public class ActorHealth implements ActorConstants {
 
     DEFAULT_HEALTH  = 10,
     MAX_CALORIES    = 1.5f,
-    STARVE_INTERVAL = World.DEFAULT_DAY_LENGTH * 5,
+    STARVE_INTERVAL = World.STANDARD_DAY_LENGTH * 5,
     
     MAX_INJURY       =  1.5f,
     MAX_FATIGUE      =  1.0f,
@@ -63,11 +63,11 @@ public class ActorHealth implements ActorConstants {
     MIN_MORALE       = -1.5f,
     REVIVE_THRESHOLD =  0.5f,
     STABILISE_CHANCE =  0.2f,
-    DECOMPOSE_TIME   =  World.DEFAULT_DAY_LENGTH / 2,
+    DECOMPOSE_TIME   =  World.STANDARD_DAY_LENGTH / 2,
     
-    FATIGUE_GROW_PER_DAY = 0.50f,
+    FATIGUE_GROW_PER_DAY = 0.33f,
     MORALE_DECAY_PER_DAY = 0.33f,
-    INJURY_REGEN_PER_DAY = 0.20f ;
+    INJURY_REGEN_PER_DAY = 0.33f ;
   
   
   final Actor actor ;
@@ -419,7 +419,7 @@ public class ActorHealth implements ActorConstants {
     //
     //  Once per day, advance the organism's current age and check for disease
     //  or sudden death due to senescence.
-    if ((numUpdates + 1) % World.DEFAULT_DAY_LENGTH == 0) {
+    if ((numUpdates + 1) % World.STANDARD_DAY_LENGTH == 0) {
       advanceAge() ;
     }
     if (oldState != state && state != STATE_ACTIVE) {
@@ -472,7 +472,7 @@ public class ActorHealth implements ActorConstants {
   
   private void updateStresses() {
     if (state >= STATE_SUSPEND || ! organic) return ;
-    final float DL = World.DEFAULT_DAY_LENGTH ;
+    final float DL = World.STANDARD_DAY_LENGTH ;
     float MM = 1, FM = 1, IM = 1 ;
     
     if (state == STATE_RESTING) {
@@ -504,7 +504,7 @@ public class ActorHealth implements ActorConstants {
   
   private void advanceAge() {
     if (! organic) return ;
-    currentAge += World.DEFAULT_DAY_LENGTH * 1f / World.DEFAULT_YEAR_LENGTH ;
+    currentAge += World.STANDARD_DAY_LENGTH * 1f / World.STANDARD_YEAR_LENGTH ;
     if (currentAge > lifespan * (1 + (lifeExtend / 10))) {
       float deathDC = ROUTINE_DC * (1 + lifeExtend) ;
       if (actor.traits.test(VIGOUR, deathDC, 0)) {

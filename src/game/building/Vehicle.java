@@ -169,6 +169,10 @@ public abstract class Vehicle extends Mobile implements
   public void updateAsScheduled(int numUpdates) {
     if (! pathing.checkPathingOkay()) pathing.refreshPath() ;
     if (pilot != null && pilot.aboard() != this) pilot = null ;
+    if (hangar != null && hangar.destroyed()) {
+      //  TODO:  REGISTER FOR SALVAGE
+      setAsDestroyed() ;
+    }
   }
   
   /*

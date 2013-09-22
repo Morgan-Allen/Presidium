@@ -9,14 +9,13 @@ package src.game.base ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
-import src.game.social.Auditing;
+import src.game.social.Auditing ;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.graphics.widgets.HUD;
-import src.user.InstallTab;
-import src.user.Composite;
-import src.util.Index;
+import src.graphics.widgets.HUD ;
+import src.user.* ;
+import src.util.* ;
 
 
 
@@ -108,7 +107,7 @@ public class Bastion extends Venue implements BuildConstants {
   public int numOpenings(Background b) {
     final int nO = super.numOpenings(b) ;
     if (b == Background.VETERAN) {
-      return nO + 1 + structure.upgradeLevel(SECURITY_MEASURES) ;
+      return nO + 2 + structure.upgradeLevel(SECURITY_MEASURES) ;
     }
     if (b == Background.RESERVIST) {
       return nO + 2 + structure.upgradeLevel(LOGISTIC_SUPPORT) ;
@@ -133,7 +132,7 @@ public class Bastion extends Venue implements BuildConstants {
       return new Patrolling(actor, this, this.radius()) ;
     }
     if (v == Background.RESERVIST) {
-      return Building.getNextRepairFor(actor) ;
+      return Building.getNextRepairFor(actor, Plan.CASUAL) ;
     }
     if (v == Background.AUDITOR) {
       final Venue toAudit = Auditing.getNextAuditFor(actor) ;
@@ -165,12 +164,12 @@ public class Bastion extends Venue implements BuildConstants {
     //
     //  Demand provisions-
     final int foodNeed = personnel.residents().size() + 5 ;
-    stocks.forceDemand(CARBS  , foodNeed * 2, 0) ;
-    stocks.forceDemand(PROTEIN, foodNeed    , 0) ;
-    stocks.forceDemand(GREENS , foodNeed    , 0) ;
-    stocks.forceDemand(SPICE  , foodNeed / 2, 0) ;
+    stocks.forceDemand(CARBS  , foodNeed * 1.5f, 0) ;
+    stocks.forceDemand(PROTEIN, foodNeed * 1.0f, 0) ;
+    stocks.forceDemand(GREENS , foodNeed * 1.0f, 0) ;
+    stocks.forceDemand(SPICE  , foodNeed * 0.5f, 0) ;
     //
-    //  Modify maximum health based on upgrades-
+    //  Modify maximum integrity based on upgrades-
     final int BB = structure.upgradeLevel(BLAST_SHIELDS) ;
     structure.updateStats(650 + 250 * BB, 15 + 5 * BB) ;
   }

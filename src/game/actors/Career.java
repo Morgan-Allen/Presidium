@@ -278,7 +278,7 @@ public class Career implements ActorConstants {
   }
   
   
-  private void applyGear(Background v, Actor actor) {
+  public static void applyGear(Background v, Actor actor) {
     for (Service gear : v.gear) {
       if (gear instanceof DeviceType) {
         actor.gear.equipDevice(Item.withQuality(gear, 2)) ;
@@ -288,7 +288,9 @@ public class Career implements ActorConstants {
       }
       else actor.gear.addItem(Item.withAmount(gear, 2)) ;
     }
-    actor.gear.incCredits(50 + Rand.index(100)) ;
+    if (actor.gear.credits() == 0) {
+      actor.gear.incCredits(50 + Rand.index(100)) ;
+    }
   }
 }
 

@@ -30,6 +30,7 @@ public class Manufacture extends Plan implements Behaviour {
   
   private Item made, needed[] ;
   public int checkBonus = 0, timeMult = 1 ;
+  private boolean pastFive = false ;
   
   
   
@@ -77,6 +78,15 @@ public class Manufacture extends Plan implements Behaviour {
   }
   
   
+  public boolean matchesPlan(Plan p) {
+    if (! super.matchesPlan(p)) return false ;
+    final Manufacture m = (Manufacture) p ;
+    if (m.conversion != conversion) return false ;
+    if (! m.made().matches(made)) return false ;
+    return true ;
+  }
+  
+  
   
   /**  Vary this based on delay since inception and demand at the venue-
     */
@@ -84,11 +94,15 @@ public class Manufacture extends Plan implements Behaviour {
     if (GameSettings.hardCore && ! hasNeeded()) return 0 ;
     //
     //  Don't work on this outside your shift (or at least make it more
-    //  casual.)  TODO:  Implement 'secondary shifts'?  Maybe 'overtime'?
+    //  casual.)  TODO:  Implement 'secondary shifts' or overtime?
     final Venue venue = (Venue) actor.AI.work() ;
     if (! venue.personnel.onShift(actor)) {
       return 0 ;
     }
+    //final List <Manufacture> orders = venue.stocks.specialOrders() ;
+    //if (orders.size() > 0 && ! orders.contains(this)) return 0 ;
+    final boolean hasNeeded = hasNeeded() ;
+    float competition = begun() ? 0 : venue.personnel.assignedTo(this) ;
     //
     //  Vary priority based on how qualified to perform the task you are.
     final Conversion c = conversion ;
@@ -99,7 +113,10 @@ public class Manufacture extends Plan implements Behaviour {
       ) ;
     }
     chance = (chance + 1) / 2f ;
-    return URGENT * chance ;
+    ///I.sayAbout(actor, "Chance: "+chance+" for "+this) ;
+    float impetus = (URGENT * chance) + priorityMod - competition ;
+    if (! hasNeeded) impetus /= 2 ;
+    return Visit.clamp(impetus, IDLE, URGENT) ;
   }
   
   
@@ -122,7 +139,7 @@ public class Manufacture extends Plan implements Behaviour {
     */
   public boolean finished() {
     if (super.finished()) return true ;
-    return venue.stocks.hasItem(made) ;
+    return pastFive || venue.stocks.hasItem(made) ;
   }
   
   
@@ -171,11 +188,15 @@ public class Manufacture extends Plan implements Behaviour {
     }
     //
     //  Advance progress, and check if you're done yet.
-    final float amount = venue.stocks.amountOf(made) ;
+    final float oldAmount = venue.stocks.amountOf(made) ;
     float progress = (success ? progInc : (progInc / 10f)) * made.amount ;
-    if (progress + amount > made.amount) progress = made.amount - amount ;
-    venue.stocks.addItem(Item.withAmount(made, progress)) ;
+    if (progress + oldAmount > made.amount) progress = made.amount - oldAmount ;
+    if (progress > 0) {
+      venue.stocks.addItem(Item.withAmount(made, progress)) ;
+    }
     ///I.say("EXACT AMOUNT OF "+made.type+" IS: "+venue.stocks.amountOf(made)) ;
+    final float newAmount = venue.stocks.amountOf(made) ;
+    pastFive = ((int) (oldAmount / 5) > (int) (newAmount / 5)) ;
     return venue.stocks.hasItem(made) ;
   }
   

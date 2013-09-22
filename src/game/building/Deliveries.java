@@ -25,113 +25,173 @@ import src.util.* ;
 public class Deliveries implements BuildConstants {
   
   
-  final private static int
-    IS_TRADE = 0,
-    IS_IMPORT = 1,
-    IS_EXPORT = 2 ;  
+  final static int
+    IS_TRADE    = 0,
+    IS_SHOPPING = 1,
+    IS_IMPORT   = 2,
+    IS_EXPORT   = 3 ;  
   
   private static boolean verbose = false ;
   
   
-  public static Delivery nextDeliveryFrom(
-    Owner origin, Service goods[], int sizeLimit, World world
+  public static Delivery nextDeliveryFor(
+    Actor actor, Owner origin, Service goods[],
+    int sizeLimit, World world
   ) {
-    return nextDeliveryFrom(
-      origin, goods, nearbyCustomers(origin, world), sizeLimit, world
+    return Deliveries.bestClient(
+      actor, goods, origin,
+      (Batch) nearbyCustomers(origin, world),
+      sizeLimit, IS_TRADE
     ) ;
   }
   
 
-  public static Delivery nextDeliveryFrom(
-    Owner origin, Service goods[],
+  public static Delivery nextDeliveryFor(
+    Actor actor, Owner origin, Service goods[],
     Batch <Venue> clients, int sizeLimit,
     World world
   ) {
-    final Owner client = bestClient(
-      goods, origin, (Batch) clients, IS_TRADE
+    return Deliveries.bestClient(
+      actor, goods, origin,
+      (Batch) clients,
+      sizeLimit, IS_TRADE
     ) ;
-    if (verbose && I.talkAbout == origin) {
-      I.say("\nCLIENTS ARE:") ;
-      for (Venue v : clients) I.say("  "+v) ;
-      I.say("BEST CLIENT IS: "+client+"\n") ;
-    }
-    if (client == null) return null ;
-    final Item order[] = configDelivery(
-      goods, origin, client, null, sizeLimit, world, IS_TRADE
-    ) ;
-    if (order.length == 0) return null ;
-    return new Delivery(order, origin, client) ;
   }
   
   
   public static Delivery nextCollectionFor(
-    Owner client, Service goods[], int sizeLimit, Actor pays, World world
-  ) {
-    final Batch <Venue> vendors = Deliveries.nearbyVendors(
-      goods, client, world
-    ) ;
-    /*
-    if (verbose && I.talkAbout == pays) {
-      for (Venue v : vendors) I.say("Rating is: "+Deliveries.rateTrading(
-        goods, v, client, IS_TRADE
-      )+" FOR "+v) ;
-    }
-    //*/
-    return nextCollectionFor(client, goods, vendors, sizeLimit, pays, world) ;
-  }
-  
-  
-  public static Delivery nextCollectionFor(
-    Owner client, Service goods[], Batch <Venue> vendors,
+    Actor actor, Owner client, Service goods[],
     int sizeLimit, Actor pays, World world
   ) {
-    final Inventory.Owner origin = Deliveries.bestOrigin(
-      goods, client, (Batch) vendors, IS_TRADE
+    return Deliveries.bestOrigin(
+      actor, goods, client,
+      (Batch) nearbyVendors(goods, client, world),
+      sizeLimit, pays == null ? IS_TRADE : IS_SHOPPING
     ) ;
-    if (origin == null) return null ;
-    Item order[] = Deliveries.configDelivery(
-      goods, origin, client, pays, sizeLimit, world, IS_TRADE
+  }
+  
+  
+  public static Delivery nextCollectionFor(
+    Actor actor, Owner client, Service goods[], Batch <Venue> vendors,
+    int sizeLimit, Actor pays, World world
+  ) {
+    return Deliveries.bestOrigin(
+      actor, goods, client,
+      (Batch) vendors,
+      sizeLimit, pays == null ? IS_TRADE : IS_SHOPPING
     ) ;
-    if (order.length == 0) return null ;
-    return new Delivery(order, origin, client) ;
   }
   
   
   public static Delivery nextImportDelivery(
-    Owner origin, Service goods[], Batch <Venue> clients,
+    Actor actor, Owner origin, Service goods[], Batch <Venue> clients,
     int sizeLimit, World world
   ) {
-    final Owner client = bestClient(
-      goods, origin, (Batch) clients, IS_IMPORT
+    return Deliveries.bestClient(
+      actor, goods, origin,
+      (Batch) clients,
+      sizeLimit, IS_IMPORT
     ) ;
-    if (client == null) return null ;
-    final Item order[] = configDelivery(
-      goods, origin, client, null, sizeLimit, world, IS_IMPORT
-    ) ;
-    if (order.length == 0) return null ;
-    return new Delivery(order, origin, client) ;
   }
   
   
   public static Delivery nextExportCollection(
-    Owner client, Service goods[], Batch <Venue> vendors,
+    Actor actor, Owner client, Service goods[], Batch <Venue> vendors,
     int sizeLimit, World world
   ) {
-    final Owner origin = Deliveries.bestOrigin(
-      goods, client, (Batch) vendors, IS_EXPORT
+    return Deliveries.bestOrigin(
+      actor, goods, client,
+      (Batch) vendors,
+      sizeLimit, IS_EXPORT
     ) ;
-    if (origin == null) return null ;
-    Item order[] = Deliveries.configDelivery(
-      goods, origin, client, null, sizeLimit, world, IS_EXPORT
-    ) ;
-    if (order.length == 0) return null ;
-    return new Delivery(order, origin, client) ;
+  }
+  
+  
+  private static Delivery bestOrigin(
+    Actor actor, Service goods[], Owner client,
+    Batch <Owner> origins, int sizeLimit, int tradeType
+  ) {
+    Delivery picked = null ;
+    float bestRating = 0 ;
+    for (Owner origin : origins) {
+      Item order[] = Deliveries.configDelivery(
+        goods, origin, client, actor,
+        sizeLimit, actor.world(), tradeType
+      ) ;
+      if (order.length == 0) continue ;
+      final Delivery d = new Delivery(order, origin, client) ;
+      final float rating = d.priorityFor(actor) ;
+      if (rating > bestRating) { bestRating = rating ; picked = d ; }
+    }
+    return picked ;
+  }
+  
+  
+  private static Delivery bestClient(
+    Actor actor, Service goods[], Owner origin,
+    Batch <Owner> clients, int sizeLimit, int tradeType
+  ) {
+    Delivery picked = null ;
+    float bestRating = 0 ;
+    for (Owner client : clients) {
+      Item order[] = Deliveries.configDelivery(
+        goods, origin, client, actor,
+        sizeLimit, actor.world(), tradeType
+      ) ;
+      final Delivery d = new Delivery(order, origin, client) ;
+      final float rating = d.priorityFor(actor) ;
+      if (rating > bestRating) { bestRating = rating ; picked = d ; }
+    }
+    return picked ;
   }
   
   
 
   /**  Helper methods for squeezing orders down into manageable chunks-
     */
+  private static float rateTrading(
+    Service good, Owner origin, Owner client, int tradeType
+  ) {
+    //
+    //  The basic purpose of this comparison is to ensure that deliveries are
+    //  non-symmetric.
+    if (tradeType == IS_SHOPPING) {
+      final float rating = origin.inventory().amountOf(good) / 10f ;
+      if (I.talkAbout == client && good == PARTS) {
+        I.say("URGENCY for "+origin+" is "+rating) ;
+      }
+      return rating ;
+    }
+    else if (tradeType == IS_IMPORT) {
+      //final int capacity = origin.spaceFor(good) ;
+      return Math.min(
+        ((Service.Trade) client).importShortage(good),
+        origin.inventory().amountOf(good)
+      ) / 10f ;//capacity ;
+    }
+    if (tradeType == IS_EXPORT) {
+      final int capacity = client.spaceFor(good) ;
+      return Math.min(
+        ((Service.Trade) origin).exportSurplus(good),
+        capacity
+      ) / 10f ;//capacity ;
+    }
+    final float originUrgency = (origin instanceof Venue) ?
+      ((Venue) origin).stocks.shortageUrgency(good) : 0 ;
+    final float clientUrgency = (client instanceof Venue) ?
+      ((Venue) client).stocks.shortageUrgency(good) : 0 ;
+    
+    if (clientUrgency <= originUrgency) return 0 ;
+    float rating = 1 ;
+    
+    rating *= origin.inventory().amountOf(good) / 10f ;
+    rating *= ((Venue) client).stocks.shortageOf(good) / 10f ;
+    //  TODO:  Make sure the client inventory has space!
+    
+    return rating ;
+  }
+  
+  
   private static Item[] configDelivery(
     Service goods[], Owner origin, Owner client,
     Actor pays, int sizeLimit, World world,
@@ -141,16 +201,14 @@ public class Deliveries implements BuildConstants {
     //  First, get the amount of each item available for trade at the point of
     //  origin, and desired by the destination/client, which constrains the
     //  quantities involved-
+    final Object subject = pays ;
+    
     if (verbose) I.sayAbout(
-      origin, "Evaluating delivery from "+origin+" to "+client
+      subject, "Evaluating delivery from "+origin+" to "+client
     ) ;
     final int
       roundUnit = sizeLimit <= 5 ? 1 : 5,
       pickUnit  = sizeLimit <= 5 ? 0 : 3 ;
-    final boolean ration =
-      pays != null &&
-      pays.vocation().guild == Background.GUILD_MILITANT ;
-    
     
     final List <Item> viable = new List <Item> () {
       protected float queuePriority(Item i) {
@@ -185,14 +243,14 @@ public class Deliveries implements BuildConstants {
         good, origin, client, tradeType
       ) / (amount + 1)) : 2 ;
       
-      /*
-      if (origin == I.talkAbout && good == PARTS && tradeType == IS_TRADE) {
-        I.say("Urgency at origin: "+((Venue) origin).stocks.shortageUrgency(good)) ;
-        I.say("Urgency at client: "+((Venue) client).stocks.shortageUrgency(good)) ;
-        I.sayAbout(origin, "Trade rating is: "+rateTrade) ;
-        I.say("Trade amount is: "+(amount * rateTrade)) ;
+      if (verbose && I.talkAbout == subject) {
+        I.say("  Service: "+good) ;
+        I.say("    Available: "+origin.inventory().amountOf(good)) ;
+        I.say("    Reserved: "+reservedForCollection(OD, good)) ;
+        I.say("    Max buys/sold: "+maxBuys+"/"+maxSold) ;
+        I.say("    Trade rating is: "+rateTrade) ;
+        I.say("    Trade amount is: "+(amount * rateTrade)) ;
       }
-      //*/
       
       if ((amount * rateTrade) < pickUnit) continue ;
       if (rateTrade >= 1) {
@@ -208,23 +266,22 @@ public class Deliveries implements BuildConstants {
     float sumAmounts = 0, sumPrice = 0, scale = 1 ;
     for (Item i : viable) {
       sumAmounts += i.amount ;
-      float price = origin.priceFor(i.type) ;
-      if (ration) price -= 50 ;
+      final float price = Delivery.purchasePrice(i, pays, origin) ;
       if (price <= 0) continue ;
-      sumPrice += price * i.amount ;
+      sumPrice += price ;
     }
     if (sumAmounts > sizeLimit) {
       scale = sizeLimit / sumAmounts ;
       sumPrice *= scale ;
     }
-    final float priceLimit = pays == null ?
+    final float priceLimit = tradeType != IS_SHOPPING ?
       Float.POSITIVE_INFINITY :
       pays.gear.credits() / 2f ;
     if (sumPrice > priceLimit) {
       scale *= priceLimit / sumPrice ;
     }
     
-    if (verbose && I.talkAbout == origin) {
+    if (verbose && I.talkAbout == subject) {
       I.say("Size/price limits: "+sizeLimit+" "+priceLimit+", goods:") ;
       for (Item v : viable) I.say("  "+v) ;
     }
@@ -243,11 +300,9 @@ public class Deliveries implements BuildConstants {
     //  ...which then necessitates trimming off possible excess-
     if (viable.size() != 0) while (true) {
       boolean noneTrimmed = true ;
+      float price ;
       i = 0 ; for (Item v : viable) {
-        float price = origin.priceFor(v.type) ;
-        if (ration) price -= 50 ;
-        if (price <= 0) price = 0 ;
-        
+        price = Math.max(0, Delivery.purchasePrice(v, pays, origin)) ;
         final boolean mustTrim =
           sumAmounts > sizeLimit ||
           (sumPrice > priceLimit && price > 0) ||
@@ -263,7 +318,7 @@ public class Deliveries implements BuildConstants {
       if (noneTrimmed) break ;
     }
     
-    if (verbose && I.talkAbout == origin) {
+    if (verbose && I.talkAbout == subject) {
       I.say("AFTER TRIM") ;
       i = 0 ;
       for (Item v : viable) {
@@ -274,9 +329,10 @@ public class Deliveries implements BuildConstants {
     //
     //  Finally, we compile and return the quantities as items:
     final Batch <Item> trimmed = new Batch <Item> () ;
-    i = 0 ; for (Item v : viable) {
-      final int amount = amounts[i++] ;
-      if (amount > 0) trimmed.add(Item.withAmount(v, amount)) ;
+    i = viable.size() ;
+    for (ListEntry <Item> LE = viable ; (LE = LE.lastEntry()) != viable ;) {
+      final int amount = amounts[--i] ;
+      if (amount > 0) trimmed.add(Item.withAmount(LE.refers, amount)) ;
     }
     return trimmed.toArray(Item.class) ;
   }
@@ -295,117 +351,26 @@ public class Deliveries implements BuildConstants {
   }
   
   
-  //
-  //  To evaluate priority, use the rateTrading method on available goods,
-  //  scaled by quantity...  TODO:  That.
-  
-  
-  
-  /**  Helper methods for rating the attractiveness of trade with different
-    *  venues-
-    */
-  private static Owner bestOrigin(
-    Service goods[], Owner client, Batch <Owner> origins, int tradeType
-  ) {
-    Owner picked = null ;
-    float bestRating = 0 ;
-    for (Owner origin : origins) {
-      final float rating = rateTrading(goods, origin, client, tradeType) ;
-      if (rating > bestRating) { bestRating = rating ; picked = origin ; }
-    }
-    return picked ;
-  }
-  
-  
-  private static Owner bestClient(
-    Service goods[], Owner origin, Batch <Owner> clients, int tradeType
-  ) {
-    Owner picked = null ;
-    float bestRating = 0 ;
-    for (Owner client : clients) {
-      final float rating = rateTrading(goods, origin, client, tradeType) ;
-      if (rating > bestRating) { bestRating = rating ; picked = client ; }
-    }
-    return picked ;
-  }
-  
-  
-  private static float rateTrading(
-    Service goods[], Owner origin, Owner client, int tradeType
-  ) {
-    float sumRatings = 0 ;
-    for (Service good : goods) {
-      sumRatings += rateTrading(good, origin, client, tradeType) ;
-    }
-    return sumRatings ;
-  }
-  
-  
-  private static float rateTrading(
-    Service good, Owner origin, Owner client, int tradeType
-  ) {
-    //
-    //  The basic purpose of this comparison is to ensure that deliveries are
-    //  non-symmetric.
-    if (tradeType == IS_IMPORT) {
-      //final int capacity = origin.spaceFor(good) ;
-      return Math.min(
-        ((Service.Trade) client).importShortage(good),
-        origin.inventory().amountOf(good)
-      ) / 10f ;//capacity ;
-    }
-    if (tradeType == IS_EXPORT) {
-      final int capacity = client.spaceFor(good) ;
-      return Math.min(
-        ((Service.Trade) origin).exportSurplus(good),
-        capacity
-      ) / 10f ;//capacity ;
-    }
-    final float originUrgency = (origin instanceof Venue) ?
-      ((Venue) origin).stocks.shortageUrgency(good) : 0 ;
-    final float clientUrgency = (client instanceof Venue) ?
-      ((Venue) client).stocks.shortageUrgency(good) : 0 ;
-    
-    /*
-    if (I.talkAbout == origin) {
-      I.say("ORE URGENCY: "+originUrgency+"/"+clientUrgency) ;
-    }
-    //*/
-    if (clientUrgency <= originUrgency) return 0 ;
-    /*
-    if (clientUrgency + originUrgency == 0) return 0 ;
-    //final float TP = client.priceFor(good) + origin.priceFor(good) ;
-    float rating =
-      (clientUrgency - originUrgency) * 2f /
-      (clientUrgency + originUrgency) ;
-    //*/
-    float rating = 1 ;
-    
-    rating *= origin.inventory().amountOf(good) / 10f ;
-    rating *= ((Venue) client).stocks.shortageOf(good) / 10f ;
-    //  TODO:  Make sure the client inventory has space!
-    
-    return rating ;
-  }
-  
-  
   
   /**  Helper methods for getting viable targets-
     */
   public static Batch <Venue> nearbyDepots(Target t, World world) {
     final Batch <Venue> depots = new Batch <Venue> () ;
-    //  TODO:  Key this off the SERVICE_DEPOT service instead?
-    world.presences.sampleTargets(SupplyDepot.class, t, world, 5, depots) ;
-    world.presences.sampleTargets(StockExchange.class, t, world, 5, depots) ;
+    world.presences.sampleFromKeys(
+      t, world, 5, depots,
+      SupplyDepot.class, StockExchange.class
+    ) ;
     return depots ;
   }
   
   
   public static Batch <Venue> nearbyCustomers(Target target, World world) {
-    final Batch <Venue> nearby = new Batch <Venue> () ;
-    world.presences.sampleTargets(Venue.class, target, world, 10, nearby) ;
+    final Batch <Venue> sampled = new Batch <Venue> () ;
+    world.presences.sampleFromKey(
+      target, world, 5, sampled, Venue.class
+    ) ;
     final Batch <Venue> returned = new Batch <Venue> () ;
-    for (Venue v : nearby) {
+    for (Venue v : sampled) {
       if (v.privateProperty()) continue ;
       if ((v instanceof SupplyDepot) || (v instanceof StockExchange)) continue ;
       returned.add(v) ;
@@ -416,7 +381,7 @@ public class Deliveries implements BuildConstants {
   
   public static Batch <Vehicle> nearbyTraders(Target target, World world) {
     final Batch <Vehicle> nearby = new Batch <Vehicle> () ;
-    world.presences.sampleTargets(Dropship.class, target, world, 10, nearby) ;
+    world.presences.sampleFromKey(target, world, 10, nearby, Dropship.class) ;
     return nearby ;
   }
   
@@ -425,7 +390,7 @@ public class Deliveries implements BuildConstants {
     Service type, Target target, World world
   ) {
     final Batch <Venue> vendors = new Batch <Venue> () ;
-    world.presences.sampleTargets(type, target, world, 5, vendors) ;
+    world.presences.sampleFromKey(target, world, 5, vendors, type) ;
     return vendors ;
   }
   
@@ -434,9 +399,7 @@ public class Deliveries implements BuildConstants {
     Service types[], Target target, World world
   ) {
     final Batch <Venue> vendors = new Batch <Venue> () ;
-    for (Service type : types) {
-      world.presences.sampleTargets(type, target, world, 5, vendors) ;
-    }
+    world.presences.sampleFromKeys(target, world, 5, vendors, (Object[]) types) ;
     return vendors ;
   }
 }

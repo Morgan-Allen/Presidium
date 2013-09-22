@@ -7,6 +7,7 @@
 
 package src.game.building ;
 import src.game.common.* ;
+import src.game.social.Auditing;
 import src.game.actors.* ;
 import src.game.base.* ;
 import src.util.* ;
@@ -122,16 +123,22 @@ public class Delivery extends Plan implements BuildConstants {
   }
   
   
-  private float purchasePrice(Item i) {
-    float TP = origin.priceFor(i.type) ;
-    if (actor.vocation().guild == Background.GUILD_MILITANT) TP -= 50 ;
-    if (TP <= 0) return 0 ;
-    return i.amount * TP ;
+  public static float purchasePrice(Item item, Actor actor, Owner origin) {
+    float TP = origin.priceFor(item.type) ;
+    if (actor != null && actor.vocation().guild == Background.GUILD_MILITANT) {
+      TP -= Auditing.MILITANT_RATION ;
+      if (TP <= 0) return 0 ;
+    }
+    return item.amount * TP ;
   }
   
   
-  private Batch <Item> available() {
+  private Item[] available(Actor actor) {
     final Batch <Item> available = new Batch <Item> () ;
+    if (actor == null) {
+      return items ;
+    }
+    
     final boolean shopping = isShopping() ;
     final Owner carrier = driven == null ? actor : driven ;
     
@@ -141,7 +148,7 @@ public class Delivery extends Plan implements BuildConstants {
         final float amount = origin.inventory().amountOf(i) ;
         if (amount <= 0) continue ;
         if (shopping) {
-          sumPrice += purchasePrice(i) ;
+          sumPrice += purchasePrice(i, actor, origin) ;
           if (sumPrice > actor.gear.credits() / 2f) break ;
         }
         available.add(i) ;
@@ -157,13 +164,13 @@ public class Delivery extends Plan implements BuildConstants {
         else available.add(i) ;
       }
     }
-    return available ;
+    return available.toArray(Item.class) ;
   }
   
   
   public float priorityFor(Actor actor) {
-    final Batch <Item> available = available() ;
-    if (available.size() == 0) return 0 ;
+    final Item[] available = available(this.actor) ;
+    if (available.length == 0) return 0 ;
     
     final float rangePenalty = (
       Plan.rangePenalty(actor, origin) +
@@ -174,7 +181,7 @@ public class Delivery extends Plan implements BuildConstants {
     float costVal = 0 ;
     if (isShopping() && stage <= STAGE_PICKUP) {
       int price = 0 ;
-      for (Item i : available) price += purchasePrice(i) ;
+      for (Item i : available) price += purchasePrice(i, actor, origin) ;
       if (price > actor.gear.credits()) return 0 ;
       costVal = actor.AI.greedFor(price) * CASUAL ;
     }
@@ -190,7 +197,11 @@ public class Delivery extends Plan implements BuildConstants {
       if (driven.destroyed()) return false ;
       if (! driven.canPilot(actor)) return false ;
     }
-    if (stage < STAGE_RETURN && available().size() == 0) return false ;
+    if (stage < STAGE_RETURN && available(actor).length == 0) {
+      ///I.sayAbout(actor, "NOTHING AVAILABLE") ;
+      for (Item i : items) I.sayAbout(actor, ""+i) ;
+      return false ;
+    }
     return true ;
   }
   
@@ -265,9 +276,9 @@ public class Delivery extends Plan implements BuildConstants {
     if (a == null || b == null) return 0 ;
     float sumItems = 0 ;
     float totalPrice = 0 ;
-    for (Item i : available()) {
+    for (Item i : available(actor)) {
       final float TA = a.inventory().transfer(i, b) ;
-      totalPrice += TA * purchasePrice(i) / i.amount ;
+      totalPrice += TA * purchasePrice(i, actor, origin) / i.amount ;
       sumItems += TA ;
     }
     origin.inventory().incCredits(totalPrice) ;
@@ -364,8 +375,10 @@ public class Delivery extends Plan implements BuildConstants {
     }
     
     d.append("Delivering ") ;
-    final Batch <Item> available = available() ;
-    d.appendList("", available) ;
+    final Item available[] = available(actor) ;
+    final Batch <Service> types = new Batch <Service> () ;
+    for (Item i : available) types.add(i.type) ;
+    d.appendList("", types) ;
     d.append(" from ") ;
     d.append(origin) ;
     d.append(" to ") ;

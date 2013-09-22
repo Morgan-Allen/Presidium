@@ -187,40 +187,40 @@ public interface BuildConstants extends ActorConstants {
   //  TODO:  You should have skins associated with some of these.
   final public static OutfitType
     FINERY         = new OutfitType(
-      BC, "Finery"        , 2 , 100,
-      new Conversion(3, PLASTICS, Fabricator.class, 15, GRAPHIC_DESIGN)
+      BC, "Finery"        , 2 , 200,
+      new Conversion(2, PLASTICS, Fabricator.class, 15, GRAPHIC_DESIGN)
     ),
     OVERALLS       = new OutfitType(
-      BC, "Overalls"      , 2, 25,
+      BC, "Overalls"      , 2, 50,
       new Conversion(1, PLASTICS, Fabricator.class, 5, ASSEMBLY)
     ),
     CAMOUFLAGE     = new OutfitType(
-      BC, "Camouflage"    , 3 , 35,
-      new Conversion(2, PLASTICS, Fabricator.class, 10, GRAPHIC_DESIGN)
+      BC, "Camouflage"    , 3 , 70,
+      new Conversion(1, PLASTICS, Fabricator.class, 10, GRAPHIC_DESIGN)
     ),
     SEALSUIT       = new OutfitType(
-      BC, "Sealsuit"      , 4 , 75,
-      new Conversion(2, PLASTICS, 1, PARTS, Fabricator.class, 15, ASSEMBLY)
+      BC, "Sealsuit"      , 4 , 150,
+      new Conversion(1, PLASTICS, 1, PARTS, Fabricator.class, 15, ASSEMBLY)
     ),
     
     SHIELD_BELT = new OutfitType(
-      BC, "Shield Belt"   , 5 , 25,
+      BC, "Shield Belt"   , 5 , 50,
       new Conversion(1, PARTS, Foundry.class, 5, ASSEMBLY)
     ),
     PARTIAL_ARMOUR = new OutfitType(
-      BC, "Partial Armour", 10, 50,
+      BC, "Partial Armour", 10, 100,
       new Conversion(2, PARTS, Foundry.class, 10, ASSEMBLY)
     ),
     BODY_ARMOUR    = new OutfitType(
-      BC, "Body Armour"   , 15, 75,
+      BC, "Body Armour"   , 15, 150,
       new Conversion(5, PARTS, Foundry.class, 15, ASSEMBLY)
     ),
     POWER_ARMOUR   = new OutfitType(
-      BC, "Power Armour"  , 20, 105,
+      BC, "Power Armour"  , 20, 250,
       new Conversion(8, PARTS, Foundry.class, 20, ASSEMBLY)
     ),
     GOLEM_ARMOUR   = new OutfitType(
-      BC, "Golem Armour"  , 25, 150,
+      BC, "Golem Armour"  , 25, 500,
       new Conversion(12, PARTS, Foundry.class, 25, ASSEMBLY)
     ),
     

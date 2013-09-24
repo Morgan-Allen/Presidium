@@ -168,6 +168,12 @@ public class Inventory {
   }
   
   
+  public void bumpItem(Service type, float amount, int max) {
+    final float oldAmount = amountOf(type) ;
+    bumpItem(type, Visit.clamp(amount, 0 - oldAmount, max - oldAmount)) ;
+  }
+  
+  
   
   /**  Removes the given item from this inventory.  The item given must have a
     *  single unique match, and the match must be greater in amount.  Returns

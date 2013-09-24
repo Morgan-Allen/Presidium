@@ -27,7 +27,7 @@ import src.util.* ;
 //  Health and Entertainment (averaged over all occupants.)
 //  Safety and Ambience (by location.)
 
-//  Sort of power, water, and life support requirements.  (Bear in mind that a
+//  Sort out power, water, and life support requirements.  (Bear in mind that a
 //  a degree of life support should be provided by global biomass.)
 
 //  Life support- 1 per inhabitant.
@@ -36,9 +36,6 @@ import src.util.* ;
 
 //  pressfeed- for citizen apartments or higher.  Inscription for guildsmen.
 
-//
-//  ...You have to make sure that provisions aren't made a target for
-//  deliveries.
 
 
 public class Holding extends Venue implements BuildConstants {
@@ -105,7 +102,7 @@ public class Holding extends Venue implements BuildConstants {
     this.varID = Rand.index(NUM_VARS) ;
     structure.setupStats(
       INTEGRITIES[0], 5, BUILD_COSTS[0],
-      VenueStructure.BIG_MAX_UPGRADES, false
+      Structure.BIG_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
     attachSprite(modelFor(this).makeSprite()) ;
   }
@@ -168,7 +165,7 @@ public class Holding extends Venue implements BuildConstants {
     super.updateAsScheduled(numUpdates) ;
     
     if (personnel.residents().size() == 0) {
-      structure.setState(VenueStructure.STATE_SALVAGE, -1) ;
+      structure.setState(Structure.STATE_SALVAGE, -1) ;
       return ;
     }
     if (! structure.intact()) return ;

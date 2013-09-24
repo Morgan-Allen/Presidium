@@ -107,7 +107,7 @@ public class ReconMission extends Mission {
     d.append("On ") ;
     d.append("Recon Mission", this) ;
     final Tile tile = (Tile) subject ;
-    d.append(" around "+tile.habitat().name+" at "+tile.x+" "+tile.y) ;
+    d.append(" around "+tile+" at "+tile.x+" "+tile.y) ;
   }
   
   

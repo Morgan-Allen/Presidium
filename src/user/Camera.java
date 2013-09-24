@@ -22,7 +22,6 @@ public class Camera {
   final BaseUI UI ;
   final Viewport port ;
   
-  //private Element lockTarget = null ;
   private Target lockTarget = null ;
   private float lockX = 0, lockY = 0 ;
   
@@ -54,7 +53,7 @@ public class Camera {
   }
   
   
-  protected void lockOn(Target target) {
+  public void lockOn(Target target) {
     if (
       target == null
     ) {

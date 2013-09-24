@@ -28,7 +28,7 @@ public class SurveillancePost extends Venue implements BuildConstants {
     super(4, 1, Venue.ENTRANCE_EAST, base) ;
     structure.setupStats(
       100, 4, 150,
-      VenueStructure.SMALL_MAX_UPGRADES, false
+      Structure.SMALL_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
     personnel.setShiftType(SHIFTS_BY_HOURS) ;
     attachSprite(MODEL.makeSprite()) ;

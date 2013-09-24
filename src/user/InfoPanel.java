@@ -7,12 +7,10 @@
 
 package src.user ;
 import src.util.* ;
-import src.game.actors.Actor;
-import src.game.building.Vehicle;
-import src.game.building.Venue;
+import src.game.actors.* ;
+import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
-///import src.graphics.widgets.Text.Clickable ;
 
 
 
@@ -81,6 +79,7 @@ public class InfoPanel extends UIGroup implements UIConstants {
     detailText.absBound.set(0, MW, 0, (-2 * MW) - (topMargin + HH)) ;
     detailText.attachTo(this) ;
     detailText.getScrollBar().attachTo(this) ;
+    detailText.scale = 0.75f ;
 
     this.selected = selected ;
     final String cats[] = (selected == null) ?

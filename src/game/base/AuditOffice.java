@@ -35,7 +35,7 @@ public class AuditOffice extends Venue implements BuildConstants {
     super(3, 2, ENTRANCE_EAST, base) ;
     structure.setupStats(
       100, 2, 200,
-      VenueStructure.NORMAL_MAX_UPGRADES, false
+      Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     this.attachSprite(MODEL.makeSprite()) ;

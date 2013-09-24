@@ -31,7 +31,7 @@ public class CultureVats extends Venue implements BuildConstants {
     super(4, 3, ENTRANCE_NORTH, base) ;
     structure.setupStats(
       400, 3, 450,
-      VenueStructure.NORMAL_MAX_UPGRADES, false
+      Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
     this.attachSprite(MODEL.makeSprite()) ;
   }

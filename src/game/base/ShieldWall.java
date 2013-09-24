@@ -53,13 +53,13 @@ public class ShieldWall extends Segment {
   
   public ShieldWall(Base base) {
     super(2, 3, base) ;
-    structure.setupStats(75, 35, 40, 0, false) ;
+    structure.setupStats(75, 35, 40, 0, Structure.TYPE_FIXTURE) ;
   }
   
   
   protected ShieldWall(int type, int size, int high, Base base) {
     super(size, high, base) ;
-    structure.setupStats(200, 35, 100, 0, false) ;
+    structure.setupStats(200, 35, 100, 0, Structure.TYPE_FIXTURE) ;
     type = TYPE_DOORS ;
   }
   

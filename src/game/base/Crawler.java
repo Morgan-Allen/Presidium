@@ -24,8 +24,8 @@ public class Crawler extends Vehicle implements
     XML_PATH = FILE_DIR+"VehicleModels.xml" ;
   final static Model
     BARGE_MODEL = MS3DModel.loadMS3D(
-      Crawler.class, FILE_DIR, "loader_2.ms3d", 1.0f
-    ).loadXMLInfo(XML_PATH, "CargoBarge") ;
+      Crawler.class, FILE_DIR, "crawler.ms3d", 1.0f
+    ).loadXMLInfo(XML_PATH, "DustCrawler") ;
   
   
   
@@ -45,50 +45,23 @@ public class Crawler extends Vehicle implements
   }
   
   
-  public float height() { return 1.0f ; }
-  public float radius() { return 1.0f ; }
-  
-  
-  
-  /**  Economic and behavioural functions-
-    */
-  public Behaviour jobFor(Actor actor) {
-    return null ;
-  }
-  
-  
-  public boolean actionBoard(Actor actor, Crawler ship) {
-    ship.setInside(actor, true) ;
-    return true ;
-  }
+  public float height() { return 0.5f ; }
+  public float radius() { return 0.5f ; }
   
   /*
-  protected void offloadPassengers() {
-    final int size = 2 * (int) Math.ceil(radius()) ;
-    final int EC[] = Spacing.entranceCoords(size, size, entranceFace) ;
-    final Box2D site = this.area(null) ;
-    final Tile o = world.tileAt(site.xpos() + 0.5f, site.ypos() + 0.5f) ;
-    final Tile exit = world.tileAt(o.x + EC[0], o.y + EC[1]) ;
-    this.dropPoint = exit ;
-    
-    for (Mobile m : inside()) if (! m.inWorld()) {
-      m.enterWorldAt(exit.x, exit.y, world) ;
-    }
-    inside.clear() ;
+  public boolean blockedBy(Boardable b) {
+    boolean blocked = super.blockedBy(b) ;
+    I.say("Blocked by "+b+"? "+blocked) ;
+    return blocked ;
   }
   //*/
-  
-  
-  public void updateAsScheduled(int numUpdates) {
-    super.updateAsScheduled(numUpdates) ;
-  }
   
   
   
   /**  Rendering and interface methods-
     */
   public String fullName() {
-    return "Cargo Barge" ;
+    return "Dust Crawler " ;//+this.hashCode() ;
   }
   
   
@@ -99,11 +72,12 @@ public class Crawler extends Vehicle implements
   
   public String helpInfo() {
     return
-      "Cargo Barges shuttle goods in bulk between the more distant reaches "+
-      "of your settlement.\n\n"+
-      "  'She kicks like a mule and stinks of raw carbons, but she'll "+
-      "getcha from A to B.  Assuming B is downhill.'\n"+
-      "  -Tev Marlo, Supply Corps" ;
+      "Dust crawlers perform automatic soil-sampling and terraforming "+
+      "duties with the barest minimum of human supervision.\n\n"+
+      "  'This one's called Bett, and this one's Geordi.  Geordi is pretty "+
+      "friendly, but you just want to stand well back when Bett starts "+
+      "making that humming noise- means she don't like you.'\n"+
+      "  -Onud Calgin, Climate Engineer" ;
   }
 }
 

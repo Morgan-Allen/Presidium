@@ -11,11 +11,12 @@ import src.game.planet.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.user.* ;
+import src.graphics.widgets.Text.Clickable ;
 
 
 
 public final class Tile implements
-  Target, TileConstants, Boardable, Session.Saveable
+  Target, TileConstants, Boardable, Session.Saveable, Clickable
 {
   
   
@@ -271,8 +272,22 @@ public final class Tile implements
   
   /**  Interface and media-
     */
+  public String fullName() {
+    return toString() ;
+  }
+  
+  
+  public void whenClicked() {
+    //  TODO:  Open a simple display pane to give basic information on the
+    //         habitat type.
+    final BaseUI UI = (BaseUI) PlayLoop.currentUI() ;
+    UI.selection.pushSelection(null, false) ;
+    UI.camera.lockOn(this) ;
+  }
+  
+  
   public String toString() {
-    return "Tile at "+x+" "+y ;
+    return habitat.name+" at X"+x+" Y"+y+"" ;
   }
   
   

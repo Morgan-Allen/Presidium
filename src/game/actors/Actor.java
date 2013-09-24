@@ -6,7 +6,7 @@
 
 
 package src.game.actors ;
-import src.game.base.Human;
+import src.game.base.Human ;
 import src.game.building.* ;
 import src.game.common.* ;
 import src.game.social.* ;

@@ -56,8 +56,12 @@ public abstract class Search <T> {
   /**  Performs the actual search algorithm.
     */
   public Search <T> doSearch() {
-    if (verbose) I.say("   ...searching ") ;
-    if (! canEnter(init)) return this ;
+    final boolean canSearch = canEnter(init) ;
+    if (verbose) I.say("   ...searching "+canSearch) ;
+    if (! canSearch) {
+      if (verbose) I.say("Cannot enter "+init) ;
+      return this ;
+    }
     tryEntry(init, null, 0) ;
     while (agenda.size() > 0) if (! stepSearch()) break ;
     for (T t : flagged) setEntry(t, null) ;

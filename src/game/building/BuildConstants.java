@@ -68,7 +68,7 @@ public interface BuildConstants extends ActorConstants {
     ALL_COMMODITIES[] = Service.typesSoFar() ;
   
   final public static Service
-    CRATES  = new Service(BC, "Crates", "crates_big.gif", FC, -1),
+    SAMPLES  = new Service(BC, "Samples", "crates_big.gif", FC, -1),
     CREDITS = new Service(BC, "Credits", null           , FP, -1) ;
   
   final public static Service

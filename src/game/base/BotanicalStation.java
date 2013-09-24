@@ -46,7 +46,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
     super(4, 3, Venue.ENTRANCE_SOUTH, belongs) ;
     structure.setupStats(
       150, 3, 250,
-      VenueStructure.NORMAL_MAX_UPGRADES, false
+      Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     attachSprite(STATION_MODEL.makeSprite()) ;
@@ -164,7 +164,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
         if (p.destroyed()) {
           allotments.remove(p) ;
           for (Plantation s : p.strip) if (s != p) {
-            s.structure.setState(VenueStructure.STATE_SALVAGE, -1) ;
+            s.structure.setState(Structure.STATE_SALVAGE, -1) ;
           }
         }
         else if (p.type == Plantation.TYPE_COVERED) numCovered++ ;
@@ -189,7 +189,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
         //  And if you have too many, flag them for salvage.
         for (int n = STRIP_SIZE ; n-- > 0 ;) {
           final Plantation p = allotments.removeLast() ;
-          p.structure.setState(VenueStructure.STATE_SALVAGE, -1) ;
+          p.structure.setState(Structure.STATE_SALVAGE, -1) ;
         }
       }
     }

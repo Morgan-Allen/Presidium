@@ -192,7 +192,7 @@ public abstract class Mobile extends Element
   protected void updateAsMobile() {
     //
     //  If your current location is blocked, you need to escape to a free tile-
-    if (blocksMotion(aboard)) {
+    if (blockedBy(aboard)) {
       final Tile blocked = origin() ;
       final Tile free = Spacing.nearestOpenTile(blocked, this) ;
       if (free == null) I.complain("NO FREE TILE AVAILABLE!") ;
@@ -255,7 +255,7 @@ public abstract class Mobile extends Element
   
   
   //  TODO:  Make this specific to tiles?  Might be simpler.
-  public boolean blocksMotion(Boardable b) {
+  public boolean blockedBy(Boardable b) {
     if (b instanceof Tile) {
       final Tile t = (Tile) b ;
       if (t.blocked()) return true ;

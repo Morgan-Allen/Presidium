@@ -60,6 +60,20 @@ public class MobilePathing {
   }
   
   
+  private boolean checkEndPoint(Boardable b) {
+    final boolean
+      allows = b.allowsEntry(mobile),
+      blocks = mobile.blockedBy(b) ;
+    if (allows && ! blocks) return true ;
+    if (verbose && I.talkAbout == mobile) {
+      I.say("Problem with end point: "+b) ;
+      I.say("  Blocks passage? "+blocks) ;
+      I.say("  Forbids entry? "+! allows) ;
+    }
+    return false ;
+  }
+  
+  
   public Target target() {
     return trueTarget ;
   }
@@ -114,7 +128,7 @@ public class MobilePathing {
       final int index = stepIndex + i ;
       if (index >= path.length) break ;
       final Boardable t = path[index] ;
-      if (mobile.blocksMotion(t)) blocked = true ;
+      if (mobile.blockedBy(t)) blocked = true ;
       else if (! t.inWorld()) blocked = true ;
       if (t == dest) nearTarget = true ;
     }
@@ -143,7 +157,8 @@ public class MobilePathing {
     if (trueTarget == null) path = null ;
     else {
       pathTarget = location(trueTarget) ;
-      if (verbose) I.sayAbout(mobile, "BLOCKED? "+mobile.blocksMotion(pathTarget)) ;
+      checkEndPoint(origin) ;
+      checkEndPoint(pathTarget) ;
       if (verbose) I.sayAbout(mobile, "BETWEEN: "+origin+" AND "+pathTarget) ;
       path = refreshPath(origin, pathTarget) ;
     }
@@ -156,7 +171,7 @@ public class MobilePathing {
     else {
       if (verbose && I.talkAbout == mobile) {
         I.say("PATH IS: ") ;
-        for (Boardable b : path) I.add(b+" "+mobile.blocksMotion(b)+" ") ;
+        for (Boardable b : path) I.add(b+" "+mobile.blockedBy(b)+" ") ;
       }
       int index = 0 ;
       while (index < path.length) if (path[index++] == origin) break ;
@@ -169,7 +184,7 @@ public class MobilePathing {
   protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
     if (GameSettings.pathFree) {
       final PathingSearch search = new PathingSearch(initB, destB, -1) ;
-      if (verbose && BaseUI.isPicked(mobile)) search.verbose = true ;
+      if (verbose && I.talkAbout == mobile) search.verbose = true ;
       search.client = mobile ;
       search.doSearch() ;
       return search.fullPath(Boardable.class) ;

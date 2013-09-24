@@ -117,6 +117,13 @@ public abstract class Element implements
   }
   
   
+  public void enterWorldAt(Target t, World world) {
+    final Vec3D p = t.position(null) ;
+    setPosition(p.x, p.y, world) ;
+    enterWorld() ;
+  }
+  
+  
   public boolean destroyed() {
     return hasProperty(PROP_DESTROYED) ;
   }

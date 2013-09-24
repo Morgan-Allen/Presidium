@@ -246,7 +246,7 @@ public abstract class Fauna extends Actor {
         actor.AI.setHomeVenue(newLair) ;
         newLair.clearSurrounds() ;
         newLair.enterWorld() ;
-        newLair.structure.setState(VenueStructure.STATE_INTACT, 0.1f) ;
+        newLair.structure.setState(Structure.STATE_INTACT, 0.1f) ;
         actor.goAboard(newLair, world) ;
         return true ;
       }

@@ -20,7 +20,7 @@ import src.util.* ;
 
 
 public abstract class Venue extends Fixture implements
-  Schedule.Updates, Boardable, Structural,
+  Schedule.Updates, Boardable, Installation,
   Inventory.Owner, ActorAI.Employment,
   Selectable, TileConstants
 {
@@ -54,7 +54,7 @@ public abstract class Venue extends Fixture implements
   
   final public VenuePersonnel personnel = new VenuePersonnel(this) ;
   final public VenueStocks    stocks    = new VenueStocks(this)    ;
-  final public VenueStructure structure = new VenueStructure(this) ;
+  final public Structure structure = new Structure(this) ;
   
   
   
@@ -352,10 +352,10 @@ public abstract class Venue extends Fixture implements
     enterWorld() ;
     VenuePersonnel.fillVacancies(this) ;
     if (GameSettings.buildFree) {
-      structure.setState(VenueStructure.STATE_INTACT , 1) ;
+      structure.setState(Structure.STATE_INTACT , 1) ;
     }
     else {
-      structure.setState(VenueStructure.STATE_INSTALL, 0) ;
+      structure.setState(Structure.STATE_INSTALL, 0) ;
     }
   }
 
@@ -421,7 +421,7 @@ public abstract class Venue extends Fixture implements
         d.append(new Description.Link("\n  Cancel Salvage") {
           public void whenClicked() {
             final float condition = structure.repairLevel() ;
-            structure.setState(VenueStructure.STATE_INTACT, condition) ;
+            structure.setState(Structure.STATE_INTACT, condition) ;
             world.ephemera.addGhost(v, size, buildSprite.scaffolding(), 2.0f) ;
           }
         }) ;
@@ -430,7 +430,7 @@ public abstract class Venue extends Fixture implements
         d.append(new Description.Link("\n  Begin Salvage") {
           public void whenClicked() {
             final float condition = structure.repairLevel() ;
-            structure.setState(VenueStructure.STATE_SALVAGE, condition) ;
+            structure.setState(Structure.STATE_SALVAGE, condition) ;
             world.ephemera.addGhost(v, size, buildSprite.baseSprite(), 2.0f) ;
           }
         }) ;
@@ -612,7 +612,7 @@ public abstract class Venue extends Fixture implements
     
     final int NU = structure.numUpgrades() ;
     healthbar.size = (radius() * 50) ;
-    healthbar.size *= 1 + VenueStructure.UPGRADE_HP_BONUSES[NU] ;
+    healthbar.size *= 1 + Structure.UPGRADE_HP_BONUSES[NU] ;
     healthbar.matchTo(buildSprite) ;
     healthbar.position.z += height() ;
     rendering.addClient(healthbar) ;

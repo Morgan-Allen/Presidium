@@ -30,7 +30,7 @@ public class Sickbay extends Venue implements BuildConstants {
     super(3, 2, Venue.ENTRANCE_EAST, base) ;
     structure.setupStats(
       200, 2, 350,
-      VenueStructure.NORMAL_MAX_UPGRADES, false
+      Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     attachSprite(MODEL.makeSprite()) ;

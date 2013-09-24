@@ -357,7 +357,7 @@ public class Dropship extends Vehicle implements
   }
   
   
-  public boolean blocksMotion(Boardable t) { return false ; }
+  public boolean blockedBy(Boardable t) { return false ; }
   public void pathingAbort() {}
   
   

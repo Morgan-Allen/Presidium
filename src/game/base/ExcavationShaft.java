@@ -72,7 +72,7 @@ public class ExcavationShaft extends Venue implements
     super(4, 1, Venue.ENTRANCE_EAST, base) ;
     structure.setupStats(
       200, 15, 350,
-      VenueStructure.SMALL_MAX_UPGRADES, false
+      Structure.SMALL_MAX_UPGRADES, Structure.TYPE_FIXTURE
     ) ;
     attachSprite(SHAFT_MODEL.makeSprite()) ;
     final int gridSize = 4 + (MAX_DIG_RANGE * 2) ;

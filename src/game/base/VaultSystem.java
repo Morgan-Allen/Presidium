@@ -56,7 +56,7 @@ public class VaultSystem extends Venue implements BuildConstants {
   
   public VaultSystem(Base belongs) {
     super(4, 2, ENTRANCE_EAST, belongs) ;
-    structure.setupStats(500, 20, 350, 0, false) ;
+    structure.setupStats(500, 20, 350, 0, Structure.TYPE_FIXTURE) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     attachSprite(MODEL.makeSprite()) ;
   }
@@ -163,7 +163,7 @@ public class VaultSystem extends Venue implements BuildConstants {
   
   public String helpInfo() {
     return
-      "The Vault System provides an emergency refuge for base personnel, "+
+      "The Vault System provides an emergency refuge for base personnel while "+
       "allowing goods to be stockpiled and providing a baseline degree of "+
       "power and life support." ;
   }

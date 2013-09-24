@@ -109,6 +109,7 @@ public abstract class Vehicle extends Mobile implements
   
   public void setHangar(Venue hangar) {
     this.hangar = hangar ;
+    assignBase(hangar.base()) ;
   }
   
   
@@ -151,7 +152,9 @@ public abstract class Vehicle extends Mobile implements
   protected void updateAsMobile() {
     super.updateAsMobile() ;
     if (pilot != null) updatePiloting() ;
+    else pathing.updateTarget(pathing.target()) ;
     final Boardable step = pathing.nextStep() ;
+    
     if (pathing.checkPathingOkay() && step != null) {
       float moveRate = baseMoveRate() ;
       if (origin().pathType() == Tile.PATH_ROAD) moveRate *= 1.5f ;

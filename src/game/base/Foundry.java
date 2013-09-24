@@ -31,8 +31,8 @@ public class Foundry extends Venue implements BuildConstants {
   public Foundry(Base base) {
     super(4, 2, ENTRANCE_WEST, base) ;
     structure.setupStats(
-      200, 5, 350, VenueStructure.NORMAL_MAX_UPGRADES,
-      false
+      200, 5, 350,
+      Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     this.attachSprite(MODEL.makeSprite()) ;

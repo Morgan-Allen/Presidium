@@ -31,7 +31,7 @@ public class Ruins extends Venue {
   
   public Ruins() {
     super(4, 2, ENTRANCE_EAST, null) ;
-    structure.setupStats(1000, 100, 0, 0, false) ;
+    structure.setupStats(1000, 100, 0, 0, Structure.TYPE_ANCIENT) ;
     personnel.setShiftType(SHIFTS_ALWAYS) ;
     final int index = (NI++ + Rand.index(1)) % 3 ;
     attachSprite(MODEL_RUINS[index].makeSprite()) ;

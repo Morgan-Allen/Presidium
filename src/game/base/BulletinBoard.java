@@ -29,7 +29,7 @@ public class BulletinBoard extends Venue implements BuildConstants {
   
   public BulletinBoard(Base base) {
     super(2, 3, ENTRANCE_WEST, base) ;
-    structure.setupStats(15, 2, 50, 0, false) ;
+    structure.setupStats(15, 2, 50, 0, Structure.TYPE_FIXTURE) ;
     personnel.setShiftType(SHIFTS_ALWAYS) ;
     this.attachSprite(MODEL.makeSprite()) ;
   }

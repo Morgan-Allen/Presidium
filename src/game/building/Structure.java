@@ -15,7 +15,7 @@ import src.util.* ;
 //  Modify this so that Vehicles can possess it too?  Put in an interface?
 
 
-public class VenueStructure extends Inventory {
+public class Structure extends Inventory {
   
   
   
@@ -40,6 +40,13 @@ public class VenueStructure extends Inventory {
   } ;
   
   final public static int
+    TYPE_VENUE   = 0,
+    TYPE_FIXTURE = 1,
+    TYPE_VEHICLE = 2,
+    TYPE_ANCIENT = 3,
+    TYPE_ORGANIC = 4 ;
+  
+  final public static int
     NO_UPGRADES         = 0,
     SMALL_MAX_UPGRADES  = 3,
     NORMAL_MAX_UPGRADES = 6,
@@ -53,6 +60,8 @@ public class VenueStructure extends Inventory {
   } ;
   
   
+  //
+  //  TODO:  Allow this to be an arbitrary Installation, such as vehicles.
   final Venue venue ;
   
   private int baseIntegrity = DEFAULT_INTEGRITY ;
@@ -60,9 +69,8 @@ public class VenueStructure extends Inventory {
   private int
     buildCost = DEFAULT_BUILD_COST,
     armouring = DEFAULT_ARMOUR ;
-  private boolean
-    organic ;
-  //  private Item materials[] ;
+  private int
+    structureType = TYPE_VENUE ;
   
   private int state = STATE_INSTALL ;
   private float integrity = baseIntegrity ;
@@ -75,7 +83,7 @@ public class VenueStructure extends Inventory {
   
   
   
-  VenueStructure(Venue venue) {
+  Structure(Venue venue) {
     super(venue) ;
     this.venue = venue ;
   }
@@ -87,7 +95,7 @@ public class VenueStructure extends Inventory {
     maxUpgrades = s.loadInt() ;
     buildCost = s.loadInt() ;
     armouring = s.loadInt() ;
-    organic = s.loadBool() ;
+    structureType = s.loadInt() ;
     
     state = s.loadInt() ;
     integrity = s.loadFloat() ;
@@ -113,7 +121,7 @@ public class VenueStructure extends Inventory {
     s.saveInt(maxUpgrades) ;
     s.saveInt(buildCost) ;
     s.saveInt(armouring) ;
-    s.saveBool(organic) ;
+    s.saveInt(structureType) ;
     
     s.saveInt(state) ;
     s.saveFloat(integrity) ;
@@ -136,12 +144,14 @@ public class VenueStructure extends Inventory {
     int armouring,
     int buildCost,
     int maxUpgrades,
-    boolean organic
+    int type
+    //boolean organic
   ) {
     this.integrity = this.baseIntegrity = baseIntegrity ;
     this.armouring = armouring ;
     this.buildCost = buildCost ;
-    this.organic = organic ;
+    this.structureType = type ;
+    //this.organic = organic ;
     
     this.maxUpgrades = maxUpgrades ;
     this.upgrades = new Upgrade[maxUpgrades] ;
@@ -155,6 +165,27 @@ public class VenueStructure extends Inventory {
     this.armouring = armouring ;
     integrity = condition * maxIntegrity() ;
     //checkMaintenance() ;
+  }
+  
+  
+  
+  /**  Regular updates-
+    */
+  protected void updateStructure(int numUpdates) {
+    //if (! flammable()) burning = false ;
+    if (burning) {
+      takeDamage(Rand.num() * 2) ;
+      final float damage = maxIntegrity() - integrity ;
+      if (armouring > Rand.num() * damage) burning = false ;
+    }
+    final boolean takesWear =
+      (numUpdates % 10 == 0) &&
+      (! GameSettings.buildFree) &&
+      takesWear() && (integrity > 0) ;
+    if (takesWear) {
+      final float wear = baseIntegrity * 1f / World.STANDARD_DAY_LENGTH ;
+      if (2 > Rand.num() * armouring) takeDamage(wear * Rand.num()) ;
+    }
   }
   
   
@@ -173,6 +204,21 @@ public class VenueStructure extends Inventory {
   public int repair() { return (int) integrity ; }
   public float repairLevel() { return integrity / maxIntegrity() ; }
   public boolean burning() { return burning ; }
+  
+  
+  public boolean flammable() {
+    return structureType == TYPE_VENUE || structureType == TYPE_VEHICLE ;
+  }
+  
+  
+  public boolean takesWear() {
+    return structureType != TYPE_ANCIENT && structureType != TYPE_ORGANIC ;
+  }
+  
+  
+  public boolean regenerates() {
+    return structureType == TYPE_ORGANIC ;
+  }
   
   
   
@@ -198,7 +244,8 @@ public class VenueStructure extends Inventory {
   public void takeDamage(float damage) {
     if (damage < 0) I.complain("NEGATIVE DAMAGE!") ;
     adjustRepair(0 - damage) ;
-    if (damage > Rand.num() * maxIntegrity()) burning = true ;
+    final float burnChance = damage * (1 - repairLevel()) / maxIntegrity() ;
+    if (flammable() && Rand.num() < burnChance) burning = true ;
     if (integrity <= 0) venue.onDestruction() ;
   }
   
@@ -413,22 +460,6 @@ public class VenueStructure extends Inventory {
   
   public float upgradeProgress() {
     return upgradeProgress ;
-  }
-  
-  
-  
-  /**  Regular updates-
-    */
-  protected void updateStructure(int numUpdates) {
-    if (burning) {
-      takeDamage(Rand.num() * 2) ;
-      final float damage = maxIntegrity() - integrity ;
-      if (armouring > Rand.num() * damage) burning = false ;
-    }
-    if (integrity > 0 && numUpdates % 10 == 0 && ! GameSettings.buildFree) {
-      final float wear = baseIntegrity * 1f / World.STANDARD_DAY_LENGTH ;
-      if (2 > Rand.num() * armouring) takeDamage(wear * Rand.num()) ;
-    }
   }
   
   

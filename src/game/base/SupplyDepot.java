@@ -98,7 +98,7 @@ public class SupplyDepot extends Venue implements
   public SupplyDepot(Base base) {
     super(5, 2, ENTRANCE_NORTH, base) ;
     
-    structure.setupStats(100, 2, 200, 0, false) ;
+    structure.setupStats(100, 2, 200, 0, Structure.TYPE_VENUE) ;
     personnel.setShiftType(SHIFTS_ALWAYS) ;
     
     final GroupSprite sprite = new GroupSprite() ;
@@ -261,7 +261,7 @@ public class SupplyDepot extends Venue implements
   
   protected Service[] goodsToShow() {
     //  TODO:  Have different colours of crate for each category.
-    return new Service[] { CRATES } ;
+    return new Service[] { SAMPLES } ;
   }
   
   

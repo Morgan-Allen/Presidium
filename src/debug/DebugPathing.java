@@ -63,7 +63,8 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
       PlayLoop.loadGame("saves/test_pathing.rep") ;
       final Base base = PlayLoop.played() ;
       if (base.credits() < 500) base.incCredits(500 - base.credits()) ;
-      PlayLoop.setGameSpeed(2.0f) ;
+      PlayLoop.setGameSpeed(0.5f) ;
+      ///GameSettings.pathFree = true ;
       return true ;
     }
     catch (Exception e) { I.report(e) ; return false ; }
@@ -132,10 +133,9 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
   
   protected void renderGameGraphics() {
     super.renderGameGraphics() ;
-    if (true) return ;
     if (((BaseUI) currentUI()).currentTask() == null) {
-      highlightPlace() ;
-      highlightPath() ;
+      //highlightPlace() ;
+      //highlightPath() ;
     }
   }
   
@@ -253,7 +253,7 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
           allSearched[] = search.allSearched(Boardable.class),
           bestPath[] = search.bestPath(Boardable.class) ;
         if (! search.success()) {
-          I.say("TILE PATHING FAILED!") ;
+          I.say("TILE PATHING FAILED BETWEEN "+picked+" AND "+hovered) ;
           lastFailAll = allSearched ;
           lastFailPath = bestPath ;
         }

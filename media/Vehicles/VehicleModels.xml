@@ -79,3 +79,24 @@
   </attachPoints>
 </model>
 
+
+
+<model
+  name="DustCrawler"
+  format="MS3D"
+  type="JOINT"
+  path="media/Vehicles/"
+  file="crawler.ms3d"
+  scale="0.015"
+  bound="1.5"
+  stride="1.0"
+  height="1.5"
+>
+  <animations>
+    <animation name="stand"      start="0"  end="0"  duration="1.0" />
+  </animations>
+  
+  <attachPoints>
+  </attachPoints>
+</model>
+

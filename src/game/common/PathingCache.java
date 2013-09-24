@@ -375,7 +375,10 @@ public class PathingCache {
     }
     else {
       placesPath = placesBetween(initB, destB, null) ;
-      if (placesPath == null) return null ;
+      if (placesPath == null) {
+        I.say("No places path exists!") ;
+        return null ;
+      }
     }
     //
     //  We create a specialised form of pathing-search that always aims toward
@@ -413,11 +416,12 @@ public class PathingCache {
       }
       
       protected boolean endSearch(Boardable best) {
+        if (super.endSearch(best)) return true ;
         if (best != closest) return false ;
         if (maxLength > 0 && pathLength(best) >= maxLength) return true ;
-        return super.endSearch(best) ;
+        return false ;
       }
-
+      
       protected float estimate(Boardable spot) {
         float dist = Spacing.distance(spot, heading) ;
         final float closestDist = Spacing.distance(closest, heading) ;
@@ -445,6 +449,7 @@ public class PathingCache {
         }
         return true ;
       }
+      //*/
     } ;
     return search ;
   }

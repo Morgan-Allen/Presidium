@@ -45,7 +45,7 @@ public class SolarArray extends Segment implements BuildConstants {
   
   public SolarArray(Base base) {
     super(2, 2, base) ;
-    structure.setupStats(10, 5, 40, 0, false) ;
+    structure.setupStats(10, 5, 40, 0, Structure.TYPE_FIXTURE) ;
     personnel.setShiftType(SHIFTS_ALWAYS) ;
   }
   

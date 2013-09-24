@@ -311,11 +311,11 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     final World world = PlayLoop.world() ;
     v.enterWorldAt(atX, atY, world) ;
     if (intact) {
-      v.structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
+      v.structure.setState(Structure.STATE_INTACT, 1.0f) ;
       v.onCompletion() ;
     }
     else {
-      v.structure.setState(VenueStructure.STATE_INSTALL, 0.0f) ;
+      v.structure.setState(Structure.STATE_INSTALL, 0.0f) ;
     }
     final Tile e = world.tileAt(v) ;
     for (Actor a : employed) {

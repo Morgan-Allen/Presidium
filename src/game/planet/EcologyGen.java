@@ -63,7 +63,7 @@ public class EcologyGen {
           if (tryInsertion(ruins, i, wastes)) {
             ruins.clearSurrounds() ;
             ruins.structure.setState(
-              VenueStructure.STATE_INTACT,
+              Structure.STATE_INTACT,
               (Rand.num() + 1) / 2f
             ) ;
             ruins.setAsEstablished(true) ;
@@ -177,7 +177,7 @@ public class EcologyGen {
           typeLairs[bestIndex] = null ;
           chosen.clearSurrounds() ;
           chosen.enterWorld() ;
-          chosen.structure.setState(VenueStructure.STATE_INTACT, 1) ;
+          chosen.structure.setState(Structure.STATE_INTACT, 1) ;
           chosen.setAsEstablished(true) ;
         }
       }

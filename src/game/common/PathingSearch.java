@@ -142,7 +142,7 @@ public class PathingSearch extends Search <Boardable> {
   
   protected boolean canEnter(Boardable spot) {
     return (client == null) ? true :
-      spot.allowsEntry(client) && ! client.blocksMotion(spot) ;
+      spot.allowsEntry(client) && ! client.blockedBy(spot) ;
   }
   
   

@@ -111,9 +111,12 @@ public abstract class Mission implements
   }
   
   
+  //
+  //  TODO:  Replace with a general 'rewardAppeal' method, so that you can
+  //  employ different enticements.
   public int rewardAmount(Actor actor) {
-    final int div = Math.max(2, roles.size()) ;
-    return REWARD_AMOUNTS[rewardType] / div ;
+    final float div = Math.max(2.5f, numApproved()) ;
+    return (int) (REWARD_AMOUNTS[rewardType] / div) ;
   }
   
   

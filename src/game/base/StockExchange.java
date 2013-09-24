@@ -40,7 +40,7 @@ public class StockExchange extends Venue implements BuildConstants {
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     structure.setupStats(
       150, 3, 250,
-      VenueStructure.NORMAL_MAX_UPGRADES, false
+      Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
     attachSprite(MODEL.makeSprite()) ;
   }

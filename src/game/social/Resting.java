@@ -120,7 +120,7 @@ public class Resting extends Plan implements BuildConstants {
         else return null ;
       }
       currentMode = MODE_DINE ;
-      I.sayAbout(actor, "Menu size: "+menu.size()) ;
+      ///I.sayAbout(actor, "Menu size: "+menu.size()) ;
       return eats ;
     }
     return null ;

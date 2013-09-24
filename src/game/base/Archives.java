@@ -28,7 +28,7 @@ public class Archives extends Venue implements BuildConstants {
     super(4, 3, Venue.ENTRANCE_EAST, base) ;
     structure.setupStats(
       250, 4, 500,
-      VenueStructure.BIG_MAX_UPGRADES, false
+      Structure.BIG_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     attachSprite(MODEL.makeSprite()) ;

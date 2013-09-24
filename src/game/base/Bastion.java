@@ -34,7 +34,7 @@ public class Bastion extends Venue implements BuildConstants {
     super(7, 4, ENTRANCE_EAST, base) ;
     structure.setupStats(
       650, 15, 1000,
-      VenueStructure.BIG_MAX_UPGRADES, false
+      Structure.BIG_MAX_UPGRADES, Structure.TYPE_FIXTURE
     ) ;
     personnel.setShiftType(SHIFTS_BY_HOURS) ;
     attachSprite(MODEL.makeSprite()) ;

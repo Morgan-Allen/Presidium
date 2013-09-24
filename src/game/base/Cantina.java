@@ -47,8 +47,8 @@ public class Cantina extends Venue implements BuildConstants {
   
   public Cantina(Base base) {
     super(4, 3, Venue.ENTRANCE_SOUTH, base) ;
-    structure.setupStats(150, 2, 200, 0, false) ;
-    ///personnel.setShiftType(SHIFTS_BY_HOURS) ;
+    structure.setupStats(150, 2, 200, 0, Structure.TYPE_VENUE) ;
+    personnel.setShiftType(SHIFTS_BY_HOURS) ;
     attachSprite(MODEL.makeSprite()) ;
   }
   
@@ -56,14 +56,12 @@ public class Cantina extends Venue implements BuildConstants {
   public Cantina(Session s) throws Exception {
     super(s) ;
     nameID = s.loadInt() ;
-    //performID = s.loadInt() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveInt(nameID) ;
-    //s.saveInt(performID) ;
   }
   
   

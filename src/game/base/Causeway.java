@@ -46,7 +46,7 @@ public class Causeway extends Segment {
   
   public Causeway(Base base) {
     super(2, 1, base) ;
-    structure.setupStats(25, 15, 20, 0, false) ;
+    structure.setupStats(25, 15, 20, 0, Structure.TYPE_FIXTURE) ;
     personnel.setShiftType(SHIFTS_ALWAYS) ;
   }
   

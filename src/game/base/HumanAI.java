@@ -71,7 +71,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
   
   /**  Constructor and save/load functions-
     */
-  private static boolean verbose = true ;
+  private static boolean verbose = false ;
   
   protected HumanAI(Actor actor) {
     super(actor) ;

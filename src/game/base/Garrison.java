@@ -28,7 +28,8 @@ public class Garrison extends Venue implements BuildConstants {
   public Garrison(Base base) {
     super(4, 4, ENTRANCE_EAST, base) ;
     structure.setupStats(
-      500, 20, 250, VenueStructure.SMALL_MAX_UPGRADES, false
+      500, 20, 250,
+      Structure.SMALL_MAX_UPGRADES, Structure.TYPE_FIXTURE
     ) ;
     personnel.setShiftType(SHIFTS_BY_HOURS) ;
     attachSprite(MODEL.makeSprite()) ;

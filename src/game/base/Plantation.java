@@ -71,7 +71,7 @@ public class Plantation extends Venue implements
       3,  //armour
       IN ? 30 : 10,  //build cost
       0,  //max upgrades
-      false  //organic
+      Structure.TYPE_FIXTURE
     ) ;
     personnel.setShiftType(SHIFTS_ALWAYS) ;
     this.belongs = belongs ;

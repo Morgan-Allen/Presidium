@@ -159,7 +159,7 @@ public class Forestry extends Plan implements BuildConstants {
   
   
   public boolean actionCutting(Actor actor, Flora cut) {
-    final Item lumber = Item.withType(CRATES, cut) ;
+    final Item lumber = Item.withType(SAMPLES, cut) ;
     actor.gear.addItem(lumber) ;
     //
     //  TODO:  Include skill checks here.  Optionally, you might only harvest
@@ -173,7 +173,7 @@ public class Forestry extends Plan implements BuildConstants {
   
   
   public boolean actionReturnHarvest(Actor actor, Venue depot) {
-    for (Item item : actor.gear.matches(CRATES)) {
+    for (Item item : actor.gear.matches(SAMPLES)) {
       final Flora cut = (Flora) item.refers ;
       int stage = cut.growStage() ;
       

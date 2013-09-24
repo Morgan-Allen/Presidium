@@ -152,6 +152,9 @@ public class Item implements BuildConstants {
   
   /**  Rendering/interface functions-
     */
+  //
+  //  TODO:  Replace this with a describeTo function, so that you can hyperlink
+  //         to referenced objects and give them proper names.
   public String toString() {
     if (refers != null) {
       return type+" ("+refers+")" ;
@@ -164,6 +167,11 @@ public class Item implements BuildConstants {
     else return ((int) amount)+" "+type ;
   }
 }
+
+
+
+
+
 
 
 

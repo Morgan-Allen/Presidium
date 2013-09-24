@@ -11,7 +11,7 @@ import src.user.* ;
 /**  This class is intended specifically to work with the InstallTab class to
   *  enable placement of irregularly-shaped fixtures and venues.
   */
-public interface Structural {
+public interface Structural extends Inventory.Owner {
   
   int buildCost() ;
   boolean pointsOkay(Tile from, Tile to) ;

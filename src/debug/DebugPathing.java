@@ -57,6 +57,19 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
   
   /**  Setup and initialisation-
     */
+  protected boolean loadedAtStartup() {
+    ///if (true) return false ;
+    try {
+      PlayLoop.loadGame("saves/test_pathing.rep") ;
+      final Base base = PlayLoop.played() ;
+      if (base.credits() < 500) base.incCredits(500 - base.credits()) ;
+      PlayLoop.setGameSpeed(2.0f) ;
+      return true ;
+    }
+    catch (Exception e) { I.report(e) ; return false ; }
+  }
+  
+  
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(
       128, 0.2f,
@@ -101,7 +114,10 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
     DebugBehaviour.establishVenue(EB, 15, 5, true) ;
     EB.stocks.forceDemand(DECOR, 5000, 0) ;
     
-    ((BaseUI) HUD).selection.pushSelection(EA.cargoBarge(), true) ;
+    final BotanicalStation BS = new BotanicalStation(base) ;
+    DebugBehaviour.establishVenue(BS, 10, 15, true) ;
+    
+    ((BaseUI) HUD).selection.pushSelection(BS, true) ;
   }
   
   
@@ -134,13 +150,13 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
     }
     if (KeyInput.wasKeyPressed('s')) {
       I.say("SAVING GAME...") ;
-      PlayLoop.saveGame("saves/test_session.rep") ;
+      PlayLoop.saveGame("saves/test_pathing.rep") ;
       return false ;
     }
     if (KeyInput.wasKeyPressed('l')) {
       I.say("LOADING GAME...") ;
       //GameSettings.frozen = true ;
-      PlayLoop.loadGame("saves/test_session.rep") ;
+      PlayLoop.loadGame("saves/test_pathing.rep") ;
       return true ;
     }
     return false ;

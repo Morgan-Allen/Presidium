@@ -118,9 +118,11 @@ public class Deliveries implements BuildConstants {
         goods, origin, client, actor,
         sizeLimit, actor.world(), tradeType
       ) ;
+      if (verbose) I.sayAbout(actor, "Order length: "+order.length) ;
       if (order.length == 0) continue ;
       final Delivery d = new Delivery(order, origin, client) ;
       final float rating = d.priorityFor(actor) ;
+      if (verbose) I.sayAbout(actor, "Rating: "+rating) ;
       if (rating > bestRating) { bestRating = rating ; picked = d ; }
     }
     return picked ;
@@ -157,13 +159,9 @@ public class Deliveries implements BuildConstants {
     //  non-symmetric.
     if (tradeType == IS_SHOPPING) {
       final float rating = origin.inventory().amountOf(good) / 10f ;
-      if (I.talkAbout == client && good == PARTS) {
-        I.say("URGENCY for "+origin+" is "+rating) ;
-      }
       return rating ;
     }
     else if (tradeType == IS_IMPORT) {
-      //final int capacity = origin.spaceFor(good) ;
       return Math.min(
         ((Service.Trade) client).importShortage(good),
         origin.inventory().amountOf(good)
@@ -243,7 +241,7 @@ public class Deliveries implements BuildConstants {
         good, origin, client, tradeType
       ) / (amount + 1)) : 2 ;
       
-      if (verbose && I.talkAbout == subject) {
+      if (false && verbose && I.talkAbout == subject) {
         I.say("  Service: "+good) ;
         I.say("    Available: "+origin.inventory().amountOf(good)) ;
         I.say("    Reserved: "+reservedForCollection(OD, good)) ;

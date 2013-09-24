@@ -178,7 +178,7 @@ public class VenueStructure extends Inventory {
   
   public void setState(int state, float condition) {
     this.state = state ;
-    this.integrity = maxIntegrity() * condition ;
+    if (condition > 0) this.integrity = maxIntegrity() * condition ;
     checkMaintenance() ;
   }
   
@@ -247,6 +247,7 @@ public class VenueStructure extends Inventory {
       (state == STATE_SALVAGE) || (! goodCondition()) ||
       needsUpgrade() || burning
     ) ;
+    ///I.sayAbout(venue, "Needs upgrade: "+needs) ;
     world.presences.togglePresence(
       venue, world.tileAt(venue), needs, "damaged"
     ) ;

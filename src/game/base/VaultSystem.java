@@ -7,6 +7,7 @@
 
 package src.game.base ;
 import src.game.common.* ;
+import src.game.planet.Planet;
 //import src.game.planet.Planet ;
 import src.game.actors.* ;
 import src.game.building.* ;
@@ -28,30 +29,48 @@ public class VaultSystem extends Venue implements BuildConstants {
     VaultSystem.class, "media/Buildings/merchant/town_vault.png", 4, 2
   ) ;
   
-  List <Holding> holdings = new List <Holding> () ;
-  List <Actor> toHouse  = new List <Actor> () ;
+  final static int
+    NUM_PREFS = 4,
+    STOCK_LIMIT = 250 ;
+  final static String PREF_TITLES[] = {
+    "Life Support",
+    "Basic rations",
+    "Building materials",
+    "Medical supplies",
+  } ;
+  final static int PREF_LEVELS[] = {
+    0, 20, 50, 100
+  }, NUM_LEVELS = 4 ;
+  final static String LEVEL_TITLES[] = {
+    "No Reserve", "Light Reserve", "Medium Reserve", "Heavy Reserve",
+  } ;
+  final private static Colour PREF_COLOURS[] = {
+    //  TODO:  Blend the colours a bit more.
+    Colour.LIGHT_GREY, Colour.BLUE, Colour.BLUE, Colour.BLUE,
+  } ;
+  
+  
+  final int stockLevels[] = new int[NUM_PREFS] ;
   
   
   
   public VaultSystem(Base belongs) {
     super(4, 2, ENTRANCE_EAST, belongs) ;
     structure.setupStats(500, 20, 350, 0, false) ;
-    personnel.setShiftType(SHIFTS_ALWAYS) ;
+    personnel.setShiftType(SHIFTS_BY_DAY) ;
     attachSprite(MODEL.makeSprite()) ;
   }
   
   
   public VaultSystem(Session s) throws Exception {
     super(s) ;
-    s.loadObjects(holdings) ;
-    s.loadObjects(toHouse ) ;
+    for (int n = NUM_PREFS ; n-- > 0 ;) stockLevels[n] = s.loadInt() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveObjects(holdings) ;
-    s.saveObjects(toHouse ) ;
+    for (int n = NUM_PREFS ; n-- > 0 ;) s.saveInt(stockLevels[n]) ;
   }
   
   
@@ -59,11 +78,24 @@ public class VaultSystem extends Venue implements BuildConstants {
   /**  Upgrades, economic functions and behaviour implementation-
     */
   public Behaviour jobFor(Actor actor) {
-    Building b = Building.getNextRepairFor(actor, Plan.CASUAL) ;
+    final Building b = Building.getNextRepairFor(actor, Plan.CASUAL) ;
     if (b != null) {
-      return b ;
+      final float priority = b.priorityFor(actor) ;
+      if (priority * Planet.dayValue(world) >= Plan.ROUTINE) {
+        return b ;
+      }
     }
-    return null ;
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
+    final Choice choice = new Choice(actor) ;
+    choice.add(b) ;
+    
+    final Service services[] = services() ;
+    final Delivery d = Deliveries.nextCollectionFor(
+      actor, this, services, 10, null, world
+    ) ;
+    choice.add(d) ;
+    
+    return choice.weightedPick(0) ;
   }
   
   
@@ -80,21 +112,38 @@ public class VaultSystem extends Venue implements BuildConstants {
   
   
   public Service[] services() {
-    return new Service[] { POWER, LIFE_SUPPORT } ;
+    return new Service[] {
+      POWER, LIFE_SUPPORT, FUEL_CORES,
+      CARBS, PROTEIN, GREENS,
+      PARTS, PLASTICS, CIRCUITRY,
+      GENE_SEED, STIM_KITS, MEDICINE
+    } ;
   }
   
   
   public void updateAsScheduled(int numUpdates) {
+    //
+    //  TODO:  Impose cumulative stocking limits.
     super.updateAsScheduled(numUpdates) ;
     final float condition = (structure.repairLevel() + 1f) / 2 ;
-    int powerLimit = 5, lifeSLimit = 10 ;
-    powerLimit *= condition ;
-    lifeSLimit *= condition ;
-    if (stocks.amountOf(POWER) < powerLimit) {
-      stocks.addItem(Item.withAmount(POWER, 1)) ;
+    final float stockBonus = stockLevels[0] / 10f ;
+    int powerGen = 5, lifeSGen = 10 ;
+    powerGen *= condition ;
+    lifeSGen *= condition ;
+    
+    if (stocks.amountOf(POWER) < powerGen * stockBonus) {
+      stocks.bumpItem(POWER, powerGen * 0.2f) ;
     }
-    if (stocks.amountOf(LIFE_SUPPORT) < lifeSLimit) {
-      stocks.addItem(Item.withAmount(LIFE_SUPPORT, 1)) ;
+    if (stocks.amountOf(LIFE_SUPPORT) < lifeSGen * stockBonus) {
+      stocks.bumpItem(LIFE_SUPPORT, lifeSGen * 0.2f) ;
+    }
+    
+    final Service services[] = services() ;
+    for (int i = 0 ; i < services.length ; i++) {
+      final Service s = services[i] ;
+      if (s.form != FORM_COMMODITY) continue ;
+      int level = stockLevels[i / 3] ;
+      stocks.forceDemand(s, level, 1) ;
     }
   }
   
@@ -123,125 +172,58 @@ public class VaultSystem extends Venue implements BuildConstants {
   public String buildCategory() {
     return InstallTab.TYPE_MILITANT ;
   }
-}
+  
 
-
-
-
-/*
-///I.say("Updating demands...") ;
-stocks.clearDemands() ;
-for (Holding holding : holdings) {
-  for (Item i : holding.goodsWanted().raw) {
-    stocks.incRequired(i.type, i.amount) ;
+  
+  protected Service[] goodsToShow() {
+    return new Service[0] ;
   }
-  stocks.incRequired(STARCHES, 10) ;
-  stocks.incRequired(GREENS  , 10) ;
-  stocks.incRequired(PROTEIN , 10) ;
-  ///I.say("Adding demand for: "+holding.fullName()) ;
-}
-
-for (Object t : world.presences.matchesNear(base(), this, 32)) {
-  final Venue v = (Venue) t ;
-  for (Actor citizen : v.personnel.workers()) {
-    if (citizen.AI.home() != null) continue ;
-    I.say("Attempting to find housing for: "+citizen) ;
-    Holding holding = findHousingSite(citizen, v) ;
-    if (holding != null) {
-      I.say("Housing found!") ;
-      final Tile o = holding.origin() ;
-      holding.clearSurrounds() ;
-      holding.enterWorldAt(o.x, o.y, world) ;
-      citizen.AI.setHomeVenue(holding) ;
-      toHouse.remove(citizen) ;
-      holdings.add(holding) ;
-    }
+  
+  
+  public String[] infoCategories() {
+    return new String[] { "STATUS", "STAFF", "STOCK", "ORDERS" } ;
   }
-}
-//*/
-/*
-for (Holding h : holdings) for (Item i : h.goodsNeeded().raw) {
-  final Delivery d = deliveryFor(i, h) ;
-  if (d != null) return d ;
-}
-for (Holding h : holdings) for (Item i : h.goodsWanted().raw) {
-  final Delivery d = deliveryFor(i, h) ;
-  if (d != null) return d ;
-}
-//*/
+  
 
-/**  Obtaining and rating housing sites-
-  *    Consider making this static within the Holding class.
-  */
-/*
-private Holding findHousingSite(Actor citizen, Venue works) {
-  
-  final int maxRange = World.DEFAULT_SECTOR_SIZE ;
-  //final Holding holding = new Holding(base(), this) ;
-  final Holding holding = new Holding(base()) ;
-  
-  Vec3D midPos = idealSite(citizen, works) ;
-  final Tile midTile = world.tileAt(midPos.x, midPos.y) ;
-  final Tile enterTile = Spacing.nearestOpenTile(midTile, midTile) ;
-  final Box2D limit = new Box2D().set(
-    midPos.x - maxRange, midPos.y - maxRange,
-    maxRange * 2, maxRange * 2
-  ) ;
-  
-  I.say("  Searching from "+enterTile+"... ") ;
-  final TileSpread spread = new TileSpread(enterTile) {
-    
-    protected boolean canAccess(Tile t) {
-      if (t.blocked()) return false ;
-      //if (t.pathType() >= Tile.PATH_HINDERS) return false ;
-      //if (t.owningType() >= Element.FIXTURE_OWNS) return false ;
-      return limit.contains(t.x, t.y) ;
-    }
-    
-    protected boolean canPlaceAt(Tile t) {
-      I.add("|") ;
-      holding.setPosition(t.x, t.y, world) ;
-      if (holding.canPlace()) {
-        I.say("Found location!") ;
-        return true ;
+  public void writeInformation(Description d, int categoryID, HUD UI) {
+    if (categoryID == 3) {
+      //d.append("Stockpile goods (Click to change)\n") ;
+      d.append("Stockpiling "+totalStockLimit()+"/"+STOCK_LIMIT+" goods\n") ;
+      for (int n = 0 ; n < NUM_PREFS ; n++) {
+        descPref(n, PREF_TITLES[n], d) ;
       }
-      return false ;
     }
-  } ;
-  spread.doSearch() ;
-  I.say("  Total tiles searched: "+spread.allSearched(Tile.class).length) ;
+    else super.writeInformation(d, categoryID, UI) ;
+  }
   
-  if (holding.origin() != null) return holding ;
-  return null ;
+  
+  private int totalStockLimit() {
+    int sum = 0 ;
+    for (int s : stockLevels) sum += s ;
+    return sum ;
+  }
+  
+  
+  private void descPref(final int index, String title, Description d) {
+    int level = stockLevels[index] ;
+    d.append("\n"+title) ;
+    for (int n = 0 ; n < NUM_LEVELS ; n++) {
+      if (level <= PREF_LEVELS[n]) {
+        final int setting = n ;
+        d.append("\n  ") ;
+        d.append(new Description.Link(LEVEL_TITLES[n]) {
+          public void whenClicked() {
+            stockLevels[index] = PREF_LEVELS[(setting + 1) % NUM_LEVELS] ;
+            if (totalStockLimit() > STOCK_LIMIT) stockLevels[index] = 0 ;
+          }
+        }, PREF_COLOURS[setting]) ;
+        break ;
+      }
+    }
+  }
 }
 
 
-private Vec3D idealSite(Actor citizen, Venue works) {
-  Vec3D midPos = works.position(null) ;
-  midPos.add(this.position(null)).scale(0.5f) ;
-  return midPos ;
-}
 
-
-/*
-private float rateHolding(Holding holding, Citizen citizen) {
-  Vec3D midPos = idealSite(citizen) ;
-  float rating = 0 - midPos.distance(holding.position()) ;
-  return rating ;
-}
-//*/
-
-//  TODO- debug this.
-
-/*
-private Delivery deliveryFor(Item i, Holding h) {
-  float needed = i.amount - h.stocks.amountOf(i) ;
-  if (needed <= 0) return null ;
-  needed = (float) Math.ceil(needed / 5) * 5 ;
-  final Delivery d = new Delivery(Item.withAmount(i, needed), this, h) ;
-  if (d.valid()) return d ;
-  return null ;
-}
-//*/
 
 

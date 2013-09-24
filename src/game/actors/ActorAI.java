@@ -108,7 +108,7 @@ public abstract class ActorAI implements ActorConstants {
     final float sightMod = actor.indoors() ? 0.5f : 1 ;
     final float sightRange = actor.health.sightRange() * sightMod ;
     final float lostRange = sightRange * 1.5f ;
-    final int reactLimit = (int) (actor.traits.trueLevel(INSIGHT) / 2) ;
+    final int reactLimit = (int) (actor.traits.traitLevel(INSIGHT) / 2) ;
     //
     //  Firstly, remove any elements that have escaped beyond sight range.
     final Batch <Element> outOfRange = new Batch <Element> () ;
@@ -167,6 +167,10 @@ public abstract class ActorAI implements ActorConstants {
   }
   
   
+  
+  
+  /**  Calling regular, periodic updates and triggering AI refreshments-
+    */
   protected void updateAI(int numUpdates) {
     updateSeen() ;
     if (home != null && home.destroyed()) home = null ;
@@ -190,7 +194,8 @@ public abstract class ActorAI implements ActorConstants {
     if (verbose && I.talkAbout == actor) {
       I.say("  TOP BEHAVIOUR: "+topBehaviour()) ;
       I.say("  ROOT BEHAVIOUR: "+rootBehaviour()) ;
-      I.say("  NEW CHOICE: "+newChoice) ;
+      I.say("  NEW CHOICE: "+taken+" "+taken.hashCode()) ;
+      I.say("  Finished? "+taken.finished()) ;
     }
     return taken ;
   }
@@ -239,7 +244,32 @@ public abstract class ActorAI implements ActorConstants {
   
   
   
-  /**  Methods related to behaviours-
+  /**  Handling missions-
+    */
+  public void assignMission(Mission mission) {
+    this.mission = mission ;
+    //
+    //  This might have to be done with all bases.
+    for (Mission m : actor.base().allMissions()) if (m != mission) {
+      m.setApplicant(actor, false) ;
+    }
+  }
+  
+  
+  protected void applyForMissions(Behaviour chosen) {
+    if (mission != null || actor.base() == null) return ;
+    for (Mission mission : actor.base().allMissions()) {
+      if (! mission.open()) continue ;
+      if (couldSwitch(chosen, mission)) {
+        mission.setApplicant(actor, true) ;
+      }
+      else mission.setApplicant(actor, false) ;
+    }
+  }
+  
+  
+  
+  /**  Methods related to maintaining the agenda stack-
     */
   private void pushBehaviour(Behaviour b) {
     if (todoList.contains(b)) todoList.remove(b) ;
@@ -264,7 +294,8 @@ public abstract class ActorAI implements ActorConstants {
     cancelBehaviour(replaced) ;
     pushBehaviour(behaviour) ;
     if (replaced != null && ! replaced.finished()) {
-      if (verbose) I.sayAbout(actor, " SAVING PLAN AS TODO: "+replaced) ;
+      //if (verbose)
+      I.sayAbout(actor, " SAVING PLAN AS TODO: "+replaced) ;
       todoList.include(replaced) ;
     }
   }
@@ -281,23 +312,13 @@ public abstract class ActorAI implements ActorConstants {
   
   public void cancelBehaviour(Behaviour b) {
     if (b == null) return ;
-    if (! agenda.includes(b)) I.complain("Behaviour not active.") ;
+    if (! agenda.includes(b)) return ;
     while (agenda.size() > 0) {
       final Behaviour popped = popBehaviour() ;
       if (popped == b) break ;
     }
     if (agenda.includes(b)) I.complain("Duplicate behaviour!") ;
     actor.assignAction(null) ;
-  }
-  
-  
-  public void assignMission(Mission mission) {
-    this.mission = mission ;
-    //
-    //  This might have to be done with all bases.
-    for (Mission m : actor.base().allMissions()) if (m != mission) {
-      m.setApplicant(actor, false) ;
-    }
   }
   
   
@@ -310,7 +331,14 @@ public abstract class ActorAI implements ActorConstants {
     if (! actor.health.conscious()) return false ;
     if (next == null) return false ;
     if (last == null) return true ;
-    if (targetFor(last) == targetFor(next)) return false ;
+    //
+    //  TODO:  CONSIDER GETTING RID OF THIS CLAUSE?  It's handy in certain
+    //  situations, (e.g, where completing the current plan would come at 'no
+    //  cost' to the next plan,) but may be more trouble than it's worth.
+    final Target NT = targetFor(next) ;
+    if (NT != null && targetFor(last) == NT && NT != actor.aboard()) {
+      return false ;
+    }
     return
       next.priorityFor(actor) >=
       (last.priorityFor(actor) + persistance()) ;
@@ -336,6 +364,7 @@ public abstract class ActorAI implements ActorConstants {
     */
   protected Action getNextAction() {
     while (true) {
+      if (verbose) I.sayAbout(actor, actor+" in action loop.") ;
       //
       //  If all current behaviours are complete, generate a new one.
       if (agenda.size() == 0) {
@@ -353,6 +382,11 @@ public abstract class ActorAI implements ActorConstants {
       final Behaviour current = topBehaviour() ;
       final Behaviour next = current.nextStepFor(actor) ;
       final boolean isDone = current.finished() ;
+      if (verbose && I.talkAbout == actor) {
+        I.say("Current action "+current) ;
+        I.say("Next step "+next) ;
+        I.say("Done "+isDone) ;
+      }
       if (isDone || next == null) {
         if (current == rootBehaviour() && ! isDone) {
           todoList.add(current) ;
@@ -363,7 +397,9 @@ public abstract class ActorAI implements ActorConstants {
         if (verbose) I.sayAbout(actor, "Next action: "+current) ;
         return (Action) current ;
       }
-      else pushBehaviour(next) ;
+      else {
+        pushBehaviour(next) ;
+      }
     }
   }
   
@@ -401,6 +437,13 @@ public abstract class ActorAI implements ActorConstants {
     *  it's a scalar operation.
     */
   public float greedFor(int credits) {
+    float baseUnit = actor.gear.credits() + 100f ;
+    if (work instanceof Venue) {
+      baseUnit += ((Venue) work).personnel.salaryFor(actor) ;
+    }
+    baseUnit /= 3f ;
+    return (credits / baseUnit) * actor.traits.scaleLevel(ACQUISITIVE) ;
+    /*
     float val = credits / 100f ;
     val = (float) Math.sqrt(val) ;
     val *= actor.traits.scaleLevel(ACQUISITIVE) ;
@@ -412,6 +455,7 @@ public abstract class ActorAI implements ActorConstants {
     if (reserves < 0) return val * 2 ;
     else val /= (0.5f + reserves) ;
     return val ;
+    //*/
   }
   
   
@@ -440,8 +484,8 @@ public abstract class ActorAI implements ActorConstants {
     if (actor.traits.hasTrait(GENDER, "Female")) actorG =  1 ;
     if (other.traits.hasTrait(GENDER, "Male"  )) otherG = -1 ;
     if (other.traits.hasTrait(GENDER, "Female")) otherG =  1 ;
-    float attraction = other.traits.trueLevel(HANDSOME) * 3.33f ;
-    attraction += otherG * other.traits.trueLevel(FEMININE) * 3.33f ;
+    float attraction = other.traits.traitLevel(HANDSOME) * 3.33f ;
+    attraction += otherG * other.traits.traitLevel(FEMININE) * 3.33f ;
     attraction *= (actor.traits.scaleLevel(DEBAUCHED) + 1f) / 2 ;
     //
     //  Then compute attraction based on orientation-

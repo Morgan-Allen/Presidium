@@ -41,6 +41,7 @@ public class Visit <T> {
   /**  Returns true if the given array includes the given object.
     */
   public static boolean arrayIncludes(Object a[], Object e) {
+    if (a == null || e == null) return false ;
     for (Object o : a) if (o == e) return true ;
     return false ;
   }

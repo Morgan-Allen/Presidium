@@ -60,7 +60,7 @@ public class Paving {
   
   /**  Methods related to installation, updates and deletion of junctions-
     */
-  public void updatePerimeter(Venue v, boolean isMember) {
+  public void updatePerimeter(Fixture v, boolean isMember) {
     final Tile o = v.origin() ;
     
     final Route key = new Route(o, o), match = allRoutes.get(key) ;
@@ -256,8 +256,7 @@ public class Paving {
       final float supplyRatio = Visit.clamp(supply[i] / demand[i], 0, 1) ;
       for (Venue venue : reached) {
         final float shortage = venue.stocks.shortageOf(type) ;
-        if (shortage <= 0) continue ;
-        venue.stocks.addItem(Item.withAmount(type, shortage * supplyRatio)) ;
+        venue.stocks.bumpItem(type, shortage * supplyRatio) ;
       }
     }
   }

@@ -81,7 +81,7 @@ public interface ActorConstants {
     PHARMACY       = new Skill("Pharmacy"      , FORM_COGNITIVE, INTELLECT),
     ANATOMY        = new Skill("Anatomy"       , FORM_COGNITIVE, INTELLECT),
     GENE_CULTURE   = new Skill("Gene Culture"  , FORM_COGNITIVE, INTELLECT),
-    NEUROSCIENCE   = new Skill("Neuroscience"  , FORM_COGNITIVE, INTELLECT),
+    PSYCHOANALYSIS = new Skill("Psychoanalysis", FORM_COGNITIVE, INTELLECT),
     //
     //  Research and governance-related.
     ANCIENT_LORE   = new Skill("Ancient Lore"  , FORM_COGNITIVE, INTELLECT),
@@ -247,9 +247,9 @@ public interface ActorConstants {
       "Dutiful",
       "Respectful",
       null,
-      "Assured",
+      "Independant",
       "Rebellious",
-      "Anarchist"
+      "Anarchic"
     ),
     IMPASSIVE = new Trait(PERSONALITY,
       "Emotionless",
@@ -282,18 +282,18 @@ public interface ActorConstants {
       "Subversive"
     ),
     NATURALIST = new Trait(PERSONALITY,
-      "Extreme Ecophile",
+      "One With Nature",
       "Ecophile",
       "Naturalist",
       null,
       "Urbanist",
       "Industrialist",
-      "Radical Industrialist"
+      "Antiseptic"
     ),
     ACQUISITIVE = new Trait(PERSONALITY,
       "Avaricious",
       "Acquisitive",
-      "Prudent",
+      "Thrifty",
       null,
       "Generous",
       "Extravagant",
@@ -322,9 +322,9 @@ public interface ActorConstants {
       "Compassionate",
       "Sympathetic",
       null,
-      "Tough",
       "Hard",
-      "Cruel"
+      "Cruel",
+      "Sadistic"
     ),
     PERSONALITY_TRAITS[] = Trait.traitsSoFar(),
     
@@ -338,16 +338,16 @@ public interface ActorConstants {
     FEMININE = new Trait(PHYSICAL,
       "Busty",
       "Curvy",
-      "Feminine",
+      "Gamine",
       null,
-      "Masculine",
-      "Hairy",
+      "Boyish",
+      "Bearded",
       "Hirsute"
     ),
     HANDSOME = new Trait(PHYSICAL,
+      "Stunning",
       "Beautiful",
       "Handsome",
-      "Pretty",
       null,
       "Plain",
       "Ugly",
@@ -393,19 +393,19 @@ public interface ActorConstants {
       "Male"
     ),
     DESERT_BLOOD = new Trait(CATEGORIC,
-      "Desert Blood",
+      "Desert Blood", // "Desertborn", "Dark"
       null
     ),
     TUNDRA_BLOOD = new Trait(CATEGORIC,
-      "Tundra Blood",
+      "Tundra Blood", // "Tundraborn", "Sallow"
       null
     ),
     FOREST_BLOOD = new Trait(CATEGORIC,
-      "Forest Blood",
+      "Forest Blood", //  "Forestborn", "Tan"
       null
     ),
     WASTES_BLOOD = new Trait(CATEGORIC,
-      "Wastes Blood",
+      "Wastes Blood", //  "Wastesborn", "Pale"
       null
     ),
     BLOOD_TRAITS[] = {
@@ -448,7 +448,8 @@ public interface ActorConstants {
       "Near Starvation",
       "Hungry",
       "Peckish",
-      null
+      null,
+      "Full"
     ),
     MALNOURISHMENT = new Condition(
       "Malnourished",

@@ -86,6 +86,7 @@ public class Flora extends Element implements TileConstants {
       final Flora f = (Flora) t.owner() ;
       if (Rand.num() < (growChance * 4 * GROWTH_PER_UPDATE)) {
         f.incGrowth(1, world, false) ;
+        ecology.impingeFertility(f, true) ;
       }
     }
     else if ((! t.blocked()) && Rand.num() < growChance) {
@@ -106,7 +107,7 @@ public class Flora extends Element implements TileConstants {
         }
         else if (Rand.num() < GROWTH_PER_UPDATE) {
           f.enterWorldAt(t.x, t.y, world) ;
-          f.incGrowth(0.5f, world, false) ;
+          f.incGrowth(1, world, false) ;
           ecology.impingeFertility(f, true) ;
         }
       }
@@ -117,8 +118,12 @@ public class Flora extends Element implements TileConstants {
   public void incGrowth(
     float inc, World world, boolean init
   ) {
+    final int oldGrowth = (int) growth ;
     growth += inc ;
     if (growth <= 0) { setAsDestroyed() ; return ; }
+    final int newGrowth = (int) growth ;
+    if (oldGrowth == newGrowth) return ;
+    
     if (inc > 0 && ! init) {
       final float moisture = origin().habitat().moisture / 10f ;
       final int minGrowth = (int) ((moisture * moisture * MAX_GROWTH) + 1f) ;
@@ -154,6 +159,11 @@ public class Flora extends Element implements TileConstants {
 	public void exitWorld() {
 		world.presences.togglePresence(this, false) ;
 		super.exitWorld() ;
+	}
+	
+	
+	public String toString() {
+	  return "Flora" ;
 	}
 }
 

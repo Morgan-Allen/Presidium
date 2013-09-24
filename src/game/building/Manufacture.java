@@ -109,7 +109,7 @@ public class Manufacture extends Plan implements Behaviour {
     float chance = 1.0f ;
     for (int i = c.skills.length ; i-- > 0 ;) {
       chance *= actor.traits.chance(
-        c.skills[i], null, null, checkBonus - c.skillDCs[i]
+        c.skills[i], c.skillDCs[i] - checkBonus
       ) ;
     }
     chance = (chance + 1) / 2f ;

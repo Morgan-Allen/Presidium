@@ -163,7 +163,7 @@ public abstract class Artilect extends Actor {
 
     d.append("\n\nSkills: ") ;
     for (Skill skill : traits.skillSet()) {
-      final int level = (int) traits.trueLevel(skill) ;
+      final int level = (int) traits.traitLevel(skill) ;
       d.append("\n  "+skill.name+" "+level+" ") ;
       d.append(Skill.skillDesc(level), Skill.skillTone(level)) ;
     }

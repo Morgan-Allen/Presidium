@@ -14,7 +14,9 @@ import src.user.* ;
 
 
 
-public class Tile implements Target, TileConstants, Boardable {
+public final class Tile implements
+  Target, TileConstants, Boardable, Session.Saveable
+{
   
   
   final public static int
@@ -39,14 +41,25 @@ public class Tile implements Target, TileConstants, Boardable {
   
   /**  Basic constructor and save/load functionality-
     */
-  Tile(World world, int x, int y) {
+  protected Tile(World world, int x, int y) {
     this.world = world ;
     this.x = x ;
     this.y = y ;
   }
   
   
-  void loadState(Session s) throws Exception {
+  public static Tile loadConstant(Session s) throws Exception {
+    return s.world().tileAt(s.loadInt(), s.loadInt()) ;
+  }
+  
+  
+  public void saveState(Session s) throws Exception {
+    s.saveInt(x) ;
+    s.saveInt(y) ;
+  }
+  
+  
+  protected void loadTileState(Session s) throws Exception {
     elevation = s.loadFloat() ;
     habitat = Habitat.ALL_HABITATS[s.loadInt()] ;
     owner = (Element) s.loadObject() ;
@@ -55,7 +68,7 @@ public class Tile implements Target, TileConstants, Boardable {
   }
   
   
-  void saveState(Session s) throws Exception {
+  protected void saveTileState(Session s) throws Exception {
     s.saveFloat(elevation) ;
     s.saveInt(habitat().ID) ;
     s.saveObject(owner) ;

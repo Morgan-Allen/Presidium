@@ -335,6 +335,13 @@ public class Commerce implements BuildConstants {
   }
   
   
+  public Batch <Dropship> allVessels() {
+    final Batch <Dropship> vessels = new Batch <Dropship> () ;
+    vessels.add(ship) ;
+    return vessels ;
+  }
+  
+  
   
   /**  Perform updates to trigger new events or assess local needs-
     */
@@ -351,6 +358,7 @@ public class Commerce implements BuildConstants {
   //  TODO:  Favour landing sites close to supply depots.
   
   protected void updateShipping() {
+    
     
     final int shipStage = ship.flightStage() ;
     if (ship.landed()) {
@@ -371,6 +379,7 @@ public class Commerce implements BuildConstants {
       shouldVisit &= ship.timeAway(base.world) > SUPPLY_INTERVAL ;
       
       if (shouldVisit) {
+        I.say("SENDING SHIP...") ;
         final boolean canLand = ship.findLandingSite(base) ;
         if (! canLand) return ;
         /*

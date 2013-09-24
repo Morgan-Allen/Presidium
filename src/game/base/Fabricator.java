@@ -52,6 +52,9 @@ public class Fabricator extends Venue implements BuildConstants {
   
   /**  Implementation of employee behaviour-
     */
+  
+  
+  
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     stocks.translateDemands(PETROCARBS_TO_PLASTICS, 1) ;
@@ -61,15 +64,19 @@ public class Fabricator extends Venue implements BuildConstants {
   
   
   public Behaviour jobFor(Actor actor) {
-    
-    //final Delivery d = stocks.nextDelivery(actor, services()) ;
-    //if (d != null) return d ;
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
-    if (o != null) return o ;
+    if (o != null) {
+      o.checkBonus = 5 ;
+      return o ;
+    }
     
     final Manufacture m = stocks.nextManufacture(actor, PETROCARBS_TO_PLASTICS) ;
-    if (m != null) return m ;
+    if (m != null) {
+      m.checkBonus = 5 ;
+      return m ;
+    }
     
     return null ;
   }
@@ -77,7 +84,7 @@ public class Fabricator extends Venue implements BuildConstants {
   
   public int numOpenings(Background v) {
     int NO = super.numOpenings(v) ;
-    if (v == Background.FABRICATOR) return NO + 2 ;
+    if (v == Background.FABRICATOR) return NO + 5 ;
     return 0 ;
   }
   

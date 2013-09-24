@@ -162,6 +162,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
         final Delivery transport = new Delivery(patient, (Venue) haven) ;
         return transport ;
       }
+      else I.sayAbout(actor, "No haven found!") ;
     }
     return null ;
   }
@@ -178,7 +179,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     if (actor.traits.test(ANATOMY, DC - bonus, FIRST_AID_XP)) {
       patient.health.liftInjury(1) ;
       if (! patient.health.bleeding()) {
-        this.effectiveness = Rand.num() * actor.traits.trueLevel(ANATOMY) / 10 ;
+        this.effectiveness = Rand.num() * actor.traits.traitLevel(ANATOMY) / 10 ;
         this.applied = INJURY ;
         this.treatment = Item.withType(SERVICE_TREAT, new Action(
           patient, patient,
@@ -202,7 +203,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     for (Trait d : DISEASES) {
       if (hasMedication(treatments, d)) continue ;
       final float serious = MEDICATION_DC + (Integer) CONDITION_DCS.get(d) ;
-      priority += patient.traits.trueLevel(d) * serious / 5f ;
+      priority += patient.traits.traitLevel(d) * serious / 5f ;
     }
     if (priority == 0) return 0 ;
     return Visit.clamp(priority, IDLE, CRITICAL) ;
@@ -224,7 +225,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     //
     //  If the actor is sick, prepare a suitable treatment (least serious
     //  ailments first-)
-    for (Trait d : DISEASES) if (patient.traits.trueLevel(d) > 0) {
+    for (Trait d : DISEASES) if (patient.traits.traitLevel(d) > 0) {
       this.applied = d ;
       break ;
     }
@@ -250,7 +251,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     //
     //  Calculate the difficulty of treating the condition.
     int difficulty = (Integer) CONDITION_DCS.get(applied) + MEDICATION_DC ;
-    difficulty += (patient.traits.trueLevel(applied) - 1) * 5 ;
+    difficulty += (patient.traits.traitLevel(applied) - 1) * 5 ;
     if (actor.aboard() instanceof Sickbay) {
       float bonus = 2 + Plan.upgradeBonus(actor.aboard(), Sickbay.APOTHECARY) ;
       bonus *= 2 ;
@@ -285,7 +286,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     }
     if (type == TYPE_MEDICATION) {
       patient.traits.incLevel(applied, -0.01f * effectiveness) ;
-      if (patient.traits.trueLevel(applied) < 0) {
+      if (patient.traits.traitLevel(applied) < 0) {
         patient.traits.setLevel(applied, 0) ;
       }
       patient.gear.removeItem(Item.withAmount(treatment, 0.01f)) ;

@@ -98,6 +98,7 @@ public class GroupSprite extends Sprite {
   /**  Regular updates and rendering-
     */
   public int[] GL_disables() {
+    if (modules.size() > 0) return modules.getFirst().GL_disables() ;
     return null ;
   }
   

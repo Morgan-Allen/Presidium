@@ -7,13 +7,10 @@ import src.game.actors.* ;
 import src.game.social.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
-//
-//  The delay after completion is too long.  Also, actors don't seem to be
-//  switching over to the mission fast enough.
 
 
 
@@ -29,10 +26,13 @@ public abstract class Mission implements
     TYPE_BOUNTY_LARGE  = 3,
     ALL_TYPES[] = { 0, 1, 2, 3 } ;
   final static String TYPE_DESC[] = {
-    "Volunteer", "Small Payment", "Medium Payment", "Large Payment"
+    "Volunteer",
+    "Small Payment",
+    "Medium Payment",
+    "Large Payment"
   } ;
   final static int REWARD_AMOUNTS[] = {
-    0, 25, 100, 400
+    0, 50, 250, 1000
   } ;
   
   
@@ -111,8 +111,9 @@ public abstract class Mission implements
   }
   
   
-  public int rewardAmount() {
-    return REWARD_AMOUNTS[rewardType] ;
+  public int rewardAmount(Actor actor) {
+    final int div = Math.max(2, roles.size()) ;
+    return REWARD_AMOUNTS[rewardType] / div ;
   }
   
   
@@ -170,6 +171,7 @@ public abstract class Mission implements
   
   
   protected void beginMission() {
+    I.say("Beginning mission: "+this) ;
     for (Role role : roles) {
       if (! role.approved) roles.remove(role) ;
       else {
@@ -177,15 +179,16 @@ public abstract class Mission implements
         role.applicant.AI.assignBehaviour(this) ;
       }
     }
+    I.say("Mission begun...") ;
     begun = true ;
   }
   
   
   protected void endMission(boolean cancelled) {
-    final float reward = REWARD_AMOUNTS[rewardType] ;
+    final float reward = REWARD_AMOUNTS[rewardType] / roles.size() ;
     for (Role role : roles) {
       role.applicant.AI.assignMission(null) ;
-      if (! cancelled) role.applicant.gear.incCredits(reward / roles.size()) ;
+      if (! cancelled) role.applicant.gear.incCredits(reward) ;
     }
     base.incCredits(0 - reward) ;
     base.removeMission(this) ;

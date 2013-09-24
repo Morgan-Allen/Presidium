@@ -9,7 +9,8 @@ package src.game.building ;
 import src.game.base.* ;
 import src.game.campaign.* ;
 import src.game.common.* ;
-import src.game.social.Auditing;
+import src.game.planet.Planet;
+import src.game.social.* ;
 import src.game.actors.* ;
 import src.util.* ;
 
@@ -114,55 +115,29 @@ public class VenuePersonnel {
   public boolean onShift(Actor worker) {
     if (shiftType == -1) return false ;
     if (shiftType == Venue.SHIFTS_ALWAYS) return true ;
+    final World world = venue.world() ;
+    
     //
-    //  Firstly, determine proper indices for the shift and the roster-
-    final float time = venue.world().currentTime() / World.STANDARD_DAY_LENGTH ;
-    int currentShift = 0, shiftCycle = 0, workerIndex = 0 ;
-    int numShifts = 0 ;
+    //  Simplified versions in use for the present...
     if (shiftType == Venue.SHIFTS_BY_HOURS) {
-      shiftCycle = (int) time ;
-      currentShift = (int) ((time * 3) % 3) ;
-      numShifts = 1;
+      final int day = (int) (world.currentTime() / World.STANDARD_DAY_LENGTH) ;
+      final int index = (workers.indexOf(worker) + day) % 3 ;
+      if (index == 0) return Planet.isMorning(world) ;
+      if (index == 1) return Planet.isEvening(world) ;
+      if (index == 2) return Planet.isNight(world) ;
     }
+    
     if (shiftType == Venue.SHIFTS_BY_DAY) {
-      if ((time % 1) > 0.5f) return false ;
-      shiftCycle = (int) (time / 3) ;
-      currentShift = ((int) time) % 3 ;
-      numShifts = 2 ;
+      if (Planet.dayValue(world) < 0.5f) return false ;
+      final int index = workers.indexOf(worker) ;
+      final int day = (int) (world.currentTime() / World.STANDARD_DAY_LENGTH) ;
+      return (index % 3) == (day % 3) ;
     }
+    
     if (shiftType == Venue.SHIFTS_BY_CALENDAR) {
-      I.complain("CALENDAR NOT IMPLEMENTED YET!") ;
+      I.complain("CALENDAR NOT IMPLEMENTED YET.") ;
     }
-    for (Actor actor : workers) {
-      if (actor == worker) break ;
-      else workerIndex++ ;
-    }
-    //
-    //  Then, see if they match up.  This probably requires a little more
-    //  explanation...
-    //
-    //  Imagine we have Actors 1-through-4, and Shifts A, B, and C.  As each
-    //  cycle of shifts proceeds, we want to allot actors to shifts as follows:
-    //
-    // (Cycle 1)(Cycle 2)(Cycle 3) ...
-    //   A B C    A B C    A B C   ...
-    //   1 2 3    3 4 1    1 2 3   ...
-    //   4 1 2    2 3 4    4 1 2   ...etc.
-    //
-    //  The basic idea being that all shifts are filled as evenly as possible,
-    //  without any single actor being consistently overworked.
     
-    //  TODO:  ...Actually, this probably needs to be rethought.  It may not
-    //  be performing as advertised, or maybe it's a bad idea.  Maybe leaving
-    //  gaps in the roster is better than overworking citizens...?
-    
-    if (workers.size() < 3) return workerIndex == currentShift ;
-    for (int period = 0 ; period < workers.size() ; period += 3) {
-      for (int shiftIndex = numShifts ; shiftIndex-- > 0 ;) {
-        final int index = period + currentShift + shiftIndex + shiftCycle ;
-        if ((index % workers.size()) == workerIndex) return true ;
-      }
-    }
     return false ;
   }
   
@@ -220,7 +195,7 @@ public class VenuePersonnel {
     //
     //  Then split a portion of surplus between employees in proportion to
     //  basic salary.
-    final float surplus = venue.stocks.credits() ;
+    final float surplus = venue.stocks.unTaxed() ;
     if (surplus > 0) {
       float sumSalaries = 0, sumShared = 0 ;
       for (Position p : positions) if (p.wages >= 0) {
@@ -243,17 +218,18 @@ public class VenuePersonnel {
     final float balance = venue.stocks.credits() ;
     final float waste = (Rand.num() + base.crimeLevel()) / 2f ;
     I.sayAbout(venue, "   BALANCE IS: "+balance+", waste: "+waste) ;
-    if (balance > 0) {
-      final float paid = balance / (1 + waste) ;
-      base.incCredits(paid) ;
-      venue.chat.addPhrase((int) paid+" credits in profit") ;
-      venue.stocks.incCredits(0 - paid) ;
+    final int
+      profit = (int) (balance / (1 + waste)),
+      losses = (int) ((0 - balance) * (1 + waste)) ;
+    if (profit > 0) {
+      base.incCredits(profit) ;
+      venue.chat.addPhrase((int) profit+" credits in profit") ;
+      venue.stocks.incCredits(0 - profit) ;
     }
-    if (balance < 0) {
-      final float paid = (0 - balance) * (1 + waste) ;
-      base.incCredits(0 - paid) ;
-      venue.chat.addPhrase((int) paid+" credits in debt") ;
-      venue.stocks.incCredits(paid) ;
+    if (losses > 0) {
+      base.incCredits(0 - losses) ;
+      venue.chat.addPhrase((int) losses+" credits in debt") ;
+      venue.stocks.incCredits(losses) ;
     }
     venue.stocks.taxDone() ;
     
@@ -337,6 +313,12 @@ public class VenuePersonnel {
       commerce.cullCandidates(app.role, venue) ;
       commerce.addImmigrant(app.works) ;
     }
+  }
+  
+  
+  public float salaryFor(Actor works) {
+    for (Position p : positions) if (p.works == works) return p.salary ;
+    return 0 ;
   }
   
   
@@ -445,3 +427,61 @@ public class VenuePersonnel {
 }
 
 
+
+
+
+/*
+if (shiftType == -1) return false ;
+if (shiftType == Venue.SHIFTS_ALWAYS) return true ;
+//
+//  Firstly, determine proper indices for the shift and the roster-
+final float time = venue.world().currentTime() / World.STANDARD_DAY_LENGTH ;
+int currentShift = 0, shiftCycle = 0, workerIndex = 0 ;
+int numShifts = 0 ;
+if (shiftType == Venue.SHIFTS_BY_HOURS) {
+  shiftCycle = (int) time ;
+  currentShift = (int) ((time * 3) % 3) ;
+  numShifts = 1;
+}
+if (shiftType == Venue.SHIFTS_BY_DAY) {
+  if ((time % 1) > 0.5f) return false ;
+  shiftCycle = (int) (time / 3) ;
+  currentShift = ((int) time) % 3 ;
+  numShifts = 2 ;
+}
+if (shiftType == Venue.SHIFTS_BY_CALENDAR) {
+  I.complain("CALENDAR NOT IMPLEMENTED YET!") ;
+}
+for (Actor actor : workers) {
+  if (actor == worker) break ;
+  else workerIndex++ ;
+}
+//
+//  Then, see if they match up.  This probably requires a little more
+//  explanation...
+//
+//  Imagine we have Actors 1-through-4, and Shifts A, B, and C.  As each
+//  cycle of shifts proceeds, we want to allot actors to shifts as follows:
+//
+// (Cycle 1)(Cycle 2)(Cycle 3) ...
+//   A B C    A B C    A B C   ...
+//   1 2 3    3 4 1    1 2 3   ...
+//   4 1 2    2 3 4    4 1 2   ...etc.
+//
+//  The basic idea being that all shifts are filled as evenly as possible,
+//  without any single actor being consistently overworked.
+
+//  TODO:  ...Actually, this probably needs to be rethought.  It may not
+//  be performing as advertised, or maybe it's a bad idea.  Maybe leaving
+//  gaps in the roster is better than overworking citizens...?
+
+if (workers.size() < 3) return workerIndex == currentShift ;
+for (int period = 0 ; period < workers.size() ; period += 3) {
+  for (int shiftIndex = numShifts ; shiftIndex-- > 0 ;) {
+    final int index = period + currentShift + shiftIndex + shiftCycle ;
+    if ((index % workers.size()) == workerIndex) return true ;
+  }
+}
+return false ;
+}
+//*/

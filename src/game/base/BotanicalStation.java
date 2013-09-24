@@ -6,6 +6,7 @@
 
 package src.game.base ;
 import src.game.common.* ;
+import src.game.planet.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
@@ -15,6 +16,9 @@ import src.user.* ;
 import src.util.* ;
 
 
+
+//
+//  TODO:  Return forestry plans as well...
 
 
 
@@ -28,34 +32,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
   final static Model
     STATION_MODEL = ImageModel.asIsometricModel(
       BotanicalStation.class, IMG_DIR+"botanical_station.png", 4, 3
-    ),
-    NURSERY_MODEL = ImageModel.asIsometricModel(
-      BotanicalStation.class, IMG_DIR+"curing_shed.png", 2, 2
-    ),
-    CROP_MODELS[][] = ImageModel.fromTextureGrid(
-      BotanicalStation.class,
-      Texture.loadTexture(IMG_DIR+"all_crops.png"),
-      4, 4, 1, ImageModel.TYPE_FLAT
-    ),
-    GRUB_BOX_MODEL = ImageModel.asIsometricModel(
-      BotanicalStation.class, IMG_DIR+"grub_box.png", 1, 1
     ) ;
-  final static Object CROP_SPECIES[][] = {
-    new Object[] { 0, CARBS, CROP_MODELS[0] },
-    new Object[] { 1, CARBS, CROP_MODELS[1] },
-    new Object[] { 2, GREENS  , CROP_MODELS[3] },
-    new Object[] { 3, GREENS  , CROP_MODELS[2] },
-    new Object[] { 4, PROTEIN , new Model[] { GRUB_BOX_MODEL }}
-  } ;
-  
-  public static Service speciesYield(int varID) {
-    return (Service) CROP_SPECIES[varID][1] ;
-  }
-  
-  public static Model speciesModel(int varID, int growStage) {
-    final Model seq[] = (Model[]) CROP_SPECIES[varID][2] ;
-    return seq[Visit.clamp(growStage, seq.length)] ;
-  }
   
   
   
@@ -102,7 +79,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "species, but lack the full range of nutrients required in a healthy "+
       "diet.",
       100,
-      CARBS, 2,
+      CARBS, 1,
       null, ALL_UPGRADES
     ),
     BROADLEAF_LAB = new Upgrade(
@@ -110,7 +87,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "Improves broadleaf yields.  Broadleaves provide a wider range of "+
       "nutrients, and are valued as luxury exports, but their yield is small.",
       150,
-      GREENS, 2,
+      GREENS, 1,
       null, ALL_UPGRADES
     ),
     FIELD_HAND_STATION = new Upgrade(
@@ -118,7 +95,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
       "Hire additional field hands to plant and reap the harvest more "+
       "quickly, maintain equipment, and bring land under cultivation.",
       50,
-      Background.FIELD_HAND, 2,
+      Background.FIELD_HAND, 1,
       null, ALL_UPGRADES
     ),
     TREE_FARMING = new Upgrade(
@@ -149,43 +126,70 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
 
   public Behaviour jobFor(Actor actor) {
+    if (! structure.intact()) return null ;
+    if (Planet.isNight(world)) return null ;
+    //
+    //  If the harvest is really coming in, pitch in regardless-
+    final Choice choice = new Choice(actor) ;
+    for (Plantation p : allotments) {
+      if (p.needForFarming() > 0.5f) choice.add(new Farming(actor, p)) ;
+    }
+    if (choice.size() > 0) return choice.weightedPick(0) ;
+    //
+    //  Otherwise, perform deliveries and more casual work-
+    if (! personnel.onShift(actor)) return null ;
     final Delivery d = Deliveries.nextDeliveryFor(
       actor, this, services(), 10, world
     ) ;
-    if (d != null) return d ;
+    choice.add(d) ;
     
-    //*
-    final Farming f = new Farming(actor, this) ;
-    if (f.nextStep() != null) return f ;
-    //*/
+    final Forestry f = new Forestry(actor, this) ;
+    choice.add(f) ;
     
-    return null ;
+    for (Plantation p : allotments) choice.add(new Farming(actor, p)) ;
+    return choice.weightedPick(0) ;
   }
   
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
-    //
-    //  You could make this much more occasional, if you wanted.  Every
-    //  hundred seconds ought to do the trick.  TODO:  That
-    if (numUpdates % 5 == 0) {
+    if (numUpdates % 50 == 0) {
+      final int STRIP_SIZE = 4 ;
+      int numCovered = 0 ;
+      //
+      //  First of all, remove any missing allotments (and their siblings in
+      //  the same strip.)
+      for (Plantation p : allotments) {
+        if (p.destroyed()) {
+          allotments.remove(p) ;
+          for (Plantation s : p.strip) if (s != p) {
+            s.structure.setState(VenueStructure.STATE_SALVAGE, -1) ;
+          }
+        }
+        else if (p.type == Plantation.TYPE_COVERED) numCovered++ ;
+      }
+      //
+      //  Then, calculate how many allotments one should have.
       int maxAllots = 3 + (structure.upgradeBonus(Background.FIELD_HAND) * 2) ;
-      maxAllots *= 9 ;
-      
+      maxAllots *= STRIP_SIZE ;
       if (maxAllots > allotments.size()) {
-        Plantation allots[] = Plantation.placeAllotment(this, 3) ;
+        //
+        //  If you have too few, try to find a place for more-
+        final boolean covered = numCovered <= allotments.size() / 3 ;
+        Plantation allots[] = Plantation.placeAllotment(
+          this, covered ? STRIP_SIZE : STRIP_SIZE, covered
+        ) ;
         if (allots != null) for (Plantation p : allots) {
           allotments.add(p) ;
         }
       }
-      if (maxAllots + 3 < allotments.size()) {
-        for (int n = 3 ; n-- > 0 ;) {
+      if (maxAllots + STRIP_SIZE < allotments.size()) {
+        //
+        //  And if you have too many, flag them for salvage.
+        for (int n = STRIP_SIZE ; n-- > 0 ;) {
           final Plantation p = allotments.removeLast() ;
-          //
-          //  TODO:  Flag for salvage instead.
-          I.say("Deleting plantation: "+p) ;
-          p.exitWorld() ;
+          p.structure.setState(VenueStructure.STATE_SALVAGE, -1) ;
         }
       }
     }
@@ -205,37 +209,32 @@ public class BotanicalStation extends Venue implements BuildConstants {
   }
   
   
-  float growBonus(Tile t, int varID) {
-    //
-    //  TODO:  Subtract pollution FX...
+  protected float growBonus(Tile t, int varID, boolean natural) {
+    final float pollution = t.world.ecology().squalorAt(t) / 10f ;
+    final float hB = 1 - pollution ;
+    if (hB <= 0) return 0 ;
+    float bonus = 1 ;
     if (varID == 4) {
-      return (structure.upgradeBonus(PROTEIN) + 2) * 0.25f ;
+      if (natural) return hB ;
+      return (structure.upgradeBonus(PROTEIN) + 2) * 0.1f * bonus * hB ;
     }
-    float bonus = t.habitat().moisture() / 10f ;
-    if (varID % 2 == 0) bonus = (1 - bonus) ;
+    //
+    //  Crops are, in sequence, rice, wheat, lily-things, tubers/veg and grubs.
+    bonus = Math.max(0, (t.habitat().moisture() - 5) / 5f) ;
+    if (varID == 1 || varID == 3) bonus = (1 - bonus) / 2f ;  //Dryland crops.
     if (varID < 2) {
-      return (structure.upgradeBonus(CARBS) + 2) * 0.5f * bonus ;
+      if (natural) return 1.0f * bonus * hB ;
+      return (structure.upgradeBonus(CARBS) + 2) * 1.0f * bonus * hB ;
     }
     else {
-      return (structure.upgradeBonus(GREENS) + 2) * 0.5f * bonus ;
+      if (natural) return 0.5f * bonus * hB ;
+      return (structure.upgradeBonus(GREENS) + 2) * 0.5f * bonus * hB ;
     }
-  }
-  
-  
-  public static int pickSpecies(Tile t, BotanicalStation parent) {
-    final Float chances[] = {
-      parent.growBonus(t, 0),
-      parent.growBonus(t, 1),
-      parent.growBonus(t, 2),
-      parent.growBonus(t, 3),
-      parent.growBonus(t, 4),
-    } ;
-    return (Integer) ((Object[]) Rand.pickFrom(CROP_SPECIES, chances))[0] ;
   }
   
   
   public Service[] services() {
-    return new Service[] { CARBS, GREENS, PROTEIN, PETROCARBS } ;
+    return new Service[] { PETROCARBS, GREENS, PROTEIN, CARBS } ;
   }
   
   

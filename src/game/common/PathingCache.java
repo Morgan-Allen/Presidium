@@ -12,14 +12,6 @@ import src.util.* ;
 
 
 
-//  TODO:  If a places-path search can't find a route, then either the origin
-//  or destination has to be in an isolated zone.  If that's true, you can mark
-//  whatever places were searched accordingly.  ...But how long will they last?
-
-//  Not long.  That's the problem.  The alternative would be a hierarchical
-//  system, where higher-level sections can generate paths.  But that would be
-//  a substantial complication.
-
 public class PathingCache {
   
   
@@ -124,10 +116,22 @@ public class PathingCache {
   public Boardable[] getLocalPath(
     Boardable initB, Boardable destB, int maxLength, Mobile client
   ) {
-    final Place placesPath[] = placesBetween(initB, destB, client) ;
     Boardable path[] = null ;
+    if (Spacing.distance(initB, destB) <= World.DEFAULT_SECTOR_SIZE * 2) {
+      if (verbose) I.sayAbout(client,
+        "Using simple agenda-bounded pathing between "+initB+" "+destB
+      ) ;
+      final PathingSearch search = new PathingSearch(initB, destB) ;
+      search.client = client ;
+      search.doSearch() ;
+      path = search.fullPath(Boardable.class) ;
+      if (path != null) return path ;
+    }
+    final Place placesPath[] = placesBetween(initB, destB, client) ;
     if (placesPath != null && placesPath.length < 3) {
-      ///I.say("Obtaining full cordoned path between "+initB+" "+destB) ;
+      if (verbose) I.sayAbout(client,
+        "Using full cordoned path-search between "+initB+" "+destB
+      ) ;
       final PathingSearch search = cordonedSearch(
         initB, destB, placesPath[0].caching.section,
         placesPath[placesPath.length - 1].caching.section
@@ -138,7 +142,9 @@ public class PathingCache {
       if (path != null) return path ;
     }
     if (placesPath != null) {
-      ///I.say("Obtaining partial cordoned path between "+initB+" "+destB) ;
+      if (verbose) I.sayAbout(client,
+        "Using partial cordoned path-search between "+initB+" "+destB
+      ) ;
       final PathingSearch search = fullPathSearch(
         initB, destB, placesPath, maxLength
       ) ;
@@ -148,13 +154,16 @@ public class PathingCache {
       if (path != null) return path ;
     }
     if (path == null) {
-      ///I.say("Resorting to unbounded pathfinding between "+initB+" "+destB) ;
+      if (verbose) I.sayAbout(client,
+        "Resorting to unbounded pathfinding between "+initB+" "+destB
+      ) ;
       final PathingSearch search = new PathingSearch(initB, destB, -1) ;
       search.client = client ;
       search.doSearch() ;
       path = search.fullPath(Boardable.class) ;
+      if (path != null) return path ;
     }
-    return path ;
+    return null ;
   }
   
   

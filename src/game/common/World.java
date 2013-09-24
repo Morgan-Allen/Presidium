@@ -82,7 +82,7 @@ public class World {
     //
     //  We load the tile-states first, as other objects may depend on this.
     for (Coord c : Visit.grid(0, 0, size, size, 1)) {
-      tiles[c.x][c.y].loadState(s) ;
+      tiles[c.x][c.y].loadTileState(s) ;
     }
     currentTime = s.loadFloat() ;
     schedule.loadFrom(s) ;
@@ -108,7 +108,7 @@ public class World {
     //
     //  We save the tile-states first, as other objects may depend on this.
     for (Coord c : Visit.grid(0, 0, size, size, 1)) {
-      tiles[c.x][c.y].saveState(s) ;
+      tiles[c.x][c.y].saveTileState(s) ;
     }
     s.saveFloat(currentTime) ;
     schedule.saveTo(s) ;
@@ -185,7 +185,9 @@ public class World {
     currentTime += 1f / PlayLoop.UPDATES_PER_SECOND ;
     schedule.advanceSchedule(currentTime) ;
     ecology.updateEcology() ;
-    for (Mobile m : mobiles) m.updateAsMobile() ;
+    for (Mobile m : mobiles) {
+      m.updateAsMobile() ;
+    }
   }
   
   

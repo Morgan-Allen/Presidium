@@ -115,7 +115,7 @@ public class Garrison extends Venue implements BuildConstants {
     if (! personnel.onShift(actor)) return null ;
     //
     //  Grab a random building nearby and patrol around it.  Especially walls.
-    final Venue patrolled = world.presences.randomMatchNear(
+    final Venue patrolled = (Venue) world.presences.randomMatchNear(
       base(), this, World.DEFAULT_SECTOR_SIZE
     ) ;
     if (patrolled != null) {

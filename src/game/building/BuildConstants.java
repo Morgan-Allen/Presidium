@@ -50,6 +50,7 @@ public interface BuildConstants extends ActorConstants {
     METAL_ORE   = new Service(BC, "Metal Ore" , "ores.gif"       , FC, 15 ),
     PETROCARBS  = new Service(BC, "Petrocarbs", "carbons.gif"    , FC, 35 ),
     FUEL_CORES  = new Service(BC, "Fuel Cores", "fuel rods.gif"  , FC, 75 ),
+    //  TODO:  Include rarities.
     //
     //  Building materials-
     PARTS       = new Service(BC, "Parts"     , "parts.gif"      , FC, 50 ),
@@ -61,6 +62,7 @@ public interface BuildConstants extends ActorConstants {
     STIM_KITS   = new Service(BC, "Stim Kit"  , "stimkit.gif"    , FC, 40 ),
     SPICE       = new Service(BC, "Spice"     , "spices.gif"     , FC, 100),
     MEDICINE    = new Service(BC, "Medicine"  , "medicines.gif"  , FC, 200),
+    //  TODO:  Include gene-seed.
     
     ALL_FOOD_TYPES[] = { CARBS, PROTEIN, GREENS, SPICE },
     ALL_COMMODITIES[] = Service.typesSoFar() ;

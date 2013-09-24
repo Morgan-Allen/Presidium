@@ -5,8 +5,8 @@
   */
 package src.game.actors ;
 import src.game.common.* ;
-import src.game.planet.Planet;
-import src.user.BaseUI;
+import src.game.planet.Planet ;
+import src.user.BaseUI ;
 ///import src.user.BaseUI ;
 import src.util.* ;
 
@@ -18,6 +18,8 @@ public class ActorHealth implements ActorConstants {
   
   /**  Fields, constructors, and save/load methods-
     */
+  private static boolean verbose = false ;
+  
   final public static int
     STATE_ACTIVE   = 0,
     STATE_RESTING  = 1,
@@ -67,7 +69,10 @@ public class ActorHealth implements ActorConstants {
     
     FATIGUE_GROW_PER_DAY = 0.33f,
     MORALE_DECAY_PER_DAY = 0.33f,
-    INJURY_REGEN_PER_DAY = 0.33f ;
+    INJURY_REGEN_PER_DAY = 0.33f,
+    
+    MAX_PSY_MULTIPLE = 10,
+    PSY_REGEN_TIME   = World.STANDARD_DAY_LENGTH / 10 ;
   
   
   final Actor actor ;
@@ -292,13 +297,17 @@ public class ActorHealth implements ActorConstants {
     if (organic && Rand.num() * maxHealth < injury) bleeds = true ;
     final float max ;
     if (deceased()) max = maxHealth * (MAX_INJURY + 1) ;
-    else max = (maxHealth * MAX_INJURY) + 1 ;
+    else {
+      max = (maxHealth * MAX_INJURY) + 1 ;
+      if (conscious()) morale -= taken / max ;
+    }
     injury = Visit.clamp(injury, 0, max) ;
   }
   
   
   public void liftInjury(float lifted) {
     injury -= lifted ;
+    if (conscious()) morale += lifted * injuryLevel() / maxHealth ;
     if (Rand.num() > injuryLevel()) bleeds = false ;
     if (injury < 0) injury = 0 ;
   }
@@ -306,7 +315,8 @@ public class ActorHealth implements ActorConstants {
   
   public void takeFatigue(float taken) {
     fatigue += taken ;
-    //final float max = maxHealth * MAX_FATIGUE ;
+    final float max = maxHealth * MAX_FATIGUE ;
+    if (conscious()) morale -= taken * 0.5f / max ;
     //if (fatigue > max) fatigue = max ;
   }
   
@@ -352,7 +362,7 @@ public class ActorHealth implements ActorConstants {
   
   
   public float moraleLevel() {
-    return Visit.clamp(morale + (1 - MAX_MORALE), 0, 1) ;
+    return Visit.clamp(morale + 0.5f, 0, 1) ;
   }
   
   
@@ -377,7 +387,7 @@ public class ActorHealth implements ActorConstants {
   
   
   public boolean diseased() {
-    for (Trait d : DISEASES) if (actor.traits.trueLevel(d) > 0) return true ;
+    for (Trait d : DISEASES) if (actor.traits.traitLevel(d) > 0) return true ;
     return false ;
   }
   
@@ -402,13 +412,29 @@ public class ActorHealth implements ActorConstants {
   }
   
   
+  public float maxPsy() {
+    final float
+      psyLevel = Math.abs(actor.traits.traitLevel(GIFTED)),
+      maxPsy = (float) Math.sqrt(psyLevel) * MAX_PSY_MULTIPLE ;
+    return maxPsy == 0 ? 0 : (maxPsy + (MAX_PSY_MULTIPLE / 2)) ;
+  }
+  
+  
+  public float psyPoints() {
+    return psyPoints ;
+  }
+  
+  
+  
+  /**  Updates and internal state changes-
+    */
   void updateHealth(int numUpdates) {
     //
     //  Define primary attributes-
     ageMultiple = calcAgeMultiple() ;
     maxHealth = baseBulk * ageMultiple * (DEFAULT_HEALTH +
-      (actor.traits.trueLevel(VIGOUR) / 3f) +
-      (actor.traits.trueLevel(BRAWN ) / 3f)
+      (actor.traits.traitLevel(VIGOUR) / 3f) +
+      (actor.traits.traitLevel(BRAWN ) / 3f)
     ) ;
     if (numUpdates < 0) return ;
     //
@@ -431,10 +457,11 @@ public class ActorHealth implements ActorConstants {
   
   
   private void checkStateChange() {
-    if (false && BaseUI.isPicked(actor)) {
+    if (verbose && I.talkAbout == actor) {
       I.say("Injury/fatigue:"+injury+"/"+fatigue+", max: "+maxHealth) ;
       I.say("STATE IS: "+state) ;
     }
+    ///final float hunger = hungerLevel() * maxHealth / 2 ;
     //
     //  Check for state effects-
     if (state == STATE_SUSPEND) return ;
@@ -459,7 +486,7 @@ public class ActorHealth implements ActorConstants {
       state = STATE_ACTIVE ;
     }
     //
-    //  Deplete your current calories stockpile-
+    //  Deplete your current calorie reserve-
     if (! organic) return ;
     calories -= (1f * maxHealth * baseSpeed) / STARVE_INTERVAL ;
     calories = Visit.clamp(calories, 0, maxHealth) ;
@@ -473,17 +500,18 @@ public class ActorHealth implements ActorConstants {
   private void updateStresses() {
     if (state >= STATE_SUSPEND || ! organic) return ;
     final float DL = World.STANDARD_DAY_LENGTH ;
-    float MM = 1, FM = 1, IM = 1 ;
-    
+    float MM = 1, FM = 1, IM = 1, PM = 1 ;
+    //
+    //  Regeneration rates differ during sleep-
     if (state == STATE_RESTING) {
-      FM = -2 ;
+      FM = -3 ;
       IM =  2 ;
-      MM =  2 ;
+      MM =  1 ;
+      PM =  0 ;
     }
     else if (actor.currentAction() != null) {
       FM *= actor.currentAction().moveMultiple() ;
     }
-    
     if (bleeds) {
       injury++ ;
       if (actor.traits.test(VIGOUR, 10, 1) && Rand.num() < STABILISE_CHANCE) {
@@ -494,11 +522,19 @@ public class ActorHealth implements ActorConstants {
     fatigue += FATIGUE_GROW_PER_DAY * baseSpeed * maxHealth * FM / DL ;
     fatigue = Visit.clamp(fatigue, 0, MAX_FATIGUE * maxHealth) ;
     injury = Visit.clamp(injury, 0, (MAX_INJURY + 1) * maxHealth) ;
-    
     //
-    //  TODO:  Have morale converge to a default based on the cheerful trait.
-    morale *= (1 - (MORALE_DECAY_PER_DAY * MM / DL)) ;
+    //  Have morale converge to a default based on the cheerful trait and
+    //  current stress levels.
+    final float
+      defaultMorale = actor.traits.traitLevel(OPTIMISTIC),
+      moraleInc = MORALE_DECAY_PER_DAY * MM / DL ;
+    morale = (morale * (1 - moraleInc)) + (defaultMorale * moraleInc) ;
     morale -= skillPenalty() / DL ;
+    //
+    //  Last but not least, update your psy points-
+    final float maxPsy = maxPsy() ;
+    psyPoints += maxPsy * (1 - skillPenalty()) * PM / PSY_REGEN_TIME ;
+    psyPoints = Visit.clamp(psyPoints, 0, maxPsy) ;
   }
   
   
@@ -534,7 +570,7 @@ public class ActorHealth implements ActorConstants {
   }
   
   
-  public String malnourishDesc() {
+  public String nourishDesc() {
     return descFor(MALNOURISHMENT, 1 - nutrition, -1) ;
   }
   
@@ -550,7 +586,7 @@ public class ActorHealth implements ActorConstants {
   
   
   public String moraleDesc() {
-    return descFor(MORALE, moraleLevel(), -1) ;
+    return descFor(MORALE, morale * 2, -1) ;
   }
   
   
@@ -566,11 +602,11 @@ public class ActorHealth implements ActorConstants {
     final Batch <String> allDesc = new Batch <String> () {
       public void add(String s) { if (s != null) super.add(s) ; }
     } ;
-    allDesc.add(hungerDesc()    ) ;
-    allDesc.add(malnourishDesc()) ;
-    allDesc.add(injuryDesc()    ) ;
-    allDesc.add(fatigueDesc()   ) ;
-    allDesc.add(moraleDesc()    ) ;
+    allDesc.add(hungerDesc() ) ;
+    allDesc.add(nourishDesc()) ;
+    allDesc.add(injuryDesc() ) ;
+    allDesc.add(fatigueDesc()) ;
+    allDesc.add(moraleDesc() ) ;
     return allDesc ;
   }
 }

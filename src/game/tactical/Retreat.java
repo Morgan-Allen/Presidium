@@ -51,12 +51,6 @@ public class Retreat extends Plan implements ActorConstants {
   
   
   protected Behaviour getNextStep() {
-    if (priorityFor(actor) <= 0) {
-      //I.say("Aborting retreat... "+actor+" "+actor.AI.agenda().includes(this)) ;
-      //I.say("  ID IS: "+this.hashCode()+", priority: "+priorityFor(actor)) ;
-      abortBehaviour() ;
-      return null ;
-    }
     if (safePoint == null || actor.aboard() == safePoint) {
       safePoint = nearestHaven(actor, null) ;
     }

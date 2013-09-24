@@ -116,16 +116,16 @@ public class Presences {
   }
   
   
-  public Venue nearestMatch(Object service, Target client, float range) {
-    for (Object o : matchesNear(service, client, range)) return (Venue) o ;
+  public Target nearestMatch(Object service, Target client, float range) {
+    for (Object o : matchesNear(service, client, range)) return (Target) o ;
     return null ;
   }
   
   
-  public Venue randomMatchNear(Object service, Target client, float range) {
+  public Target randomMatchNear(Object service, Target client, float range) {
     final PresenceMap map = allMaps.get(service) ;
     if (map == null) return null ;
-    return (Venue) map.pickRandomAround(client, range) ;
+    return map.pickRandomAround(client, range) ;
   }
   
   
@@ -155,14 +155,14 @@ public class Presences {
     Object key, Target t, World world, int limit, Series sampled
   ) {
     for (int n = limit / 2 ; n-- > 0 ;) {
-      final Venue v = (Venue) randomMatchNear(key, t, -1) ;
+      final Target v = randomMatchNear(key, t, -1) ;
       if (v == t || v == null || v.flaggedWith() != null) continue ;
       sampled.add(v) ;
       v.flagWith(sampled) ;
     }
     for (Object o : matchesNear(key, t, -1)) {
       if (o == t) continue ;
-      final Venue v = (Venue) o ;
+      final Target v = (Target) o ;
       if (v.flaggedWith() != null) continue ;
       sampled.add(v) ;
     }

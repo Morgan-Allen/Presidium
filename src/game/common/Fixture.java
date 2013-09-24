@@ -50,12 +50,17 @@ public abstract class Fixture extends Element {
     */
   public boolean canPlace() {
     if (origin() == null) return false ;
-    final Box2D around = new Box2D().setTo(area()).expandBy(1) ;
-    for (Tile t : origin().world.tilesIn(around, false)) {
+    //final Box2D around = new Box2D().setTo(area()) ;//.expandBy(1) ;
+    for (Tile t : origin().world.tilesIn(area, false)) {
       if (t == null || ! t.habitat().pathClear) return false ;
       if (t.owningType() >= this.owningType()) return false ;
     }
     return true ;
+  }
+  
+  
+  protected boolean canTouch(Element e) {
+    return e.owningType() <= this.owningType() ;
   }
   
   

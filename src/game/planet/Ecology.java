@@ -23,8 +23,11 @@ public class Ecology {
   final float fertilities[][] ;   //Of crops/flora.
   final float squalorMap[][] ;    //For pollution/ambience.
   final float preyMap[][], hunterMap[][], abundances[][][] ;  //Of species.
+  
   final float globalAbundance[] ;
   final Batch <float[][]> allMaps = new Batch <float[][]> () ;
+  
+  private float globalFertility = 0 ;
   
   
   public Ecology(final World world) {
@@ -76,10 +79,13 @@ public class Ecology {
     float growIndex = (time % World.GROWTH_INTERVAL) ;
     growIndex *= size * size * 1f / World.GROWTH_INTERVAL ;
     growthMap.scanThroughTo((int) growIndex) ;
-
+    globalFertility = 0 ;
+    
     for (float map[][] : allMaps) for (Coord c : Visit.grid(0, 0, SS, SS, 1)) {
       if (map == fertilities) {
         map[c.x][c.y] *= 1 - (UPDATE_INC / World.GROWTH_INTERVAL) ;
+        ///I.say("Val is: "+map[c.x][c.y]) ;
+        globalFertility += map[c.x][c.y] ;
         continue ;
       }
       map[c.x][c.y] *= 1 - UPDATE_INC ;
@@ -87,6 +93,8 @@ public class Ecology {
     for (Species p : Species.ALL_SPECIES) {
       globalAbundance[p.ID] *= 1 - UPDATE_INC ;
     }
+    globalFertility /= (SS * SS) ;
+    ///I.say("Global fertility is: "+globalFertility) ;
   }
   
   
@@ -100,6 +108,7 @@ public class Ecology {
   public void impingeFertility(Flora f, boolean gradual) {
     final Tile t = f.origin() ;
     final int g = f.growStage() ;
+    ///I.say("Impinging growth: "+g) ;
     fertilities[t.x / SR][t.y / SR] += g * (gradual ? UPDATE_INC : 1) ;
   }
   
@@ -124,6 +133,16 @@ public class Ecology {
     globalAbundance[s.ID] += inc ;
     if (s.type == Species.Type.BROWSER ) preyMap  [aX][aY] += inc ;
     if (s.type == Species.Type.PREDATOR) hunterMap[aX][aY] += inc ;
+  }
+  
+  
+  public void pushClimate(Habitat desired, float strength) {
+    //  TODO:  This is the next thing to implement.
+  }
+  
+  
+  public float globalFertility() {
+    return globalFertility / (SR * SR) ;
   }
   
   

@@ -102,8 +102,11 @@ public class VenueStocks extends Inventory implements BuildConstants {
   public void incCredits(float inc) {
     if (Float.isNaN(inc)) I.complain("INC IS NOT-A-NUMBER!") ;
     if (Float.isNaN(credits)) credits = 0 ;
+    if (inc == 0) return ;
+    final int oldC = (int) credits() ;
     super.incCredits(inc) ;
-    if (! venue.inWorld()) return ;
+    final int newC = (int) credits() ;
+    if (! venue.inWorld() || oldC == newC) return ;
     String phrase = inc >= 0 ? "+" : "-" ;
     phrase+=" "+(int) Math.abs(inc)+" credits" ;
     venue.chat.addPhrase(phrase) ;

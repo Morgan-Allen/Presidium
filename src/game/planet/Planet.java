@@ -12,12 +12,13 @@ import src.graphics.common.* ;
 
 public class Planet {
   
-
+  
+  
   final public static Colour
     MORNING_LIGHT  = new Colour(1.00f, 0.95f, 0.70f),
     DAY_LIGHT      = new Colour(1.00f, 1.00f, 1.00f),
     EVENING_LIGHT  = new Colour(0.70f, 0.95f, 1.00f),
-    NIGHT_LIGHT    = new Colour(0.40f, 0.45f, 0.75f),
+    NIGHT_LIGHT    = new Colour(0.35f, 0.55f, 0.35f),
     ALL_LIGHTS[]   = { MORNING_LIGHT, DAY_LIGHT, EVENING_LIGHT, NIGHT_LIGHT } ;
   final static float
     fade = (1 / 3f) / 2,
@@ -40,8 +41,14 @@ public class Planet {
   
   /**  Interpolating daylight values-
     */
+  private static float worldTime(World world) {
+    final float time = world.currentTime() / World.STANDARD_DAY_LENGTH ;
+    return (time + 1 - midday) % 1 ;
+  }
+  
+  
   public static float dayValue(World world) {
-    final float time = (world.currentTime() / World.STANDARD_DAY_LENGTH) % 1 ;
+    final float time = worldTime(world) ;
     
     if (time <= morning_end  ) return (time + HF) / fade ;
     if (time <= evening_start) return 1 ;
@@ -80,33 +87,23 @@ public class Planet {
   
   
   public static boolean isMorning(World world) {
-    final float time = (world.currentTime() / World.STANDARD_DAY_LENGTH) % 1 ;
+    final float time = worldTime(world) ;
     return time > morning_start || time <= midday ;
   }
   
   
   public static boolean isEvening(World world) {
-    final float time = (world.currentTime() / World.STANDARD_DAY_LENGTH) % 1 ;
+    final float time = worldTime(world) ;
     return time > midday && time <= evening_end ;
   }
   
   
   public static boolean isNight(World world) {
-    final float time = (world.currentTime() / World.STANDARD_DAY_LENGTH) % 1 ;
+    final float time = worldTime(world) ;
     return time > evening_end && time <= morning_start ;
   }
   
-  
-  
-  
 }
-
-
-
-
-
-
-
 
 
 

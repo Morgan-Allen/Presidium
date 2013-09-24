@@ -160,6 +160,7 @@ public abstract class Actor extends Mobile implements
   
   protected void updateAsMobile() {
     super.updateAsMobile() ;
+    
     final boolean OK = health.conscious() ;
     if (! OK) pathing.updateTarget(null) ;
     
@@ -173,16 +174,17 @@ public abstract class Actor extends Mobile implements
       
       final Behaviour root = AI.rootBehaviour() ;
       if (root != null && root.finished() && OK) {
-        if (root.begun() && root != actionTaken) AI.cancelBehaviour(root) ;
+        if (verbose) I.sayAbout(this, "  ROOT BEHAVIOUR COMPLETE... "+root) ;
+        AI.cancelBehaviour(root) ;
         world.schedule.scheduleNow(this) ;
       }
-      else if (actionTaken != null && actionTaken.finished() && OK) {
+      if (actionTaken != null && actionTaken.finished() && OK) {
+        if (verbose) I.sayAbout(this, "  ACTION COMPLETE: "+actionTaken) ;
         world.schedule.scheduleNow(this) ;
       }
     }
     
     if (aboard instanceof Mobile && (pathing.nextStep() == aboard || ! OK)) {
-      ///I.sayAbout(this, "Tracking position: "+aboard) ;
       aboard.position(nextPosition) ;
     }
   }
@@ -256,7 +258,7 @@ public abstract class Actor extends Mobile implements
   
   public Target targetFor(Class planClass) {
     if (actionTaken == null) return null ;
-    if (! isDoing(planClass, null)) return null ;
+    if (planClass != null && ! isDoing(planClass, null)) return null ;
     return actionTaken.target() ;
   }
   

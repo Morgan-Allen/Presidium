@@ -258,7 +258,24 @@ public class Auditing extends Plan {
   
   
   public boolean actionFileReport(Actor actor, Venue office) {
-    office.base().incCredits(balance) ;
+    //
+    //  TODO:  Unify/merge with the wages-allocation routine from the Venue
+    //  class.
+    final Base base = office.base() ;
+    final float waste = 0 ;
+    
+    final int
+      profit = (int) (balance / (1 + waste)),
+      losses = (int) ((0 - balance) * (1 + waste)) ;
+    if (profit > 0) {
+      base.incCredits(profit) ;
+      office.chat.addPhrase((int) profit+" credits in profit") ;
+    }
+    if (losses > 0) {
+      base.incCredits(0 - losses) ;
+      office.chat.addPhrase((int) losses+" credits in debt") ;
+    }
+    
     stage = STAGE_DONE ;
     return true ;
   }

@@ -41,33 +41,43 @@ public class Recreation extends Plan implements BuildConstants {
   /**  Finding and evaluating targets-
     */
   public float priorityFor(Actor actor) {
-    float priority = URGENT * (1 - actor.health.moraleLevel()) ;
-    priority *= rateVenue(venue) / 10 ;
-    priority -= Plan.rangePenalty(actor, venue) + 0.5f ;
-    ///if (BaseUI.isPicked(actor)) I.say("  RECREATION PRIORITY: "+priority) ;
+    float priority = (ROUTINE * (1 - actor.health.moraleLevel())) + IDLE ;
+    priority -= Plan.rangePenalty(actor, venue) ;
+    priority *= rateVenue(venue, actor) / 10 ;
     return priority ;
   }
   
   
   public static Recreation findRecreation(Actor actor) {
-    //
-    //  TODO:  Also, consider just hanging around at home.
-    
-    Venue venue = actor.world().presences.randomMatchNear(
-      Cantina.class, actor, World.DEFAULT_SECTOR_SIZE
+    final Batch <Venue> venues = new Batch <Venue> () ;
+    actor.world().presences.sampleFromKey(
+      actor, actor.world(), 5, venues,
+      Cantina.class
     ) ;
-    if (venue == null) return null ;
-    return new Recreation(actor, venue) ;
+    if (actor.AI.home() != null) venues.add(actor.AI.home()) ;
+    
+    final Choice choice = new Choice(actor) ;
+    for (Venue venue : venues) {
+      choice.add(new Recreation(actor, venue)) ;
+    }
+    return (Recreation) choice.weightedPick(actor.AI.whimsy() * 2) ;
   }
   
   
-  private static float rateVenue(Venue venue) {
+  private static float rateVenue(Venue venue, Actor actor) {
     float rating = 0 ;
     if (venue instanceof Cantina) {
       rating += 4.0f + ((Cantina) venue).performValue() ;
       if (venue.stocks.amountOf(SOMA) > 0) {
         rating += 2 ;
       }
+    }
+    if (venue instanceof Holding) {
+      return 2.0f + ((Holding) venue).upgradeLevel() ;
+    }
+    if (venue instanceof Bastion) {
+      final Bastion b = (Bastion) venue ;
+      return 3.0f + (b.structure.upgradeLevel(Bastion.NOBLE_QUARTERS) * 2) ;
     }
     return rating ;
   }
@@ -78,21 +88,18 @@ public class Recreation extends Plan implements BuildConstants {
     */
   protected Behaviour getNextStep() {
     if (priorityFor(actor) <= 0) return null ;
-    if (venue instanceof Cantina) {
-      final Action relax = new Action(
-        actor, venue,
-        this, "actionCantinaRelax",
-        Action.TALK_LONG, "Relaxing at "+venue
-      ) ;
-      return relax ;
-    }
-    return null ;
+    final Action relax = new Action(
+      actor, venue,
+      this, "actionRelax",
+      Action.TALK_LONG, "Relaxing at "+venue
+    ) ;
+    return relax ;
   }
   
   
-  public boolean actionCantinaRelax(Actor actor, Venue venue) {
+  public boolean actionRelax(Actor actor, Venue venue) {
     final float interval = 1f / World.STANDARD_DAY_LENGTH ;
-    float comfort = rateVenue(venue) ;
+    float comfort = rateVenue(venue, actor) ;
     if (venue.stocks.amountOf(SOMA) > 0) {
       //  TODO:  You need to pay for this.  Also, what about intoxication?
       venue.stocks.removeItem(Item.withAmount(SOMA, 1 * interval)) ;

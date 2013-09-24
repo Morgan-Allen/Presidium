@@ -22,7 +22,7 @@ import src.util.* ;
 public abstract class Venue extends Fixture implements
   Schedule.Updates, Boardable, Structural,
   Inventory.Owner, ActorAI.Employment,
-  Selectable
+  Selectable, TileConstants
 {
   
   
@@ -30,10 +30,10 @@ public abstract class Venue extends Fixture implements
     */
   final public static int
     ENTRANCE_NONE  = -1,
-    ENTRANCE_NORTH =  0,
-    ENTRANCE_EAST  =  1,
-    ENTRANCE_SOUTH =  2,
-    ENTRANCE_WEST  =  3,
+    ENTRANCE_NORTH =  N / 2,
+    ENTRANCE_EAST  =  E / 2,
+    ENTRANCE_SOUTH =  S / 2,
+    ENTRANCE_WEST  =  W / 2,
     NUM_SIDES      =  4 ;
   final public static int
     SHIFTS_ALWAYS      = 0,
@@ -139,7 +139,9 @@ public abstract class Venue extends Fixture implements
     //
     //  Don't abut on anything of higher priority-
     for (Tile n : Spacing.perimeter(area(), world)) {
-      if (n != null && n.owningType() > OT) return false ;
+      if (n != null && n.owner() != null && ! canTouch(n.owner())) {
+        return false ;
+      }
     }
     //
     //  And make sure we don't create isolated areas of unreachable tiles-

@@ -13,65 +13,89 @@ import src.util.* ;
 
 
 
-public class Crop extends Element {
+public class Crop implements Session.Saveable, Target {
   
   
   final static int
     NOT_PLANTED = -1,
-    MAX_GROWTH = 3 ;
+    MIN_GROWTH  =  1,
+    MAX_GROWTH  =  3 ;
   
-  final BotanicalStation parent ;
-  final int varID ;
+  final Plantation parent ;
+  final Tile tile ;
+  
+  int varID ;
   float growStage, health ;
-  //  Health can be negative when/if diseased!  And spreads more easily to
-  //  crops of the same type.
+  //
+  //  TODO:  Allow crops to become disease/weed-infested, and require attention
+  //  during the growth cycle.
   
   
-  Crop(BotanicalStation parent, int varID) {
+  Crop(Plantation parent, int varID, Tile t) {
     this.parent = parent ;
     this.varID = varID ;
-    growStage = 0 ;
-    health = 1 ;
-    attachSprite(BotanicalStation.speciesModel(varID, 0).makeSprite()) ;
+    this.tile = t ;
+    growStage = NOT_PLANTED ;
+    health = 1.0f ;
+    //attachModel(Plantation.speciesModel(varID, 0)) ;
   }
   
   
   public Crop(Session s) throws Exception {
-    super(s) ;
+    s.cacheInstance(this) ;
+    parent = (Plantation) s.loadObject() ;
+    tile = (Tile) s.loadTarget() ;
     varID = s.loadInt() ;
     growStage = s.loadFloat() ;
     health = s.loadFloat() ;
-    parent = (BotanicalStation) s.loadObject() ;
   }
   
   
   public void saveState(Session s) throws Exception {
-    super.saveState(s) ;
+    s.saveObject(parent) ;
+    s.saveTarget(tile) ;
     s.saveInt(varID) ;
     s.saveFloat(growStage) ;
     s.saveFloat(health) ;
-    s.saveObject(parent) ;
   }
   
   
-  public void onGrowth() {
-    if (growStage == NOT_PLANTED) return ;
-    final float growChance = Visit.clamp(
-      origin().habitat().moisture() / 10f, 0.2f, 0.8f
-    ) ;
-    if (Rand.num() < growChance) growStage++ ;
-    if (growStage > MAX_GROWTH) growStage = MAX_GROWTH ;
-    //
-    //  Update the sprite-
-    final Model m = BotanicalStation.speciesModel(varID, (int) growStage) ;
-    ((ImageSprite) sprite()).setModel((ImageModel) m) ;
-  }
   
+  /**  Implementing the Target interface-
+    */
+  private Object flagged ;
+  public boolean inWorld() { return parent.inWorld() ; }
+  public boolean destroyed() { return parent.destroyed() ; }
+  public Vec3D position(Vec3D v) { return tile.position(v) ; }
+  public float height() { return tile.height() ; }
+  public float radius() { return tile.radius() ; }
+  public void flagWith(Object f) { this.flagged = f ; }
+  public Object flaggedWith() { return flagged ; }
+}
+
+
+
+
+/*
+public void onGrowth() {
+  if (growStage == NOT_PLANTED) return ;
+  final float growChance = Visit.clamp(
+    origin().habitat().moisture() / 10f, 0.2f, 0.8f
+  ) ;
+  if (Rand.num() < growChance) growStage++ ;
+  if (growStage > MAX_GROWTH) growStage = MAX_GROWTH ;
+  //
+  //  Update the sprite-
+  final Model m = Plantation.speciesModel(varID, (int) growStage) ;
+  ((ImageSprite) sprite()).setModel((ImageModel) m) ;
+}
+
+
+public void exitWorld() {
+  super.exitWorld() ;
+  ///parent.planted.remove(this) ;
+}
   
-  public void exitWorld() {
-    super.exitWorld() ;
-    ///parent.planted.remove(this) ;
-  }
   
   
   public int pathType() {
@@ -82,8 +106,4 @@ public class Crop extends Element {
   public int owningType() {
     return Element.FIXTURE_OWNS ;
   }
-}
-
-
-
-
+//*/

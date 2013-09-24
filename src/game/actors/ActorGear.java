@@ -79,13 +79,55 @@ public class ActorGear extends Inventory implements BuildConstants {
   
   
   
+  /**  Maintenance, updates and spring cleaning-
+    */
+  public void updateGear(int numUpdates) {
+    if (Float.isNaN(credits)) credits = 0 ;
+    if (Float.isNaN(taxed)) taxed = 0 ;
+    
+    if (outfit != null) regenerateShields() ;
+    else currentShields = 0 ;
+    for (Item item : allItems()) {
+      if (item.refers instanceof Action) {
+        ((Action) item.refers).applyEffect() ;
+      }
+    }
+  }
+  
+  
+  public boolean addItem(Item item) {
+    if (item == null || item.amount == 0) return false ;
+    if (item.refers == actor) item = Item.withReference(item, null) ;
+    if      (item.type instanceof DeviceType) equipDevice(item) ;
+    else if (item.type instanceof OutfitType) equipOutfit(item) ;
+    else if (! super.addItem(item)) return false ;
+    if (actor.inWorld()) actor.chat.addPhrase("+"+item) ;
+    return true ;
+  }
+  
+  
+  public void incCredits(float inc) {
+    if (Float.isNaN(inc)) I.complain("INC IS NOT-A-NUMBER!") ;
+    if (Float.isNaN(credits)) credits = 0 ;
+    if (inc == 0) return ;
+    final int oldC = (int) credits() ;
+    super.incCredits(inc) ;
+    final int newC = (int) credits() ;
+    if (! actor.inWorld() || oldC == newC) return ;
+    String phrase = inc >= 0 ? "+" : "-" ;
+    phrase+=" "+(int) Math.abs(inc)+" credits" ;
+    actor.chat.addPhrase(phrase) ;
+  }
+  
+  
+  
   /**  Returns this actor's effective attack damage.  Actors without equipped
     *  weapons, or employing weapons in melee, gain a bonus based on their
     *  physical brawn.
     */
   public float attackDamage() {
     final Item weapon = deviceEquipped() ;
-    final float brawnBonus = actor.traits.trueLevel(BRAWN) / 4 ;
+    final float brawnBonus = actor.traits.traitLevel(BRAWN) / 4 ;
     if (weapon == null) return 2 + brawnBonus + baseDamage ;
     final DeviceType type = (DeviceType) weapon.type ;
     final float damage = type.baseDamage * (weapon.quality + 2f) / 4 ;
@@ -137,7 +179,7 @@ public class ActorGear extends Inventory implements BuildConstants {
     */
   public float armourRating() {
     final Item armour = outfitEquipped() ;
-    final float reflexBonus = actor.traits.trueLevel(REFLEX) / 4 ;
+    final float reflexBonus = actor.traits.traitLevel(REFLEX) / 4 ;
     if (armour == null) return 2 + reflexBonus + baseArmour ;
     final OutfitType type = (OutfitType) armour.type ;
     final float rating = type.defence * (armour.quality + 1) / 4 ;
@@ -288,44 +330,6 @@ public class ActorGear extends Inventory implements BuildConstants {
   public OutfitType outfitType() {
     if (outfit == null) return null ;
     return (OutfitType) outfit.type ;
-  }
-  
-  
-  
-  /**  Maintenance, updates and spring cleaning-
-    */
-  public void updateGear(int numUpdates) {
-    if (Float.isNaN(credits)) credits = 0 ;
-    if (Float.isNaN(taxed)) taxed = 0 ;
-    
-    if (outfit != null) regenerateShields() ;
-    else currentShields = 0 ;
-    for (Item item : allItems()) {
-      if (item.refers instanceof Action) {
-        ((Action) item.refers).applyEffect() ;
-      }
-    }
-  }
-  
-  
-  public boolean addItem(Item item) {
-    if (item == null || item.amount == 0) return false ;
-    if (item.refers == actor) item = Item.withReference(item, null) ;
-    if      (item.type instanceof DeviceType) equipDevice(item) ;
-    else if (item.type instanceof OutfitType) equipOutfit(item) ;
-    else if (! super.addItem(item)) return false ;
-    if (actor.inWorld()) actor.chat.addPhrase("+"+item) ;
-    return true ;
-  }
-  
-  
-  public void incCredits(float inc) {
-    if (Float.isNaN(inc)) I.complain("INC IS NOT-A-NUMBER!") ;
-    super.incCredits(inc) ;
-    if (! actor.inWorld()) return ;
-    String phrase = inc >= 0 ? "+" : "-" ;
-    phrase+=" "+(int) Math.abs(inc)+" credits" ;
-    actor.chat.addPhrase(phrase) ;
   }
 }
 

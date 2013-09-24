@@ -55,8 +55,9 @@ public class Exploring extends Plan implements ActorConstants {
   /**  Evaluating targets and priority-
     */
   public float priorityFor(Actor actor) {
-    final float p = rateExplorePoint(actor, lookedAt, 0) + priorityMod ;
-    ///if (BaseUI.isPicked(actor)) I.say("PRIORITY FOR EXPLORATION: "+p) ;
+    final float p = rateExplorePoint(actor, lookedAt, priorityMod) ;
+    ///if (BaseUI.isPicked(actor))
+    ///I.say("PRIORITY FOR EXPLORATION: "+p) ;
     return p ;
   }
   
@@ -64,9 +65,9 @@ public class Exploring extends Plan implements ActorConstants {
   public static float rateExplorePoint(
     Actor actor, Tile point, float winReward
   ) {
-    winReward += actor.traits.trueLevel(INQUISITIVE) ;
-    winReward -= actor.traits.trueLevel(INDOLENT) ;
-    winReward += actor.traits.trueLevel(SURVEILLANCE) / 10f ;
+    winReward += actor.traits.traitLevel(INQUISITIVE) ;
+    winReward -= actor.traits.traitLevel(INDOLENT) ;
+    winReward += actor.traits.traitLevel(SURVEILLANCE) / 10f ;
     return winReward - Plan.rangePenalty(actor, point) ;
   }
   
@@ -165,7 +166,7 @@ public class Exploring extends Plan implements ActorConstants {
     final Action looking = new Action(
       actor, lookedAt,
       this, "actionLook",
-      Action.LOOK, "Looking at "+lookedAt.habitat()
+      Action.LOOK, "Looking at "+lookedAt.habitat().name
     ) ;
     //looking.setProperties(Action.RANGED) ;
     return looking ;

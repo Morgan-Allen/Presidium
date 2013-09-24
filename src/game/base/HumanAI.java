@@ -9,6 +9,7 @@ package src.game.base ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.common.* ;
+import src.game.planet.Planet;
 import src.game.social.* ;
 import src.game.tactical.* ;
 import src.user.BaseUI ;
@@ -70,6 +71,8 @@ public class HumanAI extends ActorAI implements ActorConstants {
   
   /**  Constructor and save/load functions-
     */
+  private static boolean verbose = true ;
+  
   protected HumanAI(Actor actor) {
     super(actor) ;
   }
@@ -84,27 +87,19 @@ public class HumanAI extends ActorAI implements ActorConstants {
   
   
   
-
   /**  Behaviour implementation-
     */
   protected Behaviour createBehaviour() {
     final Choice choice = new Choice(actor) ;
-    addReactions(choice) ;
+    choice.add(mission) ;
     
-    if (mission != null && mission.active()) {
-      choice.add(mission) ;
-    }
-    if (mission != null && mission.finished()) {
-      I.say("Mission completed: "+mission.fullName()) ;
-      mission = null ;
-    }
-    if (mission == null) {
-  	  addWork(choice) ;
-  	  addLeisure(choice) ;
-      addPurchases(choice) ;
-    }
+    addReactions(choice) ;
+    addWork(choice) ;
+    addLeisure(choice) ;
+    addPurchases(choice) ;
     
     final Behaviour chosen = choice.weightedPick(whimsy()) ;
+    ///I.sayAbout(actor, "HAVE CHOSEN: "+chosen) ;
     applyForMissions(chosen) ;
     return chosen ;
   }
@@ -126,21 +121,10 @@ public class HumanAI extends ActorAI implements ActorConstants {
     }
   }
   
-
+  
   protected Behaviour reactionTo(Mobile seen) {
     return new Retreat(actor) ;
-  }
-  
-  
-  protected void applyForMissions(Behaviour chosen) {
-    if (mission != null || actor.base() == null) return ;
-    for (Mission mission : actor.base().allMissions()) {
-      if (! mission.open()) continue ;
-      if (couldSwitch(chosen, mission)) {
-        mission.setApplicant(actor, true) ;
-      }
-      else mission.setApplicant(actor, false) ;
-    }
+    //return null ;
   }
   
   
@@ -150,7 +134,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
     //
     //  Find all nearby items or actors and consider reacting to them.
     final PresenceMap mobiles = actor.world().presences.mapFor(Mobile.class) ;
-    final int reactLimit = (int) (actor.traits.trueLevel(INSIGHT) / 2) ;
+    final int reactLimit = (int) (actor.traits.traitLevel(INSIGHT) / 2) ;
     final Batch <Actor> actorB = new Batch <Actor> () ;
     int numR = 0 ;
     for (Target t : mobiles.visitNear(actor, -1, null)) {
@@ -163,7 +147,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
     for (Actor near : actorB) {
       choice.add(new Combat(actor, near)) ;
       choice.add(new Treatment(actor, near)) ;
-      ///choice.add(new Dialogue(actor, near, null)) ;
+      choice.add(new Dialogue(actor, near, null)) ;
     }
     choice.add(new Retreat(actor)) ;
     choice.add(new SickLeave(actor)) ;
@@ -185,8 +169,9 @@ public class HumanAI extends ActorAI implements ActorConstants {
       if (atHome != null) choice.add(atHome) ;
     }
     //
-    //  Consider getting paid-
+    //  Consider getting paid or leaving the settlement-
     if (work != null) choice.add(new Payday(actor, work)) ;
+    if (! hasToDo(Migration.class)) choice.add(new Migration(actor)) ;
     //
     //  Consider repairing nearby buildings-
     choice.add(Building.getNextRepairFor(actor, 0)) ;
@@ -198,7 +183,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
     //  Try a range of other spontaneous behaviours, include relaxation,
     //  helping out and spontaneous missions-
     final Action wander = (Action) new Patrolling(actor, actor, 5).nextStep() ;
-    wander.setPriority(Plan.IDLE) ;
+    wander.setPriority(Plan.IDLE * Planet.dayValue(actor.world())) ;
     choice.add(wander) ;
     //
     //  Consider going home to rest, or finding a recreational facility of
@@ -244,6 +229,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
       final Delivery d = Deliveries.nextCollectionFor(
         actor, home, goods, 5, actor, actor.world()
       ) ;
+      if (verbose) I.sayAbout(actor, "Shopping is: "+d) ;
       choice.add(d) ;
     }
   }

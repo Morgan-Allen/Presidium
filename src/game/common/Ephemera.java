@@ -44,6 +44,8 @@ public class Ephemera {
     float duration = 2.0f ;
     
     public void renderFor(Rendering r, Base b) {
+      //sprite.colour = Colour.WHITE ;
+      sprite.fog = 1.0f ;
       r.addClient(sprite) ;
     }
     
@@ -92,7 +94,6 @@ public class Ephemera {
           final Sprite s = ghost.sprite ;
           if (! port.intersects(s.position, ghost.size)) continue ;
           s.colour = Colour.transparency((duration - timeGone) / duration) ;
-          s.update() ;
           results.add(ghost) ;
         }
       }

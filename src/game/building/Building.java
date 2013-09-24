@@ -47,15 +47,21 @@ public class Building extends Plan implements ActorConstants {
     //
     //  By default, the impetus to repair something is based on qualification
     //  for the task and personality.
+    ///I.sayAbout(built, "Considering repair of "+built+"?") ;
     final float attachment = Math.max(
       actor.base().communitySpirit(),
       actor.AI.relation(built)
     ) ;
-    final float skillRating = actor.traits.chance(ASSEMBLY, null, null, -10) ;
+    //
+    //  TODO:  Factor out the skill evaluation down below?
+    float skillRating = actor.traits.chance(ASSEMBLY, MODERATE_DC) ;
+    skillRating += actor.traits.chance(HARD_LABOUR, ROUTINE_DC) ;
+    skillRating /= 2 ;
+    
     final boolean broke = built.base().credits() <= 0 ;
     float impetus = skillRating / 2f ;
-    impetus -= actor.traits.trueLevel(NATURALIST) / 10f ;
-    impetus -= actor.traits.trueLevel(INDOLENT) / 10f ;
+    impetus -= actor.traits.traitLevel(NATURALIST) / 10f ;
+    impetus -= actor.traits.traitLevel(INDOLENT) / 10f ;
     if (broke || impetus <= 0 || attachment <= 0) impetus = 0 ;
     else impetus *= attachment ;
     //
@@ -65,6 +71,10 @@ public class Building extends Plan implements ActorConstants {
     if (! built.structure.intact()) needRepair = 1.0f ;
     if (built.structure.needsUpgrade()) needRepair += 0.5f ;
     if (built.structure.burning()) needRepair++ ;
+    if (verbose) I.sayAbout(
+      built, "Considering repair of "+built+", need: "+needRepair+
+      "\nimpetus/skill for "+actor+" is "+impetus+"/"+skillRating
+    ) ;
     if (needRepair > 0.5f) {
       if (needRepair > 1) needRepair = 1 ;
       final float urgency = (needRepair - 0.5f) * 2 ;
@@ -80,6 +90,7 @@ public class Building extends Plan implements ActorConstants {
     float competition = 0 ;
     if (! begun()) {
       competition = Plan.competition(Building.class, built, actor) ;
+      if (verbose) I.sayAbout(built, "Competition is: "+competition) ;
       competition /= 1 + (built.structure.maxIntegrity() / 100f) ;
     }
     //
@@ -156,16 +167,15 @@ public class Building extends Plan implements ActorConstants {
     //
     //  Double the rate of repair again if you have proper tools and materials.
     final boolean salvage = built.structure.needsSalvage() ;
-    int success = 1 ;
+    int success = actor.traits.test(HARD_LABOUR, ROUTINE_DC, 1) ? 1 : 0 ;
     //
-    //  TODO:  Deduct credits for the venue itself, rather than the base.  That
-    //  way, you can allocate funds for construction immediately, and recoup
-    //  any differences in outlay afterwards.
+    //  TODO:  Base assembly DC (or other skills) on a Conversion for the
+    //  structure.  Require construction materials for full efficiency.
     if (salvage) {
       success *= actor.traits.test(ASSEMBLY, 5, 1) ? 2 : 1 ;
       final float amount = 0 - built.structure.repairBy(success * 5f / -2) ;
       final float cost = amount * built.structure.buildCost() ;
-      built.base().incCredits(cost * 0.5f) ;
+      built.stocks.incCredits(cost * 0.5f) ;
     }
     else {
       success *= actor.traits.test(ASSEMBLY, 10, 0.5f) ? 2 : 1 ;
@@ -173,7 +183,7 @@ public class Building extends Plan implements ActorConstants {
       final boolean intact = built.structure.intact() ;
       final float amount = built.structure.repairBy(success * 5f / 2) ;
       final float cost = amount * built.structure.buildCost() ;
-      built.base().incCredits((0 - cost) * (intact ? 0.5f : 1)) ;
+      built.stocks.incCredits((0 - cost) * (intact ? 0.5f : 1)) ;
     }
     return true ;
   }

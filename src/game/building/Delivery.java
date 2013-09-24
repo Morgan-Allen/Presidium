@@ -181,9 +181,14 @@ public class Delivery extends Plan implements BuildConstants {
     float costVal = 0 ;
     if (isShopping() && stage <= STAGE_PICKUP) {
       int price = 0 ;
-      for (Item i : available) price += purchasePrice(i, actor, origin) ;
+      float foodVal = 0 ;
+      for (Item i : available) {
+        price += purchasePrice(i, actor, origin) ;
+        if (Visit.arrayIncludes(ALL_FOOD_TYPES, i.type)) foodVal += i.amount ;
+      }
       if (price > actor.gear.credits()) return 0 ;
       costVal = actor.AI.greedFor(price) * CASUAL ;
+      costVal -= actor.health.hungerLevel() * CASUAL * foodVal ;
     }
     return Visit.clamp(
       ROUTINE + priorityMod - (costVal + rangePenalty), 0, URGENT
@@ -197,9 +202,12 @@ public class Delivery extends Plan implements BuildConstants {
       if (driven.destroyed()) return false ;
       if (! driven.canPilot(actor)) return false ;
     }
+    //
+    //  TODO:  Put the passenger-delivery schtick into a different class.  It's
+    //  making a mess of things here.
+    if (passenger != null) return true ;
     if (stage < STAGE_RETURN && available(actor).length == 0) {
-      ///I.sayAbout(actor, "NOTHING AVAILABLE") ;
-      for (Item i : items) I.sayAbout(actor, ""+i) ;
+      if (driven != null) { stage = STAGE_RETURN ; return true ; }
       return false ;
     }
     return true ;

@@ -29,6 +29,8 @@ public class StockExchange extends Venue implements BuildConstants {
       "media/Buildings/merchant/stock_exchange.png",
       4, 2
     ) ;
+  
+  
   private CargoBarge cargoBarge ;
   
   

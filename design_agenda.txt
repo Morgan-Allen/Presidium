@@ -70,18 +70,12 @@ STOCK EXCHANGE & AUDIT OFFICE
   Hearing of criminal cases.  (implement later.)
   Recruiting Auditors.
   Recruiting Censors.
-
-  More storage space for hardware.
-  More storage space for perishables.
+  
   Permitting sales to the venue.
   Permitting orders of rare/custom items.
   Enhancing small-scale bulk purchases (window-shopping/special offers.)
-  Recruiting Vendors.
 
   What about the Supply Depot/Mag Lines?
-  ...Provides long-range bulk transport of goods and personnel.
-  ...Permits long-range power/water/life-support transmission.
-  Supply Corps as standard.
 
 
 GARRISON & BASTION
@@ -91,8 +85,6 @@ GARRISON & BASTION
   ...Activate shields/man the defences.
   2 Sentries at Blast Door, as standard.
 
-
-
 THE FABRICATOR
   Faster production of plastics.
   Faster production of garments.
@@ -101,26 +93,9 @@ THE FABRICATOR
   Recruiting Fabricators.
   Recruiting Sculptors.
 
-
-
-
 THE CONDENSOR AND SOLAR ARRAY/WINDTRAPS
   ...Provides life support and water.
   ...Provides and stores power, based on daylight values.
-
-THE AIR PROCESSOR
-  Spice Reduction.  (Small amounts of spice collected.)
-  Climate Control.  (Carbons capture/release.)
-  Dust Panning.  (Metals/isotopes.)
-  Water Cycle Integration.  (Bonus near deserts/oceans.)
-  ...automated crawler as standard.
-
-THE REACTOR
-  What about the Vault System/Service Hatches?
-  ...Allows you to stockpile set amounts of various goods, for
-     release in case of shortfall.
-  ...Provides a baseline degree of power and life support.
-  ...Provides an emergency shelter in times of invasion/disaster.
 
 THE ARCHIVES
   (requires circuitry)

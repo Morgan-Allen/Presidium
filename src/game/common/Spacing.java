@@ -220,7 +220,8 @@ public final class Spacing implements TileConstants {
     while (nearest == null && numTries++ < (CLUSTER_SIZE / 2)) {
       for (Tile t : perimeter(area, world)) {
         //I.say("  Trying tile: "+t) ;
-        if (t == null || t.blocked() || t.inside().size() > 0) continue ;
+        if (t == null || t.blocked()) continue ;
+        if (t != o && t.inside().size() > 0) continue ;
         final float dist = distance(o, t) ;
         if (dist < minDist) { minDist = dist ; nearest = t ; }
       }

@@ -128,9 +128,10 @@ public class Career implements ActorConstants {
       actor.traits.incLevel(t, Rand.range(-2, 2)) ;
       if (numP >= 3 && Rand.yes()) break ;
     }
-    actor.traits.incLevel(HANDSOME, Rand.rangeAvg(-3, 3, 2)) ;
-    actor.traits.incLevel(TALL    , Rand.rangeAvg(-3, 3, 2)) ;
-    actor.traits.incLevel(STOUT   , Rand.rangeAvg(-3, 3, 2)) ;
+    actor.traits.incLevel(HANDSOME, Rand.rangeAvg(-2, 2, 2)) ;
+    actor.traits.incLevel(TALL    , Rand.rangeAvg(-2, 2, 2)) ;
+    actor.traits.incLevel(STOUT   , Rand.rangeAvg(-2, 2, 2)) ;
+    applySystem((System) homeworld, actor) ;
     applySex(actor) ;
     //
     //  Finally, specify name and (TODO:) a few other details of appearance.
@@ -147,7 +148,7 @@ public class Career implements ActorConstants {
   
   private void setupAttributes(Actor actor) {
     for (Skill s : actor.traits.skillSet()) {
-      final float level = actor.traits.trueLevel(s) ;
+      final float level = actor.traits.traitLevel(s) ;
       actor.traits.raiseLevel(s.parent, level + Rand.index(10) - 5) ;
       if (s.form == FORM_COGNITIVE) {
         actor.traits.raiseLevel(INTELLECT, 5 + Rand.index(10)) ;
@@ -166,8 +167,8 @@ public class Career implements ActorConstants {
       final Skill att = ATTRIBUTES[i] ;
       actor.traits.incLevel(att, Rand.index(10) - 5) ;
       final float minVal = Math.max(
-        actor.traits.trueLevel(ATTRIBUTES[(i + 1) % 6]),
-        actor.traits.trueLevel(ATTRIBUTES[(i + 5) % 6])
+        actor.traits.traitLevel(ATTRIBUTES[(i + 1) % 6]),
+        actor.traits.traitLevel(ATTRIBUTES[(i + 5) % 6])
       ) / 2f ;
       actor.traits.raiseLevel(att, minVal) ;
       actor.traits.raiseLevel(att, 5 + Rand.index(10)) ;
@@ -180,7 +181,7 @@ public class Career implements ActorConstants {
     //  TODO:  Some of these traits need to be rendered 'dormant' in younger
     //  citizens...
     float ST = Visit.clamp(Rand.rangeAvg(-1, 3, 2), 0, 3) ;
-    if (Rand.index(20) == 0) ST *= -1 ;
+    if (Rand.index(20) == 0) ST = -1 ;
     if (Rand.yes()) {
       actor.traits.setLevel(GENDER, "Female") ;
       actor.traits.setLevel(FEMININE, ST) ;
@@ -210,6 +211,7 @@ public class Career implements ActorConstants {
       WASTES_BLOOD
     } ;
     Trait pickBlood = null ;
+    ///I.say("Applying system: "+world.name+", climate: "+world.climate) ;
     for (int n = 4 ; n-- > 0 ;) {
       if (bloods[n] == world.climate) {
         final float roll = Rand.num() ;
@@ -268,12 +270,12 @@ public class Career implements ActorConstants {
     }
     
     for (Trait t : v.traitChances.keySet()) {
-      final float chance = v.traitChances.get(t) ;
-      if (Rand.num() < Math.abs(chance)) {
-        ///I.say("Adding trait: "+t) ;
-        actor.traits.incLevel(t, chance > 0 ? 1 : -1) ;
+      float chance = v.traitChances.get(t) ;
+      while (Rand.index(10) < Math.abs(chance) * 10) {
+        actor.traits.incLevel(t, chance > 0 ? 0.5f : -0.5f) ;
+        chance /= 2 ;
       }
-      else actor.traits.incLevel(t, chance * Rand.num()) ;
+      actor.traits.incLevel(t, chance * Rand.num()) ;
     }
   }
   

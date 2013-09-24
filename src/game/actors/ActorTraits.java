@@ -107,6 +107,8 @@ public class ActorTraits implements ActorConstants {
   
   
   public float inbreedChance(Actor a, Actor b) {
+    //
+    //  TODO:  Also use kinship networks.
     final char[]
       mA = a.traits.DNA.toCharArray(),
       mB = b.traits.DNA.toCharArray() ;
@@ -135,7 +137,7 @@ public class ActorTraits implements ActorConstants {
   
   /**  Methods for querying and modifying the levels of assorted traits-
     */
-  public float trueLevel(Trait type) {
+  public float traitLevel(Trait type) {
     final Level level = levels.get(type) ;
     if (level == null) return 0 ;
     return Visit.clamp(level.value, type.minVal, type.maxVal) ;
@@ -144,13 +146,13 @@ public class ActorTraits implements ActorConstants {
   
   public int rootBonus(Skill skill) {
     final float ageMult = actor.health.ageMultiple() ;
-    return (int) (0.5f + (trueLevel(skill.parent) * ageMult / 5f)) ;
+    return (int) (0.5f + (traitLevel(skill.parent) * ageMult / 5f)) ;
   }
   
   
   public float useLevel(Trait type) {
     if (! actor.health.conscious()) return 0 ;
-    float level = trueLevel(type) ;
+    float level = traitLevel(type) ;
     if (type.type == PHYSICAL) {
       return level * actor.health.ageMultiple() ;
     }
@@ -170,7 +172,7 @@ public class ActorTraits implements ActorConstants {
   
   public float scaleLevel(Trait type) {
     final float scale = Visit.clamp(
-      (trueLevel(type) - type.minVal) / (type.maxVal - type.minVal), 0, 1
+      (traitLevel(type) - type.minVal) / (type.maxVal - type.minVal), 0, 1
     ) ;
     return (float) Math.pow(2, (scale * 2) - 1) ;
   }
@@ -180,8 +182,8 @@ public class ActorTraits implements ActorConstants {
     int i = 0 ; for (String s : type.descriptors) {
       if (desc.equals(s)) {
         final float value = type.descValues[i] ;
-        if (value > 0) return trueLevel(type) >= value ;
-        else return trueLevel(type) <= value ;
+        if (value > 0) return traitLevel(type) >= value ;
+        else return traitLevel(type) <= value ;
       }
       else i++ ;
     }
@@ -190,7 +192,7 @@ public class ActorTraits implements ActorConstants {
   
   
   public String levelDesc(Trait type) {
-    return Trait.descriptionFor(type, trueLevel(type)) ;
+    return Trait.descriptionFor(type, traitLevel(type)) ;
   }
   
   
@@ -260,7 +262,10 @@ public class ActorTraits implements ActorConstants {
   
   
   public Batch <Trait> physique() {
-    return getMatches(null, ActorConstants.PHYSICAL_TRAITS) ;
+    final Batch <Trait> matches = new Batch <Trait> () ;
+    getMatches(matches, ActorConstants.PHYSICAL_TRAITS) ;
+    getMatches(matches, ActorConstants.BLOOD_TRAITS) ;
+    return matches ;
   }
   
   
@@ -301,10 +306,15 @@ public class ActorTraits implements ActorConstants {
   ) {
     float bonusA = useLevel(checked) + Math.max(0, bonus) ;
     float bonusB = 0 - Math.min(0, bonus) ;
-    if (b != null) bonusB += b.traits.useLevel(opposed) ;
+    if (b != null && opposed != null) bonusB += b.traits.useLevel(opposed) ;
     final float chance = Visit.clamp(bonusA + 10 - bonusB, 0, 20) / 20 ;
     ///I.say("Test chance for "+actor+" is: "+chance) ;
     return Visit.clamp(chance, 0.1f, 0.9f) ;
+  }
+  
+  
+  public float chance(Skill checked, float DC) {
+    return chance(checked, null, null, 0 - DC) ;
   }
   
   
@@ -338,7 +348,7 @@ public class ActorTraits implements ActorConstants {
   
   
   public void practice(Skill skillType, float practice) {
-    incLevel(skillType, practice / (trueLevel(skillType) + 1)) ;
+    incLevel(skillType, practice / (traitLevel(skillType) + 1)) ;
     if (skillType.parent != null) practice(skillType.parent, practice / 5) ;
   }
   
@@ -348,19 +358,19 @@ public class ActorTraits implements ActorConstants {
     */
   public void writeInformation(Description d) {
     for (Skill s : attributes()) {
-      d.append("\n  "+s.name+" "+((int) trueLevel(s))) ;
+      d.append("\n  "+s.name+" "+((int) traitLevel(s))) ;
     }
     d.append("\n") ;
     for (Skill s : skillSet()) {
-      d.append("\n  "+s.name+" "+((int) trueLevel(s))) ;
+      d.append("\n  "+s.name+" "+((int) traitLevel(s))) ;
     }
     d.append("\n") ;
     for (Trait t : personality()) {
-      d.append("\n  "+Trait.descriptionFor(t, trueLevel(t))) ;
+      d.append("\n  "+Trait.descriptionFor(t, traitLevel(t))) ;
     }
     d.append("\n") ;
     for (Trait t : physique()) {
-      d.append("\n  "+Trait.descriptionFor(t, trueLevel(t))) ;
+      d.append("\n  "+Trait.descriptionFor(t, traitLevel(t))) ;
     }
   }
 }

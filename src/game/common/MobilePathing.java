@@ -209,7 +209,7 @@ public class MobilePathing {
     //
     //  Determine how far one can move this update, including limits on
     //  maximum rotation-
-    final float maxRotate = speed * 90 / PlayLoop.UPDATES_PER_SECOND  ;
+    final float maxRotate = speed * 180 / PlayLoop.UPDATES_PER_SECOND  ;
     final float
       angleDif = Vec2D.degreeDif(angle, mobile.rotation),
       absDif   = Math.abs(angleDif) ;
@@ -236,10 +236,6 @@ public class MobilePathing {
       baseHigh = aboard.position(null).z ;
     }
     mobile.nextPosition.z = baseHigh + mobile.aboveGroundHeight() ;
-    
-    if (verbose) I.sayAbout(mobile,
-      "OLD/NEW HEADING: "+mobile.position+"/"+mobile.nextPosition
-    ) ;
   }
   
   

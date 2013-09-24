@@ -120,7 +120,7 @@ public class Human extends Actor implements ActorConstants {
     int ID = 0 ;
     float highest = 0 ;
     for (int i = 4 ; i-- > 0 ;) {
-      final float blood = c.traits.trueLevel(BLOOD_TRAITS[i]) ;
+      final float blood = c.traits.traitLevel(BLOOD_TRAITS[i]) ;
       if (blood > highest) { ID = i ; highest = blood ; }
     }
     return ID ;
@@ -138,7 +138,7 @@ public class Human extends Actor implements ActorConstants {
     int faceOff[], bloodOff[] = BLOOD_FACE_OFFSETS[bloodID] ;
     if (ageStage == 0) faceOff = CHILD_FACE_OFF ;
     else {
-      int looks = (int) c.traits.trueLevel(Trait.HANDSOME) + 2 - ageStage ;
+      int looks = (int) c.traits.traitLevel(Trait.HANDSOME) + 2 - ageStage ;
       if (looks > 0) faceOff = male ? M_HOT_FACE_OFF : F_HOT_FACE_OFF ;
       else if (looks == 0) faceOff = male ? M_AVG_FACE_OFF : F_AVG_FACE_OFF ;
       else faceOff = ELDER_FACE_OFF ;
@@ -326,21 +326,21 @@ public class Human extends Actor implements ActorConstants {
     //  Describe attributes, skills and psyonic techniques.
     d.append("Attributes: ") ;
     for (Skill skill : traits.attributes()) {
-      final int level = (int) traits.trueLevel(skill) ;
+      final int level = (int) traits.traitLevel(skill) ;
       d.append("\n  "+skill.name+" "+level+" ") ;
       d.append(Skill.attDesc(level), Skill.skillTone(level)) ;
     }
     d.append("\n\nSkills: ") ;
     final List <Skill> sorting = new List <Skill> () {
       protected float queuePriority(Skill skill) {
-        return traits.trueLevel(skill) ;
+        return traits.traitLevel(skill) ;
       }
     } ;
     
     for (Skill skill : traits.skillSet()) sorting.add(skill) ;
     sorting.queueSort() ;
     for (Skill skill : sorting) {
-      final int level = (int) traits.trueLevel(skill) ;
+      final int level = (int) traits.traitLevel(skill) ;
       final int rootBonus = traits.rootBonus(skill) ;
       final Colour tone = Skill.skillTone(level) ;
       d.append("\n  "+skill.name+" "+level+" ", tone) ;
@@ -361,10 +361,11 @@ public class Human extends Actor implements ActorConstants {
     //  Describe background, personality, relationships and memories.
     //  TODO:  Allow for a chain of arbitrary vocations in a career?
     d.append("Background: ") ;
-    d.append("\n  "+traits.levelDesc(ORIENTATION)) ;
-    d.append(" "+traits.levelDesc(GENDER)) ;
     d.append("\n  "+career.birth()+" on "+career.homeworld()) ;
     d.append("\n  Trained as "+career.vocation().nameFor(this)) ;
+    //d.append("\n  "+BLOOD_TRAITS[bloodID(this)]) ;
+    d.append("\n  "+traits.levelDesc(ORIENTATION)) ;
+    d.append(" "+traits.levelDesc(GENDER)) ;
     d.append("\n  Age: "+health.exactAge()+" ("+health.agingDesc()+")") ;
     
     d.appendList("\n\nAppearance: ", descTraits(traits.physique())) ;

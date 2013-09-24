@@ -176,7 +176,7 @@ public class Background implements BuildConstants {
       "Physician", "physician_skin.gif", "physician_portrait.png",
       UPPER_CLASS, GUILD_PHYSICIAN,
       EXPERT, ANATOMY, PHARMACY,
-      PRACTICED, GENE_CULTURE, NEUROSCIENCE, COUNSEL, SUASION,
+      PRACTICED, GENE_CULTURE, PSYCHOANALYSIS, COUNSEL, SUASION,
       OFTEN, INQUISITIVE, SOMETIMES, HONOURABLE, IMPASSIVE, RARELY, DEBAUCHED
     ),
     
@@ -331,7 +331,7 @@ public class Background implements BuildConstants {
       UPPER_CLASS, GUILD_AESTHETE,
       EXPERT, GRAPHIC_DESIGN, SUASION,
       PRACTICED, MUSIC_AND_SONG, ADMINISTRATION,
-      NOVICE, COUNSEL, NEUROSCIENCE,
+      NOVICE, COUNSEL, PSYCHOANALYSIS,
       RARELY, HONOURABLE, STUBBORN, OFTEN, AMBITIOUS
     ),
     
@@ -497,6 +497,8 @@ public class Background implements BuildConstants {
     ),
     HONOUR_GUARD = null,
     HOSTAGE      = null,
+    
+    COURT_CIRCLES[] = {},
     //
     //  Ministers confer the benefits of a portion of their skills on the
     //  planet as a whole (including stuff off the main map.)
@@ -513,12 +515,14 @@ public class Background implements BuildConstants {
       "Prefect", "physician_skin.gif", null,
       RULER_CLASS, NOT_A_GUILD,
       PRACTICED, COUNSEL, SUASION, ADMINISTRATION, COMMON_CUSTOM,
-      NOVICE, NOBLE_ETIQUETTE, NEUROSCIENCE, BATTLE_TACTICS, COMMAND,
+      NOVICE, NOBLE_ETIQUETTE, PSYCHOANALYSIS, BATTLE_TACTICS, COMMAND,
       OFTEN, SOCIABLE, AMBITIOUS, SOMETIMES, ACQUISITIVE
     ),
     GOVERNOR = null,
     SENATOR  = null,
-    CONSUL   = null
+    CONSUL   = null,
+    
+    GOVERNMENT_CIRCLES[] = {}
     //
     //  TODO:  Do you need positions for leadership within the Strains?
   ;
@@ -542,7 +546,7 @@ public class Background implements BuildConstants {
       MAKES, SOMA, PLASTICS, DECOR, SPICE,
       NEEDS, WATER, SERVICE_CONSORTS, DATALINKS,
       FREE_BIRTH,
-      OFTEN, ECOLOGIST_CIRCLES, AESTHETE_CIRCLES
+      OFTEN, ECOLOGIST_CIRCLES, SOMETIMES, COURT_CIRCLES, AESTHETE_CIRCLES
       //  House Suhail
     ),
     PLANET_PAREM_V = new System(
@@ -551,7 +555,8 @@ public class Background implements BuildConstants {
       MAKES, PARTS, DATALINKS, SERVICE_CAPTIVES,
       NEEDS, PETROCARBS, DECOR, RARITIES,
       HIVES_BIRTH, PYON_BIRTH,
-      OFTEN, ARTIFICER_CIRCLES, RARELY, ECOLOGIST_CIRCLES
+      OFTEN, ARTIFICER_CIRCLES, SOMETIMES, COURT_CIRCLES,
+      RARELY, ECOLOGIST_CIRCLES
       //  House Procyon
     ),
     PLANET_HALIBAN = new System(
@@ -560,21 +565,22 @@ public class Background implements BuildConstants {
       MAKES, CARBS, GREENS, PETROCARBS,
       NEEDS, SERVICE_ARMAMENT, PARTS, MEDICINE,
       GUILDER_BIRTH, FREE_BIRTH,
-      OFTEN, MILITARY_CIRCLES, PHYSICIAN_CIRCLES, RARELY, VENDOR_CIRCLES
+      OFTEN, MILITARY_CIRCLES, SOMETIMES, PHYSICIAN_CIRCLES,
+      RARELY, VENDOR_CIRCLES
       //  House Altair
     ),
-    PLANET_NOVENA = new System(
-      "Novena", null, 1, 0,
+    PLANET_AXIS_NOVENA = new System(
+      "Axis Novena", null, 1, 0,
       TUNDRA_BLOOD, NOMINAL_GRAVITY,
       MAKES, CIRCUITRY, MEDICINE, SERVICE_SHIPPING,
       NEEDS, GREENS, METAL_ORE, FUEL_CORES,
       HIVES_BIRTH, GUILDER_BIRTH,
-      OFTEN, VENDOR_CIRCLES, ARTIFICER_CIRCLES, RARELY, AESTHETE_CIRCLES
+      OFTEN, PHYSICIAN_CIRCLES, ARTIFICER_CIRCLES, RARELY, AESTHETE_CIRCLES
       //  House Taygeta
     ),
     
     ALL_PLANETS[] = {
-      PLANET_ASRA_NOVI, PLANET_PAREM_V, PLANET_HALIBAN, PLANET_NOVENA
+      PLANET_ASRA_NOVI, PLANET_PAREM_V, PLANET_HALIBAN, PLANET_AXIS_NOVENA
     } ;
   
   
@@ -590,9 +596,9 @@ public class Background implements BuildConstants {
   
   final public int standing ;
   final public int guild ;
-  Table <Skill, Integer> baseSkills = new Table() ;
-  Table <Trait, Float> traitChances = new Table() ;
-  List <Service> gear = new List() ;
+  final Table <Skill, Integer> baseSkills = new Table <Skill, Integer> () ;
+  final Table <Trait, Float> traitChances = new Table <Trait, Float> () ;
+  final List <Service> gear = new List <Service> () ;
   
   
   

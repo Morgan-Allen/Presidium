@@ -109,13 +109,9 @@ public class SolarArray extends Segment implements BuildConstants {
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    //
-    //  TODO:  You'll have to conduct power through the other portions of the
-    //  array.  Likewise for Causeways.
-    
     if (stocks.amountOf(POWER) < 10) {
       final float dayVal = Planet.dayValue(world) ;
-      stocks.addItem(Item.withAmount(POWER, 5 * dayVal / 10f)) ;
+      stocks.bumpItem(POWER, 5 * dayVal / 10f) ;
     }
   }
   

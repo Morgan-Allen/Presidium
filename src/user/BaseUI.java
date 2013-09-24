@@ -6,7 +6,9 @@
 
 
 package src.user ;
+import src.game.actors.ActorHealth;
 import src.game.common.* ;
+import src.game.planet.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.util.* ;
@@ -114,7 +116,7 @@ public class BaseUI extends HUD implements UIConstants {
     
     this.readout = new Text(this, INFO_FONT) ;
     readout.relBound.set(0, 1, 1, 0) ;
-    readout.absBound.set(200, -50, -500, 40) ;
+    readout.absBound.set(200, -50, -300, 40) ;
     readout.attachTo(this) ;
     /*
     this.psyPoints = new ProgBar(this) ;
@@ -153,24 +155,61 @@ public class BaseUI extends HUD implements UIConstants {
     */
   public void updateMouse() {
     super.updateMouse() ;
-    
-    if (readout != null) {
-      final int credits = played.credits() ;
-      final float days = world.currentTime() / World.STANDARD_DAY_LENGTH ;
-      final String dS = (""+days+"0000").substring(0, 4) ;
-      int psyPoints = 0 ;/// played.ruler().health.psy() ;
-      readout.setText(credits+" Credits   "+dS+" Days   Psy Points:") ;
-      if (psyPoints == 0) readout.append(" (none)") ;
-      else while (psyPoints-- > 0) readout.append("|") ;
-    }
-    
+    updateReadout() ;
     if (selection.updateSelection(world, rendering.port, infoArea)) {
       if (mouseClicked() && currentTask == null) {
         selection.pushSelection(selection.hovered(), true) ;
       }
     }
-    
     I.talkAbout = selection.selected() ;
+  }
+  
+  
+  protected void updateReadout() {
+    if (readout == null) return ;
+    readout.setText("") ;
+    //
+    //  Credits first-
+    final int credits = played.credits() ;
+    if (credits >= 0) readout.append(credits+" Credits", Colour.WHITE) ;
+    else readout.append((0 - credits)+" In Debt", Colour.YELLOW) ;
+    readout.append("   ") ;
+    //
+    //  Then time and date-
+    final float
+      time = world.currentTime() / World.STANDARD_DAY_LENGTH ;
+    final int
+      days  = (int) time,
+      hours = (int) ((time - days) * 24) ;
+    String hS = hours+"00" ;
+    while (hS.length() < 4) hS = "0"+hS ;
+    String dS = "Day "+days+" "+hS+" Hours" ;
+    readout.append(dS) ;
+    //
+    //  And finally current psy points-
+    final boolean ruled = played.ruler() != null ;
+    final ActorHealth RH = ruled ? played.ruler().health : null ;
+    final int PS = ruled ? 2 * (int) RH.maxPsy() : 0 ;
+    float psyPoints = 0 ;
+    if (played.ruler() != null) {
+      psyPoints += played.ruler().health.psyPoints() ;
+      psyPoints *= PS / RH.maxPsy() ;
+    }
+    if (PS > 0 && psyPoints > 0) {
+      readout.append("   Psy Points: ") ;
+      float a = psyPoints / PS ;
+      Colour tone = new Colour().set((1 - a) / 2, a, (1 - a), 1) ;
+      while (--psyPoints > 0) {
+        readout.append("|", tone) ;
+        a = psyPoints / PS ;
+        tone = new Colour().set((1 - a) / 2, a, (1 - a), 1) ;
+        tone.setValue(1) ;
+      }
+      if ((psyPoints + 1) > 0) {
+        tone.a = psyPoints + 1 ;
+        readout.append("|", tone) ;
+      }
+    }
   }
   
   

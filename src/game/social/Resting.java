@@ -4,8 +4,8 @@
 
 package src.game.social ;
 import src.game.common.* ;
-import src.game.planet.Planet;
-import src.game.tactical.Retreat;
+import src.game.planet.* ;
+import src.game.tactical.* ;
 import src.game.building.* ;
 import src.game.actors.* ;
 import src.game.base.* ;
@@ -13,8 +13,6 @@ import src.user.* ;
 import src.util.* ;
 
 
-//
-//  TODO:  Base this exclusively on fatigue!
 
 public class Resting extends Plan implements BuildConstants {
   
@@ -38,9 +36,9 @@ public class Resting extends Plan implements BuildConstants {
   float minPriority = -1 ;
   
   
-  public Resting(Actor actor, Boardable relaxesAt) {
+  public Resting(Actor actor, Target relaxesAt) {
     super(actor) ;
-    this.restPoint = relaxesAt ;
+    this.restPoint = (Boardable) relaxesAt ;
   }
   
   
@@ -64,6 +62,7 @@ public class Resting extends Plan implements BuildConstants {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
+    ///I.sayAbout(actor, "Considering rest...") ;
     if (restPoint == null) return -1 ;
     final float priority = ratePoint(actor, restPoint) ;
     //
@@ -71,6 +70,7 @@ public class Resting extends Plan implements BuildConstants {
     //  relaxing as fatigue lifts, we establish a minimum priority-
     if (minPriority == -1) minPriority = Math.max(priority / 2, priority - 2) ;
     if (priority < minPriority) return minPriority ;
+    if (verbose) I.sayAbout(actor, actor+" resting priority: "+priority) ;
     return priority ;
   }
   
@@ -78,7 +78,10 @@ public class Resting extends Plan implements BuildConstants {
   protected Behaviour getNextStep() {
     if (restPoint == null) return null ;
     final Behaviour eats = nextEating() ;
-    if (eats != null) return eats ;
+    if (eats != null) {
+      if (verbose) I.sayAbout(actor, "Returning eat action...") ;
+      return eats ;
+    }
     //
     //  If you're tired, put your feet up.
     if (actor.health.fatigueLevel() > 0.1f) {
@@ -116,7 +119,8 @@ public class Resting extends Plan implements BuildConstants {
         }
         else return null ;
       }
-      else currentMode = MODE_DINE ;
+      currentMode = MODE_DINE ;
+      I.sayAbout(actor, "Menu size: "+menu.size()) ;
       return eats ;
     }
     return null ;
@@ -152,20 +156,10 @@ public class Resting extends Plan implements BuildConstants {
   }
   
   
-  private Batch <Service> menuFor(Target place) {
-    Batch <Service> menu = new Batch <Service> () ;
-    if (! (place instanceof Venue)) return menu ;
-    final Venue venue = (Venue) place ;
-    for (Service type : ALL_FOOD_TYPES) {
-      if (venue.inventory().amountOf(type) >= 1) menu.add(type) ;
-    }
-    return menu ;
-  }
-  
-  
   public boolean actionRest(Actor actor, Boardable place) {
     //  TODO:  If you're in a Cantina, you'll have to pay the
     //  admission fee.
+    ///I.sayAbout(actor, "ACTOR NOW RESTING") ;
     actor.health.setState(ActorHealth.STATE_RESTING) ;
     return true ;
   }
@@ -174,8 +168,8 @@ public class Resting extends Plan implements BuildConstants {
   
   /**  Methods used for external assessment-
     */
-  public static Boardable pickRestPoint(final Actor actor) {
-    final Batch <Boardable> safePoints = new Batch <Boardable> () ;
+  public static Target pickRestPoint(final Actor actor) {
+    final Batch <Target> safePoints = new Batch <Target> () ;
     final Presences presences = actor.world().presences ;
     safePoints.add(Retreat.pickWithdrawPoint(actor, 16, actor, 0.1f)) ;
     safePoints.add(actor.AI.home()) ;
@@ -183,8 +177,8 @@ public class Resting extends Plan implements BuildConstants {
     safePoints.add(presences.nearestMatch(Cantina.class, actor, -1)) ;
     //
     //  Now pick whichever option is most attractive.
-    final Boardable picked = new Visit <Boardable> () {
-      public float rate(Boardable b) { return ratePoint(actor, b) ; }
+    final Target picked = new Visit <Target> () {
+      public float rate(Target b) { return ratePoint(actor, b) ; }
     }.pickBest(safePoints) ;
     
     if (verbose) I.sayAbout(
@@ -195,9 +189,22 @@ public class Resting extends Plan implements BuildConstants {
   }
   
   
-  public static float ratePoint(Actor actor, Boardable point) {
+  private static Batch <Service> menuFor(Target place) {
+    Batch <Service> menu = new Batch <Service> () ;
+    if (! (place instanceof Venue)) return menu ;
+    final Venue venue = (Venue) place ;
+    for (Service type : ALL_FOOD_TYPES) {
+      if (venue.inventory().amountOf(type) >= 0.1f) menu.add(type) ;
+    }
+    return menu ;
+  }
+  
+  
+  public static float ratePoint(Actor actor, Target point) {
     if (point == null) return -1 ;
-    if (point instanceof Venue && ! ((Venue) point).structure.intact()) return -1 ;
+    if (point instanceof Venue && ! ((Venue) point).structure.intact()) {
+      return -1 ;
+    }
     float baseRating = 0 ;
     if (point == actor.AI.home()) {
       baseRating += 4 ;
@@ -213,13 +220,21 @@ public class Resting extends Plan implements BuildConstants {
     else if (point instanceof Tile) {
       baseRating += 1 ;
     }
+    baseRating *= 1.5f - Planet.dayValue(actor.world()) ;
     //
     //  If the venue doesn't belong to the same base, reduce the attraction.
     if (point instanceof Venue) {
-      float relation = actor.AI.relation(((Venue) point).base()) ;
-      baseRating *= relation ;
+      final Venue venue = (Venue) point ;
+      baseRating *= actor.AI.relation(venue) ;
+      //
+      //  Also, include the effects of hunger-
+      float sumFood = 0 ;
+      for (Service s : menuFor(point)) {
+        sumFood += venue.stocks.amountOf(s) ;
+      }
+      if (sumFood > 1) sumFood = 1 ;
+      baseRating += actor.health.hungerLevel() * sumFood * PARAMOUNT ;
     }
-    baseRating *= 1.5f - Planet.dayValue(actor.world()) ;
     baseRating -= Plan.rangePenalty(actor, point) ;
     if (baseRating < 0) return 0 ;
     //

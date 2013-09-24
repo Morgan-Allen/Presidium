@@ -127,6 +127,7 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
       PlayLoop.loadGame("saves/test_session.rep") ;
       final Base base = PlayLoop.played() ;
       if (base.credits() < 2000) base.incCredits(2000) ;
+      PlayLoop.setGameSpeed(1.0f) ;
       return true ;
     }
     catch (Exception e) { I.report(e) ; return false ; }

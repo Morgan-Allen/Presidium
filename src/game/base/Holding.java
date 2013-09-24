@@ -95,6 +95,7 @@ public class Holding extends Venue implements BuildConstants {
   } ;
   
   
+  private List <Element> extras = new List <Element> () ;
   private int upgradeLevel, varID ;
   
   
@@ -130,6 +131,11 @@ public class Holding extends Venue implements BuildConstants {
   }
   
   
+  public int upgradeLevel() {
+    return upgradeLevel ;
+  }
+  
+  
   
   /**  Upgrade listings-
     */
@@ -160,6 +166,12 @@ public class Holding extends Venue implements BuildConstants {
     */
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
+    
+    if (personnel.residents().size() == 0) {
+      structure.setState(VenueStructure.STATE_SALVAGE, -1) ;
+      return ;
+    }
+    if (! structure.intact()) return ;
     //
     //  First of all, we check if we have enough of various material goods to
     //  justify an upgrade-
@@ -198,6 +210,9 @@ public class Holding extends Venue implements BuildConstants {
     else if (upgrade) targetLevel = upgradeLevel + 1 ;
     targetLevel = Visit.clamp(targetLevel, NUM_LEVELS) ;
     checkForUpgrade(targetLevel) ;
+    //
+    //  And try creating some decorative extras-
+    createExtras(numUpdates) ;
   }
   
   
@@ -220,6 +235,7 @@ public class Holding extends Venue implements BuildConstants {
       setAsEstablished(false) ;
     }
   }
+  
   
   
   private Conversion goodsNeeded(int level) {
@@ -268,8 +284,58 @@ public class Holding extends Venue implements BuildConstants {
     
     EXTRA_MODELS[][] = ImageModel.fromTextureGrid(
       Holding.class, Texture.loadTexture(IMG_DIR+"housing_props.png"),
-      3, 3, 1, ImageModel.TYPE_POPPED_BOX
+      3, 3, 0.85f, ImageModel.TYPE_POPPED_BOX
     ) ;
+  
+  
+  protected void createExtras(int numUpdates) {
+    //
+    //  TODO:  Just pick one side of the structure and fill it up.  Looks
+    //  neater that way.  TODO:  Also, upgrade extra level with the holding.
+    if (true) return ;
+    if (numUpdates % 10 != 0) return ;
+    final int extraLevel = 1 + (int) Math.floor(upgradeLevel / 3f) ;
+    
+    for (Element e : extras) {
+      base().paving.updatePerimeter((Fixture) e, e.inWorld()) ;
+      if (e.destroyed()) extras.remove(e) ;
+    }
+    if (extras.size() < 2) {
+      final Tile t = Spacing.pickRandomTile(this, 2, world) ;
+      if (t == null || Spacing.isEntrance(t)) return ;
+      final Fixture extra = new Extra(extraLevel) ;
+      extra.setPosition(t.x, t.y, world) ;
+      if (extra.canPlace() && Spacing.perimeterFits(extra)) {
+        extra.enterWorld() ;
+        extras.add(extra) ;
+      }
+    }
+  }
+  
+  
+  public void exitWorld() {
+    super.exitWorld() ;
+    for (Element e : extras) {
+      base().paving.updatePerimeter((Fixture) e, false) ;
+      e.setAsDestroyed() ;
+    }
+  }
+  
+  
+  public static class Extra extends Fixture {
+    protected Extra(int level) {
+      super(1, 1) ;
+      attachModel(EXTRA_MODELS[level][Rand.index(3)]) ;
+    }
+    public Extra(Session s) throws Exception { super(s) ; }
+    public void saveState(Session s) throws Exception { super.saveState(s) ; }
+    public int owningType() {
+      return FIXTURE_OWNS ;
+    }
+    public int pathType() {
+      return Tile.PATH_BLOCKS ;
+    }
+  }
   
   
   private static Model modelFor(Holding holding) {

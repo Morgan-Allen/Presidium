@@ -52,29 +52,46 @@ public class ReconMission extends Mission {
     */
   public float priorityFor(Actor actor) {
     final Tile centre = (Tile) subject ;
-    float reward = actor.AI.greedFor(rewardAmount()) * ROUTINE ;
+    float reward = actor.AI.greedFor(rewardAmount(actor)) * ROUTINE ;
     return Exploring.rateExplorePoint(actor, centre, reward) ;
   }
-
+  
+  
+  int count = 0 ;
 
   public Behaviour nextStepFor(Actor actor) {
+    ///I.say("Getting next step in recon, for "+actor) ;
     //
     //  TODO:  Refresh the list of tiles to explore every 10 seconds or so?
     final IntelMap map = base.intelMap ;
     Tile lookedAt = null ;
-    float minFog = 1 ;
-    for (Tile t : inRange) {
+    float bestRating = 0 ;
+    //float minFog = 1 ;
+    
+    
+    for (Tile t : inRange) if (! t.blocked()) {
       final float fog = map.fogAt(t) ;
-      if (fog < minFog && ! t.blocked()) {
+      float rating = fog < 1 ? 1 : 0 ;
+      
+      for (Role role : this.roles) if (role.applicant != actor) {
+        Target looks = role.applicant.targetFor(Exploring.class) ;
+        if (looks == null) looks = role.applicant ;
+        rating *= (10 + Spacing.distance(actor, looks)) / 10f ;
+      }
+      if (rating > bestRating) {
         lookedAt = t ;
-        minFog = fog ;
+        bestRating = rating ;
       }
     }
     if (lookedAt == null) {
       done = true ;
       return null ;
     }
-    return new Exploring(actor, base, lookedAt) ;
+    ///I.say(actor+" assigned to look at "+lookedAt) ;
+    
+    final Exploring e = new Exploring(actor, base, lookedAt) ;
+    e.priorityMod = actor.AI.greedFor(rewardAmount(actor)) * ROUTINE ;
+    return e ;
   }
   
   

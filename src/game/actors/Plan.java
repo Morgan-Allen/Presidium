@@ -8,14 +8,15 @@
 package src.game.actors ;
 import src.game.common.* ;
 import src.game.common.Session.Saveable ;
-import src.game.planet.Terrain;
 import src.game.building.* ;
 import src.user.* ;
 import src.util.* ;
-
 import java.lang.reflect.* ;
 
 
+
+//
+//  TODO:  
 public abstract class Plan implements Saveable, Behaviour {
   
   
@@ -121,6 +122,7 @@ public abstract class Plan implements Saveable, Behaviour {
   public void abortBehaviour() {
     if (! begun()) return ;
     I.sayAbout(actor, "\n"+actor+" Aborting plan! "+this+" "+this.hashCode()) ;
+    if (I.talkAbout == actor) new Exception().printStackTrace() ;
     nextStep = null ;
     actor.AI.cancelBehaviour(this) ;
   }

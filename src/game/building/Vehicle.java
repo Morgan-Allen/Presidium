@@ -22,7 +22,7 @@ import src.util.* ;
 
 
 public abstract class Vehicle extends Mobile implements
-  Boardable, Inventory.Owner, HumanAI.Employment, Selectable
+  Boardable, Inventory.Owner, HumanAI.Employment, Selectable, BuildConstants
 {
   
   
@@ -35,6 +35,7 @@ public abstract class Vehicle extends Mobile implements
   
   private Actor pilot ;
   private Venue hangar ;
+  private float pilotBonus ;
   
   protected float entranceFace = Venue.ENTRANCE_NONE ;
   protected Boardable dropPoint ;
@@ -149,26 +150,45 @@ public abstract class Vehicle extends Mobile implements
   
   protected void updateAsMobile() {
     super.updateAsMobile() ;
-    if (pilot == null) {
-      pathing.updateTarget(null) ;
-      return ;
-    }
-    if (pilot.currentAction() == null) return ;
-    pathing.updateTarget(pilot.currentAction().target()) ;
+    if (pilot != null) updatePiloting() ;
     final Boardable step = pathing.nextStep() ;
     if (pathing.checkPathingOkay() && step != null) {
-      float moveRate = 1 ;
+      float moveRate = baseMoveRate() ;
       if (origin().pathType() == Tile.PATH_ROAD) moveRate *= 1.5f ;
       if (origin().owner() instanceof Causeway) moveRate *= 1.5f ;
+      moveRate *= (pilotBonus + 1) / 2 ;
       pathing.headTowards(step, moveRate, true) ;
     }
     else world.schedule.scheduleNow(this) ;
   }
   
   
+  protected float baseMoveRate() {
+    return 1.0f ;
+  }
+  
+  
+  protected void updatePiloting() {
+    if (pilot.aboard() != this) {
+      pathing.updateTarget(null) ;
+      return ;
+    }
+    if (pilot.currentAction() == null) return ;
+    pathing.updateTarget(pilot.currentAction().target()) ;
+  }
+  
+  
   public void updateAsScheduled(int numUpdates) {
+    if (pilot != null && pilot.aboard() == this) {
+      pilotBonus = 1 ;
+      if (! pilot.traits.test(PILOTING, SIMPLE_DC, 0.5f)) pilotBonus /= 1.5f ;
+      if (pilot.traits.test(PILOTING, MODERATE_DC, 0.5f)) pilotBonus *= 1.5f ;
+    }
+    else {
+      pilotBonus = 0.5f ;
+      pilot = null ;
+    }
     if (! pathing.checkPathingOkay()) pathing.refreshPath() ;
-    if (pilot != null && pilot.aboard() != this) pilot = null ;
     if (hangar != null && hangar.destroyed()) {
       //  TODO:  REGISTER FOR SALVAGE
       setAsDestroyed() ;

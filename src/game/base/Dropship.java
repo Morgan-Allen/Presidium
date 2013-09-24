@@ -118,7 +118,7 @@ public class Dropship extends Vehicle implements
   /**  Economic and behavioural functions-
     */
   public Behaviour jobFor(Actor actor) {
-    if (actor.AI.hasToDo(Delivery.class)) return null ;
+    if (actor.isDoing(Delivery.class, null)) return null ;
     
     if (stage >= STAGE_BOARDING) {
       final Action boardAction = new Action(
@@ -169,9 +169,7 @@ public class Dropship extends Vehicle implements
   public boolean allAboard() {
     for (Actor c : crew()) {
       if (c.aboard() != this) return false ;
-      if (c.currentAction() != null && ! c.isDoing("actionBoard", null)) {
-        return false ;
-      }
+      if (c.targetFor(null) != this) return false ;
     }
     return true ;
   }
@@ -389,7 +387,7 @@ public class Dropship extends Vehicle implements
   
   public boolean findLandingSite(final Base base) {
     this.assignBase(base) ;
-    
+    final World world = base.world ;
     SupplyDepot pick = null ;
     float bestRating = Float.NEGATIVE_INFINITY ;
     
@@ -414,7 +412,6 @@ public class Dropship extends Vehicle implements
       return true ;
     }
     
-    final World world = base.world ;
     final Tile midTile = world.tileAt(world.size / 2, world.size / 2) ;
     final Target nearest = world.presences.randomMatchNear(base, midTile, -1) ;
     if (nearest == null) return false ;

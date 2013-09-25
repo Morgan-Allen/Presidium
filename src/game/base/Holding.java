@@ -92,12 +92,12 @@ public class Holding extends Venue implements BuildConstants {
   } ;
   
   
-  private List <Element> extras = new List <Element> () ;
   private int upgradeLevel, varID ;
+  private List <HoldingExtra> extras = new List <HoldingExtra> () ;
   
   
   public Holding(Base belongs) {
-    super(2, 1, ENTRANCE_EAST, belongs) ;
+    super(2, 2, ENTRANCE_EAST, belongs) ;
     this.upgradeLevel = 0 ;
     this.varID = Rand.index(NUM_VARS) ;
     structure.setupStats(
@@ -112,7 +112,7 @@ public class Holding extends Venue implements BuildConstants {
     super(s) ;
     upgradeLevel = s.loadInt() ;
     varID = s.loadInt() ;
-    ///I.say("PARTS "+stocks.amountOf(PARTS)) ;
+    s.loadObjects(extras) ;
   }
   
   
@@ -120,6 +120,7 @@ public class Holding extends Venue implements BuildConstants {
     super.saveState(s) ;
     s.saveInt(upgradeLevel) ;
     s.saveInt(varID) ;
+    s.saveObjects(extras) ;
   }
   
   
@@ -139,7 +140,7 @@ public class Holding extends Venue implements BuildConstants {
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     Holding.class, "holding_upgrades"
   ) ;
-  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     TENT_LEVEL = new Upgrade(
       "Field Tent", "", 0, null, 0, null, ALL_UPGRADES
@@ -169,19 +170,24 @@ public class Holding extends Venue implements BuildConstants {
       return ;
     }
     if (! structure.intact()) return ;
+    
+    
     //
     //  First of all, we check if we have enough of various material goods to
     //  justify an upgrade-
-    final float margin = 0.51f ;
+    final float MC = materialConsumption(), margin = 0.501f ;
     boolean devolve = false, upgrade = true ;
     for (Item i : goodsNeeded(upgradeLevel).raw) {
-      stocks.removeItem(Item.withAmount(i, 0.1f / World.STANDARD_DAY_LENGTH)) ;
+      stocks.bumpItem(i.type, 0 - MC) ;
       if (stocks.amountOf(i) < i.amount - margin) devolve = true ;
     }
     for (Item i : goodsNeeded(upgradeLevel + 1).raw) {
       if (! stocks.hasItem(i)) upgrade = false ;
       stocks.forceDemand(i.type, i.amount + margin, 0) ;
     }
+    
+    //
+    //  Then, check on consumption of foodstuffs-
     final float foodNeed = personnel.residents().size() * 1 ;
     for (Service t : ALL_FOOD_TYPES) {
       if (t == SPICE) {
@@ -208,8 +214,8 @@ public class Holding extends Venue implements BuildConstants {
     targetLevel = Visit.clamp(targetLevel, NUM_LEVELS) ;
     checkForUpgrade(targetLevel) ;
     //
-    //  And try creating some decorative extras-
-    createExtras(numUpdates) ;
+    //  And try updating any accessories associated with the structure-
+    HoldingExtra.updateExtras(this, extras, numUpdates) ;
   }
   
   
@@ -231,6 +237,16 @@ public class Holding extends Venue implements BuildConstants {
       attachSprite(modelFor(this).makeSprite()) ;
       setAsEstablished(false) ;
     }
+  }
+  
+  
+  
+  protected float materialConsumption() {
+    final int maxPop = OCCUPANCIES[upgradeLevel] ;
+    float count = 0 ;
+    for (Actor r : personnel.residents()) if (r.aboard() == this) count++ ;
+    count = 0.5f + (count / maxPop) ;
+    return Structure.WEAR_PER_DAY * count / World.STANDARD_DAY_LENGTH ;
   }
   
   
@@ -277,37 +293,7 @@ public class Holding extends Venue implements BuildConstants {
       4, 4, 2, ImageModel.TYPE_POPPED_BOX
     ),
     PALACE_MODELS[] = null,
-    SLUM_MODELS[][] = null,
-    
-    EXTRA_MODELS[][] = ImageModel.fromTextureGrid(
-      Holding.class, Texture.loadTexture(IMG_DIR+"housing_props.png"),
-      3, 3, 0.85f, ImageModel.TYPE_POPPED_BOX
-    ) ;
-  
-  
-  protected void createExtras(int numUpdates) {
-    //
-    //  TODO:  Just pick one side of the structure and fill it up.  Looks
-    //  neater that way.  TODO:  Also, upgrade extra level with the holding.
-    if (true) return ;
-    if (numUpdates % 10 != 0) return ;
-    final int extraLevel = 1 + (int) Math.floor(upgradeLevel / 3f) ;
-    
-    for (Element e : extras) {
-      base().paving.updatePerimeter((Fixture) e, e.inWorld()) ;
-      if (e.destroyed()) extras.remove(e) ;
-    }
-    if (extras.size() < 2) {
-      final Tile t = Spacing.pickRandomTile(this, 2, world) ;
-      if (t == null || Spacing.isEntrance(t)) return ;
-      final Fixture extra = new Extra(extraLevel) ;
-      extra.setPosition(t.x, t.y, world) ;
-      if (extra.canPlace() && Spacing.perimeterFits(extra)) {
-        extra.enterWorld() ;
-        extras.add(extra) ;
-      }
-    }
-  }
+    SLUM_MODELS[][] = null ;
   
   
   public void exitWorld() {
@@ -315,22 +301,6 @@ public class Holding extends Venue implements BuildConstants {
     for (Element e : extras) {
       base().paving.updatePerimeter((Fixture) e, false) ;
       e.setAsDestroyed() ;
-    }
-  }
-  
-  
-  public static class Extra extends Fixture {
-    protected Extra(int level) {
-      super(1, 1) ;
-      attachModel(EXTRA_MODELS[level][Rand.index(3)]) ;
-    }
-    public Extra(Session s) throws Exception { super(s) ; }
-    public void saveState(Session s) throws Exception { super.saveState(s) ; }
-    public int owningType() {
-      return FIXTURE_OWNS ;
-    }
-    public int pathType() {
-      return Tile.PATH_BLOCKS ;
     }
   }
   
@@ -347,7 +317,9 @@ public class Holding extends Venue implements BuildConstants {
   
   
   public String helpInfo() {
-    return "Holdings provide shelter and privacy for your subjects." ;
+    return
+      "Holdings provide comfort and privacy for your subjects, and create "+
+      "an additional tax base for revenue." ;
   }
   
   
@@ -375,8 +347,9 @@ public class Holding extends Venue implements BuildConstants {
     if (categoryID >= 3) return ;
     else super.writeInformation(d, categoryID, UI) ;
   }
-
-
+  
+  
+  
   /**  Static helper methods for placement-
     */
   private static Tile searchPoint(Actor client) {

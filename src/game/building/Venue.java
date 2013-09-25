@@ -22,7 +22,7 @@ import src.util.* ;
 public abstract class Venue extends Fixture implements
   Schedule.Updates, Boardable, Installation,
   Inventory.Owner, ActorAI.Employment,
-  Selectable, TileConstants
+  Selectable, TileConstants, BuildConstants
 {
   
   
@@ -92,10 +92,12 @@ public abstract class Venue extends Fixture implements
     stocks.saveState(s) ;
     structure.saveState(s) ;
   }
-
-
-  protected Index <Upgrade> allUpgrades() { return null ; }
-
+  
+  
+  public Index <Upgrade> allUpgrades() { return null ; }
+  public Structure structure() { return structure ; }
+  
+  
   public int owningType() { return VENUE_OWNS ; }
   public Base base() { return base ; }
   
@@ -197,7 +199,7 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  protected void onDestruction() {
+  public void onDestruction() {
     Wreckage.reduceToSlag(area(), world) ;
   }
   
@@ -445,7 +447,7 @@ public abstract class Venue extends Fixture implements
   protected void describeStocks(Description d, HUD UI) {
     d.append("Stocks and Orders:") ;
     boolean empty = true ;
-    for (Service type : BuildConstants.ALL_ITEM_TYPES) {
+    for (Service type : ALL_ITEM_TYPES) {
       if (describeStocks(type, d)) empty = false ;
     }
     for (Manufacture m : stocks.specialOrders()) {
@@ -645,10 +647,10 @@ public abstract class Venue extends Fixture implements
   protected void toggleStatusDisplay() {
     final boolean burns = structure.burning() ;
     buildSprite.toggleFX(BuildingSprite.BLAST_MODEL, burns) ;
-    toggleStatusFor(BuildConstants.LIFE_SUPPORT) ;
-    toggleStatusFor(BuildConstants.POWER       ) ;
-    toggleStatusFor(BuildConstants.WATER       ) ;
-    toggleStatusFor(BuildConstants.DATALINKS   ) ;
+    toggleStatusFor(LIFE_SUPPORT) ;
+    toggleStatusFor(POWER       ) ;
+    toggleStatusFor(WATER       ) ;
+    toggleStatusFor(DATALINKS   ) ;
   }
   
   
@@ -664,7 +666,7 @@ public abstract class Venue extends Fixture implements
   
   
   private boolean canShow(Service type) {
-    if (type.form != BuildConstants.FORM_COMMODITY) return false ;
+    if (type.form == FORM_PROVISION) return false ;
     if (type.pic == Service.DEFAULT_PIC) return false ;
     return true ;
   }

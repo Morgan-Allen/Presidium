@@ -13,6 +13,28 @@ import src.util.* ;
 
 
 
+
+/*
+ Crops and Flora include:
+   Durwheat                     (primary carbs on land)
+   Oni Rice                     (primary carbs in water)
+   Broadfruits                  (secondary greens on land)
+   Tuber Lily                   (secondary greens in water)
+   Ant/termite/bee/worm cells   (protein on land)
+   Fish/mussel/clam farming     (protein in water)
+   
+   Vapok Canopy/Broadleaves  (tropical)   //...Consider merging with desert?
+   Mixtaob Tree/Glass Cacti  (desert)
+   Redwood/Cushion Plants    (tundra)
+   Mycon Bloom/Strain XV97   (wastes)
+   Lichens/Meadow Flowers    (colonists)
+   Coral Beds/Kelp Forest    (seas/oceans)
+   
+   ...You'll also need to include flora sets for the changelings and silicates.
+//*/
+
+
+
 public class Plantation extends Venue implements
   TileConstants, BuildConstants
 {
@@ -37,12 +59,24 @@ public class Plantation extends Venue implements
     GRUB_BOX_MODEL = ImageModel.asIsometricModel(
       Plantation.class, IMG_DIR+"grub_box.png", 1, 1
     ) ;
+  final public static int
+    VAR_ONI_RICE    = 0,
+    VAR_DURWHEAT    = 1,
+    VAR_TUBER_LILY  = 2,
+    VAR_BROADFRUITS = 3,
+    VAR_HIVE_CELLS  = 4,
+    VAR_SAPLINGS    = 5,
+    ALL_VARIETIES[] = { 0, 1, 2, 3, 4, 5 } ;
   final static Object CROP_SPECIES[][] = {
     new Object[] { 0, CARBS   , CROP_MODELS[0] },
     new Object[] { 1, CARBS   , CROP_MODELS[1] },
     new Object[] { 2, GREENS  , CROP_MODELS[3] },
     new Object[] { 3, GREENS  , CROP_MODELS[2] },
-    new Object[] { 4, PROTEIN , new Model[] { GRUB_BOX_MODEL }}
+    new Object[] { 4, PROTEIN , new Model[] { GRUB_BOX_MODEL }},
+    new Object[] { 5, GREENS  , null },
+  } ;
+  final static String CROP_NAMES[] = {
+    "Oni Rice", "Durwheat", "Tuber Lily", "Broadfruits", "Hive Cells"
   } ;
   
   final static int
@@ -55,16 +89,16 @@ public class Plantation extends Venue implements
   final int type ;
   final int facing ;
   final Plantation strip[] ;
+  final Crop planted[] = new Crop[4] ;
   
-  private Crop planted[] = new Crop[4] ;
-  private float needsFarming = 0 ;
+  private float needsTending = 0 ;
   
   
   
   public Plantation(
     BotanicalStation belongs, int type, int facing, Plantation strip[]
   ) {
-    super(2, 1, (ENTRANCE_WEST + (facing / 2)) % 4, belongs.base()) ;
+    super(2, 2, (ENTRANCE_WEST + (facing / 2)) % 4, belongs.base()) ;
     final boolean IN = type == TYPE_NURSERY ;
     structure.setupStats(
       IN ? 50 : 20,  //integrity
@@ -73,7 +107,6 @@ public class Plantation extends Venue implements
       0,  //max upgrades
       Structure.TYPE_FIXTURE
     ) ;
-    personnel.setShiftType(SHIFTS_ALWAYS) ;
     this.belongs = belongs ;
     this.type = type ;
     this.facing = facing ;
@@ -115,6 +148,7 @@ public class Plantation extends Venue implements
   
   public int pathType() {
     if (type == TYPE_NURSERY) return Tile.PATH_BLOCKS ;
+    if (type == TYPE_COVERED) return Tile.PATH_BLOCKS ;
     return Tile.PATH_HINDERS ;
   }
   
@@ -128,33 +162,16 @@ public class Plantation extends Venue implements
   }
   
   
+  public boolean privateProperty() {
+    return true ;
+  }
+  
+  
   /**  Establishing crop areas-
     */
   final static int
     STRIP_DIRS[]  = { N, E, S, W },
     CROPS_POS[] = { 0, 0, 0, 1, 1, 0, 1, 1 } ;
-  
-  
-  protected float needForFarming() {
-    if (type != TYPE_NURSERY || ! structure.intact()) return 0 ;
-    float sum = 0 ;
-    for (Plantation p : strip) sum += p.needsFarming ;
-    return sum / (strip.length - 1) ;
-  }
-  
-  
-  protected Crop nextToFarm(boolean planting, Actor actor) {
-    float minDist = Float.POSITIVE_INFINITY ;
-    Crop picked = null ;
-    final int stage = planting ? Crop.NOT_PLANTED : Crop.MAX_GROWTH ;
-    for (Plantation p : strip) for (Crop c : p.planted) {
-      if (c != null && c.growStage == stage) {
-        final float dist = Spacing.distance(actor, c.tile) ;
-        if (dist < minDist) { picked = c ; minDist = dist ; }
-      }
-    }
-    return picked ;
-  }
   
   
   public void enterWorldAt(int x, int y, World world) {
@@ -165,50 +182,56 @@ public class Plantation extends Venue implements
     else {
       for (int c = 0, i = 0 ; c < 4 ; c++) {
         final Tile t = world.tileAt(x + CROPS_POS[i++], y + CROPS_POS[i++]) ;
-        planted[c] = new Crop(this, pickSpecies(t, belongs), t) ;
+        planted[c] = new Crop(this, type == TYPE_BED ? 1 : 0, t) ;
       }
       refreshCropSprites() ;
     }
   }
   
   
-  //
-  //  TODO:  Move some of this back to the Crop class...
-  public void onGrowth() {
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact() || numUpdates % 10 != 0) return ;
+    if (type == TYPE_NURSERY) {
+      final float
+        decay  = 10 * 0.1f / World.STANDARD_DAY_LENGTH,
+        growth = 10 * Planet.dayValue(world) / World.GROWTH_INTERVAL ;
+      for (Item seed : stocks.matches(GENE_SEED)) {
+        stocks.removeItem(Item.withAmount(seed, decay)) ;
+        final Crop crop = (Crop) seed.refers ;
+        if (crop != null) {
+          final Service yield = Plantation.speciesYield(crop.varID) ;
+          stocks.bumpItem(yield, growth * seed.quality, 10) ;
+        }
+      }
+    }
+  }
+  
+  
+  public void onGrowth(Tile t) {
     //
     //  TODO:  Average fertility/moisture over the whole strip?
     if (! structure.intact()) return ;
     boolean anyChange = false ;
-    needsFarming = 0 ;
-    
     for (Crop c : planted) if (c != null) {
       final int oldGrowth = (int) c.growStage ;
-      if (oldGrowth == Crop.NOT_PLANTED) {
-        needsFarming++ ;
-        continue ;
-      }
-      
-      float growInc = c.tile.habitat().moisture() / 10f ;
-      growInc += belongs.growBonus(c.tile, c.varID, true) ;
-      growInc *= Rand.num() * Planet.dayValue(world) ;
-      growInc = Visit.clamp(growInc, 0.2f, 1.2f) / 2 ;
-      I.sayAbout(this, "Grow increment: "+growInc) ;
-      
-      c.growStage = Visit.clamp(c.growStage + growInc, 0, Crop.MAX_GROWTH) ;
-      
+      if (c.tile == t) c.doGrowth() ;
       final int newGrowth = (int) c.growStage ;
-      if (newGrowth == Crop.NOT_PLANTED || newGrowth == Crop.MAX_GROWTH) {
-        needsFarming++ ;
-      }
       if (oldGrowth != newGrowth) anyChange = true ;
     }
-    needsFarming /= planted.length ;
+    checkCropStates() ;
     if (anyChange) refreshCropSprites() ;
   }
   
   
+  protected void checkCropStates() {
+    needsTending = 0 ;
+    for (Crop c : planted) if (c != null && c.needsTending()) needsTending++ ;
+    needsTending /= planted.length ;
+  }
+  
+  
   protected void refreshCropSprites() {
-    
     if (sprite() != null) {
       final GroupSprite oldSprite = (GroupSprite) buildSprite().baseSprite() ;
       world.ephemera.addGhost(this, 2, oldSprite, 2.0f) ;
@@ -246,6 +269,20 @@ public class Plantation extends Venue implements
   }
   
   
+  protected Crop plantedAt(Tile t) {
+    for (Crop c : planted) if (c != null && c.tile == t) return c ;
+    return null ;
+  }
+  
+  
+  protected float needForTending() {
+    if (type != TYPE_NURSERY || ! structure.intact()) return 0 ;
+    float sum = 0 ;
+    for (Plantation p : strip) sum += p.needsTending ;
+    return sum / (strip.length - 1) ;
+  }
+  
+  
   public static Service speciesYield(int varID) {
     return (Service) CROP_SPECIES[varID][1] ;
   }
@@ -265,7 +302,8 @@ public class Plantation extends Venue implements
       parent.growBonus(t, 3, false) / (50 + parent.stocks.amountOf(CARBS  )),
       parent.growBonus(t, 4, false) / (50 + parent.stocks.amountOf(GREENS )),
     } ;
-    return (Integer) ((Object[]) Rand.pickFrom(CROP_SPECIES, chances))[0] ;
+    final Object[] species = (Object[]) Rand.pickFrom(CROP_SPECIES, chances) ;
+    return (Integer) species[0] ;
   }
   
   
@@ -373,10 +411,19 @@ public class Plantation extends Venue implements
   }
   
   
-  public String fullName() { return "Plantation" ; }
+  public String fullName() {
+    return type == TYPE_NURSERY ? "Nursery" : "Plantation" ;
+  }
   
   
   public String helpInfo() {
+    //
+    //  TODO:  Rename to Curing Shed?  Make responsible for conversion of
+    //  samples to food stocks?
+    if (type == TYPE_NURSERY) return
+      "Nurseries allow young plants to be cultivated in a secure environment "+
+      "prior to outdoor planting, and provide a small but steady output of "+
+      "food yield regardless of outside conditions." ;
     return
       "Plantations of managed, mixed-culture cropland secure a high-quality "+
       "food source for your base, but require space and constant attention." ;
@@ -385,6 +432,31 @@ public class Plantation extends Venue implements
   
   public String buildCategory() {
     return InstallTab.TYPE_ECOLOGIST ;
+  }
+  
+  
+  public void writeInformation(Description d, int categoryID, HUD UI) {
+    super.writeInformation(d, categoryID, UI) ;
+    if (categoryID == 0 && type == TYPE_NURSERY) {
+      d.append("\n") ;
+      boolean any = false ;
+      for (Item seed : stocks.matches(GENE_SEED)) {
+        final Crop crop = (Crop) seed.refers ;
+        d.append("\n  Seed for "+crop+" (") ;
+        d.append(Crop.HEALTH_NAMES[seed.quality]+" quality)") ;
+        any = true ;
+      }
+      if (! any) d.append(
+        "\nThis nursery needs gene-tailored seed stock before it can maximise "+
+        "crop yield."
+      ) ;
+    }
+    if (categoryID == 0 && type != TYPE_NURSERY) {
+      d.append("\n") ;
+      for (Crop c : planted) if (c.growStage >= Crop.MIN_GROWTH) {
+        d.append("\n  "+c) ;
+      }
+    }
   }
 }
 

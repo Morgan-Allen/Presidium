@@ -23,11 +23,12 @@ import src.util.* ;
 //  the evaluation of total housing values.  This keeps prices more-or-less
 //  constant.  This happens at the Audit Office, directly.
 
+
 public class AuditOffice extends Venue implements BuildConstants {
   
 
   final public static Model MODEL = ImageModel.asIsometricModel(
-    Foundry.class, "media/Buildings/merchant/audit_office.png", 2.5f, 2
+    Foundry.class, "media/Buildings/merchant/audit_office.png", 2.75f, 2
   ) ;
   
   
@@ -52,6 +53,9 @@ public class AuditOffice extends Venue implements BuildConstants {
   
   /**  Economic functions, upgrades and behaviour implementation-
     */
+  
+  
+  
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     
@@ -80,10 +84,14 @@ public class AuditOffice extends Venue implements BuildConstants {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
+    
     float needPower = 2 ;
     if (! isManned()) needPower = 0 ;
     stocks.forceDemand(POWER, needPower, 0) ;
     stocks.bumpItem(POWER, needPower * -0.1f) ;
+    
+    stocks.translateDemands(PLASTICS_TO_PRESSFEED, 1) ;
+    //  TODO:  Increment further based on need for spare credits.
   }
   
   

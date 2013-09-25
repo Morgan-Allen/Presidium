@@ -81,7 +81,7 @@ public class StockExchange extends Venue implements BuildConstants {
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     StockExchange.class, "stock_exchange_upgrades"
   ) ;
-  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     
     //  These two categories get space at the front of the building...

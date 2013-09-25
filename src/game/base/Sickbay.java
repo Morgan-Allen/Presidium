@@ -53,7 +53,7 @@ public class Sickbay extends Venue implements BuildConstants {
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     Sickbay.class, "sickbay_upgrades"
   ) ;
-  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     APOTHECARY = new Upgrade(
       "Apothecary",

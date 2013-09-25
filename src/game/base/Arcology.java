@@ -49,6 +49,7 @@ public class Arcology extends Segment {
   
   public Arcology(Base base) {
     super(2, 2, base) ;
+    structure.setupStats(15, 1, 100, 0, Structure.TYPE_FIXTURE) ;
   }
   
   
@@ -121,11 +122,6 @@ public class Arcology extends Segment {
   
   protected Batch <Element> toPlace(Tile from, Tile to) {
     return null ;
-  }
-  
-  
-  public int buildCost() {
-    return 100 ;
   }
   
   

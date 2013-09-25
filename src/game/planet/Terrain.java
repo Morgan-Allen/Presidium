@@ -64,8 +64,9 @@ public class Terrain implements TileConstants, Session.Saveable {
       return true ;
     }
     public byte varID(int x, int y) {
+      //
       //  TODO:  Base this on no. of adjacent fixtures, spaced intervals, etc.
-      return 0 ;
+      return (byte) (x + y) ;
     }
   } ;
   

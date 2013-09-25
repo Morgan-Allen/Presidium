@@ -304,7 +304,7 @@ public class World {
     //
     //  Ephemera are rendered last, to accommodate transparency effects-
     allVisible.clear() ;
-    for (Visible ghost : ephemera.visibleFor(rendering)) {
+    for (Visible ghost : ephemera.visibleFor(rendering, base)) {
       allVisible.add(ghost) ;
     }
     allVisible.queueSort() ;

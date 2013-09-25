@@ -101,7 +101,7 @@ public class Ecology {
   private void growthAt(Tile t) {
     Flora.tryGrowthAt(t.x, t.y, world, false) ;
     final Element owner = t.owner() ;
-    if (owner != null) owner.onGrowth() ;
+    if (owner != null) owner.onGrowth(t) ;
   }
   
   
@@ -142,20 +142,30 @@ public class Ecology {
   
   
   public float globalFertility() {
-    return globalFertility / (SR * SR) ;
+    return globalFertility / (SS * SS) ;
   }
   
   
   
   /**  Querying sample values-
     */
-  public float fertilityAt(Tile t) {
+  public float fertilityAmount(Tile t) {
     return Visit.sampleMap(world.size, fertilities, t.x, t.y) ;
   }
   
   
-  public float squalorAt(Tile t) {
+  public float fertilityRating(Tile t) {
+    return fertilityAmount(t) / (SR * SR) ;
+  }
+  
+  
+  public float squalorAmount(Tile t) {
     return Visit.sampleMap(world.size, squalorMap, t.x, t.y) ;
+  }
+  
+  
+  public float squalorRating(Tile t) {
+    return squalorAmount(t) / (SR * SR) ;
   }
   
   
@@ -188,8 +198,8 @@ public class Ecology {
     )) {
       final Tile t = world.tileAt(c.x, c.y) ;
       if (t == null) continue ;
-      fertility  += fertilityAt(t) ;
-      fertility  -= squalorAt(t) ;
+      fertility  += fertilityAmount(t) ;
+      fertility  -= squalorAmount(t) ;
       numPeers   += absoluteAbundanceAt(species, t) ;
       numPrey    += preyDensityAt(t) ;
       numHunters += hunterDensityAt(t) ;

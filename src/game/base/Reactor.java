@@ -55,7 +55,7 @@ public class Reactor extends Venue implements BuildConstants {
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     Reactor.class, "reactor_upgrades"
   ) ;
-  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     WASTE_PROCESSING = new Upgrade(
       "Waste Processing",
@@ -234,7 +234,7 @@ public class Reactor extends Venue implements BuildConstants {
   }
   
   
-  protected void onDestruction() {
+  public void onDestruction() {
     performMeltdown() ;
   }
   

@@ -221,7 +221,7 @@ public class ExcavationShaft extends Venue implements
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     ExcavationShaft.class, "excavation_upgrades"
   ) ;
-  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     CARBON_TITRATION = new Upgrade(
       "Carbon Titration",

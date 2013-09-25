@@ -104,9 +104,9 @@ public interface ActorConstants {
     //
     //  Forms of artistic expression/entertainment-
     EROTICS           = new Skill("Erotics"        , FORM_SENSITIVE, REFLEX ),
-    DISGUISE          = new Skill("Disguise"       , FORM_SENSITIVE, REFLEX ),
+    MASQUERADE        = new Skill("Masquerade"     , FORM_SENSITIVE, REFLEX ),
     MUSIC_AND_SONG    = new Skill("Music and Song" , FORM_SENSITIVE, INSIGHT),
-    GRAPHIC_DESIGN    = new Skill("Graphic Design" , FORM_SENSITIVE, INSIGHT),
+    GRAPHIC_MEDIA     = new Skill("Graphic Media"  , FORM_SENSITIVE, INSIGHT),
     
     SENSITIVE_SKILLS[] = Trait.skillsSoFar() ;
   
@@ -126,7 +126,7 @@ public interface ActorConstants {
     //
     //  General elbow grease-
     HARD_LABOUR       = new Skill("Hard Labour"      , FORM_PHYSICAL, WILL  ),
-    HOUSEKEEPING      = new Skill("Housekeeping"     , FORM_PHYSICAL, WILL  ),
+    DOMESTICS         = new Skill("Domestics"        , FORM_PHYSICAL, WILL  ),
     
     PHYSICAL_SKILLS[] = Trait.skillsSoFar() ;
   
@@ -168,7 +168,7 @@ public interface ActorConstants {
     AGGRESSIVE = new Trait(PERSONALITY,
       "Vengeful",
       "Aggressive",
-      "Irritable",
+      "Defensive",
       null,
       "Calm",
       "Gentle",
@@ -190,7 +190,7 @@ public interface ActorConstants {
       "Optimistic",
       "Cheerful",
       null,
-      "Doubtful",
+      "Skeptical",
       "Pessimistic",
       "Morose"
     ),
@@ -267,7 +267,7 @@ public interface ActorConstants {
       null,
       "Busy",
       "Restless",
-      "On Edge"
+      "Workaholic"
     ),
     
     //
@@ -282,7 +282,7 @@ public interface ActorConstants {
       "Subversive"
     ),
     NATURALIST = new Trait(PERSONALITY,
-      "One With Nature",
+      "Gone Feral",
       "Ecophile",
       "Naturalist",
       null,

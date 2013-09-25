@@ -78,7 +78,7 @@ public class Ephemera {
   }
   
   
-  protected Batch <Ghost> visibleFor(Rendering rendering) {
+  protected Batch <Ghost> visibleFor(Rendering rendering, Base base) {
     final Batch <Ghost> results = new Batch <Ghost> () ;
     final Viewport port = rendering.port ;
     
@@ -94,6 +94,7 @@ public class Ephemera {
           final Sprite s = ghost.sprite ;
           if (! port.intersects(s.position, ghost.size)) continue ;
           s.colour = Colour.transparency((duration - timeGone) / duration) ;
+          s.fog = base.intelMap.fogAt(ghost.position) ;
           results.add(ghost) ;
         }
       }

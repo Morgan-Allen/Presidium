@@ -22,7 +22,8 @@ import src.util.* ;
 
 
 public abstract class Vehicle extends Mobile implements
-  Boardable, Inventory.Owner, HumanAI.Employment, Selectable, BuildConstants
+  Boardable, Inventory.Owner, HumanAI.Employment,
+  Selectable, BuildConstants, Installation
 {
   
   
@@ -30,6 +31,8 @@ public abstract class Vehicle extends Mobile implements
     */
   protected Base base ;
   final public Inventory cargo = new Inventory(this) ;
+  final public Structure structure = new Structure(this) ;
+  
   final protected List <Mobile> inside = new List <Mobile> () ;
   final protected List <Actor> crew = new List <Actor> () ;
   
@@ -48,6 +51,7 @@ public abstract class Vehicle extends Mobile implements
   public Vehicle(Session s) throws Exception {
     super(s) ;
     cargo.loadState(s) ;
+    structure.loadState(s) ;
     s.loadObjects(inside) ;
     s.loadObjects(crew) ;
     dropPoint = (Boardable) s.loadTarget() ;
@@ -61,6 +65,7 @@ public abstract class Vehicle extends Mobile implements
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     cargo.saveState(s) ;
+    structure.saveState(s) ;
     s.saveObjects(inside) ;
     s.saveObjects(crew) ;
     s.saveTarget(dropPoint) ;
@@ -119,7 +124,7 @@ public abstract class Vehicle extends Mobile implements
   
   
   
-  /**  Dealing with items and inventory-
+  /**  Dealing with items, inventory and structural requirements-
     */
   public Inventory inventory() {
     return cargo ;
@@ -132,8 +137,7 @@ public abstract class Vehicle extends Mobile implements
   
   
   public int spaceFor(Service good) {
-    return 1000 ;
-    //return structure.maxIntegrity() - cargo.spaceUsed() ;
+    return structure.maxIntegrity() ;//- cargo.spaceUsed() ;
   }
   
   
@@ -141,7 +145,37 @@ public abstract class Vehicle extends Mobile implements
   }
   
   
+
+  public Index<Upgrade> allUpgrades() {
+    return null;
+  }
+
+  public void onCompletion() {
+  }
+
+  public void onDestruction() {
+  }
+
+  public Structure structure() {
+    return structure ;
+  }
   
+  
+  
+  /**  Vehicles are generally commissioned as an accompaniment to venues by the
+    *  venues themselves, so these methods aren't much used.
+    */
+  public int buildCost() { return structure.buildCost() ; }
+  public String buildCategory() { return UIConstants.TYPE_HIDDEN ; }
+
+  public boolean pointsOkay(Tile from, Tile to) { return false ; }
+  public void doPlace(Tile from, Tile to) {}
+  public void preview(
+    boolean canPlace, Rendering rendering, Tile from, Tile to
+  ) {}
+  
+  
+
   /**  Handling pathing-
     */
   protected MobilePathing initPathing() {

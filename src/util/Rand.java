@@ -57,8 +57,8 @@ public class Rand {
   final public static Object pickFrom(Object array[], Object weights[]) {
     float sumWeights = 0 ;
     for (Object o : weights) sumWeights += (Float) o ;
+    if (sumWeights == 0) return pickFrom(array) ;
     final float pickWith = Rand.num() * sumWeights ;
-    //I.say("SUM OF WEIGHTS: "+sumWeights) ;
     //
     //  Having summed the weights, and picked a random 'interval' within the
     //  'span' of values, pick the object entry underlying that interval.
@@ -70,17 +70,4 @@ public class Rand {
     return null ;
   }
 }
-
-/*
-RANDOM NUMBER ALGORITHM:
-m_w = <choose-initializer>;    // must not be zero
-m_z = <choose-initializer>;    // must not be zero
- 
-uint get_random()
-{
-    m_z = 36969 * (m_z & 65535) + (m_z >> 16);
-    m_w = 18000 * (m_w & 65535) + (m_w >> 16);
-    return (m_z << 16) + m_w;  // 32-bit result
-}
-//*/
 

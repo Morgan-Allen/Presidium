@@ -161,7 +161,7 @@ public class Combat extends Plan implements ActorConstants {
     strength += (actor.gear.armourRating() + actor.gear.attackDamage()) / 20f ;
     strength *= actor.health.maxHealth() / 10 ;
     strength *= (1 - actor.health.injuryLevel()) ;
-    strength *= 1 - actor.health.skillPenalty() ;
+    strength *= 1 - actor.health.stressPenalty() ;
     //
     //
     if (enemy == null) {

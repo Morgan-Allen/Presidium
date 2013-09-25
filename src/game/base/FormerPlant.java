@@ -13,15 +13,19 @@ import src.user.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  Get rid of the water and life support output, since I have that
+//         covered by the Solar Array and Condensor?
 
-public class AirProcessor extends Venue implements BuildConstants {
+
+public class FormerPlant extends Venue implements BuildConstants {
   
   
 
   /**  Data fields, constructors and save/load methods-
     */
   final public static Model MODEL = ImageModel.asIsometricModel(
-    AirProcessor.class, "media/Buildings/ecologist/air_processor.png", 3, 2
+    FormerPlant.class, "media/Buildings/ecologist/air_processor.png", 3, 2
   ) ;
   
   private static boolean verbose = false ;
@@ -31,7 +35,7 @@ public class AirProcessor extends Venue implements BuildConstants {
   protected float soilSamples = 0, monitorVal = 0 ;
   
 
-  public AirProcessor(Base base) {
+  public FormerPlant(Base base) {
     super(3, 2, Venue.ENTRANCE_EAST, base) ;
     structure.setupStats(
       500, 15, 300,
@@ -42,11 +46,13 @@ public class AirProcessor extends Venue implements BuildConstants {
   }
   
   
-  public AirProcessor(Session s) throws Exception {
+  public FormerPlant(Session s) throws Exception {
     super(s) ;
     s.loadObjects(crawlers) ;
     soilSamples = s.loadFloat() ;
     monitorVal = s.loadFloat() ;
+    //I.say("Loaded...") ;
+    //new Exception().printStackTrace() ;
   }
   
   
@@ -62,9 +68,9 @@ public class AirProcessor extends Venue implements BuildConstants {
   /**  Upgrades, economic functions and behaviour implementations-
     */
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
-    AirProcessor.class, "air_processor_upgrades"
+    FormerPlant.class, "former_plant_upgrades"
   ) ;
-  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     
     CARBONS_CYCLING = new Upgrade(
@@ -75,17 +81,17 @@ public class AirProcessor extends Venue implements BuildConstants {
       null, 1, null, ALL_UPGRADES
     ),
     
-    WATER_CYCLE_INTEGRATION = new Upgrade(
-      "Water Cycle Integration",
+    EVAPORATION_CYCLING = new Upgrade(
+      "Evaporation Cycling",
       "Increases efficiency around desert and oceans terrain, and dispenses "+
       "small amounts of water.",
       200,
       null, 1, null, ALL_UPGRADES
     ),
-
+    
     DUST_PANNING = new Upgrade(
       "Dust Panning",
-      "Permits modest output of metal ores and fuel cores, and installs "+
+      "Permits modest output of metal ore and fuel cores, and installs "+
       "automated crawlers to gather soil samples.",
       150,
       null, 1, CARBONS_CYCLING, ALL_UPGRADES
@@ -93,10 +99,10 @@ public class AirProcessor extends Venue implements BuildConstants {
     
     SPICE_REDUCTION = new Upgrade(
       "Spice Reduction",
-      "Employs microbial culture to capture minute quantities of spice from "+
+      "Employs microbial cultures to capture minute quantities of spice from "+
       "the surrounding environment.",
       300,
-      null, 1, WATER_CYCLE_INTEGRATION, ALL_UPGRADES
+      null, 1, EVAPORATION_CYCLING, ALL_UPGRADES
     ) ;
   
   
@@ -166,7 +172,7 @@ public class AirProcessor extends Venue implements BuildConstants {
   }
   
   
-  public boolean actionReturnSample(Actor actor, AirProcessor works) {
+  public boolean actionReturnSample(Actor actor, FormerPlant works) {
     for (Item sample : actor.gear.matches(SAMPLES)) {
       final Tile t = (Tile) sample.refers ;
       actor.gear.removeItem(sample) ;
@@ -179,7 +185,7 @@ public class AirProcessor extends Venue implements BuildConstants {
   
   public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Background.CLIMATE_ENGINEER) {
+    if (v == Background.FORMER_ENGINEER) {
       return nO + 1 ;
     }
     return 0 ;
@@ -196,10 +202,10 @@ public class AirProcessor extends Venue implements BuildConstants {
     //  Output the various goods, depending on terrain, supervision and upgrade
     //  levels-
     final float
-      waterBonus  = 2 + structure.upgradeLevel(WATER_CYCLE_INTEGRATION),
+      waterBonus  = 1 + structure.upgradeLevel(EVAPORATION_CYCLING),
       carbonBonus = 1 + structure.upgradeLevel(CARBONS_CYCLING),
-      dustBonus   = 1 + (structure.upgradeLevel(DUST_PANNING) * 2),
-      spiceBonus  = structure.upgradeLevel(SPICE_REDUCTION) / 2 ;
+      dustBonus   = 2 + structure.upgradeLevel(DUST_PANNING),
+      spiceBonus  = structure.upgradeLevel(SPICE_REDUCTION) / 5 ;
     final float
       SDL = World.STANDARD_DAY_LENGTH ;
     
@@ -282,6 +288,8 @@ public class AirProcessor extends Venue implements BuildConstants {
     world.ecology().pushClimate(Habitat.MEADOW, mag * mag * 5 * yield) ;
   }
   
+  //
+  //  TODO:  Ensure vehicles are listed under staffing.
   
   protected void handleCrawlerOrders() {
     //
@@ -336,7 +344,7 @@ public class AirProcessor extends Venue implements BuildConstants {
   
   
   protected Background[] careers() {
-    return new Background[] { Background.CLIMATE_ENGINEER } ;
+    return new Background[] { Background.FORMER_ENGINEER } ;
   }
   
   
@@ -368,16 +376,14 @@ public class AirProcessor extends Venue implements BuildConstants {
     return new Service[] { METAL_ORE, FUEL_CORES, PETROCARBS, SPICE } ;
   }
   
-  //
-  //  TODO:  You have to show items in the back as well, behind a sprite
-  //  overlay for the facade of the structure.
+  
   protected float goodDisplayAmount(Service good) {
     return Math.min(5, stocks.amountOf(good)) ;
   }
   
   
   public String fullName() {
-    return "Air Processor" ;
+    return "Former Plant" ;
   }
   
   
@@ -388,7 +394,7 @@ public class AirProcessor extends Venue implements BuildConstants {
   
   public String helpInfo() {
     return
-      "Air Processors can modify the content of your planet's atmosphere, "+
+      "Former Plants can modify the content of your planet's atmosphere, "+
       "helping to speed terraforming efforts and extract rare or heavy "+
       "elements as an economic biproduct." ;
   }

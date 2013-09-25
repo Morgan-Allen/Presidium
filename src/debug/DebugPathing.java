@@ -58,13 +58,11 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
   /**  Setup and initialisation-
     */
   protected boolean loadedAtStartup() {
-    ///if (true) return false ;
     try {
       PlayLoop.loadGame("saves/test_pathing.rep") ;
       final Base base = PlayLoop.played() ;
       if (base.credits() < 500) base.incCredits(500 - base.credits()) ;
-      PlayLoop.setGameSpeed(0.5f) ;
-      ///GameSettings.pathFree = true ;
+      PlayLoop.setGameSpeed(1.0f) ;
       return true ;
     }
     catch (Exception e) { I.report(e) ; return false ; }

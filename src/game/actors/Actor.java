@@ -213,7 +213,21 @@ public abstract class Actor extends Mobile implements
         b.dangerMap.impingeVal(origin(), power * relation) ;
       }
     }
-    else if (health.decomposed()) setAsDestroyed() ;
+    else {
+      if (health.asleep() && numUpdates % 2 == 0) {
+        AI.getNextAction() ;
+        final Behaviour root = AI.rootBehaviour() ;
+        float
+          wakePriority  = root == null ? 0 : root.priorityFor(this),
+          sleepPriority = (health.fatigueLevel() + health.stressPenalty()) ;
+        wakePriority  -= Plan.ROUTINE ;
+        sleepPriority *= Plan.ROUTINE ;
+        if ((Rand.num() * sleepPriority) < wakePriority) {
+          health.setState(ActorHealth.STATE_ACTIVE) ;
+        }
+      }
+      if (health.decomposed()) setAsDestroyed() ;
+    }
   }
   
   
@@ -287,7 +301,7 @@ public abstract class Actor extends Mobile implements
   
   protected void renderHealthbars(Rendering rendering, Base base) {
     healthbar.level =  (1 - health.injuryLevel()) ;
-    healthbar.level *= (1 - health.skillPenalty()) ;
+    healthbar.level *= (1 - health.stressPenalty()) ;
     
     final BaseUI UI = (BaseUI) PlayLoop.currentUI() ;
     if (

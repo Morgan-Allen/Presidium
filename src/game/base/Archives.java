@@ -55,7 +55,7 @@ public class Archives extends Venue implements BuildConstants {
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     Archives.class, "archives_upgrades"
   ) ;
-  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   static {
     for (Skill skill : COGNITIVE_SKILLS) {
       if (skill.parent != INTELLECT) continue ;

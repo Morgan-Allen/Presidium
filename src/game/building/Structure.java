@@ -15,16 +15,21 @@ import src.util.* ;
 //  Modify this so that Vehicles can possess it too?  Put in an interface?
 
 
-public class Structure extends Inventory {
+public class Structure {
   
   
   
   /**  Fields, definitions and save/load methods-
     */
-  final static int
+  final public static int
     DEFAULT_INTEGRITY  = 100,
-    DEFAULT_ARMOUR     = 1,
+    DEFAULT_ARMOUR     = 5,
     DEFAULT_BUILD_COST = 10 ;
+  final public static float
+    BURN_PER_SECOND = 1.0f,
+    WEAR_PER_DAY    = 0.1f,
+    REGEN_PER_DAY   = 0.2f ;
+  
   final public static int
     STATE_NONE    =  0,
     STATE_INSTALL =  1,
@@ -60,16 +65,13 @@ public class Structure extends Inventory {
   } ;
   
   
-  //
-  //  TODO:  Allow this to be an arbitrary Installation, such as vehicles.
-  final Venue venue ;
+  final Installation venue ;
   
   private int baseIntegrity = DEFAULT_INTEGRITY ;
   private int maxUpgrades = NO_UPGRADES ;
   private int
-    buildCost = DEFAULT_BUILD_COST,
-    armouring = DEFAULT_ARMOUR ;
-  private int
+    buildCost     = DEFAULT_BUILD_COST,
+    armouring     = DEFAULT_ARMOUR,
     structureType = TYPE_VENUE ;
   
   private int state = STATE_INSTALL ;
@@ -83,14 +85,12 @@ public class Structure extends Inventory {
   
   
   
-  Structure(Venue venue) {
-    super(venue) ;
+  Structure(Installation venue) {
     this.venue = venue ;
   }
   
   
   public void loadState(Session s) throws Exception {
-    super.loadState(s) ;
     baseIntegrity = s.loadInt() ;
     maxUpgrades = s.loadInt() ;
     buildCost = s.loadInt() ;
@@ -116,7 +116,6 @@ public class Structure extends Inventory {
   
   
   public void saveState(Session s) throws Exception {
-    super.saveState(s) ;
     s.saveInt(baseIntegrity) ;
     s.saveInt(maxUpgrades) ;
     s.saveInt(buildCost) ;
@@ -172,19 +171,33 @@ public class Structure extends Inventory {
   /**  Regular updates-
     */
   protected void updateStructure(int numUpdates) {
-    //if (! flammable()) burning = false ;
+    //
+    //  Firstly, check to see if you're still burning-
     if (burning) {
-      takeDamage(Rand.num() * 2) ;
+      takeDamage(Rand.num() * 2 * BURN_PER_SECOND) ;
       final float damage = maxIntegrity() - integrity ;
-      if (armouring > Rand.num() * damage) burning = false ;
+      if (armouring * 0.1f > Rand.num() * damage) burning = false ;
+      //  TODO:  Consider spreading to nearby structures?
     }
-    final boolean takesWear =
+    //
+    //  Then, check for gradual wear and tear-
+    if (
       (numUpdates % 10 == 0) &&
       (! GameSettings.buildFree) &&
-      takesWear() && (integrity > 0) ;
-    if (takesWear) {
-      final float wear = baseIntegrity * 1f / World.STANDARD_DAY_LENGTH ;
-      if (2 > Rand.num() * armouring) takeDamage(wear * Rand.num()) ;
+      takesWear() && (integrity > 0)
+    ) {
+      float wear = baseIntegrity * WEAR_PER_DAY ;
+      wear *= 10 / World.STANDARD_DAY_LENGTH ;
+      if (structureType == TYPE_FIXTURE) wear /= 2 ;
+      if (Rand.num() > armouring / (armouring + DEFAULT_ARMOUR)) {
+        takeDamage(wear * Rand.num() * 2) ;
+      }
+    }
+    //
+    //  And finally, organic structures can regenerate health-
+    if (regenerates()) {
+      final float regen = baseIntegrity * REGEN_PER_DAY ;
+      repairBy(regen / World.STANDARD_DAY_LENGTH) ;
     }
   }
   
@@ -255,7 +268,7 @@ public class Structure extends Inventory {
     integrity += inc ;
     if (integrity < 0) {
       state = STATE_RAZED ;
-      venue.setAsDestroyed() ;
+      ((Element) venue).setAsDestroyed() ;
       integrity = 0 ;
       checkMaintenance() ;
     }
@@ -289,7 +302,7 @@ public class Structure extends Inventory {
   
   
   protected void checkMaintenance() {
-    final World world = venue.world() ;
+    final World world = ((Element) venue).world() ;
     final boolean needs = (state != STATE_RAZED) && (
       (state == STATE_SALVAGE) || (! goodCondition()) ||
       needsUpgrade() || burning

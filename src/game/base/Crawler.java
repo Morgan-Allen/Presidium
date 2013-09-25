@@ -77,7 +77,7 @@ public class Crawler extends Vehicle implements
       "  'This one's called Bett, and this one's Geordi.  Geordi is pretty "+
       "friendly, but you just want to stand well back when Bett starts "+
       "making that humming noise- means she don't like you.'\n"+
-      "  -Onud Calgin, Climate Engineer" ;
+      "  -Onyd Calgin, Former Engineer, prior to recall" ;
   }
 }
 

@@ -77,6 +77,11 @@ public class Item implements BuildConstants {
   }
   
   
+  public static Item withQuality(Item item, int quality) {
+    return new Item(item.type, item.refers, 1, quality) ;
+  }
+  
+  
   public static Item withReference(Item item, Saveable refers) {
     return new Item(item.type, refers, item.amount, item.quality) ;
   }

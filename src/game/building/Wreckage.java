@@ -77,7 +77,7 @@ public class Wreckage extends Fixture {
   }
   
   
-  public void onGrowth() {
+  public void onGrowth(Tile t) {
     if (permanent) return ;
     setAsDestroyed() ;
   }

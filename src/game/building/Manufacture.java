@@ -206,8 +206,8 @@ public class Manufacture extends Plan implements Behaviour {
     */
   public void describeBehaviour(Description d) {
     d.append("Manufacturing "+made) ;
-    final float progress = venue.stocks.amountOf(made) / made.amount ;
-    d.append(" ("+((int) (progress * 100))+"%)") ;
+    //final float progress = venue.stocks.amountOf(made) / made.amount ;
+    //d.append(" ("+((int) (progress * 100))+"%)") ;
   }
 }
 

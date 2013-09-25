@@ -4,10 +4,9 @@
   *  for now, feel free to poke around for non-commercial purposes.
   */
 package src.game.actors ;
+import src.game.building.Item;
 import src.game.common.* ;
 import src.game.planet.Planet ;
-import src.user.BaseUI ;
-///import src.user.BaseUI ;
 import src.util.* ;
 
 
@@ -28,10 +27,10 @@ public class ActorHealth implements ActorConstants {
     STATE_DECOMP   = 4 ;
   final static String STATE_DESC[] = {
     "Active",
-    "Resting",
-    "In Suspended Animation",
+    "Asleep",
+    "In Suspension",
     "Dead",
-    "Decomposed"
+    "Decomposing"
   } ;
   final public static int
     AGE_JUVENILE = 0,
@@ -376,6 +375,11 @@ public class ActorHealth implements ActorConstants {
   }
   
   
+  public boolean asleep() {
+    return state == STATE_RESTING ;
+  }
+  
+  
   public boolean deceased() {
     return state == STATE_DEAD || state == STATE_DECOMP ;
   }
@@ -392,7 +396,7 @@ public class ActorHealth implements ActorConstants {
   }
   
   
-  public float skillPenalty() {
+  public float stressPenalty() {
     if (! organic) return 0 ;
     //
     //  TODO:  Calculate this once every second or two, and cache it for
@@ -404,6 +408,14 @@ public class ActorHealth implements ActorConstants {
     sum -= moraleLevel() + 0.25f ;
     if (sum < 0) return 0 ;
     return Visit.clamp(sum * sum, 0, 1) ;
+  }
+  
+  
+  public float encumbrance() {
+    float sum = 0 ;
+    for (Item i : actor.gear.allItems()) sum += i.amount ;
+    sum *= fatigueLevel() / maxHealth ;
+    return sum * sum ;
   }
   
   
@@ -461,7 +473,6 @@ public class ActorHealth implements ActorConstants {
       I.say("Injury/fatigue:"+injury+"/"+fatigue+", max: "+maxHealth) ;
       I.say("STATE IS: "+state) ;
     }
-    ///final float hunger = hungerLevel() * maxHealth / 2 ;
     //
     //  Check for state effects-
     if (state == STATE_SUSPEND) return ;
@@ -526,14 +537,15 @@ public class ActorHealth implements ActorConstants {
     //  Have morale converge to a default based on the cheerful trait and
     //  current stress levels.
     final float
-      defaultMorale = actor.traits.traitLevel(OPTIMISTIC),
+      stress = stressPenalty(),
+      defaultMorale = actor.traits.traitLevel(OPTIMISTIC) / 10f,
       moraleInc = MORALE_DECAY_PER_DAY * MM / DL ;
     morale = (morale * (1 - moraleInc)) + (defaultMorale * moraleInc) ;
-    morale -= skillPenalty() / DL ;
+    morale -= stress / DL ;
     //
     //  Last but not least, update your psy points-
     final float maxPsy = maxPsy() ;
-    psyPoints += maxPsy * (1 - skillPenalty()) * PM / PSY_REGEN_TIME ;
+    psyPoints += maxPsy * (1 - stress) * PM / PSY_REGEN_TIME ;
     psyPoints = Visit.clamp(psyPoints, 0, maxPsy) ;
   }
   

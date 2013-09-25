@@ -281,17 +281,18 @@ public class Career implements ActorConstants {
   
   
   public static void applyGear(Background v, Actor actor) {
+    int BQ = v.standing ;
     for (Service gear : v.gear) {
       if (gear instanceof DeviceType) {
-        actor.gear.equipDevice(Item.withQuality(gear, 2)) ;
+        actor.gear.equipDevice(Item.withQuality(gear, BQ + Rand.index(3))) ;
       }
       else if (gear instanceof OutfitType) {
-        actor.gear.equipOutfit(Item.withQuality(gear, 2)) ;
+        actor.gear.equipOutfit(Item.withQuality(gear, BQ + Rand.index(3))) ;
       }
-      else actor.gear.addItem(Item.withAmount(gear, 2)) ;
+      else actor.gear.addItem(Item.withAmount(gear, BQ + Rand.index(3))) ;
     }
     if (actor.gear.credits() == 0) {
-      actor.gear.incCredits(50 + Rand.index(100)) ;
+      actor.gear.incCredits((50 + Rand.index(100)) * BQ / 2f) ;
     }
   }
 }

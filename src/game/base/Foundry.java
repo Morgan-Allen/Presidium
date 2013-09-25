@@ -56,7 +56,7 @@ public class Foundry extends Venue implements BuildConstants {
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     Foundry.class, "foundry_upgrades"
   ) ;
-  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     ASSEMBLY_LINE = new Upgrade(
       "Assembly Line",
@@ -139,7 +139,7 @@ public class Foundry extends Venue implements BuildConstants {
       pollution /= 2 ;
       powerNeed /= 2 ;
     }
-    powerNeed *= (2 + structure.numUpgrades()) / 2 ;
+    powerNeed *= (3 + structure.numUpgrades()) / 3 ;
     pollution *= 2 / (2 + structure.upgradeLevel(MOLDING_PRESS)) ;
     world.ecology().impingePollution(pollution, this, true) ;
     stocks.forceDemand(POWER, powerNeed, 0) ;
@@ -149,12 +149,9 @@ public class Foundry extends Venue implements BuildConstants {
   
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
+    final float powerCut = stocks.shortagePenalty(POWER) * 10 ;
     //
     //  Consider special commissions for weapons and armour-
-    //
-    //  TODO:  Have efficiency impacted by power levels.
-    final int powerCut = stocks.amountOf(POWER) < 1 ? 10 : 0 ;
-    
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
     if (o != null && personnel.assignedTo(o) < 1) {
       o.checkBonus = structure.upgradeLevel(MOLDING_PRESS) + 5 ;
@@ -176,6 +173,7 @@ public class Foundry extends Venue implements BuildConstants {
         else o.checkBonus += CMB ;
       }
       o.timeMult = 5 ;
+      o.checkBonus -= powerCut ;
       o.priorityMod = Plan.ROUTINE ;
       return o ;
       //choice.add(o) ;
@@ -190,11 +188,13 @@ public class Foundry extends Venue implements BuildConstants {
     final Manufacture mP = stocks.nextManufacture(actor, METALS_TO_PARTS) ;
     if (mP != null) {
       mP.checkBonus = (PB * 5) / 2 ;
+      mP.checkBonus -= powerCut ;
       choice.add(mP) ;
     }
     final Manufacture mC = stocks.nextManufacture(actor, PARTS_TO_CIRCUITRY) ;
     if (mC != null) {
       mC.checkBonus = (PB * 5) / 2 ;
+      mC.checkBonus -= powerCut ;
       choice.add(mC) ;
     }
     //

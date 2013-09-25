@@ -164,7 +164,7 @@ public class ActorTraits implements ActorConstants {
       else {
         level += rootBonus(skill) ;
       }
-      level *= 1 - actor.health.skillPenalty() ;
+      level *= 1 - actor.health.stressPenalty() ;
     }
     return level ;
   }

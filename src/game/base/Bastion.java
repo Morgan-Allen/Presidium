@@ -51,13 +51,21 @@ public class Bastion extends Venue implements BuildConstants {
   }
   
   
+  //  TODO:  Restore this later.  You shouldn't have more than one Bastion at
+  //  your disposal.
+  /*
+  public boolean privateProperty() {
+    return true ;
+  }
+  //*/
+  
   
   /**  Upgrades, economic functions and behaviour implementation-
     */
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     Bastion.class, "bastion_upgrades"
   ) ;
-  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     LOGISTIC_SUPPORT = new Upgrade(
       "Logistic Support",

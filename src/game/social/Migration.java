@@ -11,11 +11,14 @@ import src.util.* ;
 import src.game.actors.ActorAI.* ;
 
 
+
 //
 //  Unemployed actors should try to leave the world.
 //
 //  TODO:  Generalise this into a class for seeking alternative employment,
 //  including at different venues in the same world.
+
+
 
 
 public class Migration extends Plan {
@@ -53,6 +56,10 @@ public class Migration extends Plan {
   /**  Evaluating targets and priority-
     */
   public float priorityFor(Actor actor) {
+    //
+    //  DISABLING FOR NOW  TODO:  Restore once job-applications are sorted out.
+    if (true) return -1 ;
+    
     if (actor.AI.work() != null) return 0 ;
     if (initTime == -1) return ROUTINE ;
     final float timeSpent = actor.world().currentTime() + 10 - initTime ;
@@ -127,7 +134,26 @@ public class Migration extends Plan {
   public void describeBehaviour(Description d) {
     d.append("Migrating off-planet") ;
   }
+  
+  
+  
+  /**  Helper methods for finding suitable employment elsewhere-
+    */
+  static Batch <Venue> nearbyEmployers() {
+    
+    
+    return null ;
+  }
+  
+  
+  
+  public static float rateEmployer(Venue location, Background position) {
+    
+    
+    return 0 ;
+  }
 }
+
 
 
 

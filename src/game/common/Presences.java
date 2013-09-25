@@ -44,7 +44,7 @@ public class Presences {
   protected void loadState(Session s) throws Exception {
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final PresenceMap f = (PresenceMap) s.loadObject() ;
-      allMaps.put(f.key, f) ;
+      if (f != null) allMaps.put(f.key, f) ;
     }
     floraMap = allMaps.get(Flora.class) ;
     mobilesMap = allMaps.get(Mobile.class) ;
@@ -53,7 +53,10 @@ public class Presences {
   
   protected void saveState(Session s) throws Exception {
     s.saveInt(allMaps.size()) ;
-    for (PresenceMap f : allMaps.values()) s.saveObject(f) ;
+    for (PresenceMap f : allMaps.values()) {
+      if (f.population() > 0) s.saveObject(f) ;
+      else s.saveObject(null) ;
+    }
   }
   
   

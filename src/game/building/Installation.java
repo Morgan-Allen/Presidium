@@ -3,8 +3,9 @@
 package src.game.building ;
 import src.game.common.* ;
 import src.graphics.common.* ;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
+import src.util.* ;
 
 
 
@@ -23,8 +24,10 @@ public interface Installation extends Inventory.Owner {
   String helpInfo() ;
   String buildCategory() ;
   
-  //
-  //  TODO:  Have this return a VenueStructure object!  So vehicles can use it!
+  Index <Upgrade> allUpgrades() ;
+  void onCompletion() ;
+  void onDestruction() ;
+  Structure structure() ;
 }
 
 

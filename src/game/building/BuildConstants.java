@@ -26,19 +26,16 @@ public interface BuildConstants extends ActorConstants {
   
   
   final public static int
-    FORM_COMMODITY      = 0,
-    FORM_PROVISION      = 1,
-    FORM_UNIQUE         = 2,
-    FORM_DEVICE         = 3,
-    FORM_OUTFIT         = 4,
-    FORM_SERVICE        = 5 ;
+    FORM_COMMODITY      = 0, FC = 0,
+    FORM_PROVISION      = 1, FP = 1,
+    FORM_UNIQUE         = 2, FU = 2,
+    FORM_DEVICE         = 3, FD = 3,
+    FORM_OUTFIT         = 4, FO = 4,
+    FORM_SERVICE        = 5, FS = 5 ;
   
   final static Class BC = BuildConstants.class ;
-  final static int FC = FORM_COMMODITY, FP = FORM_PROVISION ;
   
   final public static Service
-    //
-    //  TODO:  Re-organise these into broad categories.
     //
     //  Food types-
     CARBS       = new Service(BC, "Carbs"     , "carbs.gif"      , FC, 10 ),
@@ -62,20 +59,19 @@ public interface BuildConstants extends ActorConstants {
     STIM_KITS   = new Service(BC, "Stim Kit"  , "stimkit.gif"    , FC, 40 ),
     SPICE       = new Service(BC, "Spice"     , "spices.gif"     , FC, 100),
     MEDICINE    = new Service(BC, "Medicine"  , "medicines.gif"  , FC, 200),
-    //  TODO:  Include gene-seed.
     
     ALL_FOOD_TYPES[] = { CARBS, PROTEIN, GREENS, SPICE },
     ALL_COMMODITIES[] = Service.typesSoFar() ;
   
   final public static Service
     SAMPLES  = new Service(BC, "Samples", "crates_big.gif", FC, -1),
-    CREDITS = new Service(BC, "Credits", null           , FP, -1) ;
+    CREDITS  = new Service(BC, "Credits", null            , FP, -1) ;
   
   final public static Service
     TROPHIES    = new Service(BC, FORM_UNIQUE, "Trophy"     , 100 ),
     RARITIES    = new Service(BC, FORM_UNIQUE, "Rarity"     , 100 ),
     
-    GENE_SEED   = new Service(BC, FORM_UNIQUE, "Gene Seed"  , 200 ),
+    GENE_SEED   = new Service(BC, "Gene Seed", "gene_seed.gif", FU, 200 ),
     GHOSTLINE   = new Service(BC, FORM_UNIQUE, "Ghostline"  , 200 ),
     PRESSFEED   = new Service(BC, FORM_UNIQUE, "Pressfeed"  , 200 ),
     
@@ -190,7 +186,7 @@ public interface BuildConstants extends ActorConstants {
   final public static OutfitType
     FINERY         = new OutfitType(
       BC, "Finery"        , 2 , 200,
-      new Conversion(2, PLASTICS, Fabricator.class, 15, GRAPHIC_DESIGN)
+      new Conversion(2, PLASTICS, Fabricator.class, 15, GRAPHIC_MEDIA)
     ),
     OVERALLS       = new OutfitType(
       BC, "Overalls"      , 2, 50,
@@ -198,7 +194,7 @@ public interface BuildConstants extends ActorConstants {
     ),
     CAMOUFLAGE     = new OutfitType(
       BC, "Camouflage"    , 3 , 70,
-      new Conversion(1, PLASTICS, Fabricator.class, 10, GRAPHIC_DESIGN)
+      new Conversion(1, PLASTICS, Fabricator.class, 10, GRAPHIC_MEDIA)
     ),
     SEALSUIT       = new OutfitType(
       BC, "Sealsuit"      , 4 , 150,
@@ -258,19 +254,19 @@ public interface BuildConstants extends ActorConstants {
     PETROCARBS_TO_PLASTICS = new Conversion(
       1, PETROCARBS, TO, 1, PLASTICS,
       Fabricator.class,
-      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_DESIGN
+      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_MEDIA
     ),
     
     CARBS_TO_PLASTICS = new Conversion(
       2, CARBS, TO, 1, PLASTICS,
       Fabricator.class,
-      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_DESIGN
+      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_MEDIA
     ),
     
     PLASTICS_TO_DECOR = new Conversion(
       1, PLASTICS, TO, 2, DECOR,
       Fabricator.class,
-      STRENUOUS_DC, GRAPHIC_DESIGN, MODERATE_DC, HANDICRAFTS
+      STRENUOUS_DC, GRAPHIC_MEDIA, MODERATE_DC, HANDICRAFTS
     ),
     
     //
@@ -278,13 +274,13 @@ public interface BuildConstants extends ActorConstants {
     PLASTICS_TO_CREDITS = new Conversion(
       1, PLASTICS, TO, 500, CREDITS,
       AuditOffice.class,
-      MODERATE_DC, ADMINISTRATION, MODERATE_DC, GRAPHIC_DESIGN
+      MODERATE_DC, ADMINISTRATION, MODERATE_DC, GRAPHIC_MEDIA
     ),
     
     PLASTICS_TO_PRESSFEED = new Conversion(
       1, PLASTICS, TO, 10, PRESSFEED,
       AuditOffice.class,
-      SIMPLE_DC, ADMINISTRATION, DIFFICULT_DC, GRAPHIC_DESIGN
+      SIMPLE_DC, ADMINISTRATION, DIFFICULT_DC, GRAPHIC_MEDIA
     ),
     
     //

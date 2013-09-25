@@ -64,7 +64,7 @@ public class SpiceMidden extends Fixture implements Selectable {
   }
   
   
-  public void onGrowth() {
+  public void onGrowth(Tile t) {
     spiceAmount -= Rand.num() / 2 ;
     if (spiceAmount <= 0) setAsDestroyed() ;
   }

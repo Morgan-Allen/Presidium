@@ -69,7 +69,7 @@ public abstract class Fixture extends Element {
     final World world = origin().world ;
     for (Tile t : world.tilesIn(around, false)) if (t != null) {
       if (t.owner() != null && t.owningType() < this.owningType()) {
-        t.owner().exitWorld() ;
+        t.owner().setAsDestroyed() ;
       }
     }
     Tile exit = null ;

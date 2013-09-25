@@ -79,7 +79,7 @@ public class Background implements BuildConstants {
     ),
     PYON_BIRTH = new Background(
       "Pyon Birth", "pyon_skin.gif", null, LOWER_CLASS, NOT_A_GUILD,
-      NOVICE, COMMON_CUSTOM, LEARNING, HARD_LABOUR, HOUSEKEEPING, ASSEMBLY
+      NOVICE, COMMON_CUSTOM, LEARNING, HARD_LABOUR, DOMESTICS, ASSEMBLY
     ),
     FREE_BIRTH = new Background(
       "Free Birth", "citizen_skin.gif", null, MIDDLE_CLASS, NOT_A_GUILD,
@@ -143,7 +143,7 @@ public class Background implements BuildConstants {
     MINDER = new Background(
       "Minder", "citizen_skin.gif", null,
       LOWER_CLASS, GUILD_PHYSICIAN,
-      PRACTICED, HOUSEKEEPING, SUASION, NOVICE, ANATOMY, PHARMACY, COUNSEL,
+      PRACTICED, DOMESTICS, SUASION, NOVICE, ANATOMY, PHARMACY, COUNSEL,
       OFTEN, EMPATHIC, SOMETIMES, STUBBORN
     ),
     
@@ -188,15 +188,15 @@ public class Background implements BuildConstants {
     FIELD_HAND = new Background(
       "Field Hand", "pyon_skin.gif", null,
       LOWER_CLASS, GUILD_ECOLOGIST,
-      PRACTICED, CULTIVATION, HARD_LABOUR, NOVICE, HOUSEKEEPING,
+      PRACTICED, CULTIVATION, HARD_LABOUR, NOVICE, DOMESTICS,
       OFTEN, SOCIABLE, SOMETIMES, NATURALIST, RARELY, AMBITIOUS
     ),
     
-    CLIMATE_ENGINEER = new Background(
-      "Climate Engineer", "ecologist_skin.gif", null,
+    FORMER_ENGINEER = new Background(
+      "Former Engineer", "ecologist_skin.gif", null,
       MIDDLE_CLASS, GUILD_ECOLOGIST,
       PRACTICED, GEOPHYSICS, ASSEMBLY, HARD_LABOUR,
-      NOVICE, GENE_CULTURE, XENOZOOLOGY, SURVEILLANCE,
+      NOVICE, GENE_CULTURE, SURVEILLANCE,
       RARELY, SOCIABLE, OFTEN, OPTIMISTIC,
       CAMOUFLAGE
     ),
@@ -208,7 +208,7 @@ public class Background implements BuildConstants {
       PRACTICED, MARKSMANSHIP, NATIVE_TABOO,
       NOVICE, BATTLE_TACTICS, HAND_TO_HAND,
       RARELY, NERVOUS, INDOLENT, OFTEN, NATURALIST,
-      PHASE_BLASTER, CAMOUFLAGE
+      STUN_PISTOL, CAMOUFLAGE
     ),
     
     ECOLOGIST = new Background(
@@ -219,7 +219,7 @@ public class Background implements BuildConstants {
       ALWAYS, NATURALIST, SOMETIMES, EMPATHIC, INQUISITIVE
     ),
     
-    ECOLOGIST_CIRCLES[] = { FIELD_HAND, CLIMATE_ENGINEER, EXPLORER, ECOLOGIST }
+    ECOLOGIST_CIRCLES[] = { FIELD_HAND, FORMER_ENGINEER, EXPLORER, ECOLOGIST }
   ;
   
   final public static Background
@@ -234,7 +234,7 @@ public class Background implements BuildConstants {
     SOMA_VENDOR = new Background(
       "Soma Vendor", "vendor_skin.gif", null,
       MIDDLE_CLASS, GUILD_MERCHANT,
-      PRACTICED, COUNSEL, SUASION, NOVICE, HOUSEKEEPING, CHEMISTRY,
+      PRACTICED, COUNSEL, SUASION, NOVICE, DOMESTICS, CHEMISTRY,
       ADMINISTRATION,
       SOMETIMES, ACQUISITIVE
     ),
@@ -242,7 +242,7 @@ public class Background implements BuildConstants {
     STOCK_VENDOR = new Background(
       "Stock Vendor", "vendor_skin.gif", "vendor_portrait.png",
       MIDDLE_CLASS, GUILD_MERCHANT,
-      NOVICE, SUASION, HARD_LABOUR, ADMINISTRATION
+      PRACTICED, ADMINISTRATION, DOMESTICS, NOVICE, SUASION, HARD_LABOUR
     ),
     
     AUDITOR = new Background(
@@ -269,7 +269,7 @@ public class Background implements BuildConstants {
     
     RESERVIST = new Background(
       "Reservist", "artificer_skin.gif", "militant_portrait.png",
-      LOWER_CLASS, GUILD_MILITANT,
+      MIDDLE_CLASS, GUILD_MILITANT,
       PRACTICED, HARD_LABOUR, ASSEMBLY,
       NOVICE, ANATOMY, PHARMACY, MARKSMANSHIP,
       RARELY, SOCIABLE, SOMETIMES, HONOURABLE,
@@ -280,7 +280,7 @@ public class Background implements BuildConstants {
       "Runner", "runner_skin.gif", "vendor_portrait.png",
       MIDDLE_CLASS, GUILD_MILITANT,
       EXPERT, PILOTING, MARKSMANSHIP, STEALTH_AND_COVER,
-      PRACTICED, SUASION, SURVEILLANCE, DISGUISE,
+      PRACTICED, SUASION, SURVEILLANCE, MASQUERADE,
       OFTEN, ACQUISITIVE, SOMETIMES, NERVOUS, RARELY, HONOURABLE,
       PHASE_BLASTER, CAMOUFLAGE
     ),
@@ -302,7 +302,7 @@ public class Background implements BuildConstants {
     PERFORMER = new Background(
       "Performer", "aesthete_female_skin.gif", "aesthete_portrait.png",
       LOWER_CLASS, GUILD_AESTHETE,
-      PRACTICED, MUSIC_AND_SONG, NOVICE, EROTICS, DISGUISE,
+      PRACTICED, MUSIC_AND_SONG, NOVICE, EROTICS, MASQUERADE,
       OFTEN, HANDSOME, RARELY, STOUT, SOMETIMES, EMPATHIC, DEBAUCHED,
       FINERY
     ) {
@@ -315,21 +315,21 @@ public class Background implements BuildConstants {
     FABRICATOR = new Background(
       "Fabricator", "citizen_skin.gif", null,
       MIDDLE_CLASS, GUILD_AESTHETE,
-      PRACTICED, CHEMISTRY, GRAPHIC_DESIGN, NOVICE, HARD_LABOUR, HANDICRAFTS,
+      PRACTICED, CHEMISTRY, GRAPHIC_MEDIA, NOVICE, HARD_LABOUR, HANDICRAFTS,
       SOMETIMES, STUBBORN, NERVOUS
     ),
     
     SCULPTOR = new Background(
       "Sculptor", "aesthete_male_skin.gif", null,
       UPPER_CLASS, GUILD_AESTHETE,
-      EXPERT, GRAPHIC_DESIGN, PRACTICED, HANDICRAFTS, NOVICE, ANATOMY,
+      EXPERT, GRAPHIC_MEDIA, PRACTICED, HANDICRAFTS, NOVICE, ANATOMY,
       RARELY, STUBBORN, IMPASSIVE, OFTEN, DEBAUCHED
     ),
     
     PROPAGANDIST = new Background(
       "Propagandist", "citizen_skin.gif", null,
       UPPER_CLASS, GUILD_AESTHETE,
-      EXPERT, GRAPHIC_DESIGN, SUASION,
+      EXPERT, GRAPHIC_MEDIA, SUASION,
       PRACTICED, MUSIC_AND_SONG, ADMINISTRATION,
       NOVICE, COUNSEL, PSYCHOANALYSIS,
       RARELY, HONOURABLE, STUBBORN, OFTEN, AMBITIOUS
@@ -370,8 +370,8 @@ public class Background implements BuildConstants {
     COMPANION = new Background(
       "Companion", "aesthete_female_skin.gif", "aesthete_portrait.png",
       UPPER_CLASS, NOT_A_GUILD,
-      EXPERT, EROTICS, COUNSEL, SUASION, DISGUISE, NOBLE_ETIQUETTE,
-      PRACTICED, HOUSEKEEPING, MUSIC_AND_SONG, COMMAND, HAND_TO_HAND,
+      EXPERT, EROTICS, COUNSEL, SUASION, MASQUERADE, NOBLE_ETIQUETTE,
+      PRACTICED, DOMESTICS, MUSIC_AND_SONG, COMMAND, HAND_TO_HAND,
       ALWAYS, HANDSOME, OFTEN, FEMININE, EMPATHIC, TALL, RARELY, STOUT,
       FINERY
     ) {
@@ -390,7 +390,7 @@ public class Background implements BuildConstants {
     GATHERER = new Background(
       "Gatherer", "native_skin.gif", null,
       LOWER_CLASS, NOT_A_GUILD,
-      EXPERT, HANDICRAFTS, PRACTICED, HOUSEKEEPING, CULTIVATION, HARD_LABOUR,
+      EXPERT, HANDICRAFTS, PRACTICED, DOMESTICS, CULTIVATION, HARD_LABOUR,
       NATIVE_TABOO,
       RARELY, INDOLENT, OFTEN, SOCIABLE
     ),
@@ -399,7 +399,7 @@ public class Background implements BuildConstants {
       LOWER_CLASS, NOT_A_GUILD,
       EXPERT, SURVEILLANCE, STEALTH_AND_COVER,
       PRACTICED, MARKSMANSHIP, XENOZOOLOGY, ATHLETICS,
-      NOVICE, HAND_TO_HAND, HANDICRAFTS, DISGUISE,
+      NOVICE, HAND_TO_HAND, HANDICRAFTS, MASQUERADE,
       OFTEN, NATURALIST
     ),
     CHIEFTAIN = new Background(
@@ -413,8 +413,8 @@ public class Background implements BuildConstants {
     //  Depending on tribal culture, you might also get the following-
     MUTANT_PARIAH = new Background(
       "Mutant Pariah", "native_skin.gif", null,
-      MIDDLE_CLASS, NOT_A_GUILD,
-      PRACTICED, MUSIC_AND_SONG, NATIVE_TABOO, DISGUISE,
+      LOWER_CLASS, NOT_A_GUILD,
+      PRACTICED, MUSIC_AND_SONG, NATIVE_TABOO, MASQUERADE,
       NOVICE, EROTICS, HANDICRAFTS,
       LEARNING, TRANSDUCTION, SYNESTHESIA, METABOLISM,
       ALWAYS, GIFTED, OFTEN, MUTATION, RARELY, FRIENDLY, HANDSOME
@@ -422,7 +422,7 @@ public class Background implements BuildConstants {
     CARGO_CULTIST = new Background(
       "Cargo Cultist", "native_skin.gif", null,
       MIDDLE_CLASS, NOT_A_GUILD,
-      EXPERT, HANDICRAFTS, PRACTICED, HOUSEKEEPING,
+      EXPERT, HANDICRAFTS, PRACTICED, DOMESTICS,
       NOVICE, ANCIENT_LORE, ASSEMBLY, COMMON_CUSTOM,
       ALWAYS, ACQUISITIVE, OPTIMISTIC, RARELY, NATURALIST
     ),
@@ -470,7 +470,7 @@ public class Background implements BuildConstants {
     CONSORT = new Background(
       "Consort", "highborn_female_skin.gif", null,
       RULER_CLASS, NOT_A_GUILD,
-      PRACTICED, COMMAND, SUASION, NOVICE, EROTICS, DISGUISE, HOUSEKEEPING,
+      PRACTICED, COMMAND, SUASION, NOVICE, EROTICS, MASQUERADE, DOMESTICS,
       RARELY, IMPASSIVE, STUBBORN, OFTEN, AMBITIOUS, ACQUISITIVE,
       SOMETIMES, FRIENDLY
     ) {
@@ -491,7 +491,7 @@ public class Background implements BuildConstants {
     STEWARD = new Background(
       "Steward", "citizen_skin.gif", null,
       UPPER_CLASS, NOT_A_GUILD,
-      EXPERT, HOUSEKEEPING, PRACTICED, PHARMACY, ANATOMY, COUNSEL,
+      EXPERT, DOMESTICS, PRACTICED, PHARMACY, ANATOMY, COUNSEL,
       GENE_CULTURE, NOVICE, NOBLE_ETIQUETTE,
       ALWAYS, DUTIFUL, OFTEN, TRADITIONAL, NEVER, AGGRESSIVE
     ),

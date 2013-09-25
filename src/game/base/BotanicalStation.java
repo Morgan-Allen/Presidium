@@ -11,15 +11,14 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
 
-
 //
-//  TODO:  Return forestry plans as well...
-
+//  TODO:  Get rid of the Petrocarbs production from forestry, since the Air
+//  Processor already has that covered.  (That and mining of course.)
 
 
 public class BotanicalStation extends Venue implements BuildConstants {
@@ -71,7 +70,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     BotanicalStation.class, "botanical_upgrades"
   ) ;
-  protected Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
     CEREAL_LAB = new Upgrade(
       "Cereal Lab",
@@ -124,15 +123,15 @@ public class BotanicalStation extends Venue implements BuildConstants {
       TREE_FARMING, ALL_UPGRADES
     ) ;
   
-
+  
   public Behaviour jobFor(Actor actor) {
-    if (! structure.intact()) return null ;
-    if (Planet.isNight(world)) return null ;
+    if (! structure.intact() || Planet.isNight(world)) return null ;
     //
     //  If the harvest is really coming in, pitch in regardless-
     final Choice choice = new Choice(actor) ;
+    final boolean needsSeed = stocks.amountOf(GENE_SEED) < 5 ;
     for (Plantation p : allotments) {
-      if (p.needForFarming() > 0.5f) choice.add(new Farming(actor, p)) ;
+      if (p.needForTending() > 0.5f) choice.add(new Farming(actor, p)) ;
     }
     if (choice.size() > 0) return choice.weightedPick(0) ;
     //
@@ -142,19 +141,101 @@ public class BotanicalStation extends Venue implements BuildConstants {
       actor, this, services(), 10, world
     ) ;
     choice.add(d) ;
-    
+    //
+    //  Forestry may have to be performed, depending on need for gene samples-
     final Forestry f = new Forestry(actor, this) ;
+    if (needsSeed && actor.vocation() == Background.ECOLOGIST) {
+      f.priorityMod += Plan.ROUTINE ;
+      f.configureFor(Forestry.STAGE_SAMPLING) ;
+    }
+    else {
+      f.priorityMod = structure.upgradeLevel(TREE_FARMING) ;
+      f.configureFor(Forestry.STAGE_GET_SEED) ;
+    }
     choice.add(f) ;
-    
+    //
+    //  And lower-priority tending and upkeep also gets an appearance-
+    choice.add(researchAction(actor)) ;
     for (Plantation p : allotments) choice.add(new Farming(actor, p)) ;
     return choice.weightedPick(0) ;
+  }
+  
+  
+  protected Action researchAction(Actor actor) {
+    if (actor.vocation() != Background.ECOLOGIST) return null ;
+    if (stocks.amountOf(GENE_SEED) <= 0) return null ;
+    Plantation needs = null ;
+    for (Plantation p : allotments) if (p.type == Plantation.TYPE_NURSERY) {
+      if (p.stocks.amountOf(GENE_SEED) < 0.5f) needs = p ;
+    }
+    if (needs == null) return null ;
+    if (actor.gear.amountOf(GENE_SEED) > 0.5f) {
+      final Action deliver = new Action(
+        actor, needs,
+        this, "actionDeliverSeed",
+        Action.STAND, "Delivering seed"
+      ) ;
+      return deliver ;
+    }
+    else {
+      final Action prepare = new Action(
+        actor, this,
+        this, "actionPrepareSeed",
+        Action.STAND, "Preparing seed"
+      ) ;
+      return prepare ;
+    }
+  }
+  
+  
+  public boolean actionPrepareSeed(Actor actor, BotanicalStation lab) {
+    //
+    //  Calculate odds of success based on the skill of the researcher-
+    final float successChance = 0.1f ;
+    float skillRating = 5 ;
+    if (! actor.traits.test(GENE_CULTURE, ROUTINE_DC, 5.0f)) skillRating /= 2 ;
+    if (! actor.traits.test(CULTIVATION, MODERATE_DC, 5.0f)) skillRating /= 2 ;
+    if (! lab.stocks.hasEnough(POWER)) skillRating /= 2 ;
+    //
+    //  Use the seed in the lab to create seed for the different crop types.
+    if (Rand.num() < successChance * skillRating) {
+      for (int var : Plantation.ALL_VARIETIES) {
+        float quality = skillRating * Rand.avgNums(2) ;
+        final Service yield = Plantation.speciesYield(var) ;
+        quality += structure.upgradeBonus(yield) ;
+        
+        Item seed = Item.withType(GENE_SEED, new Crop(var)) ;
+        seed = Item.withQuality(seed, (int) Visit.clamp(quality, 0, 5)) ;
+        seed = Item.withAmount(seed, 1) ;
+        if (var == Plantation.VAR_SAPLINGS) stocks.addItem(seed) ;
+        else actor.gear.addItem(seed) ;
+      }
+      stocks.bumpItem(GENE_SEED, -0.2f) ;
+      return true ;
+    }
+    return false ;
+  }
+  
+  
+  public boolean actionDeliverSeed(Actor actor, Plantation nursery) {
+    actor.gear.transfer(GENE_SEED, nursery) ;
+    return true ;
   }
   
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
-    if (numUpdates % 50 == 0) {
+    //
+    //  Increment demand for gene seed-
+    stocks.incDemand(GENE_SEED, 5, 1) ;
+    final float decay = 0.1f / World.STANDARD_DAY_LENGTH ;
+    for (Item seed : stocks.matches(GENE_SEED)) if (seed.refers != null) {
+      stocks.removeItem(Item.withAmount(seed, decay)) ;
+    }
+    //
+    //  Then update the current set of allotments-
+    if (numUpdates % 10 == 0) {
       final int STRIP_SIZE = 4 ;
       int numCovered = 0 ;
       //
@@ -186,9 +267,14 @@ public class BotanicalStation extends Venue implements BuildConstants {
       }
       if (maxAllots + STRIP_SIZE < allotments.size()) {
         //
-        //  And if you have too many, flag them for salvage.
-        for (int n = STRIP_SIZE ; n-- > 0 ;) {
-          final Plantation p = allotments.removeLast() ;
+        //  And if you have too many, flag the least productive for salvage.
+        float minRating = Float.POSITIVE_INFINITY ;
+        Plantation toRemove[] = null ;
+        for (Plantation p : allotments) {
+          final float rating = Plantation.rateArea(p.strip, world) ;
+          if (rating < minRating) { toRemove = p.strip ; minRating = rating ; }
+        }
+        if (toRemove != null) for (Plantation p : toRemove) {
           p.structure.setState(Structure.STATE_SALVAGE, -1) ;
         }
       }
@@ -210,9 +296,9 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   
   protected float growBonus(Tile t, int varID, boolean natural) {
-    final float pollution = t.world.ecology().squalorAt(t) / 10f ;
+    final float pollution = t.world.ecology().squalorRating(t) / 10f ;
+    if (pollution > 0) return 0 ;
     final float hB = 1 - pollution ;
-    if (hB <= 0) return 0 ;
     float bonus = 1 ;
     if (varID == 4) {
       if (natural) return hB ;
@@ -234,7 +320,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   
   public Service[] services() {
-    return new Service[] { PETROCARBS, GREENS, PROTEIN, CARBS } ;
+    return new Service[] { GREENS, PROTEIN, CARBS } ;
   }
   
   
@@ -246,6 +332,29 @@ public class BotanicalStation extends Venue implements BuildConstants {
   
   /**  Rendering and interface methods-
     */
+  final static float GOOD_DISPLAY_OFFSETS[] = {
+     -0.0f, 0,
+     -1.0f, 0,
+     -2.0f, 0,
+     -0.0f, 1,
+  } ;
+  
+  
+  protected float[] goodDisplayOffsets() {
+    return GOOD_DISPLAY_OFFSETS ;
+  }
+  
+  
+  protected Service[] goodsToShow() {
+    return new Service[] { GENE_SEED, GREENS, PROTEIN, CARBS } ;
+  }
+  
+  protected float goodDisplayAmount(Service good) {
+    if (good == GENE_SEED) return stocks.amountOf(good) > 0 ? 5 : 0 ;
+    return super.goodDisplayAmount(good) ;
+  }
+  
+  
   public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/nursery_button.gif") ;
   }
@@ -268,91 +377,6 @@ public class BotanicalStation extends Venue implements BuildConstants {
 
 
 
-
-
-
-
-
-
-/**  Grabbing areas suitable for plantation-
-  */
-
-//final List <Tile> toPlant = new List <Tile> () ;
-//final List <Crop> planted = new List <Crop> () ;
-//private int onceGrabbed = 0 ;
-/*
-protected float ratePlantArea() {
-  if (inWorld()) I.complain("Only intended for rating potential sites!") ;
-  if (origin() == null) I.complain("Must set position first!") ;
-  grabPlantArea() ;
-  
-  float rating = 0 ;
-  for (Tile t : toPlant) {
-    rating += t.habitat().moisture() ;
-  }
-  final int dim = 2 + (MAX_PLANT_RANGE * 2) ;
-  return rating / (dim * dim) ;
-}
-
-
-public void enterWorldAt(int x, int y, World world) {
-  super.enterWorldAt(x, y, world) ;
-  toPlant.clear() ;
-  onceGrabbed = 0 ;
-}
-
-
-protected void grabPlantArea() {
-  final Tile o = origin() ;
-  final int r = MAX_PLANT_RANGE, span = r + size + r ;
-  final Box2D area = new Box2D().set(
-    (o.x - r) - 0.5f, (o.y - r) - 0.5f,
-    span, span
-  ) ;
-  toPlant.clear() ;
-  
-  //
-  //  TODO:  You also want to put a Nursery someplace nearby.  But this will
-  //  do for now.
-  
-  final BotanicalStation nursery = this ;
-  final TileSpread spread = new TileSpread(o) {
-    protected boolean canAccess(Tile t) {
-      return nursery.canAccess(t, area) ;
-    }
-    protected boolean canPlaceAt(Tile t) {
-      if ((t.y - o.y) % 3 == 0) return false ;
-      if (nursery.canPlant(t)) toPlant.add(t) ;
-      return false ;
-    }
-  } ;
-  spread.doSearch() ;
-  onceGrabbed = toPlant.size() + planted.size() ;
-}
-
-
-protected boolean canAccess(Tile t, Box2D area) {
-  if (! t.habitat().pathClear) return false ;
-  if (! area.contains(t.x, t.y)) return false ;
-  if (t.owner() == this) return true ;
-  if (t.owningType() >= Element.FIXTURE_OWNS) return false ;
-  return true ;
-}
-
-
-protected boolean canPlant(Tile t) {
-  if (t.pathType() == Tile.PATH_ROAD) return false ;
-  if (t.owner() == this) return false ;
-  if (t.owner() instanceof Crop) return false ;
-  if (t.owningType() >= Element.FIXTURE_OWNS) return false ;
-  return true ;
-}
-
-
-protected int onceGrabbed() {
-  return onceGrabbed ;
-}
-//*/
 
 
 

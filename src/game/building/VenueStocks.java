@@ -161,6 +161,18 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
+  public boolean hasEnough(Service type) {
+    return amountOf(type) < (demandFor(type) / 2) ;
+  }
+  
+  
+  public float shortagePenalty(Service type) {
+    final float shortage = shortageOf(type) - 0.5f ;
+    if (shortage <= 0) return 0 ;
+    return shortage * 2 ;
+  }
+  
+  
   public float shortageOf(Service type) {
     return demandFor(type) - amountOf(type) ;
   }

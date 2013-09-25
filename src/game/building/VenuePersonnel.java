@@ -9,7 +9,7 @@ package src.game.building ;
 import src.game.base.* ;
 import src.game.campaign.* ;
 import src.game.common.* ;
-import src.game.planet.Planet;
+import src.game.planet.Planet ;
 import src.game.social.* ;
 import src.game.actors.* ;
 import src.util.* ;
@@ -131,7 +131,7 @@ public class VenuePersonnel {
       if (Planet.dayValue(world) < 0.5f) return false ;
       final int index = workers.indexOf(worker) ;
       final int day = (int) (world.currentTime() / World.STANDARD_DAY_LENGTH) ;
-      return (index % 3) == (day % 3) ;
+      return (index % 3) != (day % 3) ;
     }
     
     if (shiftType == Venue.SHIFTS_BY_CALENDAR) {
@@ -326,8 +326,6 @@ public class VenuePersonnel {
   /**  Life cycle, recruitment and updates-
     */
   protected void updatePersonnel(int numUpdates) {
-    //checkWagePayment() ;
-    
     if (numUpdates % REFRESH_INTERVAL == 0) {
       final World world = venue.world() ;
       //

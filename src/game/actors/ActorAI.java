@@ -59,6 +59,7 @@ public abstract class ActorAI implements ActorConstants {
   protected void loadState(Session s) throws Exception {
     s.loadObjects(agenda) ;
     s.loadObjects(todoList) ;
+    
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Mobile e = (Mobile) s.loadObject() ;
       seen.put(e, s.loadObject()) ;
@@ -71,7 +72,6 @@ public abstract class ActorAI implements ActorConstants {
     mission = (Mission) s.loadObject() ;
     home = (Venue) s.loadObject() ;
     work = (Employment) s.loadObject() ;
-    
   }
   
   
@@ -113,9 +113,12 @@ public abstract class ActorAI implements ActorConstants {
     //  Firstly, remove any elements that have escaped beyond sight range.
     final Batch <Element> outOfRange = new Batch <Element> () ;
     for (Mobile e : seen.keySet()) {
-      if (e.indoors() || Spacing.distance(e, actor) > lostRange) {
-        ///if (BaseUI.isPicked(actor)) I.say("  "+actor+" CANNOT SEE: "+e) ;
+      if (
+        (! e.inWorld()) || e.indoors() ||
+        Spacing.distance(e, actor) > lostRange
+      ) {
         outOfRange.add(e) ;
+        if (verbose) I.sayAbout(actor, "Can no longer see: "+e) ;
       }
     }
     for (Element e : outOfRange) seen.remove(e) ;
@@ -246,6 +249,8 @@ public abstract class ActorAI implements ActorConstants {
   
   /**  Handling missions-
     */
+  //
+  //  TODO:  This may have to be thought over.
   public void assignMission(Mission mission) {
     this.mission = mission ;
     //

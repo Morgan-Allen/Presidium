@@ -7,10 +7,12 @@
 
 package src.game.actors ;
 import src.game.common.* ;
-import src.game.common.Session.Saveable ;
+import src.game.common.Session.Saveable;
+import src.game.tactical.Combat;
 import src.game.building.* ;
 import src.user.* ;
 import src.util.* ;
+
 import java.lang.reflect.* ;
 
 
@@ -147,7 +149,12 @@ public abstract class Plan implements Saveable, Behaviour {
   
   
   public boolean finished() {
-    return actor != null && (nextStep() == null || priorityFor(actor) <= 0) ;
+    if (actor == null) return false ;
+    if (this == actor.AI.rootBehaviour()) {
+      if (priorityFor(actor) <= 0) return true ;
+    }
+    if (nextStep() == null) return true ;
+    return false ;
   }
   
   
@@ -173,6 +180,16 @@ public abstract class Plan implements Saveable, Behaviour {
     final float dist = Spacing.distance(a, b) * 1.0f / SS ;
     if (dist <= 1) return dist ;
     return IL2 * (float) Math.log(dist) ;
+  }
+  
+  
+  public static float dangerPenalty(Target t, Actor actor) {
+    //
+    //  TODO:  Incorporate estimate of dangers along entire route using
+    //  path-caching.
+    final Tile at = actor.world().tileAt(t) ;
+    final float danger = actor.base().dangerMap.valAt(at) ;
+    return danger / (1 + Combat.combatStrength(actor, null)) ;
   }
   
   

@@ -59,7 +59,7 @@ public class Combat extends Plan implements ActorConstants {
     }
     if (target instanceof Venue) {
       final Venue struck = (Venue) target ;
-      float BP = (priorityMod - actor.AI.relation(struck.base())) * ROUTINE ;
+      float BP = (priorityMod - actor.mind.relation(struck.base())) * ROUTINE ;
       return BP <= 0 ? 0 : BP + ROUTINE ;
     }
     return -1 ;
@@ -146,7 +146,7 @@ public class Combat extends Plan implements ActorConstants {
     //  TODO:  Try averaging the two instead?  Or just base on one?  Replace
     //  with a threatFrom() method, that includes things like retreat status,
     //  et cetera?  ...Yes.  Factor it out.
-    return Math.min(a.AI.relation(b), b.AI.relation(a)) ;
+    return Math.min(a.mind.relation(b), b.mind.relation(a)) ;
   }
   
   
@@ -203,7 +203,7 @@ public class Combat extends Plan implements ActorConstants {
     final boolean melee = actor.gear.meleeWeapon() ;
     final boolean razes = target instanceof Venue ;
     final float danger = Retreat.dangerAtSpot(
-      actor.origin(), actor, actor.AI.seen()
+      actor.origin(), actor, actor.mind.seen()
     ) ;
     
     final String strikeAnim = melee ?

@@ -154,7 +154,7 @@ public class VenuePersonnel {
     if (matchPlan == null) return 0 ;
     int count = 0 ;
     for (Actor actor : workers) {
-      for (Behaviour b : actor.AI.agenda()) if (b instanceof Plan) {
+      for (Behaviour b : actor.mind.agenda()) if (b instanceof Plan) {
         if (((Plan) b).matchesPlan(matchPlan)) {
           count++ ;
         }
@@ -306,7 +306,7 @@ public class VenuePersonnel {
     venue.base().incCredits(0 - app.salary) ;
     app.works.gear.incCredits(app.salary / 2) ;
     app.works.gear.taxDone() ;
-    app.works.AI.setEmployer(venue) ;
+    app.works.mind.setEmployer(venue) ;
     
     if (! app.works.inWorld()) {
       final Commerce commerce = venue.base().commerce ;
@@ -343,7 +343,7 @@ public class VenuePersonnel {
         //  
         if (GameSettings.hireFree) {
           final Human citizen = new Human(v, venue.base()) ;
-          citizen.AI.setEmployer(venue) ;
+          citizen.mind.setEmployer(venue) ;
           final Tile t = venue.mainEntrance() ;
           citizen.enterWorldAt(t.x, t.y, world) ;
         }
@@ -364,8 +364,8 @@ public class VenuePersonnel {
   
   
   protected void onDecommission() {
-    for (Actor c : workers()) c.AI.setEmployer(null) ;
-    for (Actor c : residents()) c.AI.setHomeVenue(null) ;
+    for (Actor c : workers()) c.mind.setEmployer(null) ;
+    for (Actor c : residents()) c.mind.setHomeVenue(null) ;
   }
   
   
@@ -410,7 +410,7 @@ public class VenuePersonnel {
       if (numOpen <= 0) continue ;
       for (int i = numOpen ; i-- > 0 ;) {
         final Human worker = new Human(v, venue.base()) ;
-        worker.AI.setEmployer(venue) ;
+        worker.mind.setEmployer(venue) ;
         
         if (GameSettings.hireFree) {
           final Tile e = venue.mainEntrance() ;

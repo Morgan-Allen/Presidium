@@ -47,7 +47,7 @@ public class Payday extends Plan {
     if (! (pays instanceof Venue)) return 0 ;
     final int wages = ((Venue) pays).personnel.wagesFor(actor) ;
     if (wages <= 0) return 0 ;
-    final float impetus = actor.AI.greedFor(wages) * ROUTINE ;
+    final float impetus = actor.mind.greedFor(wages) * ROUTINE ;
     return Visit.clamp(impetus, 0, URGENT) ;
   }
   

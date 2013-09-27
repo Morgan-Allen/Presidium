@@ -104,7 +104,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
       ) return 0 ;
       //
       //  TODO:  Include effects of the Empathic trait.
-      float urgency = actor.AI.relation(patient) ;
+      float urgency = actor.mind.relation(patient) ;
       urgency *= patient.health.injuryLevel() * PARAMOUNT * 2 ;
       if (! patient.health.bleeding()) urgency -= 2 ;
       return Visit.clamp(urgency, ROUTINE, PARAMOUNT) ;

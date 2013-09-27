@@ -89,9 +89,6 @@ public class SolarArray extends Segment implements BuildConstants {
     attachModel(MODEL_LEFT) ;
   }
   
-  //
-  //  TODO:  Introduce road connections, and perhaps a secondary power hub.
-  
 
   protected List <Segment> installedBetween(Tile start, Tile end) {
     final List <Segment> installed = super.installedBetween(start, end) ;
@@ -109,10 +106,9 @@ public class SolarArray extends Segment implements BuildConstants {
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    if (stocks.amountOf(POWER) < 10) {
-      final float dayVal = Planet.dayValue(world) ;
-      stocks.bumpItem(POWER, 5 * dayVal / 10f) ;
-    }
+    final float dayVal = Planet.dayValue(world) ;
+    stocks.bumpItem(POWER, 5 * dayVal / 10f, type == TYPE_HUB ? 100 : 10) ;
+    stocks.bumpItem(WATER, 1 * dayVal / 10f, 5 ) ;
   }
   
   

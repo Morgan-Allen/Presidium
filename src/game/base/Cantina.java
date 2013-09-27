@@ -112,7 +112,7 @@ public class Cantina extends Venue implements BuildConstants {
   private Performance performance() {
     for (Actor actor : personnel.workers()) {
       if (actor.aboard() != this) continue ;
-      for (Behaviour b : actor.AI.agenda()) if (b instanceof Performance) {
+      for (Behaviour b : actor.mind.agenda()) if (b instanceof Performance) {
         return (Performance) b ;
       }
     }
@@ -124,7 +124,7 @@ public class Cantina extends Venue implements BuildConstants {
     final Batch <Actor> b = new Batch <Actor> () ;
     for (Mobile m : inside()) if (m instanceof Actor) {
       final Actor a = (Actor) m ;
-      if (a.AI.work() != this) b.add(a) ;
+      if (a.mind.work() != this) b.add(a) ;
     }
     return b ;
   }
@@ -135,7 +135,7 @@ public class Cantina extends Venue implements BuildConstants {
     for (Mobile m : inside()) if (m instanceof Actor) {
       final Actor visits = (Actor) m ;
       Performance p = null ;
-      for (Behaviour b : visits.AI.agenda()) if (b instanceof Performance) {
+      for (Behaviour b : visits.mind.agenda()) if (b instanceof Performance) {
         value += ((Performance) b).performValue() ;
         count++ ;
         break ;
@@ -173,7 +173,7 @@ public class Cantina extends Venue implements BuildConstants {
   
 
   public String buildCategory() {
-    return UIConstants.TYPE_AESTHETE ;
+    return UIConstants.TYPE_MERCHANT ;
   }
   
   

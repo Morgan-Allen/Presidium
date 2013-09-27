@@ -59,6 +59,12 @@ public abstract class JointModel extends Model {
     }
   }
   
+  public void reportGroups() {
+    for (Group group : groups) {
+      I.say("group name is: "+group.name) ;
+    }
+  }
+  
   
   /**  Returns the cumulative joint transforms associated with this model
     *  (possibly inverted.)

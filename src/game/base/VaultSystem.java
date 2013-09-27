@@ -87,7 +87,7 @@ public class VaultSystem extends Venue implements BuildConstants {
     }
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
-    choice.add(b) ;
+    if (b != null) choice.add(b) ;
     
     final Service services[] = services() ;
     final Delivery d = Deliveries.nextCollectionFor(
@@ -126,7 +126,7 @@ public class VaultSystem extends Venue implements BuildConstants {
     //  TODO:  Impose cumulative stocking limits.
     super.updateAsScheduled(numUpdates) ;
     final float condition = (structure.repairLevel() + 1f) / 2 ;
-    final float stockBonus = stockLevels[0] / 10f ;
+    final float stockBonus = 1 + (stockLevels[0] / 10f) ;
     int powerGen = 5, lifeSGen = 10 ;
     powerGen *= condition ;
     lifeSGen *= condition ;

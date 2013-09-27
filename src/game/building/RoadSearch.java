@@ -37,7 +37,7 @@ public class RoadSearch extends Search <Tile> {
   
   
   protected float estimate(Tile spot) {
-    return Spacing.sumAxisDist(spot, destination) ;
+    return Spacing.sumAxisDist(spot, destination) / 2f ;
   }
   
   

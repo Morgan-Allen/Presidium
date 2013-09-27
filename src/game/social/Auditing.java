@@ -184,7 +184,7 @@ public class Auditing extends Plan {
     final World world = actor.world() ;
     final PresenceMap map = world.presences.mapFor(actor.base()) ;
     final float range = World.DEFAULT_SECTOR_SIZE ;
-    final Venue work = (Venue) actor.AI.work() ;
+    final Venue work = (Venue) actor.mind.work() ;
     
     int maxTried = 5, numTried = 0 ;
     final Batch <Venue> batch = new Batch <Venue> () ;
@@ -230,7 +230,7 @@ public class Auditing extends Plan {
     }
     if (stage == STAGE_REPORT) {
       final Action report = new Action(
-        actor, actor.AI.work(),
+        actor, actor.mind.work(),
         this, "actionFileReport",
         Action.TALK, "Filing Report"
       ) ;
@@ -291,7 +291,7 @@ public class Auditing extends Plan {
     }
     if (stage == STAGE_REPORT) {
       d.append("Filing a financial report at ") ;
-      d.append(actor.AI.work()) ;
+      d.append(actor.mind.work()) ;
     }
   }
 }

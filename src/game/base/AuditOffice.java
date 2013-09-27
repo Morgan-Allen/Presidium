@@ -36,7 +36,7 @@ public class AuditOffice extends Venue implements BuildConstants {
     super(3, 2, ENTRANCE_EAST, base) ;
     structure.setupStats(
       100, 2, 200,
-      Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_VENUE
+      Structure.SMALL_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     this.attachSprite(MODEL.makeSprite()) ;
@@ -53,20 +53,61 @@ public class AuditOffice extends Venue implements BuildConstants {
   
   /**  Economic functions, upgrades and behaviour implementation-
     */
-  
+  final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
+    AuditOffice.class, "audit_office_upgrades"
+  ) ;
+  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  final public static Upgrade
+    PRESS_CORPS = new Upgrade(
+      "Press Corps",
+      "Assists in the production of pressfeed and brings Propagandists into "+
+      "your employ, helping to fortify base morale.",
+      150, null, 1, null, ALL_UPGRADES
+    ),
+    LEGAL_DEPARTMENT = new Upgrade(
+      "Legal Department",
+      "Allows civil disputes and criminal prosecutions to be processed "+
+      "quickly and expands the number of Auditors in your employ.",
+      300, null, 1, null, ALL_UPGRADES
+    ),
+    CURRENCY_ADJUSTMENT = new Upgrade(
+      "Currency Adjustment",
+      "Permits the office to inject credits into circulation to reflect "+
+      "the settlement's property values.",
+      200, PLASTICS, 2, PRESS_CORPS, ALL_UPGRADES
+    ),
+    ALMS_HEARINGS = new Upgrade(
+      "Alms Hearings",
+      "Allows homeless or unemployed citizens a chance to claim financial "+
+      "support, with a portion of funding coming from offworld.",
+      100, null, 1, LEGAL_DEPARTMENT, ALL_UPGRADES
+    )
+  ;
   
   
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
+    final Choice choice = new Choice(actor) ;
     
     if (actor.vocation() == Background.AUDITOR) {
       final Venue toAudit = Auditing.getNextAuditFor(actor) ;
-      if (toAudit == null) return null ;
-      else return new Auditing(actor, toAudit) ;
+      if (toAudit != null) {
+        choice.add(new Auditing(actor, toAudit)) ;
+      }
+      //
+      //  TODO:  If someone is waiting to be heard (captive or plaintiff), see
+      //  to them.
     }
+    
     if (actor.vocation() == Background.PROPAGANDIST) {
       if (stocks.amountOf(PRESSFEED) >= 10) return null ;
-      return new Manufacture(actor, this, PLASTICS_TO_PRESSFEED, null) ;
+      final Manufacture mP = stocks.nextManufacture(
+        actor, PLASTICS_TO_PRESSFEED
+      ) ;
+      if (mP != null) {
+        mP.checkBonus = (structure.upgradeLevel(PRESS_CORPS) - 1) * 5 ;
+        choice.add(mP) ;
+      }
     }
     
     return null ;
@@ -75,8 +116,12 @@ public class AuditOffice extends Venue implements BuildConstants {
   
   public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Background.AUDITOR) return nO + 1 ;
-    if (v == Background.PROPAGANDIST ) return nO + 1 ;
+    if (v == Background.AUDITOR) {
+      return nO + 1 + (structure.upgradeLevel(LEGAL_DEPARTMENT) / 2) ;
+    }
+    if (v == Background.PROPAGANDIST) {
+      return nO + 1 + (structure.upgradeLevel(PRESS_CORPS) / 2) ;
+    }
     return 0 ;
   }
   
@@ -90,8 +135,12 @@ public class AuditOffice extends Venue implements BuildConstants {
     stocks.forceDemand(POWER, needPower, 0) ;
     stocks.bumpItem(POWER, needPower * -0.1f) ;
     
-    stocks.translateDemands(PLASTICS_TO_PRESSFEED, 1) ;
-    //  TODO:  Increment further based on need for spare credits.
+    //
+    //  TODO:  Output additional credits if you have the plastics for it, and
+    //  the right upgrades, and the wealth of the settlement merits it.  (But
+    //  if it's being printed physically, how do you distribute it?)
+    
+    stocks.translateDemands(1, PLASTICS_TO_PRESSFEED) ;
   }
   
   
@@ -101,7 +150,7 @@ public class AuditOffice extends Venue implements BuildConstants {
   
   
   public Service[] services() {
-    return new Service[] { PRESSFEED } ;
+    return new Service[] { PRESSFEED, SERVICE_ADMIN } ;
   }
   
   

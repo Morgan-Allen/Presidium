@@ -128,7 +128,7 @@ public class Causeway extends Segment {
   
   
   public String buildCategory() {
-    return InstallTab.TYPE_MERCHANT ;
+    return InstallTab.TYPE_ARTIFICER ;
   }
 }
 

@@ -47,51 +47,12 @@ Quest ideas-
 
 
 
-CULTURE VATS
-  Waste Disposal (it's made of PEOPLE!)
-  Soma Culture
-  Tissue Banks  (allows protein and spare organs)
-  Vats Breeder Quarters
-  Drug Synthesis  (requires Soma Culture, makes medicines)
-  Cloning Vats  (requires Tissue Banks, allows cloning from samples)
-
-SURVEILLANCE POST  (plus list of Species)
-  Enhanced Camouflage
-  Birthing Pens
-  Explorer Station
-  Water Capture
-  Spice Capture (requires Water Capture)
-  Riding Pens (requires Birthing Pens)
-
-
-
-STOCK EXCHANGE & AUDIT OFFICE
-  Making Money & propaganda directly.
-  Hearing of criminal cases.  (implement later.)
-  Recruiting Auditors.
-  Recruiting Censors.
-  
-  Permitting sales to the venue.
-  Permitting orders of rare/custom items.
-  Enhancing small-scale bulk purchases (window-shopping/special offers.)
-
-  What about the Supply Depot/Mag Lines?
-
-
 GARRISON & BASTION
   What about Shield Walls/Perimeter Fence?
   ...Restrict access to particular personnel.
   ...Afford chance to upgrade along length.
   ...Activate shields/man the defences.
   2 Sentries at Blast Door, as standard.
-
-THE FABRICATOR
-  Faster production of plastics.
-  Faster production of garments.
-  Faster production of furnishings.
-  Production of standalone artwork/landscaping.
-  Recruiting Fabricators.
-  Recruiting Sculptors.
 
 THE CONDENSOR AND SOLAR ARRAY/WINDTRAPS
   ...Provides life support and water.

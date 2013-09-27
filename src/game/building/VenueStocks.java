@@ -151,6 +151,13 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
+  public Manufacture bestManufacture(Actor actor, Conversion... cons) {
+    final Conversion picked = bestConversion(cons) ;
+    if (picked != null) return nextManufacture(actor, picked) ;
+    else return null ;
+  }
+  
+  
   
   /**  Public accessor methods-
     */
@@ -206,6 +213,27 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
+  private Conversion bestConversion(Conversion... cons) {
+    Item made = cons[0].out ;
+    Conversion picked = null ;
+    float minPrice = Float.POSITIVE_INFINITY ;
+    consLoop : for (Conversion c : cons) {
+      if (c.out.type != made.type) I.complain("Only for same good!") ;
+      float unitPrice = 0 ;
+      for (Item raw : c.raw) {
+        final float amount = amountOf(raw.type) ;
+        if (amount == 0) continue consLoop ;
+        float rawPrice = priceFor(raw.type) * raw.amount ;
+        rawPrice *= 5 / (5 + amount) ;
+        unitPrice += rawPrice ;
+      }
+      unitPrice /= c.out.amount ;
+      if (unitPrice < minPrice) { minPrice = unitPrice ; picked = c ; }
+    }
+    return picked ;
+  }
+  
+  
   
   /**  Utility methods for setting and propagating various types of demand-
     */
@@ -258,7 +286,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
-  public void translateDemands(Conversion cons, int period) {
+  public void translateDemands(int period, Conversion cons) {
     //
     //  Firstly, we check to see if the output good is in demand, and if so,
     //  reset demand for the raw materials-
@@ -276,6 +304,12 @@ public class VenueStocks extends Inventory implements BuildConstants {
       this.incDemand(raw.type, needed, 0, period) ;
       //forceDemand(raw.type, , 0) ;
     }
+  }
+  
+  
+  public void translateBest(int period, Conversion... cons) {
+    final Conversion picked = bestConversion(cons) ;
+    if (picked != null) translateDemands(period, picked) ;
   }
   
   

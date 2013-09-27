@@ -85,7 +85,7 @@ public class Forestry extends Plan implements BuildConstants {
   
   private boolean configured() {
     if (stage != STAGE_INIT) return true ;
-    final float abundance = actor.world().ecology().globalFertility() ;
+    final float abundance = actor.world().ecology().globalBiomass() ;
     return configureFor(
       Rand.num() < abundance ? STAGE_SAMPLING : STAGE_GET_SEED
     ) ;
@@ -239,7 +239,7 @@ public class Forestry extends Plan implements BuildConstants {
       float rating = tried.habitat().moisture / 10f ;
       rating -= Plan.rangePenalty(tried, actor) ;
       rating -= Plan.dangerPenalty(tried, actor) ;
-      rating -= actor.world().ecology().fertilityRating(tried) ;
+      rating -= actor.world().ecology().biomassRating(tried) ;
       if (rating > bestRating) { bestRating = rating ; picked = tried ; }
     }
     

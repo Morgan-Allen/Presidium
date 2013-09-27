@@ -20,6 +20,11 @@ import src.util.* ;
 //  TODO:  Get rid of the Petrocarbs production from forestry, since the Air
 //  Processor already has that covered.  (That and mining of course.)
 
+//
+//  Have research take longer, deliver samples instead of gene seed, and top
+//  up reserves of each crop individually.
+
+
 
 public class BotanicalStation extends Venue implements BuildConstants {
   

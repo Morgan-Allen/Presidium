@@ -32,8 +32,9 @@ import src.util.* ;
 //  they need to be brought forth.
 
 //
-//  ...I'm still getting sorting problems related to mine-face promise.  That
-//  has to be fixed.
+//  TODO:  Have the number of smelters determined by the relevant upgrade
+//  levels, and introduce strip mining and mantle drilling.
+
 
 
 
@@ -54,9 +55,12 @@ public class ExcavationShaft extends Venue implements
   final static int
     MAX_DIG_RANGE = 6 ;
   
+  private static boolean verbose = false ;
+  
+
+  final Box2D digArea = new Box2D() ;
   protected MineFace firstFace = null ;
   final MineFace faceGrid[][] ;
-  final Box2D digArea = new Box2D() ;
   
   final Sorting <MineFace> faceSorting = new Sorting <MineFace> () {
     public int compare(MineFace a, MineFace b) {
@@ -64,7 +68,10 @@ public class ExcavationShaft extends Venue implements
       return a.promise < b.promise ? 1 : -1 ;
     }
   } ;
-  private boolean needsSorting = true ;
+  
+  List <Smelter> smelters ;
+  //  Also, a list of areas dug, and secondary shafts sunk.
+  
   
   
   
@@ -72,9 +79,10 @@ public class ExcavationShaft extends Venue implements
     super(4, 1, Venue.ENTRANCE_EAST, base) ;
     structure.setupStats(
       200, 15, 350,
-      Structure.SMALL_MAX_UPGRADES, Structure.TYPE_FIXTURE
+      Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_FIXTURE
     ) ;
-    attachSprite(SHAFT_MODEL.makeSprite()) ;
+    personnel.setShiftType(SHIFTS_BY_DAY) ;
+    attachModel(SHAFT_MODEL) ;
     final int gridSize = 4 + (MAX_DIG_RANGE * 2) ;
     faceGrid = new MineFace[gridSize][gridSize] ;
   }
@@ -82,10 +90,11 @@ public class ExcavationShaft extends Venue implements
 
   public ExcavationShaft(Session s) throws Exception {
     super(s) ;
+    
     firstFace = (MineFace) s.loadObject() ;
     digArea.loadFrom(s.input()) ;
     s.loadObjects(faceSorting) ;
-    needsSorting = s.loadBool() ;
+    
     final int gridSize = 4 + (MAX_DIG_RANGE * 2) ;
     faceGrid = new MineFace[gridSize][gridSize] ;
     for (Coord c : Visit.grid(0, 0, gridSize, gridSize, 1)) {
@@ -96,10 +105,11 @@ public class ExcavationShaft extends Venue implements
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    
     s.saveObject(firstFace) ;
     digArea.saveTo(s.output()) ;
     s.saveObjects(faceSorting) ;
-    s.saveBool(needsSorting) ;
+    
     final int gridSize = 4 + (MAX_DIG_RANGE * 2) ;
     for (Coord c : Visit.grid(0, 0, gridSize, gridSize, 1)) {
       s.saveObject(faceGrid[c.x][c.y]) ;
@@ -108,7 +118,7 @@ public class ExcavationShaft extends Venue implements
   
   
   
-  /**  Excavation functions-
+  /**  Presence in the world and boardability-
     */
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
@@ -130,6 +140,15 @@ public class ExcavationShaft extends Venue implements
   }
   
   
+  public void exitWorld() {
+    //
+    //  TODO:  Close all your shafts?
+  }
+  
+  
+  
+  /**  Sorting faces in order of promise.
+    */
   protected MineFace faceAt(Tile t) {
     if (t == null) return null ;
     final int
@@ -141,12 +160,13 @@ public class ExcavationShaft extends Venue implements
   
   
   private void refreshSorting() {
-    if (! needsSorting) return ;
     final Batch <MineFace> faces = new Batch <MineFace> () ;
-    for (MineFace f : faceSorting) faces.add(f) ;
+    for (MineFace f : faceSorting) {
+      faces.add(f) ;
+      updatePromise(f) ;
+    }
     faceSorting.clear() ;
     for (MineFace f : faces) faceSorting.add(f) ;
-    needsSorting = false ;
   }
   
   
@@ -158,16 +178,22 @@ public class ExcavationShaft extends Venue implements
     face.setPosition(t.x, t.y, world) ;
     faceGrid[offX][offY] = face ;
     updatePromise(face) ;
-    refreshSorting() ;
     faceSorting.add(face) ;
+    if (verbose) I.sayAbout(this, "Inserted face at: "+face.origin()) ;
     return face ;
   }
   
   
   protected void openFace(MineFace face) {
-    I.say("Opening new face from "+face.origin()) ;
-    needsSorting = true ;
+    if (verbose) I.sayAbout(this, "Opening new face from "+face.origin()) ;
     refreshSorting() ;
+    /*
+    I.say("Shafts open:") ;
+    for (MineFace f : this.faceSorting) {
+      I.say("  "+f) ;
+    }
+    I.say("Now opening "+face) ;
+    //*/
     faceSorting.delete(face) ;
     face.promise = -1 ;
     final Tile o = face.origin() ;
@@ -180,10 +206,11 @@ public class ExcavationShaft extends Venue implements
       if (faceAt(tN) != null) continue ;
       insertFace(tN) ;
     }
+    refreshSorting() ;
   }
   
   
-  protected void updatePromise(MineFace face) {
+  private void updatePromise(MineFace face) {
     final Terrain terrain = world.terrain() ;
     float promise = 1 ;
     
@@ -200,18 +227,7 @@ public class ExcavationShaft extends Venue implements
     final int MDR = MAX_DIG_RANGE ;
     promise *= MDR / (Spacing.distance(this, face) + MDR) ;
     face.promise = promise ;
-    I.say("  UPDATING PROMISE: "+face) ;
-  }
-  
-  
-  private MineFace findNextFace() {
-    refreshSorting() ;
-    for (MineFace face : faceSorting) {
-      if (world.activities.includes(face, Mining.class)) continue ;
-      if (face.promise == -1 || face.workDone >= 100) continue ;
-      return face ;
-    }
-    return null ;
+    if (verbose) I.sayAbout(this, "  UPDATING PROMISE: "+face) ;
   }
   
   
@@ -225,37 +241,53 @@ public class ExcavationShaft extends Venue implements
   final public static Upgrade
     CARBON_TITRATION = new Upgrade(
       "Carbon Titration",
-      "Allows deposits of complex hydrocarbons to be processed and stored "+
-      "more efficiently.",
+      "Allows reserves of complex hydrocarbons to be tapped more fequently, "+
+      "and installs smelters to further augment production.",
       100,
       PETROCARBS, 1, null, ALL_UPGRADES
     ),
 
     METALS_SMELTING = new Upgrade(
       "Metals Smelting",
-      "Allows heavy metal deposits to be processed and extracted more "+
-      "efficiently.",
+      "Allows veins of heavy metals to be detected more reliably, and "+
+      "installs surface smelters to augment production.",
       150,
       METAL_ORE, 1, null, ALL_UPGRADES
     ),
 
     ISOTOPE_CAPTURE = new Upgrade(
       "Isotope Capture",
-      "Allows deposits of radiactive isotopes to be processed and stored "+
-      "more efficiently.",
+      "Allows deposits of radiactive isotopes to be sought out more reliably, "+
+      "and installs external smelters to augment production.",
       200,
       FUEL_CORES, 1, null, ALL_UPGRADES
     ),
     
-    //  Include mantle drilling vs. safety features.
-    
-    EXCAVATOR_QUARTERS = new Upgrade(
-      "Excavator Quarters",
+    EXCAVATOR_STATION = new Upgrade(
+      "Excavator Station",
       "Excavators are responsible for seeking out subterranean mineral "+
       "deposits and bringing them to the surface.",
       50,
-      Background.EXCAVATOR, 2, null, ALL_UPGRADES
-    ) ;
+      Background.EXCAVATOR, 1, null, ALL_UPGRADES
+    ),
+    
+    STRIP_MINING = new Upgrade(
+      "Strip Mining",
+      "Allows surface and topsoil mineral deposits to be extracted along "+
+      "with forest carbons, but inflicts lasting damage on the landscape.",
+      150,
+      null, 1, EXCAVATOR_STATION, ALL_UPGRADES
+    ),
+    
+    MANTLE_DRILLING = new Upgrade(
+      "Mantle Drilling",
+      "Enables deep sub-surface boring to bring up an indefinite supply of "+
+      "metals and isotopes from the planet's molten core, at the cost of "+
+      "heavy pollution.",
+      350,
+      null, 1, METALS_SMELTING, ALL_UPGRADES
+    )
+  ;
   
   
   
@@ -265,7 +297,7 @@ public class ExcavationShaft extends Venue implements
   
   
   public Service[] services() {
-    return new Service[] { PETROCARBS, METAL_ORE, FUEL_CORES } ;
+    return new Service[] { PETROCARBS, METAL_ORE, FUEL_CORES, RARITIES } ;
   }
   
   
@@ -277,18 +309,44 @@ public class ExcavationShaft extends Venue implements
   
   
   public Behaviour jobFor(Actor actor) {
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     
     final Delivery d = Deliveries.nextDeliveryFor(
       actor, this, services(), 10, world
     ) ;
-    if (d != null) return d ;
+    if (d != null && personnel.assignedTo(d) < 1) return d ;
     
-    final MineFace opening = findNextFace() ;
-    if (opening != null) return new Mining(actor, opening) ;
+    final Mining m = nextMiningFor(actor) ;
+    if (m != null) return m ;
     
     //
     //  TODO:  Consider opening new shafts as you expand.
     return null ;
+  }
+  
+  
+  protected Mining nextMiningFor(Actor actor) {
+    refreshSorting() ;
+    for (MineFace face : faceSorting) {
+      if (face.promise == -1 || face.workDone >= 100) continue ;
+      final Mining m = new Mining(actor, face) ;
+      if (personnel.assignedTo(m) > 0) continue ;
+      return m ;
+    }
+    return null ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact()) return ;
+    
+    if (verbose && I.talkAbout == this) {
+      I.say("Shafts open:") ;
+      for (MineFace face : this.faceSorting) {
+        I.say("  "+face) ;
+      }
+    }
   }
   
   

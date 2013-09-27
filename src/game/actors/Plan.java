@@ -112,7 +112,7 @@ public abstract class Plan implements Saveable, Behaviour {
     I.sayAbout(actor, "\n"+actor+" Aborting plan! "+this+" "+this.hashCode()) ;
     ///if (I.talkAbout == actor) new Exception().printStackTrace() ;
     nextStep = null ;
-    actor.AI.cancelBehaviour(this) ;
+    actor.mind.cancelBehaviour(this) ;
   }
   
   
@@ -125,7 +125,7 @@ public abstract class Plan implements Saveable, Behaviour {
     //  We do not cache steps for dormant or 'under consideration' plans, since
     //  that can screw up proper sequence of evaluation/execution.  Start from
     //  scratch instead.
-    if (! actor.AI.agenda.includes(this)) {
+    if (! actor.mind.agenda.includes(this)) {
       nextStep = null ;
       if (valid()) return getNextStep() ;
       else { onceInvalid() ; return null ; }
@@ -150,7 +150,7 @@ public abstract class Plan implements Saveable, Behaviour {
   
   public boolean finished() {
     if (actor == null) return false ;
-    if (this == actor.AI.rootBehaviour()) {
+    if (this == actor.mind.rootBehaviour()) {
       if (priorityFor(actor) <= 0) return true ;
     }
     if (nextStep() == null) return true ;

@@ -58,6 +58,7 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
   /**  Setup and initialisation-
     */
   protected boolean loadedAtStartup() {
+    ///if (true) return false ;
     try {
       PlayLoop.loadGame("saves/test_pathing.rep") ;
       final Base base = PlayLoop.played() ;
@@ -81,6 +82,9 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
     final World world = new World(TG.generateTerrain()) ;
     //TG.setupMinerals(world, 0.55f, 0.3f, 0.15f) ;
     //TG.setupOutcrops(world) ;
+    
+    //
+    //  TODO:  Put in an EcologyGen as well
     return world ;
   }
   
@@ -174,13 +178,13 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
   
   private void assignRandomTarget(Human c) {
     if (c == null) return ;
-    if (c.AI.topBehaviour() == lastAction) return ;
+    if (c.mind.topBehaviour() == lastAction) return ;
     final int size = world().size ;
     Tile dest = world().tileAt(Rand.index(size), Rand.index(size)) ;
     dest = Spacing.nearestOpenTile(dest, dest) ;
     if (dest == null) return ;
     I.say("SENDING ACTOR TO: "+dest) ;
-    c.AI.assignBehaviour(lastAction = new Action(
+    c.mind.assignBehaviour(lastAction = new Action(
       c, dest, this, "actionGo",
       Action.LOOK, "going to "+dest
     )) ;

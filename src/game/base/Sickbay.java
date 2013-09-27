@@ -113,7 +113,7 @@ public class Sickbay extends Venue implements BuildConstants {
     //  If anyone is waiting for treatment, tend to them- including outside the
     //  building.
     final Choice choice = new Choice(actor) ;
-    for (Element m : actor.AI.seen()) if (m instanceof Actor) {
+    for (Element m : actor.mind.seen()) if (m instanceof Actor) {
       final Actor patient = (Actor) m ;
       choice.add(new Treatment(
         actor, patient, Treatment.TYPE_FIRST_AID, null
@@ -127,7 +127,7 @@ public class Sickbay extends Venue implements BuildConstants {
     }
     //
     //  You also need to cover treatment of the dead and crazy...
-    final Behaviour picked = choice.weightedPick(actor.AI.whimsy()) ;
+    final Behaviour picked = choice.weightedPick(actor.mind.whimsy()) ;
     if (picked != null) return picked ;
     //
     //  Otherwise, just tend the desk...

@@ -353,8 +353,8 @@ public class Holding extends Venue implements BuildConstants {
   /**  Static helper methods for placement-
     */
   private static Tile searchPoint(Actor client) {
-    if (client.AI.work() instanceof Venue) {
-      return ((Venue) client.AI.work()).mainEntrance() ;
+    if (client.mind.work() instanceof Venue) {
+      return ((Venue) client.mind.work()).mainEntrance() ;
     }
     return client.origin() ;
   }
@@ -368,8 +368,8 @@ public class Holding extends Venue implements BuildConstants {
     //  an explicitly sexual/familial nature?
     rating *= (level + 1) * (2f - holding.crowding()) ;
     if (holding.inWorld()) rating += 0.5f ;
-    rating -= actor.AI.greedFor(TAX_LEVELS[level]) * 5 ;
-    rating -= Plan.rangePenalty(actor.AI.work(), holding) ;
+    rating -= actor.mind.greedFor(TAX_LEVELS[level]) * 5 ;
+    rating -= Plan.rangePenalty(actor.mind.work(), holding) ;
     ///I.say("  Rating for holding is: "+rating) ;
     return rating ;
   }
@@ -414,8 +414,8 @@ public class Holding extends Venue implements BuildConstants {
     Holding best = null ;
     float bestRating = 0 ;
     
-    if (client.AI.home() instanceof Holding) {
-      final Holding h = (Holding) client.AI.home() ;
+    if (client.mind.home() instanceof Holding) {
+      final Holding h = (Holding) client.mind.home() ;
       bestRating = rateHolding(client, h, h.upgradeLevel) ;
     }
     

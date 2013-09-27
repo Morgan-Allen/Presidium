@@ -73,10 +73,11 @@ public class Reactor extends Venue implements BuildConstants {
       null, 1, WASTE_PROCESSING, ALL_UPGRADES
     ),
     
-    FEEDBACK_SENSORS = new Upgrade(
-      "Feedback Sensors",
+    FEEDBACK_MONITORS = new Upgrade(
+      "Feedback Monitors",
       "Reduces the likelihood of meltdown occuring when the reactor is "+
-      "damaged or under-supervised, and reduces the likelihood of sabotage.",
+      "damaged or under-supervised, and reduces the likelihood of sabotage or"+
+      "infiltration.",
       400,
       null, 1, null, ALL_UPGRADES
     ),
@@ -86,7 +87,7 @@ public class Reactor extends Venue implements BuildConstants {
       "Increases power output while limiting pollution and decreasing the "+
       "severity of any meltdowns.",
       350,
-      null, 1, FEEDBACK_SENSORS, ALL_UPGRADES
+      null, 1, FEEDBACK_MONITORS, ALL_UPGRADES
     ),
     
     QUALIA_WAVEFORM_INTERFACE = new Upgrade(
@@ -94,7 +95,7 @@ public class Reactor extends Venue implements BuildConstants {
       "Allows reactor output to contribute slightly towards regeneration of "+
       "psi points and range of psyon abilities.",
       250,
-      null, 1, FEEDBACK_SENSORS, ALL_UPGRADES
+      null, 1, FEEDBACK_MONITORS, ALL_UPGRADES
     ),
     
     CORE_TECHNICIAN_QUARTERS = new Upgrade(
@@ -146,7 +147,7 @@ public class Reactor extends Venue implements BuildConstants {
   
   public boolean actionCheckMeltdown(Actor actor, Reactor reactor) {
     float diagnoseDC = 5 + ((1 - meltdown) * 20) ;
-    final int FB = structure.upgradeLevel(FEEDBACK_SENSORS) ;
+    final int FB = structure.upgradeLevel(FEEDBACK_MONITORS) ;
     diagnoseDC -= FB * 5 ;
     
     boolean success = true ;
@@ -195,7 +196,7 @@ public class Reactor extends Venue implements BuildConstants {
     //  Update demand for raw materials-
     stocks.forceDemand(FUEL_CORES, stocks.demandFor(POWER) / 5f, 0) ;
     if (structure.upgradeLevel(ISOTOPE_CONVERSION) > 0) {
-      stocks.translateDemands(METALS_TO_FUEL, 1) ;
+      stocks.translateDemands(1, METALS_TO_FUEL) ;
     }
     //
     //  If possible, assist in recovery of psi points-
@@ -209,7 +210,7 @@ public class Reactor extends Venue implements BuildConstants {
     int pollution = 10 ;
     pollution -= structure.upgradeLevel(WASTE_PROCESSING) * 2 ;
     pollution -= structure.upgradeLevel(FUSION_CONFINEMENT) ;
-    world.ecology().impingePollution(pollution, this, true) ;
+    world.ecology().impingeSqualor(pollution, this, true) ;
   }
   
   
@@ -221,7 +222,7 @@ public class Reactor extends Venue implements BuildConstants {
     meltdownChance *= 1 + (stocks.demandFor(POWER) / 20f) ;
     if (! isManned()) meltdownChance *= 2 ;
     if (stocks.amountOf(FUEL_CORES) == 0) meltdownChance /= 5 ;
-    meltdownChance /= (1f + structure.upgradeLevel(FEEDBACK_SENSORS)) ;
+    meltdownChance /= (1f + structure.upgradeLevel(FEEDBACK_MONITORS)) ;
     //
     //  ...and inflict any actual damage, if your luck is poor.
     if (Rand.num() < (meltdownChance / World.STANDARD_DAY_LENGTH)) {

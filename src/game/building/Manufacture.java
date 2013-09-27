@@ -95,7 +95,7 @@ public class Manufacture extends Plan implements Behaviour {
     //
     //  Don't work on this outside your shift (or at least make it more
     //  casual.)  TODO:  Implement 'secondary shifts' or overtime?
-    final Venue venue = (Venue) actor.AI.work() ;
+    final Venue venue = (Venue) actor.mind.work() ;
     if (! venue.personnel.onShift(actor)) {
       return 0 ;
     }

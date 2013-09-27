@@ -77,7 +77,7 @@ public abstract class Fauna extends Actor {
       protected Behaviour createBehaviour() {
         final Choice choice = new Choice(actor) ;
         addChoices(choice) ;
-        return choice.weightedPick(actor.AI.whimsy()) ;
+        return choice.weightedPick(actor.mind.whimsy()) ;
       }
       
       protected void updateAI(int numUpdates) {
@@ -142,7 +142,7 @@ public abstract class Fauna extends Actor {
   
   protected Behaviour nextResting() {
     Target restPoint = this.origin() ;
-    final Lair lair = (Lair) this.AI.home() ;
+    final Lair lair = (Lair) this.mind.home() ;
     if (lair != null && lair.inWorld() && lair.structure.intact()) {
       restPoint = lair ;
     }
@@ -161,7 +161,7 @@ public abstract class Fauna extends Actor {
   
   public boolean actionRest(Fauna actor, Target point) {
     actor.health.setState(ActorHealth.STATE_RESTING) ;
-    final Lair lair = (Lair) actor.AI.home() ;
+    final Lair lair = (Lair) actor.mind.home() ;
     if (lair != point) return true ;
     final float rating = lair.rateCurrentSite(world) ;
     if (rating < 0 || lair.crowding() > 1) return false ;
@@ -177,7 +177,7 @@ public abstract class Fauna extends Actor {
     for (int numKids = 1 + Rand.index(maxKids) ; numKids-- > 0 ;) {
       final Fauna young = actor.species.newSpecimen() ;
       young.health.setupHealth(0, 1, 0) ;
-      young.AI.setHomeVenue(lair) ;
+      young.mind.setHomeVenue(lair) ;
       final Tile e = lair.mainEntrance() ;
       young.enterWorldAt(e.x, e.y, e.world) ;
       I.say("Giving birth to new "+actor.species.name+" at: "+point) ;
@@ -187,7 +187,7 @@ public abstract class Fauna extends Actor {
   
   
   protected Behaviour nextMigration() {
-    final Lair lair = (Lair) this.AI.home() ;
+    final Lair lair = (Lair) this.mind.home() ;
     final float range = species.forageRange() ;
     Tile free = Spacing.pickRandomTile(this, range, world) ;
     free = Spacing.nearestOpenTile(free, this) ;
@@ -208,7 +208,7 @@ public abstract class Fauna extends Actor {
   
   
   public boolean actionMigrate(Fauna actor, Tile point) {
-    final Lair lair = (Lair) actor.AI.home() ;
+    final Lair lair = (Lair) actor.mind.home() ;
     final boolean shouldNest = (lair == null) || (lair.crowding() > 0.5f) ;
     //
     //  If you're homeless, or if home is overcrowded, consider moving into a
@@ -220,7 +220,7 @@ public abstract class Fauna extends Actor {
         if (! (t instanceof Lair)) continue ;
         final Lair vacant = (Lair) t ;
         if (vacant.species == this.species && vacant.crowding() <= 0.5f) {
-          actor.AI.setHomeVenue(vacant) ;
+          actor.mind.setHomeVenue(vacant) ;
           return true ;
         }
       }
@@ -243,7 +243,7 @@ public abstract class Fauna extends Actor {
         newLair.setPosition(t.x, t.y, actor.world()) ;
         final float rating = newLair.rateCurrentSite(actor.world()) ;
         if (rating <= 0) return false ;
-        actor.AI.setHomeVenue(newLair) ;
+        actor.mind.setHomeVenue(newLair) ;
         newLair.clearSurrounds() ;
         newLair.enterWorld() ;
         newLair.structure.setState(Structure.STATE_INTACT, 0.1f) ;
@@ -258,7 +258,7 @@ public abstract class Fauna extends Actor {
   
   
   protected Behaviour nextBuildingNest() {
-    final Lair lair = (Lair) this.AI.home() ;
+    final Lair lair = (Lair) this.mind.home() ;
     if (lair == null) return null ;
     final float repair = lair.structure.repairLevel() ;
     if (repair >= 1) return null ;
@@ -331,7 +331,7 @@ public abstract class Fauna extends Actor {
     describeStatus(d) ;
     
     d.append("\nNests at: ") ;
-    if (AI.home() != null) d.append(AI.home()) ;
+    if (mind.home() != null) d.append(mind.home()) ;
     else d.append("No nest") ;
     
     d.append("\nCondition: ") ;

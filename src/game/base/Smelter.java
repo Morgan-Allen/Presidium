@@ -11,13 +11,13 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
 
 
-public class MineShaftSmelter extends Venue implements BuildConstants {
+public class Smelter extends Venue implements BuildConstants {
   
   
   
@@ -26,13 +26,13 @@ public class MineShaftSmelter extends Venue implements BuildConstants {
   final static String IMG_DIR = "media/Buildings/artificer/" ;
   final static Model 
     DRILL_MODELS[] = ImageModel.loadModels(
-      MineShaftSmelter.class, 3, 3, IMG_DIR,
+      Smelter.class, 3, 3, IMG_DIR,
       "isotopes_smelter.gif",
       "metals_smelter.gif",
       "carbons_smelter.gif"
     ),
     ALL_MOLD_MODELS[][] = ImageModel.fromTextureGrid(
-      MineShaftSmelter.class, Texture.loadTexture(IMG_DIR+"all_molds.png"),
+      Smelter.class, Texture.loadTexture(IMG_DIR+"all_molds.png"),
       4, 5, 1, ImageModel.TYPE_FLAT
     ) ;
   final static int
@@ -65,7 +65,7 @@ public class MineShaftSmelter extends Venue implements BuildConstants {
   final Mold molds[] = new Mold[NUM_MOLDS] ;
   
   
-  public MineShaftSmelter(Base belongs, int variant) {
+  public Smelter(Base belongs, int variant) {
     super(4, 3, Venue.ENTRANCE_NORTH, belongs) ;
     this.variant = variant ;
     this.mined = MINED_TYPES[variant] ;
@@ -74,7 +74,7 @@ public class MineShaftSmelter extends Venue implements BuildConstants {
   }
   
   
-  public MineShaftSmelter(Session s) throws Exception {
+  public Smelter(Session s) throws Exception {
     super(s) ;
     variant = s.loadInt() ;
     mined = MINED_TYPES[variant] ;
@@ -169,7 +169,7 @@ public class MineShaftSmelter extends Venue implements BuildConstants {
   }
   
   
-  public boolean actionDrill(Actor actor, MineShaftSmelter drilling) {
+  public boolean actionDrill(Actor actor, Smelter drilling) {
     //I.say("Performing drill action...") ;
     for (Mold m : molds) {
       if (m.coolTime != -1) continue ;

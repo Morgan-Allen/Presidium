@@ -28,13 +28,23 @@ public class DebugSprites extends ViewLoop {
     },
     ANIM_NAME = Model.AnimNames.FALL ;
   //*/
-  
+  /*
   final static String
     DIR_PATH = "media/Actors/fauna/",
     XML_PATH = DIR_PATH+"FaunaModels.xml",
     NODE_NAMES[] = {
       "Quud", "Vareen", "Micovore",
       "Trigox", "Drivodil", "Gigans"
+    },
+    ANIM_NAME = Model.AnimNames.MOVE ;
+  //*/
+
+  final static String
+    DIR_PATH = "media/Vehicles/",
+    XML_PATH = DIR_PATH+"VehicleModels.xml",
+    NODE_NAMES[] = {
+      "DustCrawler", "Suspensor", "CargoBarge",
+      "Cannon", //"Dropship", //  TODO:  Also include smuggler ship?
     },
     ANIM_NAME = Model.AnimNames.MOVE ;
   private Batch <Sprite> sprites = new Batch <Sprite> () ;
@@ -61,7 +71,7 @@ public class DebugSprites extends ViewLoop {
       sprites.add(sprite) ;
       i++ ;
     }
-    rendering.port.cameraPosition.z += 1 ;
+    rendering.port.cameraPosition.z += 0 ;
     rendering.port.cameraZoom = 15f / NODE_NAMES.length ;
   }
   

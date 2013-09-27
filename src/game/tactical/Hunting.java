@@ -149,10 +149,10 @@ public class Hunting extends Combat implements BuildConstants {
     //  mode to get closer.  If they spot you, charge.
     //float dist = Spacing.distance(actor, prey) ;
     
-    if (prey.AI.canSee(actor)) {
+    if (prey.mind.canSee(actor)) {
       
     }
-    else if (actor.AI.canSee(prey)) {
+    else if (actor.mind.canSee(prey)) {
       
     }
     else {
@@ -228,11 +228,11 @@ public class Hunting extends Combat implements BuildConstants {
   protected Behaviour nextHarvest() {
     if (prey.health.conscious()) return super.getNextStep() ;
     if (prey.destroyed()) {
-      if (actor.gear.amountOf(PROTEIN) <= 0 || actor.AI.work() == null) {
+      if (actor.gear.amountOf(PROTEIN) <= 0 || actor.mind.work() == null) {
         return null ;
       }
       final Action returning = new Action(
-        actor, actor.AI.work(),
+        actor, actor.mind.work(),
         this, "actionReturnHarvest",
         Action.REACH_DOWN, "Returning game meat"
       ) ;
@@ -272,7 +272,7 @@ public class Hunting extends Combat implements BuildConstants {
     if (prey.health.deceased()) {
       if (type == TYPE_HARVEST) {
         if (! prey.destroyed()) d.append("Harvesting meat from "+prey) ;
-        else d.append("Returning meat to "+actor.AI.work()) ;
+        else d.append("Returning meat to "+actor.mind.work()) ;
       }
     }
     else d.append("Hunting "+prey) ;

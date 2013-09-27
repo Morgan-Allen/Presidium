@@ -172,8 +172,8 @@ public class Resting extends Plan implements BuildConstants {
     final Batch <Target> safePoints = new Batch <Target> () ;
     final Presences presences = actor.world().presences ;
     safePoints.add(Retreat.pickWithdrawPoint(actor, 16, actor, 0.1f)) ;
-    safePoints.add(actor.AI.home()) ;
-    safePoints.add(actor.AI.work()) ;
+    safePoints.add(actor.mind.home()) ;
+    safePoints.add(actor.mind.work()) ;
     safePoints.add(presences.nearestMatch(Cantina.class, actor, -1)) ;
     //
     //  Now pick whichever option is most attractive.
@@ -183,7 +183,7 @@ public class Resting extends Plan implements BuildConstants {
     
     if (verbose) I.sayAbout(
       actor, "Have picked "+picked+", home rating: "+
-      ratePoint(actor, actor.AI.home())
+      ratePoint(actor, actor.mind.home())
     ) ;
     return picked ;
   }
@@ -206,7 +206,7 @@ public class Resting extends Plan implements BuildConstants {
       return -1 ;
     }
     float baseRating = 0 ;
-    if (point == actor.AI.home()) {
+    if (point == actor.mind.home()) {
       baseRating += 4 ;
     }
     else if (point instanceof Cantina) {
@@ -214,7 +214,7 @@ public class Resting extends Plan implements BuildConstants {
       //  there's space available.
       baseRating += 3 ;
     }
-    else if (point == actor.AI.work()) {
+    else if (point == actor.mind.work()) {
       baseRating += 2 ;
     }
     else if (point instanceof Tile) {
@@ -225,7 +225,7 @@ public class Resting extends Plan implements BuildConstants {
     //  If the venue doesn't belong to the same base, reduce the attraction.
     if (point instanceof Venue) {
       final Venue venue = (Venue) point ;
-      baseRating *= actor.AI.relation(venue) ;
+      baseRating *= actor.mind.relation(venue) ;
       //
       //  Also, include the effects of hunger-
       float sumFood = 0 ;

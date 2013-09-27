@@ -52,7 +52,7 @@ public class ReconMission extends Mission {
     */
   public float priorityFor(Actor actor) {
     final Tile centre = (Tile) subject ;
-    float reward = actor.AI.greedFor(rewardAmount(actor)) * ROUTINE ;
+    float reward = actor.mind.greedFor(rewardAmount(actor)) * ROUTINE ;
     return Exploring.rateExplorePoint(actor, centre, reward) ;
   }
   
@@ -90,7 +90,7 @@ public class ReconMission extends Mission {
     ///I.say(actor+" assigned to look at "+lookedAt) ;
     
     final Exploring e = new Exploring(actor, base, lookedAt) ;
-    e.priorityMod = actor.AI.greedFor(rewardAmount(actor)) * ROUTINE ;
+    e.priorityMod = actor.mind.greedFor(rewardAmount(actor)) * ROUTINE ;
     return e ;
   }
   

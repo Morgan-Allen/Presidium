@@ -6,8 +6,10 @@
 
 package src.game.building ;
 import src.game.common.* ;
-import src.game.common.Session.Saveable ;
+import src.game.common.Session.Saveable;
 import src.game.actors.* ;
+import src.util.I;
+import src.util.Visit;
 
 
 
@@ -73,12 +75,12 @@ public class Item implements BuildConstants {
   
   
   public static Item withQuality(Service type, int quality) {
-    return new Item(type, null, 1, quality) ;
+    return new Item(type, null, 1, Visit.clamp(quality, 5)) ;
   }
   
   
   public static Item withQuality(Item item, int quality) {
-    return new Item(item.type, item.refers, 1, quality) ;
+    return new Item(item.type, item.refers, 1, Visit.clamp(quality, 5)) ;
   }
   
   
@@ -169,7 +171,7 @@ public class Item implements BuildConstants {
         "" : "("+((int) (amount * 100))+" %)" ;
       return QUAL_NAMES[quality]+" "+type+" "+progress ;
     }
-    else return ((int) amount)+" "+type ;
+    else return (I.shorten(amount, 1))+" "+type ;
   }
 }
 

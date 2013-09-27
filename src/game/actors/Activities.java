@@ -100,7 +100,7 @@ public class Activities {
     final List <Action> onTarget = actions.get(t) ;
     if (onTarget == null) return false ;
     for (Action a : onTarget) {
-      for (Behaviour b : a.actor.AI.agenda()) {
+      for (Behaviour b : a.actor.mind.agenda()) {
         if (b.getClass() == behaviourClass) return true ;
       }
     }
@@ -112,7 +112,7 @@ public class Activities {
     final Batch <Behaviour> batch = new Batch <Behaviour> () ;
     final List <Action> onTarget = actions.get(t) ;
     if (onTarget == null) return batch ;
-    for (Action a : onTarget) for (Behaviour b : a.actor.AI.agenda()) {
+    for (Action a : onTarget) for (Behaviour b : a.actor.mind.agenda()) {
       batch.add(b) ;
     }
     return batch ;

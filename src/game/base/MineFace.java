@@ -21,7 +21,7 @@ public class MineFace extends Element implements Boardable, TileConstants {
     */
   private static Stack <Mobile> NONE_INSIDE = new Stack <Mobile> () ;
   
-  ExcavationShaft parent ;
+  ExcavationShaft shaft ;
   Stack <Mobile> inside = NONE_INSIDE ;
   
   protected float
@@ -31,13 +31,13 @@ public class MineFace extends Element implements Boardable, TileConstants {
   
   
   public MineFace(ExcavationShaft parent) {
-    this.parent = parent ;
+    this.shaft = parent ;
   }
   
   
   public MineFace(Session s) throws Exception {
     super(s) ;
-    parent = (ExcavationShaft) s.loadObject() ;
+    shaft = (ExcavationShaft) s.loadObject() ;
     if (s.loadBool()) s.loadObjects(inside = new Stack <Mobile> ()) ;
     else inside = NONE_INSIDE ;
     promise = s.loadFloat() ;
@@ -47,7 +47,7 @@ public class MineFace extends Element implements Boardable, TileConstants {
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveObject(parent) ;
+    s.saveObject(shaft) ;
     if (inside == NONE_INSIDE) s.saveBool(false) ;
     else { s.saveBool(true) ; s.saveObjects(inside) ; }
     s.saveFloat(promise) ;
@@ -88,28 +88,28 @@ public class MineFace extends Element implements Boardable, TileConstants {
     final Tile o = origin() ;
     int i = 0 ; for (int n : N_ADJACENT) {
       final Tile tN = o.world.tileAt(o.x + N_X[n], o.y + N_Y[n]) ;
-      final MineFace near = parent.faceAt(tN) ;
+      final MineFace near = shaft.faceAt(tN) ;
       if (near == null) continue ;
       batch[i++] = near ;
     }
-    if (parent.firstFace == this) batch[i++] = parent ;
+    if (shaft.firstFace == this) batch[i++] = shaft ;
     while (i < batch.length) batch[i++] = null ;
     return batch ;
   }
   
   
   public boolean inWorld() {
-    return parent.faceAt(origin()) == this ;
+    return shaft.faceAt(origin()) == this ;
   }
   
   
   public boolean isEntrance(Boardable b) {
-    if (b == parent) {
-      return parent.firstFace == this ;
+    if (b == shaft) {
+      return shaft.firstFace == this ;
     }
     if (b instanceof MineFace) {
       final MineFace m = (MineFace) b ;
-      if (m.parent != parent) return false ;
+      if (m.shaft != shaft) return false ;
       return Spacing.edgeAdjacent(m.origin(), origin()) ;
     }
     return false ;
@@ -117,7 +117,7 @@ public class MineFace extends Element implements Boardable, TileConstants {
   
   
   public boolean allowsEntry(Mobile m) {
-    return m.base() == parent.base() ;
+    return m.base() == shaft.base() ;
   }
   
   

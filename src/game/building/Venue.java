@@ -525,8 +525,8 @@ public abstract class Venue extends Fixture implements
   
   private String descDuty(Actor a) {
     final String VN = a.vocation().nameFor(a) ;
-    if (a.AI.home() == this) return "(Resident "+VN+")" ;
-    if (a.AI.work() != this) return "(Visiting "+VN+")" ;
+    if (a.mind.home() == this) return "(Resident "+VN+")" ;
+    if (a.mind.work() != this) return "(Visiting "+VN+")" ;
     final String duty = personnel.onShift(a) ? "On-Duty" : "Off-Duty" ;
     return "("+duty+" "+VN+")" ;
   }
@@ -640,7 +640,7 @@ public abstract class Venue extends Fixture implements
     final float
       shortage = stocks.shortageOf(need),
       demand = stocks.demandFor(need) ;
-    buildSprite.toggleFX(need.model, shortage > demand / 2) ;
+    buildSprite.toggleFX(need.model, shortage > (demand / 2) + 0.5f) ;
   }
   
   

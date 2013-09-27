@@ -289,7 +289,7 @@ public class Career implements ActorConstants {
       else if (gear instanceof OutfitType) {
         actor.gear.equipOutfit(Item.withQuality(gear, BQ + Rand.index(3))) ;
       }
-      else actor.gear.addItem(Item.withAmount(gear, BQ + Rand.index(3))) ;
+      else actor.gear.addItem(Item.withAmount(gear, 1 + Rand.index(3))) ;
     }
     if (actor.gear.credits() == 0) {
       actor.gear.incCredits((50 + Rand.index(100)) * BQ / 2f) ;

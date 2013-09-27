@@ -66,11 +66,21 @@ public class Archives extends Venue implements BuildConstants {
     }
   }
   
+  //
+  //  TODO:  Also permit sale of datalinks to housing.  Make that an upgrade
+  //  criterion for the Guilder Manse.  And make datalinks a unique item, not
+  //  a provision.
+  //  
+  //  Pressfeed can be dispensed to anyone, but you make no money on it, and
+  //  you have to deliver it yourself.  Citizens will pick up datalinks by
+  //  themselves.  (And they don't wear out.)  Instead, they get checked in and
+  //  out, like library books.
+  
   
   
   public Behaviour jobFor(Actor actor) {
     //
-    //  Assist folks inside with their researches, or manufacture Inscriptions.
+    //  Assist folks inside with their researches, or manufacture Datalinks.
     
     return null ;
   }

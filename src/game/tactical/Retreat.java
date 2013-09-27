@@ -43,7 +43,7 @@ public class Retreat extends Plan implements ActorConstants {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
-    float danger = dangerAtSpot(actor.origin(), actor, actor.AI.seen()) ;
+    float danger = dangerAtSpot(actor.origin(), actor, actor.mind.seen()) ;
     danger *= actor.traits.scaleLevel(NERVOUS) ;
     if (danger <= 0) return 0 ;
     return Visit.clamp((danger + 1) * ROUTINE, 0, PARAMOUNT) ;
@@ -92,7 +92,7 @@ public class Retreat extends Plan implements ActorConstants {
   ) {
     final int numPicks = 3 ;  //Make this an argument, instead of range?
     Tile pick = actor.origin() ;
-    float bestRating = dangerAtSpot(pick, actor, actor.AI.seen()) ;
+    float bestRating = dangerAtSpot(pick, actor, actor.mind.seen()) ;
     for (int i = numPicks ; i-- > 0 ;) {
       
       //
@@ -103,7 +103,7 @@ public class Retreat extends Plan implements ActorConstants {
       
       //
       //  TODO:  USE THE DANGER MAP INSTEAD.  Significantly cheaper.
-      float tryRating = dangerAtSpot(tried, actor, actor.AI.seen()) ;
+      float tryRating = dangerAtSpot(tried, actor, actor.mind.seen()) ;
       tryRating += (Rand.num() - 0.5f) * salt ;
       if (tryRating < bestRating) { bestRating = tryRating ; pick = tried ; }
     }
@@ -184,8 +184,8 @@ public class Retreat extends Plan implements ActorConstants {
     float bestRating = 0 ;
     int numChecked = 0 ;
     
-    if (actor.AI.home() != null) {
-      final Venue home = actor.AI.home() ;
+    if (actor.mind.home() != null) {
+      final Venue home = actor.mind.home() ;
       float rating = rateHaven(home, actor, prefClass) ;
       if (rating > bestRating) { bestRating = rating ; picked = home ; }
     }
@@ -221,7 +221,7 @@ public class Retreat extends Plan implements ActorConstants {
     float rating = 1 ;
     if (haven.getClass() == prefClass) rating *= 2 ;
     if (haven.base() == actor.base()) rating *= 2 ;
-    if (haven == actor.AI.home()) rating *= 2 ;
+    if (haven == actor.mind.home()) rating *= 2 ;
     final int SS = World.DEFAULT_SECTOR_SIZE ;
     rating *= SS / (SS + Spacing.distance(actor, haven)) ;
     return rating ;

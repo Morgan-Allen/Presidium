@@ -78,7 +78,7 @@ public class Quud extends Fauna {
   
   
   protected Behaviour nextDefence(Actor near) {
-    final float danger = Retreat.dangerAtSpot(origin(), this, AI.seen()) ;
+    final float danger = Retreat.dangerAtSpot(origin(), this, mind.seen()) ;
     if (danger <= 0) return null ;
     final Action hunker = new Action(
       this, this,

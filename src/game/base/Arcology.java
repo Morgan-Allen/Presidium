@@ -21,13 +21,16 @@ import src.util.* ;
 public class Arcology extends Segment {
   
   
+  
+  /**  Data fields, constructors, setup and save/load methods-
+    */
   final static String IMG_DIR = "media/Buildings/aesthete/" ;
   final static Model
     BEDS_MODELS[][] = ImageModel.fromTextureGrid(
       Arcology.class, Texture.loadTexture(IMG_DIR+"all_arcology.png"),
       4, 4, 2, ImageModel.TYPE_FLAT
     ),
-
+    
     MODEL_BEDS_WEST  = BEDS_MODELS[0][1],
     MODEL_BEDS_RIGHT = BEDS_MODELS[1][1],  //bottom goes south to north...
     MODEL_BEDS_EAST  = BEDS_MODELS[2][1],
@@ -39,12 +42,10 @@ public class Arcology extends Segment {
     ART_MODELS[] = {
       BEDS_MODELS[0][2], BEDS_MODELS[1][2], BEDS_MODELS[2][2],
       BEDS_MODELS[0][3], BEDS_MODELS[1][3], BEDS_MODELS[2][3]
-    },
-    
-    PLAZA_MODEL = ImageModel.asPoppedModel(
-      Arcology.class, IMG_DIR+"PLAZA.png", 3, 1
-    ) ;
+    } ;
   
+  
+  private float plantsHealth = 0.5f ;
   
   
   public Arcology(Base base) {
@@ -106,26 +107,54 @@ public class Arcology extends Segment {
   
   
   
-  /**  Searching for a suitable path between tiles or venues-
+  /**  Behaviour and economic functions-
     */
-  protected Tile[] lineVicinityPath(
-    Tile from, Tile to, boolean full
-  ) {
-    return null ;
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    //
+    //  Demand water in proportion to dryness of the surrounding terrain.
+    //  TODO:  You'll also need input of greens or saplings, in all likelihood.
+    float needWater = 1 - (origin().habitat().moisture() / 10f) ;
+    needWater *= needWater ;
+    stocks.incDemand(WATER, needWater, 1) ;
+    stocks.bumpItem(WATER, needWater / 10f, 1) ;
+    final float shortWater = stocks.shortagePenalty(WATER) ;
+    //
+    //  Kill off the plants if you don't have enough.  Grow 'em otherwise.
+    if (shortWater > 0) {
+      plantsHealth -= shortWater * needWater / World.STANDARD_DAY_LENGTH ;
+    }
+    else {
+      plantsHealth += 1f / World.STANDARD_DAY_LENGTH ;
+    }
+    plantsHealth = Visit.clamp(plantsHealth, 0, 1) ;
+    //
+    //  TODO:  UPDATE SPRITE TO REFLECT THIS.
+    //
+    //  Combat pollution and improve global biomass based on health.
+    world.ecology().impingeBiomass(this, 5 * plantsHealth, true) ;
+    world.ecology().impingeSqualor(-2 * plantsHealth, this, true) ;
+  }
+  
+  //
+  //  TODO:  Have samples of various different indigenous or foreign flora,
+  //  suited to the local climate.
+  private float numSaplings() {
+    float num = 0 ;
+    for (Item i : stocks.matches(SAMPLES)) {
+      final Crop crop = (Crop) i.refers ;
+      num += i.amount ;
+    }
+    return num ;
   }
   
   
-  protected Batch <Tile> toClear(Tile from, Tile to) {
-    return null ;
+  private void updateSprite() {
+    
   }
   
-  
-  protected Batch <Element> toPlace(Tile from, Tile to) {
-    return null ;
-  }
-  
-  
-  
+
+
   /**  Rendering and interface methods-
     */
   public Composite portrait(HUD UI) {

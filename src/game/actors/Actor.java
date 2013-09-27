@@ -34,7 +34,7 @@ public abstract class Actor extends Mobile implements
   final public ActorTraits traits = new ActorTraits(this) ;
   final public ActorGear   gear   = new ActorGear  (this) ;
   
-  final public ActorAI AI = initAI() ;
+  final public ActorAI mind = initAI() ;
   private Action actionTaken ;
   private Base base ;
   
@@ -49,7 +49,7 @@ public abstract class Actor extends Mobile implements
     health.loadState(s) ;
     traits.loadState(s) ;
     gear.loadState(s) ;
-    AI.loadState(s) ;
+    mind.loadState(s) ;
     
     actionTaken = (Action) s.loadObject() ;
     base = (Base) s.loadObject() ;
@@ -62,7 +62,7 @@ public abstract class Actor extends Mobile implements
     health.saveState(s) ;
     traits.saveState(s) ;
     gear.saveState(s) ;
-    AI.saveState(s) ;
+    mind.saveState(s) ;
     
     s.saveObject(actionTaken) ;
     s.saveObject(base) ;
@@ -120,10 +120,10 @@ public abstract class Actor extends Mobile implements
   protected void pathingAbort() {
     if (actionTaken == null) return ;
     if (verbose) I.sayAbout(this, "Aborting "+actionTaken.methodName()) ;
-    AI.cancelBehaviour(AI.topBehaviour()) ;
-    final Behaviour top = AI.topBehaviour() ;
+    mind.cancelBehaviour(mind.topBehaviour()) ;
+    final Behaviour top = mind.topBehaviour() ;
     if (top != null) top.abortBehaviour() ;
-    assignAction(AI.getNextAction()) ;
+    assignAction(mind.getNextAction()) ;
   }
   
   
@@ -152,8 +152,8 @@ public abstract class Actor extends Mobile implements
   
   public void exitWorld() {
     world.activities.toggleActive(actionTaken, false) ;
-    AI.cancelBehaviour(AI.topBehaviour()) ;
-    AI.onWorldExit() ;
+    mind.cancelBehaviour(mind.topBehaviour()) ;
+    mind.onWorldExit() ;
     super.exitWorld() ;
   }
   
@@ -172,10 +172,10 @@ public abstract class Actor extends Mobile implements
       actionTaken.updateMotion(OK) ;
       actionTaken.updateAction() ;
       
-      final Behaviour root = AI.rootBehaviour() ;
+      final Behaviour root = mind.rootBehaviour() ;
       if (root != null && root.finished() && OK) {
         if (verbose) I.sayAbout(this, "  ROOT BEHAVIOUR COMPLETE... "+root) ;
-        AI.cancelBehaviour(root) ;
+        mind.cancelBehaviour(root) ;
         world.schedule.scheduleNow(this) ;
       }
       if (actionTaken != null && actionTaken.finished() && OK) {
@@ -197,26 +197,26 @@ public abstract class Actor extends Mobile implements
       //
       //  Check to see if a new action needs to be decided on.
       if (actionTaken == null || actionTaken.finished()) {
-        final Action action = AI.getNextAction() ;
+        final Action action = mind.getNextAction() ;
         if (verbose) I.sayAbout(this, "REFRESHING ACTION! "+action) ;
         assignAction(action) ;
       }
       if (! pathing.checkPathingOkay()) pathing.refreshPath() ;
-      AI.updateAI(numUpdates) ;
+      mind.updateAI(numUpdates) ;
       //
       //  Update the intel/danger maps associated with the world's bases.
       final float power = Combat.combatStrength(this, null) ;
       for (Base b : world.bases()) {
         if (b == base()) b.intelMap.liftFogAround(this, health.sightRange()) ;
         if (! visibleTo(b)) continue ;
-        final float relation = AI.relation(b) ;
+        final float relation = mind.relation(b) ;
         b.dangerMap.impingeVal(origin(), power * relation) ;
       }
     }
     else {
       if (health.asleep() && numUpdates % 2 == 0) {
-        AI.getNextAction() ;
-        final Behaviour root = AI.rootBehaviour() ;
+        mind.getNextAction() ;
+        final Behaviour root = mind.rootBehaviour() ;
         float
           wakePriority  = root == null ? 0 : root.priorityFor(this),
           sleepPriority = (health.fatigueLevel() + health.stressPenalty()) ;
@@ -242,7 +242,7 @@ public abstract class Actor extends Mobile implements
       Action.FALL, "Stricken"
     ) ;
     pathing.updateTarget(null) ;
-    AI.cancelBehaviour(AI.rootBehaviour()) ;
+    mind.cancelBehaviour(mind.rootBehaviour()) ;
     this.assignAction(falling) ;
   }
   
@@ -256,7 +256,7 @@ public abstract class Actor extends Mobile implements
     if (target != null) {
       if (actionTaken == null || actionTaken.target() != target) return false ;
     }
-    for (Behaviour b : AI.agenda()) {
+    for (Behaviour b : mind.agenda()) {
       if (planClass.isAssignableFrom(b.getClass())) return true ;
     }
     return false ;
@@ -365,7 +365,7 @@ public abstract class Actor extends Mobile implements
   public void describeStatus(Description d) {
     if (! health.conscious()) { d.append(health.stateDesc()) ; return ; }
     if (! inWorld()) { d.append("Is Offworld") ; return ; }
-    final Behaviour rootB = AI.rootBehaviour() ;
+    final Behaviour rootB = mind.rootBehaviour() ;
     if (rootB != null) rootB.describeBehaviour(d) ;
     else d.append("Thinking") ;
   }

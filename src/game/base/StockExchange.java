@@ -171,7 +171,7 @@ public class StockExchange extends Venue implements BuildConstants {
     ) ;
     if (c != null && personnel.assignedTo(c) < 1) choice.add(c) ;
     choice.add(new Supervision(actor, this)) ;
-    return choice.weightedPick(actor.AI.whimsy()) ;
+    return choice.weightedPick(actor.mind.whimsy()) ;
   }
   
   
@@ -190,11 +190,14 @@ public class StockExchange extends Venue implements BuildConstants {
   
   
   public void afterTransaction(Item item, float amount) {
+    super.afterTransaction(item, amount) ;
+    /*
     if (amount > 0) {
       final float saleBonus = (upgradeForGood(item.type) + 1) / 20f ;
       if (saleBonus <= 0) return ;
       stocks.incCredits(amount * priceFor(item.type) * saleBonus) ;
     }
+    //*/
   }
   
   

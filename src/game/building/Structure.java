@@ -9,6 +9,7 @@ import src.game.actors.* ;
 import src.game.common.* ;
 import src.util.* ;
 
+import java.lang.reflect.* ;
 
 
 //
@@ -64,6 +65,8 @@ public class Structure {
     0.5f , 0.55f, 0.55f, 0.6f , 0.6f , 0.65f
   } ;
   
+  private static boolean verbose = false ;
+  
   
   final Installation venue ;
   
@@ -101,7 +104,7 @@ public class Structure {
     integrity = s.loadFloat() ;
     burning = s.loadBool() ;
     
-    final Index <Upgrade> AU = venue.allUpgrades() ;
+    Index <Upgrade> AU = venue.allUpgrades() ;
     if (AU != null) {
       upgradeProgress = s.loadFloat() ;
       upgradeIndex = s.loadInt() ;
@@ -112,6 +115,16 @@ public class Structure {
         upgradeStates[i] = s.loadInt() ;
       }
     }
+  }
+  
+  
+  private Object getFieldVal() {
+    try {
+      Field field = venue.getClass().getField("ALL_UPGRADES") ;
+      if (field != null) return field.get(null) ;
+    }
+    catch (Exception e) {}
+    return null ;
   }
   
   
@@ -126,7 +139,20 @@ public class Structure {
     s.saveFloat(integrity) ;
     s.saveBool(burning) ;
     
-    final Index <Upgrade> AU = venue.allUpgrades() ;
+    Index <Upgrade> AU = venue.allUpgrades() ;
+    /*
+    if (AU == null) {
+      final Object o = getFieldVal() ;
+      if (o != null) {
+        AU = (Index) o ;
+        maxUpgrades = AU.members().length ;
+        upgradeIndex = -1 ;
+        upgrades = new Upgrade[maxUpgrades] ;
+        upgradeStates = new int[maxUpgrades] ;
+      }
+    }
+    //*/
+    
     if (AU != null) {
       s.saveFloat(upgradeProgress) ;
       s.saveInt(upgradeIndex) ;
@@ -171,6 +197,7 @@ public class Structure {
   /**  Regular updates-
     */
   protected void updateStructure(int numUpdates) {
+    if (numUpdates % 5 == 0) checkMaintenance() ;
     //
     //  Firstly, check to see if you're still burning-
     if (burning) {
@@ -303,11 +330,12 @@ public class Structure {
   
   protected void checkMaintenance() {
     final World world = ((Element) venue).world() ;
+    if (world == null) return ;
     final boolean needs = (state != STATE_RAZED) && (
       (state == STATE_SALVAGE) || (! goodCondition()) ||
       needsUpgrade() || burning
     ) ;
-    ///I.sayAbout(venue, "Needs upgrade: "+needs) ;
+    if (verbose) I.sayAbout(venue, "Needs maintenance: "+needs) ;
     world.presences.togglePresence(
       venue, world.tileAt(venue), needs, "damaged"
     ) ;

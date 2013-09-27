@@ -66,7 +66,7 @@ public class Commission extends Plan {
     final float business = shop.stocks.specialOrders().size() ;
     final int price = item.price() ;
     if (price > actor.gear.credits()) return 0 ;
-    final float costVal = actor.AI.greedFor(price) * CASUAL ;
+    final float costVal = actor.mind.greedFor(price) * CASUAL ;
     float priority = 1 + ROUTINE - (costVal + business) ;
     return Visit.clamp(priority, 0, ROUTINE) ;
   }

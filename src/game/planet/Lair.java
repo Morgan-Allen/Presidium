@@ -86,7 +86,7 @@ public class Lair extends Venue {
       //
       //  Fill up the surrounds with specimens.
       final Fauna specimen = species.newSpecimen() ;
-      specimen.AI.setHomeVenue(this) ;
+      specimen.mind.setHomeVenue(this) ;
       specimen.health.setupHealth(
         Rand.num(),  //current age
         (Rand.num() + 1) / 2,  //overall health

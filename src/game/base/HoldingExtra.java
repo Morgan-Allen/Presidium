@@ -18,7 +18,7 @@ public class HoldingExtra extends Fixture implements TileConstants {
   
   final static Model EXTRA_MODELS[][] = ImageModel.fromTextureGrid(
     Holding.class, Texture.loadTexture(Holding.IMG_DIR+"housing_props.png"),
-    3, 3, 1.00f, ImageModel.TYPE_POPPED_BOX
+    3, 3, 1.03f, ImageModel.TYPE_POPPED_BOX
   ) ;
   
   

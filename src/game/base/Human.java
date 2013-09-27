@@ -212,7 +212,7 @@ public class Human extends Actor implements ActorConstants {
     //
     //  If you're in dialogue, and selected, render the chat-
     if (isDoing(Dialogue.class, null) && BaseUI.isPicked(this)) {
-      final Dialogue d = (Dialogue) AI.rootBehaviour() ;
+      final Dialogue d = (Dialogue) mind.rootBehaviour() ;
       d.chat.position.setTo(this.position) ;
       d.chat.position.z += this.height() ;
       d.chat.update() ;
@@ -276,13 +276,13 @@ public class Human extends Actor implements ActorConstants {
     d.append("Is: ") ; describeStatus(d) ;
     d.append("\nVocation: "+vocation().nameFor(this)) ;
     d.append("\nWorkplace: ") ;
-    if (AI.work() != null) {
-      d.append(AI.work()) ;
+    if (mind.work() != null) {
+      d.append(mind.work()) ;
     }
     else d.append("Unemployed") ;
     d.append("\nResidence: ") ;
-    if (AI.home() != null) {
-      d.append(AI.home()) ;
+    if (mind.home() != null) {
+      d.append(mind.home()) ;
     }
     else d.append("Homeless") ;
     //
@@ -372,7 +372,7 @@ public class Human extends Actor implements ActorConstants {
     d.appendList("\n\nPersonality: ", descTraits(traits.personality())) ;
     
     d.append("\n\nRelationships: ") ;
-    for (Relation r : AI.relations()) {
+    for (Relation r : mind.relations()) {
       d.append("\n  ") ;
       d.append(r.subject) ;
       d.append(" ("+r.descriptor()+")") ;

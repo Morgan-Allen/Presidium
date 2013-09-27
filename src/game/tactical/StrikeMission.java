@@ -46,11 +46,11 @@ public class StrikeMission extends Mission {
     //  TODO:  Try to unify these.
     if (subject instanceof Actor) return Combat.combatPriority(
       actor, (Actor) subject,
-      actor.AI.greedFor(rewardAmount(actor)) * ROUTINE,
+      actor.mind.greedFor(rewardAmount(actor)) * ROUTINE,
       PARAMOUNT
     ) ;
     if (subject instanceof Venue) {
-      return actor.AI.greedFor(rewardAmount(actor)) * ROUTINE ;
+      return actor.mind.greedFor(rewardAmount(actor)) * ROUTINE ;
     }
     return 0 ;
   }

@@ -99,7 +99,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
     addPurchases(choice) ;
     
     final Behaviour chosen = choice.weightedPick(whimsy()) ;
-    ///I.sayAbout(actor, "HAVE CHOSEN: "+chosen) ;
+    ///I.sayAbout(actor, "HUMAN HAS  CHOSEN: "+chosen) ;
     applyForMissions(chosen) ;
     return chosen ;
   }
@@ -162,6 +162,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
     //  Find the next jobs waiting for you at work or home.
     if (work != null) {
       Behaviour atWork = work.jobFor(actor) ;
+      if (verbose) I.sayAbout(actor, "  NEXT WORK IS: "+atWork) ;
       if (atWork != null) choice.add(atWork) ;
     }
     if (home != null) {

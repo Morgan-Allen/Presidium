@@ -60,7 +60,7 @@ public class Migration extends Plan {
     //  DISABLING FOR NOW  TODO:  Restore once job-applications are sorted out.
     if (true) return -1 ;
     
-    if (actor.AI.work() != null) return 0 ;
+    if (actor.mind.work() != null) return 0 ;
     if (initTime == -1) return ROUTINE ;
     final float timeSpent = actor.world().currentTime() + 10 - initTime ;
     float impetus = ROUTINE * timeSpent / World.STANDARD_DAY_LENGTH ;
@@ -78,7 +78,7 @@ public class Migration extends Plan {
   /**  Behaviour implementation-
     */
   protected Behaviour getNextStep() {
-    if (actor.AI.work() != null) {
+    if (actor.mind.work() != null) {
       abortBehaviour() ;
       return null ;
     }
@@ -120,7 +120,7 @@ public class Migration extends Plan {
   
   
   public boolean actionBoardVessel(Actor actor, Dropship leaves) {
-    actor.AI.setHomeVenue(null) ;
+    actor.mind.setHomeVenue(null) ;
     if (actor.aboard() == leaves) return true ;
     final int price = BOARD_PRICE ;
     if (actor.gear.credits() < price) return false ;

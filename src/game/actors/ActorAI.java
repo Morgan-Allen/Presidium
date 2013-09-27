@@ -150,7 +150,7 @@ public abstract class ActorAI implements ActorConstants {
     if (m instanceof Actor) {
       final Actor a = (Actor) m ;
       if (a.currentAction() == null) return m ;
-      final Behaviour b = a.AI.rootBehaviour() ;
+      final Behaviour b = a.mind.rootBehaviour() ;
       if (b == null) return m ;
       else return b ;
     }
@@ -195,9 +195,10 @@ public abstract class ActorAI implements ActorConstants {
       newChoice = createBehaviour(),
       taken = couldSwitch(notDone, newChoice) ? newChoice : notDone ;
     if (verbose && I.talkAbout == actor) {
-      I.say("  TOP BEHAVIOUR: "+topBehaviour()) ;
-      I.say("  ROOT BEHAVIOUR: "+rootBehaviour()) ;
-      I.say("  NEW CHOICE: "+taken+" "+taken.hashCode()) ;
+      I.say("  Persistance: "+persistance()) ;
+      I.say("  NOT DONE: "+notDone) ;
+      I.say("  NEW CHOICE: "+newChoice) ;
+      I.say("  CURRENT FAVOURITE: "+taken+" "+taken.hashCode()) ;
       I.say("  Finished? "+taken.finished()) ;
     }
     return taken ;
@@ -344,9 +345,14 @@ public abstract class ActorAI implements ActorConstants {
     if (NT != null && targetFor(last) == NT && NT != actor.aboard()) {
       return false ;
     }
-    return
-      next.priorityFor(actor) >=
-      (last.priorityFor(actor) + persistance()) ;
+    final float
+      lastPriority = last.priorityFor(actor),
+      persist = persistance(),
+      margin = Math.min(
+        lastPriority + persist,
+        lastPriority * (1 + (persist / 2))
+      ) ;
+    return next.priorityFor(actor) >= margin ;
   }
   
   
@@ -368,7 +374,8 @@ public abstract class ActorAI implements ActorConstants {
   /**  Updates and queries-
     */
   protected Action getNextAction() {
-    while (true) {
+    final int MAX_LOOP = 100 ;  // Safety feature, see below...
+    for (int loop = MAX_LOOP ; loop-- > 0 ;) {
       if (verbose) I.sayAbout(actor, actor+" in action loop.") ;
       //
       //  If all current behaviours are complete, generate a new one.
@@ -406,6 +413,12 @@ public abstract class ActorAI implements ActorConstants {
         pushBehaviour(next) ;
       }
     }
+    //
+    //  If you exhaust the maximum number of iterations (which I assume *would*
+    //  be enough for any reasonable use-case,) report the problem.
+    I.say("  "+actor+" COULD NOT DECIDE ON NEXT STEP.") ;
+    new Exception().printStackTrace() ;
+    return null ;
   }
   
   

@@ -31,7 +31,7 @@ public class FormerPlant extends Venue implements BuildConstants {
   private static boolean verbose = false ;
   
   
-  protected List <Crawler> crawlers = new List <Crawler> () ;
+  protected List <DustCrawler> crawlers = new List <DustCrawler> () ;
   protected float soilSamples = 0, monitorVal = 0 ;
   
 
@@ -142,11 +142,11 @@ public class FormerPlant extends Venue implements BuildConstants {
     }
     //
     //  Select and return-
-    return choice.weightedPick(actor.AI.whimsy()) ;
+    return choice.weightedPick(actor.mind.whimsy()) ;
   }
   
   
-  private Tile pickSample() {
+  protected Tile pickSample() {
     final int range = World.DEFAULT_SECTOR_SIZE * 2 ;
     Tile picked = null ;
     float bestRating = 0 ;
@@ -196,8 +196,8 @@ public class FormerPlant extends Venue implements BuildConstants {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
     
-    if (verbose) I.sayAbout(this, "\nUPDATING OUTPUT OF "+this) ;
-    handleCrawlerOrders() ;
+    if (verbose) I.sayAbout(this, "\nUPDATING FORMER PLANT "+this) ;
+    updateCrawlers() ;
     //
     //  Output the various goods, depending on terrain, supervision and upgrade
     //  levels-
@@ -205,14 +205,14 @@ public class FormerPlant extends Venue implements BuildConstants {
       waterBonus  = 1 + structure.upgradeLevel(EVAPORATION_CYCLING),
       carbonBonus = 1 + structure.upgradeLevel(CARBONS_CYCLING),
       dustBonus   = 2 + structure.upgradeLevel(DUST_PANNING),
-      spiceBonus  = structure.upgradeLevel(SPICE_REDUCTION) / 5 ;
+      spiceBonus  = structure.upgradeLevel(SPICE_REDUCTION) / 5f ;
     final float
       SDL = World.STANDARD_DAY_LENGTH ;
     
     int powerNeed = 4 + (structure.numUpgrades() * 2) ;
     stocks.incDemand(POWER, powerNeed, 1) ;
     stocks.bumpItem(POWER, powerNeed * -0.1f) ;
-    float yield = 2 * Math.min(1, stocks.amountOf(POWER) * 2 / powerNeed) ;
+    float yield = 2 - stocks.shortagePenalty(POWER) ;
     
     if (verbose) I.sayAbout(this, "  Basic yield is: "+yield) ;
     
@@ -283,7 +283,7 @@ public class FormerPlant extends Venue implements BuildConstants {
     //  pollution, while reducing global pollution (because it's messy and
     //  noisy, but good for the atmosphere.)  Not In My Backyard, IOW.
     
-    world.ecology().impingePollution(-2 * carbonBonus * yield, this, true) ;
+    world.ecology().impingeSqualor(-2 * carbonBonus * yield, this, true) ;
     final int mag = World.DEFAULT_SECTOR_SIZE ;
     world.ecology().pushClimate(Habitat.MEADOW, mag * mag * 5 * yield) ;
   }
@@ -291,48 +291,26 @@ public class FormerPlant extends Venue implements BuildConstants {
   //
   //  TODO:  Ensure vehicles are listed under staffing.
   
-  protected void handleCrawlerOrders() {
+  protected void updateCrawlers() {
     //
-    //  Send them out to collect soil samples, or bring them back to the venue-
-    for (Crawler c : crawlers) {
-      if (verbose) I.sayAbout(c, "Updating orders for "+c) ;
-      if (c.destroyed()) {
-        if (verbose) I.sayAbout(c, c+" was destroyed!") ;
-        crawlers.remove(c) ;
-        continue ;
-      }
-      if (c.aboard() == this) {
-        for (Item sample : c.cargo.matches(SAMPLES)) {
-          final Tile sampled = (Tile) sample.refers ;
-          soilSamples += sampled.habitat().minerals() / 20f ;
-          c.cargo.removeItem(sample) ;
-        }
-        final Tile toSample = pickSample() ;
-        if (toSample != null && soilSamples < 10) {
-          c.pathing.updateTarget(toSample) ;
-        }
-      }
-      else {
-        if (c.pathing.target() == c.aboard()) {
-          final Tile sampled = c.origin() ;
-          c.cargo.addItem(Item.withType(SAMPLES, sampled)) ;
-          c.pathing.updateTarget(this) ;
-        }
-      }
+    //  Cull all any destroyed crawlers-
+    for (DustCrawler c : crawlers) if (c.destroyed()) {
+      if (verbose) I.sayAbout(c, c+" was destroyed!") ;
+      crawlers.remove(c) ;
     }
     //
     //  Update the proper number of automated crawlers.
-    int numCrawlers = (1 + structure.upgradeLevel(DUST_PANNING)) / 2 ;
-    I.sayAbout(this, "Updating crawlers.  Proper count: "+numCrawlers) ;
+    final int numCrawlers = (1 + structure.upgradeLevel(DUST_PANNING)) / 2 ;
+    if (verbose) I.sayAbout(this, "Proper no. of crawlers: "+numCrawlers) ;
     if (crawlers.size() < numCrawlers) {
-      final Crawler crawler = new Crawler() ;
+      final DustCrawler crawler = new DustCrawler() ;
       crawler.enterWorldAt(this, world) ;
       crawler.goAboard(this, world) ;
       crawler.setHangar(this) ;
       crawlers.add(crawler) ;
     }
     if (crawlers.size() > numCrawlers) {
-      for (Crawler c : crawlers) if (c.aboard() == this) {
+      for (DustCrawler c : crawlers) if (c.aboard() == this) {
         if (verbose) I.sayAbout(this, "Too many crawlers.  Salvaging: "+c) ;
         //  TODO:  PERFORM ACTUAL CONSTRUCTION/SALVAGE
         c.setAsDestroyed() ;

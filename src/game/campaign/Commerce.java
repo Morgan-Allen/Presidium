@@ -290,7 +290,7 @@ public class Commerce implements BuildConstants {
       works.health.liftFatigue(MH * Rand.num()) ;
       works.health.takeSustenance(MH, 0.25f + Rand.num()) ;
       works.health.adjustMorale(Rand.num() / 2f) ;
-      works.AI.clearAgenda() ;
+      works.mind.clearAgenda() ;
     }
   }
   
@@ -298,7 +298,7 @@ public class Commerce implements BuildConstants {
   private void addCrew(Dropship ship, Background... positions) {
     for (Background v : positions) {
       final Human staff = new Human(new Career(v), base) ;
-      staff.AI.setEmployer(ship) ;
+      staff.mind.setEmployer(ship) ;
     }
   }
   

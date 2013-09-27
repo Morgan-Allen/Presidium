@@ -122,17 +122,17 @@ public class EcologyGen {
       while (numT-- > 0) {
         final Tripod tripod = new Tripod() ;
         tripod.enterWorldAt(e.x, e.y, world) ;
-        tripod.AI.setHomeVenue(r) ;
+        tripod.mind.setHomeVenue(r) ;
       }
       while (numD-- > 0) {
         final Drone drone = new Drone() ;
         drone.enterWorldAt(e.x, e.y, world) ;
-        drone.AI.setHomeVenue(r) ;
+        drone.mind.setHomeVenue(r) ;
       }
       if (lairNum == 1 && Rand.yes()) {
         final Cranial cranial = new Cranial() ;
         cranial.enterWorldAt(e.x, e.y, e.world) ;
-        cranial.AI.setHomeVenue(r) ;
+        cranial.mind.setHomeVenue(r) ;
       }
     }
   }

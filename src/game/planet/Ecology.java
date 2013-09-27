@@ -20,14 +20,14 @@ public class Ecology {
   final int SR, SS ;
   final RandomScan growthMap ;
   
-  final float fertilities[][] ;   //Of crops/flora.
+  final float biomass[][] ;   //Of crops/flora.
   final float squalorMap[][] ;    //For pollution/ambience.
   final float preyMap[][], hunterMap[][], abundances[][][] ;  //Of species.
   
   final float globalAbundance[] ;
   final Batch <float[][]> allMaps = new Batch <float[][]> () ;
   
-  private float globalFertility = 0 ;
+  private float globalBiomass = 0 ;
   
   
   public Ecology(final World world) {
@@ -37,7 +37,7 @@ public class Ecology {
     growthMap = new RandomScan(world.size) {
       protected void scanAt(int x, int y) { growthAt(world.tileAt(x, y)) ; }
     } ;
-    allMaps.add(fertilities = new float[SS][SS]) ;
+    allMaps.add(biomass = new float[SS][SS]) ;
     allMaps.add(squalorMap  = new float[SS][SS]) ;
     allMaps.add(preyMap     = new float[SS][SS]) ;
     allMaps.add(hunterMap   = new float[SS][SS]) ;
@@ -79,13 +79,13 @@ public class Ecology {
     float growIndex = (time % World.GROWTH_INTERVAL) ;
     growIndex *= size * size * 1f / World.GROWTH_INTERVAL ;
     growthMap.scanThroughTo((int) growIndex) ;
-    globalFertility = 0 ;
+    globalBiomass = 0 ;
     
     for (float map[][] : allMaps) for (Coord c : Visit.grid(0, 0, SS, SS, 1)) {
-      if (map == fertilities) {
+      if (map == biomass) {
         map[c.x][c.y] *= 1 - (UPDATE_INC / World.GROWTH_INTERVAL) ;
         ///I.say("Val is: "+map[c.x][c.y]) ;
-        globalFertility += map[c.x][c.y] ;
+        globalBiomass += map[c.x][c.y] ;
         continue ;
       }
       map[c.x][c.y] *= 1 - UPDATE_INC ;
@@ -93,7 +93,7 @@ public class Ecology {
     for (Species p : Species.ALL_SPECIES) {
       globalAbundance[p.ID] *= 1 - UPDATE_INC ;
     }
-    globalFertility /= (SS * SS) ;
+    globalBiomass /= (SS * SS) ;
     ///I.say("Global fertility is: "+globalFertility) ;
   }
   
@@ -105,11 +105,10 @@ public class Ecology {
   }
   
   
-  public void impingeFertility(Flora f, boolean gradual) {
-    final Tile t = f.origin() ;
-    final int g = f.growStage() ;
+  public void impingeBiomass(Element e, float amount, boolean gradual) {
+    final Tile t = e.origin() ;
     ///I.say("Impinging growth: "+g) ;
-    fertilities[t.x / SR][t.y / SR] += g * (gradual ? UPDATE_INC : 1) ;
+    biomass[t.x / SR][t.y / SR] += amount * (gradual ? UPDATE_INC : 1) ;
   }
   
   
@@ -118,7 +117,7 @@ public class Ecology {
   }
   
   
-  public void impingePollution(float squalorVal, Fixture f, boolean gradual) {
+  public void impingeSqualor(float squalorVal, Fixture f, boolean gradual) {
     final Tile centre = world.tileAt(f) ;
     impingeSqualor(squalorVal, centre, gradual) ;
   }
@@ -141,21 +140,21 @@ public class Ecology {
   }
   
   
-  public float globalFertility() {
-    return globalFertility / (SS * SS) ;
+  public float globalBiomass() {
+    return globalBiomass / (SS * SS) ;
   }
   
   
   
   /**  Querying sample values-
     */
-  public float fertilityAmount(Tile t) {
-    return Visit.sampleMap(world.size, fertilities, t.x, t.y) ;
+  public float biomassAmount(Tile t) {
+    return Visit.sampleMap(world.size, biomass, t.x, t.y) ;
   }
   
   
-  public float fertilityRating(Tile t) {
-    return fertilityAmount(t) / (SR * SR) ;
+  public float biomassRating(Tile t) {
+    return biomassAmount(t) / (SR * SR) ;
   }
   
   
@@ -198,7 +197,7 @@ public class Ecology {
     )) {
       final Tile t = world.tileAt(c.x, c.y) ;
       if (t == null) continue ;
-      fertility  += fertilityAmount(t) ;
+      fertility  += biomassAmount(t) ;
       fertility  -= squalorAmount(t) ;
       numPeers   += absoluteAbundanceAt(species, t) ;
       numPrey    += preyDensityAt(t) ;

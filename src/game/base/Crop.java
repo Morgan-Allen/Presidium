@@ -24,14 +24,15 @@ public class Crop implements Session.Saveable, Target {
     MIN_HARVEST =  3,
     MAX_GROWTH  =  4 ;
   final static String STAGE_NAMES[] = {
+    "Seed Stock ",
     "Unplanted ",
-    "",
-    "Seeded ",
+    "Sprouting ",
     "Growing ",
     "Mature ",
     "Ripened "
   } ;
   final static String HEALTH_NAMES[] = {
+    "Weak",
     "Poor",
     "Fair",
     "Good",
@@ -112,14 +113,14 @@ public class Crop implements Session.Saveable, Target {
     if (infested) growInc /= 5 ;
     this.growStage = Visit.clamp(growStage + growInc, MIN_GROWTH, MAX_GROWTH) ;
     //
-    //  Increase the chance of becoming diseased based on pollution and
+    //  Increase the chance of becoming infested based on pollution and
     //  proximity to other diseased plants of the same species, but reduce it
     //  based on intrinsic health rating and insect services.
     final int hive = Plantation.VAR_HIVE_CELLS ;
-    final float pollution = world.ecology().squalorRating(tile) / 10f ;
+    final float pollution = world.ecology().squalorRating(tile) ;
     float infectChance = (((5 - health) / 10) + pollution) / 2f ;
     //
-    //  (Hive cells can themselves become infected, but only from other hives.)
+    //  (Hive cells can themselves become infested, but only from other hives.)
     for (Tile t : tile.allAdjacent(null)) {
       if (t == null || ! (t.owner() instanceof Plantation)) continue ;
       final Crop near = ((Plantation) t.owner()).plantedAt(t) ;

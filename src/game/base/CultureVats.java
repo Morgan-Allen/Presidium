@@ -13,6 +13,7 @@ import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD ;
 import src.user.* ;
+import src.util.* ;
 
 
 
@@ -48,21 +49,79 @@ public class CultureVats extends Venue implements BuildConstants {
   
   
   
-  /**  Implementation of employee behaviour-
+  /**  Upgrades, economic functions and employee behaviour-
     */
+  final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
+    CultureVats.class, "culture_vats_upgrades"
+  ) ;
+  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+  final public static Upgrade
+    WASTE_DISPOSAL = new Upgrade(
+      "Waste Disposal",
+      "Reduces pollution, increases marginal efficiency, and permits some "+
+      "output of life support.",
+      200, null, 1, null, ALL_UPGRADES
+    ),
+    PROTEIN_ASSEMBLY = new Upgrade(
+      "Protein Assembly",
+      "Permits direct manufacture of Protein, a basic foodstuff needed to "+
+      "keep your population healthy.",
+      150, null, 1, null, ALL_UPGRADES
+    ),
+    DRUG_SYNTHESIS = new Upgrade(
+      "Drug Synthesis",
+      "Employs gene-tailored microbes to synthesise complex molecules, "+
+      "permitting manufacture of medicines and stimulants.",
+      200, null, 1, null, ALL_UPGRADES
+    ),
+    SOMA_CULTURE = new Upgrade(
+      "Soma Culture",
+      "Allows mass production of Soma, a cheap recreational narcotic with "+
+      "minimal side effects.",
+      250, null, 1, DRUG_SYNTHESIS, ALL_UPGRADES
+    ),
+    ORGAN_BANKS = new Upgrade(
+      "Organ Banks",
+      "Allows production of spare organs for use in medical emergencies, up "+
+      "to and including full-body cloning.",
+      400, null, 1, PROTEIN_ASSEMBLY, ALL_UPGRADES
+    ),
+    VATS_BREEDER_STATION = new Upgrade(
+      "Waste Disposal",
+      "Reduces pollution, increases marginal efficiency, and permits some "+
+      "output of life support.",
+      100, null, 1, null, ALL_UPGRADES
+    )
+  ;
+  
+  
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
     
-    stocks.translateDemands(POWER_TO_STARCHES, 1) ;
-    stocks.translateDemands(POWER_TO_PROTEIN , 1) ;
-    stocks.translateDemands(POWER_TO_SOMA    , 1) ;
-    stocks.translateDemands(POWER_TO_MEDICINE, 1) ;
+    stocks.translateDemands(1, POWER_TO_CARBS   ) ;
+    stocks.translateDemands(1, POWER_TO_PROTEIN ) ;
+    stocks.translateDemands(1, POWER_TO_SOMA    ) ;
+    stocks.translateDemands(1, POWER_TO_MEDICINE) ;
     
     float needPower = 5 ;
     if (! isManned()) needPower /= 2 ;
     stocks.incDemand(POWER, needPower, 1) ;
     stocks.bumpItem(POWER, needPower * -0.1f) ;
+    
+    final int cycleBonus = bonusFor(WASTE_DISPOSAL, 1) ;
+    float pollution = 5 - cycleBonus ;
+    //
+    //  TODO:  vary this based on current power and the number of ongoing
+    //  cultures instead.
+    if (! isManned()) pollution /= 2 ;
+    
+    world.ecology().impingeSqualor(pollution, this, true) ;
+  }
+  
+  
+  private int bonusFor(Upgrade u, float mult) {
+    return (int) (mult * structure.upgradeLevel(u)) ;
   }
   
   
@@ -70,21 +129,50 @@ public class CultureVats extends Venue implements BuildConstants {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
     
+    final float powerCut = stocks.shortagePenalty(POWER) * 10 ;
+    final int cycleBonus = bonusFor(WASTE_DISPOSAL, 1) ;
+    
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
-    if (o != null) choice.add(o) ;
+    if (o != null) {
+      o.checkBonus = cycleBonus + bonusFor(ORGAN_BANKS, 2) ;
+      choice.add(o) ;
+    }
     
-    choice.add(stocks.nextManufacture(actor, POWER_TO_STARCHES)) ;
-    choice.add(stocks.nextManufacture(actor, POWER_TO_PROTEIN)) ;
-    choice.add(stocks.nextManufacture(actor, POWER_TO_SOMA)) ;
-    choice.add(stocks.nextManufacture(actor, POWER_TO_MEDICINE)) ;
+    final Manufacture
+      mS = stocks.nextManufacture(actor, POWER_TO_CARBS),
+      mP = stocks.nextManufacture(actor, POWER_TO_PROTEIN) ;
+    if (mS != null) {
+      mS.checkBonus = cycleBonus * 2 ;
+      mS.checkBonus -= powerCut ;
+      choice.add(mS) ;
+    }
+    if (mP != null) {
+      mP.checkBonus = cycleBonus + bonusFor(PROTEIN_ASSEMBLY, 1.5f) ;
+      mP.checkBonus -= powerCut ;
+      choice.add(mP) ;
+    }
     
-    return choice.weightedPick(actor.AI.whimsy()) ;
+    final Manufacture
+      mA = stocks.nextManufacture(actor, POWER_TO_SOMA),
+      mM = stocks.nextManufacture(actor, POWER_TO_MEDICINE) ;
+    if (mA != null) {
+      mA.checkBonus = cycleBonus + bonusFor(SOMA_CULTURE, 1.5f) ;
+      mA.checkBonus -= powerCut ;
+      choice.add(mA) ;
+    }
+    if (mM != null) {
+      mM.checkBonus = cycleBonus + bonusFor(DRUG_SYNTHESIS, 2) ;
+      mM.checkBonus -= powerCut ;
+      choice.add(mM) ;
+    }
+    
+    return choice.weightedPick(actor.mind.whimsy()) ;
   }
   
   
   public Service[] services() {
     return new Service[] {
-      CARBS, PROTEIN, SOMA, MEDICINE
+      CARBS, PROTEIN, SOMA, MEDICINE, LIFE_SUPPORT, REPLICANTS
     } ;
   }
   

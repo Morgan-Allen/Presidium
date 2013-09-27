@@ -16,6 +16,8 @@ public class Recreation extends Plan implements BuildConstants {
   
   /**  Data fields, construction and save/load methods-
     */
+  private static boolean verbose = false ;
+  
   Venue venue ;
   
   
@@ -44,6 +46,7 @@ public class Recreation extends Plan implements BuildConstants {
     float priority = (ROUTINE * (1 - actor.health.moraleLevel())) + IDLE ;
     priority -= Plan.rangePenalty(actor, venue) ;
     priority *= rateVenue(venue, actor) / 10 ;
+    if (verbose) I.sayAbout(actor, "Relax priority for "+venue+": "+priority) ;
     return priority ;
   }
   
@@ -54,13 +57,13 @@ public class Recreation extends Plan implements BuildConstants {
       actor, actor.world(), 5, venues,
       Cantina.class
     ) ;
-    if (actor.AI.home() != null) venues.add(actor.AI.home()) ;
+    if (actor.mind.home() != null) venues.add(actor.mind.home()) ;
     
     final Choice choice = new Choice(actor) ;
     for (Venue venue : venues) {
       choice.add(new Recreation(actor, venue)) ;
     }
-    return (Recreation) choice.weightedPick(actor.AI.whimsy() * 2) ;
+    return (Recreation) choice.weightedPick(actor.mind.whimsy() * 2) ;
   }
   
   
@@ -106,7 +109,10 @@ public class Recreation extends Plan implements BuildConstants {
     }
     //
     //  TODO:  Chat at random with other occupants.
-    
+
+    //
+    //  TODO:  Have morale converge to a particular level based on surroundings,
+    //  rather than gaining a continual increase.
     comfort *= interval ;
     actor.health.adjustMorale(comfort) ;
     return true ;

@@ -21,11 +21,13 @@ public class Mining extends Plan implements BuildConstants {
   
   /**  Fields, constructors and save/load methods-
     */
+  private static boolean verbose = false ;
+  
   private MineFace face ;
   
   
   Mining(Actor actor, MineFace face) {
-    super(actor, face.parent) ;
+    super(actor, face.shaft) ;
     this.face = face ;
   }
   
@@ -42,6 +44,12 @@ public class Mining extends Plan implements BuildConstants {
   }
   
   
+  public boolean matchesPlan(Plan p) {
+    if (! super.matchesPlan(p)) return false ;
+    final Mining m = (Mining) p ;
+    return m.face == this.face ;
+  }
+  
   
   /**  Behaviour implementation-
     */
@@ -51,57 +59,106 @@ public class Mining extends Plan implements BuildConstants {
   
   
   protected Behaviour getNextStep() {
-    if (face.promise == -1) {
-      if (oresCarried(actor) > 0) return nextDelivery() ;
-      return null ;
-    }
-    if (oresCarried(actor) > 0) return nextDelivery() ;
-    if (face.workDone >= 100) { I.say("WORKED OUT") ; return null ; }
     //
-    //  TODO:  To facilitate pathfinding, break this into two steps- one where
+    //  In the event that the face is worked out, and you're still on your
+    //  shift, try finding a new face to work on.
+    final ExcavationShaft shaft = face.shaft ;
+    final Boardable at = actor.aboard() ;
+    boolean quits = false ;
+    
+    if (oresCarried(actor) > 0) return nextReturnAction() ;
+    if (face.workDone >= 100 || face.promise == -1) {
+      if (verbose) I.sayAbout(actor, "Face is exhausted.") ;
+      quits = true ;
+      if (shaft.personnel.onShift(actor)) {
+        final Mining m = shaft.nextMiningFor(actor) ;
+        if (m != null) { this.face = m.face ; quits = false ; }
+      }
+    }
+    if (quits) {
+      if (at == shaft) return null ;
+      else return nextReturnAction() ;
+    }
+    //
+    //  To facilitate pathfinding, we break this into two steps- one where
     //  the actor goes to the shaft entrance, and another where they migrate to
-    //  the mine face (underground.)
+    //  the mine face (underground.  Underground tiles don't mesh nicely with
+    //  the normal above-ground pathing-cache system, you see.)
+    if (at == face.shaft || at instanceof MineFace) {
+      return new Action(
+        actor, face,
+        this, "actionMine",
+        Action.BUILD, "mining at "+face.origin()
+      ) ;
+    }
+    else {
+      return new Action(
+        actor, face.shaft,
+        this, "actionEnterShaft",
+        Action.BUILD, "Entering mine shaft"
+      ) ;
+    }
+  }
+  
+  
+  private Action nextReturnAction() {
     return new Action(
-      actor, face,
-      this, "actionMine",
-      Action.BUILD, "mining at "+face.origin()
+      actor, face.shaft,
+      this, "actionDeliverOres",
+      Action.REACH_DOWN, "returning ores"
     ) ;
   }
   
   
+  public boolean actionEnterShaft(Actor actor, ExcavationShaft shaft) {
+    actor.goAboard(shaft, shaft.world()) ;
+    //
+    //  TODO:  Consider introducing security/safety measures here?
+    return true ;
+  }
+  
+  
   public boolean actionMine(Actor actor, MineFace face) {
+    //
+    //  Don't mine anything already mined out (which can happen with multiple
+    //  actors in rapid succession.)
+    if (face.promise == -1) return false ;
     
     final Terrain terrain = actor.world().terrain() ;
     int success = 1 ;
     success += actor.traits.test(GEOPHYSICS , 5 , 1) ? 1 : 0 ;
     success *= actor.traits.test(HARD_LABOUR, 15, 1) ? 2 : 1 ;
     face.workDone = Math.min(100, (success * 5 * Rand.num()) + face.workDone) ;
-    ///I.say("Mining "+face.origin()+", work done: "+face.workDone) ;
     
     if (face.workDone >= 100) {
       final Tile t = face.origin() ;
       final byte rockType = terrain.mineralType(t) ;
-      final float amount = terrain.mineralsAt(t, rockType) ;
+      float amount = terrain.mineralsAt(t, rockType) ;
+      
       terrain.setMinerals(t, rockType, Terrain.DEGREE_TAKEN) ;
+      face.shaft.openFace(face) ;
       
       Service itemType = null ;
       switch (rockType) {
-        case (Terrain.TYPE_CARBONS ) : itemType = PETROCARBS  ; break ;
-        case (Terrain.TYPE_METALS  ) : itemType = METAL_ORE   ; break ;
+        case (Terrain.TYPE_CARBONS ) : itemType = PETROCARBS ; break ;
+        case (Terrain.TYPE_METALS  ) : itemType = METAL_ORE  ; break ;
         case (Terrain.TYPE_ISOTOPES) : itemType = FUEL_CORES ; break ;
       }
-      face.parent.openFace(face) ;
       if (itemType == null || amount <= 0) {
-        I.say("No minerals at "+face.origin()) ;
-        return false ;
+        if (verbose) I.sayAbout(actor, "Minerals lacking at "+face.origin()) ;
+        if (GameSettings.hardCore || Rand.yes()) return false ;
+        
+        itemType = (Service) Rand.pickFrom(new Object[] {
+          PETROCARBS, METAL_ORE, METAL_ORE, FUEL_CORES
+        }) ;
+        amount = 0.5f * Rand.num() ;
       }
-      else {
-        final float bonus = face.parent.structure.upgradeBonus(itemType) + 2 ;
-        final Item mined = Item.withAmount(itemType, amount * bonus / 2) ;
-        I.say("Successfully mined: "+mined) ;
-        actor.gear.addItem(mined) ;
-        return true ;
-      }
+      
+      final float bonus = face.shaft.structure.upgradeBonus(itemType) + 2 ;
+      final Item mined = Item.withAmount(itemType, amount * bonus / 2) ;
+      if (verbose) I.sayAbout(actor, "Managed to mine: "+mined) ;
+      actor.gear.addItem(mined) ;
+      return true ;
     }
     return false ;
   }
@@ -109,28 +166,19 @@ public class Mining extends Plan implements BuildConstants {
   
   private float oresCarried(Actor actor) {
     float total = 0 ;
-    total += actor.gear.amountOf(PETROCARBS ) ;
-    total += actor.gear.amountOf(METAL_ORE  ) ;
+    total += actor.gear.amountOf(PETROCARBS) ;
+    total += actor.gear.amountOf(METAL_ORE ) ;
     total += actor.gear.amountOf(FUEL_CORES) ;
     return total ;
   }
   
   
-  private Action nextDelivery() {
-    I.say("Scheduling ores delivery...") ;
-    return new Action(
-      actor, face.parent,
-      this, "actionDeliverOres",
-      Action.REACH_DOWN, "returning ores"
-    ) ;
-  }
-  
-  
   public boolean actionDeliverOres(Actor actor, ExcavationShaft shaft) {
-    I.say("Delivering ores to shaft...") ;
-    actor.gear.transfer(PETROCARBS , shaft) ;
-    actor.gear.transfer(METAL_ORE  , shaft) ;
+    if (verbose) I.sayAbout(actor, "Returning to mine shaft.") ;
+    actor.gear.transfer(PETROCARBS, shaft) ;
+    actor.gear.transfer(METAL_ORE , shaft) ;
     actor.gear.transfer(FUEL_CORES, shaft) ;
+    actor.goAboard(shaft, shaft.world()) ;
     return true ;
   }
   
@@ -139,7 +187,7 @@ public class Mining extends Plan implements BuildConstants {
   /**  Rendering and interface methods-
     */
   public void describeBehaviour(Description d) {
-    d.append("Mining at "+face.origin()+" ("+(int) face.workDone+"%)") ;
+    d.append("Mining "+face.origin()+" ("+(int) face.workDone+"%)") ;
   }
 }
 

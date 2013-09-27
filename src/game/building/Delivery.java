@@ -187,7 +187,7 @@ public class Delivery extends Plan implements BuildConstants {
         if (Visit.arrayIncludes(ALL_FOOD_TYPES, i.type)) foodVal += i.amount ;
       }
       if (price > actor.gear.credits()) return 0 ;
-      costVal = actor.AI.greedFor(price) * CASUAL ;
+      costVal = actor.mind.greedFor(price) * CASUAL ;
       costVal -= actor.health.hungerLevel() * CASUAL * foodVal ;
     }
     return Visit.clamp(

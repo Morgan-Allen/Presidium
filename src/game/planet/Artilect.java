@@ -112,10 +112,10 @@ public abstract class Artilect extends Actor {
   protected void addChoices(Choice choice) {
     //
     //  Patrol around your base and see off intruders.
-    if (AI.home() == null) choice.add(new Patrolling(this, this, 6)) ;
-    else choice.add(new Patrolling(this, AI.home(), 6)) ;
+    if (mind.home() == null) choice.add(new Patrolling(this, this, 6)) ;
+    else choice.add(new Patrolling(this, mind.home(), 6)) ;
     
-    for (Element e : AI.seen()) if (e instanceof Actor) {
+    for (Element e : mind.seen()) if (e instanceof Actor) {
       choice.add(new Combat(this, (Actor) e)) ;
     }
     choice.add(new Retreat(this)) ;

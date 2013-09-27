@@ -75,7 +75,7 @@ public class Suspensor extends Mobile {
     super.updateAsMobile() ;
     if (
       (! followed.inWorld()) ||
-      ! followed.AI.agenda().includes(tracked)
+      ! followed.mind.agenda().includes(tracked)
     ) {
       if (passenger != null) {
         ////I.say("Depositing passenger...") ;

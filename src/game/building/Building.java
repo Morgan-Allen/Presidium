@@ -50,7 +50,7 @@ public class Building extends Plan implements ActorConstants {
     ///I.sayAbout(built, "Considering repair of "+built+"?") ;
     final float attachment = Math.max(
       actor.base().communitySpirit(),
-      actor.AI.relation(built)
+      actor.mind.relation(built)
     ) ;
     //
     //  TODO:  Factor out the skill evaluation down below?
@@ -111,7 +111,12 @@ public class Building extends Plan implements ActorConstants {
     ) ;
     final Choice choice = new Choice(client) ;
     for (Venue near : toRepair) {
-      if (near.structure.repairLevel() == 1) continue ;
+      final boolean needsRepair =
+        near.structure.hasWear() ||
+        near.structure.burning() ||
+        near.structure.needsUpgrade() ||
+        near.structure.needsSalvage() ;
+      if (! needsRepair) continue ;
       final Building b = new Building(client, near) ;
       b.priorityMod = priorityMod ;
       choice.add(b) ;

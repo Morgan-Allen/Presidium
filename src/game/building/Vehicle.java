@@ -46,6 +46,7 @@ public abstract class Vehicle extends Mobile implements
   
   public Vehicle() {
     super() ;
+    structure.setState(Structure.STATE_INTACT, 1) ;
   }
 
   public Vehicle(Session s) throws Exception {
@@ -216,6 +217,11 @@ public abstract class Vehicle extends Mobile implements
   
   
   public void updateAsScheduled(int numUpdates) {
+    structure.updateStructure(numUpdates) ;
+    //
+    //  TODO:  Restore this once building/salvage of vehicles is complete.
+    ///if (! structure.intact()) return ;
+    
     if (pilot != null && pilot.aboard() == this) {
       pilotBonus = 1 ;
       if (! pilot.traits.test(PILOTING, SIMPLE_DC, 0.5f)) pilotBonus /= 1.5f ;
@@ -377,8 +383,8 @@ public abstract class Vehicle extends Mobile implements
   
   
   public void describeStatus(Description d) {
-    if (pilot != null && pilot.AI.rootBehaviour() != null) {
-      pilot.AI.rootBehaviour().describeBehaviour(d) ;
+    if (pilot != null && pilot.mind.rootBehaviour() != null) {
+      pilot.mind.rootBehaviour().describeBehaviour(d) ;
     }
     else if (pathing.target() != null) {
       if (pathing.target() == aboard()) d.append("Aboard ") ;
@@ -393,9 +399,9 @@ public abstract class Vehicle extends Mobile implements
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
     describeStatus(d) ;
-    d.appendList("\n\nCrew: ", crew()) ;
-    d.appendList("\n\nPassengers: ", inside()) ;
-    d.appendList("\n\nCargo: ", cargo.allItems()) ;
+    if (crew.size() > 0) d.appendList("\n\nCrew: ", crew) ;
+    if (inside.size() > 0) d.appendList("\n\nPassengers: ", inside) ;
+    if (! cargo.empty()) d.appendList("\n\nCargo: ", cargo.allItems()) ;
     d.append("\n\n") ; d.append(helpInfo(), Colour.LIGHT_GREY) ;
   }
 }

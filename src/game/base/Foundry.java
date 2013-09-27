@@ -106,9 +106,9 @@ public class Foundry extends Venue implements BuildConstants {
   
   public Service[] services() {
     return new Service[] {
-      PARTS, CIRCUITRY,
+      PARTS, CIRCUITRY, SHIELD_BELT,
       TASE_STAFF, PHASE_BLASTER, STUN_PISTOL,
-      SHIELD_BELT, PARTIAL_ARMOUR, BODY_ARMOUR, GOLEM_ARMOUR
+      PARTIAL_ARMOUR, BODY_ARMOUR, GOLEM_ARMOUR
     } ;
   }
   
@@ -129,9 +129,9 @@ public class Foundry extends Venue implements BuildConstants {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
-    stocks.translateDemands(PARTS_TO_CIRCUITRY, 1) ;
+    stocks.translateDemands(1, PARTS_TO_CIRCUITRY) ;
     stocks.incDemand(PARTS, 10, 1) ;
-    stocks.translateDemands(METALS_TO_PARTS, 1) ;
+    stocks.translateDemands(1, METALS_TO_PARTS) ;
     //
     //  Output squalor and demand power-
     float pollution = 5, powerNeed = 5 ;
@@ -141,7 +141,7 @@ public class Foundry extends Venue implements BuildConstants {
     }
     powerNeed *= (3 + structure.numUpgrades()) / 3 ;
     pollution *= 2 / (2 + structure.upgradeLevel(MOLDING_PRESS)) ;
-    world.ecology().impingePollution(pollution, this, true) ;
+    world.ecology().impingeSqualor(pollution, this, true) ;
     stocks.forceDemand(POWER, powerNeed, 0) ;
     stocks.removeItem(Item.withAmount(POWER, 0.1f * powerNeed)) ;
   }
@@ -199,7 +199,7 @@ public class Foundry extends Venue implements BuildConstants {
     }
     //
     //  And return whatever suits the actor best-
-    return choice.weightedPick(actor.AI.whimsy()) ;
+    return choice.weightedPick(actor.mind.whimsy()) ;
   }
   
   

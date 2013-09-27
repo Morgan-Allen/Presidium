@@ -19,7 +19,7 @@ TALISMAN   = new Item.Type(C, UNIQUE, "Talisman"   , 250)
 //*/
 
 //
-//  TODO:  What about cultured organs/clones?  Tensile materials?  Antimatter.
+//  TODO:  What about Tensile materials?  Antimatter?
 
 
 public interface BuildConstants extends ActorConstants {
@@ -47,13 +47,12 @@ public interface BuildConstants extends ActorConstants {
     METAL_ORE   = new Service(BC, "Metal Ore" , "ores.gif"       , FC, 15 ),
     PETROCARBS  = new Service(BC, "Petrocarbs", "carbons.gif"    , FC, 35 ),
     FUEL_CORES  = new Service(BC, "Fuel Cores", "fuel rods.gif"  , FC, 75 ),
-    //  TODO:  Include rarities.
     //
     //  Building materials-
     PARTS       = new Service(BC, "Parts"     , "parts.gif"      , FC, 50 ),
     PLASTICS    = new Service(BC, "Plastics"  , "plastics.gif"   , FC, 75 ),
     CIRCUITRY   = new Service(BC, "Circuitry" , "inscription.gif", FC, 140),
-    DECOR       = new Service(BC, "Decor"     , "pressfeed.gif"  , FC, 300),
+    DECOR       = new Service(BC, "Decor"     , "decor.gif"      , FC, 300),
     //
     //  Medical supplies-
     STIM_KITS   = new Service(BC, "Stim Kit"  , "stimkit.gif"    , FC, 40 ),
@@ -65,25 +64,25 @@ public interface BuildConstants extends ActorConstants {
   
   final public static Service
     SAMPLES  = new Service(BC, "Samples", "crates_big.gif", FC, -1),
-    CREDITS  = new Service(BC, "Credits", null            , FP, -1) ;
-  
-  final public static Service
+    CREDITS  = new Service(BC, "Credits", null            , FP, -1),
+    
     TROPHIES    = new Service(BC, FORM_UNIQUE, "Trophy"     , 100 ),
     RARITIES    = new Service(BC, FORM_UNIQUE, "Rarity"     , 100 ),
     
-    GENE_SEED   = new Service(BC, "Gene Seed", "gene_seed.gif", FU, 200 ),
-    GHOSTLINE   = new Service(BC, FORM_UNIQUE, "Ghostline"  , 200 ),
-    PRESSFEED   = new Service(BC, FORM_UNIQUE, "Pressfeed"  , 200 ),
+    GENE_SEED   = new Service(BC, "Gene Seed" , "gene_seed.gif" , FU, 200 ),
+    REPLICANTS  = new Service(BC, "Replicants", "replicant.gif" , FU, 200 ),
+    //GHOSTLINE   = new Service(BC, FORM_UNIQUE, "Ghostline"  , 200 ),
+    PRESSFEED   = new Service(BC, "Pressfeed", "pressfeed.gif", FU, 200 ),
     
     ATOMICS     = new Service(BC, FORM_UNIQUE, "Atomic"   , 1000),
     
     ALL_UNIQUE_ITEMS[] = Service.typesSoFar() ;
   
   final public static Service
-    WATER        = new Service(BC, "Water"       , "water.png"    , FP, 0),
-    LIFE_SUPPORT = new Service(BC, "Life Support", "life_S.png"   , FP, 0),
-    POWER        = new Service(BC, "Power"       , "power.png"    , FP, 0),
-    DATALINKS    = new Service(BC, "Datalinks"   , "datalinks.png", FP, 0),
+    WATER        = new Service(BC, "Water"       , "water.png"    , FP, 10),
+    LIFE_SUPPORT = new Service(BC, "Life Support", "life_S.png"   , FP, 10),
+    POWER        = new Service(BC, "Power"       , "power.png"    , FP, 10),
+    DATALINKS    = new Service(BC, "Datalinks"   , "datalinks.png", FP, 10),
     
     ALL_PROVISIONS[] = Service.typesSoFar() ;
   
@@ -258,7 +257,7 @@ public interface BuildConstants extends ActorConstants {
     ),
     
     CARBS_TO_PLASTICS = new Conversion(
-      2, CARBS, TO, 1, PLASTICS,
+      5, CARBS, TO, 1, PLASTICS,
       Fabricator.class,
       ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_MEDIA
     ),
@@ -293,7 +292,7 @@ public interface BuildConstants extends ActorConstants {
     
     //
     //  Culture Vats conversions-
-    POWER_TO_STARCHES = new Conversion(
+    POWER_TO_CARBS = new Conversion(
       1, POWER, TO, 1, CARBS,
       CultureVats.class,
       SIMPLE_DC, CHEMISTRY

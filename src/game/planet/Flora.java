@@ -86,7 +86,7 @@ public class Flora extends Element implements TileConstants {
       final Flora f = (Flora) t.owner() ;
       if (Rand.num() < (growChance * 4 * GROWTH_PER_UPDATE)) {
         f.incGrowth(1, world, false) ;
-        ecology.impingeFertility(f, true) ;
+        ecology.impingeBiomass(f, f.growth, true) ;
       }
     }
     else if ((! t.blocked()) && Rand.num() < growChance) {
@@ -103,12 +103,12 @@ public class Flora extends Element implements TileConstants {
           stage = Visit.clamp(stage, 0, MAX_GROWTH - 0.5f) ;
           f.incGrowth(stage, world, true) ;
           f.setAsEstablished(true) ;
-          ecology.impingeFertility(f, false) ;
+          ecology.impingeBiomass(f, f.growth, false) ;
         }
         else if (Rand.num() < GROWTH_PER_UPDATE) {
           f.enterWorldAt(t.x, t.y, world) ;
           f.incGrowth(1, world, false) ;
-          ecology.impingeFertility(f, true) ;
+          ecology.impingeBiomass(f, f.growth, true) ;
         }
       }
     }

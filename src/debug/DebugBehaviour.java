@@ -205,17 +205,17 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     for (int n = 10 ; n-- > 0 ;) {
       final Human match = new Human(Background.CONSORT, base) ;
       final float rating =
-        knight.AI.attraction(match) +
-        (match.AI.attraction(knight) / 2) ;
+        knight.mind.attraction(match) +
+        (match.mind.attraction(knight) / 2) ;
       if (rating > bestRating) { spouse = match ; bestRating = rating ; }
     }
     
-    knight.AI.setHomeVenue(bastion) ;
-    spouse.AI.setHomeVenue(bastion) ;
+    knight.mind.setHomeVenue(bastion) ;
+    spouse.mind.setHomeVenue(bastion) ;
     final int initTime = 0 - Rand.index(100) ;
     final float relation = bestRating * Rand.avgNums(2) ;
-    knight.AI.setRelation(spouse, relation, initTime) ;
-    spouse.AI.setRelation(knight, relation, initTime) ;
+    knight.mind.setRelation(spouse, relation, initTime) ;
+    spouse.mind.setRelation(knight, relation, initTime) ;
     
     base.assignRuler(knight) ;
     establishVenue(bastion, 9, 9, true, knight, spouse) ;
@@ -319,7 +319,7 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
     }
     final Tile e = world.tileAt(v) ;
     for (Actor a : employed) {
-      a.AI.setEmployer(v) ;
+      a.mind.setEmployer(v) ;
       if (! a.inWorld()) {
         a.enterWorldAt(e.x, e.y, world) ;
         a.goAboard(v, world) ;

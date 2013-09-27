@@ -159,7 +159,7 @@ public class Action implements Behaviour, Model.AnimNames {
   public void abortBehaviour() {
     progress = -1 ;
     inRange = -1 ;
-    actor.AI.cancelBehaviour(this) ;
+    actor.mind.cancelBehaviour(this) ;
   }
   
   

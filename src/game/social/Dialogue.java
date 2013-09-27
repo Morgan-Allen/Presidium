@@ -110,7 +110,7 @@ public class Dialogue extends Plan implements ActorConstants {
     if (actor.species() != Species.HUMAN || other.species() != Species.HUMAN) {
       return false ;
     }
-    final Behaviour root = other.AI.rootBehaviour() ;
+    final Behaviour root = other.mind.rootBehaviour() ;
     if (root instanceof Dialogue) {
       final Dialogue OD = (Dialogue) root ;
       return OD.other == actor ;
@@ -133,9 +133,9 @@ public class Dialogue extends Plan implements ActorConstants {
     if (stage == STAGE_DONE || ! canTalk(other, actor)) return 0 ;
     
     final float
-      relation   = actor.AI.relation(other),
-      attraction = actor.AI.attraction(other),
-      novelty    = actor.AI.novelty(other) ;
+      relation   = actor.mind.relation(other),
+      attraction = actor.mind.attraction(other),
+      novelty    = actor.mind.novelty(other) ;
     
     float appeal = 0 ;
     appeal += relation ;
@@ -152,7 +152,7 @@ public class Dialogue extends Plan implements ActorConstants {
   private void finishDialogue() {
     ///actor.chat.addPhrase(Wording.VOICE_GOODBYE, true) ;
     this.stage = STAGE_DONE ;
-    final Behaviour root = other.AI.rootBehaviour() ;
+    final Behaviour root = other.mind.rootBehaviour() ;
     if (root instanceof Dialogue) {
       final Dialogue d = ((Dialogue) root) ;
       if (d.other == actor && d.stage != STAGE_DONE) d.finishDialogue() ;
@@ -201,7 +201,7 @@ public class Dialogue extends Plan implements ActorConstants {
       else forOther.location = location ;
       
       forOther.stage = this.stage = STAGE_TALKING ;
-      other.AI.assignBehaviour(forOther) ;
+      other.mind.assignBehaviour(forOther) ;
       return true ;
     }
     else {
@@ -232,7 +232,7 @@ public class Dialogue extends Plan implements ActorConstants {
     //
     //  Try factoring this in a bit more thoroughly.
     final float SE = suasionEffect(actor, other) ;
-    other.AI.incRelation(actor, SE) ;
+    other.mind.incRelation(actor, SE) ;
     //  TODO:  Figure out morale effects!
     //actor.health.adjustMorale(SE / World.DEFAULT_DAY_LENGTH) ;
     //
@@ -250,7 +250,7 @@ public class Dialogue extends Plan implements ActorConstants {
   /**  Various helper methods and in-detail behaviour implementations-
     */
   private float suasionEffect(Actor actor, Actor other) {
-    final float attLevel = other.AI.relation(actor) ;
+    final float attLevel = other.mind.relation(actor) ;
     float effect = 0 ;
     if (actor.traits.test(SUASION, ROUTINE_DC, 1)) effect += 5 ;
     else effect -= 5 ;
@@ -275,8 +275,8 @@ public class Dialogue extends Plan implements ActorConstants {
       effect = 0.5f - (Math.abs(levelA - levelO) / 1.5f) ;
     final String desc = actor.traits.levelDesc(comp) ;
     
-    other.AI.incRelation(actor, effect) ;
-    actor.AI.incRelation(other, effect) ;
+    other.mind.incRelation(actor, effect) ;
+    actor.mind.incRelation(other, effect) ;
     
     utters(actor, "It's important to be "+desc+".") ;
     if (effect > 0) utters(other, "Absolutely.") ;
@@ -289,13 +289,13 @@ public class Dialogue extends Plan implements ActorConstants {
     //
     //  Pick an acquaintance, see if it's mutual, and if so compare attitudes
     //  on the subject.  TODO:  Include memories of recent activities?
-    final Relation r = (Relation) Rand.pickFrom(actor.AI.relations()) ;
+    final Relation r = (Relation) Rand.pickFrom(actor.mind.relations()) ;
     if (r == null) {
       utters(actor, "Nice weather, huh?") ;
       utters(other, "Uh-huh.") ;
       return ;
     }
-    final float attA = r.value(), attO = other.AI.relation(actor) ;
+    final float attA = r.value(), attO = other.mind.relation(actor) ;
     if (r.subject == other) {
       if (attA > 0) utters(actor, "I think we get along.") ;
       else utters(actor, "We don't get along.") ;
@@ -309,8 +309,8 @@ public class Dialogue extends Plan implements ActorConstants {
     else utters(other, "Really?") ;
     
     final float effect = 0.2f * (agrees ? 1 : -1) ;
-    other.AI.incRelation(actor, effect) ;
-    actor.AI.incRelation(other, effect) ;
+    other.mind.incRelation(actor, effect) ;
+    actor.mind.incRelation(other, effect) ;
   }
   
   
@@ -336,8 +336,8 @@ public class Dialogue extends Plan implements ActorConstants {
     if (other.traits.test(tested, level * Rand.num(), 0.5f)) effect += 5 ;
     else effect -= 5 ;
     effect /= 25 ;
-    other.AI.incRelation(actor, effect) ;
-    actor.AI.incRelation(other, effect) ;
+    other.mind.incRelation(actor, effect) ;
+    actor.mind.incRelation(other, effect) ;
     
     if (effect > 0) utters(actor, "Yes, exactly!") ;
     if (effect == 0) utters(actor, "Close. Try again.") ;

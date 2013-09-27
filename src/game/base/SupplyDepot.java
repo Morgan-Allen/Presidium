@@ -183,7 +183,7 @@ public class SupplyDepot extends Venue implements
     if (c != null && personnel.assignedTo(c) < 1) choice.add(c) ;
     
     choice.add(new Supervision(actor, this)) ;
-    return choice.weightedPick(actor.AI.whimsy()) ;
+    return choice.weightedPick(actor.mind.whimsy()) ;
   }
   
   

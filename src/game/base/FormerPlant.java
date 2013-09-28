@@ -164,7 +164,7 @@ public class FormerPlant extends Venue implements BuildConstants {
   public boolean actionSoilSample(Actor actor, Tile spot) {
     final boolean success = actor.traits.test(GEOPHYSICS, MODERATE_DC, 1) ;
     for (int n = success ? (1 + Rand.index(3)) : 1 ; n-- > 0 ;) {
-      final Item sample = Item.withType(SAMPLES, spot) ;
+      final Item sample = Item.withReference(SAMPLES, spot) ;
       actor.gear.addItem(sample) ;
       return true ;
     }

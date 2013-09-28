@@ -251,7 +251,7 @@ public class MipMap implements TileConstants {
       totalTaken += (System.currentTimeMillis() - init) ;
       I.say("Average value: "+(sumVals / (size * size))) ;
       try { Thread.sleep(frameTime) ; } catch (Exception e) {}
-      I.present(greyVals, "mipmap blend", shownSize, shownSize) ;
+      I.present(greyVals, "mipmap blend", shownSize, shownSize, 0, 1) ;
     }
     I.say("Average time to process (in ms): "+(totalTaken / numRuns)) ;
   }

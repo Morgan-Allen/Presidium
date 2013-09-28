@@ -23,7 +23,7 @@ public class DustCrawler extends Vehicle implements
     FILE_DIR = "media/Vehicles/",
     XML_PATH = FILE_DIR+"VehicleModels.xml" ;
   final static Model
-    BARGE_MODEL = MS3DModel.loadMS3D(
+    MODEL = MS3DModel.loadMS3D(
       DustCrawler.class, FILE_DIR, "DustCrawler.ms3d", 1.0f
     ).loadXMLInfo(XML_PATH, "DustCrawler") ;
   
@@ -31,12 +31,13 @@ public class DustCrawler extends Vehicle implements
   
   public DustCrawler() {
     super() ;
-    attachSprite(BARGE_MODEL.makeSprite()) ;
+    attachModel(MODEL) ;
   }
   
   
   public DustCrawler(Session s) throws Exception {
     super(s) ;
+    toggleSoilDisplay() ;
   }
   
   
@@ -76,11 +77,10 @@ public class DustCrawler extends Vehicle implements
         }
       }
       else {
-        cargo.addItem(Item.withType(SAMPLES, origin())) ;
+        cargo.addItem(Item.withReference(SAMPLES, origin())) ;
         pathing.updateTarget(plant) ;
       }
-      final JointSprite sprite = (JointSprite) sprite() ;
-      sprite.toggleGroup("soil bed", cargo.amountOf(SAMPLES) > 0) ;
+      toggleSoilDisplay() ;
     }
   }
   
@@ -99,6 +99,12 @@ public class DustCrawler extends Vehicle implements
   
   /**  Rendering and interface methods-
     */
+  private void toggleSoilDisplay() {
+    final JointSprite sprite = (JointSprite) sprite() ;
+    sprite.toggleGroup("soil bed", cargo.amountOf(SAMPLES) > 0) ;
+  }
+  
+  
   public String fullName() {
     return "Dust Crawler " ;
   }

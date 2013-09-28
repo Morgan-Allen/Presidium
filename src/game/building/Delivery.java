@@ -48,9 +48,18 @@ public class Delivery extends Plan implements BuildConstants {
   public Vehicle driven ;
   
   
+  public Delivery(Service type, Owner origin, Owner destination) {
+    this(origin.inventory().matches(type), origin, destination) ;
+  }
+  
   
   public Delivery(Item item, Owner origin, Owner destination) {
     this(new Item[] { item }, origin, destination) ;
+  }
+  
+  
+  public Delivery(Batch <Item> items, Owner origin, Owner destination) {
+    this(items.toArray(Item.class), origin, destination) ;
   }
   
   
@@ -59,6 +68,9 @@ public class Delivery extends Plan implements BuildConstants {
     this.origin = origin ;
     this.destination = destination ;
     this.items = items ;
+    for (Item n : items) {
+      if (n.quality == -1) I.complain(n+" HAD NO QUALITY") ;
+    }
     this.passenger = null ;
   }
   
@@ -75,7 +87,10 @@ public class Delivery extends Plan implements BuildConstants {
   public Delivery(Session s) throws Exception {
     super(s) ;
     items = new Item[s.loadInt()] ;
-    for (int n = 0 ; n < items.length ;) items[n++] = Item.loadFrom(s) ;
+    for (int n = 0 ; n < items.length ; n++) {
+      items[n] = Item.loadFrom(s) ;
+      if (items[n].quality == -1) items[n] = Item.withQuality(items[n], 0) ;
+    }
     passenger = (Actor) s.loadObject() ;
     origin = (Owner) s.loadObject() ;
     destination = (Owner) s.loadObject() ;
@@ -116,10 +131,8 @@ public class Delivery extends Plan implements BuildConstants {
   
   /**  Assessing targets and priorities-
     */
-  private boolean isShopping() {
-    return
-      (destination instanceof Venue) &&
-      ((Venue) destination).privateProperty() ;
+  private boolean isShopping(Actor actor) {
+    return destination == actor.mind.home() ;
   }
   
   
@@ -134,18 +147,21 @@ public class Delivery extends Plan implements BuildConstants {
   
   
   private Item[] available(Actor actor) {
+    ///I.sayAbout(actor, "Getting available... "+items.length+" "+stage) ;
     final Batch <Item> available = new Batch <Item> () ;
     if (actor == null) {
       return items ;
     }
     
-    final boolean shopping = isShopping() ;
+    final boolean shopping = isShopping(actor) ;
     final Owner carrier = driven == null ? actor : driven ;
     
     if (stage <= STAGE_PICKUP) {
       float sumPrice = 0 ;
       for (Item i : items) {
+        if (i.quality == -1) I.say(i+" has no quality!") ;
         final float amount = origin.inventory().amountOf(i) ;
+        ///I.sayAbout(actor, "Amount of "+i+" is "+amount) ;
         if (amount <= 0) continue ;
         if (shopping) {
           sumPrice += purchasePrice(i, actor, origin) ;
@@ -156,8 +172,10 @@ public class Delivery extends Plan implements BuildConstants {
     }
     else {
       for (Item i : items) {
+        if (i.quality == -1) I.say(i+" has no quality!") ;
         if (! carrier.inventory().hasItem(i)) {
           final float amount = carrier.inventory().amountOf(i) ;
+          ///I.sayAbout(actor, "Amount of "+i+" is "+amount) ;
           if (amount > 0) available.add(Item.withAmount(i, amount)) ;
           continue ;
         }
@@ -178,8 +196,8 @@ public class Delivery extends Plan implements BuildConstants {
       Plan.rangePenalty(origin, destination)
     ) / (driven == null ? 2f : 10f) ;
 
-    float costVal = 0 ;
-    if (isShopping() && stage <= STAGE_PICKUP) {
+    float offset = rangePenalty ;
+    if (isShopping(actor) && stage <= STAGE_PICKUP) {
       int price = 0 ;
       float foodVal = 0 ;
       for (Item i : available) {
@@ -187,11 +205,14 @@ public class Delivery extends Plan implements BuildConstants {
         if (Visit.arrayIncludes(ALL_FOOD_TYPES, i.type)) foodVal += i.amount ;
       }
       if (price > actor.gear.credits()) return 0 ;
-      costVal = actor.mind.greedFor(price) * CASUAL ;
-      costVal -= actor.health.hungerLevel() * CASUAL * foodVal ;
+      offset += actor.mind.greedFor(price) * CASUAL ;
+      offset -= actor.health.hungerLevel() * CASUAL * foodVal ;
+    }
+    else for (Item i : available) {
+      offset -= i.amount / 5f ;
     }
     return Visit.clamp(
-      ROUTINE + priorityMod - (costVal + rangePenalty), 0, URGENT
+      ROUTINE + priorityMod - offset, 0, URGENT
     ) ;
   }
   
@@ -208,6 +229,7 @@ public class Delivery extends Plan implements BuildConstants {
     if (passenger != null) return true ;
     if (stage < STAGE_RETURN && available(actor).length == 0) {
       if (driven != null) { stage = STAGE_RETURN ; return true ; }
+      ///I.say("Nothing available!") ;
       return false ;
     }
     return true ;
@@ -289,8 +311,9 @@ public class Delivery extends Plan implements BuildConstants {
       totalPrice += TA * purchasePrice(i, actor, origin) / i.amount ;
       sumItems += TA ;
     }
+    ///I.say(actor+" Sum of items is: "+sumItems) ;
     origin.inventory().incCredits(totalPrice) ;
-    if (isShopping()) actor.gear.incCredits(0 - totalPrice) ;
+    if (isShopping(actor)) actor.gear.incCredits(0 - totalPrice) ;
     else destination.inventory().incCredits(0 - totalPrice) ;
     return sumItems ;
   }

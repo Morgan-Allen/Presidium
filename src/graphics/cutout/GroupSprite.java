@@ -70,9 +70,11 @@ public class GroupSprite extends Sprite {
     offsets.addLast(new Vec3D(xoff, yoff, zoff)) ;
   }
   
+  
   public void attach(Model model, float xoff, float yoff, float zoff) {
     attach(model.makeSprite(), xoff, yoff, zoff) ;
   }
+  
   
   public int indexOf(Sprite sprite) {
     if (sprite == null) return -1 ;
@@ -83,14 +85,24 @@ public class GroupSprite extends Sprite {
     return -1 ;
   }
   
+  
   public Sprite atIndex(int n) {
     if (n == -1) return null ;
     return modules.atIndex(n) ;
   }
   
+  
   public void clearAllAttachments() {
     modules.clear() ;
     offsets.clear() ;
+  }
+  
+  
+  public void detach(Sprite sprite) {
+    final int index = modules.indexOf(sprite) ;
+    if (index == -1) return ;
+    modules.removeIndex(index) ;
+    offsets.removeIndex(index) ;
   }
   
   

@@ -160,71 +160,17 @@ public class BotanicalStation extends Venue implements BuildConstants {
     choice.add(f) ;
     //
     //  And lower-priority tending and upkeep also gets an appearance-
-    choice.add(researchAction(actor)) ;
-    for (Plantation p : allotments) choice.add(new Farming(actor, p)) ;
-    return choice.weightedPick(0) ;
-  }
-  
-  
-  protected Action researchAction(Actor actor) {
-    if (actor.vocation() != Background.ECOLOGIST) return null ;
-    if (stocks.amountOf(GENE_SEED) <= 0) return null ;
-    Plantation needs = null ;
     for (Plantation p : allotments) if (p.type == Plantation.TYPE_NURSERY) {
-      if (p.stocks.amountOf(GENE_SEED) < 0.5f) needs = p ;
-    }
-    if (needs == null) return null ;
-    if (actor.gear.amountOf(GENE_SEED) > 0.5f) {
-      final Action deliver = new Action(
-        actor, needs,
-        this, "actionDeliverSeed",
-        Action.STAND, "Delivering seed"
-      ) ;
-      return deliver ;
-    }
-    else {
-      final Action prepare = new Action(
-        actor, this,
-        this, "actionPrepareSeed",
-        Action.STAND, "Preparing seed"
-      ) ;
-      return prepare ;
-    }
-  }
-  
-  
-  public boolean actionPrepareSeed(Actor actor, BotanicalStation lab) {
-    //
-    //  Calculate odds of success based on the skill of the researcher-
-    final float successChance = 0.1f ;
-    float skillRating = 5 ;
-    if (! actor.traits.test(GENE_CULTURE, ROUTINE_DC, 5.0f)) skillRating /= 2 ;
-    if (! actor.traits.test(CULTIVATION, MODERATE_DC, 5.0f)) skillRating /= 2 ;
-    if (! lab.stocks.hasEnough(POWER)) skillRating /= 2 ;
-    //
-    //  Use the seed in the lab to create seed for the different crop types.
-    if (Rand.num() < successChance * skillRating) {
-      for (int var : Plantation.ALL_VARIETIES) {
-        float quality = skillRating * Rand.avgNums(2) ;
-        final Service yield = Plantation.speciesYield(var) ;
-        quality += structure.upgradeBonus(yield) ;
-        
-        Item seed = Item.withType(GENE_SEED, new Crop(var)) ;
-        seed = Item.withQuality(seed, (int) Visit.clamp(quality, 0, 5)) ;
-        seed = Item.withAmount(seed, 1) ;
-        if (var == Plantation.VAR_SAPLINGS) stocks.addItem(seed) ;
-        else actor.gear.addItem(seed) ;
+      for (Species s : Plantation.ALL_VARIETIES) {
+        if (actor.vocation() == Background.ECOLOGIST) {
+          choice.add(new SeedTailoring(actor, p, s)) ;
+        }
       }
-      stocks.bumpItem(GENE_SEED, -0.2f) ;
-      return true ;
+      //
+      //  TODO:  Do this for every crop type.
+      choice.add(new Farming(actor, p)) ;
     }
-    return false ;
-  }
-  
-  
-  public boolean actionDeliverSeed(Actor actor, Plantation nursery) {
-    actor.gear.transfer(GENE_SEED, nursery) ;
-    return true ;
+    return choice.weightedPick(0) ;
   }
   
   
@@ -232,10 +178,13 @@ public class BotanicalStation extends Venue implements BuildConstants {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
     //
-    //  Increment demand for gene seed-
+    //  Increment demand for gene seed, and decay current stocks-
     stocks.incDemand(GENE_SEED, 5, 1) ;
     final float decay = 0.1f / World.STANDARD_DAY_LENGTH ;
-    for (Item seed : stocks.matches(GENE_SEED)) if (seed.refers != null) {
+    for (Item seed : stocks.matches(GENE_SEED)) {
+      stocks.removeItem(Item.withAmount(seed, decay)) ;
+    }
+    for (Item seed : stocks.matches(SAMPLES)) {
       stocks.removeItem(Item.withAmount(seed, decay)) ;
     }
     //
@@ -300,20 +249,21 @@ public class BotanicalStation extends Venue implements BuildConstants {
   }
   
   
-  protected float growBonus(Tile t, int varID, boolean natural) {
+  protected float growBonus(Tile t, Species s, boolean natural) {
     final float pollution = t.world.ecology().squalorRating(t) / 10f ;
     if (pollution > 0) return 0 ;
     final float hB = 1 - pollution ;
     float bonus = 1 ;
-    if (varID == 4) {
+    if (s == Species.HIVE_CELLS) {
       if (natural) return hB ;
       return (structure.upgradeBonus(PROTEIN) + 2) * 0.1f * bonus * hB ;
     }
-    //
-    //  Crops are, in sequence, rice, wheat, lily-things, tubers/veg and grubs.
+    
     bonus = Math.max(0, (t.habitat().moisture() - 5) / 5f) ;
-    if (varID == 1 || varID == 3) bonus = (1 - bonus) / 2f ;  //Dryland crops.
-    if (varID < 2) {
+    if (s == Species.DURWHEAT || s == Species.BROADFRUITS) {
+      bonus = (1 - bonus) / 2f ;  //Dryland crops.
+    }
+    if (s == Species.DURWHEAT || s == Species.ONI_RICE) {
       if (natural) return 1.0f * bonus * hB ;
       return (structure.upgradeBonus(CARBS) + 2) * 1.0f * bonus * hB ;
     }

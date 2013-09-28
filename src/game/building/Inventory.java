@@ -9,6 +9,7 @@ package src.game.building ;
 import src.game.common.* ;
 import src.util.* ;
 import src.user.* ;
+import src.game.common.Session.Saveable ;
 
 
 
@@ -52,11 +53,22 @@ public class Inventory {
   public void loadState(Session s) throws Exception {
     for (int i = s.loadInt() ; i-- > 0 ;) {
       final Item item = Item.loadFrom(s) ;
+      /*
+      if (item.amount <= 0) continue ;
+      if (item.isMatch()) {
+        if (item.quality == -1) {
+          final Item replaces = Item.withQuality(item, 0) ;
+          itemTable.put(replaces, replaces) ;
+        }
+        continue ;
+      }
+      //*/
       itemTable.put(item, item) ;
     }
     credits = s.loadFloat() ;
     taxed   = s.loadFloat() ;
   }
+  
   
   
   /**  Writes inventory information to the given text field.
@@ -145,6 +157,10 @@ public class Inventory {
     */
   public boolean addItem(Item item) {
     if (item.isMatch() || item.amount <= 0) {
+      if (item.isMatch()) I.complain(
+        "ADDING ILLEGAL ITEM: "+item+" amount/quality:"+
+        item.amount+"/"+item.quality
+      ) ;
       I.sayAbout(owner, "Adding null item... "+item.amount) ;
       new Exception().printStackTrace() ;
       return false ;
@@ -152,8 +168,15 @@ public class Inventory {
     //
     //  Check to see if a similar item already exists.
     final Item oldItem = itemTable.get(item) ;
-    float amount = item.amount ;
-    if (oldItem != null) amount += oldItem.amount ;
+    float amount = item.amount ;//, quality = item.quality ;
+    
+    if (oldItem != null) {
+      //I.say("Old item was "+oldItem) ;
+      //quality = (quality * amount) + (oldItem.amount * oldItem.quality) ;
+      amount += oldItem.amount ;
+      //quality /= amount ;
+    }
+    
     final Item entered = Item.withAmount(item, amount) ;
     itemTable.put(entered, entered) ;
     if (owner != null) owner.afterTransaction(item, item.amount) ;
@@ -181,6 +204,10 @@ public class Inventory {
     */
   public boolean removeItem(Item item) {
     if (item.isMatch() || item.amount <= 0) {
+      if (item.isMatch()) I.complain(
+        "REMOVING ILLEGAL ITEM: "+item+" amount/quality:"+
+        item.amount+"/"+item.quality
+      ) ;
       I.sayAbout(owner, "Adding null item... "+item.amount) ;
       new Exception().printStackTrace() ;
       return false ;
@@ -199,6 +226,11 @@ public class Inventory {
     itemTable.put(entered, entered) ;
     if (owner != null) owner.afterTransaction(item, item.amount - newAmount) ;
     return true ;
+  }
+  
+  
+  public void removeAllMatches(Service type) {
+    for (Item match : matches(type)) itemTable.remove(match) ;
   }
   
 
@@ -225,10 +257,32 @@ public class Inventory {
   
   /**  Finding matches and quantities-
     */
+  public Item bestSample(
+    Service type, Session.Saveable refers, float maxAmount
+  ) {
+    return bestSample(Item.asMatch(type, refers), maxAmount) ;
+  }
+  
+  
+  public Item bestSample(Item match, float maxAmount) {
+    final Batch <Item> matches = matches(match) ;
+    Item best = null ;
+    float bestQuality = -1 ;
+    for (Item i : matches) {
+      if (i.quality > bestQuality) { bestQuality = i.quality ; best = i ; }
+    }
+    if (best == null) return null ;
+    if (maxAmount > 0 && best.amount > maxAmount) {
+      best = Item.withAmount(best, maxAmount) ;
+    }
+    return best ;
+  }
+  
+  
   public Batch <Item> matches(Item item) {
     final Batch <Item> matches = new Batch <Item> (4) ;
     for (Item found : itemTable.values()) {
-      if (item.matches(found)) matches.add(found) ;
+      if (item.matchKind(found)) matches.add(found) ;
     }
     return matches ;
   }
@@ -259,7 +313,7 @@ public class Inventory {
   
   
   public float amountOf(Service type) {
-    return amountOf(Item.withType(type)) ;
+    return amountOf(Item.asMatch(type, null)) ;
   }
   
   

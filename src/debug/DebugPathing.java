@@ -109,6 +109,7 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
     GameSettings.hireFree = true ;
     GameSettings.buildFree = true ;
     
+    /*
     final StockExchange EA = new StockExchange(base) ;
     DebugBehaviour.establishVenue(EA, 5, 5, true) ;
     EA.stocks.bumpItem(DECOR, 50) ;
@@ -116,9 +117,17 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
     final StockExchange EB = new StockExchange(base) ;
     DebugBehaviour.establishVenue(EB, 15, 5, true) ;
     EB.stocks.forceDemand(DECOR, 5000, 0) ;
+    //*/
     
     final BotanicalStation BS = new BotanicalStation(base) ;
     DebugBehaviour.establishVenue(BS, 10, 15, true) ;
+    
+    final Item
+      s = Item.withReference(SAMPLES, Species.DURWHEAT),
+      t = Item.withReference(SAMPLES, Species.DURWHEAT) ;
+    I.say("S == T? "+ (s.equals(t))+", hashes equal? "+(s.hashCode() == t.hashCode())) ;
+    BS.stocks.addItem(s) ;
+    BS.stocks.addItem(t) ;
     
     ((BaseUI) HUD).selection.pushSelection(BS, true) ;
   }

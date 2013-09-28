@@ -24,12 +24,18 @@ public class Smelter extends Venue implements BuildConstants {
   /**  Field definitions, constructors and save/load methods-
     */
   final static String IMG_DIR = "media/Buildings/artificer/" ;
-  final static Model 
+  final static Model
     DRILL_MODELS[] = ImageModel.loadModels(
       Smelter.class, 3, 3, IMG_DIR,
-      "isotopes_smelter.gif",
-      "metals_smelter.gif",
-      "carbons_smelter.gif"
+      "isotopes_smelter_dark.gif",
+      "metals_smelter_dark.gif",
+      "carbons_smelter_dark.gif"
+    ),
+    DRILL_LIGHTS_MODELS[] = ImageModel.loadModels(
+      Smelter.class, 3, 3, IMG_DIR,
+      "isotopes_smelter_lights.gif",
+      "metals_smelter_lights.gif",
+      "carbons_smelter_lights.gif"
     ),
     ALL_MOLD_MODELS[][] = ImageModel.fromTextureGrid(
       Smelter.class, Texture.loadTexture(IMG_DIR+"all_molds.png"),
@@ -38,69 +44,76 @@ public class Smelter extends Venue implements BuildConstants {
   final static int
     MOLD_COORDS[] = {
       0, 0,
-      1, 0,
-      2, 0,
-      3, 0,
-      3, 1,
-      3, 2,
+      0, 1,
+      0, 2,
+      0, 3,
+      1, 3,
+      2, 3,
       3, 3
     },
     NUM_MOLDS = MOLD_COORDS.length / 2,
     MAX_MOLD_LEVEL = 4 ;
   
   final static int
-    MOLD_COOL_TIME = 8 ;
+    MOLD_COOL_TIME = World.STANDARD_DAY_LENGTH / 10 ;
   final static Service
     MINED_TYPES[] = { FUEL_CORES, METAL_ORE, PETROCARBS } ;
   
   
   static class Mold {
-    int coolTime = -1 ;
+    float coolTime = -1 ;
     float minerals = 0 ;
   }
   
   
-  final Service mined ;
+  final ExcavationShaft parent ;
+  final Service type ;
   final int variant ;
   final Mold molds[] = new Mold[NUM_MOLDS] ;
   
   
-  public Smelter(Base belongs, int variant) {
-    super(4, 3, Venue.ENTRANCE_NORTH, belongs) ;
+  public Smelter(ExcavationShaft parent, int variant) {
+    super(4, 3, Venue.ENTRANCE_SOUTH, parent.base()) ;
+    structure.setupStats(75, 6, 150, 0, Structure.TYPE_FIXTURE) ;
+    this.parent = parent ;
     this.variant = variant ;
-    this.mined = MINED_TYPES[variant] ;
-    initSprite() ;
+    this.type = MINED_TYPES[variant] ;
     initMolds() ;
+    updateSprite() ;
   }
   
   
   public Smelter(Session s) throws Exception {
     super(s) ;
+    parent = (ExcavationShaft) s.loadObject() ;
     variant = s.loadInt() ;
-    mined = MINED_TYPES[variant] ;
+    type = MINED_TYPES[variant] ;
     initMolds() ;
     for (Mold m : molds) {
-      m.coolTime = s.loadInt() ;
+      m.coolTime = s.loadFloat() ;
       m.minerals = s.loadFloat() ;
-    }
-    initSprite() ;
-  }
-  
-  
-  public void saveState(Session s) throws Exception {
-    super.saveState(s) ;
-    s.saveInt(variant) ;
-    for (Mold m : molds) {
-      s.saveInt(m.coolTime) ;
-      s.saveFloat(m.minerals) ;
     }
   }
   
   
   private void initMolds() {
-    for (int n = NUM_MOLDS ; n-- > 0 ;) {
-      molds[n] = new Mold() ;
+    for (int n = NUM_MOLDS ; n-- > 0 ;) molds[n] = new Mold() ;
+  }
+  
+  
+  public void saveState(Session s) throws Exception {
+    super.saveState(s) ;
+    s.saveObject(parent) ;
+    s.saveInt(variant) ;
+    for (Mold m : molds) {
+      s.saveFloat(m.coolTime) ;
+      s.saveFloat(m.minerals) ;
     }
+  }
+  
+  
+  public boolean privateProperty() {
+    return true ;
   }
   
   
@@ -109,142 +122,213 @@ public class Smelter extends Venue implements BuildConstants {
     */
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact()) return ;
+    
+    boolean anyChange = false ;
     for (Mold m : molds) {
-      if (m.coolTime < 0) continue ;
-      m.coolTime = Math.min(m.coolTime + 1, MOLD_COOL_TIME) ;
+      if (m.coolTime <= 0) continue ;
+      final float inc = Rand.avgNums(2) * 2 ;
+      m.coolTime -= inc ;
+      anyChange = true ;
+      if (m.coolTime <= 0) {
+        m.coolTime = -1 ;
+        stocks.bumpItem(type, 5) ;
+      }
     }
+    if (anyChange) updateSprite() ;
   }
-
+  
+  
+  protected void fillMolds(float amount) {
+    boolean anyChange = false ;
+    for (Mold m : molds) {
+      if (m.coolTime >= 0) continue ;
+      anyChange = true ;
+      m.coolTime += Math.min(1, amount / 5) ;
+      if (m.coolTime > 0) m.coolTime = MOLD_COOL_TIME ;
+      amount -= 5 ;
+      if (amount < 0) break ;
+    }
+    if (anyChange) updateSprite() ;
+  }
+  
+  
+  protected boolean allCooled() {
+    int num = 0 ; for (Mold m : molds) {
+      if (m.coolTime <= 0) num++ ;
+    }
+    return num == molds.length ;
+  }
+  
+  
+  protected boolean hasRoom(Item toReceive) {
+    int num = 0 ; for (Mold m : molds) {
+      if (m.coolTime <= 0) num++ ;
+    }
+    return num * 5 > toReceive.amount ;
+  }
+  
 
   public Service[] services() {
-    return new Service[] { mined } ;
+    return new Service[] { type } ;
   }
   
   
   protected Background[] careers() {
-    return new Background[] { Background.EXCAVATOR } ;
+    return null ;
   }
   
-  
+
   public Behaviour jobFor(Actor actor) {
-    final Delivery d = Deliveries.nextDeliveryFor(
-      actor, this, services(), 10, world
-    ) ;
-    if (d != null) return d ;
-    
-    if (stocks.amountOf(mined) > 50) return null ;
-    
-    boolean anyEmpty = false, allFull = true ;
-    for (Mold m : molds) {
-      if (m.coolTime == -1) anyEmpty = true ;
-      if (m.coolTime < MOLD_COOL_TIME) allFull = false ;
-    }
-    
-    if (anyEmpty) {
-      return new Action(
-        actor, this,
-        this, "actionDrill",
-        Action.BUILD, "Drilling for "+mined.name
-      ) ;
-    }
-    if (allFull) {
-      return new Action(
-        actor, this,
-        this, "actionCollect",
-        Action.BUILD, "Collecting "+mined.name
-      ) ;
-    }
-    
     return null ;
   }
   
   
-  private float avgMinerals() {
-    float sum = 0, count = 0 ;
-    for (Tile t : world().tilesIn(area(), false)) {
-      sum += t.habitat().minerals() ;
-      count++ ;
+  
+  /**  Rating potential placement sites-
+    */
+  static float rateSite(Smelter s, World world) {
+    //
+    //  Ideally, you want some place that's not too close to other structures,
+    //  especially of the same type, but also close to the parent shaft, and
+    //  rich in associated minerals.
+    final int maxRange = World.DEFAULT_SECTOR_SIZE ;
+    float parentDist = Spacing.distance(s, s.parent) ;
+    float minDist = maxRange ;
+    
+    for (Object o : world.presences.matchesNear(Venue.class, s, maxRange)) {
+      final Venue v = (Venue) o ;
+      if (v == s.parent) continue ;
+      minDist = Spacing.distance(s, v) ;
+      break ;
     }
-    return sum / count ;
+    if (minDist <= s.size) return 0 ;
+    
+    float sumMinerals = 0 ;
+    final Box2D area = s.area(null).expandBy(s.size) ;
+    for (Tile under : world.tilesIn(area, true)) {
+      sumMinerals += world.terrain().mineralsAt(under, (byte) s.variant) ;
+    }
+    
+    float rating = (sumMinerals / area.area()) + 0.1f ;
+    rating *= 1 - (parentDist / maxRange) ;
+    rating *= minDist / maxRange ;
+    I.say("Rating for "+s+" is- "+rating) ;
+    return rating ;
   }
   
   
-  public boolean actionDrill(Actor actor, Smelter drilling) {
-    //I.say("Performing drill action...") ;
-    for (Mold m : molds) {
-      if (m.coolTime != -1) continue ;
-      m.coolTime = 0 ;
-      m.minerals = 1 ;
-      m.minerals += actor.traits.test(GEOPHYSICS, 5, 1) ? 1 : 0 ;
-      m.minerals += actor.traits.test(HARD_LABOUR, 10, 1) ? 1 : 0 ;
-      return true ;
+  static Smelter siteNewSmelter(ExcavationShaft parent, Service mined) {
+    final World world = parent.world() ;
+    final int variant = variantFor(mined) ;
+    Smelter bestSite = null ;
+    float bestRating = 0 ;
+
+    for (int m = 10 ; m-- > 0 ;) {
+      final Tile t = Spacing.pickRandomTile(parent.origin(), 12, world) ;
+      if (t == null) continue ;
+      final Smelter site = new Smelter(parent, variant) ;
+      site.setPosition(t.x, t.y, world) ;
+      if (! site.canPlace()) continue ;
+      I.say("Getting rating at "+t) ;
+      final float rating = rateSite(site, world) ;
+      if (rating > bestRating) { bestSite = site ; bestRating = rating ; }
     }
-    return false ;
+    if (bestSite != null) {
+      final Tile o = bestSite.origin() ;
+      bestSite.doPlace(o, o) ;
+      return bestSite ;
+    }
+    return null ;
   }
   
   
-  public boolean actionCollect(Actor actor, Venue v) {
-    float collected = 0 ;
-    for (Mold m : molds) {
-      collected += m.minerals ;
-      m.coolTime = -1 ;
-      m.minerals = 0 ;
-    }
-    collected *= (avgMinerals() / NUM_MOLDS) ;
-    stocks.bumpItem(mined, collected) ;
-    return true ;
+  static Smelter cullWorst(List <Smelter> shafts, ExcavationShaft parent) {
+    final World world = parent.world() ;
+    final Visit <Smelter> picks = new Visit <Smelter> () {
+      public float rate(Smelter s) { return 0 - rateSite(s, world) ; }
+    } ;
+    return picks.pickBest(shafts) ;
   }
+  
+  
+  static int variantFor(Service mined) {
+    return Visit.indexOf(mined, MINED_TYPES) ;
+  }
+  
+  
   
 
 
   /**  Rendering and interface methods-
     */
-  private void initSprite() {
+  protected boolean showLights() {
+    return inside().size() > 0 || ! allCooled() ;
+  }
+  
+  
+  private void updateSprite() {
+    final boolean inWorld = inWorld() && sprite() != null ;
+    final float xo = (size - 1) / -2f, yo = (size - 1) / -2f ;
     final GroupSprite s ;
-    if (sprite() == null) s = new GroupSprite() ;
-    else s = (GroupSprite) sprite() ;
-    final float xo = -1.5f, yo = -1.5f ;
-    s.attach(DRILL_MODELS[variant], 1 + xo, 2 + xo, 0) ;
-    for (int i = 0 ; i < MOLD_COORDS.length ;) {
-      s.attach(ALL_MOLD_MODELS[variant][0],
-        MOLD_COORDS[i++] + xo,
-        MOLD_COORDS[i++] + yo,
+    if (inWorld) {
+      s = (GroupSprite) buildSprite().baseSprite() ;
+    }
+    else {
+      s = new GroupSprite() ;
+      s.attach(DRILL_MODELS[variant], 2 + xo, 1 + yo, 0) ;
+      attachSprite(s) ;
+    }
+    
+    for (int i = 0, c = 0 ; i < NUM_MOLDS ; i++) {
+      float moldLevel = molds[i].coolTime / MOLD_COOL_TIME ;
+      moldLevel *= (MAX_MOLD_LEVEL - 1) ;
+      final Model model = ALL_MOLD_MODELS[variant][(int) (moldLevel + 1)] ;
+      
+      if (inWorld) {
+        final ImageSprite oldMold = (ImageSprite) s.atIndex(i + 1) ;
+        if (oldMold != null && oldMold.model() == model) continue ;
+        final Sprite ghost = oldMold.model().makeSprite() ;
+        ghost.position.setTo(oldMold.position) ;
+        world().ephemera.addGhost(null, 1, ghost, 2.0f) ;
+        oldMold.setModel((ImageModel) model) ;
+      }
+      else s.attach(model,
+        MOLD_COORDS[c++] + xo,
+        MOLD_COORDS[c++] + yo,
       0) ;
     }
-    attachSprite(s) ;
   }
   
   
   public void renderFor(Rendering rendering, Base base) {
-    final GroupSprite s = (GroupSprite) sprite() ;
-    for (int i = 0 ; i < NUM_MOLDS ; i++) {
-      final ImageSprite module = (ImageSprite) s.atIndex(i + 1) ;
-      final int cooled = molds[i].coolTime ;
-      final Model model ;
-      if (cooled == -1) model = ALL_MOLD_MODELS[variant][0] ;
-      else {
-        float moldLevel = cooled * 1f / MOLD_COOL_TIME ;
-        moldLevel *= (MAX_MOLD_LEVEL - 1) ;
-        model = ALL_MOLD_MODELS[variant][(int) (moldLevel + 1)] ;
-      }
-      module.setModel((ImageModel) model) ;
-    }
+    //I.sayAbout(this, "showing lights? "+showLights()) ;
+    buildSprite().toggleLighting(
+      DRILL_LIGHTS_MODELS[variant], showLights(), 0.5f, -0.5f, 0
+    ) ;
     super.renderFor(rendering, base) ;
   }
   
   
+  protected Service[] goodsToShow() {
+    return new Service[0] ;
+  }
+
+
   public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/excavation_button.gif") ;
   }
   
   
-  public String fullName() { return mined.name+" Drill" ; }
+  public String fullName() {
+    return type.name+" Smelter" ;
+  }
   
   
   public String helpInfo() {
     return
-      mined.name+" Drills extract large quantities of "+mined.name+
-      " from subterranean mineral deposits.";
+      type.name+" Smelters extract larger quantities of "+type.name+
+      " from subterranean mineral deposits." ;
   }
   
   
@@ -252,19 +336,6 @@ public class Smelter extends Venue implements BuildConstants {
     return InstallTab.TYPE_ARTIFICER ;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

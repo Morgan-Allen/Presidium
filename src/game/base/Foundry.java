@@ -140,7 +140,7 @@ public class Foundry extends Venue implements BuildConstants {
       powerNeed /= 2 ;
     }
     powerNeed *= (3 + structure.numUpgrades()) / 3 ;
-    pollution *= 2 / (2 + structure.upgradeLevel(MOLDING_PRESS)) ;
+    pollution *= 2f / (2 + structure.upgradeLevel(MOLDING_PRESS)) ;
     world.ecology().impingeSqualor(pollution, this, true) ;
     stocks.forceDemand(POWER, powerNeed, 0) ;
     stocks.removeItem(Item.withAmount(POWER, 0.1f * powerNeed)) ;

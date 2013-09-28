@@ -55,9 +55,12 @@ public class Conversion implements BuildConstants {
     //  Then assign the final tallies-
     int i ;
     raw = new Item[rawB.size()] ;
-    for (i = 0 ; i < rawB.size() ; i++) raw[i] = Item.withAmount(
-      (Service) rawB.atIndex(i), (Float) rawN.atIndex(i)
-    ) ;
+    for (i = 0 ; i < rawB.size() ; i++) {
+      raw[i] = Item.withAmount(
+        (Service) rawB.atIndex(i), (Float) rawN.atIndex(i)
+      ) ;
+      //if (raw[i].quality == -1) I.complain(raw[i]+" HAS NO QUALITY!") ;
+    }
     this.out = out ;
     this.venueType = v ;
     skills = (Skill[]) skillB.toArray(Skill.class) ;
@@ -76,9 +79,10 @@ public class Conversion implements BuildConstants {
     */
   private Conversion(Session s) throws Exception {
     raw = new Item[s.loadInt()] ;
-    for (int i = 0 ; i < raw.length ; i++) raw[i] = Item.loadFrom(s) ;
+    for (int i = 0 ; i < raw.length ; i++) {
+      raw[i] = Item.loadFrom(s) ;
+    }
     out = Item.loadFrom(s) ;
-    //for (int i = 0 ; i < out.length ; i++) out[i] = Item.loadFrom(s) ;
     skills = new Skill[s.loadInt()] ;
     skillDCs = new float[skills.length] ;
     for (int i = 0 ; i < skills.length ; i++) {

@@ -15,6 +15,28 @@ public class Ecology {
     */
   final static float
     UPDATE_INC = 0.01f ;
+  final public static String SQUALOR_DESC[] = {
+    "Mild",
+    "Moderate",
+    "Serious",
+    "Terrible",
+    "Toxic"
+  } ;
+  final public static String HAZARD_DESC[] = {
+    "Secure",
+    "Minimal",
+    "Elevated",
+    "Hostile",
+    "Mortal"
+  } ;
+  final public static String AMBIENCE_DESC[] = {
+    "Fair",
+    "Good",
+    "Excellent",
+    "Beautiful",
+    "Paradise"
+  } ;
+  
   
   final World world ;
   final int SR, SS ;
@@ -41,19 +63,24 @@ public class Ecology {
     allMaps.add(squalorMap  = new float[SS][SS]) ;
     allMaps.add(preyMap     = new float[SS][SS]) ;
     allMaps.add(hunterMap   = new float[SS][SS]) ;
-    abundances = new float[Species.ALL_SPECIES.length][SS][SS] ;
+    abundances = new float[Species.ANIMAL_SPECIES.length][SS][SS] ;
     for (float map[][] : abundances) allMaps.add(map) ;
-    globalAbundance = new float[Species.ALL_SPECIES.length] ;
+    globalAbundance = new float[Species.ANIMAL_SPECIES.length] ;
   }
   
   
   public void loadState(Session s) throws Exception {
+    I.say("Loading ecology state...") ;
     growthMap.loadState(s) ;
     for (float map[][] : allMaps) for (Coord c : Visit.grid(0, 0, SS, SS, 1)) {
       map[c.x][c.y] = s.loadFloat() ;
     }
-    for (Species p : Species.ALL_SPECIES) {
+    for (Species p : Species.ANIMAL_SPECIES) {
       globalAbundance[p.ID] = s.loadFloat() ;
+    }
+    
+    for (float ff[] : squalorMap) for (float f : ff) if (f != 0) {
+      I.say("Not blank: "+f) ;
     }
   }
   
@@ -63,10 +90,28 @@ public class Ecology {
     for (float map[][] : allMaps) for (Coord c : Visit.grid(0, 0, SS, SS, 1)) {
       s.saveFloat(map[c.x][c.y]) ;
     }
-    for (Species p : Species.ALL_SPECIES) {
+    for (Species p : Species.ANIMAL_SPECIES) {
       s.saveFloat(globalAbundance[p.ID]) ;
     }
   }
+  
+  
+  
+  /**  UI assistance-
+    */
+  private static String descFrom(String s[], float level) {
+    return s[Visit.clamp((int) (level * s.length), s.length)] ;
+  }
+  
+  public static String squalorDesc(float rating) {
+    if (rating <= 0) return descFrom(AMBIENCE_DESC, 0 - rating) ;
+    return descFrom(SQUALOR_DESC, rating / 2) ;
+  }
+  
+  public static String dangerDesc(float rating) {
+    return descFrom(HAZARD_DESC, rating / 10f) ;
+  }
+  
   
   
   
@@ -90,11 +135,12 @@ public class Ecology {
       }
       map[c.x][c.y] *= 1 - UPDATE_INC ;
     }
-    for (Species p : Species.ALL_SPECIES) {
+    for (Species p : Species.ANIMAL_SPECIES) {
       globalAbundance[p.ID] *= 1 - UPDATE_INC ;
     }
     globalBiomass /= (SS * SS) ;
-    ///I.say("Global fertility is: "+globalFertility) ;
+    
+    //I.present(squalorMap, "Squalor", 256, 256, -10, 10) ;
   }
   
   
@@ -119,7 +165,7 @@ public class Ecology {
   
   public void impingeSqualor(float squalorVal, Fixture f, boolean gradual) {
     final Tile centre = world.tileAt(f) ;
-    impingeSqualor(squalorVal, centre, gradual) ;
+    impingeSqualor(squalorVal * f.area().area(), centre, gradual) ;
   }
   
   
@@ -165,6 +211,16 @@ public class Ecology {
   
   public float squalorRating(Tile t) {
     return squalorAmount(t) / (SR * SR) ;
+  }
+  
+  
+  public float squalorRating(Fixture f) {
+    float sum = 0, count = 0 ;
+    for (Tile t : world.tilesIn(f.area(), true)) {
+      sum += squalorMap[t.x / SR][t.y / SR] ;
+      count++ ;
+    }
+    return sum / (count * 10) ;
   }
   
   

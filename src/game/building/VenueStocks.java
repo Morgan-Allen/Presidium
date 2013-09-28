@@ -194,14 +194,8 @@ public class VenueStocks extends Inventory implements BuildConstants {
     final Demand d = demands.get(type) ;
     if (d == null) return 0 ;
     final float amount = amountOf(type), shortage = d.demandAmount - amount ;
-    /*
-    if (type == METAL_ORE && I.talkAbout == venue) {
-      I.say("ORE SHORTAGE: "+shortage) ;
-    }
-    //*/
-
-    if (shortage < 0) return 0 ;
-    final float urgency = shortage / ((amount + 5) * (2 + d.demandTier)) ;
+    if (shortage <= 0) return 0 ;
+    final float urgency = shortage / ((amount + shortage) * (1 + d.demandTier)) ;
     return urgency ;
   }
   
@@ -222,7 +216,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
       float unitPrice = 0 ;
       for (Item raw : c.raw) {
         final float amount = amountOf(raw.type) ;
-        if (amount == 0) continue consLoop ;
+        ///if (amount == 0) continue consLoop ;
         float rawPrice = priceFor(raw.type) * raw.amount ;
         rawPrice *= 5 / (5 + amount) ;
         unitPrice += rawPrice ;
@@ -291,6 +285,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
     //  Firstly, we check to see if the output good is in demand, and if so,
     //  reset demand for the raw materials-
     final float demand = shortageOf(cons.out.type) ;
+    //I.sayAbout(venue, "Demand is: "+demand) ;
     if (demand <= 0) return ;
     float priceBump = 1 ;
     //
@@ -309,6 +304,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
   
   public void translateBest(int period, Conversion... cons) {
     final Conversion picked = bestConversion(cons) ;
+    //I.sayAbout(venue, "Best conversion: "+picked) ;
     if (picked != null) translateDemands(period, picked) ;
   }
   
@@ -392,9 +388,41 @@ public class VenueStocks extends Inventory implements BuildConstants {
     if (Float.isNaN(credits)) credits = 0 ;
     if (Float.isNaN(taxed)) taxed = 0 ;
     if (numUpdates % UPDATE_PERIOD == 0) diffuseExistingDemand() ;
+    //
+    //  Here, we clear out any expired orders or useless items.  (Consider
+    //  recycling materials or sending elswhere?)
     for (Manufacture m : specialOrders) {
+      //
+      //  TODO:  Only remove once the item is picked up or the actor loses
+      //  interest.
       if (m.finished()) specialOrders.remove(m) ;
     }
+    //
+    //  TODO:  This is going to have to be looked into in more detail.
+    /*
+    final Service services[] = venue.services() ;
+    if (numUpdates % UPDATE_PERIOD == 0) for (Item i : allItems()) {
+      if (demandFor(i.type) > 0 || i.type.form == FORM_UNIQUE) continue ;
+      boolean needed = false ;
+      if (Visit.arrayIncludes(services, i.type)) continue ;
+      for (Manufacture m : specialOrders) if (m.made().matchKind(i)) {
+        needed = true ;
+      }
+      if (i.refers instanceof Actor) {
+        if (((Actor) i.refers).mind.hasToDo(src.game.social.Commission.class)) {
+          //
+          //  TODO:  Specifically check if the actor has a commission placed
+          //  *here*.
+          needed = true ;
+        }
+      }
+      if (! needed) {
+        I.say(venue+" clearing out "+i) ;
+        I.say("Unique? "+(i.type.form == FORM_UNIQUE)) ;
+        removeItem(i) ;
+      }
+    }
+    //*/
   }
   
   

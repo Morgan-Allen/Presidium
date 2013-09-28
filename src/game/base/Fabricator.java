@@ -79,8 +79,12 @@ public class Fabricator extends Venue implements BuildConstants {
       "Substantially eases the production of all outfit types.",
       150, null, 2, null, ALL_UPGRADES
     ),
+    
+    //
+    //  TODO:  You might move these to the Sculptor Studio instead.
+    
     DESIGN_STUDIO = new Upgrade(
-      "Designs Studio",
+      "Design Studio",
       "Facilitates the design and production of custom decor and commissions "+
       "for luxury outfits.",
       300, null, 1, CUTTING_FLOOR, ALL_UPGRADES
@@ -159,8 +163,9 @@ public class Fabricator extends Venue implements BuildConstants {
   
   
   public int numOpenings(Background v) {
-    int NO = super.numOpenings(v) ;
-    if (v == Background.FABRICATOR) return NO + 5 ;
+    int nO = super.numOpenings(v) ;
+    if (v == Background.FABRICATOR) return nO + 1 ;
+    if (v == Background.AESTHETE  ) return nO + 1 ;
     return 0 ;
   }
   
@@ -174,7 +179,7 @@ public class Fabricator extends Venue implements BuildConstants {
   
   
   protected Background[] careers() {
-    return new Background[] { Background.FABRICATOR } ;
+    return new Background[] { Background.FABRICATOR, Background.AESTHETE } ;
   }
   
   

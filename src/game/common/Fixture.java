@@ -105,6 +105,14 @@ public abstract class Fixture extends Element {
     }
   }
   
+  /*
+  public void enterWorldAt(Target t, World world) {
+    final Vec3D p = t.position(null) ;
+    setPosition(p.x - (size / 2), p.y - (size / 2), world) ;
+    enterWorld() ;
+  }
+  //*/
+  
   
   public void setPosition(float x, float y, World world) {
     super.setPosition(x, y, world) ;

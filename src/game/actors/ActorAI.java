@@ -417,6 +417,11 @@ public abstract class ActorAI implements ActorConstants {
     //  If you exhaust the maximum number of iterations (which I assume *would*
     //  be enough for any reasonable use-case,) report the problem.
     I.say("  "+actor+" COULD NOT DECIDE ON NEXT STEP.") ;
+    final Behaviour root = rootBehaviour() ;
+    final Behaviour next = root.nextStepFor(actor) ;
+    I.say("Root behaviour: "+root) ;
+    I.say("Next step: "+next) ;
+    I.say("Valid/finished "+next.valid()+"/"+next.finished()) ;
     new Exception().printStackTrace() ;
     return null ;
   }

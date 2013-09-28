@@ -62,12 +62,18 @@ public class Commission extends Plan {
   /**  Assessing and locating targets-
     */
   public float priorityFor(Actor actor) {
-    if (order != null && ! order.finished()) return 0 ;
+    I.sayAbout(actor, "Getting commission priority... "+item) ;
+    final boolean done = shop.stocks.hasItem(item) ;
+    if (order != null && ! order.finished() && ! done) {
+      return 0 ;
+    }
     final float business = shop.stocks.specialOrders().size() ;
     final int price = item.price() ;
+    //I.sayAbout(actor, "Get this far... "+price) ;
     if (price > actor.gear.credits()) return 0 ;
     final float costVal = actor.mind.greedFor(price) * CASUAL ;
     float priority = 1 + ROUTINE - (costVal + business) ;
+    //I.sayAbout(actor, "Commission priority is: "+priority) ;
     return Visit.clamp(priority, 0, ROUTINE) ;
   }
   
@@ -102,7 +108,7 @@ public class Commission extends Plan {
     if (finished()) return null ;
     //
     //  TODO:  Check that someone is attending the shop.
-    if (order != null && order.finished()) {
+    if (shop.stocks.hasItem(item)) {
       final Action pickup = new Action(
         actor, shop,
         this, "actionPickupItem",

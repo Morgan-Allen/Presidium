@@ -17,7 +17,6 @@ import src.user.* ;
 import src.util.* ;
 
 
-
 //
 //  I'd like the mining process to proceed in 3 or 4 phases:
 //  *  Strip mining, on the surface, which removes outcrops and/or deforms the
@@ -32,10 +31,8 @@ import src.util.* ;
 //  they need to be brought forth.
 
 //
-//  TODO:  Have the number of smelters determined by the relevant upgrade
-//  levels, and introduce strip mining and mantle drilling.
-
-
+//  TODO:  Have the number of smelters determined by number of staff, and the
+//  type influenced by your upgrades.
 
 
 public class ExcavationShaft extends Venue implements
@@ -69,7 +66,7 @@ public class ExcavationShaft extends Venue implements
     }
   } ;
   
-  List <Smelter> smelters ;
+  List <Smelter> smelters = new List <Smelter> () ;
   //  Also, a list of areas dug, and secondary shafts sunk.
   
   
@@ -94,6 +91,7 @@ public class ExcavationShaft extends Venue implements
     firstFace = (MineFace) s.loadObject() ;
     digArea.loadFrom(s.input()) ;
     s.loadObjects(faceSorting) ;
+    s.loadObjects(smelters) ;
     
     final int gridSize = 4 + (MAX_DIG_RANGE * 2) ;
     faceGrid = new MineFace[gridSize][gridSize] ;
@@ -109,6 +107,7 @@ public class ExcavationShaft extends Venue implements
     s.saveObject(firstFace) ;
     digArea.saveTo(s.output()) ;
     s.saveObjects(faceSorting) ;
+    s.saveObjects(smelters) ;
     
     final int gridSize = 4 + (MAX_DIG_RANGE * 2) ;
     for (Coord c : Visit.grid(0, 0, gridSize, gridSize, 1)) {
@@ -141,13 +140,24 @@ public class ExcavationShaft extends Venue implements
   
   
   public void exitWorld() {
+    super.exitWorld() ;
     //
-    //  TODO:  Close all your shafts?
+    //  TODO:  Close all your shafts?  Eject occupants?
+  }
+  
+  
+  public void onDestruction() {
+    super.onDestruction() ;
+  }
+  
+  
+  public void onCompletion() {
+    super.onCompletion() ;
   }
   
   
   
-  /**  Sorting faces in order of promise.
+  /**  Methods for sorting and returning mine-faces in order of promise.
     */
   protected MineFace faceAt(Tile t) {
     if (t == null) return null ;
@@ -187,13 +197,15 @@ public class ExcavationShaft extends Venue implements
   protected void openFace(MineFace face) {
     if (verbose) I.sayAbout(this, "Opening new face from "+face.origin()) ;
     refreshSorting() ;
-    /*
-    I.say("Shafts open:") ;
-    for (MineFace f : this.faceSorting) {
-      I.say("  "+f) ;
+    
+    if (verbose && I.talkAbout == this) {
+      I.say("Shafts open:") ;
+      for (MineFace f : this.faceSorting) {
+        I.say("  "+f) ;
+      }
+      I.say("Now opening "+face) ;
     }
-    I.say("Now opening "+face) ;
-    //*/
+    
     faceSorting.delete(face) ;
     face.promise = -1 ;
     final Tile o = face.origin() ;
@@ -246,7 +258,7 @@ public class ExcavationShaft extends Venue implements
       100,
       PETROCARBS, 1, null, ALL_UPGRADES
     ),
-
+    
     METALS_SMELTING = new Upgrade(
       "Metals Smelting",
       "Allows veins of heavy metals to be detected more reliably, and "+
@@ -254,7 +266,7 @@ public class ExcavationShaft extends Venue implements
       150,
       METAL_ORE, 1, null, ALL_UPGRADES
     ),
-
+    
     ISOTOPE_CAPTURE = new Upgrade(
       "Isotope Capture",
       "Allows deposits of radiactive isotopes to be sought out more reliably, "+
@@ -310,20 +322,47 @@ public class ExcavationShaft extends Venue implements
   
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
-    
+    //
+    //  Outside deliveries get top priority-
     final Delivery d = Deliveries.nextDeliveryFor(
       actor, this, services(), 10, world
     ) ;
+    ///I.say("Next delivery is: "+d) ;
     if (d != null && personnel.assignedTo(d) < 1) return d ;
-    
+    final Choice choice = new Choice(actor) ;
+    //
+    //  Consider smelting ores-
+    for (Smelter smelter : smelters) {
+      choice.add(new Smelting(actor, smelter, this)) ;
+    }
+    choice.add(new Smelting(actor, this, this)) ;
+    //
+    //  Also consider straightforward mining-
     final Mining m = nextMiningFor(actor) ;
-    if (m != null) return m ;
-    
+    if (m != null) choice.add(m) ;
     //
     //  TODO:  Consider opening new shafts as you expand.
-    return null ;
+    return choice.weightedPick(actor.mind.whimsy()) ;
   }
   
+  
+  public boolean actionSmeltOre(Actor actor, Venue venue) {
+    ///I.say("Being called? ") ;
+    //actor.mind.cancelBehaviour(actor.mind.rootBehaviour()) ;
+    return false ;
+  }
+  
+  /*
+  protected Smelter nearestSmelter(Actor actor, Service mines) {
+    Smelter picked = null ;
+    float minDist = Float.POSITIVE_INFINITY ;
+    for (Smelter s : smelters) if (s.mined == mines && s.structure.intact()) {
+      final float dist = Spacing.distance(actor, s) ;
+      if (dist < minDist) { picked = s ; minDist = dist ; }
+    }
+    return picked ;
+  }
+  //*/
   
   protected Mining nextMiningFor(Actor actor) {
     refreshSorting() ;
@@ -347,6 +386,33 @@ public class ExcavationShaft extends Venue implements
         I.say("  "+face) ;
       }
     }
+    
+    adjustSmelters(PETROCARBS, CARBON_TITRATION) ;
+    adjustSmelters(METAL_ORE , METALS_SMELTING ) ;
+    adjustSmelters(FUEL_CORES, ISOTOPE_CAPTURE ) ;
+  }
+  
+  
+  private void adjustSmelters(Service mined, Upgrade related) {
+    final int properCount = (1 + structure.upgradeLevel(related)) / 2 ;
+    int count = 0 ;
+    for (Smelter s : smelters) {
+      if (s.destroyed()) smelters.remove(s) ;
+      else if (s.type == mined) count++ ;
+    }
+    
+    if (verbose) I.sayAbout(this,
+      "Proper number of "+mined+" smelters: "+properCount+", actual "+count
+    ) ;
+    
+    if (properCount > count) {
+      final Smelter s = Smelter.siteNewSmelter(this, mined) ;
+      if (s != null) smelters.add(s) ;
+    }
+    if (properCount < count) {
+      final Smelter s = Smelter.cullWorst(smelters, this) ;
+      if (s != null) smelters.remove(s) ;
+    }
   }
   
   
@@ -355,7 +421,7 @@ public class ExcavationShaft extends Venue implements
   /**  Rendering and interface methods-
     */
   public String fullName() {
-    return "Excavation Shaft" ;
+    return "Excavation Site" ;
   }
 
 
@@ -380,114 +446,3 @@ public class ExcavationShaft extends Venue implements
 
 
 
-
-
-/*
-  OPENING_MODELS[] = ImageModel.loadModels(
-    ExcavationShaft.class, 3, 2.5f, IMG_DIR,
-    "carbons_smelter.gif",
-    "metals_smelter.gif",
-    "isotopes_smelter.gif",
-    "sunk_shaft.gif",
-    "shaft_1.png",
-    "shaft_2.png"
-  ) ;
-  //*/
-
-/*
-private boolean
-  seekCarbons  = false,
-  seekMetals   = true ,
-  seekIsotopes = false ;
-//*/
-/*
-public void writeInformation(Description d, int categoryID, HUD UI) {
-  
-  d.append(new Description.Link("\n[Seek Carbons]") {
-    public void whenClicked() {
-      seekCarbons = ! seekCarbons ;
-      refreshPromise = true ;
-    }
-  }, seekCarbons ? Colour.GREEN : Colour.RED) ;
-  
-  d.append(new Description.Link("\n[Seek Metals]") {
-    public void whenClicked() {
-      seekMetals = ! seekMetals ;
-      refreshPromise = true ;
-    }
-  }, seekMetals ? Colour.GREEN : Colour.RED) ;
-  
-  d.append(new Description.Link("\n[Seek Isotopes]") {
-    public void whenClicked() {
-      seekIsotopes = ! seekIsotopes ;
-      refreshPromise = true ;
-    }
-  }, seekIsotopes ? Colour.GREEN : Colour.RED) ;
-  
-  d.append("\n\n") ;
-  
-  super.writeInformation(d, categoryID, UI) ;
-}
-//*/
-
-
-/*
-public Behaviour jobFor(Citizen actor) {
-  //  This will only work with a single digger, since the placement doesn't
-  //  check for overlap with unplaced shafts...
-  MineOpening toDig = null ;
-  for (MineOpening opening : openings) {
-    if (! opening.inWorld()) { toDig = opening ; break ; }
-  }
-  if (toDig == null) {
-    final MineOpening opening = placeNextShaft() ;
-    if (opening == null) return null ;
-    toDig = opening ;
-  }
-  
-  final Action digAction = new Action(
-    actor, toDig,
-    this, "actionDigShaft",
-    Model.AnimNames.BUILD, "digging new shaft"
-  ) ;
-  return digAction ;
-}
-
-
-//  PROBLEM- this is too predictable.  You need to vary placement more.
-MineOpening placeNextShaft() {
-  //
-  //  You have to find space for a new shaft.
-  final Box2D limit = new Box2D().setTo(area()).expandBy(MAX_DIG_RANGE) ;
-  final Tile o = world.tileAt(this) ;
-  final Tile initTile = Spacing.nearestOpenTile(world.tileAt(
-    o.x + (((Rand.num() * 2) - 1) * MAX_DIG_RANGE),
-    o.y + (((Rand.num() * 2) - 1) * MAX_DIG_RANGE)
-  ), this) ;
-  final MineOpening
-    partA = new MineOpening(this, OPENING_MODELS[Rand.index(3)]),
-    partB = new MineOpening(this, OPENING_MODELS[3 + Rand.index(3)]) ;
-  partA.setPosition(0, 0, world) ;
-  partB.setPosition(0, 3, world) ;
-  Fixture match[] = TileSpread.tryPlacement(
-    initTile, limit, this, partA, partB
-  ) ;
-  if (match == null) {
-    partA.setPosition(0, 0, world) ;
-    partB.setPosition(3, 0, world) ;
-    match = TileSpread.tryPlacement(
-      initTile, limit, this, partA, partB
-    ) ;
-  }
-  if (match == null) return null ;
-  for (Fixture f : match) openings.add((MineOpening) f) ;
-  return (MineOpening) match[0] ;
-}
-
-
-public boolean actionDigShaft(Actor actor, MineOpening opening) {
-  opening.clearSurrounds() ;
-  opening.enterWorld() ;
-  return true ;
-}
-//*/

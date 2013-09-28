@@ -7,6 +7,7 @@
 
 package src.game.building ;
 import src.game.common.* ;
+import src.game.planet.Ecology;
 import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.* ;
@@ -141,7 +142,7 @@ public abstract class Venue extends Fixture implements
     //
     //  Don't abut on anything of higher priority-
     for (Tile n : Spacing.perimeter(area(), world)) {
-      if (n != null && n.owner() != null && ! canTouch(n.owner())) {
+      if (n == null || (n.owner() != null && ! canTouch(n.owner()))) {
         return false ;
       }
     }
@@ -353,11 +354,14 @@ public abstract class Venue extends Fixture implements
     clearSurrounds() ;
     enterWorld() ;
     VenuePersonnel.fillVacancies(this) ;
+    
     if (GameSettings.buildFree) {
       structure.setState(Structure.STATE_INTACT , 1) ;
+      //I.say("Now placing: "+this+" in intact state") ;
     }
     else {
       structure.setState(Structure.STATE_INSTALL, 0) ;
+      //I.say("Now placing: "+this+" in install phase") ;
     }
   }
 
@@ -414,6 +418,19 @@ public abstract class Venue extends Fixture implements
     if (CUD != null) d.append("\n  "+CUD) ;
     d.append("\n  Materials Needed: "+"None") ;
     d.append("\n  Untaxed Credits: "+(int) stocks.credits()) ;
+    
+    final float squalor = world.ecology().squalorRating(this) ;
+    if (squalor > 0) {
+      final String SN = " ("+I.shorten(squalor * 10, 1)+")" ;
+      d.append("\n  Squalor:  "+Ecology.squalorDesc(squalor)+SN) ;
+    }
+    else {
+      final String AN = " ("+I.shorten(squalor * -10, 1)+")" ;
+      d.append("\n  Ambience:  "+Ecology.squalorDesc(squalor)+AN) ;
+    }
+    final float danger = base().dangerMap.valAt(world.tileAt(this)) ;
+    final String DN = " ("+I.shorten(danger, 1)+")" ;
+    d.append("\n  Danger level: "+Ecology.dangerDesc(danger)+DN) ;
     d.append("\n\n") ;
     
     if (PlayLoop.played() == base && ! privateProperty()) {
@@ -447,9 +464,29 @@ public abstract class Venue extends Fixture implements
   protected void describeStocks(Description d, HUD UI) {
     d.append("Stocks and Orders:") ;
     boolean empty = true ;
+    
+    final Sorting <Item> listing = new Sorting <Item> () {
+      public int compare(Item a, Item b) {
+        if (a.equals(b)) return 0 ;
+        if (a.type.typeID > b.type.typeID) return  1 ;
+        if (a.type.typeID < b.type.typeID) return -1 ;
+        if (a.quality > b.quality) return  1 ;
+        if (a.quality < b.quality) return -1 ;
+        if (a.refers == null || b.refers == null) return 0 ;
+        if (a.refers.hashCode() > b.refers.hashCode()) return  1 ;
+        if (a.refers.hashCode() < b.refers.hashCode()) return -1 ;
+        return 0 ;
+      }
+    } ;
+    for (Item item : stocks.allItems()) listing.add(item) ;
     for (Service type : ALL_ITEM_TYPES) {
-      if (describeStocks(type, d)) empty = false ;
+      if (stocks.amountOf(type) == 0 && stocks.demandFor(type) > 0) {
+        listing.add(Item.withAmount(type, 0)) ;
+      }
     }
+    if (listing.size() > 0) empty = false ;
+    for (Item item : listing) describeStocks(item, d) ;
+    
     for (Manufacture m : stocks.specialOrders()) {
       d.append("\n  ") ; m.describeBehaviour(d) ; empty = false ;
     }
@@ -457,8 +494,9 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  protected boolean describeStocks(Service type, Description d) {
+  protected boolean describeStocks(Item item, Description d) {
     final float needed ;
+    final Service type = item.type ;
     if (this instanceof Service.Trade) {
       final Service.Trade trade = (Service.Trade) this ;
       needed = Math.max(Math.max(
@@ -470,15 +508,14 @@ public abstract class Venue extends Fixture implements
     final float amount = stocks.amountOf(type) ;
     if (needed == 0 && amount == 0) return false ;
     
-    final String
-      aS = I.shorten(amount, 1),
-      nS = I.shorten(needed, 1) ;
+    final String nS = I.shorten(needed, 1) ;
+    d.append("\n  ") ;
+    item.describeTo(d) ;
     
-    if (Visit.arrayIncludes(services(), type)) {
+    if (Visit.arrayIncludes(services(), type) && item.refers == null) {
       final int price  = (int) Math.ceil(priceFor(type)) ;
-      d.append("\n  "+type.name+" "+aS+"/"+nS+" (Price "+price+")") ;
+      d.append(" /"+nS+" (Price "+price+")") ;
     }
-    else d.append("\n  "+type.name+" "+aS+"/"+nS) ;
     return true ;
   }
   
@@ -590,14 +627,22 @@ public abstract class Venue extends Fixture implements
   /**  Rendering methods-
     */
   protected void attachSprite(Sprite sprite) {
-    buildSprite = new BuildingSprite(sprite, size, high) ;
-    super.attachSprite(buildSprite) ;
+    if (sprite == null) super.attachSprite(null) ;
+    else {
+      buildSprite = new BuildingSprite(sprite, size, high) ;
+      super.attachSprite(buildSprite) ;
+    }
   }
   
   
   protected float fogFor(Base base) {
     if (base == this.base) return 1 ;
     return super.fogFor(base) ;
+  }
+  
+  
+  protected boolean showLights() {
+    return isManned() ;
   }
   
   

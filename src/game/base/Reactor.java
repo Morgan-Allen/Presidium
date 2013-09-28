@@ -272,7 +272,7 @@ public class Reactor extends Venue implements BuildConstants {
   /**  Rendering and interface-
     */
   public String fullName() {
-    return "Reactor" ;
+    return "Generator" ;
   }
   
   
@@ -283,9 +283,9 @@ public class Reactor extends Venue implements BuildConstants {
   
   public String helpInfo() {
     return
-      "The Reactor provides a copious supply of power to your settlement and "+
-      "is essential to manufacturing fuel rods and atomics, but can produce "+
-      "dangerous levels of pollution." ;
+      "The Generator provides a copious supply of power to your settlement "+
+      "and is essential to manufacturing atomics or antimatter, but can "+
+      "also be a dangerous liability." ;
   }
   
   
@@ -293,7 +293,6 @@ public class Reactor extends Venue implements BuildConstants {
     return UIConstants.TYPE_ARTIFICER ;
   }
 }
-
 
 
 

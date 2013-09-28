@@ -37,6 +37,10 @@ import src.util.* ;
 //  pressfeed- for citizen apartments or higher.  Inscription for guildsmen.
 
 
+//
+//  TODO:  This class needs a bit of a cleanup.  Do that now.
+
+
 
 public class Holding extends Venue implements BuildConstants {
   
@@ -195,6 +199,9 @@ public class Holding extends Venue implements BuildConstants {
         stocks.forceDemand(t, 0, 0) ;
         continue ;
       }
+      //
+      //  TODO:  STRICTLY TEMPORARY, REMOVE
+      ///if (stocks.amountOf(t) < 1) stocks.bumpItem(t, 1) ;
       stocks.forceDemand(t, foodNeed, 0) ;
     }
     int targetLevel = upgradeLevel ;

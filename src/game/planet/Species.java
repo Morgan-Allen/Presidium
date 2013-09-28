@@ -5,6 +5,7 @@
   */
 
 package src.game.planet ;
+import src.game.common.* ;
 import src.game.building.* ;
 import src.game.wild.* ;
 import src.graphics.common.* ;
@@ -17,7 +18,7 @@ import src.graphics.jointed.* ;
 //  TODO:  This class needs to include data for base speed, sight range, damage
 //  and armour, et cetera, et cetera.
 
-public abstract class Species {
+public class Species implements Session.Saveable {
   
   
   /**  Type, instance and media definitions-
@@ -48,6 +49,7 @@ public abstract class Species {
     PREDATOR,
     OMNIVORE,
     HUMANOID,
+    FLORA
   }
   
   
@@ -132,7 +134,27 @@ public abstract class Species {
       ) ; }
     },
     
-    ALL_SPECIES[] = { HUMAN, QUUD, VAREEN, MICOVORE }
+    ANIMAL_SPECIES[] = { HUMAN, QUUD, VAREEN, MICOVORE, },
+    
+    ONI_RICE    = new Species("Oni Rice"   , "", "", null, Type.FLORA),
+    DURWHEAT    = new Species("Durwheat"   , "", "", null, Type.FLORA),
+    TUBER_LILY  = new Species("Tuber Lily ", "", "", null, Type.FLORA),
+    BROADFRUITS = new Species("BroadFruits", "", "", null, Type.FLORA),
+    HIVE_CELLS  = new Species("Hive Cells" , "", "", null, Type.FLORA),
+    MUSSEL_BEDS = new Species("Mussel Beds", "", "", null, Type.FLORA),
+    PIONEERS    = new Species("Pioneers"   , "", "", null, Type.FLORA),
+    SAPLINGS    = new Species("Saplings"   , "", "", null, Type.FLORA),
+    CROP_SPECIES[] = {
+      DURWHEAT, ONI_RICE, BROADFRUITS, TUBER_LILY,
+      HIVE_CELLS, MUSSEL_BEDS, PIONEERS, SAPLINGS
+    },
+    
+    ALL_SPECIES[] = {
+      HUMAN, QUUD, VAREEN, MICOVORE,
+      
+      DURWHEAT, ONI_RICE, BROADFRUITS, TUBER_LILY,
+      HIVE_CELLS, MUSSEL_BEDS, PIONEERS, SAPLINGS,
+    }
   ;
   
   
@@ -144,7 +166,7 @@ public abstract class Species {
   final public Model model ;
   
   private static int nextID = 0 ;
-  final int ID = nextID++ ;
+  final public int ID = nextID++ ;
   
   final public Type type ;
   
@@ -155,14 +177,31 @@ public abstract class Species {
   ) {
     this.name = name ;
     this.info = info ;
-    this.portrait = Texture.loadTexture(FILE_DIR+portraitTex) ;
+    if (portraitTex == null) this.portrait = null ;
+    else this.portrait = Texture.loadTexture(FILE_DIR+portraitTex) ;
     this.model = model ;
     this.type = type ;
   }
   
   
-  public abstract Fauna newSpecimen() ;
-  public abstract Lair createLair() ;
+  public static Session.Saveable loadConstant(Session s) throws Exception {
+    return ALL_SPECIES[s.loadInt()] ;
+  }
+  
+  
+  public void saveState(Session s) throws Exception {
+    s.saveInt(ID) ;
+  }
+  
+  
+  public Fauna newSpecimen() {
+    return null ;
+  }
+  
+  
+  public Lair createLair() {
+    return null ;
+  }
   
   
   public boolean browses() {

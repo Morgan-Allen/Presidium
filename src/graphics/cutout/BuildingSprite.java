@@ -8,9 +8,7 @@ package src.graphics.cutout ;
 import src.graphics.common.* ;
 import src.graphics.sfx.* ;
 import src.util.* ;
-
 import java.io.* ;
-
 import org.lwjgl.opengl.GL11 ;
 
 
@@ -58,7 +56,7 @@ public class BuildingSprite extends GroupSprite {
   int statusDisplayIndex = -1 ;
   List <MoteFX> statusFX = new List <MoteFX> () ;
   List <ItemStack> stackFX = new List <ItemStack> () ;
-  
+  Sprite lightingFX = null ;
   
   int size, high, maxStages ;
   float condition = 0 ;
@@ -76,6 +74,9 @@ public class BuildingSprite extends GroupSprite {
   private BuildingSprite() {}
   public Model model() { return BUILDING_MODEL ; }
   
+  //
+  //  NOTE:  I'm not bothering to save/load MoteFX here, since they're
+  //  refreshed or toggled every frame regardless.
   
   public void loadFrom(DataInputStream in) throws Exception {
     super.loadFrom(in) ;
@@ -88,17 +89,7 @@ public class BuildingSprite extends GroupSprite {
     if (baseIndex == -1) baseSprite = Model.loadSprite(in) ;
     else baseSprite = super.atIndex(baseIndex) ;
     scaffolding = super.atIndex(in.readInt()) ;
-    
-    //
-    //  TODO:  Not including this atm, since it's not critical and MoteFX
-    //  doesn't really save/load atm.
-    /*
-    statusDisplayIndex = in.read() ;
-    for (int n = in.read() ; n-- > 0 ;) {
-      MoteFX FX = (MoteFX) Model.loadSprite(in) ;
-      statusFX.add(FX) ;
-    }
-    //*/
+    lightingFX = super.atIndex(in.readInt()) ;
   }
   
   
@@ -112,14 +103,7 @@ public class BuildingSprite extends GroupSprite {
     out.writeInt(baseIndex) ;
     if (baseIndex == -1) Model.saveSprite(baseSprite, out) ;
     out.writeInt(super.indexOf(scaffolding)) ;
-    
-    /*
-    out.write(statusDisplayIndex) ;
-    out.write(statusFX.size()) ;
-    for (MoteFX FX : statusFX) {
-      Model.saveSprite(FX, out) ;
-    }
-    //*/
+    out.writeInt(super.indexOf(lightingFX)) ;
   }
   
   
@@ -128,6 +112,31 @@ public class BuildingSprite extends GroupSprite {
     */
   public void update() {
     
+  }
+  
+  
+  public void toggleLighting(
+    Model lightsModel, boolean lit, float xoff, float yoff, float zoff
+  ) {
+    if (! lit) {
+      if (lightingFX != null) detach(lightingFX) ;
+      lightingFX = null ;
+    }
+    else {
+      ///I.say("Toggling lighting on...") ;
+      if (lightingFX != null && lightingFX.model() != lightsModel) {
+        detach(lightingFX) ;
+        lightingFX = null ;
+      }
+      if (lightingFX == null) {
+        lightingFX = lightsModel.makeSprite() ;
+        lightingFX.colour = Colour.LIGHT ;
+        attach(lightingFX, xoff, yoff, zoff) ;
+      }
+      else {
+        //  TODO:  Vary the intensity of the transparency.
+      }
+    }
   }
   
   

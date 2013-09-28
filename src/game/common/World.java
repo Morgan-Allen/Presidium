@@ -90,10 +90,7 @@ public class World {
     terrain = (Terrain) s.loadObject() ;
     terrain.initPatchGrid(SECTION_RESOLUTION) ;
     ecology.loadState(s) ;
-    ///I.say("FINISHED LOADING TERRAIN") ;
     
-    
-    //growth.loadState(s) ;
     s.loadObjects(bases) ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
       toggleActive((Mobile) s.loadObject(), true) ;
@@ -115,7 +112,6 @@ public class World {
     
     s.saveObject(terrain) ;
     ecology.saveState(s) ;
-    //growth.saveState(s) ;
     
     s.saveObjects(bases) ;
     s.saveInt(mobiles.size()) ;

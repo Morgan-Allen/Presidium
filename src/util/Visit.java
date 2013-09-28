@@ -38,6 +38,12 @@ public class Visit <T> {
   }
   
   
+  public static int indexOf(Object o, Object a[]) {
+    for (int i = a.length ; i-- > 0 ;) if (a[i] == o) return i ;
+    return -1 ;
+  }
+  
+  
   /**  Returns true if the given array includes the given object.
     */
   public static boolean arrayIncludes(Object a[], Object e) {

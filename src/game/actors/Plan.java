@@ -28,7 +28,7 @@ public abstract class Plan implements Saveable, Behaviour {
   final Saveable signature[] ;
   final int hash ;
   protected Actor actor ;
-  protected Behaviour nextStep = null ;
+  protected Behaviour nextStep = null, lastStep = null ;
   
   public float priorityMod = 0 ;
   ///public boolean isWork = false ;
@@ -52,11 +52,14 @@ public abstract class Plan implements Saveable, Behaviour {
   
   public Plan(Session s) throws Exception {
     s.cacheInstance(this) ;
-    actor = (Actor) s.loadObject() ;
+    this.actor = (Actor) s.loadObject() ;
     final int numS = s.loadInt() ;
-    signature = new Saveable[numS] ;
+    this.signature = new Saveable[numS] ;
     for (int i = 0 ; i < numS ; i++) signature[i] = s.loadObject() ;
     this.hash = Table.hashFor((Object[]) signature) ;
+    
+    this.nextStep = (Behaviour) s.loadObject() ;
+    this.lastStep = (Behaviour) s.loadObject() ;
     this.priorityMod = s.loadFloat() ;
   }
   
@@ -65,6 +68,8 @@ public abstract class Plan implements Saveable, Behaviour {
     s.saveObject(actor) ;
     s.saveInt(signature.length) ;
     for (Saveable o : signature) s.saveObject(o) ;
+    s.saveObject(nextStep) ;
+    s.saveObject(lastStep) ;
     s.saveFloat(priorityMod) ;
   }
   
@@ -126,12 +131,15 @@ public abstract class Plan implements Saveable, Behaviour {
     //  that can screw up proper sequence of evaluation/execution.  Start from
     //  scratch instead.
     if (! actor.mind.agenda.includes(this)) {
-      nextStep = null ;
+      nextStep = lastStep = null ;
       if (valid()) return getNextStep() ;
       else { onceInvalid() ; return null ; }
     }
     else if (nextStep == null || nextStep.finished()) {
-      if (valid()) nextStep = getNextStep() ;
+      if (valid()) {
+        nextStep = getNextStep() ;
+        if (nextStep != null) lastStep = nextStep ;
+      }
       else { onceInvalid() ; nextStep = null ; }
     }
     return nextStep ;
@@ -232,6 +240,20 @@ public abstract class Plan implements Saveable, Behaviour {
     describeBehaviour(desc) ;
     return desc.toString() ;
   }
+  
+  
+  protected void descLastStep(Description d) {
+    if (lastStep != null) lastStep.describeBehaviour(d) ;
+  }
+  
+  
+  protected Target lastStepTarget() {
+    if (lastStep == null) return null ;
+    if (lastStep instanceof Action) return ((Action) lastStep).target() ;
+    if (lastStep instanceof Plan) return ((Plan) lastStep).lastStepTarget() ;
+    return null ;
+  }
+  
   
   
   /**  Validation methods, intended to ensure that Plans can be stored

@@ -6,10 +6,10 @@
 
 package src.game.building ;
 import src.game.common.* ;
-import src.game.common.Session.Saveable;
+import src.game.common.Session.Saveable ;
 import src.game.actors.* ;
-import src.util.I;
-import src.util.Visit;
+import src.util.* ;
+import src.user.* ;
 
 
 
@@ -41,6 +41,9 @@ public class Item implements BuildConstants {
   final public Service type ;
   final public Saveable refers ;
   final public float amount ;
+  
+  //
+  //  TODO:  Make quality a float, so you can blend and average it.
   final public int quality ;
   
   
@@ -55,22 +58,23 @@ public class Item implements BuildConstants {
   
   
   public static Item withAmount(Service type, float amount) {
-    return new Item(type, null, amount, -1) ;
+    return new Item(type, null, amount, 0) ;
   }
   
   
   public static Item withAmount(Item item, float amount) {
-    return new Item(item.type, item.refers, amount, item.quality) ;
+    final Item i = new Item(item.type, item.refers, amount, item.quality) ;
+    return i ;
   }
   
   
-  public static Item withType(Service type, Saveable refers) {
+  public static Item withReference(Service type, Saveable refers) {
     return new Item(type, refers, 1, 0) ;
   }
   
   
-  public static Item withType(Service type) {
-    return new Item(type, null, ANY, ANY) ;
+  public static Item withReference(Item item, Saveable refers) {
+    return new Item(item.type, refers, item.amount, item.quality) ;
   }
   
   
@@ -80,14 +84,27 @@ public class Item implements BuildConstants {
   
   
   public static Item withQuality(Item item, int quality) {
-    return new Item(item.type, item.refers, 1, Visit.clamp(quality, 5)) ;
+    return new Item(
+      item.type, item.refers, item.amount, Visit.clamp(quality, 5)
+    ) ;
   }
   
   
-  public static Item withReference(Item item, Saveable refers) {
-    return new Item(item.type, refers, item.amount, item.quality) ;
+  //*
+  public static Item asMatch(Service type, Saveable refers) {
+    return new Item(type, refers, ANY, ANY) ;
   }
   
+  
+  public static Item asMatch(Service type, int quality) {
+    return new Item(type, null, ANY, quality) ;
+  }
+  
+  
+  public static Item asMatch(Service type, Saveable refers, int quality) {
+    return new Item(type, refers, ANY, quality) ;
+  }
+  //*/
   
   
   
@@ -113,40 +130,46 @@ public class Item implements BuildConstants {
   
   
   public boolean equals(Object o) {
-    final Item i = (Item) o ;
-    return i.type == type && i.refers == refers ;
+    return matchKind((Item) o) ;
   }
   
   
   public int hashCode() {
-    return type.typeID * 13 + (refers == null ? 0 : (refers.hashCode() % 13)) ;
+    return
+      (type.typeID * 13 * 5) + quality +
+      ((refers == null ? 0 : (refers.hashCode() % 13)) * 5) ;
   }
   
   
   
   /**  Matching/equality functions-
     */
-  public boolean matchKind(Item item) {
+  protected boolean matchKind(Item item) {
     if (this.type != item.type) return false ;
     if (this.refers != null) {
       if (item.refers == null) return false ;
       if (! this.refers.equals(item.refers)) return false ;
     }
+    if (this.quality != ANY) {
+      if (item.quality != this.quality) return false ;
+    }
     return true ;
   }
   
-  
+  /*
   public boolean matches(Item item) {
     if (item == null) return false ;
     if (quality != ANY && item.quality != this.quality) return false ;
     if (amount != ANY && item.amount < this.amount) return false ;
     return matchKind(item) ;
   }
+  //*/
   
   
   public boolean isMatch() {
-    return amount == ANY ;
+    return amount == ANY || quality == ANY ;
   }
+  //*/
   
   
   public int price() {
@@ -162,17 +185,39 @@ public class Item implements BuildConstants {
   //
   //  TODO:  Replace this with a describeTo function, so that you can hyperlink
   //         to referenced objects and give them proper names.
-  public String toString() {
+  public void describeTo(Description d) {
+    String s = ""+type ;
+    if (quality != ANY && type.form != FORM_COMMODITY) {
+      s = QUAL_NAMES[quality]+" "+s ;
+    }
+    if (amount != ANY) s = (I.shorten(amount, 1))+" "+s ;
+    d.append(s) ;
     if (refers != null) {
-      return type+" ("+refers+")" ;
+      d.append(" (") ;
+      d.append(refers) ;
+      d.append(")") ;
     }
-    else if (quality != -1) {
-      final String progress = amount == 1 ?
-        "" : "("+((int) (amount * 100))+" %)" ;
-      return QUAL_NAMES[quality]+" "+type+" "+progress ;
-    }
-    else return (I.shorten(amount, 1))+" "+type ;
   }
+
+  public String toString() {
+    final StringDescription SD = new StringDescription() ;
+    describeTo(SD) ;
+    return SD.toString() ;
+  }
+  
+  /*
+  public String toString() {
+    String s = ""+type ;
+    if (quality != ANY && type.form != FORM_COMMODITY) {
+      s = QUAL_NAMES[quality]+" "+s ;
+    }
+    if (amount != ANY) s = (I.shorten(amount, 1))+" "+s ;
+    if (refers != null) {
+      s = s+" ("+refers+")" ;
+    }
+    return s ;
+  }
+  //*/
 }
 
 

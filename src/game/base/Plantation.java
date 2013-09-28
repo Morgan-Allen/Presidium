@@ -2,7 +2,7 @@
 
 package src.game.base ;
 import src.game.common.* ;
-import src.game.planet.Planet;
+import src.game.planet.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
@@ -27,7 +27,7 @@ import src.util.* ;
    Mixtaob Tree/Glass Cacti  (desert)
    Redwood/Cushion Plants    (tundra)
    Mycon Bloom/Strain XV97   (wastes)
-   Lichens/Meadow Flowers    (colonists)
+   Lichens/Meadow Flowers    (pioneer species)
    Coral Beds/Kelp Forest    (seas/oceans)
    
    ...You'll also need to include flora sets for the changelings and silicates.
@@ -59,6 +59,7 @@ public class Plantation extends Venue implements
     GRUB_BOX_MODEL = ImageModel.asIsometricModel(
       Plantation.class, IMG_DIR+"grub_box.png", 1, 1
     ) ;
+  /*
   final public static int
     VAR_ONI_RICE    = 0,
     VAR_DURWHEAT    = 1,
@@ -67,17 +68,65 @@ public class Plantation extends Venue implements
     VAR_HIVE_CELLS  = 4,
     VAR_SAPLINGS    = 5,
     ALL_VARIETIES[] = { 0, 1, 2, 3, 4, 5 } ;
+  //*/
+  final public static Species ALL_VARIETIES[] = {
+    Species.ONI_RICE,
+    Species.DURWHEAT,
+    Species.TUBER_LILY,
+    Species.BROADFRUITS,
+    Species.HIVE_CELLS
+  } ;
+  
+  //
+  //  TODO:  Move most or all of this out to the Species class, where it
+  //         belongs.
   final static Object CROP_SPECIES[][] = {
-    new Object[] { 0, CARBS   , CROP_MODELS[0] },
-    new Object[] { 1, CARBS   , CROP_MODELS[1] },
-    new Object[] { 2, GREENS  , CROP_MODELS[3] },
-    new Object[] { 3, GREENS  , CROP_MODELS[2] },
-    new Object[] { 4, PROTEIN , new Model[] { GRUB_BOX_MODEL }},
-    new Object[] { 5, GREENS  , null },
+    new Object[] { Species.ONI_RICE, CARBS   , CROP_MODELS[0] },
+    new Object[] { Species.DURWHEAT, CARBS   , CROP_MODELS[1] },
+    new Object[] { Species.TUBER_LILY, GREENS  , CROP_MODELS[3] },
+    new Object[] { Species.BROADFRUITS, GREENS  , CROP_MODELS[2] },
+    new Object[] { Species.HIVE_CELLS, PROTEIN , new Model[] { GRUB_BOX_MODEL }},
+    null,
+    null,
+    new Object[] { Species.SAPLINGS, GREENS  , null },
   } ;
+
+  
+  
+  public static Service speciesYield(Species s) {
+    final int varID = s.ID - Species.ONI_RICE.ID ;
+    return (Service) CROP_SPECIES[varID][1] ;
+  }
+  
+  
+  public static Model speciesModel(Species s, int growStage) {
+    final int varID = s.ID - Species.ONI_RICE.ID ;
+    final Model seq[] = (Model[]) CROP_SPECIES[varID][2] ;
+    return seq[Visit.clamp(growStage, seq.length)] ;
+  }
+  
+  
+  public static Species pickSpecies(Tile t, BotanicalStation parent) {
+    final Float chances[] = new Float[5] ;
+    int i = 0 ; for (Species s : ALL_VARIETIES) {
+      final float stocked = 50 + parent.stocks.amountOf(speciesYield(s)) ;
+      chances[i++] = parent.growBonus(t, s, false) / stocked ;
+    }
+    return (Species) Rand.pickFrom(ALL_VARIETIES, chances) ;
+  }
+  
+  
+  
+  
+  /**  Constructors, data fields, setup and save/load methods-
+    */
+  /*
   final static String CROP_NAMES[] = {
-    "Oni Rice", "Durwheat", "Tuber Lily", "Broadfruits", "Hive Cells"
+    "Oni Rice", "Durwheat",
+    "Tuber Lily", "Broadfruits", "Hive Cells",
+    "Saplings"//"Mussel Beds"
   } ;
+  //*/
   
   final static int
     TYPE_NURSERY = 0,
@@ -167,6 +216,7 @@ public class Plantation extends Venue implements
   }
   
   
+  
   /**  Establishing crop areas-
     */
   final static int
@@ -182,7 +232,9 @@ public class Plantation extends Venue implements
     else {
       for (int c = 0, i = 0 ; c < 4 ; c++) {
         final Tile t = world.tileAt(x + CROPS_POS[i++], y + CROPS_POS[i++]) ;
-        planted[c] = new Crop(this, type == TYPE_BED ? 1 : 0, t) ;
+        planted[c] = new Crop(
+          this, (Species) Rand.pickFrom(Species.CROP_SPECIES), t
+        ) ;
       }
       refreshCropSprites() ;
     }
@@ -191,16 +243,17 @@ public class Plantation extends Venue implements
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
+    
     if (! structure.intact() || numUpdates % 10 != 0) return ;
     if (type == TYPE_NURSERY) {
       final float
         decay  = 10 * 0.1f / World.STANDARD_DAY_LENGTH,
         growth = 10 * Planet.dayValue(world) / World.GROWTH_INTERVAL ;
-      for (Item seed : stocks.matches(GENE_SEED)) {
+      for (Item seed : stocks.matches(SAMPLES)) {
         stocks.removeItem(Item.withAmount(seed, decay)) ;
-        final Crop crop = (Crop) seed.refers ;
-        if (crop != null) {
-          final Service yield = Plantation.speciesYield(crop.varID) ;
+        final Species s = (Species) seed.refers ;
+        if (s != null) {
+          final Service yield = Plantation.speciesYield(s) ;
           stocks.bumpItem(yield, growth * seed.quality, 10) ;
         }
       }
@@ -252,7 +305,9 @@ public class Plantation extends Venue implements
           m = COVERING_RIGHT ;
         }
       }
-      if (m == null) m = Plantation.speciesModel(c.varID, (int) c.growStage) ;
+      if (m == null) {
+        m = Plantation.speciesModel(c.species, (int) c.growStage) ;
+      }
       s.attach(m,
         CROPS_POS[i * 2] - 0.5f,
         CROPS_POS[(i * 2) + 1] - 0.5f,
@@ -280,30 +335,6 @@ public class Plantation extends Venue implements
     float sum = 0 ;
     for (Plantation p : strip) sum += p.needsTending ;
     return sum / (strip.length - 1) ;
-  }
-  
-  
-  public static Service speciesYield(int varID) {
-    return (Service) CROP_SPECIES[varID][1] ;
-  }
-  
-  
-  public static Model speciesModel(int varID, int growStage) {
-    final Model seq[] = (Model[]) CROP_SPECIES[varID][2] ;
-    return seq[Visit.clamp(growStage, seq.length)] ;
-  }
-  
-  
-  public static int pickSpecies(Tile t, BotanicalStation parent) {
-    final Float chances[] = {
-      parent.growBonus(t, 0, false) / (50 + parent.stocks.amountOf(PROTEIN)),
-      parent.growBonus(t, 1, false) / (50 + parent.stocks.amountOf(CARBS  )),
-      parent.growBonus(t, 2, false) / (50 + parent.stocks.amountOf(GREENS )),
-      parent.growBonus(t, 3, false) / (50 + parent.stocks.amountOf(CARBS  )),
-      parent.growBonus(t, 4, false) / (50 + parent.stocks.amountOf(GREENS )),
-    } ;
-    final Object[] species = (Object[]) Rand.pickFrom(CROP_SPECIES, chances) ;
-    return (Integer) species[0] ;
   }
   
   
@@ -417,9 +448,6 @@ public class Plantation extends Venue implements
   
   
   public String helpInfo() {
-    //
-    //  TODO:  Rename to Curing Shed?  Make responsible for conversion of
-    //  samples to food stocks?
     if (type == TYPE_NURSERY) return
       "Nurseries allow young plants to be cultivated in a secure environment "+
       "prior to outdoor planting, and provide a small but steady output of "+
@@ -440,9 +468,9 @@ public class Plantation extends Venue implements
     if (categoryID == 0 && type == TYPE_NURSERY) {
       d.append("\n") ;
       boolean any = false ;
-      for (Item seed : stocks.matches(GENE_SEED)) {
-        final Crop crop = (Crop) seed.refers ;
-        d.append("\n  Seed for "+crop+" (") ;
+      for (Item seed : stocks.matches(SAMPLES)) {
+        final Species s = (Species) seed.refers ;
+        d.append("\n  Seed for "+s+" (") ;
         d.append(Crop.HEALTH_NAMES[seed.quality]+" quality)") ;
         any = true ;
       }

@@ -24,6 +24,7 @@ public class Mining extends Plan implements BuildConstants {
   private static boolean verbose = false ;
   
   private MineFace face ;
+  private int numMined = 0 ;
   
   
   Mining(Actor actor, MineFace face) {
@@ -35,12 +36,14 @@ public class Mining extends Plan implements BuildConstants {
   public Mining(Session s) throws Exception {
     super(s) ;
     face = (MineFace) s.loadObject() ;
+    numMined = s.loadInt() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveObject(face) ;
+    s.saveInt(numMined) ;
   }
   
   
@@ -70,7 +73,7 @@ public class Mining extends Plan implements BuildConstants {
     if (face.workDone >= 100 || face.promise == -1) {
       if (verbose) I.sayAbout(actor, "Face is exhausted.") ;
       quits = true ;
-      if (shaft.personnel.onShift(actor)) {
+      if (shaft.personnel.onShift(actor) && numMined <= 1 + Rand.index(4)) {
         final Mining m = shaft.nextMiningFor(actor) ;
         if (m != null) { this.face = m.face ; quits = false ; }
       }
@@ -128,6 +131,9 @@ public class Mining extends Plan implements BuildConstants {
     int success = 1 ;
     success += actor.traits.test(GEOPHYSICS , 5 , 1) ? 1 : 0 ;
     success *= actor.traits.test(HARD_LABOUR, 15, 1) ? 2 : 1 ;
+    //
+    //  TODO:  Make this slower in general, but faster in soft soils
+    
     face.workDone = Math.min(100, (success * 5 * Rand.num()) + face.workDone) ;
     
     if (face.workDone >= 100) {
@@ -137,6 +143,7 @@ public class Mining extends Plan implements BuildConstants {
       
       terrain.setMinerals(t, rockType, Terrain.DEGREE_TAKEN) ;
       face.shaft.openFace(face) ;
+      numMined++ ;
       
       Service itemType = null ;
       switch (rockType) {
@@ -155,9 +162,12 @@ public class Mining extends Plan implements BuildConstants {
       }
       
       final float bonus = face.shaft.structure.upgradeBonus(itemType) + 2 ;
-      final Item mined = Item.withAmount(itemType, amount * bonus / 2) ;
-      if (verbose) I.sayAbout(actor, "Managed to mine: "+mined) ;
-      actor.gear.addItem(mined) ;
+      Item sample = Item.withReference(SAMPLES, itemType) ;
+      sample = Item.withAmount(sample, amount * bonus / 2) ;
+      
+      if (verbose) I.sayAbout(actor, "Managed to mine: "+sample) ;
+      actor.gear.addItem(sample) ;
+      actor.gear.addItem(Item.withAmount(itemType, amount / 2)) ;
       return true ;
     }
     return false ;
@@ -166,6 +176,7 @@ public class Mining extends Plan implements BuildConstants {
   
   private float oresCarried(Actor actor) {
     float total = 0 ;
+    total += actor.gear.amountOf(SAMPLES) ;
     total += actor.gear.amountOf(PETROCARBS) ;
     total += actor.gear.amountOf(METAL_ORE ) ;
     total += actor.gear.amountOf(FUEL_CORES) ;
@@ -173,11 +184,17 @@ public class Mining extends Plan implements BuildConstants {
   }
   
   
+  //
+  //  TODO:  You want to deliver samples, instead of delivering ores directly.
+  
   public boolean actionDeliverOres(Actor actor, ExcavationShaft shaft) {
     if (verbose) I.sayAbout(actor, "Returning to mine shaft.") ;
+    //
+    //  TODO:  Make sure these samples are of ores, not anything else!
     actor.gear.transfer(PETROCARBS, shaft) ;
     actor.gear.transfer(METAL_ORE , shaft) ;
     actor.gear.transfer(FUEL_CORES, shaft) ;
+    actor.gear.transfer(SAMPLES, shaft) ;
     actor.goAboard(shaft, shaft.world()) ;
     return true ;
   }

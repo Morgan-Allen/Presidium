@@ -200,6 +200,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
   
   
   private void addPurchases(Choice choice) {
+    I.sayAbout(actor, "Getting purchases...") ;
     //
     //  Consider upgrading weapons or armour.
     final boolean hasCommission = hasToDo(Commission.class) ;

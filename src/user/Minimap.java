@@ -17,6 +17,11 @@ import org.lwjgl.opengl.* ;
 //  TODO:  Have the minimap refresh itself every second or so, and simply fade
 //  in the new version on top of the old?  Something like that.  If you wanted,
 //  you could do some kind of fancy burn-in or flicker transition-effect.
+
+//
+//  TODO:  You need to be able to present the ambience map here.
+
+
 public class Minimap extends UINode {
   
   

@@ -118,16 +118,6 @@ public class Structure {
   }
   
   
-  private Object getFieldVal() {
-    try {
-      Field field = venue.getClass().getField("ALL_UPGRADES") ;
-      if (field != null) return field.get(null) ;
-    }
-    catch (Exception e) {}
-    return null ;
-  }
-  
-  
   public void saveState(Session s) throws Exception {
     s.saveInt(baseIntegrity) ;
     s.saveInt(maxUpgrades) ;
@@ -140,19 +130,6 @@ public class Structure {
     s.saveBool(burning) ;
     
     Index <Upgrade> AU = venue.allUpgrades() ;
-    /*
-    if (AU == null) {
-      final Object o = getFieldVal() ;
-      if (o != null) {
-        AU = (Index) o ;
-        maxUpgrades = AU.members().length ;
-        upgradeIndex = -1 ;
-        upgrades = new Upgrade[maxUpgrades] ;
-        upgradeStates = new int[maxUpgrades] ;
-      }
-    }
-    //*/
-    
     if (AU != null) {
       s.saveFloat(upgradeProgress) ;
       s.saveInt(upgradeIndex) ;
@@ -264,7 +241,7 @@ public class Structure {
   
   public void setState(int state, float condition) {
     this.state = state ;
-    if (condition > 0) this.integrity = maxIntegrity() * condition ;
+    if (condition >= 0) this.integrity = maxIntegrity() * condition ;
     checkMaintenance() ;
   }
   

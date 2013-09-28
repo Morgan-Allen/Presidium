@@ -181,7 +181,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
       if (! patient.health.bleeding()) {
         this.effectiveness = Rand.num() * actor.traits.traitLevel(ANATOMY) / 10 ;
         this.applied = INJURY ;
-        this.treatment = Item.withType(SERVICE_TREAT, new Action(
+        this.treatment = Item.withReference(SERVICE_TREAT, new Action(
           patient, patient,
           this, "actionTreatEffect",
           Action.STAND, "for injury"
@@ -229,7 +229,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
       this.applied = d ;
       break ;
     }
-    this.treatment = Item.withType(SERVICE_TREAT, new Action(
+    this.treatment = Item.withReference(SERVICE_TREAT, new Action(
       patient, patient,
       this, "actionTreatEffect",
       Action.STAND, "for "+patient.traits.levelDesc(applied)

@@ -67,12 +67,14 @@ public class I {
   /**  A few utility printing methods-
     */
   public static String shorten(float f, int decimals) {
+    final boolean neg = f < 0 ;
+    if (neg) f *= -1 ;
     final int i = (int) f ;
     final float r = f - i ;
     if (r == 0) return ""+i ;
     final String fraction = r+"" ;
     final int trim = Math.min(decimals + 2, fraction.length()) ;
-    return i+(fraction.substring(1, trim)) ;
+    return (neg ? "-" : "")+i+(fraction.substring(1, trim)) ;
   }
   
   
@@ -91,6 +93,7 @@ public class I {
     
     private Object data ;
     private int mode ;
+    private float min, max ;
     
     
     Presentation(String name, Object data, int mode) {
@@ -116,7 +119,8 @@ public class I {
       final int w = vals.length, h = vals[0].length ;
       final byte byteData[] = new byte[w * h] ;
       for (Coord c : Visit.grid(0, 0, w, h, 1)) {
-        final int grey = (int) Visit.clamp(vals[c.x][c.y] * 255, 0, 255) ;
+        final float pushed = (vals[c.x][c.y] - min) / (max - min) ;
+        final int grey = (int) Visit.clamp(pushed * 255, 0, 255) ;
         byteData[imgIndex(c.x, c.y, w, h)] = scale[grey] ;
       }
       presentImage(g, byteData, BufferedImage.TYPE_BYTE_GRAY, w, h) ;
@@ -157,9 +161,11 @@ public class I {
   
   public static void present(
     float greyVals[][],
-    String name, int w, int h
+    String name, int w, int h, float min, float max
   ) {
-    present(greyVals, MODE_GREY, name, w, h) ;
+    final Presentation p = present(greyVals, MODE_GREY, name, w, h) ;
+    p.min = min ;
+    p.max = max ;
   }
   
   
@@ -171,7 +177,7 @@ public class I {
   }
   
   
-  private static void present(
+  private static Presentation present(
     Object vals, int mode,
     String name, int w, int h
   ) {
@@ -189,6 +195,7 @@ public class I {
       window.pack() ;
       window.repaint() ;
     }
+    return window ;
   }
 }
 

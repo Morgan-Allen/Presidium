@@ -50,7 +50,6 @@ public class Manufacture extends Plan implements Behaviour {
     venue = (Venue) s.loadObject() ;
     conversion = Conversion.loadFrom(s) ;
     made = Item.loadFrom(s) ;
-    //timeTaken = s.loadFloat() ;
     this.needed = conversion.raw ;
     checkBonus = s.loadInt() ;
     timeMult   = s.loadInt() ;
@@ -82,7 +81,7 @@ public class Manufacture extends Plan implements Behaviour {
     if (! super.matchesPlan(p)) return false ;
     final Manufacture m = (Manufacture) p ;
     if (m.conversion != conversion) return false ;
-    if (! m.made().matches(made)) return false ;
+    if (! m.made().matchKind(made)) return false ;
     return true ;
   }
   
@@ -180,7 +179,7 @@ public class Manufacture extends Plan implements Behaviour {
     for (int i = c.skills.length ; i-- > 0 ;) {
       success &= actor.traits.test(c.skills[i], c.skillDCs[i] + checkMod, 1) ;
     }
-    if (success || GameSettings.hardCore && progInc > 0) {
+    if ((success || GameSettings.hardCore) && progInc > 0) {
       for (Item r : c.raw) {
         final Item used = Item.withAmount(r, r.amount * progInc) ;
         venue.inventory().removeItem(used) ;
@@ -192,9 +191,9 @@ public class Manufacture extends Plan implements Behaviour {
     float progress = (success ? progInc : (progInc / 10f)) * made.amount ;
     if (progress + oldAmount > made.amount) progress = made.amount - oldAmount ;
     if (progress > 0) {
-      venue.stocks.addItem(Item.withAmount(made, progress)) ;
+      final Item added = Item.withAmount(made, progress) ;
+      venue.stocks.addItem(added) ;
     }
-    ///I.say("EXACT AMOUNT OF "+made.type+" IS: "+venue.stocks.amountOf(made)) ;
     final float newAmount = venue.stocks.amountOf(made) ;
     pastFive = ((int) (oldAmount / 5) > (int) (newAmount / 5)) ;
     return venue.stocks.hasItem(made) ;

@@ -205,12 +205,13 @@ public abstract class Actor extends Mobile implements
       mind.updateAI(numUpdates) ;
       //
       //  Update the intel/danger maps associated with the world's bases.
-      final float power = Combat.combatStrength(this, null) ;
+      final float power = Combat.combatStrength(this, null) * 10 ;
+      ///I.sayAbout(this, "Power is: "+power) ;
       for (Base b : world.bases()) {
         if (b == base()) b.intelMap.liftFogAround(this, health.sightRange()) ;
         if (! visibleTo(b)) continue ;
         final float relation = mind.relation(b) ;
-        b.dangerMap.impingeVal(origin(), power * relation) ;
+        b.dangerMap.impingeVal(origin(), 0 - power * relation) ;
       }
     }
     else {

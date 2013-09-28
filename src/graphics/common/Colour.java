@@ -20,6 +20,8 @@ public class Colour {
   
   final public static Colour
     HIDE  = new Colour().set(1, 1, 1, 0),
+    LIGHT = new Colour().set(1, 1, 1, -1),
+    
     WHITE = new Colour().set(1, 1, 1, 1),
     NONE  = new Colour().set(0, 0, 0, 0),
     

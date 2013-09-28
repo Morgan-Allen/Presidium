@@ -17,10 +17,6 @@ import src.util.* ;
 
 
 
-//
-//  TODO:  Have the harvesting action return Gene Seed, not petrocarbs.
-
-
 public class Forestry extends Plan implements BuildConstants {
   
   
@@ -150,8 +146,8 @@ public class Forestry extends Plan implements BuildConstants {
   
   
   private Item seedMatch() {
-    return Item.withAmount(Item.withType(
-      GENE_SEED, new Crop(Plantation.VAR_SAPLINGS)
+    return Item.withAmount(Item.withReference(
+      GENE_SEED, Species.SAPLINGS
     ), 0.1f) ;
   }
   
@@ -190,7 +186,7 @@ public class Forestry extends Plan implements BuildConstants {
   
   public boolean actionCutting(Actor actor, Flora cut) {
     if (! actor.traits.test(CULTIVATION, SIMPLE_DC, 1.0f)) return false ;
-    final Item sample = Item.withType(SAMPLES, cut) ;
+    final Item sample = Item.withReference(SAMPLES, cut) ;
     actor.gear.addItem(sample) ;
     cut.incGrowth(-0.5f, actor.world(), false) ;
     stage = STAGE_RETURN ;

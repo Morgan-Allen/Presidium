@@ -13,11 +13,6 @@ import src.game.building.Inventory.Owner ;
 import src.util.* ;
 
 
-//
-//  The problem here is that for sufficiently finely-balanced demands, the act
-//  of transport will itself change the balance of demands made.
-
-
 
 /**  This class implements a big bunch of helper methods to search for
   *  optimal delivery venues and amounts-
@@ -182,10 +177,14 @@ public class Deliveries implements BuildConstants {
     if (clientUrgency <= originUrgency) return 0 ;
     float rating = 1 ;
     
-    rating *= origin.inventory().amountOf(good) / 10f ;
-    rating *= ((Venue) client).stocks.shortageOf(good) / 10f ;
-    //  TODO:  Make sure the client inventory has space!
+    rating *= origin.inventory().amountOf(good) ;
+    rating /= 5 + ((Venue) client).stocks.shortageOf(good) ;
     
+    if (verbose && rating > 0.1f && I.talkAbout == origin) {
+      //I.say("Rating: "+rating) ;
+    }
+    //
+    //  TODO:  Make sure the client inventory has space!
     return rating ;
   }
   
@@ -199,14 +198,10 @@ public class Deliveries implements BuildConstants {
     //  First, get the amount of each item available for trade at the point of
     //  origin, and desired by the destination/client, which constrains the
     //  quantities involved-
-    final Object subject = pays ;
-    
-    if (verbose) I.sayAbout(
-      subject, "Evaluating delivery from "+origin+" to "+client
-    ) ;
+    final Object subject = origin ;
     final int
-      roundUnit = sizeLimit <= 5 ? 1 : 5,
-      pickUnit  = sizeLimit <= 5 ? 0 : 3 ;
+      roundUnit = sizeLimit <= 10 ? 1 : 5,
+      pickUnit  = sizeLimit <= 10 ? 1 : 5 ;
     
     final List <Item> viable = new List <Item> () {
       protected float queuePriority(Item i) {
@@ -237,12 +232,20 @@ public class Deliveries implements BuildConstants {
       maxBuys -= reservedForCollection(CD, good) ;
       final float amount = Math.min(maxSold, maxBuys) ;
       
-      final float rateTrade = tradeType == IS_TRADE ? (Deliveries.rateTrading(
+      final float rateTrade = tradeType == IS_TRADE ? Deliveries.rateTrading(
         good, origin, client, tradeType
-      ) / (amount + 1)) : 2 ;
+      ) : 2 ;
       
-      if (false && verbose && I.talkAbout == subject) {
+      if (verbose && amount > 1 && I.talkAbout == subject) {
         I.say("  Service: "+good) ;
+        if (client instanceof Venue) {
+          final Venue VC = (Venue) client ;
+          I.say("  Buys urgency: "+VC.stocks.shortageUrgency(good)) ;
+        }
+        if (origin instanceof Venue) {
+          final Venue VO = (Venue) origin ;
+          I.say("  Sells urgency: "+VO.stocks.shortageUrgency(good)) ;
+        }
         I.say("    Available: "+origin.inventory().amountOf(good)) ;
         I.say("    Reserved: "+reservedForCollection(OD, good)) ;
         I.say("    Max buys/sold: "+maxBuys+"/"+maxSold) ;
@@ -268,6 +271,8 @@ public class Deliveries implements BuildConstants {
       if (price <= 0) continue ;
       sumPrice += price ;
     }
+    if (sumAmounts == 0) return new Item[0] ;
+    
     if (sumAmounts > sizeLimit) {
       scale = sizeLimit / sumAmounts ;
       sumPrice *= scale ;
@@ -279,7 +284,7 @@ public class Deliveries implements BuildConstants {
       scale *= priceLimit / sumPrice ;
     }
     
-    if (verbose && I.talkAbout == subject) {
+    if (verbose && sumAmounts > 0 && I.talkAbout == subject) {
       I.say("Size/price limits: "+sizeLimit+" "+priceLimit+", goods:") ;
       for (Item v : viable) I.say("  "+v) ;
     }
@@ -316,11 +321,12 @@ public class Deliveries implements BuildConstants {
       if (noneTrimmed) break ;
     }
     
-    if (verbose && I.talkAbout == subject) {
+    if (verbose && sumAmounts > 0 && I.talkAbout == subject) {
       I.say("AFTER TRIM") ;
       i = 0 ;
       for (Item v : viable) {
         I.say("  "+v.type+" "+amounts[i++]) ;
+        //if (v.quality == -1) I.say(v+"  HAD NO QUALITY") ;
       }
     }
     

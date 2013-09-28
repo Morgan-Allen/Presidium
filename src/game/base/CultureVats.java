@@ -59,7 +59,7 @@ public class CultureVats extends Venue implements BuildConstants {
     WASTE_DISPOSAL = new Upgrade(
       "Waste Disposal",
       "Reduces pollution, increases marginal efficiency, and permits some "+
-      "output of life support.",
+      "degree of life support.",
       200, null, 1, null, ALL_UPGRADES
     ),
     PROTEIN_ASSEMBLY = new Upgrade(
@@ -87,9 +87,10 @@ public class CultureVats extends Venue implements BuildConstants {
       400, null, 1, PROTEIN_ASSEMBLY, ALL_UPGRADES
     ),
     VATS_BREEDER_STATION = new Upgrade(
-      "Waste Disposal",
-      "Reduces pollution, increases marginal efficiency, and permits some "+
-      "output of life support.",
+      "Vats Breeder Station",
+      "Vats Breeders supervise the cultivation and harvesting of the chemical "+
+      "and biological processes needed to produce pharmaceuticals and tissue "+
+      "samples.",
       100, null, 1, null, ALL_UPGRADES
     )
   ;

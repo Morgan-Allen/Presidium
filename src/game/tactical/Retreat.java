@@ -124,7 +124,7 @@ public class Retreat extends Plan implements ActorConstants {
     //float sumDanger = 0, minDanger = 0 ;
     float sumThreats = 0, sumAllies = Combat.combatStrength(actor, null) ;
     
-    final float range = World.DEFAULT_SECTOR_SIZE ;
+    final float range = World.SECTOR_SIZE ;
     for (Element m : seen) {
       if (m == actor || ! (m instanceof Actor)) continue ;
       final Actor near = (Actor) m ;
@@ -222,7 +222,7 @@ public class Retreat extends Plan implements ActorConstants {
     if (haven.getClass() == prefClass) rating *= 2 ;
     if (haven.base() == actor.base()) rating *= 2 ;
     if (haven == actor.mind.home()) rating *= 2 ;
-    final int SS = World.DEFAULT_SECTOR_SIZE ;
+    final int SS = World.SECTOR_SIZE ;
     rating *= SS / (SS + Spacing.distance(actor, haven)) ;
     return rating ;
   }

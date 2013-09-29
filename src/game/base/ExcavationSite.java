@@ -35,7 +35,7 @@ import src.util.* ;
 //  type influenced by your upgrades.
 
 
-public class ExcavationShaft extends Venue implements
+public class ExcavationSite extends Venue implements
   BuildConstants, TileConstants
 {
   
@@ -46,9 +46,12 @@ public class ExcavationShaft extends Venue implements
     IMG_DIR = "media/Buildings/artificer/" ;
   final static ImageModel
     SHAFT_MODEL = ImageModel.asIsometricModel(
-      ExcavationShaft.class, IMG_DIR+"excavation_shaft.gif", 4, 1
+      ExcavationSite.class, IMG_DIR+"excavation_shaft.gif", 4, 1
     ) ;
   
+  final static Service ALL_MINED[] = {
+    PETROCARBS, METAL_ORE, FUEL_CORES
+  } ;
   final static int
     MAX_DIG_RANGE = 6 ;
   
@@ -72,7 +75,7 @@ public class ExcavationShaft extends Venue implements
   
   
   
-  public ExcavationShaft(Base base) {
+  public ExcavationSite(Base base) {
     super(4, 1, Venue.ENTRANCE_EAST, base) ;
     structure.setupStats(
       200, 15, 350,
@@ -85,7 +88,7 @@ public class ExcavationShaft extends Venue implements
   }
 
 
-  public ExcavationShaft(Session s) throws Exception {
+  public ExcavationSite(Session s) throws Exception {
     super(s) ;
     
     firstFace = (MineFace) s.loadObject() ;
@@ -247,7 +250,7 @@ public class ExcavationShaft extends Venue implements
   /**  Economic functions-
     */
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
-    ExcavationShaft.class, "excavation_upgrades"
+    ExcavationSite.class, "excavation_upgrades"
   ) ;
   public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
@@ -333,9 +336,11 @@ public class ExcavationShaft extends Venue implements
     //
     //  Consider smelting ores-
     for (Smelter smelter : smelters) {
-      choice.add(new Smelting(actor, smelter, this)) ;
+      choice.add(new Smelting(actor, smelter, this, smelter.type)) ;
     }
-    choice.add(new Smelting(actor, this, this)) ;
+    for (Service mined : ALL_MINED) {
+      choice.add(new Smelting(actor, this, this, mined)) ;
+    }
     //
     //  Also consider straightforward mining-
     final Mining m = nextMiningFor(actor) ;
@@ -346,12 +351,8 @@ public class ExcavationShaft extends Venue implements
   }
   
   
-  public boolean actionSmeltOre(Actor actor, Venue venue) {
-    ///I.say("Being called? ") ;
-    //actor.mind.cancelBehaviour(actor.mind.rootBehaviour()) ;
-    return false ;
-  }
-  
+  //
+  //  TODO:  Restore this once secondary shafts are opened-
   /*
   protected Smelter nearestSmelter(Actor actor, Service mines) {
     Smelter picked = null ;
@@ -363,6 +364,7 @@ public class ExcavationShaft extends Venue implements
     return picked ;
   }
   //*/
+  
   
   protected Mining nextMiningFor(Actor actor) {
     refreshSorting() ;

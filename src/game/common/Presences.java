@@ -65,6 +65,7 @@ public class Presences {
   /**  Modifying presences-
     */
   public void togglePresence(Target t, Tile at, boolean is, Object key) {
+    ///if (! is) I.say("De-registering "+t+" for key "+key) ;
     final PresenceMap map = mapFor(key) ;
     if (is) map.toggleMember(t, at, true) ;
     else map.toggleMember(t, at, false) ;
@@ -84,6 +85,7 @@ public class Presences {
   
   public void togglePresence(Venue venue, boolean is, Object services[]) {
   	final Tile origin = venue.origin() ;
+  	
   	togglePresence(venue, origin, is, Venue.class) ;
     if (venue.base() != null) {
       togglePresence(venue, origin, is, venue.base()) ;
@@ -92,6 +94,13 @@ public class Presences {
     if (services != null) for (Object service : services) {
       togglePresence(venue, origin, is, service) ;
     }
+    
+    /*
+    I.say("\n\nCHECKING FOR RESIDUE...") ;
+    for (PresenceMap map : allMaps.values()) {
+      map.printSectionFor(venue, null) ;
+    }
+    //*/
   }
   
   

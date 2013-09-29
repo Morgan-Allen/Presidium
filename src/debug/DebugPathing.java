@@ -82,7 +82,6 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
     final World world = new World(TG.generateTerrain()) ;
     //TG.setupMinerals(world, 0.55f, 0.3f, 0.15f) ;
     //TG.setupOutcrops(world) ;
-    
     //
     //  TODO:  Put in an EcologyGen as well
     return world ;
@@ -121,13 +120,6 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
     
     final BotanicalStation BS = new BotanicalStation(base) ;
     DebugBehaviour.establishVenue(BS, 10, 15, true) ;
-    
-    final Item
-      s = Item.withReference(SAMPLES, Species.DURWHEAT),
-      t = Item.withReference(SAMPLES, Species.DURWHEAT) ;
-    I.say("S == T? "+ (s.equals(t))+", hashes equal? "+(s.hashCode() == t.hashCode())) ;
-    BS.stocks.addItem(s) ;
-    BS.stocks.addItem(t) ;
     
     ((BaseUI) HUD).selection.pushSelection(BS, true) ;
   }

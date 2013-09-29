@@ -13,11 +13,8 @@ import src.user.* ;
 
 
 
-/**  More representative of the asbtract 'listing' of an item than a specific
+/**  More representative of the abstract 'listing' of an item than a specific
   *  concrete object.
-  *  
-  *  Setting quality or amount to -1 will allow for matches with items of any
-  *  quality and amount.
   */
 public class Item implements BuildConstants {
   
@@ -41,14 +38,11 @@ public class Item implements BuildConstants {
   final public Service type ;
   final public Saveable refers ;
   final public float amount ;
-  
-  //
-  //  TODO:  Make quality a float, so you can blend and average it.
-  final public int quality ;
+  final public float quality ;
   
   
   private Item(
-    Service type, Saveable refers, float amount, int quality
+    Service type, Saveable refers, float amount, float quality
   ) {
     this.type = type ;
     this.amount = amount ;
@@ -57,6 +51,33 @@ public class Item implements BuildConstants {
   }
   
   
+  public static Item loadFrom(Session s) throws Exception {
+    final int typeID = s.loadInt() ;
+    if (typeID == -1) return null ;
+    //
+    //  TODO:  Save/load names instead of numeric IDs, so that you safely
+    //  modify the listing between sessions.
+    return new Item(
+      ALL_ITEM_TYPES[typeID],
+      s.loadObject(),
+      s.loadFloat(),
+      s.loadFloat()
+    ) ;
+  }
+  
+  
+  public static void saveTo(Session s, Item item) throws Exception {
+    if (item == null) { s.saveInt(-1) ; return ; }
+    s.saveInt(item.type.typeID) ;
+    s.saveObject(item.refers) ;
+    s.saveFloat(item.amount) ;
+    s.saveFloat(item.quality) ;
+  }
+  
+  
+  
+  /**  Outside-accessible factory methods-
+    */
   public static Item withAmount(Service type, float amount) {
     return new Item(type, null, amount, 0) ;
   }
@@ -90,7 +111,19 @@ public class Item implements BuildConstants {
   }
   
   
-  //*
+  public static Item with(
+    Service type, Saveable refers, float amount, float quality
+  ) {
+    if (amount < 0) I.complain("Amount must be positive!") ;
+    return new Item(
+      type, refers, amount, Visit.clamp(quality, 0, 4)
+    ) ;
+  }
+  
+  
+  
+  /**  Matching/equality functions-
+    */
   public static Item asMatch(Service type, Saveable refers) {
     return new Item(type, refers, ANY, ANY) ;
   }
@@ -102,30 +135,22 @@ public class Item implements BuildConstants {
   
   
   public static Item asMatch(Service type, Saveable refers, int quality) {
-    return new Item(type, refers, ANY, quality) ;
-  }
-  //*/
-  
-  
-  
-  public static Item loadFrom(Session s) throws Exception {
-    final int typeID = s.loadInt() ;
-    if (typeID == -1) return null ;
-    return new Item(
-      ALL_ITEM_TYPES[typeID],
-      s.loadObject(),
-      s.loadFloat(),
-      s.loadInt()
-    ) ;
+    return new Item(type, refers, ANY, Visit.clamp(quality, 5)) ;
   }
   
   
-  public static void saveTo(Session s, Item item) throws Exception {
-    if (item == null) { s.saveInt(-1) ; return ; }
-    s.saveInt(item.type.typeID) ;
-    s.saveObject(item.refers) ;
-    s.saveFloat(item.amount) ;
-    s.saveInt(item.quality) ;
+  protected boolean matchKind(Item item) {
+    if (this.type != item.type) return false ;
+    if (this.refers != null) {
+      if (item.refers == null) return false ;
+      if (! this.refers.equals(item.refers)) return false ;
+    }
+    return true ;
+  }
+  
+  
+  public boolean isMatch() {
+    return amount == ANY || quality == ANY ;
   }
   
   
@@ -136,59 +161,18 @@ public class Item implements BuildConstants {
   
   public int hashCode() {
     return
-      (type.typeID * 13 * 5) + quality +
+      (type.typeID * 13 * 5) +
       ((refers == null ? 0 : (refers.hashCode() % 13)) * 5) ;
-  }
-  
-  
-  
-  /**  Matching/equality functions-
-    */
-  protected boolean matchKind(Item item) {
-    if (this.type != item.type) return false ;
-    if (this.refers != null) {
-      if (item.refers == null) return false ;
-      if (! this.refers.equals(item.refers)) return false ;
-    }
-    if (this.quality != ANY) {
-      if (item.quality != this.quality) return false ;
-    }
-    return true ;
-  }
-  
-  /*
-  public boolean matches(Item item) {
-    if (item == null) return false ;
-    if (quality != ANY && item.quality != this.quality) return false ;
-    if (amount != ANY && item.amount < this.amount) return false ;
-    return matchKind(item) ;
-  }
-  //*/
-  
-  
-  public boolean isMatch() {
-    return amount == ANY || quality == ANY ;
-  }
-  //*/
-  
-  
-  public int price() {
-    final int q = quality ;
-    if (q == ANY) return (int) (type.basePrice * amount) ;
-    return (int) (type.basePrice * PRICE_MULTS[q] * amount) ;
   }
   
   
   
   /**  Rendering/interface functions-
     */
-  //
-  //  TODO:  Replace this with a describeTo function, so that you can hyperlink
-  //         to referenced objects and give them proper names.
   public void describeTo(Description d) {
     String s = ""+type ;
     if (quality != ANY && type.form != FORM_COMMODITY) {
-      s = QUAL_NAMES[quality]+" "+s ;
+      s = QUAL_NAMES[(int) (quality + 0.5f)]+" "+s ;
     }
     if (amount != ANY) s = (I.shorten(amount, 1))+" "+s ;
     d.append(s) ;
@@ -204,20 +188,6 @@ public class Item implements BuildConstants {
     describeTo(SD) ;
     return SD.toString() ;
   }
-  
-  /*
-  public String toString() {
-    String s = ""+type ;
-    if (quality != ANY && type.form != FORM_COMMODITY) {
-      s = QUAL_NAMES[quality]+" "+s ;
-    }
-    if (amount != ANY) s = (I.shorten(amount, 1))+" "+s ;
-    if (refers != null) {
-      s = s+" ("+refers+")" ;
-    }
-    return s ;
-  }
-  //*/
 }
 
 

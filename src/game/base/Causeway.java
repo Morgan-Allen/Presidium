@@ -15,9 +15,10 @@ import src.util.* ;
 public class Causeway extends Segment {
   
   
+  final static String IMG_DIR = "media/Buildings/merchant/" ;
   final static ImageModel
     NODE_MODELS[] = ImageModel.loadModels(
-      Causeway.class, 2, 0.1f, "media/Buildings/merchant/",
+      Causeway.class, 2, 0.1f, IMG_DIR, ImageModel.TYPE_BOX,
       "mag_node_left.png",
       "mag_node_right.png",
       "mag_node_centre.png",

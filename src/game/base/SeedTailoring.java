@@ -29,7 +29,7 @@ public class SeedTailoring extends Plan implements BuildConstants {
   
   
   SeedTailoring(Actor actor, Plantation plantation, Species s) {
-    super(actor, plantation) ;
+    super(actor, plantation.belongs) ;
     this.nursery = plantation ;
     this.species = s ;
     this.cropType = Item.asMatch(SAMPLES, s) ;
@@ -50,6 +50,13 @@ public class SeedTailoring extends Plan implements BuildConstants {
     super.saveState(s) ;
     s.saveObject(nursery) ;
     s.saveObject(species) ;
+  }
+  
+  
+  public boolean matchesPlan(Plan p) {
+    if (! super.matchesPlan(p)) return false ;
+    final SeedTailoring t = (SeedTailoring) p ;
+    return t.species == this.species ;
   }
   
   
@@ -79,9 +86,7 @@ public class SeedTailoring extends Plan implements BuildConstants {
     final BotanicalStation station = nursery.belongs ;
     //
     //  If the nursery has enough of the crop type, deliver it-
-    //final Item sample = station.stocks.bestSample(cropType, 1) ;
     if (station.stocks.amountOf(cropType) > 1) {
-      ///I.say("Have sample? "+station.stocks.hasItem(sample)) ;
       final Batch <Item> matches = station.stocks.matches(cropType) ;
       return new Delivery(matches, station, nursery) ;
     }
@@ -135,7 +140,6 @@ public class SeedTailoring extends Plan implements BuildConstants {
     if (Rand.num() < successChance * skillRating) {
       Item crop = cropType ;
       crop = Item.withQuality(crop, (int) ((seed.quality + skillRating) / 2)) ;
-      I.say("Seed quality: "+crop.quality) ;
       crop = Item.withAmount(crop, 0.1f) ;
       lab.stocks.addItem(crop) ;
       return true ;
@@ -153,7 +157,6 @@ public class SeedTailoring extends Plan implements BuildConstants {
     //  Use the seed in the lab to create seed for the different crop types.
     if (Rand.num() < successChance * skillRating) {
       float quality = skillRating * Rand.avgNums(2) ;
-      I.say("Gene quality: "+quality) ;
       
       Item seed = seedType ;
       seed = Item.withQuality(seed, (int) Visit.clamp(quality, 0, 5)) ;

@@ -22,7 +22,7 @@ public abstract class Mobile extends Element
     GROUND_SHADOW = Texture.loadTexture("media/SFX/ground_shadow.png") ;
   
   final static int
-    MAX_PATH_SCAN = World.DEFAULT_SECTOR_SIZE ;
+    MAX_PATH_SCAN = World.SECTOR_SIZE ;
   
   private static boolean verbose = false ;
   

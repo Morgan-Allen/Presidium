@@ -245,7 +245,7 @@ public interface ActorConstants {
     DUTIFUL = new Trait(PERSONALITY,
       "Obedient",
       "Dutiful",
-      "Respectful",
+      "Respectful of Betters",
       null,
       "Independant",
       "Rebellious",

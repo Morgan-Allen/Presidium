@@ -167,6 +167,10 @@ public class Holding extends Venue implements BuildConstants {
   /**  Moderating upgrades-
     */
   public void updateAsScheduled(int numUpdates) {
+    //
+    //  Try updating any accessories associated with the structure-
+    HoldingExtra.updateExtras(this, extras, numUpdates) ;
+    
     super.updateAsScheduled(numUpdates) ;
     
     if (personnel.residents().size() == 0) {
@@ -220,9 +224,6 @@ public class Holding extends Venue implements BuildConstants {
     else if (upgrade) targetLevel = upgradeLevel + 1 ;
     targetLevel = Visit.clamp(targetLevel, NUM_LEVELS) ;
     checkForUpgrade(targetLevel) ;
-    //
-    //  And try updating any accessories associated with the structure-
-    HoldingExtra.updateExtras(this, extras, numUpdates) ;
   }
   
   
@@ -305,10 +306,7 @@ public class Holding extends Venue implements BuildConstants {
   
   public void exitWorld() {
     super.exitWorld() ;
-    for (Element e : extras) {
-      base().paving.updatePerimeter((Fixture) e, false) ;
-      e.setAsDestroyed() ;
-    }
+    HoldingExtra.removeExtras(this, extras) ;
   }
   
   
@@ -384,7 +382,7 @@ public class Holding extends Venue implements BuildConstants {
   
   public static Holding newHoldingFor(Actor client) {
     final World world = client.world() ;
-    final int maxDist = World.DEFAULT_SECTOR_SIZE ;
+    final int maxDist = World.SECTOR_SIZE ;
     final Holding holding = new Holding(client.base()) ;
     final Tile origin = searchPoint(client) ;
     final Vars.Bool found = new Vars.Bool() ;

@@ -78,10 +78,11 @@ public class Ecology {
     for (Species p : Species.ANIMAL_SPECIES) {
       globalAbundance[p.ID] = s.loadFloat() ;
     }
-    
+    /*
     for (float ff[] : squalorMap) for (float f : ff) if (f != 0) {
       I.say("Not blank: "+f) ;
     }
+    //*/
   }
   
   

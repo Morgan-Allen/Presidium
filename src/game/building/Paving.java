@@ -18,7 +18,7 @@ public class Paving {
   
   /**  Field definitions, constructor and save/load methods-
     */
-  final static int PATH_RANGE = World.DEFAULT_SECTOR_SIZE / 2 ;
+  final static int PATH_RANGE = World.SECTOR_SIZE / 2 ;
   
   final World world ;
   PresenceMap junctions ;
@@ -52,7 +52,9 @@ public class Paving {
     s.saveObject(junctions) ;
     
     s.saveInt(allRoutes.size()) ;
-    for (Route r : allRoutes.keySet()) Route.saveRoute(r, s) ;
+    for (Route r : allRoutes.keySet()) {
+      Route.saveRoute(r, s) ;
+    }
   }
   
   
@@ -60,11 +62,23 @@ public class Paving {
   
   /**  Methods related to installation, updates and deletion of junctions-
     */
+  private void reportPath(String title, Route path) {
+    I.add(""+title+": ") ;
+    if (path == null) I.add("No path.") ;
+    else {
+      I.add("Route length: "+path.path.length+"\n  ") ;
+      int i = 0 ; for (Tile t : path.path) {
+        I.add(t.x+"|"+t.y+" ") ;
+        if (((++i % 10) == 0) && (i < path.path.length)) I.add("\n  ");
+      }
+    }
+    I.add("\n") ;
+  }
+  
+  
   public void updatePerimeter(Fixture v, boolean isMember) {
     final Tile o = v.origin() ;
-    
     final Route key = new Route(o, o), match = allRoutes.get(key) ;
-    if (match != null) world.terrain().maskAsPaved(match.path, false) ;
     
     if (isMember) {
       final Batch <Tile> around = new Batch <Tile> () ;
@@ -73,16 +87,28 @@ public class Paving {
       }
       key.path = around.toArray(Tile.class) ;
       key.cost = -1 ;
+      if (roadsEqual(key, match)) return ;
+      ///I.say("Installing perimeter for "+v) ;
+      
+      if (match != null) {
+        world.terrain().maskAsPaved(match.path, false) ;
+        allRoutes.remove(match) ;
+      }
       world.terrain().maskAsPaved(key.path, true) ;
       clearRoad(key.path) ;
       allRoutes.put(key, key) ;
+    }
+    else {
+      ///I.say("Discarding perimeter for "+v) ;
+      world.terrain().maskAsPaved(match.path, false) ;
+      allRoutes.remove(key) ;
     }
   }
   
   
   public void updateJunction(Venue v, Tile t, boolean isMember) {
     if (t == null) I.complain("CANNOT SUPPLY NULL TILE AS JUNCTION") ;
-    junctions.toggleMember(t, isMember) ;
+    junctions.toggleMember(t, t, isMember) ;
     if (isMember) {
       ///I.say("Updating road junction "+t) ;
       for (Target o : junctions.visitNear(v, PATH_RANGE + 1, null)) {
@@ -91,6 +117,7 @@ public class Paving {
       }
     }
     else {
+      I.say("Discarding junctions for "+v) ;
       ///I.say("Deleting road junction "+t) ;
       final List <Route> routes = tileRoutes.get(t) ;
       if (routes != null) for (Route r : routes) deleteRoute(r) ;

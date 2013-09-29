@@ -9,6 +9,7 @@ import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD;
 import src.user.* ;
+import src.util.I;
 import src.util.Index;
 
 
@@ -25,8 +26,11 @@ public class Garrison extends Venue implements BuildConstants {
     ) ;
   
   
+  private DrillYard drillYard ;
+  
+  
   public Garrison(Base base) {
-    super(4, 4, ENTRANCE_EAST, base) ;
+    super(4, 4, ENTRANCE_SOUTH, base) ;
     structure.setupStats(
       500, 20, 250,
       Structure.SMALL_MAX_UPGRADES, Structure.TYPE_FIXTURE
@@ -38,11 +42,13 @@ public class Garrison extends Venue implements BuildConstants {
   
   public Garrison(Session s) throws Exception {
     super(s) ;
+    drillYard = (DrillYard) s.loadObject() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveObject(drillYard) ;
   }
   
   
@@ -57,33 +63,30 @@ public class Garrison extends Venue implements BuildConstants {
     MELEE_TRAINING = new Upgrade(
       "Melee Training",
       "Prepares your soldiers for the rigours of close combat.",
-      150,
-      HAND_TO_HAND, 3, null, ALL_UPGRADES
+      150, null, 3, null, ALL_UPGRADES
     ),
     MARKSMAN_TRAINING = new Upgrade(
       "Marksman Training",
       "Prepares your soldiers for ranged marksmanship.",
-      150,
-      MARKSMANSHIP, 3, null, ALL_UPGRADES
+      150, null, 3, null, ALL_UPGRADES
     ),
-    /*
     TECHNICAL_TRAINING = new Upgrade(
       "Technical Training",
       "Prepares your soldiers with the expertise needed to pilot vehicles "+
       "and mechanical armour.",
-      PILOTING, 3, null, ALL_UPGRADES
+      200, null, 3, null, ALL_UPGRADES
     ),
     SURVIVAL_TRAINING = new Upgrade(
       "Survival Training",
       "Prepares your soldiers for guerilla warfare and wilderness survival.",
-      STEALTH_AND_COVER, 3, null, ALL_UPGRADES
+      200, null, 3, null, ALL_UPGRADES
     ),
     //*/
     VOLUNTEER_QUARTERS = new Upgrade(
       "Volunteer Quarters",
       "Dedicated in defence of their homes, a volunteer militia provides the "+
       "mainstay of your domestic forces.",
-      50,
+      100,
       Background.VOLUNTEER, 2, null, ALL_UPGRADES
     ),
     VETERAN_QUARTERS = new Upgrade(
@@ -101,7 +104,7 @@ public class Garrison extends Venue implements BuildConstants {
   
   public int numOpenings(Background v) {
     int num = super.numOpenings(v) ;
-    if (v == Background.VOLUNTEER) return num + 4 ;
+    if (v == Background.VOLUNTEER) return num + 2 ;
     if (v == Background.VETERAN  ) return num + 1 ;
     return 0 ;
   }
@@ -117,7 +120,7 @@ public class Garrison extends Venue implements BuildConstants {
     //
     //  Grab a random building nearby and patrol around it.  Especially walls.
     final Venue patrolled = (Venue) world.presences.randomMatchNear(
-      base(), this, World.DEFAULT_SECTOR_SIZE
+      base(), this, World.SECTOR_SIZE
     ) ;
     if (patrolled != null) {
       return new Patrolling(actor, patrolled, patrolled.radius() * 2) ;
@@ -129,6 +132,44 @@ public class Garrison extends Venue implements BuildConstants {
     //  TODO:  Implement patrols along the perimeter fence/shield walls...
     
     return null ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    
+    ///setAsDestroyed() ;
+    ///if (true) return ;
+    
+    
+    super.updateAsScheduled(numUpdates) ;
+    updateDrillYard() ;
+    if (! structure.intact()) return ;
+  }
+  
+  
+  protected void updateDrillYard() {
+    if (drillYard == null || drillYard.destroyed()) {
+      final DrillYard newYard = new DrillYard(this) ;
+      final Tile o = world.tileAt(this) ;
+      final TileSpread spread = new TileSpread(mainEntrance()) {
+        
+        protected boolean canAccess(Tile t) {
+          if (Spacing.distance(t, o) > World.SECTOR_SIZE) return false ;
+          return ! t.blocked() ;
+        }
+        
+        protected boolean canPlaceAt(Tile t) {
+          newYard.setPosition(t.x, t.y, t.world) ;
+          if (newYard.canPlace()) return true ;
+          return false ;
+        }
+      } ;
+      spread.doSearch() ;
+      if (spread.success()) {
+        newYard.doPlace(newYard.origin(), null) ;
+        drillYard = newYard ;
+      }
+    }
   }
   
   

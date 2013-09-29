@@ -184,7 +184,7 @@ public abstract class Plan implements Saveable, Behaviour {
   
   public static float rangePenalty(Target a, Target b) {
     if (a == null || b == null) return 0 ;
-    final float SS = World.DEFAULT_SECTOR_SIZE ;
+    final float SS = World.SECTOR_SIZE ;
     final float dist = Spacing.distance(a, b) * 1.0f / SS ;
     if (dist <= 1) return dist ;
     return IL2 * (float) Math.log(dist) ;
@@ -197,7 +197,8 @@ public abstract class Plan implements Saveable, Behaviour {
     //  path-caching.
     final Tile at = actor.world().tileAt(t) ;
     final float danger = actor.base().dangerMap.valAt(at) ;
-    return danger / (1 + Combat.combatStrength(actor, null)) ;
+    if (danger < 0) return 0 ;
+    return danger * 0.1f / (1 + Combat.combatStrength(actor, null)) ;
   }
   
   

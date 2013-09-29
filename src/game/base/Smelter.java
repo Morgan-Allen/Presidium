@@ -26,13 +26,13 @@ public class Smelter extends Venue implements BuildConstants {
   final static String IMG_DIR = "media/Buildings/artificer/" ;
   final static Model
     DRILL_MODELS[] = ImageModel.loadModels(
-      Smelter.class, 3, 3, IMG_DIR,
+      Smelter.class, 3, 3, IMG_DIR, ImageModel.TYPE_BOX,
       "isotopes_smelter_dark.gif",
       "metals_smelter_dark.gif",
       "carbons_smelter_dark.gif"
     ),
     DRILL_LIGHTS_MODELS[] = ImageModel.loadModels(
-      Smelter.class, 3, 3, IMG_DIR,
+      Smelter.class, 3, 3, IMG_DIR, ImageModel.TYPE_BOX,
       "isotopes_smelter_lights.gif",
       "metals_smelter_lights.gif",
       "carbons_smelter_lights.gif"
@@ -66,13 +66,13 @@ public class Smelter extends Venue implements BuildConstants {
   }
   
   
-  final ExcavationShaft parent ;
+  final ExcavationSite parent ;
   final Service type ;
   final int variant ;
   final Mold molds[] = new Mold[NUM_MOLDS] ;
   
   
-  public Smelter(ExcavationShaft parent, int variant) {
+  public Smelter(ExcavationSite parent, int variant) {
     super(4, 3, Venue.ENTRANCE_SOUTH, parent.base()) ;
     structure.setupStats(75, 6, 150, 0, Structure.TYPE_FIXTURE) ;
     this.parent = parent ;
@@ -85,7 +85,7 @@ public class Smelter extends Venue implements BuildConstants {
   
   public Smelter(Session s) throws Exception {
     super(s) ;
-    parent = (ExcavationShaft) s.loadObject() ;
+    parent = (ExcavationSite) s.loadObject() ;
     variant = s.loadInt() ;
     type = MINED_TYPES[variant] ;
     initMolds() ;
@@ -192,7 +192,7 @@ public class Smelter extends Venue implements BuildConstants {
     //  Ideally, you want some place that's not too close to other structures,
     //  especially of the same type, but also close to the parent shaft, and
     //  rich in associated minerals.
-    final int maxRange = World.DEFAULT_SECTOR_SIZE ;
+    final int maxRange = World.SECTOR_SIZE ;
     float parentDist = Spacing.distance(s, s.parent) ;
     float minDist = maxRange ;
     
@@ -218,7 +218,7 @@ public class Smelter extends Venue implements BuildConstants {
   }
   
   
-  static Smelter siteNewSmelter(ExcavationShaft parent, Service mined) {
+  static Smelter siteNewSmelter(ExcavationSite parent, Service mined) {
     final World world = parent.world() ;
     final int variant = variantFor(mined) ;
     Smelter bestSite = null ;
@@ -243,7 +243,7 @@ public class Smelter extends Venue implements BuildConstants {
   }
   
   
-  static Smelter cullWorst(List <Smelter> shafts, ExcavationShaft parent) {
+  static Smelter cullWorst(List <Smelter> shafts, ExcavationSite parent) {
     final World world = parent.world() ;
     final Visit <Smelter> picks = new Visit <Smelter> () {
       public float rate(Smelter s) { return 0 - rateSite(s, world) ; }

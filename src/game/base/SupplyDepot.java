@@ -91,7 +91,7 @@ public class SupplyDepot extends Venue implements
   final private int exportLevels[] = {
     -10, -10, 10, 10, 0
   } ;
-  Dropship docking = null ;
+  LandingStrip landingStrip = null ;
   
   
   
@@ -111,14 +111,14 @@ public class SupplyDepot extends Venue implements
   public SupplyDepot(Session s) throws Exception {
     super(s) ;
     for (int n = NUM_PREFS ; n-- > 0 ;) exportLevels[n] = s.loadInt() ;
-    docking = (Dropship) s.loadObject() ;
+    landingStrip = (LandingStrip) s.loadObject() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     for (int n = NUM_PREFS ; n-- > 0 ;) s.saveInt(exportLevels[n]) ;
-    s.saveObject(docking) ;
+    s.saveObject(landingStrip) ;
   }
   
   
@@ -136,28 +136,8 @@ public class SupplyDepot extends Venue implements
   }
   
   
-  public Dropship docking() {
-    return docking ;
-  }
-  
-  
-  public void setToDock(Dropship ship) {
-    docking = ship ;
-  }
-  
-  
-  public Boardable[] canBoard(Boardable batch[]) {
-    final int minSize = 2 + inside().size() ;
-    if (batch == null || batch.length < minSize) {
-      batch = new Boardable[minSize] ;
-    }
-    else for (int i = batch.length ; i-- > 1 ;) batch[i] = null ;
-    batch[0] = mainEntrance() ;
-    batch[1] = (docking != null && docking.landed()) ? docking : null ;
-    int i = 2 ; for (Mobile m : inside()) if (m instanceof Boardable) {
-      batch[i++] = (Boardable) m ;
-    }
-    return batch ;
+  public LandingStrip landingStrip() {
+    return landingStrip ;
   }
   
   
@@ -189,7 +169,7 @@ public class SupplyDepot extends Venue implements
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    if (docking != null && ! docking.inWorld()) docking = null ;
+    updateLandingStrip() ;
     if (! structure.intact()) return ;
     
     final Batch <Venue> depots = Deliveries.nearbyDepots(this, world) ;
@@ -252,6 +232,36 @@ public class SupplyDepot extends Venue implements
   
   
   
+  /**  Setting up the landing strip-
+    */
+  protected void updateLandingStrip() {
+    if (landingStrip == null || landingStrip.destroyed()) {
+      final LandingStrip newStrip = new LandingStrip(this) ;
+      final Tile o = world.tileAt(this) ;
+      
+      final TileSpread spread = new TileSpread(mainEntrance()) {
+        protected boolean canAccess(Tile t) {
+          if (Spacing.distance(t, o) > World.SECTOR_SIZE) return false ;
+          return ! t.blocked() ;
+        }
+        
+        protected boolean canPlaceAt(Tile t) {
+          newStrip.setPosition(t.x, t.y, t.world) ;
+          if (newStrip.canPlace()) return true ;
+          return false ;
+        }
+      } ;
+      spread.doSearch() ;
+      if (spread.success()) {
+        newStrip.doPlace(newStrip.origin(), null) ;
+        landingStrip = newStrip ;
+      }
+    }
+  }
+  
+  
+  
+  
   /**  Rendering and interface methods-
     */
   protected float[] goodDisplayOffsets() {
@@ -303,8 +313,6 @@ public class SupplyDepot extends Venue implements
       }
     }
   }
-  
-  
   
   
   public String fullName() {

@@ -173,7 +173,7 @@ public abstract class Actor extends Mobile implements
       actionTaken.updateAction() ;
       
       final Behaviour root = mind.rootBehaviour() ;
-      if (root != null && root.finished() && OK) {
+      if (root != null && root != actionTaken && root.finished() && OK) {
         if (verbose) I.sayAbout(this, "  ROOT BEHAVIOUR COMPLETE... "+root) ;
         mind.cancelBehaviour(root) ;
         world.schedule.scheduleNow(this) ;
@@ -216,6 +216,7 @@ public abstract class Actor extends Mobile implements
     }
     else {
       if (health.asleep() && numUpdates % 2 == 0) {
+        mind.updateAI(numUpdates) ;
         mind.getNextAction() ;
         final Behaviour root = mind.rootBehaviour() ;
         float
@@ -365,7 +366,7 @@ public abstract class Actor extends Mobile implements
   
   public void describeStatus(Description d) {
     if (! health.conscious()) { d.append(health.stateDesc()) ; return ; }
-    if (! inWorld()) { d.append("Is Offworld") ; return ; }
+    if (! inWorld()) { d.append("Offworld") ; return ; }
     final Behaviour rootB = mind.rootBehaviour() ;
     if (rootB != null) rootB.describeBehaviour(d) ;
     else d.append("Thinking") ;

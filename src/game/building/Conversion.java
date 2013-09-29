@@ -117,7 +117,7 @@ public class Conversion implements BuildConstants {
   
   
   protected int rawPriceValue() {
-    int sum = 0 ; for (Item i : raw) sum += i.price() ;
+    int sum = 0 ; for (Item i : raw) sum += i.type.basePrice ;
     return sum ;
   }
 }

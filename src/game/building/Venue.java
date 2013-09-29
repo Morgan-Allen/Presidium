@@ -7,7 +7,7 @@
 
 package src.game.building ;
 import src.game.common.* ;
-import src.game.planet.Ecology;
+import src.game.planet.* ;
 import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.* ;
@@ -37,6 +37,11 @@ public abstract class Venue extends Fixture implements
     ENTRANCE_WEST  =  W / 2,
     NUM_SIDES      =  4 ;
   final public static int
+    
+    PRIMARY_SHIFT      = 1,
+    SECONDARY_SHIFT    = 2,
+    OFF_DUTY           = 3,
+    
     SHIFTS_ALWAYS      = 0,
     SHIFTS_BY_HOURS    = 1,   //different 8-hour periods off.
     SHIFTS_BY_DAY      = 2,   //every second or third day off.
@@ -470,11 +475,12 @@ public abstract class Venue extends Fixture implements
         if (a.equals(b)) return 0 ;
         if (a.type.typeID > b.type.typeID) return  1 ;
         if (a.type.typeID < b.type.typeID) return -1 ;
+        if (a.refers != null && b.refers != null) {
+          if (a.refers.hashCode() > b.refers.hashCode()) return  1 ;
+          if (a.refers.hashCode() < b.refers.hashCode()) return -1 ;
+        }
         if (a.quality > b.quality) return  1 ;
         if (a.quality < b.quality) return -1 ;
-        if (a.refers == null || b.refers == null) return 0 ;
-        if (a.refers.hashCode() > b.refers.hashCode()) return  1 ;
-        if (a.refers.hashCode() < b.refers.hashCode()) return -1 ;
         return 0 ;
       }
     } ;
@@ -661,7 +667,7 @@ public abstract class Venue extends Fixture implements
     healthbar.size = (radius() * 50) ;
     healthbar.size *= 1 + Structure.UPGRADE_HP_BONUSES[NU] ;
     healthbar.matchTo(buildSprite) ;
-    healthbar.position.z += height() ;
+    healthbar.position.z += height() + 0.1f ;
     rendering.addClient(healthbar) ;
     
     if (base() == null) healthbar.full = Colour.LIGHT_GREY ;

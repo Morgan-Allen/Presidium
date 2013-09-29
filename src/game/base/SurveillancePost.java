@@ -113,7 +113,7 @@ public class SurveillancePost extends Venue implements BuildConstants {
     //  Return a hunting expedition.   And... just explore the place.  You'll
     //  want to make this a bit more nuanced later.
     final Choice choice = new Choice(actor) ;
-    final Actor p = Hunting.nextPreyFor(actor, World.DEFAULT_SECTOR_SIZE * 2) ;
+    final Actor p = Hunting.nextPreyFor(actor, World.SECTOR_SIZE * 2) ;
     if (p != null) {
       final Hunting h = new Hunting(actor, p, Hunting.TYPE_HARVEST) ;
       //h.priorityMod = Plan.ROUTINE ;

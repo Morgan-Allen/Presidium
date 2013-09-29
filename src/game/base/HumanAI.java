@@ -186,6 +186,11 @@ public class HumanAI extends ActorAI implements ActorConstants {
     final Action wander = (Action) new Patrolling(actor, actor, 5).nextStep() ;
     wander.setPriority(Plan.IDLE * Planet.dayValue(actor.world())) ;
     choice.add(wander) ;
+    
+    //
+    //  Training and self-improvement-
+    choice.add(Drilling.nextDrillFor(actor)) ;
+    
     //
     //  Consider going home to rest, or finding a recreational facility of
     //  some kind.  That requires iterating over various venues.
@@ -206,7 +211,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
     final boolean hasCommission = hasToDo(Commission.class) ;
     final Service DT = actor.gear.deviceType() ;
     if (DT != null && ! hasCommission) {
-      final int DQ = actor.gear.deviceEquipped().quality ;
+      final int DQ = (int) actor.gear.deviceEquipped().quality ;
       if (DQ < Item.MAX_QUALITY) {
         final Item nextDevice = Item.withQuality(DT, DQ + 1) ;
         final Venue shop = Commission.findVenue(actor, nextDevice) ;
@@ -215,7 +220,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
     }
     final Service OT = actor.gear.outfitType() ;
     if (OT != null && ! hasCommission) {
-      final int OQ = actor.gear.outfitEquipped().quality ;
+      final int OQ = (int) actor.gear.outfitEquipped().quality ;
       if (OQ < Item.MAX_QUALITY) {
         final Item nextOutfit = Item.withQuality(OT, OQ + 1) ;
         final Venue shop = Commission.findVenue(actor, nextOutfit) ;

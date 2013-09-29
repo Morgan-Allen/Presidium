@@ -25,7 +25,7 @@ public class ShieldWall extends Segment {
     IMG_DIR = "media/Buildings/military/" ;
   final static ImageModel
     SECTION_MODELS[] = ImageModel.loadModels(
-      ShieldWall.class, 2, 4, IMG_DIR,
+      ShieldWall.class, 2, 4, IMG_DIR, ImageModel.TYPE_BOX,
       "wall_segment_left.png",
       "wall_segment_right.png",
       "wall_corner.png",

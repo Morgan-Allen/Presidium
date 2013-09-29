@@ -89,26 +89,65 @@ public class HoldingExtra extends Fixture implements TileConstants {
   }
   
   
+  public String fullName() {
+    return "Accessory" ;
+  }
+  
+  
+  public String toString() {
+    return fullName() ;
+  }
+  
+  
+  public String helpInfo() {
+    return
+      "Your subjects will establish small accessories for their holdings, "+
+      "given some time and space." ;
+  }
+  
+  
+  
+  /**  Performing updates to placement and paving-
+    */
+  protected static void removeExtras(
+    Holding holding, List <HoldingExtra> extras
+  ) {
+    for (HoldingExtra extra : extras) {
+      extra.setAsDestroyed() ;
+      holding.base().paving.updatePerimeter(extra, false) ;
+    }
+  }
+  
   
   protected static void updateExtras(
     Holding holding, List <HoldingExtra> extras, int numUpdates
   ) {
-    if (numUpdates % 10 != 0) return ;
+    if (numUpdates % 10 != 0 || ! holding.structure.intact()) return ;
     I.sayAbout(holding, "Updating extras for: "+holding) ;
     
-    final World world = holding.world() ;
     final int level = 1 + (int) Math.floor(holding.upgradeLevel() / 3f) ;
+    addExtras(holding, extras, level) ;
     //
     //  Clear out any extras that were demolished, and update the level of any
     //  still standing-
     for (HoldingExtra extra : extras) {
-      if (extra.destroyed()) extras.remove(extra) ;
+      if (extra.destroyed()) {
+        extras.remove(extra) ;
+        holding.base().paving.updatePerimeter(extra, false) ;
+      }
       else {
         holding.base().paving.updatePerimeter(extra, true) ;
         extra.updateLevel(level) ;
       }
     }
+  }
+  
+  
+  private static void addExtras(
+    Holding holding, List <HoldingExtra> extras, int level
+  ) {
     final int sideSize = holding.size ;
+    final World world = holding.world() ;
     if (extras.size() >= sideSize) return ;
     //
     //  If you don't have enough extras yet, see if there's space for some on

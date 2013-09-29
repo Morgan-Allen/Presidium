@@ -24,7 +24,7 @@ public class World {
   final public static int
     
     SECTION_RESOLUTION  = 8,
-    DEFAULT_SECTOR_SIZE = 16,
+    SECTOR_SIZE = 16,
     
     STANDARD_DAY_LENGTH  = 480,
     STANDARD_YEAR_LENGTH = STANDARD_DAY_LENGTH * 60,

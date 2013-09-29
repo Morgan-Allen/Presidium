@@ -117,7 +117,7 @@ public class PathingCache {
     Boardable initB, Boardable destB, int maxLength, Mobile client
   ) {
     Boardable path[] = null ;
-    if (Spacing.distance(initB, destB) <= World.DEFAULT_SECTOR_SIZE * 2) {
+    if (Spacing.distance(initB, destB) <= World.SECTOR_SIZE * 2) {
       if (verbose) I.sayAbout(client,
         "Using simple agenda-bounded pathing between "+initB+" "+destB
       ) ;

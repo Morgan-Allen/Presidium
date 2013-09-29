@@ -38,7 +38,7 @@ public class Species implements Session.Saveable {
       Species.class, LAIR_DIR+"nest_micovore.png", 3.5f, 2
     ),
     MODEL_MIDDENS[] = ImageModel.loadModels(
-      Species.class, 1.25f, 1, LAIR_DIR,
+      Species.class, 1.25f, 1, LAIR_DIR, ImageModel.TYPE_BOX,
       "midden_a.png",
       "midden_b.png",
       "midden_c.png"
@@ -136,14 +136,14 @@ public class Species implements Session.Saveable {
     
     ANIMAL_SPECIES[] = { HUMAN, QUUD, VAREEN, MICOVORE, },
     
-    ONI_RICE    = new Species("Oni Rice"   , "", "", null, Type.FLORA),
-    DURWHEAT    = new Species("Durwheat"   , "", "", null, Type.FLORA),
-    TUBER_LILY  = new Species("Tuber Lily ", "", "", null, Type.FLORA),
-    BROADFRUITS = new Species("BroadFruits", "", "", null, Type.FLORA),
-    HIVE_CELLS  = new Species("Hive Cells" , "", "", null, Type.FLORA),
-    MUSSEL_BEDS = new Species("Mussel Beds", "", "", null, Type.FLORA),
-    PIONEERS    = new Species("Pioneers"   , "", "", null, Type.FLORA),
-    SAPLINGS    = new Species("Saplings"   , "", "", null, Type.FLORA),
+    ONI_RICE    = new Species("Oni Rice"   , "", null, null, Type.FLORA),
+    DURWHEAT    = new Species("Durwheat"   , "", null, null, Type.FLORA),
+    TUBER_LILY  = new Species("Tuber Lily ", "", null, null, Type.FLORA),
+    BROADFRUITS = new Species("BroadFruits", "", null, null, Type.FLORA),
+    HIVE_CELLS  = new Species("Hive Cells" , "", null, null, Type.FLORA),
+    MUSSEL_BEDS = new Species("Mussel Beds", "", null, null, Type.FLORA),
+    PIONEERS    = new Species("Pioneers"   , "", null, null, Type.FLORA),
+    SAPLINGS    = new Species("Saplings"   , "", null, null, Type.FLORA),
     CROP_SPECIES[] = {
       DURWHEAT, ONI_RICE, BROADFRUITS, TUBER_LILY,
       HIVE_CELLS, MUSSEL_BEDS, PIONEERS, SAPLINGS

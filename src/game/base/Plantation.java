@@ -233,7 +233,7 @@ public class Plantation extends Venue implements
       for (int c = 0, i = 0 ; c < 4 ; c++) {
         final Tile t = world.tileAt(x + CROPS_POS[i++], y + CROPS_POS[i++]) ;
         planted[c] = new Crop(
-          this, (Species) Rand.pickFrom(Species.CROP_SPECIES), t
+          this, Species.CROP_SPECIES[Rand.index(4)], t
         ) ;
       }
       refreshCropSprites() ;
@@ -386,7 +386,7 @@ public class Plantation extends Venue implements
     //  farther from other structures-
     float
       fertility = 0, num = 0,
-      minDist = World.DEFAULT_SECTOR_SIZE, parentDist = 0 ;
+      minDist = World.SECTOR_SIZE, parentDist = 0 ;
     for (Plantation p : allots) {
       parentDist += Spacing.distance(p, p.belongs) ;
       Target close = world.presences.nearestMatch(Venue.class, p, minDist) ;
@@ -403,8 +403,8 @@ public class Plantation extends Venue implements
       }
     }
     float rating = fertility / num ;
-    rating *= 1 - (parentDist / (allots.length * World.DEFAULT_SECTOR_SIZE)) ;
-    rating *= minDist / World.DEFAULT_SECTOR_SIZE ;
+    rating *= 1 - (parentDist / (allots.length * World.SECTOR_SIZE)) ;
+    rating *= minDist / World.SECTOR_SIZE ;
     return rating ;
   }
   
@@ -471,7 +471,7 @@ public class Plantation extends Venue implements
       for (Item seed : stocks.matches(SAMPLES)) {
         final Species s = (Species) seed.refers ;
         d.append("\n  Seed for "+s+" (") ;
-        d.append(Crop.HEALTH_NAMES[seed.quality]+" quality)") ;
+        d.append(Crop.HEALTH_NAMES[(int) seed.quality]+" quality)") ;
         any = true ;
       }
       if (! any) d.append(

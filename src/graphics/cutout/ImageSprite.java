@@ -49,7 +49,6 @@ public class ImageSprite extends Sprite {
     GL11.glLoadIdentity() ;
     final Colour c = colour == null ? Colour.WHITE : colour ;
     if (c.a < 0) {
-      I.say("Disregarding lighting...") ;
       GL11.glColor4f(c.r, c.g, c.b, 0 - c.a) ;
     }
     else {

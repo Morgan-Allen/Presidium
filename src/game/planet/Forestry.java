@@ -223,7 +223,7 @@ public class Forestry extends Plan implements BuildConstants {
     
     for (int n = 10 ; n-- > 0 ;) {
       tried = Spacing.pickRandomTile(
-        nursery, World.DEFAULT_SECTOR_SIZE * 2, actor.world()
+        nursery, World.SECTOR_SIZE * 2, actor.world()
       ) ;
       tried = Spacing.nearestOpenTile(toPlant, actor) ;
       if (tried == null) continue ;

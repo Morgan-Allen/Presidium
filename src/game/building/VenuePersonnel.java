@@ -112,9 +112,11 @@ public class VenuePersonnel {
   
   /**  Handling shifts and being off-duty:
     */
-  public boolean onShift(Actor worker) {
-    if (shiftType == -1) return false ;
-    if (shiftType == Venue.SHIFTS_ALWAYS) return true ;
+  public int shiftFor(Actor worker) {
+    if (shiftType == -1) return Venue.OFF_DUTY ;
+    if (shiftType == Venue.SHIFTS_ALWAYS) {
+      return Venue.PRIMARY_SHIFT ;
+    }
     final World world = venue.world() ;
     
     //
@@ -122,23 +124,35 @@ public class VenuePersonnel {
     if (shiftType == Venue.SHIFTS_BY_HOURS) {
       final int day = (int) (world.currentTime() / World.STANDARD_DAY_LENGTH) ;
       final int index = (workers.indexOf(worker) + day) % 3 ;
-      if (index == 0) return Planet.isMorning(world) ;
-      if (index == 1) return Planet.isEvening(world) ;
-      if (index == 2) return Planet.isNight(world) ;
+      final int hour =
+        Planet.isMorning(world) ? 1 :
+        (Planet.isEvening(world) ? 2 : 0) ;
+      
+      if (index == hour) return Venue.PRIMARY_SHIFT ;
+      else if (index == (hour + 1 % 3)) return Venue.SECONDARY_SHIFT ;
+      else return Venue.OFF_DUTY ;
     }
     
     if (shiftType == Venue.SHIFTS_BY_DAY) {
-      if (Planet.dayValue(world) < 0.5f) return false ;
-      final int index = workers.indexOf(worker) ;
       final int day = (int) (world.currentTime() / World.STANDARD_DAY_LENGTH) ;
-      return (index % 3) != (day % 3) ;
+      final int index = workers.indexOf(worker) ;
+      
+      if (Planet.isNight(world)) return Venue.OFF_DUTY ;
+      else if ((index % 3) == (day % 3) || Planet.dayValue(world) < 0.5f) {
+        return Venue.SECONDARY_SHIFT ;
+      }
+      else return Venue.PRIMARY_SHIFT ;
     }
     
     if (shiftType == Venue.SHIFTS_BY_CALENDAR) {
       I.complain("CALENDAR NOT IMPLEMENTED YET.") ;
     }
     
-    return false ;
+    return Venue.OFF_DUTY ;
+  }
+  
+  public boolean onShift(Actor worker) {
+    return shiftFor(worker) == Venue.PRIMARY_SHIFT ;
   }
   
   

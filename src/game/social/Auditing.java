@@ -183,7 +183,7 @@ public class Auditing extends Plan {
     
     final World world = actor.world() ;
     final PresenceMap map = world.presences.mapFor(actor.base()) ;
-    final float range = World.DEFAULT_SECTOR_SIZE ;
+    final float range = World.SECTOR_SIZE ;
     final Venue work = (Venue) actor.mind.work() ;
     
     int maxTried = 5, numTried = 0 ;

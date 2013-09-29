@@ -296,7 +296,7 @@ public class Deliveries implements BuildConstants {
     for (Item v : viable) {
       amounts[i] = roundUnit * (int) Math.ceil(v.amount * scale / roundUnit) ;
       sumAmounts += amounts[i] ;
-      sumPrice += amounts[i] * v.price() / v.amount ;
+      sumPrice += amounts[i] * origin.priceFor(v.type) ;
       i++ ;
     }
     //

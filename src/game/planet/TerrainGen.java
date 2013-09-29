@@ -42,7 +42,7 @@ public class TerrainGen implements TileConstants {
   public TerrainGen(int minSize, float typeNoise, Object... gradient) {
     this.mapSize = checkMapSize(minSize) ;
     this.typeNoise = Visit.clamp(typeNoise, 0, 1) ;
-    this.sectorGridSize = mapSize / World.DEFAULT_SECTOR_SIZE ;
+    this.sectorGridSize = mapSize / World.SECTOR_SIZE ;
     //
     //  Here, we verify amd compile the gradient of habitat proportions.
     final Batch <Habitat> habB  = new Batch <Habitat> () ;
@@ -78,7 +78,7 @@ public class TerrainGen implements TileConstants {
   /**  Generating the overall region layout:
     */
   private int checkMapSize(int minSize) {
-    int mapSize = World.DEFAULT_SECTOR_SIZE * 2 ;
+    int mapSize = World.SECTOR_SIZE * 2 ;
     while (mapSize < minSize) mapSize *= 2 ;
     if (mapSize == minSize) return mapSize ;
     I.complain("MAP SIZE MUST BE A POWER OF 2 MULTIPLE OF SECTOR SIZE.") ;
@@ -100,8 +100,8 @@ public class TerrainGen implements TileConstants {
     sectors = new Sector[GS][GS] ;
     for (Coord c : Visit.grid(0, 0, GS, GS, 1)) {
       final Sector s = new Sector() ;
-      s.coreX = (int) ((c.x + 0.5f) * World.DEFAULT_SECTOR_SIZE) ;
-      s.coreY = (int) ((c.y + 0.5f) * World.DEFAULT_SECTOR_SIZE) ;
+      s.coreX = (int) ((c.x + 0.5f) * World.SECTOR_SIZE) ;
+      s.coreY = (int) ((c.y + 0.5f) * World.SECTOR_SIZE) ;
       s.gradientID = sectorVal[c.x][c.y] ;
       ///I.say("Type ID: "+s.gradientID+", core: "+s.coreX+"|"+s.coreY) ;
       sectors[c.x][c.y] = s ;
@@ -157,7 +157,7 @@ public class TerrainGen implements TileConstants {
   private void initSectorBlends(int GS) {
     blendsX = new float[GS - 1][] ;
     blendsY = new float[GS - 1][] ;
-    final int SS = World.DEFAULT_SECTOR_SIZE, DR = DETAIL_RESOLUTION ;
+    final int SS = World.SECTOR_SIZE, DR = DETAIL_RESOLUTION ;
     for (int n = GS - 1 ; n-- > 0 ;) {
       blendsX[n] = staggeredLine(mapSize + 1, DR, SS / 2, true) ;
       blendsY[n] = staggeredLine(mapSize + 1, DR, SS / 2, true) ;

@@ -225,15 +225,19 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   
   public void maskAsPaved(Tile tiles[], boolean is) {
-    if (tiles == null) return ;
+    if (tiles == null || tiles.length == 0) return ;
+    ///if (! is) I.say("...Roads masking begins.") ;
     Box2D bounds = null ;
     for (Tile t : tiles) if (t != null) {
       if (bounds == null) bounds = new Box2D().set(t.x, t.y, 0, 0) ;
-      roadCounter[t.x][t.y] += is ? 1 : -1 ;
+      final byte c = (roadCounter[t.x][t.y] += is ? 1 : -1) ;
+      ///if (! is) I.say("  Counter is: "+c+" at "+t.x+"/"+t.y) ;
+      if (c < 0) I.complain("CANNOT HAVE NEGATIVE ROAD COUNTER: "+t) ;
       bounds.include(t.x, t.y, 0.5f) ;
     }
     bounds.expandBy(1) ;
     for (MeshPatch patch : patchesUnder(bounds)) patch.updateRoads = true ;
+    ///if (! is) I.say("...Roads masking complete.") ;
   }
   
   

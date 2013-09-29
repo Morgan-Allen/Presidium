@@ -20,11 +20,6 @@ import src.util.* ;
 //  TODO:  Get rid of the Petrocarbs production from forestry, since the Air
 //  Processor already has that covered.  (That and mining of course.)
 
-//
-//  Have research take longer, deliver samples instead of gene seed, and top
-//  up reserves of each crop individually.
-
-
 
 public class BotanicalStation extends Venue implements BuildConstants {
   
@@ -163,7 +158,9 @@ public class BotanicalStation extends Venue implements BuildConstants {
     for (Plantation p : allotments) if (p.type == Plantation.TYPE_NURSERY) {
       for (Species s : Plantation.ALL_VARIETIES) {
         if (actor.vocation() == Background.ECOLOGIST) {
-          choice.add(new SeedTailoring(actor, p, s)) ;
+          final SeedTailoring t = new SeedTailoring(actor, p, s) ;
+          if (personnel.assignedTo(t) > 0) continue ;
+          choice.add(t) ;
         }
       }
       //
@@ -177,6 +174,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
+    updateAllotments(numUpdates) ;
     //
     //  Increment demand for gene seed, and decay current stocks-
     stocks.incDemand(GENE_SEED, 5, 1) ;
@@ -187,6 +185,10 @@ public class BotanicalStation extends Venue implements BuildConstants {
     for (Item seed : stocks.matches(SAMPLES)) {
       stocks.removeItem(Item.withAmount(seed, decay)) ;
     }
+  }
+  
+  
+  protected void updateAllotments(int numUpdates) {
     //
     //  Then update the current set of allotments-
     if (numUpdates % 10 == 0) {

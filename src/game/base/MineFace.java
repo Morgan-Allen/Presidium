@@ -21,7 +21,7 @@ public class MineFace extends Element implements Boardable, TileConstants {
     */
   private static Stack <Mobile> NONE_INSIDE = new Stack <Mobile> () ;
   
-  ExcavationShaft shaft ;
+  ExcavationSite shaft ;
   Stack <Mobile> inside = NONE_INSIDE ;
   
   protected float
@@ -30,14 +30,14 @@ public class MineFace extends Element implements Boardable, TileConstants {
   
   
   
-  public MineFace(ExcavationShaft parent) {
+  public MineFace(ExcavationSite parent) {
     this.shaft = parent ;
   }
   
   
   public MineFace(Session s) throws Exception {
     super(s) ;
-    shaft = (ExcavationShaft) s.loadObject() ;
+    shaft = (ExcavationSite) s.loadObject() ;
     if (s.loadBool()) s.loadObjects(inside = new Stack <Mobile> ()) ;
     else inside = NONE_INSIDE ;
     promise = s.loadFloat() ;

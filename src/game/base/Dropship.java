@@ -240,8 +240,8 @@ public class Dropship extends Vehicle implements
   
   public void beginAscent() {
     ///I.say("BEGINNING ASCENT") ;
-    if (dropPoint instanceof SupplyDepot) {
-      ((SupplyDepot) dropPoint).setToDock(null) ;
+    if (dropPoint instanceof LandingStrip) {
+      ((LandingStrip) dropPoint).setToDock(null) ;
     }
     else if (landed()) {
       final Box2D site = new Box2D().setTo(landArea()).expandBy(-1) ;
@@ -388,26 +388,28 @@ public class Dropship extends Vehicle implements
   public boolean findLandingSite(final Base base) {
     this.assignBase(base) ;
     final World world = base.world ;
-    SupplyDepot pick = null ;
+    LandingStrip landing = null ;
     float bestRating = Float.NEGATIVE_INFINITY ;
     
     for (Object o : world.presences.matchesNear(SupplyDepot.class, this, -1)) {
-      final SupplyDepot venue = (SupplyDepot) o ;
-      if (venue.docking() != null || ! venue.structure.intact()) continue ;
+      final SupplyDepot depot = (SupplyDepot) o ;
+      final LandingStrip strip = depot.landingStrip() ;
+      if (strip == null || ! depot.structure.intact()) continue ;
+      if (strip.docking() != null || ! strip.structure.intact()) continue ;
       float rating = 0 ; for (Service good : ALL_COMMODITIES) {
-        rating += venue.exportDemand(good) + venue.importShortage(good) ;
+        rating += depot.exportDemand(good) ;
+        rating += depot.importShortage(good) ;
       }
       rating /= 2 * ALL_COMMODITIES.length ;
-      if (rating > bestRating) { pick = venue ; bestRating = rating ; }
+      if (rating > bestRating) { landing = strip ; bestRating = rating ; }
     }
     
-    if (pick != null) {
-      final SupplyDepot venue = (SupplyDepot) pick ;
-      venue.position(aimPos) ;
+    if (landing != null) {
+      landing.position(aimPos) ;
       aimPos.x += 1 ;
       aimPos.y -= 1 ;
-      dropPoint = venue ;
-      venue.setToDock(this) ;
+      dropPoint = landing ;
+      landing.setToDock(this) ;
       I.say("Landing at depot: "+dropPoint) ;
       return true ;
     }
@@ -428,7 +430,7 @@ public class Dropship extends Vehicle implements
     //
     //  Then, spread out to try and find a decent landing site-
     final Box2D area = landArea() ;
-    final int maxDist = World.DEFAULT_SECTOR_SIZE * 2 ;
+    final int maxDist = World.SECTOR_SIZE * 2 ;
     final TileSpread spread = new TileSpread(init) {
       protected boolean canAccess(Tile t) {
         if (Spacing.distance(t, init) > maxDist) return false ;

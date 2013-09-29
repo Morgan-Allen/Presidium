@@ -100,11 +100,14 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
     final boolean leaf = n.section.depth == 0 ;
     for (Object k : n) if (k != null) {
       if (leaf) {
-        final Target t = (Target) k ;
-        t.position(temp) ;
-        s.saveInt((int) temp.x) ;
-        s.saveInt((int) temp.y) ;
-        s.saveTarget(t) ;
+        //
+        //  TODO:  Later, if the section resolution goes down to the tile,
+        //         you will need to refine this.
+        final Box2D b = n.section.area ;
+        temp.set(b.xpos() + 1, b.ypos() + 1, 0) ;
+        s.saveInt((int) b.xpos() + 1) ;
+        s.saveInt((int) b.ypos() + 1) ;
+        s.saveTarget((Target) k) ;
       }
       else saveNode((Node) k, s) ;
     }
@@ -119,11 +122,12 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
   
   /**  Inserting and deleting members-
     */
+  /*
   public void toggleMember(Target t, boolean is) {
     t.position(temp) ;
     toggleAt(root, (int) temp.x, (int) temp.y, t, is) ;
   }
-  
+  //*/
   //
   //  NOTE:  This method should ONLY be used if you are very confident that the
   //  target in question either is or immediately WILL be at the given tile.
@@ -133,11 +137,27 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
   }
   
   
+  protected void printSectionFor(Target t, Node n) {
+    if (n == null) {
+      n = root ;
+    }
+    if (n.section.depth == 0) {
+      if (n.contains(t)) {
+        I.say("  "+key+" FOUND SECTION MATCHES FOR "+t) ;
+        I.say("    SECTION AT "+n.section.area) ;
+      }
+    }
+    else for (Object k : n) printSectionFor(t, (Node) k) ;
+  }
+  
+  
   private void toggleAt(Node n, int x, int y, Target t, boolean is) {
     if (n.section.depth == 0) {
       final int oldPop = n.size() ;
       if (is) n.include(t) ;
-      else n.remove(t) ;
+      else if (n.size() > 0) {
+        n.remove(t) ;
+      }
       n.population += n.size() - oldPop ;
     }
     else {
@@ -148,7 +168,10 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
         final Node k = (Node) o ;
         if (k.section == worldKid) { nodeKid = k ; break ; }
       }
-      if (nodeKid == null) n.add(nodeKid = new Node(worldKid)) ;
+      if (nodeKid == null) {
+        if (is) n.add(nodeKid = new Node(worldKid)) ;
+        else return ;
+      }
       toggleAt(nodeKid, x, y, t, is) ;
       if (nodeKid.size() == 0) n.remove(nodeKid) ;
       
@@ -186,14 +209,6 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
         if (a.node == b.node) return 0 ;
         return a.distance < b.distance ? 1 : -1 ;
       }
-      /*
-      protected boolean greater(NodeEntry a, NodeEntry b) {
-        return a.distance < b.distance ;
-      }
-      protected boolean match(NodeEntry a, NodeEntry b) {
-        return a.node == b.node ;
-      }
-      //*/
     } ;
     agenda.insert(new NodeEntry(root)) ;
     //

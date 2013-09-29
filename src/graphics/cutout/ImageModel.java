@@ -60,7 +60,6 @@ public class ImageModel extends Model {
   
   /**  Public factory methods for different model types-
     */
-
   
   public static ImageModel asPoppedModel(
     Class modelClass,
@@ -114,12 +113,14 @@ public class ImageModel extends Model {
   
   public static ImageModel[] loadModels(
     Class modelClass, float tileSize, float height,
-    String path, String... filenames
+    String path, int type, String... filenames
   ) {
     final ImageModel models[] = new ImageModel[filenames.length] ;
     int i = 0 ; for (String s : filenames) {
-      final ImageModel model = ImageModel.asIsometricModel(
-        modelClass, path+s, tileSize, height
+      final ImageModel model = new ImageModel(
+        "IMAGE-MODEL-"+s, modelClass,
+        Texture.loadTexture(path+s),
+        tileSize, height, type
       ) ;
       models[i++] = model ;
     }

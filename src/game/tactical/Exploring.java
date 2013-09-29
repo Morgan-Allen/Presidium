@@ -138,7 +138,7 @@ public class Exploring extends Plan implements ActorConstants {
         final float level = map.getAvgAt(kX, kY, high - 1) < 1 ? 1 : 0 ;
         final float distance = pos.distance(mX, mY, 0) ;
         rating = level * Rand.avgNums(2) ;
-        rating /= 1 + (distance / World.DEFAULT_SECTOR_SIZE) ;
+        rating /= 1 + (distance / World.SECTOR_SIZE) ;
         if (rating > bestRating) { picked = c ; bestRating = rating ; }
       }
       if (picked == null) return null ;

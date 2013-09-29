@@ -65,7 +65,7 @@ public class Mining extends Plan implements BuildConstants {
     //
     //  In the event that the face is worked out, and you're still on your
     //  shift, try finding a new face to work on.
-    final ExcavationShaft shaft = face.shaft ;
+    final ExcavationSite shaft = face.shaft ;
     final Boardable at = actor.aboard() ;
     boolean quits = false ;
     
@@ -113,7 +113,7 @@ public class Mining extends Plan implements BuildConstants {
   }
   
   
-  public boolean actionEnterShaft(Actor actor, ExcavationShaft shaft) {
+  public boolean actionEnterShaft(Actor actor, ExcavationSite shaft) {
     actor.goAboard(shaft, shaft.world()) ;
     //
     //  TODO:  Consider introducing security/safety measures here?
@@ -187,7 +187,7 @@ public class Mining extends Plan implements BuildConstants {
   //
   //  TODO:  You want to deliver samples, instead of delivering ores directly.
   
-  public boolean actionDeliverOres(Actor actor, ExcavationShaft shaft) {
+  public boolean actionDeliverOres(Actor actor, ExcavationSite shaft) {
     if (verbose) I.sayAbout(actor, "Returning to mine shaft.") ;
     //
     //  TODO:  Make sure these samples are of ores, not anything else!

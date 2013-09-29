@@ -167,6 +167,15 @@ public class Background implements BuildConstants {
       OVERALLS
     ),
     
+    PHYSICIAN = new Background(
+      "Physician", "physician_skin.gif", "physician_portrait.png",
+      UPPER_CLASS, GUILD_PHYSICIAN,
+      EXPERT, ANATOMY, PHARMACY,
+      PRACTICED, GENE_CULTURE, PSYCHOANALYSIS, COUNSEL, SUASION,
+      OFTEN, INQUISITIVE, SOMETIMES, HONOURABLE, IMPASSIVE, RARELY, DEBAUCHED,
+      OVERALLS
+    ),
+    
     //  TODO:  Also include the Psychoanalyst
     /*
     MONITOR = new Background(
@@ -177,15 +186,6 @@ public class Background implements BuildConstants {
       OFTEN, EMPATHIC, TRADITIONAL, RARELY, DEBAUCHED
     ),
     //*/
-    
-    PHYSICIAN = new Background(
-      "Physician", "physician_skin.gif", "physician_portrait.png",
-      UPPER_CLASS, GUILD_PHYSICIAN,
-      EXPERT, ANATOMY, PHARMACY,
-      PRACTICED, GENE_CULTURE, PSYCHOANALYSIS, COUNSEL, SUASION,
-      OFTEN, INQUISITIVE, SOMETIMES, HONOURABLE, IMPASSIVE, RARELY, DEBAUCHED,
-      OVERALLS
-    ),
     
     PHYSICIAN_CIRCLES[] = { MINDER, VAT_BREEDER, ARCHIVIST, PHYSICIAN }
   ;
@@ -209,6 +209,9 @@ public class Background implements BuildConstants {
       OVERALLS
     ),
     
+    //
+    //  TODO:  Consider making this a Military vocation instead, so that they
+    //  can drill with the rest and get appropriate pay for risks taken.
     EXPLORER = new Background(
       "Explorer", "ecologist_skin.gif", "ecologist_portrait.png",
       MIDDLE_CLASS, GUILD_ECOLOGIST,
@@ -289,6 +292,8 @@ public class Background implements BuildConstants {
       STUN_PISTOL, SHIELD_BELT
     ),
     
+    //
+    //  TODO:  Move this to the 'migrants' section, along with Free Trader.
     RUNNER = new Background(
       "Runner", "runner_skin.gif", "vendor_portrait.png",
       MIDDLE_CLASS, GUILD_MILITANT,

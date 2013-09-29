@@ -21,7 +21,7 @@ public class SolarArray extends Segment implements BuildConstants {
     IMG_DIR = "media/Buildings/ecologist/" ;
   final public static Model
     ARRAY_MODELS[] = ImageModel.loadModels(
-      SolarArray.class, 2, 2, IMG_DIR,
+      SolarArray.class, 2, 2, IMG_DIR, ImageModel.TYPE_BOX,
       "solar_array_left.png",
       "solar_array_right.png",
       "windtrap_left.png",

@@ -68,7 +68,7 @@ public class Commission extends Plan {
       return 0 ;
     }
     final float business = shop.stocks.specialOrders().size() ;
-    final int price = item.price() ;
+    final int price = (int) (shop.priceFor(item.type) * item.amount) ;
     //I.sayAbout(actor, "Get this far... "+price) ;
     if (price > actor.gear.credits()) return 0 ;
     final float costVal = actor.mind.greedFor(price) * CASUAL ;
@@ -138,7 +138,7 @@ public class Commission extends Plan {
   
   
   public boolean actionPickupItem(Actor actor, Venue shop) {
-    final int price = item.price() ;
+    final int price = (int) (shop.priceFor(item.type) * item.amount) ;
     shop.inventory().incCredits(price) ;
     actor.inventory().incCredits(0 - price) ;
     

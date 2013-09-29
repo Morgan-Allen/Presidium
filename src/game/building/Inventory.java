@@ -9,7 +9,6 @@ package src.game.building ;
 import src.game.common.* ;
 import src.util.* ;
 import src.user.* ;
-import src.game.common.Session.Saveable ;
 
 
 
@@ -26,7 +25,7 @@ public class Inventory {
   protected float credits, taxed ;
   
   private Table <Item, Item> itemTable = new Table(10) ;
-  //  private int sumGoods ;
+  //  private int sumGoods ;  //TODO:  Break into increments of 1/100th bulk.
   
   
   public Inventory(Owner owner) {
@@ -166,18 +165,17 @@ public class Inventory {
       return false ;
     }
     //
-    //  Check to see if a similar item already exists.
+    //  Check to see if a similar item already exists.  If so, blend the new
+    //  quality with the old-
     final Item oldItem = itemTable.get(item) ;
-    float amount = item.amount ;//, quality = item.quality ;
-    
+    float amount = item.amount, quality = item.quality ;
     if (oldItem != null) {
-      //I.say("Old item was "+oldItem) ;
-      //quality = (quality * amount) + (oldItem.amount * oldItem.quality) ;
+      quality = (quality * amount) + (oldItem.amount * oldItem.quality) ;
       amount += oldItem.amount ;
-      //quality /= amount ;
+      quality /= amount ;
     }
     
-    final Item entered = Item.withAmount(item, amount) ;
+    final Item entered = Item.with(item.type, item.refers, amount, quality) ;
     itemTable.put(entered, entered) ;
     if (owner != null) owner.afterTransaction(item, item.amount) ;
     return true ;

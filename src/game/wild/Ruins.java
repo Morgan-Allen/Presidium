@@ -21,7 +21,7 @@ public class Ruins extends Venue {
   /**  Construction and save/load methods-
     */
   final static Model MODEL_RUINS[] = ImageModel.loadModels(
-    Ruins.class, 4, 2, "media/Buildings/lairs and ruins/",
+    Ruins.class, 4, 2, "media/Buildings/lairs and ruins/", ImageModel.TYPE_BOX,
     "ruins_a.png",
     "ruins_b.png",
     "ruins_c.png"

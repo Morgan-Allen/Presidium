@@ -23,21 +23,27 @@ public class Smelting extends Plan implements BuildConstants {
     */
   private static boolean verbose = false ;
   
-  final ExcavationShaft shaft ;
+  final ExcavationSite shaft ;
   final Venue smeltsAt ;
+  final Service mined ;
+  final Item sample ;
   
   
-  Smelting(Actor actor, Venue smelter, ExcavationShaft shaft) {
+  Smelting(Actor actor, Venue smelter, ExcavationSite shaft, Service mined) {
     super(actor, smelter) ;
     this.shaft = shaft ;
     this.smeltsAt = smelter ;
+    this.mined = mined ;
+    sample = Item.asMatch(SAMPLES, mined) ;
   }
   
   
   public Smelting(Session s) throws Exception {
     super(s) ;
-    shaft = (ExcavationShaft) s.loadObject() ;
+    shaft = (ExcavationSite) s.loadObject() ;
     smeltsAt = (Venue) s.loadObject() ;
+    mined = (Service) s.loadObject() ;
+    sample = Item.asMatch(SAMPLES, mined) ;
   }
   
   
@@ -45,6 +51,7 @@ public class Smelting extends Plan implements BuildConstants {
     super.saveState(s) ;
     s.saveObject(shaft) ;
     s.saveObject(smeltsAt) ;
+    s.saveObject(mined) ;
   }
   
   
@@ -53,54 +60,55 @@ public class Smelting extends Plan implements BuildConstants {
     */
   public float priorityFor(Actor actor) {
     float amount = 0 ;
-    
     if (smeltsAt != shaft) {
       if (Plan.competition(Smelting.class, smeltsAt, actor) > 0) return 0 ;
       final Smelter smelter = (Smelter) smeltsAt ;
       amount += smelter.stocks.amountOf(smelter.type) ;
       amount += actor.gear.amountOf(smelter.type) ;
+      amount += smeltsAt.stocks.amountOf(SAMPLES) ;
+      return Visit.clamp(
+        (amount / 5) * Action.ROUTINE, 0, Action.URGENT
+      ) ;
     }
-    amount += smeltsAt.stocks.amountOf(SAMPLES) ;
-    
-    return Visit.clamp(
-      (amount / 5) * Action.ROUTINE, 0, Action.URGENT
-    ) ;
+    else {
+      amount += smeltsAt.stocks.amountOf(SAMPLES) ;
+      return Visit.clamp(
+        (amount / 10) * Action.ROUTINE, 0, Action.URGENT
+      ) ;
+    }
   }
   
   
   protected Behaviour getNextStep() {
     final Smelter smelter = (shaft == smeltsAt) ? null : (Smelter) smeltsAt ;
+    //if (smelter != null && smelter.type != mined) continue ;
     
-    for (Service mined : Smelter.MINED_TYPES) {
-      if (smelter != null && smelter.type != mined) continue ;
-      
-      if (smelter != null && smelter.allCooled()) {
-        final Delivery d = new Delivery(mined, smeltsAt, shaft) ;
-        if (smeltsAt.stocks.amountOf(mined) > 0) return d ;
-      }
-      
-      final Item match = Item.asMatch(SAMPLES, mined) ;
-      final float atS = smeltsAt.stocks.amountOf(match) ;
-      if (atS > 0 && shaft.personnel.onShift(actor)) {
-        final Action smelting = new Action(
-          actor, smeltsAt,
-          this, "actionSmeltOre",
-          Action.BUILD, "Smelting "+mined
-        ) ;
-        return smelting ;
-      }
-      
-      if (smelter != null && shaft.stocks.amountOf(match) > 0) {
-        final Batch <Item> matches = shaft.stocks.matches(match) ;
-        final Delivery d = new Delivery(matches, shaft, smeltsAt) ;
-        return d ;
-      }
-      
-      if (actor.gear.amountOf(match) > 0) {
-        final Batch <Item> matches = shaft.stocks.matches(match) ;
-        final Delivery d = new Delivery(matches, shaft, smeltsAt) ;
-        return d ;
-      }
+    if (smelter != null && smelter.allCooled()) {
+      final Delivery d = new Delivery(mined, smeltsAt, shaft) ;
+      if (smeltsAt.stocks.amountOf(mined) > 0) return d ;
+    }
+    
+    final Item match = Item.asMatch(SAMPLES, mined) ;
+    final float atS = smeltsAt.stocks.amountOf(match) ;
+    if (atS > 0 && shaft.personnel.onShift(actor)) {
+      final Action smelting = new Action(
+        actor, smeltsAt,
+        this, "actionSmeltOre",
+        Action.BUILD, "Smelting "+mined
+      ) ;
+      return smelting ;
+    }
+    
+    if (smelter != null && shaft.stocks.amountOf(match) > 0) {
+      final Batch <Item> matches = shaft.stocks.matches(match) ;
+      final Delivery d = new Delivery(matches, shaft, smeltsAt) ;
+      return d ;
+    }
+    
+    if (actor.gear.amountOf(match) > 0) {
+      final Batch <Item> matches = shaft.stocks.matches(match) ;
+      final Delivery d = new Delivery(matches, shaft, smeltsAt) ;
+      return d ;
     }
     return null ;
   }

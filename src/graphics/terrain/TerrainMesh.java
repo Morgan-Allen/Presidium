@@ -29,6 +29,13 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
   }
   
   
+  protected TerrainMesh(TerrainMesh refers) {
+    super(refers) ;
+    this.numTiles = refers.numTiles ;
+    assignTexture(refers.textures) ;
+  }
+  
+  
   public void assignTexture(Texture... textures) {
     this.textures = textures ;
     for (Texture t : textures) {
@@ -236,6 +243,12 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
       (float[]) geometry[2]
     ) ;
     return mesh ;
+  }
+  
+  
+  public static TerrainMesh meshAsReference(TerrainMesh origin) {
+    final TerrainMesh ref = new TerrainMesh(origin) ;
+    return ref ;
   }
   
   

@@ -192,6 +192,10 @@ public final class Tile implements
   /**  Implementing the Boardable interface-
     */
   public Boardable[] canBoard(Boardable batch[]) {
+    //
+    //  TODO:  See if this can't be made more efficient.  Try caching whenever
+    //  ownership/occupants change?
+    
     if (batch == null) batch = new Boardable[8] ;
     
     if (inside != null) {
@@ -220,7 +224,7 @@ public final class Tile implements
     }
     Spacing.cullDiagonals(batch) ;
     
-    for (int n : N_ADJACENT) if (batch[n] == null) {
+    for (int n : N_ADJACENT) {
       final Tile t = world.tileAt(x + N_X[n], y + N_Y[n]) ;
       if (t == null || ! (t.owner() instanceof Boardable)) continue ;
       final Boardable v = (Boardable) t.owner() ;

@@ -350,7 +350,7 @@ public abstract class Vehicle extends Mobile implements
   
   
   protected float fogFor(Base base) {
-    if (base == this.base) return 1 ;
+    if (base == this.base) return (1 + super.fogFor(base)) / 2f ;
     return super.fogFor(base) ;
   }
   

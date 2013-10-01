@@ -107,7 +107,7 @@ public class CultureVats extends Venue implements BuildConstants {
     
     float needPower = 5 ;
     if (! isManned()) needPower /= 2 ;
-    stocks.incDemand(POWER, needPower, 1) ;
+    stocks.incDemand(POWER, needPower, VenueStocks.TIER_CONSUMER, 1) ;
     stocks.bumpItem(POWER, needPower * -0.1f) ;
     
     final int cycleBonus = bonusFor(WASTE_DISPOSAL, 1) ;

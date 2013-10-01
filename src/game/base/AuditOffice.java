@@ -132,7 +132,7 @@ public class AuditOffice extends Venue implements BuildConstants {
     
     float needPower = 2 ;
     if (! isManned()) needPower = 0 ;
-    stocks.forceDemand(POWER, needPower, 0) ;
+    stocks.forceDemand(POWER, needPower, VenueStocks.TIER_CONSUMER) ;
     stocks.bumpItem(POWER, needPower * -0.1f) ;
     
     //

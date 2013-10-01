@@ -6,10 +6,13 @@
 
 package src.graphics.common ;
 import src.util.* ;
+
 import java.awt.image.* ;
 import java.io.* ;
 import java.nio.* ;
+
 import javax.imageio.* ;
+
 import org.lwjgl.opengl.* ;
 import org.lwjgl.* ;
 
@@ -183,6 +186,7 @@ final public class Texture {
   public void putBytes(byte vals[]) {
     buffer.clear() ;
     buffer.put(vals) ;
+    this.cached = false ;
   }
   
   

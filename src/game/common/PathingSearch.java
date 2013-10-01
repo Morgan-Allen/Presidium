@@ -20,13 +20,12 @@ public class PathingSearch extends Search <Boardable> {
     */
   final protected Boardable destination ;
   public Mobile client = null ;
-  private Target aimPoint = null ;
+  private Boardable aimPoint = null ;
   
   private Boardable closest ;
   private float closestDist ;
   private Boardable batch[] = new Boardable[8] ;
-  private Tile tileB[] = new Tile[8] ;
-  
+  ///private Tile tileB[] = new Tile[8] ;
   //
   //  TODO:  Incorporate the Places-search constraint code here.
   //  TODO:  Allow for airborne pathing.
@@ -45,7 +44,14 @@ public class PathingSearch extends Search <Boardable> {
     this.closest = init ;
     this.closestDist = Spacing.distance(init, dest) ;
     if (destination instanceof Venue) {
-      aimPoint = ((Venue) destination).mainEntrance() ;
+      final Venue venue = (Venue) destination ;
+      aimPoint = venue.mainEntrance() ;
+      if (! venue.isEntrance(aimPoint)) {
+        I.complain("DESTINATION CANNOT ACCESS TARGET POINT!") ;
+      }
+      if (! Visit.arrayIncludes(aimPoint.canBoard(null), destination)) {
+        I.complain("TARGET POINT CANNOT ACCESS DESTINATION!") ;
+      }
     }
     if (aimPoint == null) aimPoint = destination ;
   }
@@ -63,16 +69,22 @@ public class PathingSearch extends Search <Boardable> {
     ) ;
     super.doSearch() ;
     if (verbose) {
-      if (success()) I.say("  Success!") ;
-      else I.say("  Failed.") ;
+      if (success()) I.say("\n  Success!") ;
+      else I.say("\n  Failed.") ;
+      I.say("  Closest approach: "+closest+", aimed for "+aimPoint) ;
     }
     return this ;
   }
   
   
   protected void tryEntry(Boardable spot, Boardable prior, float cost) {
-    final float spotDist = Spacing.distance(spot, destination) ;
-    if (spotDist < closestDist) {
+    final float spotDist = Spacing.distance(spot, aimPoint) ;
+    if (spot == aimPoint) {
+      if (verbose) I.say("\nMET AIM POINT: "+aimPoint) ;
+      closest = spot ;
+      closestDist = spotDist ;
+    }
+    else if (spotDist < closestDist) {
       closest = spot ;
       closestDist = spotDist ;
     }
@@ -157,5 +169,8 @@ public class PathingSearch extends Search <Boardable> {
     return best == destination ;
   }
 }
+
+
+
 
 

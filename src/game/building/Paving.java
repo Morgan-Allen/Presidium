@@ -58,6 +58,28 @@ public class Paving {
   }
   
   
+  //
+  //  Note:  This method only works when you only have a single base in the
+  //         world...
+  public void checkConsistency() {
+    final byte mask[][] = new byte[world.size][world.size] ;
+    boolean okay = true ;
+    
+    for (Route route : allRoutes.keySet()) {
+      for (Tile t : route.path) mask[t.x][t.y]++ ;
+    }
+    
+    for (Coord c : Visit.grid(0, 0, world.size, world.size, 1)) {
+      final Tile t = world.tileAt(c.x, c.y) ;
+      if (mask[c.x][c.y] != world.terrain().roadMask(t)) {
+        I.say("Discrepancy at: "+c.x+" "+c.y) ;
+        okay = false ;
+      }
+    }
+    if (okay) I.say("No discrepancies in paving map found.") ;
+  }
+  
+  
   
   
   /**  Methods related to installation, updates and deletion of junctions-
@@ -88,7 +110,7 @@ public class Paving {
       key.path = around.toArray(Tile.class) ;
       key.cost = -1 ;
       if (roadsEqual(key, match)) return ;
-      ///I.say("Installing perimeter for "+v) ;
+      //I.say("Installing perimeter for "+v) ;
       
       if (match != null) {
         world.terrain().maskAsPaved(match.path, false) ;
@@ -98,8 +120,9 @@ public class Paving {
       clearRoad(key.path) ;
       allRoutes.put(key, key) ;
     }
-    else {
-      ///I.say("Discarding perimeter for "+v) ;
+    else if (match != null) {
+      //I.say("Discarding perimeter for "+v) ;
+      //reportPath("Old route", match) ;
       world.terrain().maskAsPaved(match.path, false) ;
       allRoutes.remove(key) ;
     }
@@ -117,10 +140,15 @@ public class Paving {
       }
     }
     else {
-      I.say("Discarding junctions for "+v) ;
-      ///I.say("Deleting road junction "+t) ;
+      ///I.say("Discarding junctions for "+v) ;
       final List <Route> routes = tileRoutes.get(t) ;
-      if (routes != null) for (Route r : routes) deleteRoute(r) ;
+      if (routes != null) {
+        for (Route r : routes) {
+          if (r.cost < 0) continue ;
+          deleteRoute(r) ;
+          r.cost = -1 ;
+        }
+      }
     }
   }
   

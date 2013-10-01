@@ -19,17 +19,15 @@ public class IntelMap {
   final Base base ;
   private World world = null ;
   
-  float fogVals[][] ;
-  MipMap fogMap ;
-  
   //  Note:  Any previously-explored tile will have a minimum fog value of
   //  0.5, or 0.3, or something.  That way, you still get the 'fadeout' effect
   //  at the edge of an actor's vision.
+  float fogVals[][] ;
+  MipMap fogMap ;
   
-  ///float dangerLevel ;
-  //  Create old and new fog maps later on.  Have one fade in completely before
-  //  you fade the other out, every half-second or so.
-  private Texture fogTex ;
+  private Texture fogTex, oldTex ;
+  private byte fogBytes[], newBytes[] ;
+  private float lastFogTime = -1 ;
   
   
   
@@ -45,18 +43,27 @@ public class IntelMap {
     fogMap = new MipMap(size) ;
     
     fogTex = Texture.createTexture(size, size) ;
-    byte vals[] = new byte[size * size * 4] ;
-    for (int i = vals.length ; i-- > 0 ;) vals[i] = (byte) 0xff ;
-    fogTex.putBytes(vals) ;
+    oldTex = Texture.createTexture(size, size) ;
+    fogBytes = new byte[size * size * 4] ;
+    newBytes = new byte[size * size * 4] ;
+    
+    for (int i = fogBytes.length ; i-- > 0 ;) {
+      fogBytes[i] = newBytes[i] = (i % 4 == 3) ? (byte) 0xff : 0 ;
+    }
+    fogTex.putBytes(newBytes) ;
+    oldTex.putBytes(fogBytes) ;
   }
   
   
   public void loadState(Session s) throws Exception {
     initFog(world = s.world()) ;
     for (Coord c : Visit.grid(0,  0, world.size, world.size, 1)) {
-      final float val = fogVals[c.x][c.y] = s.loadFloat() ;
-      fogTex.putColour(Colour.transparency(1 - val), c.x, c.y) ;
+      fogVals[c.x][c.y] = s.loadFloat() ;
     }
+    s.loadByteArray(fogBytes) ;
+    s.loadByteArray(newBytes) ;
+    oldTex.putBytes(fogBytes) ;
+    fogTex.putBytes(newBytes) ;
     fogMap.loadFrom(s.input()) ;
   }
   
@@ -66,6 +73,8 @@ public class IntelMap {
     for (Coord c : Visit.grid(0,  0, size, size, 1)) {
       s.saveFloat(fogVals[c.x][c.y]) ;
     }
+    s.saveByteArray(fogBytes) ;
+    s.saveByteArray(newBytes) ;
     fogMap.saveTo(s.output()) ;
   }
   
@@ -75,27 +84,94 @@ public class IntelMap {
   }
   
   
-  public Texture fogTex() {
-    return fogTex ;
-  }
-  
-  
   public World world() {
     return world ;
   }
   
   
   
+  /**  Visual refreshment-
+    */
+  public void updateFogBuffers(float fogTime) {
+    final boolean needsUpdate = ((int) fogTime) != ((int) lastFogTime) ;
+    lastFogTime = fogTime ;
+    if (! needsUpdate) return ;
+    //
+    //  You need to make the current fogTex into oldTex.
+    Texture heldTex = oldTex ;
+    oldTex = fogTex ;
+    fogTex = heldTex ;
+    //
+    //  Then, you need to stuff newBytes into fogTex.
+    fogTex.putBytes(fogBytes) ;
+    //
+    //  Then clear newBytes.
+    byte heldBytes[] = newBytes ;
+    fogBytes = newBytes ;
+    newBytes = new byte[world.size * world.size * 4] ;
+    for (int i = newBytes.length ; i-- > 0 ;) {
+      newBytes[i] = heldBytes[i] ;
+    }
+  }
+  
+  
+  public Texture fogTex() {
+    return fogTex ;
+  }
+  
+  
+  public Texture oldFogTex() {
+    return oldTex ;
+  }
+  
+  
+  private void stuffDisplayVal(final float val, final int x, final int y) {
+    int off = ((y * world.size) + x) * 4 ;
+    final byte
+      tone  =  0,//(byte) (val * 255),
+      alpha = (byte) ((1 - val) * 255) ;
+    newBytes[off++] = tone ;
+    newBytes[off++] = tone ;
+    newBytes[off++] = tone ;
+    newBytes[off] = alpha ;
+  }
+  
+  
+  public float displayFog(Tile t) {
+    if (GameSettings.noFog) return 1 ;
+    float time = world.currentTime() ;
+    time += PlayLoop.frameTime() / PlayLoop.UPDATES_PER_SECOND ;
+    time /= 2 ;
+    time %= 1 ;
+    //
+    //  Blend the old and new fog values here.
+    final int off = ((t.y * world.size) + t.x) * 4 ;
+    final float
+      oldVal = (fogBytes[off + 3] & 0xff) / 255f,
+      newVal = (newBytes[off + 3] & 0xff) / 255f ;
+    //
+    //  TODO:  This all seems a mite finicky and byte-order dependant.  Try to
+    //  ensure this stays viable cross-platform.
+    //
+    //  TODO:  Better yet, create a dedicated FogBuffer class, and stick it in
+    //  there.
+    return 1 - ((oldVal * (1 - time)) + (time * newVal)) ;
+  }
+  
+  
+  
   /**  Queries and modifications-
     */
+  public void updateFog() {
+    
+  }
+  
+  
   public float fogAt(Tile t) {
     if (GameSettings.noFog) return 1 ;
     return fogVals[t.x][t.y] ;
   }
   
-  //
-  //  You also need to check for nearby actors, and incorporate an estimate of
-  //  the danger they pose.
   
   public int liftFogAround(Target target, float radius) {
     //
@@ -122,7 +198,7 @@ public class IntelMap {
       //  rendering data-
       if (oldVal != newVal) {
         if (newVal == 1) fogMap.set((byte) 1, t.x, t.y) ;
-        fogTex.putColour(Colour.transparency(1 - newVal), t.x, t.y) ;
+        stuffDisplayVal(newVal, t.x, t.y) ;
       }
       tilesSeen += lift - oldVal ;
     }

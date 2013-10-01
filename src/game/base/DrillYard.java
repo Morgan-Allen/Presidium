@@ -12,7 +12,8 @@ import src.user.* ;
 import src.util.* ;
 
 
-
+//
+//  Dummies have to be given names.  And probably a dedicated class.
 
 
 public class DrillYard extends Venue {
@@ -27,7 +28,7 @@ public class DrillYard extends Venue {
       DrillYard.class, IMG_DIR+"drill_yard.png", 5, 4
     ),
     DRILL_MODELS[] = ImageModel.loadModels(
-      DrillYard.class, 2, 1, IMG_DIR, ImageModel.TYPE_POPPED_BOX,
+      DrillYard.class, 2, 1, IMG_DIR, ImageModel.TYPE_BOX,
       "drill_melee.png",
       "drill_ranged.png",
       "drill_pilot_sim.png",
@@ -36,45 +37,67 @@ public class DrillYard extends Venue {
   
   
   final public static int
-    STATE_NONE            = 0,
-    STATE_DRILL_MELEE     = 1,
-    STATE_DRILL_RANGED    = 2,
-    STATE_DRILL_PILOT_SIM = 3,
-    STATE_DRILL_SURVIVAL  = 4,
-    STATE_RED_ALERT       = 5,
-    ALL_STATES[] = { 0, 1, 2, 3, 4, 5 } ;
+    NOT_DRILLING    = -1,
+    DRILL_MELEE     =  0,
+    DRILL_RANGED    =  1,
+    DRILL_PILOT_SIM =  2,
+    DRILL_SURVIVAL  =  3,
+    NUM_DRILLS      =  4,
+    
+    STATE_RED_ALERT =  5,
+    DRILL_STATES[] = { 0, 1, 2, 3 },
+    
+    NUM_DUMMIES = 4 ;
   final static String DRILL_STATE_NAMES[] = {
-    "None", "Melee", "Ranged", "Pilot Sim", "Survival", "RED ALERT"
+    "Close Combat", "Target Practice", "Pilot Simulation", "Survival Course"
   } ;
   
   
   
-  final Garrison belongs ;
-  private int state = STATE_NONE ;
+  final public Garrison belongs ;
+  protected Element dummies[] = new Element[NUM_DUMMIES] ;
+  
+  protected int drill = NOT_DRILLING, nextDrill = NOT_DRILLING ;
+  protected int equipQuality = -1 ;
+  protected boolean drillOrders[] = new boolean[NUM_DRILLS] ;
+  
+  
   
   
   public DrillYard(Garrison belongs) {
-    super(5, 0, ENTRANCE_EAST, belongs.base()) ;
+    super(5, 1, ENTRANCE_EAST, belongs.base()) ;
     structure.setupStats(50, 10, 25, 0, Structure.TYPE_FIXTURE) ;
     this.belongs = belongs ;
     
     final GroupSprite sprite = new GroupSprite() ;
     sprite.attach(YARD_MODEL, 0, 0, -0.05f) ;
     attachSprite(sprite) ;
+    setupDummies() ;
   }
   
 
   public DrillYard(Session s) throws Exception {
     super(s) ;
     belongs = (Garrison) s.loadObject() ;
-    state = s.loadInt() ;
+    for (int i = 0 ; i < NUM_DRILLS ; i++) {
+      dummies[i] = (Element) s.loadObject() ;
+    }
+    
+    drill = s.loadInt() ;
+    nextDrill = s.loadInt() ;
+    equipQuality = s.loadInt() ;
+    for (int i = 0 ; i < NUM_DRILLS ; i++) drillOrders[i] = s.loadBool() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveObject(belongs) ;
-    s.saveInt(state) ;
+    for (Element e : dummies) s.saveObject(e) ;
+    s.saveInt(drill) ;
+    s.saveInt(nextDrill) ;
+    s.saveInt(equipQuality) ;
+    for (boolean b : drillOrders) s.saveBool(b) ;
   }
   
   
@@ -115,6 +138,13 @@ public class DrillYard extends Venue {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
+    
+    int numModes = 0 ;
+    for (boolean b : drillOrders) if (b) numModes++ ;
+    if (numModes > 0) {
+      final int hour = (int) ((world.currentTime() % 1) * 12) ;
+      nextDrill = hour % numModes ;
+    }
   }
   
   
@@ -125,87 +155,85 @@ public class DrillYard extends Venue {
   public Behaviour jobFor(Actor actor) { return null ; }
   
   
-  protected void switchDrillState(int newState) {
-    final int oldState = state ;
-    state = newState ;
-    if (newState != oldState) updateSprite() ;
-  }
   
-  
-  
+  /**  Helping to configure drill actions-
+    */
   final static float
     MELEE_OFFS[] = {
-      1, 0,  1, 1,  1, 2,  1, 3,  1, 5
+      1, 0,  1, 1,  1, 2,  1, 3,
     },
     RANGED_OFFS[] = {
-      3, 0,  3, 1,  3, 2,  3, 3,  3, 5
+      3, 0,  3, 1,  3, 2,  3, 3,
     },
     PILOT_OFFS[] = {
-      2, 0,  2, 1,  2, 2,  2, 3,  2, 5
+      2, 0,  2, 1,  2, 2,  2, 3,
     },
     SURVIVE_OFFS[] = {
-      0, 0,  0, 3,  4, 3,  4, 0,  2, 1.5f
+      0, 0,  0, 3,  4, 3,  4, 0,
     },
-    DUMMY_OFFS[][] = {
-      {0.5f, 1.0f},  {0.5f, 3.0f}
+    DUMMY_OFFS[] = {
+      0, 0,  0, 1,  0, 2,  0, 3
     }
   ;
   
   
-  private Tile nextOffFree(float offs[], Actor actor) {
+  private void setupDummies() {
     final Tile o = origin() ;
-    posLoop : for (int n = 0 ; n < offs.length ;) {
+    for (int i = NUM_DUMMIES, c = 0 ; i-- > 0 ;) {
+      final Tile t = world.tileAt(
+        o.x + DUMMY_OFFS[c++],
+        o.y + DUMMY_OFFS[c++]
+      ) ;
+      if (dummies[i] == null) dummies[i] = new Element(t, null) ;
+    }
+  }
+  
+  
+  protected Target nextDummyFree(int drillType, Actor actor) {
+    for (Element e : dummies) {
+      if (Plan.competition(Drilling.class, e, actor) > 0) continue ;
+      return e ;
+    }
+    return null ;
+  }
+  
+  
+  protected Target nextMoveTarget(Target dummy, Actor actor) {
+    float offs[] = null ; switch (drill) {
+      case (DRILL_MELEE    ) : offs = MELEE_OFFS   ; break ;
+      case (DRILL_RANGED   ) : offs = RANGED_OFFS  ; break ;
+      case (DRILL_PILOT_SIM) : offs = PILOT_OFFS   ; break ;
+      case (DRILL_SURVIVAL ) : offs = SURVIVE_OFFS ; break ;
+      default: return null ;
+    }
+    final Tile o = origin() ;
+    for (int i = dummies.length, n = 0 ; i-- > 0 ;) {
       final Tile t = world.tileAt(o.x + offs[n++], o.y + offs[n++]) ;
-      for (Mobile m : t.inside()) {
-        if (m != actor) continue posLoop ;
-      }
-      return t ;
+      if (dummies[i] == dummy) return t ;
     }
     return null ;
-  }
-  
-  
-  protected Target nextMoveTarget(int drillType, Actor actor) {
-    switch (drillType) {
-      case (STATE_NONE) : return null ;
-      case (STATE_DRILL_MELEE ) : return nextOffFree(MELEE_OFFS, actor) ;
-      case (STATE_DRILL_RANGED) : return nextOffFree(RANGED_OFFS, actor) ;
-    }
-    return null ;
-  }
-  
-  
-  protected Target nextLookTarget(int drillType, Target moveTarget) {
-    if (moveTarget == null) return null ;
-    //
-    //  Return whichever dummy is closest.
-    final Batch <Target> dummies = new Batch <Target> () ;
-    for (float c[] : DUMMY_OFFS) {
-      dummies.add(world.tileAt(c[0], c[1])) ;
-    }
-    return Spacing.nearest(dummies, moveTarget) ;
-  }
-  
-  
-  private int bonus(Upgrade u) {
-    return (belongs.structure.upgradeLevel(u) + 1) * 5 / 2 ;
   }
   
   
   protected int drillDC(int drillType) {
-    switch (drillType) {
-      case (STATE_NONE) : return 0 ;
-      case (STATE_DRILL_MELEE    ) : return bonus(Garrison.MELEE_TRAINING    ) ;
-      case (STATE_DRILL_RANGED   ) : return bonus(Garrison.MARKSMAN_TRAINING ) ;
-      case (STATE_DRILL_PILOT_SIM) : return bonus(Garrison.TECHNICAL_TRAINING) ;
-      case (STATE_DRILL_SURVIVAL ) : return bonus(Garrison.SURVIVAL_TRAINING ) ;
+    if (drillType != drill) return 0 ;
+    return equipQuality ;
+  }
+  
+  
+  protected Upgrade bonusFor(int state) {
+    switch (state) {
+      case (DRILL_MELEE    ) : return Garrison.MELEE_TRAINING     ;
+      case (DRILL_RANGED   ) : return Garrison.MARKSMAN_TRAINING  ;
+      case (DRILL_PILOT_SIM) : return Garrison.TECHNICAL_TRAINING ;
+      case (DRILL_SURVIVAL ) : return Garrison.SURVIVAL_TRAINING  ;
     }
-    return 5 ;
+    return null ;
   }
   
   
   public int drillType() {
-    return state ;
+    return drill ;
   }
   
   
@@ -215,8 +243,8 @@ public class DrillYard extends Venue {
   protected void updateSprite() {
     final GroupSprite s = (GroupSprite) buildSprite().baseSprite() ;
     final Model m =
-      (state > 0 && state < STATE_RED_ALERT) ?
-      DRILL_MODELS[state - 1] : null ;
+      (drill == NOT_DRILLING || drill == STATE_RED_ALERT) ?
+      null : DRILL_MODELS[drill] ;
     
     final ImageSprite old1 = (ImageSprite) s.atIndex(1) ;
     if (old1 != null && old1.model() == m) return ;
@@ -261,18 +289,19 @@ public class DrillYard extends Venue {
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
     super.writeInformation(d, categoryID, UI) ;
-    //
-    //  TODO:  You want to be able to toggle on and off different drill types,
-    //  and the garrison will be responsible for setting up the equipment at
-    //  different times of day so as to alternate between them.
-    
     if (categoryID == 0) {
-      d.append("\n\nToggle Drill Types:") ;
-      for (final int s : ALL_STATES) {
+      d.append("\n\nDrill Orders:") ;
+      for (final int s : DRILL_STATES) {
         d.append("\n  ") ;
         d.append(new Description.Link(DRILL_STATE_NAMES[s]) {
-          public void whenClicked() { switchDrillState(s) ; }
-        }, s == state ? Colour.GREEN : Colour.BLUE) ;
+          public void whenClicked() {
+            drillOrders[s] = ! drillOrders[s] ;
+          }
+        }) ;
+        if (drillOrders[s]) d.append(" (Scheduled)") ;
+      }
+      if (nextDrill != NOT_DRILLING) {
+        d.append("\n\nNext Drill: "+DRILL_STATE_NAMES[nextDrill]) ;
       }
     }
   }
@@ -282,6 +311,37 @@ public class DrillYard extends Venue {
 
 
 
+
+
+/*
+private Tile nextOffFree(float offs[], Actor actor) {
+  final Tile o = origin() ;
+  posLoop : for (int n = 0 ; n < offs.length ;) {
+    final Tile t = world.tileAt(o.x + offs[n++], o.y + offs[n++]) ;
+    for (Mobile m : t.inside()) {
+      if (m != actor) continue posLoop ;
+    }
+    return t ;
+  }
+  return null ;
+}
+
+
+protected Target nextMoveTarget(int drillType, Actor actor) {
+  switch (drillType) {
+    case (NOT_DRILLING) : return null ;
+    case (DRILL_MELEE ) : return nextOffFree(MELEE_OFFS, actor) ;
+    case (DRILL_RANGED) : return nextOffFree(RANGED_OFFS, actor) ;
+  }
+  return null ;
+}
+
+
+protected Target nextLookTarget(int drillType, Target moveTarget) {
+  if (moveTarget == null) return null ;
+  return Spacing.nearest(dummies, moveTarget) ;
+}
+//*/
 
 
 

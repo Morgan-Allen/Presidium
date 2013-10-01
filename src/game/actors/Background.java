@@ -292,14 +292,12 @@ public class Background implements BuildConstants {
       STUN_PISTOL, SHIELD_BELT
     ),
     
-    //
-    //  TODO:  Move this to the 'migrants' section, along with Free Trader.
-    RUNNER = new Background(
-      "Runner", "runner_skin.gif", "vendor_portrait.png",
+    SCOUT = new Background(
+      "Scout", "ecologist_skin.gif", "militant_portrait.png",
       MIDDLE_CLASS, GUILD_MILITANT,
-      EXPERT, PILOTING, MARKSMANSHIP, STEALTH_AND_COVER,
-      PRACTICED, SUASION, SURVEILLANCE, MASQUERADE,
-      OFTEN, ACQUISITIVE, SOMETIMES, NERVOUS, RARELY, HONOURABLE,
+      PRACTICED, MARKSMANSHIP, SURVEILLANCE, STEALTH_AND_COVER,
+      NOVICE, XENOZOOLOGY, ATHLETICS, HAND_TO_HAND,
+      RARELY, NERVOUS, SOMETIMES, INQUISITIVE,
       PHASE_BLASTER, CAMOUFLAGE
     ),
     
@@ -312,7 +310,7 @@ public class Background implements BuildConstants {
       TASE_STAFF, PHASE_BLASTER, BODY_ARMOUR
     ),
     
-    MILITARY_CIRCLES[] = { VOLUNTEER, RESERVIST, RUNNER, VETERAN }
+    MILITARY_CIRCLES[] = { VOLUNTEER, RESERVIST, SCOUT, VETERAN }
   ;
   
   final public static Background
@@ -362,13 +360,22 @@ public class Background implements BuildConstants {
   final public static Background
     //
     //  Scavengers represent the unemployed/homeless/penniless who want to
-    //  leave your settlement, but can't.
+    //  leave your settlement, but can't.  Free Traders peddle small goods.
     SCAVENGER = new Background(
       "Scavenger", "native_skin.gif", null,
       SLAVE_CLASS, NOT_A_GUILD,
       NOVICE, STEALTH_AND_COVER, LEARNING, HANDICRAFTS,
       OFTEN, NERVOUS, ACQUISITIVE, RARELY, INDOLENT
     ),
+    /*
+    FREE_TRADER = new Background(
+      "Free Trader", "pyon_skin.gif", null,
+      LOWER_CLASS, NOT_A_GUILD,
+      PRACTICED, SUASION, NOVICE, HANDICRAFTS, ADMINISTRATION, DOMESTICS,
+      NATIVE_TABOO, COMMON_CUSTOM,
+      SOMETIMES, SOCIABLE, FRIENDLY, RARELY, NERVOUS, AMBITIOUS
+    ),
+    //*/
     //
     //  Mechanics and captains keep your dropships in working order.
     SHIP_MECHANIC = new Background(
@@ -385,8 +392,18 @@ public class Background implements BuildConstants {
       STUN_PISTOL, PARTIAL_ARMOUR
     ),
     //
-    //  Companions won't generally stay put, but might visit your settlement if
-    //  the place is nice.
+    //  These classes won't generally stay put, but might visit your settlement
+    //  if the place needs their services.
+    /*
+    RUNNER = new Background(
+      "Runner", "runner_skin.gif", "vendor_portrait.png",
+      MIDDLE_CLASS, NOT_A_GUILD,
+      EXPERT, PILOTING, MARKSMANSHIP, STEALTH_AND_COVER,
+      PRACTICED, SUASION, SURVEILLANCE, MASQUERADE,
+      OFTEN, ACQUISITIVE, SOMETIMES, NERVOUS, RARELY, HONOURABLE,
+      PHASE_BLASTER, CAMOUFLAGE
+    ),
+    //*/
     COMPANION = new Background(
       "Companion", "aesthete_female_skin.gif", "aesthete_portrait.png",
       UPPER_CLASS, NOT_A_GUILD,
@@ -411,7 +428,7 @@ public class Background implements BuildConstants {
       "Gatherer", "native_skin.gif", null,
       LOWER_CLASS, NOT_A_GUILD,
       EXPERT, HANDICRAFTS, PRACTICED, DOMESTICS, CULTIVATION, HARD_LABOUR,
-      NATIVE_TABOO,
+      NATIVE_TABOO, NOVICE, MASQUERADE,
       RARELY, INDOLENT, OFTEN, SOCIABLE
     ),
     HUNTER = new Background(
@@ -420,7 +437,7 @@ public class Background implements BuildConstants {
       EXPERT, SURVEILLANCE, STEALTH_AND_COVER,
       PRACTICED, MARKSMANSHIP, XENOZOOLOGY, ATHLETICS,
       NOVICE, HAND_TO_HAND, HANDICRAFTS, MASQUERADE,
-      OFTEN, NATURALIST
+      SOMETIMES, NATURALIST
     ),
     CHIEFTAIN = new Background(
       "Chieftain", "native_skin.gif", null,
@@ -522,12 +539,14 @@ public class Background implements BuildConstants {
     //
     //  Ministers confer the benefits of a portion of their skills on the
     //  planet as a whole (including stuff off the main map.)
-    MINISTER_FOR_ACCOUNTS    = null,
-    MINISTER_FOR_PROPAGANDA  = null,
-    MINISTER_FOR_HEALTH      = null,
-    MASTER_OF_ASSASSINS      = null,
-    WARMASTER                = null,
-    PLANETOLOGIST            = null,
+    MASTER_OF_ASSASSINS     = null,
+    WARMASTER               = null,
+    CHIEF_ARTIFICER         = null,
+    PLANETOLOGIST           = null,
+    MINISTER_FOR_HEALTH     = null,
+    MINISTER_FOR_ACCOUNTS   = null,
+    MINISTER_FOR_PROPAGANDA = null,
+    FIRST_CONSORT           = null,
     //
     //  These positions are for the benefit of citizens elected at the Counsel
     //  Chamber.  TODO:  Add these later.

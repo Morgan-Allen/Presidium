@@ -175,9 +175,12 @@ public class SupplyDepot extends Venue implements
     final Batch <Venue> depots = Deliveries.nearbyDepots(this, world) ;
     for (Service type : ALL_COMMODITIES) {
       final int level = exportLevel(type) ;
-      if (level > 0) {
-        stocks.forceDemand(type, exportDemand(type), 0) ;
-      }
+      if (level > 0) stocks.forceDemand(
+        type, level, VenueStocks.TIER_CONSUMER
+      ) ;
+      if (level < 0) stocks.forceDemand(
+        type, 0 - level, VenueStocks.TIER_PRODUCER
+      ) ;
       stocks.diffuseDemand(type, depots) ;
       stocks.diffuseDemand(type) ;
     }

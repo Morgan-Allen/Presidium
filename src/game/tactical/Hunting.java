@@ -149,10 +149,10 @@ public class Hunting extends Combat implements BuildConstants {
     //  mode to get closer.  If they spot you, charge.
     //float dist = Spacing.distance(actor, prey) ;
     
-    if (prey.mind.canSee(actor)) {
+    if (prey.mind.awareOf(actor)) {
       
     }
-    else if (actor.mind.canSee(prey)) {
+    else if (actor.mind.awareOf(prey)) {
       
     }
     else {

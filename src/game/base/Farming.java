@@ -43,12 +43,14 @@ public class Farming extends Plan implements BuildConstants {
   
   
   public float priorityFor(Actor actor) {
-    if ((! begun()) && nursery.belongs.personnel.assignedTo(this) > 0) {
+    if ((! begun()) && Plan.competition(Farming.class, nursery, actor) > 0) {
       return 0 ;
     }
     //
     //  Vary priority based on competence for the task and how many crops
     //  actually need attention-
+    ///I.sayAbout(actor, "Sum of harvest is: "+sumHarvest()) ;
+    
     final float min = sumHarvest() > 0 ? ROUTINE : 0 ;
     final float need = nursery.needForTending() ;
     if (need <= 0) return min ;
@@ -227,9 +229,6 @@ public class Farming extends Plan implements BuildConstants {
     actor.gear.transfer(CARBS, depot) ;
     actor.gear.transfer(GREENS, depot) ;
     actor.gear.transfer(PROTEIN, depot) ;
-    for (Item seed : actor.gear.matches(GENE_SEED)) {
-      actor.gear.removeItem(seed) ;
-    }
     for (Item seed : actor.gear.matches(SAMPLES)) {
       actor.gear.removeItem(seed) ;
     }

@@ -62,7 +62,7 @@ public class Reclamator extends Venue implements BuildConstants {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
-    stocks.incDemand(POWER, 10, 1) ;
+    stocks.incDemand(POWER, 10, VenueStocks.TIER_CONSUMER, 1) ;
     stocks.bumpItem(POWER, -1, 10) ;
     float power = Visit.clamp(1 - stocks.shortagePenalty(POWER), 0.1f, 1) ;
     stocks.bumpItem(WATER, 2 * power, 20) ;

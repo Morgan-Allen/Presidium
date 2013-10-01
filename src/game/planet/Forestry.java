@@ -22,7 +22,7 @@ public class Forestry extends Plan implements BuildConstants {
   
   final public static int
     STAGE_INIT     = -1,
-    STAGE_GET_SEED =  0,  //  TODO:  Implement this.
+    STAGE_GET_SEED =  0,
     STAGE_PLANTING =  1,
     STAGE_SAMPLING =  2,
     STAGE_RETURN   =  3,
@@ -64,7 +64,7 @@ public class Forestry extends Plan implements BuildConstants {
     */
   public boolean configureFor(int stage) {
     if (stage == STAGE_GET_SEED) {
-      toPlant = findPlantTile(actor) ;
+      toPlant = findPlantTile(actor, nursery) ;
       if (toPlant == null) { abortBehaviour() ; return false ; }
       if (nursery.stocks.amountOf(seedMatch()) > 0) {
         this.stage = STAGE_GET_SEED ;
@@ -79,6 +79,7 @@ public class Forestry extends Plan implements BuildConstants {
     return false ;
   }
   
+  
   private boolean configured() {
     if (stage != STAGE_INIT) return true ;
     final float abundance = actor.world().ecology().globalBiomass() ;
@@ -91,6 +92,7 @@ public class Forestry extends Plan implements BuildConstants {
   public float priorityFor(Actor actor) {
     if (! configured()) return 0 ;
     float impetus = CASUAL ;
+    
     impetus += actor.traits.traitLevel(NATURALIST) * 1.5f ;
     impetus -= actor.traits.traitLevel(INDOLENT) ;
     impetus += actor.traits.traitLevel(OPTIMISTIC) / 2 ;
@@ -147,7 +149,7 @@ public class Forestry extends Plan implements BuildConstants {
   
   private Item seedMatch() {
     return Item.withAmount(Item.withReference(
-      GENE_SEED, Species.SAPLINGS
+      GENE_SEED, Species.TIMBER
     ), 0.1f) ;
   }
   
@@ -217,7 +219,7 @@ public class Forestry extends Plan implements BuildConstants {
   
   /**  Utility methods for finding suitable plant/harvest targets-
     */
-  private Tile findPlantTile(Actor actor) {
+  public static Tile findPlantTile(Actor actor, Venue nursery) {
     Tile picked = null, tried ;
     float bestRating = Float.NEGATIVE_INFINITY ;
     
@@ -225,7 +227,7 @@ public class Forestry extends Plan implements BuildConstants {
       tried = Spacing.pickRandomTile(
         nursery, World.SECTOR_SIZE * 2, actor.world()
       ) ;
-      tried = Spacing.nearestOpenTile(toPlant, actor) ;
+      tried = Spacing.nearestOpenTile(tried, actor) ;
       if (tried == null) continue ;
       
       final Flora f = new Flora(tried.habitat()) ;
@@ -243,7 +245,7 @@ public class Forestry extends Plan implements BuildConstants {
   }
   
   
-  private Flora findCutting(Actor actor) {
+  public static Flora findCutting(Actor actor) {
     Series <Target> sample = actor.world().presences.sampleFromKey(
       actor, actor.world(), 10, null, Flora.class
     ) ;
@@ -251,9 +253,10 @@ public class Forestry extends Plan implements BuildConstants {
     Flora picked = null ;
     for (Target t : sample) {
       final Flora f = (Flora) t ;
+      if (f.growth < 2) continue ;
       float rating = 0 - Spacing.distance(t, actor) ;
       rating -= actor.base().dangerMap.valAt(f.origin()) ;
-      rating += f.growStage() * 10 ;
+      rating += (f.growStage() - 2) * 10 ;
       if (rating > bestRating) { picked = f ; bestRating = rating ; }
     }
     return picked ;

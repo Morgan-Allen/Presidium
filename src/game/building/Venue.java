@@ -142,7 +142,9 @@ public abstract class Venue extends Fixture implements
     final int OT = owningType() ;
     for (Tile t : world.tilesIn(area(), false)) {
       if (t == null || t.owningType() >= OT) return false ;
-      if (Spacing.isEntrance(t)) return false ;
+      for (Element e : Spacing.entranceFor(t)) {
+        if (e.owningType() >= OT) return false ;
+      }
     }
     //
     //  Don't abut on anything of higher priority-
@@ -296,8 +298,8 @@ public abstract class Venue extends Fixture implements
       base.paving.updatePerimeter(this, true) ;
     }
     else {
-      base.paving.updateJunction(this, mainEntrance(), false) ;
       base.paving.updatePerimeter(this, false) ;
+      base.paving.updateJunction(this, mainEntrance(), false) ;
     }
   }
   
@@ -632,7 +634,7 @@ public abstract class Venue extends Fixture implements
   
   /**  Rendering methods-
     */
-  protected void attachSprite(Sprite sprite) {
+  public void attachSprite(Sprite sprite) {
     if (sprite == null) super.attachSprite(null) ;
     else {
       buildSprite = new BuildingSprite(sprite, size, high) ;
@@ -642,7 +644,7 @@ public abstract class Venue extends Fixture implements
   
   
   protected float fogFor(Base base) {
-    if (base == this.base) return 1 ;
+    if (base == this.base) return (1 + super.fogFor(base)) / 2f ;
     return super.fogFor(base) ;
   }
   

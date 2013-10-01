@@ -25,12 +25,20 @@ public class VenueStocks extends Inventory implements BuildConstants {
     SEARCH_RADIUS = 16,
     MAX_CHECKED   = 5 ;
   
+  final public static int
+    TIER_NONE     = -1,
+    TIER_PRODUCER =  0,  //never deliver to a producer.
+    TIER_TRADER   =  1,  //deliver to/from based on relative shortage.
+    TIER_CONSUMER =  2 ; //never deliver from a consumer.
+  
+  
   private static boolean verbose = false ;
   
   static class Demand {
     Service type ;
+    int tierType = TIER_PRODUCER ;
     
-    private float amountInc, demandAmount, demandTier ;
+    private float amountInc, demandAmount ;//, demandTier ;
     private float pricePaid ;
   }
   
@@ -54,7 +62,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
       d.type = BuildConstants.ALL_ITEM_TYPES[s.loadInt()] ;
       d.amountInc    = s.loadFloat() ;
       d.demandAmount = s.loadFloat() ;
-      d.demandTier   = s.loadFloat() ;
+      d.tierType     = (int) s.loadFloat() ;
       d.pricePaid    = s.loadFloat() ;
       demands.put(d.type, d) ;
     }
@@ -69,7 +77,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
       s.saveInt(d.type.typeID) ;
       s.saveFloat(d.amountInc   ) ;
       s.saveFloat(d.demandAmount) ;
-      s.saveFloat(d.demandTier  ) ;
+      s.saveFloat(d.tierType    ) ;
       s.saveFloat(d.pricePaid   ) ;
     }
   }
@@ -168,15 +176,22 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
+  public int demandTier(Service type) {
+    final Demand d = demands.get(type) ;
+    if (d == null) return TIER_NONE ;
+    return d.tierType ;
+  }
+  
+  
   public boolean hasEnough(Service type) {
     return amountOf(type) < (demandFor(type) / 2) ;
   }
   
   
   public float shortagePenalty(Service type) {
-    final float shortage = shortageOf(type) - 0.5f ;
-    if (shortage <= 0) return 0 ;
-    return shortage * 2 ;
+    final float amount = amountOf(type), demand = demandFor(type) ;
+    final float shortage = ((demand - amount) / (amount + 1)) - 0.5f ;
+    return Visit.clamp(shortage * 2, 0, 1) ;
   }
   
   
@@ -195,7 +210,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
     if (d == null) return 0 ;
     final float amount = amountOf(type), shortage = d.demandAmount - amount ;
     if (shortage <= 0) return 0 ;
-    final float urgency = shortage / ((amount + shortage) * (1 + d.demandTier)) ;
+    final float urgency = shortage / ((amount + shortage) * (1 + d.tierType)) ;
     return urgency ;
   }
   
@@ -241,17 +256,21 @@ public class VenueStocks extends Inventory implements BuildConstants {
     return made ;
   }
   
-  
-  //
-  //  TODO:  Merge with the method below?
-  public void incDemand(Service type, float amount, int period) {
-    if (amount == 0) return ;
+  //*
+  public void forceDemand(Service type, float amount, int tier) {
+    if (amount < 0) amount = 0 ;
     final Demand d = demandRecord(type) ;
-    incDemand(type, amount, d.demandTier, period) ;
+    d.demandAmount = amount ;
+    d.tierType = tier ;
+    //d.demandTier = tier ;
+    d.amountInc = 0 ;
+    if (verbose && BaseUI.isPicked(venue) && type == PARTS) { I.say(
+      "  "+type+" demand forced to: "+d.demandAmount
+    ) ; }
   }
   
   
-  private void incDemand(Service type, float amount, float tier, int period) {
+  public void incDemand(Service type, float amount, int tier, int period) {
     if (amount == 0) return ;
     final Demand d = demandRecord(type) ;
     final float inc = POTENTIAL_INC * period ;
@@ -261,8 +280,15 @@ public class VenueStocks extends Inventory implements BuildConstants {
       venue, "Demand inc is: "+d.amountInc+" bump: "+amount+
       " for: "+type
     ) ;
-    d.demandTier *= (1 - inc) ;
-    d.demandTier += (tier * inc) ;
+    d.tierType = tier ;
+  }
+  //*/
+  
+  
+  private void incDemand(Service type, float amount, int period) {
+    if (amount == 0) return ;
+    final Demand d = demandRecord(type) ;
+    incDemand(type, amount, d.tierType, period) ;
   }
   
   
@@ -273,9 +299,12 @@ public class VenueStocks extends Inventory implements BuildConstants {
   
   
   public void clearDemands() {
+    //
+    //  TODO:  Just clear the table?
     for (Demand d : demands.values()) {
       d.demandAmount = 0 ;
-      d.demandTier = 0 ;
+      d.tierType = TIER_PRODUCER ;
+      //d.demandTier = 0 ;
     }
   }
   
@@ -296,7 +325,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
     for (Item raw : cons.raw) {
       ///I.sayAbout(venue, "Needs "+raw) ;
       final float needed = raw.amount * demand / cons.out.amount ;
-      this.incDemand(raw.type, needed, 0, period) ;
+      this.incDemand(raw.type, needed, TIER_CONSUMER, period) ;
       //forceDemand(raw.type, , 0) ;
     }
   }
@@ -309,18 +338,6 @@ public class VenueStocks extends Inventory implements BuildConstants {
   }
   
   
-  public void forceDemand(Service type, float amount, float tier) {
-    if (amount < 0) amount = 0 ;
-    final Demand d = demandRecord(type) ;
-    d.demandAmount = amount ;
-    d.demandTier = tier ;
-    d.amountInc = 0 ;
-    if (verbose && BaseUI.isPicked(venue) && type == PARTS) { I.say(
-      "  "+type+" demand forced to: "+d.demandAmount
-    ) ; }
-  }
-  
-  
   public void diffuseDemand(Service type, Batch <Venue> suppliers) {
     final Demand d = demands.get(type) ;
     if (d == null) return ;
@@ -328,6 +345,8 @@ public class VenueStocks extends Inventory implements BuildConstants {
     final float
       shortage = shortageOf(type),
       urgency = shortageUrgency(type) ;
+    final int
+      tier = demandTier(type) ;
     if (verbose && BaseUI.isPicked(venue)) I.say(
       venue+" has shortage of "+shortage+
       " for "+type+" of urgency "+urgency
@@ -338,6 +357,8 @@ public class VenueStocks extends Inventory implements BuildConstants {
     float sumRatings = 0 ;
     
     int i = 0 ; for (Venue supplies : suppliers) {
+      final int ST = supplies.stocks.demandTier(type) ;
+      if (ST > tier || (tier != TIER_TRADER && ST != tier)) { i++ ; continue ; }
       final float SU = supplies.stocks.shortageUrgency(type) ;
       if (SU >= urgency) { i++ ; continue ; }
       float rating = 10 / (1 + SU) ;
@@ -364,7 +385,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
         "\n  BUMP IS: "+shortBump
       ) ;
       supplies.stocks.incDemand(
-        type, shortBump, d.demandTier + distance + 1, (int) UPDATE_PERIOD
+        type, shortBump, (int) UPDATE_PERIOD
       ) ;
       avgPriceBump += (supplies.priceFor(type) + priceBump) * weight ;
     }

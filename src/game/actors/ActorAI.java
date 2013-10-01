@@ -41,8 +41,7 @@ public abstract class ActorAI implements ActorConstants {
   protected Stack <Behaviour> agenda = new Stack() ;
   protected List <Behaviour> todoList = new List() ;
   
-  protected Table <Mobile, Session.Saveable> seen = new Table() ;
-  
+  protected Table <Element, Session.Saveable> seen = new Table() ;
   protected Table <Accountable, Relation> relations = new Table() ;
   
   protected Mission mission ;
@@ -61,7 +60,7 @@ public abstract class ActorAI implements ActorConstants {
     s.loadObjects(todoList) ;
     
     for (int n = s.loadInt() ; n-- > 0 ;) {
-      final Mobile e = (Mobile) s.loadObject() ;
+      final Element e = (Element) s.loadObject() ;
       seen.put(e, s.loadObject()) ;
     }
     for (int n = s.loadInt() ; n-- > 0 ;) {
@@ -94,79 +93,101 @@ public abstract class ActorAI implements ActorConstants {
   
   
   /**  Dealing with seen objects and reactions to them-
-    *  TODO:  This needs to handle stealth effects, which can affect how
-    *  easily an actor is spotted and how easily they can be missed.
     */
-  //
-  //    TODO:  Use this as the basis for all other behaviours that work with
-  //    'batches' of potential targets... which means the actor can sometimes
-  //    'see' things quite far away, albeit in a randomised fashion.
-  
-  
-  protected void updateSeen() {
-    final PresenceMap mobiles = actor.world().presences.mapFor(Mobile.class) ;
-    final float sightMod = actor.indoors() ? 0.5f : 1 ;
-    final float sightRange = actor.health.sightRange() * sightMod ;
-    final float lostRange = sightRange * 1.5f ;
-    final int reactLimit = (int) (actor.traits.traitLevel(INSIGHT) / 2) ;
-    //
-    //  Firstly, remove any elements that have escaped beyond sight range.
-    final Batch <Element> outOfRange = new Batch <Element> () ;
-    for (Mobile e : seen.keySet()) {
-      if (
-        (! e.inWorld()) || e.indoors() ||
-        Spacing.distance(e, actor) > lostRange
-      ) {
-        outOfRange.add(e) ;
-        if (verbose) I.sayAbout(actor, "Can no longer see: "+e) ;
-      }
-    }
-    for (Element e : outOfRange) seen.remove(e) ;
-    //
-    //  Secondly, add any elements that have entered the requisite range-
-    final Batch <Mobile> newSeen = new Batch <Mobile> () ;
-    int numR = 0 ; for (Target t : mobiles.visitNear(actor, -1, null)) {
-      if (t == actor) continue ;
-      if (++numR > reactLimit) break ;
-      if (Spacing.distance(actor, t) <= sightRange) {
-        final Mobile m = (Mobile) t ;
-        final Session.Saveable after = activityFor(m), before = seen.get(m) ;
-        if (before != after) newSeen.add(m) ;
-        seen.put(m, after) ;
-      }
-      else break ;
-    }
-    //
-    //  And react to anything fresh-
-    for (Mobile NS : newSeen) {
-      ///if (BaseUI.isPicked(actor)) I.say("  "+actor+" REACTING TO: "+NS) ;
-      final Behaviour reaction = reactionTo(NS) ;
-      if (couldSwitchTo(reaction)) assignBehaviour(reaction) ;
-    }
-  }
-  
-  
-  private Session.Saveable activityFor(Mobile m) {
-    if (m instanceof Actor) {
-      final Actor a = (Actor) m ;
-      if (a.currentAction() == null) return m ;
+  private Session.Saveable reactionKey(Element seen) {
+    if (seen instanceof Actor) {
+      final Actor a = (Actor) seen ;
+      if (a.currentAction() == null) return seen ;
       final Behaviour b = a.mind.rootBehaviour() ;
-      if (b == null) return m ;
+      if (b == null) return seen ;
       else return b ;
     }
-    else return m ;
+    else return seen ;
   }
   
   
-  public boolean canSee(Element e) {
+  public boolean awareOf(Element e) {
     return seen.get(e) != null ;
   }
   
   
-  public Batch <Element> seen() {
+  public Batch <Element> awareOf() {
     final Batch <Element> seen = new Batch <Element> () ;
     for (Element e : this.seen.keySet()) seen.add(e) ;
     return seen ;
+  }
+  
+  
+  protected boolean notices(Element e, float noticeRange) {
+    final int roll = Rand.index(20) ;
+    if (roll == 0 ) noticeRange *= 2 ;
+    if (roll == 19) noticeRange /= 2 ;
+    
+    if (e instanceof Mobile) {
+      final Mobile m = (Mobile) e ;
+      if (m.indoors()) noticeRange /= 2 ;
+    }
+    if (e instanceof Actor) {
+      final Actor a = (Actor) e ;
+      if (a.targetFor(null) == actor) noticeRange *= 2 ;
+    }
+    if (e instanceof Fixture) {
+      final Fixture f = (Fixture) e ;
+      noticeRange += f.size * 2 ;
+    }
+    //
+    //  TODO:  Incorporate line-of-sight considerations here.
+    noticeRange -= Combat.stealthValue(e, actor) ;
+    if (awareOf(e)) noticeRange += World.SECTOR_SIZE / 2f ;
+    
+    return Spacing.distance(actor, e) < noticeRange ;
+  }
+  
+  
+  protected void updateSeen() {
+    
+    final World world = actor.world() ;
+    final float sightRange = actor.health.sightRange() ;
+    final int reactLimit = 2 + (int) (actor.traits.traitLevel(INSIGHT) / 5) ;
+    
+    final Batch <Element>
+      couldSee   = new Batch <Element> (),
+      justSaw    = new Batch <Element> (),
+      outOfSight = new Batch <Element> () ;
+    //
+    //  Firstly, cull anything you can't see any more-
+    for (Element e : seen.keySet()) {
+      if (! notices(e, sightRange)) outOfSight.add(e) ;
+    }
+    for (Element e : outOfSight) seen.remove(e) ;
+    //
+    //  Then, sample nearby objects you could react to-
+    world.presences.sampleFromKeys(
+      actor, world, reactLimit, couldSee,
+      Mobile.class,
+      Venue.class
+    ) ;
+    for (Behaviour b : world.activities.targeting(actor)) {
+      if (b instanceof Action) {
+        final Actor a = ((Action) b).actor ;
+        if (Spacing.distance(a, actor) > World.SECTOR_SIZE) continue ;
+        couldSee.add(a) ;
+      }
+    }
+    //
+    //  And check to see if they're anything new.
+    for (Element m : couldSee) {
+      if (! notices(m, sightRange)) continue ;
+      final Session.Saveable after = reactionKey(m), before = seen.get(m) ;
+      if (before != after) justSaw.add(m) ;
+      seen.put(m, after) ;
+    }
+    //
+    //  Finally, add reactions to anything novel-
+    for (Element NS : justSaw) {
+      final Behaviour reaction = reactionTo(NS) ;
+      if (couldSwitchTo(reaction)) assignBehaviour(reaction) ;
+    }
   }
   
   
@@ -206,7 +227,7 @@ public abstract class ActorAI implements ActorConstants {
   
   
   protected abstract Behaviour createBehaviour() ;
-  protected abstract Behaviour reactionTo(Mobile m) ;
+  protected abstract Behaviour reactionTo(Element m) ;
   
   
   
@@ -266,7 +287,9 @@ public abstract class ActorAI implements ActorConstants {
     if (mission != null || actor.base() == null) return ;
     for (Mission mission : actor.base().allMissions()) {
       if (! mission.open()) continue ;
-      if (couldSwitch(chosen, mission)) {
+      final float priority = mission.priorityFor(actor) ;
+      if (priority < Plan.ROUTINE && work != null) continue ;
+      if (priority > chosen.priorityFor(actor)) {
         mission.setApplicant(actor, true) ;
       }
       else mission.setApplicant(actor, false) ;
@@ -460,25 +483,12 @@ public abstract class ActorAI implements ActorConstants {
     *  it's a scalar operation.
     */
   public float greedFor(int credits) {
-    float baseUnit = actor.gear.credits() + 100f ;
+    float baseUnit = actor.gear.credits() ;
     if (work instanceof Venue) {
-      baseUnit += ((Venue) work).personnel.salaryFor(actor) ;
+      baseUnit += (100 + ((Venue) work).personnel.salaryFor(actor)) / 2f ;
     }
     baseUnit /= 3f ;
     return (credits / baseUnit) * actor.traits.scaleLevel(ACQUISITIVE) ;
-    /*
-    float val = credits / 100f ;
-    val = (float) Math.sqrt(val) ;
-    val *= actor.traits.scaleLevel(ACQUISITIVE) ;
-    //
-    //  Cut this down based on how many thousand credits the actor has ATM.
-    float reserves = actor.gear.credits() / 1000f ;
-    ///I.sayFor(actor, "reserves are:" +reserves+" "+actor.gear.credits()) ;
-    reserves /= actor.traits.scaleLevel(ACQUISITIVE) ;
-    if (reserves < 0) return val * 2 ;
-    else val /= (0.5f + reserves) ;
-    return val ;
-    //*/
   }
   
   
@@ -602,3 +612,49 @@ public abstract class ActorAI implements ActorConstants {
 
 
 
+
+
+
+/*
+protected void updateSeen() {
+  final PresenceMap mobiles = actor.world().presences.mapFor(Mobile.class) ;
+  final float sightMod = actor.indoors() ? 0.5f : 1 ;
+  final float sightRange = actor.health.sightRange() * sightMod ;
+  final float lostRange = sightRange * 1.5f ;
+  final int reactLimit = (int) (actor.traits.traitLevel(INSIGHT) / 2) ;
+  //
+  //  Firstly, remove any elements that have escaped beyond sight range.
+  final Batch <Element> outOfRange = new Batch <Element> () ;
+  for (Mobile e : seen.keySet()) {
+    if (
+      (! e.inWorld()) || e.indoors() ||
+      Spacing.distance(e, actor) > lostRange
+    ) {
+      outOfRange.add(e) ;
+      if (verbose) I.sayAbout(actor, "Can no longer see: "+e) ;
+    }
+  }
+  for (Element e : outOfRange) seen.remove(e) ;
+  //
+  //  Secondly, add any elements that have entered the requisite range-
+  final Batch <Mobile> newSeen = new Batch <Mobile> () ;
+  int numR = 0 ; for (Target t : mobiles.visitNear(actor, -1, null)) {
+    if (t == actor) continue ;
+    if (++numR > reactLimit) break ;
+    if (Spacing.distance(actor, t) <= sightRange) {
+      final Mobile m = (Mobile) t ;
+      final Session.Saveable after = activityFor(m), before = seen.get(m) ;
+      if (before != after) newSeen.add(m) ;
+      seen.put(m, after) ;
+    }
+    else break ;
+  }
+  //
+  //  And react to anything fresh-
+  for (Mobile NS : newSeen) {
+    ///if (BaseUI.isPicked(actor)) I.say("  "+actor+" REACTING TO: "+NS) ;
+    final Behaviour reaction = reactionTo(NS) ;
+    if (couldSwitchTo(reaction)) assignBehaviour(reaction) ;
+  }
+}
+//*/

@@ -5,6 +5,11 @@
   */
 
 
+//
+//  ...This class really needs to be sorted out properly.  Supply and demand in
+//  general, really.
+
+
 package src.game.building ;
 import src.game.common.* ;
 import src.game.actors.* ;
@@ -169,19 +174,40 @@ public class Deliveries implements BuildConstants {
         capacity
       ) / 10f ;//capacity ;
     }
-    final float originUrgency = (origin instanceof Venue) ?
-      ((Venue) origin).stocks.shortageUrgency(good) : 0 ;
-    final float clientUrgency = (client instanceof Venue) ?
-      ((Venue) client).stocks.shortageUrgency(good) : 0 ;
+    
+    if (! (origin instanceof Venue)) return 2 ;
+    if (! (client instanceof Venue)) return 2 ;
+    final Venue
+      vO = (Venue) origin,
+      vC = (Venue) client ;
+    final int
+      tO = vO.stocks.demandTier(good),
+      tC = vC.stocks.demandTier(good) ;
+
+    if (verbose && I.talkAbout == origin) {
+      I.say("Origin/client tiers "+tO+"/"+tC) ;
+    }
+    
+    
+    if (tO == VenueStocks.TIER_CONSUMER) return 0 ;
+    if (tC == VenueStocks.TIER_PRODUCER) return 0 ;
+    if (tC > tO) return 2 ;
+    
+    final float
+      originUrgency = vO.stocks.shortageUrgency(good),
+      clientUrgency = vC.stocks.shortageUrgency(good) ;
     
     if (clientUrgency <= originUrgency) return 0 ;
     float rating = 1 ;
+    
+    //
+    //  TODO:  This is where you'll need to do some hard math to ensure that
+    //  deliveries don't unbalance supply.
     
     rating *= origin.inventory().amountOf(good) ;
     rating /= 5 + ((Venue) client).stocks.shortageOf(good) ;
     
     if (verbose && rating > 0.1f && I.talkAbout == origin) {
-      //I.say("Rating: "+rating) ;
     }
     //
     //  TODO:  Make sure the client inventory has space!
@@ -200,8 +226,12 @@ public class Deliveries implements BuildConstants {
     //  quantities involved-
     final Object subject = origin ;
     final int
-      roundUnit = sizeLimit <= 10 ? 1 : 5,
-      pickUnit  = sizeLimit <= 10 ? 1 : 5 ;
+      roundUnit = sizeLimit <= 10 ? (sizeLimit <= 5 ? 1 : 1) : 5,
+      pickUnit  = sizeLimit <= 10 ? (sizeLimit <= 5 ? 1 : 3) : 5 ;
+    if (verbose) I.sayAbout(subject,
+      "Evaluating delivery between "+origin+" and "+client+
+      ", goods: "+goods.length
+    ) ;
     
     final List <Item> viable = new List <Item> () {
       protected float queuePriority(Item i) {
@@ -236,7 +266,7 @@ public class Deliveries implements BuildConstants {
         good, origin, client, tradeType
       ) : 2 ;
       
-      if (verbose && amount > 1 && I.talkAbout == subject) {
+      if (verbose && I.talkAbout == subject) {
         I.say("  Service: "+good) ;
         if (client instanceof Venue) {
           final Venue VC = (Venue) client ;

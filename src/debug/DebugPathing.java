@@ -60,6 +60,7 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
   protected boolean loadedAtStartup() {
     ///if (true) return false ;
     try {
+      ///GameSettings.pathFree = true ;
       PlayLoop.loadGame("saves/test_pathing.rep") ;
       final Base base = PlayLoop.played() ;
       if (base.credits() < 500) base.incCredits(500 - base.credits()) ;
@@ -104,7 +105,7 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
   protected void configureScenario(World world, Base base, HUD HUD) {
     I.say("Configuring world...") ;
     
-    GameSettings.noFog = true ;
+    //GameSettings.noFog = true ;
     GameSettings.hireFree = true ;
     GameSettings.buildFree = true ;
     
@@ -130,7 +131,7 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
     */
   protected void updateGameState() {
     super.updateGameState() ;
-    assignRandomTarget(citizen) ;
+    ///assignRandomTarget(citizen) ;
   }
   
   
@@ -216,7 +217,8 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
     rendering().addClient(placeMesh) ;
     
     if (KeyInput.wasKeyPressed('p')) {
-      I.say(placeRoutes.length+" routes to/from place at: "+t) ;
+      I.say(t.x+" "+t.y+" has "+placeRoutes.length+" routes") ;
+      I.say("  road mask: "+world().terrain().roadMask(t)) ;
     }
     for (Tile route[] : placeRoutes) {
       if (placeRoutes == null || placeRoutes.length < 1) return ;

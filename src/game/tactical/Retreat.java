@@ -43,7 +43,7 @@ public class Retreat extends Plan implements ActorConstants {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
-    float danger = dangerAtSpot(actor.origin(), actor, actor.mind.seen()) ;
+    float danger = dangerAtSpot(actor.origin(), actor, actor.mind.awareOf()) ;
     danger *= actor.traits.scaleLevel(NERVOUS) ;
     if (danger <= 0) return 0 ;
     return Visit.clamp((danger + 1) * ROUTINE, 0, PARAMOUNT) ;
@@ -92,7 +92,7 @@ public class Retreat extends Plan implements ActorConstants {
   ) {
     final int numPicks = 3 ;  //Make this an argument, instead of range?
     Tile pick = actor.origin() ;
-    float bestRating = dangerAtSpot(pick, actor, actor.mind.seen()) ;
+    float bestRating = dangerAtSpot(pick, actor, actor.mind.awareOf()) ;
     for (int i = numPicks ; i-- > 0 ;) {
       
       //
@@ -103,7 +103,7 @@ public class Retreat extends Plan implements ActorConstants {
       
       //
       //  TODO:  USE THE DANGER MAP INSTEAD.  Significantly cheaper.
-      float tryRating = dangerAtSpot(tried, actor, actor.mind.seen()) ;
+      float tryRating = dangerAtSpot(tried, actor, actor.mind.awareOf()) ;
       tryRating += (Rand.num() - 0.5f) * salt ;
       if (tryRating < bestRating) { bestRating = tryRating ; pick = tried ; }
     }

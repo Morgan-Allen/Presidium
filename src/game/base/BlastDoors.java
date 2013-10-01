@@ -6,6 +6,7 @@
 
 package src.game.base ;
 import src.game.common.* ;
+import src.game.tactical.Patrolling;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
@@ -119,6 +120,39 @@ public class BlastDoors extends ShieldWall implements TileConstants {
   public void exitWorld() {
     world.terrain().maskAsPaved(Spacing.under(area(), world), false) ;
     super.exitWorld() ;
+  }
+  
+  
+  
+  /**  Behaviour implementation-
+    */
+  public Behaviour jobFor(Actor actor) {
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
+    final Choice choice = new Choice(actor) ;
+    //
+    //  Grab a random building nearby and patrol around it.
+    final Venue patrolled = (Venue) world.presences.randomMatchNear(
+      base(), this, World.SECTOR_SIZE
+    ) ;
+    if (patrolled != null) {
+      choice.add(new Patrolling(actor, patrolled, patrolled.radius() * 2)) ;
+    }
+    //
+    //  TODO:  Implement patrols along the perimeter fence/shield walls...
+    
+    return choice.weightedPick(actor.mind.whimsy() / 2f) ;
+  }
+  
+  
+  protected Background[] careers() {
+    return new Background[] { Background.VOLUNTEER } ;
+  }
+  
+  
+  public int numOpenings(Background b) {
+    final int nO = super.numOpenings(b) ;
+    if (b == Background.VOLUNTEER) return nO + 2 ;
+    return 0 ;
   }
   
   

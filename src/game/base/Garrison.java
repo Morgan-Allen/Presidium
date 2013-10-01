@@ -81,20 +81,19 @@ public class Garrison extends Venue implements BuildConstants {
       "Prepares your soldiers for guerilla warfare and wilderness survival.",
       200, null, 3, null, ALL_UPGRADES
     ),
-    //*/
-    VOLUNTEER_QUARTERS = new Upgrade(
-      "Volunteer Quarters",
+    VOLUNTEER_STATION = new Upgrade(
+      "Volunteer Station",
       "Dedicated in defence of their homes, a volunteer militia provides the "+
       "mainstay of your domestic forces.",
       100,
       Background.VOLUNTEER, 2, null, ALL_UPGRADES
     ),
-    VETERAN_QUARTERS = new Upgrade(
-      "Veteran Quarters",
+    VETERAN_STATION = new Upgrade(
+      "Veteran Station",
       "Seasoned professional soldiers, veterans provide the backbone of your "+
       "officer corps and command structure.",
       150,
-      Background.VETERAN, 1, null, ALL_UPGRADES
+      Background.VETERAN, 1, VOLUNTEER_STATION, ALL_UPGRADES
     ) ;
   
   protected Background[] careers() {
@@ -116,31 +115,25 @@ public class Garrison extends Venue implements BuildConstants {
   
   
   public Behaviour jobFor(Actor actor) {
-    if (! personnel.onShift(actor)) return null ;
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
+    final Choice choice = new Choice(actor) ;
     //
-    //  Grab a random building nearby and patrol around it.  Especially walls.
+    //  Grab a random building nearby and patrol around it.
     final Venue patrolled = (Venue) world.presences.randomMatchNear(
       base(), this, World.SECTOR_SIZE
     ) ;
     if (patrolled != null) {
-      return new Patrolling(actor, patrolled, patrolled.radius() * 2) ;
+      choice.add(new Patrolling(actor, patrolled, patrolled.radius() * 2)) ;
     }
-    //
-    //  TODO:  You also need an option to train in relevant skills here.
-    
     //
     //  TODO:  Implement patrols along the perimeter fence/shield walls...
     
-    return null ;
+    return choice.weightedPick(actor.mind.whimsy() / 2f) ;
   }
   
   
+  
   public void updateAsScheduled(int numUpdates) {
-    
-    ///setAsDestroyed() ;
-    ///if (true) return ;
-    
-    
     super.updateAsScheduled(numUpdates) ;
     updateDrillYard() ;
     if (! structure.intact()) return ;

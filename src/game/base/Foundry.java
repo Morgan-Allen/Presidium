@@ -130,8 +130,9 @@ public class Foundry extends Venue implements BuildConstants {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
     stocks.translateDemands(1, PARTS_TO_CIRCUITRY) ;
-    stocks.incDemand(PARTS, 10, 1) ;
+    stocks.incDemand(PARTS, 10, VenueStocks.TIER_PRODUCER, 1) ;
     stocks.translateDemands(1, METALS_TO_PARTS) ;
+    ///I.say("Demand for metal is: "+stocks.demandFor(METAL_ORE)) ;
     //
     //  Output squalor and demand power-
     float pollution = 5, powerNeed = 5 ;
@@ -142,7 +143,7 @@ public class Foundry extends Venue implements BuildConstants {
     powerNeed *= (3 + structure.numUpgrades()) / 3 ;
     pollution *= 2f / (2 + structure.upgradeLevel(MOLDING_PRESS)) ;
     world.ecology().impingeSqualor(pollution, this, true) ;
-    stocks.forceDemand(POWER, powerNeed, 0) ;
+    stocks.forceDemand(POWER, powerNeed, VenueStocks.TIER_CONSUMER) ;
     stocks.removeItem(Item.withAmount(POWER, 0.1f * powerNeed)) ;
   }
   

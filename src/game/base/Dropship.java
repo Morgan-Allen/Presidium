@@ -406,8 +406,6 @@ public class Dropship extends Vehicle implements
     
     if (landing != null) {
       landing.position(aimPos) ;
-      aimPos.x += 1 ;
-      aimPos.y -= 1 ;
       dropPoint = landing ;
       landing.setToDock(this) ;
       I.say("Landing at depot: "+dropPoint) ;

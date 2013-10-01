@@ -11,30 +11,30 @@ import src.util.* ;
 
 
 
-public class Drilling extends Plan implements ActorConstants {
+public class Drilling extends Plan implements BuildConstants {
   
   
   
   /**  Data fields, static constants, constructors and save/load methods-
     */
-  final DrillYard drillsAt ;
+  final DrillYard yard ;
   
 
   public Drilling(Actor actor, DrillYard drillsAt) {
     super(actor, drillsAt) ;
-    this.drillsAt = drillsAt ;
+    this.yard = drillsAt ;
   }
   
   
   public Drilling(Session s) throws Exception {
     super(s) ;
-    drillsAt = (DrillYard) s.loadObject() ;
+    yard = (DrillYard) s.loadObject() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveObject(drillsAt) ;
+    s.saveObject(yard) ;
   }
   
   
@@ -60,8 +60,8 @@ public class Drilling extends Plan implements ActorConstants {
       impetus = (impetus + IDLE) / 2 ;
     }
     
-    impetus -= Plan.rangePenalty(actor, drillsAt) ;
-    impetus -= Plan.dangerPenalty(drillsAt, actor) ;
+    impetus -= Plan.rangePenalty(actor, yard) ;
+    impetus -= Plan.dangerPenalty(yard, actor) ;
     return Visit.clamp(impetus, 0, ROUTINE) ;
   }
   
@@ -72,7 +72,7 @@ public class Drilling extends Plan implements ActorConstants {
     //
     //  TODO:  Use the batch of venues the actor is aware of?
     
-    I.sayAbout(actor, "Getting drill sites") ;
+    ///I.sayAbout(actor, "Getting drill sites") ;
     
     final World world = actor.world() ;
     final Batch <DrillYard> yards = new Batch <DrillYard> () ;
@@ -80,7 +80,7 @@ public class Drilling extends Plan implements ActorConstants {
     
     final Choice choice = new Choice(actor) ;
     for (DrillYard yard : yards) if (yard.base() == actor.base()) {
-      I.sayAbout(actor, "Can drill at "+yard) ;
+      ///I.sayAbout(actor, "Can drill at "+yard) ;
       final Drilling drilling = new Drilling(actor, yard) ;
       choice.add(drilling) ;
     }
@@ -92,33 +92,51 @@ public class Drilling extends Plan implements ActorConstants {
   /**  Behaviour implementation-
     */
   protected Behaviour getNextStep() {
-    final int drillType = drillsAt.drillType() ;
-    //
-    //  Shoot.  I'm not sure how to set up the targets here.  The practice
-    //  dummies will need to implement the Target/Saveable interface, most
-    //  likely.
+    final int drillType = yard.drillType() ;
+    if (
+      (yard.nextDrill != yard.drill && ! yard.belongs.destroyed()) &&
+      (Plan.competition(Drilling.class, yard.belongs, actor) < 1)
+    ) {
+      final Action pickup = new Action(
+        actor, yard.belongs,
+        this, "actionPickupEquipment",
+        Action.REACH_DOWN, "Picking up equipment"
+      ) ;
+      final Action equips = new Action(
+        actor, yard,
+        this, "actionEquipYard",
+        Action.BUILD, "Installing equipment"
+      ) ;
+      final Element dummy = (Element) Rand.pickFrom(yard.dummies) ;
+      equips.setMoveTarget(Spacing.nearestOpenTile(dummy.origin(), actor)) ;
+      final Steps steps = new Steps(
+        actor, this, Plan.ROUTINE, pickup, equips
+      ) ;
+      return steps ;
+    }
+    if (yard.equipQuality <= 0) return null ;
     
     final Target
-      moveTarget = drillsAt.nextMoveTarget(drillType, actor),
-      lookTarget = drillsAt.nextLookTarget(drillType, moveTarget) ;
-    if (moveTarget == null || lookTarget == null) return null ;
+      dummy = yard.nextDummyFree(drillType, actor),
+      moveTarget = yard.nextMoveTarget(dummy, actor) ;
+    if (dummy == null || moveTarget == null) return null ;
     
     final String actionName, animName ;
     
     switch (drillType) {
-      case (DrillYard.STATE_DRILL_MELEE) :
+      case (DrillYard.DRILL_MELEE) :
         actionName = "actionDrillMelee" ;
         animName = Action.STRIKE ;
       break ;
-      case (DrillYard.STATE_DRILL_RANGED) :
+      case (DrillYard.DRILL_RANGED) :
         actionName = "actionDrillRanged" ;
         animName = Action.FIRE ;
       break ;
-      case (DrillYard.STATE_DRILL_PILOT_SIM) :
+      case (DrillYard.DRILL_PILOT_SIM) :
         actionName = "actionDrillPilotSim" ;
         animName = Rand.yes() ? Action.LOOK : Action.BUILD ;
       break ;
-      case (DrillYard.STATE_DRILL_SURVIVAL) :
+      case (DrillYard.DRILL_SURVIVAL) :
         actionName = "actionDrillSurvival" ;
         animName = Rand.yes() ? Action.MOVE_FAST : Action.MOVE_SNEAK ;
       break ;
@@ -126,7 +144,7 @@ public class Drilling extends Plan implements ActorConstants {
     }
     
     final Action drill = new Action(
-      actor, lookTarget,
+      actor, dummy,
       this, actionName,
       animName, "Drilling"
     ) ;
@@ -135,8 +153,40 @@ public class Drilling extends Plan implements ActorConstants {
   }
   
   
+  
+  /**  Installing and removing equipment-
+    */
+  public boolean actionPickupEquipment(Actor actor, Garrison store) {
+    
+    I.say(actor+" Picking up drill equipment...") ;
+    final Item equipment = Item.withReference(SAMPLES, store) ;
+    final Upgrade bonus = yard.bonusFor(yard.nextDrill) ;
+    final int quality = bonus == null ? 0 :
+      (1 + store.structure.upgradeLevel(bonus)) ;
+    
+    actor.gear.addItem(Item.withQuality(equipment, quality)) ;
+    return true ;
+  }
+  
+  
+  public boolean actionEquipYard(Actor actor, Element dummy) {
+    
+    I.say(actor+" Installing drill equipment...") ;
+    final Item equipment = actor.gear.bestSample(SAMPLES, yard.belongs, 1) ;
+    yard.drill = yard.nextDrill ;
+    yard.equipQuality = (int) (equipment.quality * 5) ;
+    actor.gear.removeItem(equipment) ;
+    
+    yard.updateSprite() ;
+    return true ;
+  }
+  
+  
+  
+  /**  Specific practice actions-
+    */
   public boolean actionDrillMelee(Actor actor, Target dummy) {
-    final int DC = drillsAt.drillDC(DrillYard.STATE_DRILL_MELEE) ;
+    final int DC = yard.drillDC(DrillYard.DRILL_MELEE) ;
     actor.traits.test(HAND_TO_HAND, DC, 0.5f) ;
     actor.traits.test(SHIELD_AND_ARMOUR, DC - 5, 0.5f) ;
     
@@ -147,7 +197,11 @@ public class Drilling extends Plan implements ActorConstants {
   
   
   public boolean actionDrillRanged(Actor actor, Target target) {
-    final int DC = drillsAt.drillDC(DrillYard.STATE_DRILL_MELEE) ;
+    final int DC = yard.drillDC(DrillYard.DRILL_RANGED) ;
+    
+    //I.say("Success chance "+actor.traits.chance(MARKSMANSHIP, DC)) ;
+    //I.say("Difficulty "+DC) ;
+    
     actor.traits.test(MARKSMANSHIP, DC, 0.5f) ;
     actor.traits.test(SURVEILLANCE, DC - 5, 0.5f) ;
     
@@ -158,7 +212,7 @@ public class Drilling extends Plan implements ActorConstants {
   
   
   public boolean actionDrillPiloting(Actor actor, Target target) {
-    final int DC = drillsAt.drillDC(DrillYard.STATE_DRILL_PILOT_SIM) ;
+    final int DC = yard.drillDC(DrillYard.DRILL_PILOT_SIM) ;
     actor.traits.test(PILOTING, DC, 0.5f) ;
     actor.traits.test(ASSEMBLY, DC - 5, 0.5f) ;
     
@@ -169,7 +223,7 @@ public class Drilling extends Plan implements ActorConstants {
   
   
   public boolean actionDrillSurvival(Actor actor, Target target) {
-    final int DC = drillsAt.drillDC(DrillYard.STATE_DRILL_SURVIVAL) ;
+    final int DC = yard.drillDC(DrillYard.DRILL_SURVIVAL) ;
     actor.traits.test(ATHLETICS, DC, 0.5f) ;
     actor.traits.test(STEALTH_AND_COVER, DC - 5, 0.5f) ;
     
@@ -193,8 +247,11 @@ public class Drilling extends Plan implements ActorConstants {
   /**  Rendering and interface-
     */
   public void describeBehaviour(Description d) {
-    d.append("Drilling at ") ;
-    d.append(drillsAt) ;
+    descLastStep(d) ;
+    d.append(" at ") ;
+    Target t = lastStepTarget() ;
+    if (Visit.arrayIncludes(yard.dummies, t)) t = yard ;
+    d.append(t) ;
   }
 }
 

@@ -191,7 +191,7 @@ public class Holding extends Venue implements BuildConstants {
     }
     for (Item i : goodsNeeded(upgradeLevel + 1).raw) {
       if (! stocks.hasItem(i)) upgrade = false ;
-      stocks.forceDemand(i.type, i.amount + margin, 0) ;
+      stocks.forceDemand(i.type, i.amount + margin, VenueStocks.TIER_CONSUMER) ;
     }
     
     //
@@ -200,20 +200,20 @@ public class Holding extends Venue implements BuildConstants {
     for (Service t : ALL_FOOD_TYPES) {
       if (t == SPICE) {
         //  TODO:  Only noble households demand spice.
-        stocks.forceDemand(t, 0, 0) ;
+        stocks.forceDemand(t, 0, VenueStocks.TIER_CONSUMER) ;
         continue ;
       }
       //
       //  TODO:  STRICTLY TEMPORARY, REMOVE
       ///if (stocks.amountOf(t) < 1) stocks.bumpItem(t, 1) ;
-      stocks.forceDemand(t, foodNeed, 0) ;
+      stocks.forceDemand(t, foodNeed, VenueStocks.TIER_CONSUMER) ;
     }
     int targetLevel = upgradeLevel ;
     //
     //  Update demands for power, water and life support-
     //  TODO:  Put this in a separate method...
     if (targetLevel > 1) {
-      stocks.forceDemand(POWER, targetLevel - 1, 0) ;
+      stocks.forceDemand(POWER, targetLevel - 1, VenueStocks.TIER_CONSUMER) ;
     }
     if (upgradeLevel > 1) {
       stocks.removeItem(Item.withAmount(POWER, 0.1f * (upgradeLevel - 1))) ;
@@ -240,7 +240,7 @@ public class Holding extends Venue implements BuildConstants {
     }
     if ((! structure.needsUpgrade()) && structure.goodCondition()) {
       upgradeLevel = targetLevel ;
-      structure.updateStats(INTEGRITIES[targetLevel], 5) ;
+      structure.updateStats(INTEGRITIES[targetLevel], 5, 0) ;
       world.ephemera.addGhost(this, MAX_SIZE, sprite(), 2.0f) ;
       attachSprite(modelFor(this).makeSprite()) ;
       setAsEstablished(false) ;

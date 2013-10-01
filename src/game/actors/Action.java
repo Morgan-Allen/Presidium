@@ -245,17 +245,23 @@ public class Action implements Behaviour, Model.AnimNames {
       if (inRange == 1) minDist *= 2 ;
     }
     else if (inRange == 1) minDist += progress + 0.5f ;
-
+    
+    final float
+      moveDist = Spacing.distance(actor, moveTarget) ;
     final boolean
       closed = actor.pathing.closeEnough(moveTarget, minDist),
-      facing = actor.pathing.facingTarget(actionTarget) ;
+      facing = actor.pathing.facingTarget(actionTarget),
+      approach = (moveDist < 1) && ! (moveTarget instanceof Boardable) ;
     actor.pathing.updateTarget(moveTarget) ;
-    final Target faced = closed ? actionTarget : actor.pathing.nextStep() ;
+    final Target faced = closed ? actionTarget :
+      (approach ? moveTarget : actor.pathing.nextStep()) ;
     
     if (verbose && I.talkAbout == actor) {
       I.say("Action target is: "+actionTarget) ;
       I.say("Move target is: "+moveTarget) ;
       I.say("Closed/facing: "+closed+"/"+facing+", move okay? "+moveOK) ;
+      
+      I.say("Distance: "+moveDist) ;
       I.say("Faced is: "+faced) ;
     }
     
@@ -278,8 +284,12 @@ public class Action implements Behaviour, Model.AnimNames {
   
   public float moveMultiple() {
     float rate = 1 ;
-    if ((properties & QUICK  ) != 0) rate *= 2 ;
-    if ((properties & CAREFUL) != 0) rate /= 2 ;
+    if ((properties & QUICK  ) != 0) {
+      rate *= 2 * actor.health.moveLuck() ;
+    }
+    if ((properties & CAREFUL) != 0) {
+      rate *= (2 - actor.health.moveLuck()) / 4 ;
+    }
     return rate ;
   }
   

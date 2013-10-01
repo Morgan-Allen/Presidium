@@ -154,6 +154,16 @@ public class BotanicalStation extends Venue implements BuildConstants {
     }
     choice.add(f) ;
     //
+    //  If you're really short on food, consider foraging in the surrounds-
+    final float shortages =
+      stocks.shortagePenalty(CARBS) +
+      stocks.shortagePenalty(GREENS) ;
+    if (actor.vocation() == Background.FIELD_HAND && shortages > 0) {
+      final Foraging foraging = new Foraging(actor, this) ;
+      foraging.priorityMod = Plan.CASUAL * shortages ;
+      choice.add(foraging) ;
+    }
+    //
     //  And lower-priority tending and upkeep also gets an appearance-
     for (Plantation p : allotments) if (p.type == Plantation.TYPE_NURSERY) {
       for (Species s : Plantation.ALL_VARIETIES) {
@@ -164,7 +174,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
         }
       }
       //
-      //  TODO:  Do this for every crop type.
+      //  TODO:  Do this for every crop type?
       choice.add(new Farming(actor, p)) ;
     }
     return choice.weightedPick(0) ;
@@ -177,7 +187,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
     updateAllotments(numUpdates) ;
     //
     //  Increment demand for gene seed, and decay current stocks-
-    stocks.incDemand(GENE_SEED, 5, 1) ;
+    stocks.incDemand(GENE_SEED, 5, VenueStocks.TIER_CONSUMER, 1) ;
     final float decay = 0.1f / World.STANDARD_DAY_LENGTH ;
     for (Item seed : stocks.matches(GENE_SEED)) {
       stocks.removeItem(Item.withAmount(seed, decay)) ;

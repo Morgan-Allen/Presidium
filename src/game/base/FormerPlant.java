@@ -41,7 +41,7 @@ public class FormerPlant extends Venue implements BuildConstants {
       500, 15, 300,
       Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_FIXTURE
     ) ;
-    personnel.setShiftType(SHIFTS_ALWAYS) ;
+    personnel.setShiftType(SHIFTS_BY_DAY) ;
     attachSprite(MODEL.makeSprite()) ;
   }
   
@@ -114,7 +114,6 @@ public class FormerPlant extends Venue implements BuildConstants {
     //  Consider upkeep, deliveries and supervision-
     choice.add(Deliveries.nextDeliveryFor(actor, this, services(), 10, world)) ;
     choice.add(new Building(actor, this)) ;
-    if (! Planet.isNight(world)) choice.add(new Supervision(actor, this)) ;
     //
     //  Have the climate engineer gather soil samples, but only if they're
     //  very low.  (Automated crawlers would do this in bulk.)
@@ -210,7 +209,7 @@ public class FormerPlant extends Venue implements BuildConstants {
       SDL = World.STANDARD_DAY_LENGTH ;
     
     int powerNeed = 4 + (structure.numUpgrades() * 2) ;
-    stocks.incDemand(POWER, powerNeed, 1) ;
+    stocks.incDemand(POWER, powerNeed, VenueStocks.TIER_CONSUMER, 1) ;
     stocks.bumpItem(POWER, powerNeed * -0.1f) ;
     float yield = 2 - stocks.shortagePenalty(POWER) ;
     
@@ -282,15 +281,14 @@ public class FormerPlant extends Venue implements BuildConstants {
     //  TODO:  Actually, arrange things so that the processor increases *local*
     //  pollution, while reducing global pollution (because it's messy and
     //  noisy, but good for the atmosphere.)  Not In My Backyard, IOW.
-    
     world.ecology().impingeSqualor(-2 * carbonBonus * yield, this, true) ;
     final int mag = World.SECTOR_SIZE ;
     world.ecology().pushClimate(Habitat.MEADOW, mag * mag * 5 * yield) ;
   }
   
+  
   //
   //  TODO:  Ensure vehicles are listed under staffing.
-  
   protected void updateCrawlers() {
     //
     //  Cull all any destroyed crawlers-

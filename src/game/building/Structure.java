@@ -24,8 +24,9 @@ public class Structure {
     */
   final public static int
     DEFAULT_INTEGRITY  = 100,
-    DEFAULT_ARMOUR     = 5,
-    DEFAULT_BUILD_COST = 10 ;
+    DEFAULT_ARMOUR     = 1,
+    DEFAULT_CLOAKING   = 0,
+    DEFAULT_BUILD_COST = 50 ;
   final public static float
     BURN_PER_SECOND = 1.0f,
     WEAR_PER_DAY    = 0.1f,
@@ -49,8 +50,9 @@ public class Structure {
     TYPE_VENUE   = 0,
     TYPE_FIXTURE = 1,
     TYPE_VEHICLE = 2,
-    TYPE_ANCIENT = 3,
-    TYPE_ORGANIC = 4 ;
+    TYPE_CRAFTED = 3,
+    TYPE_ANCIENT = 4,
+    TYPE_ORGANIC = 5 ;
   
   final public static int
     NO_UPGRADES         = 0,
@@ -75,6 +77,7 @@ public class Structure {
   private int
     buildCost     = DEFAULT_BUILD_COST,
     armouring     = DEFAULT_ARMOUR,
+    cloaking      = DEFAULT_CLOAKING,
     structureType = TYPE_VENUE ;
   
   private int state = STATE_INSTALL ;
@@ -98,6 +101,7 @@ public class Structure {
     maxUpgrades = s.loadInt() ;
     buildCost = s.loadInt() ;
     armouring = s.loadInt() ;
+    cloaking  = s.loadInt() ;
     structureType = s.loadInt() ;
     
     state = s.loadInt() ;
@@ -123,6 +127,7 @@ public class Structure {
     s.saveInt(maxUpgrades) ;
     s.saveInt(buildCost) ;
     s.saveInt(armouring) ;
+    s.saveInt(cloaking) ;
     s.saveInt(structureType) ;
     
     s.saveInt(state) ;
@@ -161,10 +166,11 @@ public class Structure {
   }
   
   
-  public void updateStats(int baseIntegrity, int armouring) {
+  public void updateStats(int baseIntegrity, int armouring, int cloaking) {
     final float condition = integrity * 1f / maxIntegrity() ;
     this.baseIntegrity = baseIntegrity ;
     this.armouring = armouring ;
+    this.cloaking  = cloaking  ;
     integrity = condition * maxIntegrity() ;
     //checkMaintenance() ;
   }
@@ -210,8 +216,10 @@ public class Structure {
   /**  Queries and modifications-
     */
   public int maxIntegrity() { return baseIntegrity + upgradeHP() ; }
-  public int armouring() { return armouring ; }
   public int maxUpgrades() { return upgrades == null ? 0 : maxUpgrades ; }
+  
+  public int cloaking()  { return cloaking  ; }
+  public int armouring() { return armouring ; }
   public int buildCost() { return buildCost ; }
   
   public boolean intact() { return state == STATE_INTACT ; }
@@ -286,7 +294,7 @@ public class Structure {
   
   
   public boolean goodCondition() {
-    return repairLevel() >= 0.8f ;
+    return (repairLevel() >= 0.8f) && intact() ;
   }
   
   

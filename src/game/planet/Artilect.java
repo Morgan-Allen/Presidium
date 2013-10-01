@@ -87,7 +87,7 @@ public abstract class Artilect extends Actor {
       }
       
       
-      protected Behaviour reactionTo(Mobile seen) {
+      protected Behaviour reactionTo(Element seen) {
         if (seen instanceof Actor) return nextDefence((Actor) seen) ;
         return nextDefence(null) ;
       }
@@ -115,7 +115,7 @@ public abstract class Artilect extends Actor {
     if (mind.home() == null) choice.add(new Patrolling(this, this, 6)) ;
     else choice.add(new Patrolling(this, mind.home(), 6)) ;
     
-    for (Element e : mind.seen()) if (e instanceof Actor) {
+    for (Element e : mind.awareOf()) if (e instanceof Actor) {
       choice.add(new Combat(this, (Actor) e)) ;
     }
     choice.add(new Retreat(this)) ;

@@ -86,7 +86,7 @@ public abstract class Fauna extends Actor {
         //  them from the aggressor.
       }
       
-      protected Behaviour reactionTo(Mobile seen) {
+      protected Behaviour reactionTo(Element seen) {
         if (BaseUI.isPicked(this)) I.say(this+" has seen: "+seen) ;
         if (seen instanceof Actor) return nextDefence((Actor) seen) ;
         return nextDefence(null) ;

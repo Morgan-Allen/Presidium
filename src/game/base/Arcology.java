@@ -116,8 +116,8 @@ public class Arcology extends Segment {
     //  TODO:  You'll also need input of greens or saplings, in all likelihood.
     float needWater = 1 - (origin().habitat().moisture() / 10f) ;
     needWater *= needWater ;
-    stocks.incDemand(WATER, needWater, 1) ;
-    stocks.bumpItem(WATER, needWater / 10f, 1) ;
+    stocks.incDemand(WATER, needWater, VenueStocks.TIER_CONSUMER, 1) ;
+    stocks.bumpItem(WATER, needWater / -10f, 1) ;
     final float shortWater = stocks.shortagePenalty(WATER) ;
     //
     //  Kill off the plants if you don't have enough.  Grow 'em otherwise.
@@ -133,7 +133,7 @@ public class Arcology extends Segment {
     //
     //  Combat pollution and improve global biomass based on health.
     world.ecology().impingeBiomass(this, 5 * plantsHealth, true) ;
-    world.ecology().impingeSqualor(-2 * plantsHealth, this, true) ;
+    world.ecology().impingeSqualor(-10 * plantsHealth, this, true) ;
   }
   
   //

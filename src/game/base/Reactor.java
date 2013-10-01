@@ -98,8 +98,8 @@ public class Reactor extends Venue implements BuildConstants {
       null, 1, FEEDBACK_MONITORS, ALL_UPGRADES
     ),
     
-    CORE_TECHNICIAN_QUARTERS = new Upgrade(
-      "Core Technician Quarters",
+    CORE_TECHNICIAN_STATION = new Upgrade(
+      "Core Technician Station",
       "Core Technicians provide the expertise and vigilance neccesary to "+
       "monitor reactor output and synthesise nuclear biproducts.",
       100,
@@ -194,7 +194,10 @@ public class Reactor extends Venue implements BuildConstants {
     stocks.bumpItem(POWER, powerOutput) ;
     //
     //  Update demand for raw materials-
-    stocks.forceDemand(FUEL_CORES, stocks.demandFor(POWER) / 5f, 0) ;
+    stocks.forceDemand(
+      FUEL_CORES, stocks.demandFor(POWER) / 5f,
+      VenueStocks.TIER_CONSUMER
+    ) ;
     if (structure.upgradeLevel(ISOTOPE_CONVERSION) > 0) {
       stocks.translateDemands(1, METALS_TO_FUEL) ;
     }

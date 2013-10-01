@@ -143,7 +143,7 @@ public class VaultSystem extends Venue implements BuildConstants {
       final Service s = services[i] ;
       if (s.form != FORM_COMMODITY) continue ;
       int level = stockLevels[i / 3] ;
-      stocks.forceDemand(s, level, 1) ;
+      stocks.forceDemand(s, level, VenueStocks.TIER_TRADER) ;
     }
   }
   

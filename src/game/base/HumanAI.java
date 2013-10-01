@@ -9,7 +9,7 @@ package src.game.base ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.common.* ;
-import src.game.planet.Planet;
+import src.game.planet.* ;
 import src.game.social.* ;
 import src.game.tactical.* ;
 import src.user.BaseUI ;
@@ -97,10 +97,11 @@ public class HumanAI extends ActorAI implements ActorConstants {
     addWork(choice) ;
     addLeisure(choice) ;
     addPurchases(choice) ;
-    
     final Behaviour chosen = choice.weightedPick(whimsy()) ;
-    ///I.sayAbout(actor, "HUMAN HAS  CHOSEN: "+chosen) ;
-    applyForMissions(chosen) ;
+    
+    //
+    //  TODO:  Mission application needs to become a Plan in itself.
+    if (actor.health.conscious()) applyForMissions(chosen) ;
     return chosen ;
   }
   
@@ -122,7 +123,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
   }
   
   
-  protected Behaviour reactionTo(Mobile seen) {
+  protected Behaviour reactionTo(Element seen) {
     return new Retreat(actor) ;
     //return null ;
   }
@@ -158,6 +159,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
   
   
   protected void addWork(Choice choice) {
+    if (mission != null) return ;
     //
     //  Find the next jobs waiting for you at work or home.
     if (work != null) {
@@ -191,11 +193,17 @@ public class HumanAI extends ActorAI implements ActorConstants {
     //  Training and self-improvement-
     choice.add(Drilling.nextDrillFor(actor)) ;
     
+    //  TODO:  Visit the Archives too.
+    
+    
     //
     //  Consider going home to rest, or finding a recreational facility of
     //  some kind.  That requires iterating over various venues.
     choice.add(Recreation.findRecreation(actor)) ;
     choice.add(new Resting(actor, Resting.pickRestPoint(actor))) ;
+    if (home instanceof Venue) {
+      choice.add(new Foraging(actor, (Venue) home)) ;
+    }
     
     Tile toExplore = Exploring.getUnexplored(actor.base().intelMap, actor) ;
     if (toExplore != null) {
@@ -205,7 +213,7 @@ public class HumanAI extends ActorAI implements ActorConstants {
   
   
   private void addPurchases(Choice choice) {
-    I.sayAbout(actor, "Getting purchases...") ;
+    ///I.sayAbout(actor, "Getting purchases...") ;
     //
     //  Consider upgrading weapons or armour.
     final boolean hasCommission = hasToDo(Commission.class) ;

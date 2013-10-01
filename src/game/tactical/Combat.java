@@ -21,29 +21,48 @@ public class Combat extends Plan implements ActorConstants {
   /**  
     */
   static boolean verbose = false ;
+  final static int
+    STYLE_RANGED = 0,
+    STYLE_MELEE  = 1,
+    STYLE_EITHER = 2,
+    
+    OBJECT_SUBDUE  = 0,
+    OBJECT_DESTROY = 1,
+    OBJECT_EITHER  = 2 ;
+  
   final Element target ;
+  final int style, object ;
   
   
   public Combat(Actor actor, Element target) {
+    this(actor, target, STYLE_EITHER, OBJECT_EITHER) ;
+  }
+  
+  
+  public Combat(
+    Actor actor, Element target, int style, int object
+  ) {
     super(actor, target) ;
     this.target = target ;
+    this.style = style ;
+    this.object = object ;
   }
   
   
   public Combat(Session s) throws Exception {
     super(s) ;
     this.target = (Element) s.loadObject() ;
+    this.style = s.loadInt() ;
+    this.object = s.loadInt() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveObject(target) ;
+    s.saveInt(style) ;
+    s.saveInt(object) ;
   }
-  
-  
-  
-  
   
   
   
@@ -67,7 +86,7 @@ public class Combat extends Plan implements ActorConstants {
   
   
   public boolean valid() {
-    if (target instanceof Actor && ((Actor) target).indoors()) return false ;
+    if (target instanceof Mobile && ((Mobile) target).indoors()) return false ;
     return super.valid() ;
   }
   
@@ -88,24 +107,14 @@ public class Combat extends Plan implements ActorConstants {
     //
     //  Here, we estimate the danger presented by actors in the area, and
     //  thereby guage the odds of survival/victory-
-    final Batch <Element> nearby = new Batch <Element> () ;
-    //
-    //  TODO:  Strictly speaking, this is cheating, since some of these targets
-    //  might not be visible to the player (or actor.)  Fix that?
-    for (Object m : actor.world().presences.matchesNear(
-      Mobile.class, enemy, actor.health.sightRange())
-    ) {
-      nearby.add((Element) m) ;
-    }
-    float danger = Retreat.dangerAtSpot(enemy, actor, nearby) ;
-    //
-    /*  //TODO:  Fix up the Danger Map.  Needs to be smoother, area-wise.
+    //  TODO:  Fix up the Danger Map.  Needs to be smoother, area-wise.
+    final Batch <Element> known = actor.mind.awareOf() ;
+    known.include(enemy) ;
+    float danger = Retreat.dangerAtSpot(enemy, actor, known) ;
     if (actor.base() != null) {
-      final float areaDanger = actor.base().dangerMap.valAt(enemy.origin()) ;
-      danger = (danger + (areaDanger / combatStrength(actor, null))) / 2 ;
+      danger += Plan.dangerPenalty(enemy, actor) ;
     }
-    //*/
-    final float chance = 1 - danger ;
+    final float chance = Visit.clamp(1 - danger, 0.1f, 0.9f) ;
     //
     //  Then we calculate the risk/reward ratio associated with the act-
     final Target victim = enemy.targetFor(Combat.class) ;
@@ -118,10 +127,11 @@ public class Combat extends Plan implements ActorConstants {
     final float ER = alliance(actor, enemy) ;
     appeal += ER * -1 * PARAMOUNT ;
     appeal += winReward ;
+    appeal *= actor.traits.scaleLevel(AGGRESSIVE) ;
+    appeal /= actor.traits.scaleLevel(NERVOUS   ) ;
     
     
-    final boolean reports = verbose && BaseUI.isPicked(actor) ;
-    if (reports) {
+    if (verbose && I.talkAbout == actor) {
       I.say(
         "  "+actor+" considering COMBAT with "+enemy+
         ", time: "+actor.world().currentTime()
@@ -132,11 +142,11 @@ public class Combat extends Plan implements ActorConstants {
       ) ;
     }
     if (chance <= 0) {
-      if (reports) I.say("  No chance of victory!\n") ;
+      if (verbose) I.sayAbout(actor, "  No chance of victory!\n") ;
       return 0 ;
     }
     appeal = (appeal * chance) - ((1 - chance) * lossCost) ;
-    if (reports) I.say("  Final appeal: "+appeal+"\n") ;
+    if (verbose) I.sayAbout(actor, "  Final appeal: "+appeal+"\n") ;
     return appeal ;
   }
   
@@ -190,6 +200,23 @@ public class Combat extends Plan implements ActorConstants {
   }
   
   
+  public static float stealthValue(Element e, Actor looks) {
+    if (e instanceof Actor) {
+      final Actor a = (Actor) e ;
+      if (a.base() == looks.base()) return 0 ;
+      float stealth = a.traits.traitLevel(STEALTH_AND_COVER) / 2f ;
+      stealth *= a.health.moveLuck() ;
+      stealth /= (0.5f + a.health.moveRate()) ;
+      return stealth ;
+    }
+    if (e instanceof Installation) {
+      final Installation i = (Installation) e ;
+      return i.structure().cloaking() ;
+    }
+    return 0 ;
+  }
+  
+  
   
   
   /**  Actual behaviour implementation-
@@ -203,7 +230,7 @@ public class Combat extends Plan implements ActorConstants {
     final boolean melee = actor.gear.meleeWeapon() ;
     final boolean razes = target instanceof Venue ;
     final float danger = Retreat.dangerAtSpot(
-      actor.origin(), actor, actor.mind.seen()
+      actor.origin(), actor, actor.mind.awareOf()
     ) ;
     
     final String strikeAnim = melee ?

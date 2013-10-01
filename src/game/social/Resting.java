@@ -23,12 +23,9 @@ public class Resting extends Plan implements BuildConstants {
   private static boolean verbose = false ;
   
   final static int
-    SCAVENGE_DC = 5,
-    FORAGING_DC = 10 ;
-  final static int
     MODE_NONE     = -1,
     MODE_DINE     =  0,
-    MODE_SCAVENGE =  1,
+    //MODE_SCAVENGE =  1,
     MODE_SLEEP    =  2 ;
   
   final Boardable restPoint ;
@@ -77,10 +74,17 @@ public class Resting extends Plan implements BuildConstants {
   
   protected Behaviour getNextStep() {
     if (restPoint == null) return null ;
-    final Behaviour eats = nextEating() ;
-    if (eats != null) {
-      if (verbose) I.sayAbout(actor, "Returning eat action...") ;
-      return eats ;
+    if (restPoint instanceof Venue && menuFor((Venue) restPoint).size() > 0) {
+      if (actor.health.hungerLevel() > 0.1f) {
+        final Action eats = new Action(
+          actor, restPoint,
+          this, "actionEats",
+          Action.BUILD, "Eating at "+restPoint
+        ) ;
+        currentMode = MODE_DINE ;
+        if (verbose) I.sayAbout(actor, "Returning eat action...") ;
+        return eats ;
+      }
     }
     //
     //  If you're tired, put your feet up.
@@ -97,62 +101,26 @@ public class Resting extends Plan implements BuildConstants {
   }
   
   
-  private Behaviour nextEating() {
-    //
-    //  If you're hungry, eat from local stocks.
-    if (actor.health.hungerLevel() > 0.1f) {
-      final Action eats = new Action(
-        actor, restPoint,
-        this, "actionEats",
-        Action.BUILD, "Eating at "+restPoint
-      ) ;
-      final Batch <Service> menu = menuFor(restPoint) ;
-      if (menu.size() == 0) {
-        //
-        //  TODO:  Make foraging/gathering into a separate behaviour.
-        if (actor.health.hungerLevel() > 0.6f) {
-          final Tile t = Spacing.pickFreeTileAround(restPoint, actor) ;
-          eats.setMoveTarget(t) ;
-          ///eats.setProperties(Action.CAREFUL) ;
-          currentMode = MODE_SCAVENGE ;
-          return eats ;
-        }
-        else return null ;
-      }
-      currentMode = MODE_DINE ;
-      ///I.sayAbout(actor, "Menu size: "+menu.size()) ;
-      return eats ;
-    }
-    return null ;
+  public boolean actionEats(Actor actor, Venue place) {
+    return dineFrom(actor, place) ;
   }
   
   
-  public boolean actionEats(Actor actor, Target place) {
-    //
-    //  If you're inside a venue, and it has food, then avail of it-
-    final Batch <Service> menu = menuFor(place) ;
+  public static boolean dineFrom(Actor actor, Inventory.Owner stores) {
+    final Batch <Service> menu = menuFor(stores) ;
     final int numFoods = menu.size() ;
-    if (numFoods > 0) {
+    if (numFoods > 0 && actor.health.hungerLevel() > 0.1f) {
       //
       //  FOOD TO BODY-MASS RATIO IS 1 TO 10.  So, 1 unit of food will last a
       //  typical person 5 days.
-      final Venue venue = (Venue) place ;
       for (Service type : menu) {
         final Item portion = Item.withAmount(type, 0.1f * 1f / numFoods) ;
-        venue.inventory().removeItem(portion) ;
+        stores.inventory().removeItem(portion) ;
       }
       actor.health.takeSustenance(1, numFoods / 2) ;
       return true ;
     }
-    //
-    //  Otherwise, grub whatever you can from the surroundings-
-    else {
-      final boolean
-        canGrub = actor.traits.test(HARD_LABOUR, SCAVENGE_DC, 1),
-        goodStuff = actor.traits.test(CULTIVATION, FORAGING_DC, 1) ;
-      if (canGrub) actor.health.takeSustenance(1, goodStuff ? 0.5f : 0) ;
-      return true ;
-    }
+    return false ;
   }
   
   
@@ -189,12 +157,10 @@ public class Resting extends Plan implements BuildConstants {
   }
   
   
-  private static Batch <Service> menuFor(Target place) {
+  private static Batch <Service> menuFor(Inventory.Owner place) {
     Batch <Service> menu = new Batch <Service> () ;
-    if (! (place instanceof Venue)) return menu ;
-    final Venue venue = (Venue) place ;
     for (Service type : ALL_FOOD_TYPES) {
-      if (venue.inventory().amountOf(type) >= 0.1f) menu.add(type) ;
+      if (place.inventory().amountOf(type) >= 0.1f) menu.add(type) ;
     }
     return menu ;
   }
@@ -229,7 +195,7 @@ public class Resting extends Plan implements BuildConstants {
       //
       //  Also, include the effects of hunger-
       float sumFood = 0 ;
-      for (Service s : menuFor(point)) {
+      for (Service s : menuFor(venue)) {
         sumFood += venue.stocks.amountOf(s) ;
       }
       if (sumFood > 1) sumFood = 1 ;
@@ -259,10 +225,12 @@ public class Resting extends Plan implements BuildConstants {
       d.append("Eating at ") ;
       d.append(restPoint) ;
     }
+    /*
     else if (currentMode == MODE_SCAVENGE) {
       d.append("Foraging around ") ;
       d.append(restPoint) ;
     }
+    //*/
     else {
       d.append("Resting at ") ;
       d.append(restPoint) ;

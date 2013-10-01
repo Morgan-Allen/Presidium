@@ -196,8 +196,9 @@ public abstract class Plan implements Saveable, Behaviour {
     //  TODO:  Incorporate estimate of dangers along entire route using
     //  path-caching.
     final Tile at = actor.world().tileAt(t) ;
-    final float danger = actor.base().dangerMap.valAt(at) ;
+    float danger = actor.base().dangerMap.valAt(at) ;
     if (danger < 0) return 0 ;
+    danger *= actor.traits.scaleLevel(ActorConstants.NERVOUS) ;
     return danger * 0.1f / (1 + Combat.combatStrength(actor, null)) ;
   }
   

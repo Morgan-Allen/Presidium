@@ -11,7 +11,7 @@ import src.util.* ;
 
 
 
-public abstract class Element implements
+public class Element implements
   Target, Session.Saveable, World.Visible
 {
   
@@ -40,8 +40,13 @@ public abstract class Element implements
   
   
   
-  public Element() {
+  public Element(Tile tile, Sprite sprite) {
+    if (tile != null) setPosition(tile.x, tile.y, tile.world) ;
+    if (sprite != null) attachSprite(sprite) ;
   }
+  
+  
+  protected Element() {}
   
   
   public Element(Session s) throws Exception {
@@ -241,9 +246,9 @@ public abstract class Element implements
     return v ;
   }
   
-
+  
   protected float fogFor(Base base) {
-    return base.intelMap.fogAt(origin()) ;
+    return base.intelMap.displayFog(origin()) ;
   }
   
   
@@ -266,12 +271,12 @@ public abstract class Element implements
   }
   
   
-  protected void attachSprite(Sprite sprite) {
+  public void attachSprite(Sprite sprite) {
     this.sprite = sprite ;
   }
   
   
-  protected void attachModel(Model model) {
+  public void attachModel(Model model) {
     attachSprite(model.makeSprite()) ;
   }
   

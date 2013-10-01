@@ -72,7 +72,7 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   private static class MeshPatch {
     int x, y ;
-    TerrainMesh meshes[], roadsMesh, earthMesh, fogMesh ;
+    TerrainMesh meshes[], roadsMesh, fogMesh, fogFade ;
     boolean updateMesh, updateRoads ;
   }
   
@@ -224,6 +224,11 @@ public class Terrain implements TileConstants, Session.Saveable {
   }
   
   
+  public int roadMask(Tile t) {
+    return roadCounter[t.x][t.y] ;
+  }
+  
+  
   public void maskAsPaved(Tile tiles[], boolean is) {
     if (tiles == null || tiles.length == 0) return ;
     ///if (! is) I.say("...Roads masking begins.") ;
@@ -317,6 +322,7 @@ public class Terrain implements TileConstants, Session.Saveable {
       x, y, x + patchSize, y + patchSize,
       heightVals, mapSize
     ) ;
+    patch.fogFade = TerrainMesh.meshAsReference(patch.fogMesh) ;
     patch.updateMesh = false ;
   }
   
@@ -350,13 +356,40 @@ public class Terrain implements TileConstants, Session.Saveable {
   }
   
   
-  public void renderFogFor(Box2D area, Texture fog, Rendering rendering) {
-    if (fog == null )I.say("FOG IS NULL!") ;
+  public void renderFogFor(
+    Box2D area, Texture oldFog, Texture newFog,
+    Rendering rendering, float fogTime
+  ) {
+    if (oldFog == null || newFog == null) I.complain("FOG IS NULL!") ;
     if (patches == null) I.complain("PATCHES MUST BE INITIALISED FIRST!") ;
+    
+    fogTime %= 1 ;
+    final float
+      oldFA = 1 - fogTime,
+      newFA = fogTime ;
+    /*
+    final float
+      oldFA = 1 - Math.max((fogTime - 0.5f) * 2, 0),
+      newFA = Math.min(fogTime * 2, 1) ;
+    //*/
+    /*
+    if (false && area.xpos() < 1 && area.ypos() < 1) {
+      I.say("    New/old fog: "+newFA+"/"+oldFA) ;
+      I.say("   "+newFog.hashCode()+" "+oldFog.hashCode()) ;
+    }
+    //*/
     for (MeshPatch patch : patchesUnder(area)) {
-      patch.fogMesh.colour = Colour.BLACK ;
-      patch.fogMesh.assignTexture(fog) ;
+      
+      patch.fogMesh.colour = Colour.transparency(oldFA) ;
+      patch.fogMesh.assignTexture(oldFog) ;
       rendering.addClient(patch.fogMesh) ;
+      
+      patch.fogFade.colour = Colour.transparency(newFA) ;
+      patch.fogFade.assignTexture(newFog) ;
+      rendering.addClient(patch.fogFade) ;
+      
+      //patch.fogMesh.isFog = true ;
+      //patch.fogFade.isFog = true ;
     }
   }
 }

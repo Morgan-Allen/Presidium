@@ -15,7 +15,7 @@ public class Choice {
   
   /**  Data fields, constructors and setup-
     */
-  public static boolean verbose = false ;
+  public static boolean verbose = false, reportRejects = false ;
   
   final Actor actor ;
   final Batch <Behaviour> plans = new Batch <Behaviour> () ;
@@ -33,8 +33,12 @@ public class Choice {
   
   
   public boolean add(Behaviour plan) {
-    if (plan == null || plan.finished() || plan.nextStepFor(actor) == null) {
-      if (verbose && plan != null && I.talkAbout == actor) {
+    if (
+      plan == null || plan.finished() ||
+      plan.nextStepFor(actor) == null ||
+      plan.priorityFor(actor) == 0
+    ) {
+      if (reportRejects && plan != null && I.talkAbout == actor) {
         I.say("  Rejected: "+plan) ;
         I.say("  Finished/valid: "+plan.finished()+"/"+plan.valid()) ;
         I.say("  Next step: "+plan.nextStepFor(actor)) ;
@@ -56,6 +60,7 @@ public class Choice {
     *  likelihood of their selection.
     */
   public Behaviour weightedPick(float priorityRange) {
+    if (plans.size() == 0) return null ;
     //
     //  Firstly, acquire the priorities for each plan.  If the permitted range
     //  of priorities is zero, simply return the most promising.

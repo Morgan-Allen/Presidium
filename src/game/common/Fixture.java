@@ -169,7 +169,7 @@ public abstract class Fixture extends Element {
     final Tile o = origin() ;
     for (int x = o.x ; x < o.x + size ; x++)
       for (int y = o.y ; y < o.y + size ; y++) {
-        final float fog = base.intelMap.fogAt(world.tileAt(x,  y)) ;
+        final float fog = base.intelMap.displayFog(world.tileAt(x,  y)) ;
         if (fog > maxFog) maxFog = fog ;
       }
     return maxFog ;

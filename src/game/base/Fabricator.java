@@ -109,7 +109,7 @@ public class Fabricator extends Venue implements BuildConstants {
     
     final float powerNeed = 2 + (structure.numUpgrades() / 2f) ;
     stocks.bumpItem(POWER, powerNeed / -10) ;
-    stocks.forceDemand(POWER, powerNeed, 0) ;
+    stocks.forceDemand(POWER, powerNeed, VenueStocks.TIER_CONSUMER) ;
   }
   
   

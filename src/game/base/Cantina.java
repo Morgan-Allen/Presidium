@@ -105,7 +105,7 @@ public class Cantina extends Venue implements BuildConstants {
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    stocks.forceDemand(SOMA, 10, 0) ;
+    stocks.forceDemand(SOMA, 10, VenueStocks.TIER_CONSUMER) ;
   }
   
   

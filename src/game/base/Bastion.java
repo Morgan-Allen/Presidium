@@ -172,14 +172,14 @@ public class Bastion extends Venue implements BuildConstants {
     //
     //  Demand provisions-
     final int foodNeed = personnel.residents().size() + 5 ;
-    stocks.forceDemand(CARBS  , foodNeed * 1.5f, 0) ;
-    stocks.forceDemand(PROTEIN, foodNeed * 1.0f, 0) ;
-    stocks.forceDemand(GREENS , foodNeed * 1.0f, 0) ;
-    stocks.forceDemand(SPICE  , foodNeed * 0.5f, 0) ;
+    stocks.forceDemand(CARBS  , foodNeed * 1.5f, VenueStocks.TIER_CONSUMER) ;
+    stocks.forceDemand(PROTEIN, foodNeed * 1.0f, VenueStocks.TIER_CONSUMER) ;
+    stocks.forceDemand(GREENS , foodNeed * 1.0f, VenueStocks.TIER_CONSUMER) ;
+    stocks.forceDemand(SPICE  , foodNeed * 0.5f, VenueStocks.TIER_CONSUMER) ;
     //
     //  Modify maximum integrity based on upgrades-
     final int BB = structure.upgradeLevel(BLAST_SHIELDS) ;
-    structure.updateStats(650 + 250 * BB, 15 + 5 * BB) ;
+    structure.updateStats(650 + 250 * BB, 15 + 5 * BB, 0) ;
   }
   
   

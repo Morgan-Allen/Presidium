@@ -216,7 +216,6 @@ public class MobilePathing {
     //
     //  Determine the appropriate offset and angle for this target-
     if (target == null) return ;
-    ///if (BaseUI.isPicked(mobile)) I.say("Moving toward "+target) ;
     final Vec2D disp = displacement(target) ;
     final float dist = disp.length() ;
     float angle = dist == 0 ? 0 : disp.normalise().toAngle() ;
@@ -251,6 +250,10 @@ public class MobilePathing {
       baseHigh = aboard.position(null).z ;
     }
     mobile.nextPosition.z = baseHigh + mobile.aboveGroundHeight() ;
+    if (Float.isNaN(mobile.nextPosition.x)) {
+      I.say("ILLEGAL POSITION") ;
+      new Exception().printStackTrace() ;
+    }
   }
   
   

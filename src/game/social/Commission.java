@@ -62,7 +62,7 @@ public class Commission extends Plan {
   /**  Assessing and locating targets-
     */
   public float priorityFor(Actor actor) {
-    I.sayAbout(actor, "Getting commission priority... "+item) ;
+    ///I.sayAbout(actor, "Getting commission priority... "+item) ;
     final boolean done = shop.stocks.hasItem(item) ;
     if (order != null && ! order.finished() && ! done) {
       return 0 ;

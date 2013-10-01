@@ -47,7 +47,7 @@ public class Building extends Plan implements ActorConstants {
     //
     //  By default, the impetus to repair something is based on qualification
     //  for the task and personality.
-    ///I.sayAbout(built, "Considering repair of "+built+"?") ;
+    if (verbose) I.sayAbout(actor, "Considering repair of "+built+"?") ;
     final float attachment = Math.max(
       actor.base().communitySpirit(),
       actor.mind.relation(built)
@@ -59,20 +59,20 @@ public class Building extends Plan implements ActorConstants {
     skillRating /= 2 ;
     
     final boolean broke = built.base().credits() <= 0 ;
-    float impetus = skillRating / 2f ;
+    float impetus = skillRating * attachment ;
     impetus -= actor.traits.traitLevel(NATURALIST) / 10f ;
     impetus -= actor.traits.traitLevel(INDOLENT) / 10f ;
     if (broke || impetus <= 0 || attachment <= 0) impetus = 0 ;
-    else impetus *= attachment ;
+    else impetus += attachment / 2f ;
     //
     //  If damage is higher than 50%, priority converges to maximum, regardless
     //  of competency, but only when you have altruistic motives.
     float needRepair = (1 - built.structure.repairLevel()) * 1.5f ;
     if (! built.structure.intact()) needRepair = 1.0f ;
     if (built.structure.needsUpgrade()) needRepair += 0.5f ;
-    if (built.structure.burning()) needRepair++ ;
+    if (built.structure.burning()) needRepair += 1.0f ;
     if (verbose) I.sayAbout(
-      built, "Considering repair of "+built+", need: "+needRepair+
+      actor, "Considering repair of "+built+", need: "+needRepair+
       "\nimpetus/skill for "+actor+" is "+impetus+"/"+skillRating
     ) ;
     if (needRepair > 0.5f) {
@@ -83,15 +83,14 @@ public class Building extends Plan implements ActorConstants {
       if (verbose) I.sayAbout(actor, "Need for repair: "+needRepair) ;
     }
     else if (needRepair == 0) return 0 ;
-    //else needRepair = (needRepair + 0.5f) / 2 ;
     //
     //  During initial consideration, include competition as a decision factor,
     //  so that you don't get dozens of actors converging on a minor breakdown.
     float competition = 0 ;
     if (! begun()) {
       competition = Plan.competition(Building.class, built, actor) ;
-      if (verbose) I.sayAbout(built, "Competition is: "+competition) ;
       competition /= 1 + (built.structure.maxIntegrity() / 100f) ;
+      if (verbose) I.sayAbout(actor, "Competition is: "+competition) ;
     }
     //
     //  Finally, scale, offset and clamp appropriately-

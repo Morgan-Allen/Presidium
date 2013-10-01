@@ -138,22 +138,22 @@ public class Species implements Session.Saveable {
     
     ONI_RICE    = new Species("Oni Rice"   , "", null, null, Type.FLORA),
     DURWHEAT    = new Species("Durwheat"   , "", null, null, Type.FLORA),
-    TUBER_LILY  = new Species("Tuber Lily ", "", null, null, Type.FLORA),
-    BROADFRUITS = new Species("BroadFruits", "", null, null, Type.FLORA),
+    TUBER_LILY  = new Species("Tuber Lily" , "", null, null, Type.FLORA),
+    BROADFRUITS = new Species("Broadfruits", "", null, null, Type.FLORA),
     HIVE_CELLS  = new Species("Hive Cells" , "", null, null, Type.FLORA),
     MUSSEL_BEDS = new Species("Mussel Beds", "", null, null, Type.FLORA),
     PIONEERS    = new Species("Pioneers"   , "", null, null, Type.FLORA),
-    SAPLINGS    = new Species("Saplings"   , "", null, null, Type.FLORA),
+    TIMBER      = new Species("Timber"     , "", null, null, Type.FLORA),
     CROP_SPECIES[] = {
-      DURWHEAT, ONI_RICE, BROADFRUITS, TUBER_LILY,
-      HIVE_CELLS, MUSSEL_BEDS, PIONEERS, SAPLINGS
+      ONI_RICE, DURWHEAT, TUBER_LILY, BROADFRUITS,
+      HIVE_CELLS, MUSSEL_BEDS, PIONEERS, TIMBER
     },
     
     ALL_SPECIES[] = {
       HUMAN, QUUD, VAREEN, MICOVORE,
       
       DURWHEAT, ONI_RICE, BROADFRUITS, TUBER_LILY,
-      HIVE_CELLS, MUSSEL_BEDS, PIONEERS, SAPLINGS,
+      HIVE_CELLS, MUSSEL_BEDS, PIONEERS, TIMBER,
     }
   ;
   

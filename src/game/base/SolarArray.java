@@ -106,6 +106,13 @@ public class SolarArray extends Segment implements BuildConstants {
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact()) return ;
+    //
+    //  TODO:  Power must be stockpiled by day and released slowly at night.
+    //  ...Maybe just a constant output could be assumed, for simplicity's
+    //  sake?  Or maybe the hub could detect shortages and release more power
+    //  to satisfy demand?
+    
     final float dayVal = Planet.dayValue(world) ;
     stocks.bumpItem(POWER, 5 * dayVal / 10f, type == TYPE_HUB ? 100 : 10) ;
     stocks.bumpItem(WATER, 1 * dayVal / 10f, 5 ) ;

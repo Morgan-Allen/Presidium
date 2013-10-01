@@ -47,7 +47,7 @@ public class Minimap extends UINode {
   
   private void updateMapImage() {
     final int texSize = world.size ;
-    mapImage = Texture.createTexture(texSize, texSize) ;
+    if (mapImage == null) mapImage = Texture.createTexture(texSize, texSize) ;
     byte RGBA[] = new byte[texSize * texSize * 4] ;
     for (int y = 0, m = 0 ; y < texSize ; y++) {
       for (int x = 0 ; x < texSize ; x++) {
@@ -113,9 +113,6 @@ public class Minimap extends UINode {
     GL11.glColor4f(1, 1, 1, 1) ;
     mapImage.bindTex() ;
     renderTex() ;
-    //GL11.glColor4f(1, 1, 1, oldFade) ;
-    //newImage.bindTex() ;
-    //renderTex() ;
     if (base != null && ! GameSettings.noFog) {
       GL11.glColor4f(0, 0, 0, 1) ;
       base.intelMap.fogTex().bindTex() ;

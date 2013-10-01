@@ -392,6 +392,16 @@ public class Session {
   public int bytesOut() { return bytesOut ; }
   
   
+  public void loadByteArray(byte array[]) throws Exception {
+    in.read(array) ;
+  }
+  
+  
+  public void saveByteArray(byte array[]) throws Exception {
+    out.write(array) ;
+  }
+  
+  
   public void loadByteArray(byte array[][]) throws Exception {
     for (byte a[] : array) in.read(a) ;
   }

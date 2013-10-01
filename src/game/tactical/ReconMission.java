@@ -53,7 +53,10 @@ public class ReconMission extends Mission {
   public float priorityFor(Actor actor) {
     final Tile centre = (Tile) subject ;
     float reward = actor.mind.greedFor(rewardAmount(actor)) * ROUTINE ;
-    return Exploring.rateExplorePoint(actor, centre, reward) ;
+    float priority = Exploring.rateExplorePoint(actor, centre, reward) ;
+    //I.sayAbout(actor, "Recon mission priority is: "+priority) ;
+    //I.sayAbout(actor, "Reward priority is: "+reward+", amount: "+rewardAmount(actor)) ;
+    return priority ;
   }
   
   
@@ -107,7 +110,7 @@ public class ReconMission extends Mission {
     d.append("On ") ;
     d.append("Recon Mission", this) ;
     final Tile tile = (Tile) subject ;
-    d.append(" around "+tile+" at "+tile.x+" "+tile.y) ;
+    d.append(" around "+tile) ;
   }
   
   

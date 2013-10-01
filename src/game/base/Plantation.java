@@ -59,16 +59,6 @@ public class Plantation extends Venue implements
     GRUB_BOX_MODEL = ImageModel.asIsometricModel(
       Plantation.class, IMG_DIR+"grub_box.png", 1, 1
     ) ;
-  /*
-  final public static int
-    VAR_ONI_RICE    = 0,
-    VAR_DURWHEAT    = 1,
-    VAR_TUBER_LILY  = 2,
-    VAR_BROADFRUITS = 3,
-    VAR_HIVE_CELLS  = 4,
-    VAR_SAPLINGS    = 5,
-    ALL_VARIETIES[] = { 0, 1, 2, 3, 4, 5 } ;
-  //*/
   final public static Species ALL_VARIETIES[] = {
     Species.ONI_RICE,
     Species.DURWHEAT,
@@ -88,9 +78,9 @@ public class Plantation extends Venue implements
     new Object[] { Species.HIVE_CELLS, PROTEIN , new Model[] { GRUB_BOX_MODEL }},
     null,
     null,
-    new Object[] { Species.SAPLINGS, GREENS  , null },
+    new Object[] { Species.TIMBER, GREENS, null },
   } ;
-
+  
   
   
   public static Service speciesYield(Species s) {
@@ -120,14 +110,6 @@ public class Plantation extends Venue implements
   
   /**  Constructors, data fields, setup and save/load methods-
     */
-  /*
-  final static String CROP_NAMES[] = {
-    "Oni Rice", "Durwheat",
-    "Tuber Lily", "Broadfruits", "Hive Cells",
-    "Saplings"//"Mussel Beds"
-  } ;
-  //*/
-  
   final static int
     TYPE_NURSERY = 0,
     TYPE_BED     = 1,
@@ -232,8 +214,9 @@ public class Plantation extends Venue implements
     else {
       for (int c = 0, i = 0 ; c < 4 ; c++) {
         final Tile t = world.tileAt(x + CROPS_POS[i++], y + CROPS_POS[i++]) ;
+        ///I.say("Creating new bed, species: "+Species.CROP_SPECIES[0]) ;
         planted[c] = new Crop(
-          this, Species.CROP_SPECIES[Rand.index(4)], t
+          this, Species.CROP_SPECIES[0], t
         ) ;
       }
       refreshCropSprites() ;
@@ -244,8 +227,10 @@ public class Plantation extends Venue implements
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     
-    if (! structure.intact() || numUpdates % 10 != 0) return ;
-    if (type == TYPE_NURSERY) {
+    if (! structure.intact()) return ;
+    world.ecology().impingeSqualor(-2, this, true) ;
+    
+    if (type == TYPE_NURSERY && numUpdates % 10 == 0) {
       final float
         decay  = 10 * 0.1f / World.STANDARD_DAY_LENGTH,
         growth = 10 * Planet.dayValue(world) / World.GROWTH_INTERVAL ;
@@ -262,15 +247,34 @@ public class Plantation extends Venue implements
   
   
   public void onGrowth(Tile t) {
-    //
-    //  TODO:  Average fertility/moisture over the whole strip?
     if (! structure.intact()) return ;
+    //
+    //  Here, we average fertility over the plantation as a whole-
+    //  TODO:  Possibly combine with irrigation effects from water supply or
+    //  life support?
+    float avgMoisture = 0, count = 0 ;
+    for (Plantation p : strip) {
+      final Tile o = p.origin() ;
+      for (int c = 0, i = 0 ; c < 4 ; c++) {
+        final Tile u = world.tileAt(
+          o.x + CROPS_POS[i++],
+          o.y + CROPS_POS[i++]
+        ) ;
+        avgMoisture += u.habitat().moisture() ;
+        count++ ;
+      }
+    }
+    avgMoisture /= count * 10 ;
+    if (type == TYPE_COVERED) avgMoisture = (avgMoisture + 1) / 2f ;
+    //
+    //  Then apply growth to each crop-
     boolean anyChange = false ;
     for (Crop c : planted) if (c != null) {
       final int oldGrowth = (int) c.growStage ;
-      if (c.tile == t) c.doGrowth() ;
+      c.doGrowth(avgMoisture, 0.25f) ;
       final int newGrowth = (int) c.growStage ;
       if (oldGrowth != newGrowth) anyChange = true ;
+      world.ecology().impingeBiomass(this, c.health * c.growStage / 2f, true) ;
     }
     checkCropStates() ;
     if (anyChange) refreshCropSprites() ;
@@ -450,8 +454,8 @@ public class Plantation extends Venue implements
   public String helpInfo() {
     if (type == TYPE_NURSERY) return
       "Nurseries allow young plants to be cultivated in a secure environment "+
-      "prior to outdoor planting, and provide a small but steady output of "+
-      "food yield regardless of outside conditions." ;
+      "prior to outdoor planting, and provide a small but steady food yield "+
+      "regardless of outside conditions." ;
     return
       "Plantations of managed, mixed-culture cropland secure a high-quality "+
       "food source for your base, but require space and constant attention." ;
@@ -481,7 +485,7 @@ public class Plantation extends Venue implements
     }
     if (categoryID == 0 && type != TYPE_NURSERY) {
       d.append("\n") ;
-      for (Crop c : planted) if (c.growStage >= Crop.MIN_GROWTH) {
+      for (Crop c : planted) {// if (c.growStage >= Crop.MIN_GROWTH) {
         d.append("\n  "+c) ;
       }
     }

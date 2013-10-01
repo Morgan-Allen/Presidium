@@ -58,6 +58,8 @@ public class Exploring extends Plan implements ActorConstants {
     final float p = rateExplorePoint(actor, lookedAt, priorityMod) ;
     ///if (BaseUI.isPicked(actor))
     ///I.say("PRIORITY FOR EXPLORATION: "+p) ;
+    //
+    //  TODO:  Increase priority based on amount of map left unexplored.
     return p ;
   }
   
@@ -65,10 +67,18 @@ public class Exploring extends Plan implements ActorConstants {
   public static float rateExplorePoint(
     Actor actor, Tile point, float winReward
   ) {
-    winReward += actor.traits.traitLevel(INQUISITIVE) ;
-    winReward -= actor.traits.traitLevel(INDOLENT) ;
-    winReward += actor.traits.traitLevel(SURVEILLANCE) / 10f ;
-    return winReward - Plan.rangePenalty(actor, point) ;
+    float impetus = winReward ;
+    
+    impetus += actor.traits.traitLevel(NATURALIST) / 2f ;
+    impetus += actor.traits.traitLevel(INQUISITIVE) / 2f ;
+    impetus -= actor.traits.traitLevel(INDOLENT) ;
+    impetus += actor.traits.traitLevel(SURVEILLANCE) / 10f ;
+    
+    impetus -= Plan.rangePenalty(actor, point) ;
+    impetus -= Plan.dangerPenalty(point, actor) ;
+    impetus *= actor.health.sightRange() / ActorHealth.DEFAULT_SIGHT ;
+    
+    return impetus ;
   }
   
   

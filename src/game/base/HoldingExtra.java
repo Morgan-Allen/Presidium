@@ -112,10 +112,7 @@ public class HoldingExtra extends Fixture implements TileConstants {
   protected static void removeExtras(
     Holding holding, List <HoldingExtra> extras
   ) {
-    for (HoldingExtra extra : extras) {
-      extra.setAsDestroyed() ;
-      holding.base().paving.updatePerimeter(extra, false) ;
-    }
+    for (HoldingExtra extra : extras) extra.setAsDestroyed() ;
   }
   
   
@@ -131,10 +128,7 @@ public class HoldingExtra extends Fixture implements TileConstants {
     //  Clear out any extras that were demolished, and update the level of any
     //  still standing-
     for (HoldingExtra extra : extras) {
-      if (extra.destroyed()) {
-        extras.remove(extra) ;
-        holding.base().paving.updatePerimeter(extra, false) ;
-      }
+      if (extra.destroyed()) extras.remove(extra) ;
       else {
         holding.base().paving.updatePerimeter(extra, true) ;
         extra.updateLevel(level) ;

@@ -113,7 +113,7 @@ public class Sickbay extends Venue implements BuildConstants {
     //  If anyone is waiting for treatment, tend to them- including outside the
     //  building.
     final Choice choice = new Choice(actor) ;
-    for (Element m : actor.mind.seen()) if (m instanceof Actor) {
+    for (Element m : actor.mind.awareOf()) if (m instanceof Actor) {
       final Actor patient = (Actor) m ;
       choice.add(new Treatment(
         actor, patient, Treatment.TYPE_FIRST_AID, null

@@ -178,7 +178,14 @@ public class World {
     */
   public void updateWorld() {
     sections.updateBounds() ;
+    final float oldTime = currentTime ;
     currentTime += 1f / PlayLoop.UPDATES_PER_SECOND ;
+    for (Base base : bases) {
+      if (((int) (oldTime / 2)) != ((int) (currentTime / 2))) {
+        base.intelMap.updateFog() ;
+      }
+    }
+    
     schedule.advanceSchedule(currentTime) ;
     ecology.updateEcology() ;
     for (Mobile m : mobiles) {
@@ -280,12 +287,8 @@ public class World {
     //
     //  Then we register their associated media for rendering, in the correctly
     //  sorted order.
-    for (Section section : visibleSections) {
-      terrain.renderFor(section.area, rendering, currentTime) ;
-      if (! GameSettings.noFog) {
-        terrain.renderFogFor(section.area, base.intelMap.fogTex(), rendering) ;
-      }
-    }
+    renderTerrain(visibleSections, rendering, base) ;
+    
     rendering.clearDepth() ;
     Vec3D deep = new Vec3D() ;
     for (Visible visible : allVisible) {
@@ -306,6 +309,28 @@ public class World {
     allVisible.queueSort() ;
     for (Visible visible : allVisible) {
       visible.renderFor(rendering, base) ;
+    }
+  }
+  
+  
+  protected void renderTerrain(
+    Batch <Section> sections, Rendering rendering, Base base
+  ) {
+    
+    float alpha = currentTime ;
+    alpha += PlayLoop.frameTime() / PlayLoop.UPDATES_PER_SECOND ;
+    alpha /= 2 ;
+    
+    base.intelMap.updateFogBuffers(alpha) ;
+    final Texture
+      fogTex = base.intelMap.fogTex(),
+      oldTex = base.intelMap.oldFogTex() ;
+    
+    for (Section section : sections) {
+      terrain.renderFor(section.area, rendering, currentTime) ;
+      if (base != null && ! GameSettings.noFog) {
+        terrain.renderFogFor(section.area, oldTex, fogTex, rendering, alpha) ;
+      }
     }
   }
   

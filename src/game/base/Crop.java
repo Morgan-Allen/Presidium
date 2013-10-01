@@ -89,34 +89,21 @@ public class Crop implements Session.Saveable, Target {
   public void flagWith(Object f) { this.flagged = f ; }
   public Object flaggedWith() { return flagged ; }
   
-  /*
-  //
-  //  Temporary kluge for the sake of item-matching.
-  public boolean equals(Object o) {
-    if (! (o instanceof Crop)) return false ;
-    return ((Crop) o).varID == this.varID ;
-  }
-  
-  
-  public int hashCode() {
-    return varID ;
-  }
-  //*/
-  
   
   
   /**  Updates and queries-
     */
-  void doGrowth() {
+  void doGrowth(float fertility, float amount) {
     if (growStage == NOT_PLANTED) return ;
     final World world = parent.world() ;
     //
     //  Increment growth based on terrain fertility and daylight values.
-    float growInc = tile.habitat().moisture() / 10f ;
+    float growInc = fertility ;
     growInc += parent.belongs.growBonus(tile, species, true) ;
     growInc *= Rand.num() * Planet.dayValue(world) ;
     growInc = Visit.clamp(growInc, 0.2f, 1.2f) / 2 ;
     if (infested) growInc /= 5 ;
+    growInc *= amount ;
     this.growStage = Visit.clamp(growStage + growInc, MIN_GROWTH, MAX_GROWTH) ;
     //
     //  Increase the chance of becoming infested based on pollution and
@@ -142,7 +129,7 @@ public class Crop implements Session.Saveable, Target {
       }
     }
     if (Rand.num() < infectChance) this.infested = true ;
-    I.sayAbout(parent, "  Grown: "+this) ;
+    ///I.sayAbout(parent, "  Grown: "+this) ;
   }
   
   

@@ -185,6 +185,18 @@ public final class Spacing implements TileConstants {
   }
   
   
+  public static Batch <Element> entranceFor(Tile t) {
+    final Batch <Element> batch = new Batch <Element> () ;
+    for (Tile n : t.edgeAdjacent(tempT4)) {
+      if (n == null || ! (n.owner() instanceof Boardable)) continue ;
+      for (Boardable b : ((Boardable) n.owner()).canBoard(tempB4)) {
+        if (b == t) batch.add((Element) n.owner()) ;
+      }
+    }
+    return batch ;
+  }
+  
+  
   
   /**  Used to ensure that diagonally-adjacent tiles are fully accessible.
     */
@@ -262,7 +274,7 @@ public final class Spacing implements TileConstants {
     }
     else if (t instanceof Element) {
       final Element e = (Element) t ;
-      perim = perimeter(e.area(null), e.world) ;
+      perim = perimeter(e.area(tA), client.world()) ;
     }
     else return null ;
     //

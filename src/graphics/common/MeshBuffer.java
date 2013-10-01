@@ -6,8 +6,10 @@
 
 package src.graphics.common ;
 import java.nio.FloatBuffer ;
+
 import org.lwjgl.BufferUtils ;
 import org.lwjgl.opengl.* ;
+
 import src.util.* ;
 
 
@@ -24,6 +26,11 @@ public class MeshBuffer implements Rendering.Client {
   protected int numFacets ;
   private FloatBuffer vertBuffer, normBuffer, textBuffer ;
   
+  //
+  //  TODO:  Replace with something more generalised/secure...
+  ///public boolean isFog = false ;
+  
+  
   
   public MeshBuffer(int numFacets) {
     this.numFacets = numFacets ;
@@ -31,6 +38,15 @@ public class MeshBuffer implements Rendering.Client {
     normBuffer = BufferUtils.createFloatBuffer(numFacets * NFP) ;
     textBuffer = BufferUtils.createFloatBuffer(numFacets * TFP) ;
   }
+  
+  
+  protected MeshBuffer(MeshBuffer refers) {
+    this.numFacets = refers.numFacets ;
+    vertBuffer = refers.vertBuffer ;
+    normBuffer = refers.normBuffer ;
+    textBuffer = refers.textBuffer ;
+  }
+  
   
   public void update(float vertA[], float normA[], float textA[]) {
     vertBuffer.clear() ;
@@ -44,12 +60,44 @@ public class MeshBuffer implements Rendering.Client {
   
   /**  Rendering methods-
     */
+  /*
+  glActiveTextureARB( GL_TEXTURE0_ARB );
+  glEnable          ( GL_TEXTURE_2D   );
+  glTexEnvi         ( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE ) 
+  glBindTexture     ( GL_TEXTURE_2D, texture0 );
+ 
+  glActiveTextureARB( GL_TEXTURE1_ARB );
+  glEnable          ( GL_TEXTURE_2D   );
+  glTexEnvi         ( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE ) ;
+  glBindTexture     ( GL_TEXTURE_2D, texture1 );
+  //*/
+  
+  //
+  //  TODO:  You may need to create a dedicated FogMesh class.
   
   public void renderTo(Rendering rendering) {
     if (numFacets == 0) return ;
     if (colour != null) colour.bindColour() ;
     render(1, 0, null, vertBuffer, normBuffer, textBuffer, numFacets) ;
   }
+
+  /*
+  //GL11.glDisable(GL11.GL_DEPTH_TEST) ;
+  GL11.glTexEnvf(
+    GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL13.GL_SUBTRACT
+  ) ;
+  GL11.glBlendFunc(GL11.GL_ZERO, GL11.GL_ONE_MINUS_SRC_ALPHA) ;
+  //*/
+  ///GL14.glBlendEquation(GL14.GL_FUNC_REVERSE_SUBTRACT) ;
+
+  ///GL14.glBlendEquation(GL14.GL_FUNC_ADD) ;
+  /*
+  //GL11.glEnable(GL11.GL_DEPTH_TEST) ;
+  GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA) ;
+  GL11.glTexEnvf(
+    GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_MODULATE
+  ) ;
+  //*/
   
   
   final static int GL_DISABLES[] = new int[] {} ;

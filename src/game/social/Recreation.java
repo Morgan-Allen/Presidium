@@ -63,7 +63,7 @@ public class Recreation extends Plan implements BuildConstants {
     for (Venue venue : venues) {
       choice.add(new Recreation(actor, venue)) ;
     }
-    return (Recreation) choice.weightedPick(actor.mind.whimsy() * 2) ;
+    return (Recreation) choice.weightedPick(actor.mind.whimsy()) ;
   }
   
   

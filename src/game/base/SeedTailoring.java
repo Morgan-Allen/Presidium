@@ -174,7 +174,7 @@ public class SeedTailoring extends Plan implements BuildConstants {
     */
   public void describeBehaviour(Description d) {
     //d.append("Tailoring seed at ") ;
-    super.descLastStep(d) ;
+    super.describedByStep(d) ;
     d.append(" at ") ;
     d.append(super.lastStepTarget()) ;
     //d.append(nursery) ;

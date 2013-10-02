@@ -26,7 +26,7 @@ public class Cantina extends Venue implements BuildConstants {
   
   /**  Constants, field definitions, constructors and save/load methods-
     */
-  final static Model MODEL = ImageModel.asIsometricModel(
+  final static Model MODEL = ImageModel.asSolidModel(
     Cantina.class, "media/Buildings/merchant/cantina.gif", 4, 3
   ) ;
   final static String VENUE_NAMES[] = {

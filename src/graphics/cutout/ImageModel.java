@@ -16,8 +16,8 @@ public class ImageModel extends Model {
   
   final public static int
     TYPE_FLAT = 0,
-    TYPE_BOX = 1,
-    TYPE_POPPED_BOX = 2 ;
+    TYPE_HOLLOW_BOX = 1,
+    TYPE_SOLID_BOX = 2 ;
   
   final public int type ;
   final Texture texture ;
@@ -50,7 +50,7 @@ public class ImageModel extends Model {
     }
     else {
       final Box3D box = new Box3D().set(0, 0, 0, tileSize, tileSize, height) ;
-      this.coords = genBoxCoords(box, type == TYPE_POPPED_BOX) ;
+      this.coords = genBoxCoords(box, type == TYPE_SOLID_BOX) ;
       this.framesUV = new float[][] { this.getUVForBox(this.coords) } ;
     }
     LoadService.cacheResource(this, modelName) ;
@@ -61,7 +61,7 @@ public class ImageModel extends Model {
   /**  Public factory methods for different model types-
     */
   
-  public static ImageModel asPoppedModel(
+  public static ImageModel asHollowModel(
     Class modelClass,
     String texFile, float tileSize, float height
   ) {
@@ -71,12 +71,12 @@ public class ImageModel extends Model {
     return new ImageModel(
       modelName, modelClass,
       Texture.loadTexture(texFile),
-      tileSize, height, TYPE_BOX
+      tileSize, height, TYPE_HOLLOW_BOX
     ) ;
   }
   
   
-  public static ImageModel asIsometricModel(
+  public static ImageModel asSolidModel(
     Class modelClass,
     String texFile, float tileSize, float height
   ) {
@@ -86,7 +86,7 @@ public class ImageModel extends Model {
     return new ImageModel(
       modelName, modelClass,
       Texture.loadTexture(texFile),
-      tileSize, height, TYPE_POPPED_BOX
+      tileSize, height, TYPE_SOLID_BOX
     ) ;
   }
   

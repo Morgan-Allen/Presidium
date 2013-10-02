@@ -23,7 +23,7 @@ public class LandingStrip extends Venue {
     */
   final static String IMG_DIR = "media/Buildings/merchant/" ;
   final static Model
-    STRIP_MODEL = ImageModel.asPoppedModel(
+    STRIP_MODEL = ImageModel.asHollowModel(
       LandingStrip.class, IMG_DIR+"landing_strip.png", 5.25f, 0
     ) ;
   

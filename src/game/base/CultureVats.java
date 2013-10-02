@@ -23,7 +23,7 @@ public class CultureVats extends Venue implements BuildConstants {
   
   /**  Fields, constructors, and save/load methods-
     */
-  final public static Model MODEL = ImageModel.asIsometricModel(
+  final public static Model MODEL = ImageModel.asSolidModel(
     CultureVats.class, "media/Buildings/physician/culture_vats.png", 3.66f, 3
   ) ;
   

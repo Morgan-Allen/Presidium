@@ -188,6 +188,7 @@ public class Holding extends Venue implements BuildConstants {
     for (Item i : goodsNeeded(upgradeLevel).raw) {
       stocks.bumpItem(i.type, 0 - MC) ;
       if (stocks.amountOf(i) < i.amount - margin) devolve = true ;
+      stocks.forceDemand(i.type, i.amount + margin, VenueStocks.TIER_CONSUMER) ;
     }
     for (Item i : goodsNeeded(upgradeLevel + 1).raw) {
       if (! stocks.hasItem(i)) upgrade = false ;
@@ -200,7 +201,7 @@ public class Holding extends Venue implements BuildConstants {
     for (Service t : ALL_FOOD_TYPES) {
       if (t == SPICE) {
         //  TODO:  Only noble households demand spice.
-        stocks.forceDemand(t, 0, VenueStocks.TIER_CONSUMER) ;
+        ///stocks.forceDemand(t, 0, VenueStocks.TIER_CONSUMER) ;
         continue ;
       }
       //
@@ -293,12 +294,12 @@ public class Holding extends Venue implements BuildConstants {
   final static String
     IMG_DIR = "media/Buildings/merchant/" ;
   final public static Model
-    FIELD_Q_MODEL = ImageModel.asIsometricModel(
+    FIELD_Q_MODEL = ImageModel.asSolidModel(
       Holding.class, IMG_DIR+"field_tent.png", 2, 1
     ),
     STANDARD_MODELS[][] = ImageModel.fromTextureGrid(
       Holding.class, Texture.loadTexture(IMG_DIR+"all_housing.png"),
-      4, 4, 2, ImageModel.TYPE_POPPED_BOX
+      4, 4, 2, ImageModel.TYPE_SOLID_BOX
     ),
     PALACE_MODELS[] = null,
     SLUM_MODELS[][] = null ;

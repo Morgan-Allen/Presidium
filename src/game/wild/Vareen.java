@@ -169,30 +169,6 @@ public class Vareen extends Fauna {
   
   /**  Rendering and interface methods-
     */
-  protected float shadowHeight(Vec3D p) {
-    //
-    //  Sample the height of the 4 nearby tiles, and interpolate between them.
-    final Tile o = world.tileAt((int) p.x, (int) p.y) ;
-    final float
-      xA = p.x - o.x, yA = p.y - o.y,
-      TSW = heightFor(o.x    , o.y    ),
-      TSE = heightFor(o.x + 1, o.y    ),
-      TNW = heightFor(o.x    , o.y + 1),
-      TNE = heightFor(o.x + 1, o.y + 1) ;
-    return
-      (((TSW * (1 - xA)) + (TSE * xA)) * (1 - yA)) +
-      (((TNW * (1 - xA)) + (TNE * xA)) *      yA ) ;
-  }
-  
-  
-  private float heightFor(int tX, int tY) {
-    final Tile t = world.tileAt(
-      Visit.clamp(tX, world.size),
-      Visit.clamp(tY, world.size)
-    ) ;
-    if (t.owner() == null) return t.elevation() ;
-    return t.owner().height() ;
-  }
   
   
   protected float moveAnimStride() { return 1.0f ; }
@@ -201,6 +177,32 @@ public class Vareen extends Fauna {
 
 
 
+/*
+protected float shadowHeight(Vec3D p) {
+  //
+  //  Sample the height of the 4 nearby tiles, and interpolate between them.
+  final Tile o = world.tileAt((int) p.x, (int) p.y) ;
+  final float
+    xA = p.x - o.x, yA = p.y - o.y,
+    TSW = heightFor(o.x    , o.y    ),
+    TSE = heightFor(o.x + 1, o.y    ),
+    TNW = heightFor(o.x    , o.y + 1),
+    TNE = heightFor(o.x + 1, o.y + 1) ;
+  return
+    (((TSW * (1 - xA)) + (TSE * xA)) * (1 - yA)) +
+    (((TNW * (1 - xA)) + (TNE * xA)) *      yA ) ;
+}
+
+
+private float heightFor(int tX, int tY) {
+  final Tile t = world.tileAt(
+    Visit.clamp(tX, world.size),
+    Visit.clamp(tY, world.size)
+  ) ;
+  if (t.owner() == null) return t.elevation() ;
+  return t.owner().height() ;
+}
+//*/
 /*
 protected Behaviour nextFeeding() {
   //

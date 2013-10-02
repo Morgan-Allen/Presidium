@@ -24,11 +24,11 @@ public class DrillYard extends Venue {
     */
   final static String IMG_DIR = "media/Buildings/military/" ;
   final static Model
-    YARD_MODEL = ImageModel.asPoppedModel(
+    YARD_MODEL = ImageModel.asHollowModel(
       DrillYard.class, IMG_DIR+"drill_yard.png", 5, 4
     ),
     DRILL_MODELS[] = ImageModel.loadModels(
-      DrillYard.class, 2, 1, IMG_DIR, ImageModel.TYPE_BOX,
+      DrillYard.class, 2, 1, IMG_DIR, ImageModel.TYPE_HOLLOW_BOX,
       "drill_melee.png",
       "drill_ranged.png",
       "drill_pilot_sim.png",

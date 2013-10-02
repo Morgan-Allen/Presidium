@@ -42,13 +42,13 @@ public class Plantation extends Venue implements
   
   final static String IMG_DIR = "media/Buildings/ecologist/" ;
   final static Model
-    NURSERY_MODEL = ImageModel.asIsometricModel(
+    NURSERY_MODEL = ImageModel.asSolidModel(
       Plantation.class, IMG_DIR+"curing_shed.png", 2, 2
     ),
-    COVERING_LEFT = ImageModel.asIsometricModel(
+    COVERING_LEFT = ImageModel.asSolidModel(
       Plantation.class, IMG_DIR+"covering_left.png", 1, 1
     ),
-    COVERING_RIGHT = ImageModel.asIsometricModel(
+    COVERING_RIGHT = ImageModel.asSolidModel(
       Plantation.class, IMG_DIR+"covering_right.png", 1, 1
     ),
     CROP_MODELS[][] = ImageModel.fromTextureGrid(
@@ -56,7 +56,7 @@ public class Plantation extends Venue implements
       Texture.loadTexture(IMG_DIR+"all_crops.png"),
       4, 4, 1, ImageModel.TYPE_FLAT
     ),
-    GRUB_BOX_MODEL = ImageModel.asIsometricModel(
+    GRUB_BOX_MODEL = ImageModel.asSolidModel(
       Plantation.class, IMG_DIR+"grub_box.png", 1, 1
     ) ;
   final public static Species ALL_VARIETIES[] = {
@@ -64,7 +64,7 @@ public class Plantation extends Venue implements
     Species.DURWHEAT,
     Species.TUBER_LILY,
     Species.BROADFRUITS,
-    Species.HIVE_CELLS
+    Species.HIVE_GRUBS
   } ;
   
   //
@@ -75,7 +75,7 @@ public class Plantation extends Venue implements
     new Object[] { Species.DURWHEAT, CARBS   , CROP_MODELS[1] },
     new Object[] { Species.TUBER_LILY, GREENS  , CROP_MODELS[3] },
     new Object[] { Species.BROADFRUITS, GREENS  , CROP_MODELS[2] },
-    new Object[] { Species.HIVE_CELLS, PROTEIN , new Model[] { GRUB_BOX_MODEL }},
+    new Object[] { Species.HIVE_GRUBS, PROTEIN , new Model[] { GRUB_BOX_MODEL }},
     null,
     null,
     new Object[] { Species.TIMBER, GREENS, null },

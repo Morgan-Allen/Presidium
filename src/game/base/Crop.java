@@ -101,7 +101,7 @@ public class Crop implements Session.Saveable, Target {
     float growInc = fertility ;
     growInc += parent.belongs.growBonus(tile, species, true) ;
     growInc *= Rand.num() * Planet.dayValue(world) ;
-    growInc = Visit.clamp(growInc, 0.2f, 1.2f) / 2 ;
+    growInc = Visit.clamp(growInc, 0.2f, 1.2f) ;
     if (infested) growInc /= 5 ;
     growInc *= amount ;
     this.growStage = Visit.clamp(growStage + growInc, MIN_GROWTH, MAX_GROWTH) ;
@@ -134,7 +134,7 @@ public class Crop implements Session.Saveable, Target {
   
   
   boolean isHive() {
-    return species == Species.HIVE_CELLS || species == Species.MUSSEL_BEDS ;
+    return species == Species.HIVE_GRUBS || species == Species.BLUE_VALVES ;
   }
   
   

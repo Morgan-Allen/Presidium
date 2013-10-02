@@ -247,10 +247,10 @@ public class Drilling extends Plan implements BuildConstants {
   /**  Rendering and interface-
     */
   public void describeBehaviour(Description d) {
-    descLastStep(d) ;
+    if (! describedByStep(d)) d.append("Drilling") ;
     d.append(" at ") ;
     Target t = lastStepTarget() ;
-    if (Visit.arrayIncludes(yard.dummies, t)) t = yard ;
+    if (t == null || Visit.arrayIncludes(yard.dummies, t)) t = yard ;
     d.append(t) ;
   }
 }

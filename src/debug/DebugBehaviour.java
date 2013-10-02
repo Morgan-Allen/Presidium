@@ -19,19 +19,15 @@ import src.user.* ;
 import src.util.* ;
 
 
-//  Cantina.  Archives.  Audit Office.  Vault System.  Holdings.  Air Processor.
-//
-//  Update farming/the vats/mining a bit (including minimum spacing?)
-//  A clearer factoring out of venue/actor batches in the AI.
+//  Debug the vats.  Use actor-vision for more activities?
 //  Have pollution effects impact health/life-support, and possibly change the
 //  landscape.
 //
 //  Micovores are retreating from prey too easily!  Find out why!
 //  
-//  Actors need to be automatically aware of persons attacking them, should
-//  call for help from allies, and need proper line of sight.  Add Security and
-//  Contact missions.  Use the threatLevel() function for both retreat and
-//  attack.  Have missions modify choice priorities.
+//  Actors should call for help from allies, and need proper line of sight.
+//  Add Security and Contact missions.  Use the threatLevel() function for both
+//  retreat and attack.  Have missions modify choice priorities.
 //
 //  Add water and life support from biomass and other buildings.
 //
@@ -194,7 +190,7 @@ public class DebugBehaviour extends PlayLoop implements BuildConstants {
   private void baseScenario(World world, Base base, HUD UI) {
     
     ///PlayLoop.rendering().port.cameraZoom = 1.33f ;
-    base.incCredits(2000) ;
+    base.incCredits(10000) ;
     base.commerce.assignHomeworld(Background.PLANET_HALIBAN) ;
     final Bastion bastion = new Bastion(base) ;
     

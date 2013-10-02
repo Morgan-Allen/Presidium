@@ -25,7 +25,7 @@ public class VaultSystem extends Venue implements BuildConstants {
   
   /**  Fields, constructors, and save/load methods-
     */
-  final public static Model MODEL = ImageModel.asIsometricModel(
+  final public static Model MODEL = ImageModel.asSolidModel(
     VaultSystem.class, "media/Buildings/merchant/town_vault.png", 4, 2
   ) ;
   

@@ -58,7 +58,7 @@ public class Steps extends Plan {
   
   
   public void describeBehaviour(Description d) {
-    super.descLastStep(d) ;
+    super.describedByStep(d) ;
   }
 }
 

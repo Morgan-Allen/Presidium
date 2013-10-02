@@ -225,12 +225,6 @@ public class Resting extends Plan implements BuildConstants {
       d.append("Eating at ") ;
       d.append(restPoint) ;
     }
-    /*
-    else if (currentMode == MODE_SCAVENGE) {
-      d.append("Foraging around ") ;
-      d.append(restPoint) ;
-    }
-    //*/
     else {
       d.append("Resting at ") ;
       d.append(restPoint) ;

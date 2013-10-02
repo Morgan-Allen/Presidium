@@ -23,7 +23,7 @@ public class Foundry extends Venue implements BuildConstants {
   
   /**  Fields, constructors, and save/load methods-
     */
-  final public static Model MODEL = ImageModel.asIsometricModel(
+  final public static Model MODEL = ImageModel.asSolidModel(
     Foundry.class, "media/Buildings/artificer/artificer.png", 4, 2
   ) ;
   

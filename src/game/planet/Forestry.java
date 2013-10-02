@@ -124,6 +124,7 @@ public class Forestry extends Plan implements BuildConstants {
         this, "actionPlant",
         Action.BUILD, "Planting"
       ) ;
+      plants.setMoveTarget(Spacing.nearestOpenTile(toPlant, actor)) ;
       return plants ;
     }
     if (stage == STAGE_SAMPLING) {

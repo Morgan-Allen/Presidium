@@ -145,7 +145,7 @@ public class Commission extends Plan {
     shop.inventory().removeItem(item) ;
     actor.inventory().addItem(item) ;
     delivered = true ;
-    I.say(actor+" picking up: "+item) ;
+    ///I.say(actor+" picking up: "+item) ;
     return true ;
   }
   

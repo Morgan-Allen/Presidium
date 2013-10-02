@@ -244,8 +244,12 @@ public abstract class Plan implements Saveable, Behaviour {
   }
   
   
-  protected void descLastStep(Description d) {
-    if (lastStep != null) lastStep.describeBehaviour(d) ;
+  protected boolean describedByStep(Description d) {
+    if (lastStep != null) {
+      lastStep.describeBehaviour(d) ;
+      return true ;
+    }
+    return false ;
   }
   
   

@@ -26,13 +26,13 @@ public class Smelter extends Venue implements BuildConstants {
   final static String IMG_DIR = "media/Buildings/artificer/" ;
   final static Model
     DRILL_MODELS[] = ImageModel.loadModels(
-      Smelter.class, 3, 3, IMG_DIR, ImageModel.TYPE_BOX,
+      Smelter.class, 3, 3, IMG_DIR, ImageModel.TYPE_HOLLOW_BOX,
       "isotopes_smelter_dark.gif",
       "metals_smelter_dark.gif",
       "carbons_smelter_dark.gif"
     ),
     DRILL_LIGHTS_MODELS[] = ImageModel.loadModels(
-      Smelter.class, 3, 3, IMG_DIR, ImageModel.TYPE_BOX,
+      Smelter.class, 3, 3, IMG_DIR, ImageModel.TYPE_HOLLOW_BOX,
       "isotopes_smelter_lights.gif",
       "metals_smelter_lights.gif",
       "carbons_smelter_lights.gif"

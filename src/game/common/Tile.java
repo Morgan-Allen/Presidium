@@ -249,6 +249,11 @@ public final class Tile implements
   }
   
   
+  public boolean openPlan() {
+    return true ;
+  }
+  
+  
   public Box2D area(Box2D put) {
     if (put == null) put = new Box2D() ;
     put.set(x - 0.5f, y - 0.5f, 1, 1) ;

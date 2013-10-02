@@ -46,12 +46,15 @@ public class PathingSearch extends Search <Boardable> {
     if (destination instanceof Venue) {
       final Venue venue = (Venue) destination ;
       aimPoint = venue.mainEntrance() ;
-      if (! venue.isEntrance(aimPoint)) {
-        I.complain("DESTINATION CANNOT ACCESS TARGET POINT!") ;
+      if (aimPoint != null) {
+        if (! venue.isEntrance(aimPoint)) {
+          I.complain("DESTINATION CANNOT ACCESS AIM POINT: "+aimPoint) ;
+        }
+        if (! Visit.arrayIncludes(aimPoint.canBoard(null), destination)) {
+          I.complain("AIM POINT CANNOT ACCESS DESTINATION: "+destination) ;
+        }
       }
-      if (! Visit.arrayIncludes(aimPoint.canBoard(null), destination)) {
-        I.complain("TARGET POINT CANNOT ACCESS DESTINATION!") ;
-      }
+      else aimPoint = venue ;
     }
     if (aimPoint == null) aimPoint = destination ;
   }

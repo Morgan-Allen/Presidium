@@ -20,6 +20,8 @@ import src.util.* ;
 public class Farming extends Plan implements BuildConstants {
   
   
+  private static boolean verbose = true ;
+  
   final Plantation nursery ;
   
   
@@ -49,8 +51,6 @@ public class Farming extends Plan implements BuildConstants {
     //
     //  Vary priority based on competence for the task and how many crops
     //  actually need attention-
-    ///I.sayAbout(actor, "Sum of harvest is: "+sumHarvest()) ;
-    
     final float min = sumHarvest() > 0 ? ROUTINE : 0 ;
     final float need = nursery.needForTending() ;
     if (need <= 0) return min ;
@@ -61,12 +61,20 @@ public class Farming extends Plan implements BuildConstants {
   }
   
   
+  public boolean finished() {
+    final boolean f = super.finished() ;
+    if (f && verbose) I.sayAbout(actor, "FARMING COMPLETE") ;
+    return f ;
+  }
+  
+  
   public Behaviour getNextStep() {
     //
     //  If you've harvested enough, bring it back to the depot-
     Action action = returnHarvestAction(5) ;
     if (action != null) return action ;
     if (nursery.needForTending() == 0 || ! canPlant()) {
+      if (verbose) I.sayAbout(actor, "Should return everything...") ;
       return returnHarvestAction(0) ;
     }
     //
@@ -136,7 +144,9 @@ public class Farming extends Plan implements BuildConstants {
     //
     //  TODO:  Key farming efforts off a particular crop type, so you can check
     //  for the presence of the right seed type.
-    return nursery.stocks.amountOf(SAMPLES) > 0 ;
+    return
+      nursery.stocks.amountOf(SAMPLES) > 0 ||
+      actor.gear.amountOf(SAMPLES) > 0 ;
   }
   
   
@@ -237,7 +247,7 @@ public class Farming extends Plan implements BuildConstants {
   
   
   public void describeBehaviour(Description d) {
-    this.descLastStep(d) ;
+    if (! describedByStep(d)) d.append("Farming") ;
     d.append(" around ") ;
     d.append(nursery) ;
   }

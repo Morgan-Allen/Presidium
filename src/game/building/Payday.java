@@ -14,6 +14,12 @@ import src.game.actors.ActorAI.Employment ;
 //  TODO:  Have this plan trigger auditing if no-one else does it first?
 
 
+//
+//  TODO:  Allow unemployed actors to collect 'wages' at the audit office, if
+//  you have suitable upgrades in place.
+
+
+
 public class Payday extends Plan {
   
   

@@ -19,7 +19,7 @@ public class Archives extends Venue implements BuildConstants {
 
   /**  Data fields, constructors and save/load methods-
     */
-  final public static Model MODEL = ImageModel.asIsometricModel(
+  final public static Model MODEL = ImageModel.asSolidModel(
     Archives.class, "media/Buildings/physician/archives.png", 4, 3
   ) ;
   

@@ -241,19 +241,21 @@ public class MobilePathing {
     mobile.nextRotation = angle ;
     //
     //  And try to track the level of the underlying terrain-
-    final Boardable aboard = mobile.aboard ;
-    final float baseHigh ;
-    if (aboard instanceof Tile) {
-      baseHigh = mobile.world.terrain().trueHeight(disp.x, disp.y) ;
-    }
-    else {
-      baseHigh = aboard.position(null).z ;
-    }
-    mobile.nextPosition.z = baseHigh + mobile.aboveGroundHeight() ;
+    mobile.nextPosition.z = boardHeight(disp) + mobile.aboveGroundHeight() ;
     if (Float.isNaN(mobile.nextPosition.x)) {
       I.say("ILLEGAL POSITION") ;
       new Exception().printStackTrace() ;
     }
+  }
+  
+  
+  private float boardHeight(Vec2D disp) {
+    final Boardable aboard = mobile.aboard ;
+    final Tile o = mobile.origin() ;
+    if (aboard == o) {
+      return mobile.world.terrain().trueHeight(disp.x, disp.y) ;
+    }
+    else return aboard.position(null).z ;
   }
   
   

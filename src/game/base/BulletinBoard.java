@@ -22,7 +22,7 @@ import src.util.* ;
 public class BulletinBoard extends Venue implements BuildConstants {
   
 
-  final public static Model MODEL = ImageModel.asIsometricModel(
+  final public static Model MODEL = ImageModel.asSolidModel(
     Foundry.class, "media/Buildings/aesthete/bulletin_board.png", 2, 3
   ) ;
   

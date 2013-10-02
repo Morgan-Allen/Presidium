@@ -13,7 +13,7 @@ public class ItemStack extends GroupSprite {
   
   
   final public static Model
-    CRATE_MODEL = ImageModel.asIsometricModel(
+    CRATE_MODEL = ImageModel.asSolidModel(
       ItemStack.class, "media/Items/crate.gif",
       0.5f, 0.2f
     ) ;

@@ -10,7 +10,7 @@ package src.game.planet ;
 import src.game.base.* ;
 import src.game.building.* ;
 import src.game.common.* ;
-import src.game.social.Resting;
+import src.game.social.Resting ;
 import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.user.* ;
@@ -70,10 +70,13 @@ public class Foraging extends Plan implements BuildConstants {
     
     if (source == null || source.destroyed()) {
       source = Forestry.findCutting(actor) ;
+      if (source == null) return 0 ;
     }
     impetus -= Plan.rangePenalty(actor, source) ;
     impetus -= Plan.dangerPenalty(source, actor) ;
     impetus += priorityMod ;
+    
+    //I.sayAbout(actor, "Foraging impetus is: "+impetus) ;
     return impetus ;
   }
   
@@ -93,12 +96,12 @@ public class Foraging extends Plan implements BuildConstants {
   
   public Behaviour getNextStep() {
     if (done) return null ;
-    if (storeShortage() > 0 && (source == null || source.destroyed())) {
+    final float shortage = storeShortage() ;
+    if (shortage > 0 && (source == null || source.destroyed())) {
       source = Forestry.findCutting(actor) ;
     }
-    
     final float harvest = sumHarvest() ;
-    if (harvest < 1 && source != null) {
+    if (shortage > 0 && harvest < 1 && source != null) {
       final Action forage = new Action(
         actor, source,
         this, "actionForage",
@@ -121,6 +124,10 @@ public class Foraging extends Plan implements BuildConstants {
   
   
   public boolean actionForage(Actor actor, Flora source) {
+    if (source == null || source.destroyed()) {
+      source = null ;
+      return false ;
+    }
     
     float labour = 0, skill = 0 ;
     if (actor.traits.test(HARD_LABOUR, ROUTINE_DC, 1.0f)) labour++ ;

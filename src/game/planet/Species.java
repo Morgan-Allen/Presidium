@@ -11,6 +11,7 @@ import src.game.wild.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.jointed.* ;
+import src.util.* ;
 
 
 
@@ -18,7 +19,7 @@ import src.graphics.jointed.* ;
 //  TODO:  This class needs to include data for base speed, sight range, damage
 //  and armour, et cetera, et cetera.
 
-public class Species implements Session.Saveable {
+public class Species implements Session.Saveable, BuildConstants {
   
   
   /**  Type, instance and media definitions-
@@ -28,17 +29,17 @@ public class Species implements Session.Saveable {
     LAIR_DIR = "media/Buildings/lairs and ruins/",
     XML_PATH = FILE_DIR+"FaunaModels.xml" ;
   final public static Model
-    MODEL_NEST_QUUD = ImageModel.asIsometricModel(
+    MODEL_NEST_QUUD = ImageModel.asSolidModel(
       Species.class, LAIR_DIR+"nest_quud.png", 2.5f, 2
     ),
-    MODEL_NEST_VAREEN = ImageModel.asIsometricModel(
+    MODEL_NEST_VAREEN = ImageModel.asSolidModel(
       Species.class, LAIR_DIR+"nest_vareen.png", 2.5f, 3
     ),
-    MODEL_NEST_MICOVORE = ImageModel.asIsometricModel(
+    MODEL_NEST_MICOVORE = ImageModel.asSolidModel(
       Species.class, LAIR_DIR+"nest_micovore.png", 3.5f, 2
     ),
     MODEL_MIDDENS[] = ImageModel.loadModels(
-      Species.class, 1.25f, 1, LAIR_DIR, ImageModel.TYPE_BOX,
+      Species.class, 1.25f, 1, LAIR_DIR, ImageModel.TYPE_HOLLOW_BOX,
       "midden_a.png",
       "midden_b.png",
       "midden_c.png"
@@ -136,24 +137,37 @@ public class Species implements Session.Saveable {
     
     ANIMAL_SPECIES[] = { HUMAN, QUUD, VAREEN, MICOVORE, },
     
-    ONI_RICE    = new Species("Oni Rice"   , "", null, null, Type.FLORA),
-    DURWHEAT    = new Species("Durwheat"   , "", null, null, Type.FLORA),
-    TUBER_LILY  = new Species("Tuber Lily" , "", null, null, Type.FLORA),
-    BROADFRUITS = new Species("Broadfruits", "", null, null, Type.FLORA),
-    HIVE_CELLS  = new Species("Hive Cells" , "", null, null, Type.FLORA),
-    MUSSEL_BEDS = new Species("Mussel Beds", "", null, null, Type.FLORA),
+    //
+    //  TODO:  You need to list the 'material composition' of each of tese for
+    //  harvest purposes.
+    
+    ONI_RICE    = new Species("Oni Rice"   , Type.FLORA, 2, CARBS),
+    DURWHEAT    = new Species("Durwheat"   , Type.FLORA, 2, CARBS),
+    TUBER_LILY  = new Species("Tuber Lily" , Type.FLORA, 2, GREENS),
+    BROADFRUITS = new Species("Broadfruits", Type.FLORA, 2, GREENS),
+    HIVE_GRUBS  = new Species("Hive Grubs" , Type.FLORA, 1, PROTEIN),
+    BLUE_VALVES = new Species("Blue Valves", Type.FLORA, 1, PROTEIN),
+    
     PIONEERS    = new Species("Pioneers"   , "", null, null, Type.FLORA),
     TIMBER      = new Species("Timber"     , "", null, null, Type.FLORA),
+    
+    HIBERNUTS   = new Species("Hibernuts"  , Type.FLORA, 1, GREENS),
+    SABLE_OAT   = new Species("Sable Oat"  , Type.FLORA, 1, CARBS),
+    CLAN_BORE   = new Species("Clan Bore"  , Type.FLORA, 1, PROTEIN),
+    GORG_APHID  = new Species("Gorg Aphid" , Type.FLORA, 1, SPICE),
+    
     CROP_SPECIES[] = {
       ONI_RICE, DURWHEAT, TUBER_LILY, BROADFRUITS,
-      HIVE_CELLS, MUSSEL_BEDS, PIONEERS, TIMBER
+      HIVE_GRUBS, BLUE_VALVES, PIONEERS, TIMBER,
+      HIBERNUTS, SABLE_OAT, CLAN_BORE, GORG_APHID
     },
     
     ALL_SPECIES[] = {
       HUMAN, QUUD, VAREEN, MICOVORE,
       
       DURWHEAT, ONI_RICE, BROADFRUITS, TUBER_LILY,
-      HIVE_CELLS, MUSSEL_BEDS, PIONEERS, TIMBER,
+      HIVE_GRUBS, BLUE_VALVES, PIONEERS, TIMBER,
+      HIBERNUTS, SABLE_OAT, CLAN_BORE, GORG_APHID
     }
   ;
   
@@ -169,6 +183,7 @@ public class Species implements Session.Saveable {
   final public int ID = nextID++ ;
   
   final public Type type ;
+  final public Item nutrients[] ;
   
   
   Species(
@@ -181,6 +196,24 @@ public class Species implements Session.Saveable {
     else this.portrait = Texture.loadTexture(FILE_DIR+portraitTex) ;
     this.model = model ;
     this.type = type ;
+    nutrients = new Item[0] ;
+  }
+  
+  
+  Species(String name, Type type, Object... args) {
+    this.name = name ;
+    this.info = name ;
+    this.portrait = null ;
+    this.model = null ;
+    this.type = type ;
+    
+    int amount = 0 ;
+    Batch <Item> n = new Batch <Item> () ;
+    for (Object o : args) {
+      if (o instanceof Integer) amount = (Integer) o ;
+      if (o instanceof Service) n.add(Item.withAmount((Service) o, amount)) ;
+    }
+    nutrients = n.toArray(Item.class) ;
   }
   
   

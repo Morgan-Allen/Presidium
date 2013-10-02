@@ -105,6 +105,8 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
   protected void configureScenario(World world, Base base, HUD HUD) {
     I.say("Configuring world...") ;
     
+    
+    base.incCredits(10000) ;
     //GameSettings.noFog = true ;
     GameSettings.hireFree = true ;
     GameSettings.buildFree = true ;

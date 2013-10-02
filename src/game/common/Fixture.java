@@ -78,6 +78,7 @@ public abstract class Fixture extends Element {
       final Tile perim[] = Spacing.perimeter(area(), world) ;
       for (Tile p : perim) if (! p.blocked()) { exit = p ; break ; }
     }
+    if (exit == null) exit = Spacing.nearestOpenTile(this, this, world) ;
     if (exit == null) I.complain("No exit point from "+this) ;
     for (Tile t : world.tilesIn(area(), false)) {
       for (Mobile m : t.inside()) {

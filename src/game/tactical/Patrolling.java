@@ -8,138 +8,294 @@
 package src.game.tactical ;
 import src.game.common.* ;
 import src.game.actors.* ;
-import src.user.Description ;
+import src.game.building.* ;
+import src.game.base.* ;
+import src.user.* ;
 import src.util.* ;
 
 
-//
-//  Maybe priority should be assigned externally?  Depending on how this
-//  behaviour gets generated?
 
 
-public class Patrolling extends Plan {
+public class Patrolling extends Plan implements TileConstants, ActorConstants {
   
   
   /**  Fields, constructors, and save/load methods-
     */
-  final Actor actor ;
-  private Target around ;
-  private Tile goes ;
-  private float range ;
-  private int compassPoint, initPoint ;
-  private int numCircuits = 0 ;
+  final public static int
+    TYPE_SECURITY      = 0,
+    TYPE_STREET_PATROL = 1,
+    TYPE_SENTRY_DUTY   = 2,
+    
+    WATCH_TIME = 10 ;
+  
+  
+  private static boolean verbose = false ;
+  
+  final int type ;
+  final Element guarded ;
+  
+  private List <Target> patrolled ;
+  private Target goes ;
+  private float postTime = -1 ;
   
   
   
-  public Patrolling(Actor actor, Target around, float range) {
-    super(actor) ;
-    this.actor = actor ;
-    this.around = around ;
-    this.range = range ;
-    initPoint = compassPoint = Rand.index(4) ;
-    numCircuits = 0 ;
+  private Patrolling(
+    Actor actor, Element guarded, List <Target> patrolled, int type
+  ) {
+    super(actor, guarded) ;
+    this.type = type ;
+    this.guarded = guarded ;
+    this.patrolled = patrolled ;
+    goes = patrolled.first() ;
   }
   
   
   public Patrolling(Session s) throws Exception {
     super(s) ;
-    actor = (Actor) s.loadTarget() ;
-    around = s.loadTarget() ;
-    goes = (Tile) s.loadTarget() ;
-    range = s.loadFloat() ;
-    compassPoint = s.loadInt() ;
-    initPoint = s.loadInt() ;
-    numCircuits = s.loadInt() ;
+    type = s.loadInt() ;
+    guarded = (Element) s.loadObject() ;
+    s.loadTargets(patrolled = new List <Target> ()) ;
+    goes = s.loadTarget() ;
+    postTime = s.loadFloat() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveTarget(actor) ;
-    s.saveTarget(around) ;
+    s.saveInt(type) ;
+    s.saveObject(guarded) ;
+    s.saveTargets(patrolled) ;
     s.saveTarget(goes) ;
-    s.saveFloat(range) ;
-    s.saveInt(compassPoint) ;
-    s.saveInt(initPoint) ;
-    s.saveInt(numCircuits) ;
+    s.saveFloat(postTime) ;
+  }
+  
+  
+  
+  /**  Obtaining and evaluating patrols targets-
+    */
+  public float priorityFor(Actor actor) {
+    //
+    //  Favour patrols through more dangerous areas in absolute terms, but not
+    //  in relative terms.  (i.e, go where you're needed, but won't get killed.)
+    float absDanger = 0, relDanger = 0 ;
+    for (Target t : patrolled) {
+      final Tile u = actor.world().tileAt(t) ;
+      absDanger += actor.base().dangerMap.valAt(u) ;
+      relDanger += Plan.dangerPenalty(t, actor) ;
+    }
+    absDanger /= patrolled.size() ;
+    relDanger /= patrolled.size() ;
+    
+    final float skill = actor.traits.traitLevel(SURVEILLANCE) / 10f ;
+    float impetus = Math.max(skill * absDanger, priorityMod / 2) ;
+    impetus -= relDanger * PARAMOUNT ;
+    
+    if (verbose) I.sayAbout(actor,
+      "Rel/abs danger: "+relDanger+"/"+absDanger+
+      "\nPatrol impetus is: "+impetus
+    ) ;
+    return Visit.clamp(priorityMod + impetus, 0, URGENT) ;
   }
   
   
   
   /**  Behaviour execution-
     */
-  private boolean pickCompassPoint() {
-    if (numCircuits == 2) {
-      goes = null ;
-      ///if (goes == null) I.say("...2 CIRCUITS.") ;
-      return false ;
-    }
-    final World world = actor.world() ;
-    final Vec3D pick = around.position(null) ;
-    switch (compassPoint) {
-      case(0) : pick.y += range ; break ;
-      case(1) : pick.x += range ; break ;
-      case(2) : pick.y -= range ; break ;
-      case(3) : pick.x -= range ; break ;
-    }
-    if ((compassPoint = (compassPoint + 1) % 4) == initPoint) numCircuits++ ;
-    pick.x = Visit.clamp(pick.x, 0, world.size - 1) ;
-    pick.y = Visit.clamp(pick.y, 0, world.size - 1) ;
-    goes = Spacing.nearestOpenTile(world.tileAt(pick.x, pick.y), actor) ;
-    ///if (goes == null || goes.blocked()) I.say("...NO GO.") ;
-    if (goes == null || goes.blocked()) return false ;
-    return true ;
-  }
-  
-  
   public Behaviour getNextStep() {
-    ///I.say("Getting next patrol action for: "+actor) ;
-    if (goes == null) pickCompassPoint() ;
     if (goes == null) return null ;
-    return new Action(
-      actor, goes,
+    final World world = actor.world() ;
+    Target stop = goes ;
+    if (verbose) I.sayAbout(actor, "Goes: "+goes+", post time: "+postTime) ;
+    
+    if (type != TYPE_SENTRY_DUTY) {
+      Tile open = world.tileAt(goes) ;
+      open = Spacing.nearestOpenTile(open, actor) ;
+      if (open == null) {
+        goes = patrolled.atIndex(patrolled.indexOf(goes) + 1) ;
+        if (goes == null) return null ;
+      }
+      else stop = open ;
+    }
+    else if (postTime != -1) {
+      final float spent = world.currentTime() - postTime ;
+      if (verbose) I.sayAbout(actor, "Time at post: "+spent) ;
+      if (spent < WATCH_TIME) {
+        final Action watch = new Action(
+          actor, goes,
+          this, "actionStandWatch",
+          Action.LOOK, "Standing Watch"
+        ) ;
+        return watch ;
+      }
+    }
+    
+    if (verbose) I.sayAbout(actor, "Next stop: "+stop+" "+stop.hashCode()) ;
+    final Action patrol = new Action(
+      actor, stop,
       this, "actionPatrol",
-      Action.LOOK, "Wandering"
+      Action.LOOK, "Patrolling"
     ) ;
-  }
-  
-  
-  public void abortBehaviour() {
-    I.say("Aborting patrol...") ;
-    numCircuits = 2 ;
-    goes = null ;
-  }
-  
-  
-  public float priorityFor(Actor actor) {
-    //  Vary priority based on the observation skills of the actor in question?
-    return ROUTINE + priorityMod ;
+    return patrol ;
   }
   
   
   public boolean finished() {
-    return numCircuits >= 2 ;
+    return goes == null ;
   }
   
 
   public boolean monitor(Actor actor) {
-    //  You'll have to implement observation and chase behaviour here.
+    //
+    //  You'll have to implement observation and chase behaviour here?
     return true ;
   }
 
 
   public boolean actionPatrol(Actor actor, Target spot) {
-    //  You'll have to implement observation and chase behaviour here.
-    if (pickCompassPoint()) return true ;
-    else { numCircuits = 2 ; return false ; }
+    final IntelMap map = actor.base().intelMap ;
+    map.liftFogAround(spot, actor.health.sightRange() * 1.207f) ;
+    //
+    //  If you're on sentry duty, check whether you need to stand watch.
+    if (type == TYPE_SENTRY_DUTY) {
+      if (postTime == -1) postTime = actor.world().currentTime() ;
+      final float spent = actor.world().currentTime() - postTime ;
+      if (spent < WATCH_TIME) return false ;
+      else postTime = -1 ;
+    }
+    //
+    //  If not, head on to the next stop on your patrol route-
+    final int index = patrolled.indexOf(goes) + 1 ;
+    if (index < patrolled.size()) {
+      goes = patrolled.atIndex(index) ;
+    }
+    else {
+      goes = null ;
+    }
+    return true ;
   }
+  
+  
+  public boolean actionStandWatch(Actor actor, Target spot) {
+    final IntelMap map = actor.base().intelMap ;
+    map.liftFogAround(spot, actor.health.sightRange() * 1.414f) ;
+    
+    return true ;
+  }
+  
+  
+  
+  /**  External factory methods-
+    */
+  public static Patrolling securePerimeter(
+    Actor actor, Element guarded, World world
+  ) {
+    final List <Target> patrolled = new List <Target> () ;
+    final float range = guarded.radius() * 2 ;
+    final Vec3D centre = guarded.position(null) ;
+    for (int n : N_ADJACENT) {
+      Tile point = world.tileAt(
+        Visit.clamp(centre.x + (N_X[n] * range), 0, world.size - 1),
+        Visit.clamp(centre.y + (N_Y[n] * range), 0, world.size - 1)
+      ) ;
+      if (point != null) patrolled.add(point) ;
+    }
+    return new Patrolling(actor, guarded, patrolled, TYPE_SECURITY) ;
+  }
+  
+  
+  public static Patrolling streetPatrol(
+    Actor actor, Element init, Element dest, World world
+  ) {
+    final List <Target> patrolled = new List <Target> () ;
+    final Tile
+      initT = Spacing.nearestOpenTile((Element) init, dest, world),
+      destT = Spacing.nearestOpenTile((Element) dest, init, world) ;
+    
+    PathingSearch search = new PathingSearch(initT, destT) ;
+    search.doSearch() ;
+    if (! search.success()) return null ;
+    final Boardable path[] = search.fullPath(Boardable.class) ;
+    float interval = World.SECTION_RESOLUTION ;
+    
+    for (int i = 0 ; i < path.length ; i += interval) {
+      patrolled.add(path[i]) ;
+    }
+    patrolled.add(dest) ;
+    return new Patrolling(actor, init, patrolled, TYPE_STREET_PATROL) ;
+  }
+  
+  
+  public static Patrolling sentryDuty(
+    Actor actor, ShieldWall start, int initDir
+  ) {
+    final Batch <Target> enRoute = new Batch <Target> () ;
+    
+    final float maxDist = World.SECTOR_SIZE * 1.5f ;
+    final Vec3D p = start.position(null) ;
+    final Tile ideal = actor.world().tileAt(
+      p.x + (N_X[initDir] * 2),
+      p.y + (N_Y[initDir] * 2)
+    ) ;
+    
+    Boardable init = start, next = null ;
+    float minDist = Float.POSITIVE_INFINITY ;
+    for (Boardable b : init.canBoard(Spacing.tempB4)) {
+      if (! (b instanceof ShieldWall)) continue ;
+      final float dist = Spacing.distance(b, ideal) ;
+      if (dist < minDist) { minDist = dist ; next = b ; }
+    }
+    if (next == null) return null ;
+    
+    init.flagWith(enRoute) ;
+    next.flagWith(enRoute) ;
+    enRoute.add(init) ;
+    enRoute.add(next) ;
+    
+    while (true) {
+      Boardable near = null ;
+      for (Boardable b : next.canBoard(Spacing.tempB4)) {
+        if (! (b instanceof ShieldWall)) continue ;
+        if (b.flaggedWith() != null) continue ;
+        near = b ;
+        near.flagWith(enRoute) ;
+        enRoute.add(near) ;
+        break ;
+      }
+      if (near == null || enRoute.size() > maxDist / 2) break ;
+      next = near ;
+    }
+    for (Target t : enRoute) t.flagWith(null) ;
+    
+    final List <Target> patrolled = new List <Target> () ;
+    BlastDoors doors = null ;
+    for (Target b : enRoute) {
+      final ShieldWall s = (ShieldWall) b ;
+      if (s.isTower()) patrolled.add(b) ;
+      if (s.isGate()) {
+        if (doors == null || (
+          Spacing.distance(s, actor) < Spacing.distance(doors, actor)
+        )) doors = (BlastDoors) s ;
+      }
+    }
+    if (doors == null) return null ;
+    return new Patrolling(actor, doors, patrolled, TYPE_SENTRY_DUTY) ;
+  }
+  
   
   
   /**  Rendering and interface methods-
     */
   public void describeBehaviour(Description d) {
-    d.append("Patrolling around ") ;
-    d.append(around) ;
+    if (type == TYPE_SECURITY) {
+      d.append("Securing perimeter for ") ;
+      d.append(guarded) ;
+    }
+    if (type == TYPE_STREET_PATROL || type == TYPE_SENTRY_DUTY) {
+      d.append("Patrolling between ") ;
+      d.append(guarded) ; d.append(" and ") ;
+      d.append(patrolled.last()) ;
+    }
   }
 }
 

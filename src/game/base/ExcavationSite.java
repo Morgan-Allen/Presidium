@@ -45,7 +45,7 @@ public class ExcavationSite extends Venue implements
   final static String
     IMG_DIR = "media/Buildings/artificer/" ;
   final static ImageModel
-    SHAFT_MODEL = ImageModel.asIsometricModel(
+    SHAFT_MODEL = ImageModel.asSolidModel(
       ExcavationSite.class, IMG_DIR+"excavation_shaft.gif", 4, 1
     ) ;
   

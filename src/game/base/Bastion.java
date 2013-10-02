@@ -25,7 +25,7 @@ public class Bastion extends Venue implements BuildConstants {
   
   /**  Fields, constructors, and save/load methods-
     */
-  final public static Model MODEL = ImageModel.asIsometricModel(
+  final public static Model MODEL = ImageModel.asSolidModel(
     Bastion.class, "media/Buildings/military/bastion.png", 7, 4
   ) ;
   
@@ -137,7 +137,7 @@ public class Bastion extends Venue implements BuildConstants {
     final Background v = actor.vocation() ;
     
     if (v == Background.VETERAN) {
-      return new Patrolling(actor, this, this.radius()) ;
+      return Patrolling.securePerimeter(actor, this, world) ;
     }
     if (v == Background.RESERVIST) {
       return Building.getNextRepairFor(actor, Plan.CASUAL) ;

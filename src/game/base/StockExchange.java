@@ -24,7 +24,7 @@ public class StockExchange extends Venue implements BuildConstants {
   /**  Data fields, constructors and save/load functionality-
     */
   final static Model
-    MODEL = ImageModel.asIsometricModel(
+    MODEL = ImageModel.asSolidModel(
       StockExchange.class,
       "media/Buildings/merchant/stock_exchange.png",
       4, 2

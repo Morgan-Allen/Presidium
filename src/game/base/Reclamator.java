@@ -25,7 +25,7 @@ public class Reclamator extends Venue implements BuildConstants {
   
   /**  Fields, constructors, and save/load methods-
     */
-  final public static Model MODEL = ImageModel.asIsometricModel(
+  final public static Model MODEL = ImageModel.asSolidModel(
     Reclamator.class, "media/Buildings/aesthete/PLAZA.png", 4, 2
   ) ;
   

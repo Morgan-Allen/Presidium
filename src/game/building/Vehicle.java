@@ -317,6 +317,11 @@ public abstract class Vehicle extends Mobile implements
   }
   
   
+  public boolean openPlan() {
+    return false ;
+  }
+  
+  
   public Box2D area(Box2D put) {
     if (put == null) put = new Box2D() ;
     final Vec3D p = position ;

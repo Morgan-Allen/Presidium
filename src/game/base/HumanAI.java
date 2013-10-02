@@ -185,9 +185,13 @@ public class HumanAI extends ActorAI implements ActorConstants {
     //
     //  Try a range of other spontaneous behaviours, include relaxation,
     //  helping out and spontaneous missions-
+    //
+    //  TODO:  You need to have a dedicated Wandering plan.
+    /*
     final Action wander = (Action) new Patrolling(actor, actor, 5).nextStep() ;
     wander.setPriority(Plan.IDLE * Planet.dayValue(actor.world())) ;
     choice.add(wander) ;
+    //*/
     
     //
     //  Training and self-improvement-

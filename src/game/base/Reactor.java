@@ -19,7 +19,7 @@ public class Reactor extends Venue implements BuildConstants {
 
   /**  Data fields, constructors and save/load methods-
     */
-  final public static Model MODEL = ImageModel.asIsometricModel(
+  final public static Model MODEL = ImageModel.asSolidModel(
     Reactor.class, "media/Buildings/artificer/reactor.png", 4, 2
   ) ;
   

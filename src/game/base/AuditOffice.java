@@ -27,7 +27,7 @@ import src.util.* ;
 public class AuditOffice extends Venue implements BuildConstants {
   
 
-  final public static Model MODEL = ImageModel.asIsometricModel(
+  final public static Model MODEL = ImageModel.asSolidModel(
     Foundry.class, "media/Buildings/merchant/audit_office.png", 2.75f, 2
   ) ;
   

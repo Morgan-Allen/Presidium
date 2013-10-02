@@ -130,7 +130,10 @@ public class Paving {
   
   
   public void updateJunction(Venue v, Tile t, boolean isMember) {
-    if (t == null) I.complain("CANNOT SUPPLY NULL TILE AS JUNCTION") ;
+    if (t == null) {
+      return ;
+      //I.complain("CANNOT SUPPLY NULL TILE AS JUNCTION") ;
+    }
     junctions.toggleMember(t, t, isMember) ;
     if (isMember) {
       ///I.say("Updating road junction "+t) ;

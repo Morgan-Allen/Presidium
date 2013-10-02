@@ -52,8 +52,8 @@ public abstract class Venue extends Fixture implements
   Healthbar healthbar ;
   final public TalkFX chat = new TalkFX() ;
   
-  int entranceFace ;
-  Tile entrance ;
+  protected int entranceFace ;
+  protected Tile entrance ;
   
   Base base ;
   List <Mobile> inside = new List <Mobile> () ;
@@ -117,13 +117,16 @@ public abstract class Venue extends Fixture implements
     return stocks ;
   }
   
+  
   public float priceFor(Service service) {
     return stocks.priceFor(service) ;
   }
   
+  
   public int spaceFor(Service good) {
     return structure.maxIntegrity() ;
   }
+  
   
   public void afterTransaction(Item item, float amount) {
   }
@@ -138,7 +141,6 @@ public abstract class Venue extends Fixture implements
     //
     //  Make sure we don't displace any more important object, or occupy their
     //  entrances.  In addition, the entrance must be clear.
-    if (mainEntrance() == null) return false ;
     final int OT = owningType() ;
     for (Tile t : world.tilesIn(area(), false)) {
       if (t == null || t.owningType() >= OT) return false ;
@@ -156,23 +158,26 @@ public abstract class Venue extends Fixture implements
     //
     //  And make sure we don't create isolated areas of unreachable tiles-
     if (! Spacing.perimeterFits(this)) return false ;
-    if (mainEntrance().owningType() >= OT) return false ;
+    final Tile e = mainEntrance() ;
+    if (e != null && e.owningType() >= OT) return false ;
     return true ;
   }
   
   
   public void setPosition(float x, float y, World world) {
     super.setPosition(x, y, world) ;
-    final Tile o = origin() ;
-    final int off[] = Spacing.entranceCoords(size, size, entranceFace) ;
-    entrance = world.tileAt(o.x + off[0], o.y + off[1]) ;
+    if (entranceFace == ENTRANCE_NONE) entrance = null ;
+    else {
+      final int off[] = Spacing.entranceCoords(size, size, entranceFace) ;
+      final Tile o = origin() ;
+      entrance = world.tileAt(o.x + off[0], o.y + off[1]) ;
+    }
   }
   
   
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
     world.presences.togglePresence(this, true , services()) ;
-    ///if (base != null) updatePaving(true) ;
     world.schedule.scheduleForUpdates(this) ;
     personnel.onCommission() ;
   }
@@ -189,7 +194,6 @@ public abstract class Venue extends Fixture implements
   
   public void setAsEstablished(boolean isDone) {
     super.setAsEstablished(isDone) ;
-    ///if (isDone) structure.setState(VenueStructure.STATE_INTACT, 1.0f) ;
   }
   
   
@@ -269,6 +273,11 @@ public abstract class Venue extends Fixture implements
   
   public boolean allowsEntry(Mobile m) {
     return m.base() == base ;
+  }
+  
+  
+  public boolean openPlan() {
+    return false ;
   }
   
   
@@ -387,7 +396,7 @@ public abstract class Venue extends Fixture implements
     rendering.addClient(overlay) ;
     
     if (sprite() == null) return ;
-    this.position(sprite().position) ;
+    this.viewPosition(sprite().position) ;
     sprite().colour = canPlace ? Colour.GREEN : Colour.RED ;
     rendering.addClient(sprite()) ;
   }
@@ -488,7 +497,7 @@ public abstract class Venue extends Fixture implements
     } ;
     for (Item item : stocks.allItems()) listing.add(item) ;
     for (Service type : ALL_ITEM_TYPES) {
-      if (stocks.amountOf(type) == 0 && stocks.demandFor(type) > 0) {
+      if (stocks.demandFor(type) > 0 && stocks.amountOf(type) == 0) {
         listing.add(Item.withAmount(type, 0)) ;
       }
     }
@@ -795,7 +804,7 @@ public abstract class Venue extends Fixture implements
   public void renderSelection(Rendering rendering, boolean hovered) {
     if (destroyed() || ! inWorld()) return ;
     Selection.renderPlane(
-      rendering, position(null), (xdim() / 2f) + 1,
+      rendering, viewPosition(null), (xdim() / 2f) + 1,
       hovered ? Colour.transparency(0.5f) : Colour.WHITE,
       Selection.SELECT_SQUARE
     ) ;

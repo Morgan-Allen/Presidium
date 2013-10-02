@@ -193,6 +193,7 @@ public abstract class Actor extends Mobile implements
   public void updateAsScheduled(int numUpdates) {
     health.updateHealth(numUpdates) ;
     gear.updateGear(numUpdates) ;
+    
     if (health.conscious()) {
       //
       //  Check to see if a new action needs to be decided on.
@@ -216,16 +217,26 @@ public abstract class Actor extends Mobile implements
     }
     else {
       if (health.asleep() && numUpdates % 2 == 0) {
+        
+        Behaviour root = mind.rootBehaviour() ;
+        if (root != null) mind.cancelBehaviour(root) ;
         mind.updateAI(numUpdates) ;
         mind.getNextAction() ;
-        final Behaviour root = mind.rootBehaviour() ;
-        float
+        root = mind.rootBehaviour() ;
+        
+        final float
           wakePriority  = root == null ? 0 : root.priorityFor(this),
-          sleepPriority = (health.fatigueLevel() + health.stressPenalty()) ;
-        wakePriority  -= Plan.ROUTINE ;
-        sleepPriority *= Plan.ROUTINE ;
-        if ((Rand.num() * sleepPriority) < wakePriority) {
+          sleepPriority = Resting.ratePoint(this, aboard()) ;
+        if (verbose && I.talkAbout == this) {
+          I.say("Wake priority: "+wakePriority) ;
+          I.say("Sleep priority: "+sleepPriority) ;
+          I.say("Root behaviour: "+root) ;
+        }
+        
+        final float margin = Math.max(Plan.ROUTINE / 2f, sleepPriority) ;
+        if ((Rand.num() * sleepPriority) < (wakePriority - margin)) {
           health.setState(ActorHealth.STATE_ACTIVE) ;
+          if (verbose) I.sayAbout(this, "Waking up for: "+root) ;
         }
       }
       if (health.decomposed()) setAsDestroyed() ;

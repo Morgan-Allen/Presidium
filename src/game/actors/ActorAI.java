@@ -219,8 +219,8 @@ public abstract class ActorAI implements ActorConstants {
       I.say("  Persistance: "+persistance()) ;
       I.say("  NOT DONE: "+notDone) ;
       I.say("  NEW CHOICE: "+newChoice) ;
-      I.say("  CURRENT FAVOURITE: "+taken+" "+taken.hashCode()) ;
-      I.say("  Finished? "+taken.finished()) ;
+      I.say("  CURRENT FAVOURITE: "+taken) ;
+      ///I.say("  Finished? "+taken.finished()) ;
     }
     return taken ;
   }
@@ -352,12 +352,12 @@ public abstract class ActorAI implements ActorConstants {
   
   
   public boolean couldSwitchTo(Behaviour next) {
+    if (! actor.health.conscious()) return false ;
     return couldSwitch(rootBehaviour(), next) ;
   }
   
   
-  public boolean couldSwitch(Behaviour last, Behaviour next) {
-    if (! actor.health.conscious()) return false ;
+  protected boolean couldSwitch(Behaviour last, Behaviour next) {
     if (next == null) return false ;
     if (last == null) return true ;
     //

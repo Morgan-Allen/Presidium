@@ -11,6 +11,7 @@ import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.I;
 import src.util.Index;
+import src.util.Rand;
 
 
 
@@ -21,7 +22,7 @@ public class Garrison extends Venue implements BuildConstants {
   /**  Fields, constants, and save/load methods-
     */
   final static Model
-    MODEL = ImageModel.asIsometricModel(
+    MODEL = ImageModel.asSolidModel(
       Garrison.class, "media/Buildings/military/house_garrison.png", 4, 4
     ) ;
   
@@ -117,18 +118,35 @@ public class Garrison extends Venue implements BuildConstants {
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
+    
     //
     //  Grab a random building nearby and patrol around it.
-    final Venue patrolled = (Venue) world.presences.randomMatchNear(
-      base(), this, World.SECTOR_SIZE
-    ) ;
-    if (patrolled != null) {
-      choice.add(new Patrolling(actor, patrolled, patrolled.radius() * 2)) ;
-    }
-    //
-    //  TODO:  Implement patrols along the perimeter fence/shield walls...
+    final float range = World.SECTOR_SIZE / 2f ;
+    final Venue
+      init = (Venue) world.presences.randomMatchNear(base(), this, range),
+      dest = (Venue) world.presences.randomMatchNear(base(), this, range) ;
     
-    return choice.weightedPick(actor.mind.whimsy() / 2f) ;
+    if (init instanceof ShieldWall || dest instanceof ShieldWall) {
+      Target pick, other ;
+      if (Rand.yes()) { pick = init ; other = dest ; }
+      else            { pick = dest ; other = init ; }
+      if (pick == null) pick = other ;
+      final Patrolling s = Patrolling.sentryDuty(
+        actor, (ShieldWall) pick, Rand.index(8)
+      ) ;
+      if (s != null) {
+        s.priorityMod = Plan.ROUTINE ;
+        choice.add(s) ;
+      }
+    }
+    if (init != null && dest != null) {
+      final Patrolling p = Patrolling.streetPatrol(actor, init, dest, world) ;
+      if (p != null) {
+        p.priorityMod = Plan.ROUTINE ;
+        choice.add(p) ;
+      }
+    }
+    return choice.weightedPick(actor.mind.whimsy()) ;
   }
   
   

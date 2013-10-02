@@ -265,7 +265,7 @@ public class Element implements
     timeGone += PlayLoop.frameTime() / PlayLoop.UPDATES_PER_SECOND ;
     if (timeGone < 1) sprite.colour = Colour.transparency(timeGone) ;
     else sprite.colour = null ;
-    position(sprite.position) ;
+    viewPosition(sprite.position) ;
     sprite.update() ;
     rendering.addClient(sprite) ;
   }

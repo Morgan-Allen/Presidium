@@ -24,7 +24,7 @@ public class FormerPlant extends Venue implements BuildConstants {
 
   /**  Data fields, constructors and save/load methods-
     */
-  final public static Model MODEL = ImageModel.asIsometricModel(
+  final public static Model MODEL = ImageModel.asSolidModel(
     FormerPlant.class, "media/Buildings/ecologist/air_processor.png", 3, 2
   ) ;
   

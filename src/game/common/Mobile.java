@@ -185,7 +185,7 @@ public abstract class Mobile extends Element
   
   
   public boolean indoors() {
-    return aboard != null && ! (aboard instanceof Tile) ;
+    return aboard != null && ! aboard.openPlan() ;
   }
   
   

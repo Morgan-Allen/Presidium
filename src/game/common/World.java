@@ -167,6 +167,29 @@ public class World {
     return from ;
   }
   
+
+  public float surfaceAt(float x, float y, boolean floor) {
+    //
+    //  Sample the height of the 4 nearby tiles, and interpolate between them.
+    final Tile o = tileAt((int) x, (int) y) ;
+    final float
+      xA = x - o.x, yA = y - o.y,
+      TSW = heightFor(o.x    , o.y    , floor),
+      TSE = heightFor(o.x + 1, o.y    , floor),
+      TNW = heightFor(o.x    , o.y + 1, floor),
+      TNE = heightFor(o.x + 1, o.y + 1, floor) ;
+    return
+      (((TSW * (1 - xA)) + (TSE * xA)) * (1 - yA)) +
+      (((TNW * (1 - xA)) + (TNE * xA)) *      yA ) ;
+  }
+  
+  
+  private float heightFor(int tX, int tY, boolean floor) {
+    final Tile t = tileAt(Visit.clamp(tX, size), Visit.clamp(tY, size)) ;
+    if (t.owner() == null) return t.elevation() ;
+    return floor ? t.owner().position(null).z : t.owner().height() ;
+  }
+  
   
   public List <Base> bases() {
     return bases ;

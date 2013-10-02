@@ -29,7 +29,7 @@ public class BotanicalStation extends Venue implements BuildConstants {
     */
   final static String IMG_DIR = "media/Buildings/ecologist/" ;
   final static Model
-    STATION_MODEL = ImageModel.asIsometricModel(
+    STATION_MODEL = ImageModel.asSolidModel(
       BotanicalStation.class, IMG_DIR+"botanical_station.png", 4, 3
     ) ;
   
@@ -266,16 +266,18 @@ public class BotanicalStation extends Venue implements BuildConstants {
     if (pollution > 0) return 0 ;
     final float hB = 1 - pollution ;
     float bonus = 1 ;
-    if (s == Species.HIVE_CELLS) {
-      if (natural) return hB ;
-      return (structure.upgradeBonus(PROTEIN) + 2) * 0.1f * bonus * hB ;
-    }
     
-    bonus = Math.max(0, (t.habitat().moisture() - 5) / 5f) ;
-    if (s == Species.DURWHEAT || s == Species.BROADFRUITS) {
-      bonus = (1 - bonus) / 2f ;  //Dryland crops.
+    if (s == Species.HIVE_GRUBS || s == Species.BLUE_VALVES) {
+      bonus = Math.min(1, world.ecology().biomassRating(t)) ;
+      if (natural) return hB * 2.0f * bonus ;
+      return structure.upgradeBonus(PROTEIN) * 0.2f * bonus * hB ;
     }
-    if (s == Species.DURWHEAT || s == Species.ONI_RICE) {
+    else bonus = Math.max(0, (t.habitat().moisture() - 5) / 5f) ;
+    
+    if (s == Species.DURWHEAT || s == Species.BROADFRUITS) {
+      bonus = (1 - bonus) / 2f ;
+    }
+    if (s == Species.ONI_RICE || s == Species.DURWHEAT) {
       if (natural) return 1.0f * bonus * hB ;
       return (structure.upgradeBonus(CARBS) + 2) * 1.0f * bonus * hB ;
     }

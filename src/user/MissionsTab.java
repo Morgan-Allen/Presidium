@@ -31,16 +31,16 @@ public class MissionsTab extends InfoPanel {
   //
   //  These icons need to be worked on a little more...
   final public static ImageModel
-    STRIKE_MODEL = ImageModel.asIsometricModel(
+    STRIKE_MODEL = ImageModel.asSolidModel(
       MissionsTab.class, IMG_DIR+"flag_strike.gif", 1, 3
     ),
-    RECON_MODEL = ImageModel.asIsometricModel(
+    RECON_MODEL = ImageModel.asSolidModel(
       MissionsTab.class, IMG_DIR+"flag_recon.gif", 1, 3
     ),
-    CONTACT_MODEL = ImageModel.asIsometricModel(
+    CONTACT_MODEL = ImageModel.asSolidModel(
       MissionsTab.class, IMG_DIR+"flag_contact.gif", 1, 3
     ),
-    SECURITY_MODEL = ImageModel.asIsometricModel(
+    SECURITY_MODEL = ImageModel.asSolidModel(
       MissionsTab.class, IMG_DIR+"flag_security.gif", 1, 3
     ) ;
   

@@ -38,15 +38,15 @@ public class BuildingSprite extends GroupSprite {
   
   final static String DIR = "media/Buildings/artificer/" ;
   final public static Model SCAFF_MODELS[] = {
-    ImageModel.asIsometricModel(C, DIR+"scaff_0.png", 1.0f, 1),
-    ImageModel.asPoppedModel(C, DIR+"scaff_1.png", 1.2f, 0),
-    ImageModel.asPoppedModel(C, DIR+"scaff_2.png", 2.2f, 0),
-    ImageModel.asPoppedModel(C, DIR+"scaff_3.png", 3.2f, 0),
-    ImageModel.asPoppedModel(C, DIR+"scaff_4.png", 4.2f, 0),
-    ImageModel.asPoppedModel(C, DIR+"scaff_5.png", 5.2f, 0),
-    ImageModel.asPoppedModel(C, DIR+"scaff_5.png", 6.2f, 0),
-    ImageModel.asPoppedModel(C, DIR+"scaff_6.png", 7.2f, 0),
-    ImageModel.asPoppedModel(C, DIR+"scaff_6.png", 8.2f, 0),
+    ImageModel.asSolidModel(C, DIR+"scaff_0.png", 1.0f, 1),
+    ImageModel.asHollowModel(C, DIR+"scaff_1.png", 1.2f, 0),
+    ImageModel.asHollowModel(C, DIR+"scaff_2.png", 2.2f, 0),
+    ImageModel.asHollowModel(C, DIR+"scaff_3.png", 3.2f, 0),
+    ImageModel.asHollowModel(C, DIR+"scaff_4.png", 4.2f, 0),
+    ImageModel.asHollowModel(C, DIR+"scaff_5.png", 5.2f, 0),
+    ImageModel.asHollowModel(C, DIR+"scaff_5.png", 6.2f, 0),
+    ImageModel.asHollowModel(C, DIR+"scaff_6.png", 7.2f, 0),
+    ImageModel.asHollowModel(C, DIR+"scaff_6.png", 8.2f, 0),
   } ;
   
   

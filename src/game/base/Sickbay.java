@@ -21,7 +21,7 @@ public class Sickbay extends Venue implements BuildConstants {
   
   /**  Static constants, field definitions, constructors and save/load methods-
     */
-  final public static Model MODEL = ImageModel.asIsometricModel(
+  final public static Model MODEL = ImageModel.asSolidModel(
     Sickbay.class, "media/Buildings/physician/physician_clinic.png", 3, 2
   ) ;
   

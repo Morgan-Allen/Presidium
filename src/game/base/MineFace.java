@@ -12,6 +12,8 @@ import src.user.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  Extend Segment instead?
 
 
 public class MineFace extends Element implements Boardable, TileConstants {
@@ -118,6 +120,11 @@ public class MineFace extends Element implements Boardable, TileConstants {
   
   public boolean allowsEntry(Mobile m) {
     return m.base() == shaft.base() ;
+  }
+  
+  
+  public boolean openPlan() {
+    return false ;
   }
   
   

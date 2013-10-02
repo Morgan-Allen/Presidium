@@ -23,7 +23,7 @@ public class Fabricator extends Venue implements BuildConstants {
   
   /**  Fields, constructors, and save/load methods-
     */
-  final public static Model MODEL = ImageModel.asIsometricModel(
+  final public static Model MODEL = ImageModel.asSolidModel(
     Fabricator.class, "media/Buildings/aesthete/fabricator.png", 4, 2
   ) ;
   
@@ -64,8 +64,8 @@ public class Fabricator extends Venue implements BuildConstants {
     ),
     ORGANIC_BONDING = new Upgrade(
       "Organic Bonding",
-      "Allows for direct conversion of carbs to plastics, and provides a "+
-      "mild bonus to plastics production and integration of trophies.",
+      "Allows for direct conversion of carbs to plastics, reduces squalor"+
+      "and provides a mild bonus to plastics production.",
       250, CARBS, 1, null, ALL_UPGRADES
     ),
     FABRICATOR_STATION = new Upgrade(
@@ -110,6 +110,9 @@ public class Fabricator extends Venue implements BuildConstants {
     final float powerNeed = 2 + (structure.numUpgrades() / 2f) ;
     stocks.bumpItem(POWER, powerNeed / -10) ;
     stocks.forceDemand(POWER, powerNeed, VenueStocks.TIER_CONSUMER) ;
+    
+    int pollution = 3 - (structure.upgradeBonus(ORGANIC_BONDING) * 2) ;
+    world.ecology().impingeSqualor(pollution, this, true) ;
   }
   
   
@@ -125,7 +128,7 @@ public class Fabricator extends Venue implements BuildConstants {
     if (o != null) {
       if (o.made().type == DECOR) {
         o.checkBonus = (5 * structure.upgradeLevel(DESIGN_STUDIO)) / 2 ;
-        if (stocks.amountOf(TROPHIES) > 0)  o.checkBonus += bondBonus / 2 ;
+        if (stocks.amountOf(TROPHIES) > 0) o.checkBonus += bondBonus / 2 ;
       }
       else if (o.made().type == FINERY) {
         o.checkBonus = structure.upgradeLevel(CUTTING_FLOOR) + 2 ;
@@ -186,6 +189,10 @@ public class Fabricator extends Venue implements BuildConstants {
   
   /**  Rendering and interface methods-
     */
+  protected Service[] goodsToShow() {
+    return new Service[] { DECOR, PLASTICS, CARBS, PETROCARBS } ;
+  }
+  
   public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/fabricator_button.gif") ;
   }

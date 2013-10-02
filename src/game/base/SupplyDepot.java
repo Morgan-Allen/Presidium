@@ -26,11 +26,11 @@ public class SupplyDepot extends Venue implements
   /**  Other data fields, constructors and save/load methods-
     */
   final static Model
-    MODEL_UNDER = ImageModel.asIsometricModel(
+    MODEL_UNDER = ImageModel.asSolidModel(
       SupplyDepot.class, "media/Buildings/merchant/depot_under.gif",
       5.0f, 0
     ),
-    MODEL_CORE = ImageModel.asIsometricModel(
+    MODEL_CORE = ImageModel.asSolidModel(
       SupplyDepot.class, "media/Buildings/merchant/depot_core.png",
       3, 2
     ) ;

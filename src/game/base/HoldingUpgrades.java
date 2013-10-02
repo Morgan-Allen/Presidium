@@ -45,11 +45,11 @@ public class HoldingUpgrades {
   //
   //  Scavenger slums require 1 parts.  Dreg towers require 3, and 1 power.
   //
-  //  Knighted estates require:
+  //  Knighted Estates require:
   //    2 parts and 1 plastics.
-  //  Highborn villas require:
+  //  Highborn Villas require:
   //    3 parts, 2 plastics, 1 water and 1 decor.
-  //  Noble palaces require:
+  //  Imperial Palaces require:
   //    4 parts, 3 plastics, 2 water, 2 decor,
   //    1 power, 1 datalink and 1 trophy.
   
@@ -62,14 +62,14 @@ public class HoldingUpgrades {
   //    to population- enough for five days per resident.
   //  Pyon Shacks require 1 food type.
   //  Freeborn Holdings require 2 food types.
-  //  Citizen Apartments require 2 food types and Soma.
-  //  Guilder Manses require 3 food types (including Greens) and Soma.
+  //  Citizen Apartments require 2 food types and either Greens or Soma.
+  //  Guilder Manses require 3 food types and Soma.
   //
   //  Dreg Towers require at least 1 food type or Soma.
   //
-  //  Knighted estates require 2 food types.
-  //  Highborn villas require 3 food types and Spice or Soma.
-  //  Noble palaces require 3 food types, Soma and Spice from 2 sources.
+  //  Knighted Estates require 2 food types.
+  //  Highborn Villas require 3 food types and either Spice or Soma.
+  //  Imperial Palaces require 3 food types, Soma and Spice from 2 sources.
   
   
   
@@ -79,7 +79,7 @@ public class HoldingUpgrades {
   //  Pyon Shacks require access to a Town Vault.
   //    (basic safety is the concern here.)
   //  Freeborn Holdings require access to a Stock Exchange or Free Market, and
-  //  a Cantina.
+  //  either a Cantina or Sickbay.
   //    (free access to goods and services.)
   //  Citizen Apartments require access to an Archives or Creche.
   //    (education/upward mobility for children.)
@@ -88,34 +88,28 @@ public class HoldingUpgrades {
   //
   //  Slum housing is indifferent to services.
   //
-  //  Knighted estates require access to a Bastion.
-  //  Highborn villas require access to a Senate Chamber or Arena.
-  //  Noble palaces require access to a Pleasure Dome.
+  //  Knighted Estates require access to a Bastion, and 2 servants per
+  //    inhabitant.
+  //  Highborn Villas require access to a Senate Chamber or Arena, and 5
+  //    servants per inhabitant, 2 of them Pyons or better.
+  //  Imperial Palaces require access to a Pleasure Dome, and 10 servants per
+  //    inhabitant, 5 of them Pyons or better and 2 of them Citizens or better.
   
   
   
   /**  Ambience requirements-
     */
-  //  Guilder manses require positive ambience.  (+5 or better.)
+  //  Guilder manses require positive ambience.  (5 or better.)
   //  Citizen apartments require non-negative ambience.  (0 or better.)
   //  Freeborn holdings and Pyon shacks require squalor no worse than 5.
   
-  //  Field Tents/Scavenger slums/Dreg towers are indifferent to ambience, and
+  //  Field Tents/Scavenger Slums/Dreg Towers are indifferent to ambience, and
   //  allow for higher population densities.
   
-  //  Knighted estates require non-negative ambience.  (0 or better.)
-  //  Highborn villas require positive ambience.  (5 or better.)
-  //  Noble palaces require perfect ambience.  (10 or better.)
+  //  Knighted Estates require non-negative ambience.  (0 or better.)
+  //  Highborn Villas require positive ambience.  (5 or better.)
+  //  Imperial Palaces require perfect ambience.  (10 or better.)
 }
-
-
-
-
-
-
-
-
-
 
 
 

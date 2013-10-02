@@ -153,6 +153,8 @@ public abstract class Segment extends Venue implements TileConstants {
   
   
   private void superPlacing(List <Segment> prior) {
+    final Tile at = origin() ;
+    super.doPlace(at, at) ;
     
     final Tile o = origin() ;
     final World world = o.world ;
@@ -165,9 +167,6 @@ public abstract class Segment extends Venue implements TileConstants {
         s.refreshFromNear(prior) ;
       }
     }
-    
-    final Tile at = origin() ;
-    super.doPlace(at, at) ;
   }
   
   
@@ -213,28 +212,6 @@ public abstract class Segment extends Venue implements TileConstants {
   ) {
     if (toInstall == null) return ;
     for (Segment v : toInstall) v.superPreview(canPlace, rendering) ;
-  }
-  
-  
-  /*
-  protected void renderHealthbars(Rendering rendering, Base base) {
-    final BaseUI UI = (BaseUI) PlayLoop.currentUI() ;
-    if (
-      UI.selection.selected() == this ||
-      UI.selection.hovered()  == this
-    ) super.renderHealthbars(rendering, base) ;
-    else return ;
-  }
-  //*/
-  
-
-  public void renderSelection(Rendering rendering, boolean hovered) {
-    if (destroyed() || ! inWorld()) return ;
-    Selection.renderPlane(
-      rendering, position(null), (xdim() / 2f) + 1,
-      Colour.transparency(hovered ? 0.25f : 0.5f),
-      Selection.SELECT_SQUARE
-    ) ;
   }
 }
 

@@ -207,9 +207,16 @@ public abstract class Actor extends Mobile implements
       //
       //  Update the intel/danger maps associated with the world's bases.
       final float power = Combat.combatStrength(this, null) * 10 ;
-      ///I.sayAbout(this, "Power is: "+power) ;
       for (Base b : world.bases()) {
-        if (b == base()) b.intelMap.liftFogAround(this, health.sightRange()) ;
+        if (b == base()) {
+          //
+          //  Actually lift fog in an area slightly ahead of the actor-
+          final Vec2D heads = new Vec2D().setFromAngle(rotation) ;
+          heads.scale(health.sightRange() / 3f) ;
+          heads.x += position.x ;
+          heads.y += position.y ;
+          b.intelMap.liftFogAround(heads.x, heads.y, health.sightRange()) ;
+        }
         if (! visibleTo(b)) continue ;
         final float relation = mind.relation(b) ;
         b.dangerMap.impingeVal(origin(), 0 - power * relation) ;
@@ -350,9 +357,10 @@ public abstract class Actor extends Mobile implements
   
   public void renderSelection(Rendering rendering, boolean hovered) {
     if (indoors() || ! inWorld()) return ;
+    final boolean t = aboard() instanceof Tile ;
     Selection.renderPlane(
-      rendering, viewPosition(null), radius() + 0.5f,
-      hovered ? Colour.transparency(0.5f) : Colour.WHITE,
+      rendering, viewPosition(null), (radius() + 0.5f) * (t ? 1 : 0.5f),
+      Colour.transparency((hovered ? 0.5f : 1.0f) * (t ? 1 : 0.5f)),
       Selection.SELECT_CIRCLE
     ) ;
   }

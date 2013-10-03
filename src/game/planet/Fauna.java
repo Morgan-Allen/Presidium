@@ -339,6 +339,8 @@ public abstract class Fauna extends Actor {
     if (CD.size() == 0) d.append("Okay") ;
     else d.appendList("", CD) ;
     
+    //d.append("\n\nCombat strength: "+Combat.combatStrength(this, null)) ;
+    
     d.append("\n\n") ;
     d.append(species.info, Colour.LIGHT_GREY) ;
   }

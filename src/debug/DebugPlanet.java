@@ -44,8 +44,20 @@ public class DebugPlanet extends PlayLoop {
   
   /**  Setup and updates-
     */
+  protected boolean loadedAtStartup() {
+    try {
+      GameSettings.noFog = true ;
+      PlayLoop.loadGame("saves/test_planet.rep") ;
+      PlayLoop.setGameSpeed(1.0f) ;
+      return true ;
+    }
+    catch (Exception e) { I.report(e) ; return false ; }
+  }
+  
+  
   protected World createWorld() {
     GameSettings.noFog = true ;
+    PlayLoop.setGameSpeed(5.0f) ;
     
     final TerrainGen TG = new TerrainGen(
       64, 0.33f,
@@ -92,8 +104,6 @@ public class DebugPlanet extends PlayLoop {
   
   
   protected void updateGameState() {
-    ///PlayLoop.setGameSpeed(25.0f) ;
-    PlayLoop.setGameSpeed(25.0f) ;
     super.updateGameState() ;
   }
   
@@ -108,13 +118,13 @@ public class DebugPlanet extends PlayLoop {
     }
     if (KeyInput.wasKeyPressed('s')) {
       I.say("\nSAVING GAME...") ;
-      PlayLoop.saveGame("saves/test_session.rep") ;
+      PlayLoop.saveGame("saves/test_planet.rep") ;
       return false ;
     }
     if (KeyInput.wasKeyPressed('l')) {
       I.say("\nLOADING GAME...") ;
       //GameSettings.frozen = true ;
-      PlayLoop.loadGame("saves/test_session.rep") ;
+      PlayLoop.loadGame("saves/test_planet.rep") ;
       return true ;
     }
     return false ;

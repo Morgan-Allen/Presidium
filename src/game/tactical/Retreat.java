@@ -46,7 +46,8 @@ public class Retreat extends Plan implements ActorConstants {
     float danger = dangerAtSpot(actor.origin(), actor, actor.mind.awareOf()) ;
     danger *= actor.traits.scaleLevel(NERVOUS) ;
     if (danger <= 0) return 0 ;
-    return Visit.clamp((danger + 1) * ROUTINE, 0, PARAMOUNT) ;
+    I.sayAbout(actor, "Danger is: "+danger); 
+    return Visit.clamp(danger * ROUTINE, 0, PARAMOUNT) ;
   }
   
   
@@ -58,6 +59,7 @@ public class Retreat extends Plan implements ActorConstants {
       abortBehaviour() ;
       return null ;
     }
+    //if (actor.aboard() == safePoint) return null ;
     final Action flees = new Action(
       actor, safePoint,
       this, "actionFlee",
@@ -77,9 +79,9 @@ public class Retreat extends Plan implements ActorConstants {
   /**  Rendering and interface methods-
     */
   public void describeBehaviour(Description d) {
-    d.append("Retreating to ") ;
-    if (safePoint instanceof Tile) d.append(((Tile) safePoint).habitat().name) ;
-    else d.append(safePoint) ;
+    if (actor.aboard() == safePoint) d.append("Seeking refuge at ") ;
+    else d.append("Retreating to ") ;
+    d.append(safePoint) ;
   }
   
   
@@ -118,7 +120,7 @@ public class Retreat extends Plan implements ActorConstants {
     //  Get a reading of threats based on all actors visible to this one, and
     //  their distance from the spot in question.  TODO:  Retain awareness
     //  longer?
-    final boolean report = verbose && BaseUI.isPicked(actor) ;
+    final boolean report = verbose && I.talkAbout == actor ;
     if (report) I.say("\n"+actor+" GETTING DANGER AT "+spot) ;
     
     //float sumDanger = 0, minDanger = 0 ;
@@ -129,20 +131,8 @@ public class Retreat extends Plan implements ActorConstants {
       if (m == actor || ! (m instanceof Actor)) continue ;
       final Actor near = (Actor) m ;
       if (near.indoors() || ! near.health.conscious()) continue ;
-      float danger = 1 ;
-      //
-      //  Foes who aren't engaged in combat, or who aren't targeting you, are
-      //  less threatening.  Either way, add or subtract from danger rating,
-      //  depending on allegiance.
-      float attitude = Combat.alliance(actor, near) ;
-      final Target victim = near.targetFor(Combat.class) ;
-      if (victim instanceof Actor) {
-        attitude += -1 * Combat.alliance(actor, (Actor) victim) ;
-      }
-      else if (near.isDoing(Retreat.class, null)) {
-        danger *= 0.33f ;
-      }
-      else danger *= 0.66f ;
+      final float threat = Combat.threatFrom(actor, near) ;
+      float danger = threat ;
       //
       //  More distant foes are less threatening.
       final float dist = Spacing.distance(spot, near) / range ;
@@ -150,16 +140,16 @@ public class Retreat extends Plan implements ActorConstants {
       else danger /= 1 + (dist / 2) ;
       //
       //  Adjust danger estimate based on allegiance-
-      if (attitude < 0) {
+      if (threat > 0) {
         danger *= Combat.combatStrength(near, actor) ;
         sumThreats += danger ;
       }
-      if (attitude > 0) {
+      if (threat < 0) {
         danger *= Combat.combatStrength(near, null) ;
         sumAllies += danger ;
       }
       if (report) {
-        I.say("Danger from "+near+" is "+danger+", attitude "+attitude) ;
+        I.say("Danger from "+near+" is "+danger+", threat: "+threat) ;
       }
     }
     if (report) I.say("Sum of allies/enemies: "+sumAllies+"/"+sumThreats) ;

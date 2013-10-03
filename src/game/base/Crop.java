@@ -111,7 +111,7 @@ public class Crop implements Session.Saveable, Target {
     //  based on intrinsic health rating and insect services.
     //final int hive = Plantation.VAR_HIVE_CELLS ;
     final float pollution = world.ecology().squalorRating(tile) ;
-    float infectChance = (((5 - health) / 10) + pollution) / 2f ;
+    float infestChance = (((5 - health) / 10) + pollution) / 2f ;
     //
     //  (Hive cells can themselves become infested, but only from other hives.)
     for (Tile t : tile.allAdjacent(null)) {
@@ -119,16 +119,16 @@ public class Crop implements Session.Saveable, Target {
       final Crop near = ((Plantation) t.owner()).plantedAt(t) ;
       if (near == null) continue ;
       if (near.isHive() && ! this.isHive()) {
-        infectChance -= near.growStage / 10f ;
+        infestChance -= near.growStage / 10f ;
       }
       if (near.species == this.species) {
-        infectChance += 0.1f / (near.infested ? 1 : 2) ;
+        infestChance += 0.1f / (near.infested ? 1 : 2) ;
       }
       else if (! this.isHive()) {
-        infectChance += 0.1f / (near.infested ? 2 : 4) ;
+        infestChance += 0.1f / (near.infested ? 2 : 4) ;
       }
     }
-    if (Rand.num() < infectChance) this.infested = true ;
+    if (Rand.num() < (infestChance * amount)) this.infested = true ;
     ///I.sayAbout(parent, "  Grown: "+this) ;
   }
   

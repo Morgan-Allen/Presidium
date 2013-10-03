@@ -45,7 +45,7 @@ public class Farming extends Plan implements BuildConstants {
   
   
   public float priorityFor(Actor actor) {
-    if ((! begun()) && Plan.competition(Farming.class, nursery, actor) > 0) {
+    if ((! begun()) && nursery.belongs.personnel.assignedTo(this) > 0) {
       return 0 ;
     }
     //

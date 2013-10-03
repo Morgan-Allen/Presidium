@@ -557,8 +557,11 @@ public abstract class ActorAI implements ActorConstants {
   
   public float relation(Base base) {
     final Base AB = actor.base() ;
-    if (base == AB) return 1 ;
-    else if (AB != null && base != null) return AB.relationWith(base) ;
+    if (AB != null) {
+      if (base == AB) return 1 ;
+      if (base == null) return 0 ;
+      return AB.relationWith(base) ;
+    }
     else return 0 ;
   }
   

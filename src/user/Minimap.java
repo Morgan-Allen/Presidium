@@ -9,7 +9,9 @@ import src.game.common.* ;
 import src.game.planet.* ;
 import src.util.* ;
 import src.graphics.common.* ;
+import src.graphics.terrain.* ;
 import src.graphics.widgets.UINode ;
+
 import org.lwjgl.opengl.* ;
 
 
@@ -32,8 +34,7 @@ public class Minimap extends UINode {
   final World world ;
   private Base base ;
   
-  private Texture mapImage ;//, newImage ;
-  //private float oldFade = 0 ;
+  private Texture mapImage ;
   
   
   
@@ -83,7 +84,6 @@ public class Minimap extends UINode {
     final Tile pos = getMapPosition(UI.mousePos()) ;
     if (pos == null) return ;
     UI.camera.lockOn(pos) ;
-    //UI.camera.zoomTo(pos) ;
   }
   
   
@@ -101,28 +101,21 @@ public class Minimap extends UINode {
   
   protected void render() {
     if (mapImage == null) updateMapImage() ;
-    //if (oldFade > FADE_DELAY || newImage == null) {
-    //  mapImage = newImage ;
-    //  final int texSize = world.size ;
-    //  newImage = Texture.createTexture(texSize, texSize) ;
-    //  updateImage(newImage) ;
-    //  oldFade = 0 ;
-    //}
-    //oldFade += 1f / PlayLoop.FRAMES_PER_SECOND ;
     
     GL11.glColor4f(1, 1, 1, 1) ;
     mapImage.bindTex() ;
-    renderTex() ;
+    renderTex(-1) ;
     if (base != null && ! GameSettings.noFog) {
-      GL11.glColor4f(0, 0, 0, 1) ;
-      base.intelMap.fogTex().bindTex() ;
-      renderTex() ;
-      GL11.glColor4f(1, 1, 1, 1) ;
+      GL11.glEnable(GL12.GL_TEXTURE_3D) ;
+      FogOverlay fogOver = base.intelMap.fogOver() ;
+      fogOver.bindAsTex() ;
+      renderTex(fogOver.trueFadeVal()) ;
+      GL11.glDisable(GL12.GL_TEXTURE_3D) ;
     }
   }
   
   
-  private void renderTex() {
+  private void renderTex(float fadeVal) {
     //
     //You draw a diamond-shaped area around the four points-
     final float
@@ -131,14 +124,23 @@ public class Minimap extends UINode {
       x = xpos(),
       y = ypos() ;
     GL11.glBegin(GL11.GL_QUADS) ;
-    GL11.glTexCoord2f(0, 0) ;
+    
+    if (fadeVal == -1) GL11.glTexCoord2f(0, 0) ;
+    else GL11.glTexCoord3f(0, 0, fadeVal) ;
     GL11.glVertex2f(x, y + (h / 2)) ;
-    GL11.glTexCoord2f(0, 1) ;
+    
+    if (fadeVal == -1) GL11.glTexCoord2f(0, 1) ;
+    else GL11.glTexCoord3f(0, 1, fadeVal) ;
     GL11.glVertex2f(x + (w / 2), y + h) ;
-    GL11.glTexCoord2f(1, 1) ;
+    
+    if (fadeVal == -1) GL11.glTexCoord2f(1, 1) ;
+    else GL11.glTexCoord3f(1, 1, fadeVal) ;
     GL11.glVertex2f(x + w, y + (h / 2)) ;
-    GL11.glTexCoord2f(1, 0) ;
+    
+    if (fadeVal == -1) GL11.glTexCoord2f(1, 0) ;
+    else GL11.glTexCoord3f(1, 0, fadeVal) ;
     GL11.glVertex2f(x + (w / 2), y) ;
+    
     GL11.glEnd() ;
   }
 }

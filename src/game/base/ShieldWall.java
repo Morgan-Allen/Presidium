@@ -252,16 +252,6 @@ public class ShieldWall extends Segment {
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
     super.writeInformation(d, categoryID, UI) ;
-    
-    d.append("\nTYPE: "+type) ;
-    ///entrances = null ;
-    //entrances() ;
-    /*
-    d.append("\n\n") ;
-    for (Boardable b : this.canBoard(null)) if (b != null) {
-      d.append("\n  Abuts: "+b) ;
-    }
-    //*/
   }
 }
 

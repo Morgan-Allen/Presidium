@@ -22,8 +22,6 @@ import src.util.* ;
 //  Debug the vats.  Use actor-vision for more activities?
 //  Have pollution effects impact health/life-support, and possibly change the
 //  landscape.
-//
-//  Micovores are retreating from prey too easily!  Find out why!
 //  
 //  Actors should call for help from allies, and need proper line of sight.
 //  Add Security and Contact missions.  Use the threatLevel() function for both

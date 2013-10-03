@@ -18,9 +18,9 @@ import src.util.* ;
 public class Combat extends Plan implements ActorConstants {
   
   
-  /**  
+  /**  Data fields, constructors and save/load methods-
     */
-  static boolean verbose = false ;
+  static boolean verbose = false, reportStrength = false ;
   final static int
     STYLE_RANGED = 0,
     STYLE_MELEE  = 1,
@@ -117,15 +117,19 @@ public class Combat extends Plan implements ActorConstants {
     final float chance = Visit.clamp(1 - danger, 0.1f, 0.9f) ;
     //
     //  Then we calculate the risk/reward ratio associated with the act-
+    /*
     final Target victim = enemy.targetFor(Combat.class) ;
     if (victim instanceof Actor) {
-      float mod = alliance(actor, (Actor) victim) * PARAMOUNT ;
+      float mod = actor.mind.relation((Actor) victim) * PARAMOUNT ;
       lossCost -= mod / 2 ;
       winReward += mod / 2 ;
     }
+    //*/
     float appeal = 0 ;
-    final float ER = alliance(actor, enemy) ;
-    appeal += ER * -1 * PARAMOUNT ;
+    final float ER = threatFrom(actor, enemy) ;
+    lossCost -= ER / 2 ;
+    winReward += ER / 2 ;
+    appeal += ER * PARAMOUNT ;
     appeal += winReward ;
     appeal *= actor.traits.scaleLevel(AGGRESSIVE) ;
     appeal /= actor.traits.scaleLevel(NERVOUS   ) ;
@@ -151,6 +155,33 @@ public class Combat extends Plan implements ActorConstants {
   }
   
   
+  
+  public static float threatFrom(Actor actor, Actor from) {
+    float baseThreat = 0 - actor.mind.relation(from), threatMult = 1 ;
+    
+    final Target victim = from.targetFor(Combat.class) ;
+    if (victim instanceof Actor) {
+      baseThreat += actor.mind.relation((Actor) victim) ;
+    }
+    else if (victim instanceof Venue) {
+      baseThreat += actor.mind.relation((Venue) victim) ;
+    }
+    else if (from.isDoing(Retreat.class, null)) {
+      baseThreat -= actor.mind.relation(from.base()) ;
+      threatMult = 0.25f ;
+    }
+    else {
+      baseThreat -= actor.mind.relation(from.base()) ;
+      threatMult = 0.5f ;
+    }
+    
+    if (baseThreat > 0) return threatMult ;
+    if (baseThreat < 0) return 0 - threatMult ;
+    return 0 ;
+  }
+  
+  
+  /*
   public static float alliance(Actor a, Actor b) {
     //
     //  TODO:  Try averaging the two instead?  Or just base on one?  Replace
@@ -158,6 +189,7 @@ public class Combat extends Plan implements ActorConstants {
     //  et cetera?  ...Yes.  Factor it out.
     return Math.min(a.mind.relation(b), b.mind.relation(a)) ;
   }
+  //*/
   
   
   //
@@ -173,18 +205,21 @@ public class Combat extends Plan implements ActorConstants {
     strength *= (1 - actor.health.injuryLevel()) ;
     strength *= 1 - actor.health.stressPenalty() ;
     //
+    //  Scale by general ranks in relevant skills-
+    if (reportStrength) I.sayAbout(actor, "Native strength: "+strength) ;
+    strength *= (
+      actor.traits.useLevel(HAND_TO_HAND) +
+      actor.traits.useLevel(MARKSMANSHIP)
+    ) / 20 ;
+    strength *= (
+      actor.traits.useLevel(HAND_TO_HAND) +
+      actor.traits.useLevel(STEALTH_AND_COVER)
+    ) / 20 ;
+    if (reportStrength) I.sayAbout(actor, "With skills: "+strength) ;
     //
-    if (enemy == null) {
-      strength *= (
-        actor.traits.useLevel(HAND_TO_HAND) +
-        actor.traits.useLevel(MARKSMANSHIP)
-      ) / 20 ;
-      strength *= (
-        actor.traits.useLevel(HAND_TO_HAND) +
-        actor.traits.useLevel(STEALTH_AND_COVER)
-      ) / 20 ;
-    }
-    else {
+    //  And if you're measuring combat against a specific adversary, scale by
+    //  chance of victory-
+    if (enemy != null) {
       final Skill attack, defend ;
       if (actor.gear.meleeWeapon()) {
         attack = defend = HAND_TO_HAND ;
@@ -194,6 +229,10 @@ public class Combat extends Plan implements ActorConstants {
         defend = STEALTH_AND_COVER ;
       }
       final float chance = actor.traits.chance(attack, enemy, defend, 0) ;
+      if (reportStrength && I.talkAbout == enemy) {
+        I.say("Chance to injure "+enemy+" is: "+chance) ;
+        I.say("Native strength: "+strength) ;
+      }
       strength *= 2 * chance ;
     }
     return strength ;

@@ -188,7 +188,7 @@ public abstract class UINode {
     }
     
     GL11.glBindTexture(GL11.GL_TEXTURE_2D, glID) ;
-    Texture.setDefaultTexParams() ;
+    Texture.setDefaultTexParams(GL11.GL_TEXTURE_2D) ;
     GL11.glTexImage2D(
       GL11.GL_TEXTURE_2D,
       0, 4,

@@ -1,3 +1,5 @@
 /TerrainMesh.class
 /TerrainPattern.class
 /TestTerrain.class
+/FogMesh.class
+/FogOverlay.class

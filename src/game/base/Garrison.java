@@ -122,6 +122,10 @@ public class Garrison extends Venue implements BuildConstants {
     //
     //  Grab a random building nearby and patrol around it.
     final float range = World.SECTOR_SIZE / 2f ;
+    //
+    //  TODO:  try to pick points far apart from eachother, and employ
+    //  multiple samples for the purpose.
+    
     final Venue
       init = (Venue) world.presences.randomMatchNear(base(), this, range),
       dest = (Venue) world.presences.randomMatchNear(base(), this, range) ;

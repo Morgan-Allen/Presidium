@@ -23,7 +23,7 @@ import src.util.* ;
 public abstract class Venue extends Fixture implements
   Schedule.Updates, Boardable, Installation,
   Inventory.Owner, ActorAI.Employment,
-  Selectable, TileConstants, BuildConstants
+  Selectable, TileConstants, Economy
 {
   
   

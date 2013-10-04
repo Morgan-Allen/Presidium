@@ -37,7 +37,7 @@ import src.util.* ;
 
 
 
-public class DebugBehaviour extends PlayLoop implements BuildConstants {
+public class DebugBehaviour extends PlayLoop implements Economy {
   
   
   

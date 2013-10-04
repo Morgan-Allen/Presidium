@@ -124,23 +124,20 @@ public abstract class Plan implements Saveable, Behaviour {
   public Behaviour nextStepFor(Actor actor) {
     if (this.actor != actor) {
       this.actor = actor ;
-      nextStep = null ;
+      return nextStep = null ;
     }
+    if (! valid()) { onceInvalid() ; return nextStep = null ; }
     //
     //  We do not cache steps for dormant or 'under consideration' plans, since
     //  that can screw up proper sequence of evaluation/execution.  Start from
     //  scratch instead.
     if (! actor.mind.agenda.includes(this)) {
       nextStep = lastStep = null ;
-      if (valid()) return getNextStep() ;
-      else { onceInvalid() ; return null ; }
+      return getNextStep() ;
     }
     else if (nextStep == null || nextStep.finished()) {
-      if (valid()) {
-        nextStep = getNextStep() ;
-        if (nextStep != null) lastStep = nextStep ;
-      }
-      else { onceInvalid() ; nextStep = null ; }
+      nextStep = getNextStep() ;
+      if (nextStep != null) lastStep = nextStep ;
     }
     return nextStep ;
   }
@@ -198,7 +195,7 @@ public abstract class Plan implements Saveable, Behaviour {
     final Tile at = actor.world().tileAt(t) ;
     float danger = actor.base().dangerMap.valAt(at) ;
     if (danger < 0) return 0 ;
-    danger *= actor.traits.scaleLevel(ActorConstants.NERVOUS) ;
+    danger *= actor.traits.scaleLevel(SkillsAndTraits.NERVOUS) ;
     return danger * 0.1f / (1 + Combat.combatStrength(actor, null)) ;
   }
   

@@ -18,7 +18,7 @@ import src.util.* ;
 
 
 
-public class Foraging extends Plan implements BuildConstants {
+public class Foraging extends Plan implements Economy {
   
   
   

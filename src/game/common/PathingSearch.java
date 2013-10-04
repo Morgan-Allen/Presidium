@@ -73,8 +73,16 @@ public class PathingSearch extends Search <Boardable> {
     super.doSearch() ;
     if (verbose) {
       if (success()) I.say("\n  Success!") ;
-      else I.say("\n  Failed.") ;
+      else {
+        I.say("\n  Failed.") ;
+        if (client != null) {
+          I.say("Origin      blocked? "+client.blockedBy(init       )) ;
+          I.say("Destination blocked? "+client.blockedBy(destination)) ;
+        }
+      }
       I.say("  Closest approach: "+closest+", aimed for "+aimPoint) ;
+      I.say("  Total searched: "+flagged.size()+"/"+maxSearched) ;
+      I.say("") ;
     }
     return this ;
   }

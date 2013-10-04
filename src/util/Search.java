@@ -35,8 +35,8 @@ public abstract class Search <T> {
   
 
   final protected T init ;
-  final int maxSearched ;
-  Batch <T> flagged = new Batch <T> () ;
+  final protected int maxSearched ;
+  protected Batch <T> flagged = new Batch <T> () ;
   
   private float totalCost = -1 ;
   private boolean success = false ;

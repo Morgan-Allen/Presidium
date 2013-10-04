@@ -19,7 +19,7 @@ import src.util.* ;
 
 
 
-public class VaultSystem extends Venue implements BuildConstants {
+public class VaultSystem extends Venue implements Economy {
   
   
   

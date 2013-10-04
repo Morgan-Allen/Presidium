@@ -18,7 +18,7 @@ import src.util.* ;
 //         covered by the Solar Array and Condensor?
 
 
-public class FormerPlant extends Venue implements BuildConstants {
+public class FormerPlant extends Venue implements Economy {
   
   
 
@@ -281,7 +281,7 @@ public class FormerPlant extends Venue implements BuildConstants {
     //  TODO:  Actually, arrange things so that the processor increases *local*
     //  pollution, while reducing global pollution (because it's messy and
     //  noisy, but good for the atmosphere.)  Not In My Backyard, IOW.
-    world.ecology().impingeSqualor(-2 * carbonBonus * yield, this, true) ;
+    world.ecology().impingeSqualor(1 * yield, this, true) ;
     final int mag = World.SECTOR_SIZE ;
     world.ecology().pushClimate(Habitat.MEADOW, mag * mag * 5 * yield) ;
   }

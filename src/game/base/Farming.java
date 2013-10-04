@@ -17,10 +17,10 @@ import src.util.* ;
 
 
 
-public class Farming extends Plan implements BuildConstants {
+public class Farming extends Plan implements Economy {
   
   
-  private static boolean verbose = true ;
+  private static boolean verbose = false ;
   
   final Plantation nursery ;
   
@@ -223,7 +223,7 @@ public class Farming extends Plan implements BuildConstants {
   
   private Action returnHarvestAction(int amountNeeded) {
     final float sumHarvest = sumHarvest() ;
-    if (sumHarvest <= amountNeeded && actor.health.encumbrance() < 1) {
+    if (sumHarvest <= amountNeeded && actor.gear.encumbrance() < 1) {
       return null ;
     }
     final Action returnAction = new Action(

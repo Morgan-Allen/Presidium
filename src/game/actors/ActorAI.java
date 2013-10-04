@@ -23,7 +23,7 @@ import src.util.* ;
 //  going to be the basis of a bunch of activities.
 
 
-public abstract class ActorAI implements ActorConstants {
+public abstract class ActorAI implements SkillsAndTraits {
   
   
   /**  Field definitions, constructor, save/load methods-
@@ -199,6 +199,7 @@ public abstract class ActorAI implements ActorConstants {
     updateSeen() ;
     if (home != null && home.destroyed()) home = null ;
     if (work != null && work.destroyed()) work = null ;
+    /*
     if (numUpdates % 10 == 0) {
       for (Behaviour b : todoList) if (b.finished()) todoList.remove(b) ;
       final Behaviour
@@ -207,6 +208,7 @@ public abstract class ActorAI implements ActorConstants {
       if (couldSwitch(last, next)) assignBehaviour(next) ;
     }
     for (Behaviour b : agenda) if (b.monitor(actor)) break ;
+    //*/
   }
   
   
@@ -228,6 +230,60 @@ public abstract class ActorAI implements ActorConstants {
   
   protected abstract Behaviour createBehaviour() ;
   protected abstract Behaviour reactionTo(Element m) ;
+  
+  
+  protected Action getNextAction() {
+    final int MAX_LOOP = 100 ;  // Safety feature, see below...
+    for (int loop = MAX_LOOP ; loop-- > 0 ;) {
+      if (verbose) I.sayAbout(actor, actor+" in action loop.") ;
+      //
+      //  If all current behaviours are complete, generate a new one.
+      if (agenda.size() == 0) {
+        final Behaviour taken = nextBehaviour() ;
+        if (taken == null) {
+          if (verbose) I.sayAbout(actor, "No next behaviour!") ;
+          return null ;
+        }
+        pushBehaviour(taken) ;
+      }
+      //
+      //  Root behaviours which return null, but aren't complete, should be
+      //  stored for later.  Otherwise, unfinished behaviours should return
+      //  their next step.
+      final Behaviour current = topBehaviour() ;
+      final Behaviour next = current.nextStepFor(actor) ;
+      final boolean isDone = current.finished() ;
+      if (verbose && I.talkAbout == actor) {
+        I.say("Current action "+current) ;
+        I.say("Next step "+next) ;
+        I.say("Done "+isDone) ;
+      }
+      if (isDone || next == null) {
+        if (current == rootBehaviour() && ! isDone) {
+          todoList.add(current) ;
+        }
+        popBehaviour() ;
+      }
+      else if (current instanceof Action) {
+        if (verbose) I.sayAbout(actor, "Next action: "+current) ;
+        return (Action) current ;
+      }
+      else {
+        pushBehaviour(next) ;
+      }
+    }
+    //
+    //  If you exhaust the maximum number of iterations (which I assume *would*
+    //  be enough for any reasonable use-case,) report the problem.
+    I.say("  "+actor+" COULD NOT DECIDE ON NEXT STEP.") ;
+    final Behaviour root = rootBehaviour() ;
+    final Behaviour next = root.nextStepFor(actor) ;
+    I.say("Root behaviour: "+root) ;
+    I.say("Next step: "+next) ;
+    I.say("Valid/finished "+next.valid()+"/"+next.finished()) ;
+    new Exception().printStackTrace() ;
+    return null ;
+  }
   
   
   
@@ -390,63 +446,6 @@ public abstract class ActorAI implements ActorConstants {
   public void clearAgenda() {
     if (rootBehaviour() != null) cancelBehaviour(rootBehaviour()) ;
     todoList.clear() ;
-  }
-  
-  
-  
-  /**  Updates and queries-
-    */
-  protected Action getNextAction() {
-    final int MAX_LOOP = 100 ;  // Safety feature, see below...
-    for (int loop = MAX_LOOP ; loop-- > 0 ;) {
-      if (verbose) I.sayAbout(actor, actor+" in action loop.") ;
-      //
-      //  If all current behaviours are complete, generate a new one.
-      if (agenda.size() == 0) {
-        final Behaviour taken = nextBehaviour() ;
-        if (taken == null) {
-          if (verbose) I.sayAbout(actor, "No next behaviour!") ;
-          return null ;
-        }
-        pushBehaviour(taken) ;
-      }
-      //
-      //  Root behaviours which return null, but aren't complete, should be
-      //  stored for later.  Otherwise, unfinished behaviours should return
-      //  their next step.
-      final Behaviour current = topBehaviour() ;
-      final Behaviour next = current.nextStepFor(actor) ;
-      final boolean isDone = current.finished() ;
-      if (verbose && I.talkAbout == actor) {
-        I.say("Current action "+current) ;
-        I.say("Next step "+next) ;
-        I.say("Done "+isDone) ;
-      }
-      if (isDone || next == null) {
-        if (current == rootBehaviour() && ! isDone) {
-          todoList.add(current) ;
-        }
-        popBehaviour() ;
-      }
-      else if (current instanceof Action) {
-        if (verbose) I.sayAbout(actor, "Next action: "+current) ;
-        return (Action) current ;
-      }
-      else {
-        pushBehaviour(next) ;
-      }
-    }
-    //
-    //  If you exhaust the maximum number of iterations (which I assume *would*
-    //  be enough for any reasonable use-case,) report the problem.
-    I.say("  "+actor+" COULD NOT DECIDE ON NEXT STEP.") ;
-    final Behaviour root = rootBehaviour() ;
-    final Behaviour next = root.nextStepFor(actor) ;
-    I.say("Root behaviour: "+root) ;
-    I.say("Next step: "+next) ;
-    I.say("Valid/finished "+next.valid()+"/"+next.finished()) ;
-    new Exception().printStackTrace() ;
-    return null ;
   }
   
   

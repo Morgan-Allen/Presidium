@@ -24,6 +24,7 @@ public interface Behaviour extends Session.Saveable {
   
   Behaviour nextStepFor(Actor actor) ;
   boolean monitor(Actor actor) ;
+  Actor actor() ;
   
   float priorityFor(Actor actor) ;
   boolean finished() ;

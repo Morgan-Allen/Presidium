@@ -1,14 +1,13 @@
 
 
-
 package src.game.planet ;
 import src.game.common.* ;
+import src.game.common.WorldSections.Section ;
 import src.util.* ;
 
 
 
 public class Ecology {
-  
   
   
   /**  Data fields, construction and save/load methods-
@@ -139,9 +138,11 @@ public class Ecology {
     for (Species p : Species.ANIMAL_SPECIES) {
       globalAbundance[p.ID] *= 1 - UPDATE_INC ;
     }
-    globalBiomass /= (SS * SS) ;
     
-    //I.present(squalorMap, "Squalor", 256, 256, -10, 10) ;
+    globalBiomass /= (SS * SS) ;
+
+    final float squareA = SR * SR * 1 ;
+    I.present(squalorMap, "Squalor", 256, 256, squareA, -squareA) ;
   }
   
   
@@ -159,18 +160,14 @@ public class Ecology {
   }
   
   
-  public void impingeSqualor(float squalorVal, Tile t, boolean gradual) {
-    squalorMap[t.x / SR][t.y / SR] += squalorVal * (gradual ? UPDATE_INC : 1) ;
-  }
-  
-  
   public void impingeSqualor(float squalorVal, Fixture f, boolean gradual) {
-    final Tile centre = world.tileAt(f) ;
-    impingeSqualor(squalorVal * f.area().area(), centre, gradual) ;
+    impingeOnMap(squalorVal, f.area(), squalorMap, gradual) ;
   }
   
   
   public void impingeAbundance(Fauna f, boolean gradual) {
+    //
+    //  TODO:  Impinge over an area?  Like with squalor?
     final Tile t = f.origin() ;
     final Species s = f.species ;
     final float inc = (gradual ? UPDATE_INC : 1) * f.health.maxHealth() ;
@@ -187,9 +184,40 @@ public class Ecology {
   }
   
   
-  public float globalBiomass() {
-    return globalBiomass / (SS * SS) ;
+  
+  /**  Diffusing effects over a wider area-
+    */
+  private Section batchS[] = new Section[8] ;
+  private Box2D overlap = new Box2D() ;
+  
+  
+  private void impingeOnMap(
+    float val, Box2D bound, float map[][], boolean gradual
+  ) {
+    final float fullVal = val * bound.area() * (gradual ? UPDATE_INC : 1) / 2 ;
+    final Box2D aura = new Box2D().setTo(bound).expandBy(SR / 2) ;
+    final Vec2D c = bound.centre() ;
+    
+    final Section centre = world.sections.sectionAt((int) c.x, (int) c.y) ;
+    impingeOnSection(bound, fullVal, centre, map) ;
+    impingeOnSection(aura , fullVal, centre, map) ;
+    
+    for (Section s : world.sections.neighbours(centre, batchS)) {
+      if (s == null) continue ;
+      impingeOnSection(bound, fullVal, s, map) ;
+      impingeOnSection(aura , fullVal, s, map) ;
+    }
   }
+  
+  
+  private void impingeOnSection(
+    Box2D bound, float fullVal, Section s, float map[][]
+  ) {
+    overlap.setTo(s.area) ;
+    overlap.cropBy(bound) ;
+    map[s.x][s.y] += fullVal * overlap.area() / bound.area() ;
+  }
+  
   
   
   
@@ -221,7 +249,7 @@ public class Ecology {
       sum += squalorMap[t.x / SR][t.y / SR] ;
       count++ ;
     }
-    return sum / (count * 10) ;
+    return sum / (count * SR * SR) ;
   }
   
   
@@ -279,6 +307,11 @@ public class Ecology {
     if (! (prey instanceof Fauna)) return 0 ;
     final Fauna f = (Fauna) prey ;
     return relativeAbundanceAt(f.species, f.origin(), f.species.forageRange()) ;
+  }
+  
+  
+  public float globalBiomass() {
+    return globalBiomass / (SS * SS) ;
   }
 }
 

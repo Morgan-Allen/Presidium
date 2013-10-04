@@ -6,7 +6,7 @@
 
 
 package src.game.building ;
-import src.game.actors.ActorConstants ;
+import src.game.actors.SkillsAndTraits ;
 import src.game.base.* ;
 
 
@@ -19,10 +19,10 @@ TALISMAN   = new Item.Type(C, UNIQUE, "Talisman"   , 250)
 //*/
 
 //
-//  TODO:  What about Tensile materials?  Antimatter?
+//  TODO:  What about Tensile materials?  Antimass?
 
 
-public interface BuildConstants extends ActorConstants {
+public interface Economy extends SkillsAndTraits {
   
   
   final public static int
@@ -33,7 +33,7 @@ public interface BuildConstants extends ActorConstants {
     FORM_OUTFIT         = 4, FO = 4,
     FORM_SERVICE        = 5, FS = 5 ;
   
-  final static Class BC = BuildConstants.class ;
+  final static Class BC = Economy.class ;
   
   final public static Service
     //
@@ -273,13 +273,13 @@ public interface BuildConstants extends ActorConstants {
     PLASTICS_TO_CREDITS = new Conversion(
       1, PLASTICS, TO, 500, CREDITS,
       AuditOffice.class,
-      MODERATE_DC, ADMINISTRATION, MODERATE_DC, GRAPHIC_MEDIA
+      MODERATE_DC, ACCOUNTING, MODERATE_DC, GRAPHIC_MEDIA
     ),
     
     PLASTICS_TO_PRESSFEED = new Conversion(
       1, PLASTICS, TO, 10, PRESSFEED,
       AuditOffice.class,
-      SIMPLE_DC, ADMINISTRATION, DIFFICULT_DC, GRAPHIC_MEDIA
+      SIMPLE_DC, ACCOUNTING, DIFFICULT_DC, GRAPHIC_MEDIA
     ),
     
     //

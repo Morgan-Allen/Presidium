@@ -17,7 +17,7 @@ import src.util.* ;
 
 
 
-public class CultureVats extends Venue implements BuildConstants {
+public class CultureVats extends Venue implements Economy {
 
   
   

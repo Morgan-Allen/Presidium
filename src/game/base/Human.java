@@ -22,7 +22,7 @@ import src.util.* ;
 
 
 
-public class Human extends Actor implements ActorConstants {
+public class Human extends Actor implements SkillsAndTraits {
   
   
   /**  Methods and constants related to preparing media and sprites-

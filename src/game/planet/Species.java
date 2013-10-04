@@ -19,7 +19,7 @@ import src.util.* ;
 //  TODO:  This class needs to include data for base speed, sight range, damage
 //  and armour, et cetera, et cetera.
 
-public class Species implements Session.Saveable, BuildConstants {
+public class Species implements Session.Saveable, Economy {
   
   
   /**  Type, instance and media definitions-

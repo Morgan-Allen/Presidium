@@ -114,22 +114,24 @@ public class PathingCache {
   //
   //  TODO:  Move this to the mobile pathing class?
   public Boardable[] getLocalPath(
-    Boardable initB, Boardable destB, int maxLength, Mobile client
+    Boardable initB, Boardable destB, int maxLength,
+    Mobile client, boolean verbose
   ) {
     Boardable path[] = null ;
     if (Spacing.distance(initB, destB) <= World.SECTOR_SIZE * 2) {
-      if (verbose) I.sayAbout(client,
+      if (verbose) I.say(
         "Using simple agenda-bounded pathing between "+initB+" "+destB
       ) ;
       final PathingSearch search = new PathingSearch(initB, destB) ;
       search.client = client ;
+      search.verbose = verbose ;
       search.doSearch() ;
       path = search.fullPath(Boardable.class) ;
       if (path != null) return path ;
     }
     final Place placesPath[] = placesBetween(initB, destB, client) ;
     if (placesPath != null && placesPath.length < 3) {
-      if (verbose) I.sayAbout(client,
+      if (verbose) I.say(
         "Using full cordoned path-search between "+initB+" "+destB
       ) ;
       final PathingSearch search = cordonedSearch(
@@ -137,28 +139,31 @@ public class PathingCache {
         placesPath[placesPath.length - 1].caching.section
       ) ;
       search.client = client ;
+      search.verbose = verbose ;
       search.doSearch() ;
       path = search.fullPath(Boardable.class) ;
       if (path != null) return path ;
     }
     if (placesPath != null) {
-      if (verbose) I.sayAbout(client,
+      if (verbose) I.say(
         "Using partial cordoned path-search between "+initB+" "+destB
       ) ;
       final PathingSearch search = fullPathSearch(
         initB, destB, placesPath, maxLength
       ) ;
       search.client = client ;
+      search.verbose = verbose ;
       search.doSearch() ;
       path = search.fullPath(Boardable.class) ;
       if (path != null) return path ;
     }
     if (path == null) {
-      if (verbose) I.sayAbout(client,
-        "Resorting to unbounded pathfinding between "+initB+" "+destB
+      if (verbose) I.say(
+        "Resorting to agenda-bounded pathfinding between "+initB+" "+destB
       ) ;
-      final PathingSearch search = new PathingSearch(initB, destB, -1) ;
+      final PathingSearch search = new PathingSearch(initB, destB) ;
       search.client = client ;
+      search.verbose = verbose ;
       search.doSearch() ;
       path = search.fullPath(Boardable.class) ;
       if (path != null) return path ;

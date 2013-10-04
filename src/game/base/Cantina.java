@@ -20,7 +20,7 @@ import src.util.* ;
 //  the criminal element!)
 
 
-public class Cantina extends Venue implements BuildConstants {
+public class Cantina extends Venue implements Economy {
   
   
   
@@ -92,7 +92,7 @@ public class Cantina extends Venue implements BuildConstants {
       return new Supervision(actor, this) ;
     }
     if (actor.vocation() == Background.PERFORMER) {
-      return new Performance(actor, this, ActorConstants.MUSIC_AND_SONG) ;
+      return new Performance(actor, this, SkillsAndTraits.MUSIC_AND_SONG) ;
     }
     return null ;
   }

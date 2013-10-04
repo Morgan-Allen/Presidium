@@ -10,7 +10,7 @@ import src.util.* ;
 
 
 
-public class Trait implements ActorConstants {
+public class Trait implements SkillsAndTraits {
   
   
   

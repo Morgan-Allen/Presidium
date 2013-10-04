@@ -19,7 +19,7 @@ import src.util.* ;
 
 
 
-public class Reclamator extends Venue implements BuildConstants {
+public class Reclamator extends Venue implements Economy {
   
   
   

@@ -72,7 +72,6 @@ public class DrillYard extends Venue {
     final GroupSprite sprite = new GroupSprite() ;
     sprite.attach(YARD_MODEL, 0, 0, -0.05f) ;
     attachSprite(sprite) ;
-    setupDummies() ;
   }
   
 
@@ -135,6 +134,12 @@ public class DrillYard extends Venue {
   
   /**  Behaviour implementation-
     */
+  public void enterWorldAt(int x, int y, World world) {
+    super.enterWorldAt(x, y, world) ;
+    setupDummies() ;
+  }
+  
+  
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
@@ -176,9 +181,9 @@ public class DrillYard extends Venue {
     }
   ;
   
-  
   private void setupDummies() {
     final Tile o = origin() ;
+    if (o == null) return ;
     for (int i = NUM_DUMMIES, c = 0 ; i-- > 0 ;) {
       final Tile t = world.tileAt(
         o.x + DUMMY_OFFS[c++],

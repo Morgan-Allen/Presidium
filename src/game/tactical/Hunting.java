@@ -16,7 +16,7 @@ import src.user.* ;
 
 
 
-public class Hunting extends Combat implements BuildConstants {
+public class Hunting extends Combat implements Economy {
   
   
   

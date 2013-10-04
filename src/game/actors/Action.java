@@ -179,6 +179,11 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
+  public Actor actor() {
+    return actor ;
+  }
+  
+  
 
   /**  Actual execution of associated behaviour-
     */
@@ -295,6 +300,7 @@ public class Action implements Behaviour, Model.AnimNames {
   
   
   public void applyEffect() {
+    ///if (true) return ;
     try { toCall.invoke(basis, actor, actionTarget) ; }
     catch (Exception e) {
       I.say("PROBLEM WITH ACTION: "+toCall.getName()) ;

@@ -20,7 +20,7 @@ import src.util.* ;
 //  TODO:  Include a Landing Site right nextdoor?  Yes.
 
 public class SupplyDepot extends Venue implements
-  BuildConstants, Service.Trade
+  Economy, Service.Trade
 {
   
   /**  Other data fields, constructors and save/load methods-

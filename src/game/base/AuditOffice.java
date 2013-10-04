@@ -24,7 +24,7 @@ import src.util.* ;
 //  constant.  This happens at the Audit Office, directly.
 
 
-public class AuditOffice extends Venue implements BuildConstants {
+public class AuditOffice extends Venue implements Economy {
   
 
   final public static Model MODEL = ImageModel.asSolidModel(

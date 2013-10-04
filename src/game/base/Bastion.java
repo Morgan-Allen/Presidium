@@ -19,7 +19,7 @@ import src.util.* ;
 
 
 
-public class Bastion extends Venue implements BuildConstants {
+public class Bastion extends Venue implements Economy {
   
   
   

@@ -14,7 +14,7 @@ import src.util.* ;
 
 
 public class DustCrawler extends Vehicle implements
-  Inventory.Owner, BuildConstants
+  Inventory.Owner, Economy
 {
   
   /**  Fields, constants, constructors and save/load methods-

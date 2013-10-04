@@ -20,7 +20,7 @@ import src.util.* ;
 
 
 
-public class ActorGear extends Inventory implements BuildConstants {
+public class ActorGear extends Inventory implements Economy {
   
   
   final public static float
@@ -117,6 +117,15 @@ public class ActorGear extends Inventory implements BuildConstants {
     String phrase = inc >= 0 ? "+" : "-" ;
     phrase+=" "+(int) Math.abs(inc)+" credits" ;
     actor.chat.addPhrase(phrase) ;
+  }
+  
+  
+  public float encumbrance() {
+    //
+    //  TODO:  Cache this each second?
+    float sum = 0 ; for (Item i : allItems()) sum += i.amount ;
+    sum /= actor.health.maxHealth() * (1 - actor.health.fatigueLevel()) ;
+    return sum * sum ;
   }
   
   

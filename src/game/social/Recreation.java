@@ -11,7 +11,7 @@ import src.util.* ;
 
 
 
-public class Recreation extends Plan implements BuildConstants {
+public class Recreation extends Plan implements Economy {
   
   
   /**  Data fields, construction and save/load methods-

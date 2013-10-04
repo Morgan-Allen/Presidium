@@ -13,7 +13,7 @@ import src.util.* ;
 
 
 
-public class VenueStocks extends Inventory implements BuildConstants {
+public class VenueStocks extends Inventory implements Economy {
   
   
   
@@ -59,7 +59,7 @@ public class VenueStocks extends Inventory implements BuildConstants {
     int numC = s.loadInt() ;
     while (numC-- > 0) {
       final Demand d = new Demand() ;
-      d.type = BuildConstants.ALL_ITEM_TYPES[s.loadInt()] ;
+      d.type = Economy.ALL_ITEM_TYPES[s.loadInt()] ;
       d.amountInc    = s.loadFloat() ;
       d.demandAmount = s.loadFloat() ;
       d.tierType     = (int) s.loadFloat() ;

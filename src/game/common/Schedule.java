@@ -24,6 +24,8 @@ public class Schedule {
   
   
   final static int MAX_UPDATE_INTERVAL = 5 ;
+  
+  private static boolean verbose = false ;
 
 
   public static interface Updates extends Session.Saveable {
@@ -115,9 +117,11 @@ public class Schedule {
   /**  Returns whether the schedule has reached it's CPU quota for this update
     *  interval.
     */
+  /*
   public boolean timeUp() {
     return (System.nanoTime() - initTime) > (MAX_UPDATE_INTERVAL * 1000000) ;
   }
+  //*/
   
   /**  Advances the schedule of events in accordance with the current time in
     *  the host world.
@@ -127,20 +131,56 @@ public class Schedule {
     //  Find the current time, and descend to all events left of that dividing
     //  line (i.e, earlier.)
     //final Batch <Event> happened = new Batch <Event> () ;
-    initTime = System.nanoTime() ;
+    initTime = System.currentTimeMillis() ;
+    
+    Updates tookLongest = null ;
+    long maxTime = 0 ;
+    int totalUpdated = 0 ;
+    
+    if (verbose) {
+      I.say("\nUPDATING SCHEDULE AT TIME: "+System.currentTimeMillis()) ;
+    }
+    
     while (true) {
-      if (timeUp()) break ;
+      final long taken = System.currentTimeMillis() - initTime ;
+      if (taken  > MAX_UPDATE_INTERVAL) {
+        if (verbose) {
+          I.say("SCHEDULE IS OUT OF TIME, TOTAL UPDATED: "+totalUpdated) ;
+          I.say("TIME SPENT: "+taken) ;
+          I.say("TOOK LONGEST: "+tookLongest+" AT: "+(maxTime / 1000000.0)) ;
+          I.say("\n") ;
+        }
+        break ;
+      }
       final Object leastRef = events.leastRef() ;
       if (leastRef == null) break ;
+      
       final Event event = events.refValue(leastRef) ;
       if (event.time > currentTime) break ;
       events.deleteRef(leastRef) ;
       event.time += event.updates.scheduledInterval() ;
       allUpdates.put(event.updates, events.insert(event)) ;
+      
+      final long startTime = System.nanoTime() ;
       event.updates.updateAsScheduled(event.numUpdates++) ;
+      final long timeTaken = System.nanoTime() - startTime ;
+      
+      if (timeTaken > maxTime) {
+        tookLongest = event.updates ;
+        maxTime = timeTaken ;
+      }
+      if (verbose) {
+        I.say("Time taken by "+event.updates+" was "+(timeTaken / 1000000.0)) ;
+      }
+      totalUpdated++ ;
     }
   }
 }
+
+
+
+
+
 
 
 

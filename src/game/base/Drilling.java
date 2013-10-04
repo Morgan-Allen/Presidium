@@ -11,7 +11,7 @@ import src.util.* ;
 
 
 
-public class Drilling extends Plan implements BuildConstants {
+public class Drilling extends Plan implements Economy {
   
   
   

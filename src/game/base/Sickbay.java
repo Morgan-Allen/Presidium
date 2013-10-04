@@ -15,7 +15,7 @@ import src.util.Index;
 
 
 
-public class Sickbay extends Venue implements BuildConstants {
+public class Sickbay extends Venue implements Economy {
   
   
   
@@ -62,10 +62,10 @@ public class Sickbay extends Venue implements BuildConstants {
       250,
       null, 1, null, ALL_UPGRADES
     ),
-    SURGERY_WARD = new Upgrade(
-      "Surgery Ward",
+    SURGERY_THEATRE = new Upgrade(
+      "Surgery Theatre",
       "Surgical tools, anaesthetics and plasma reserves ensure that serious "+
-      "injuries and life-threatening ailments can be treated quickly.",
+      "injuries, endogenous tumours and parasitism can be deal with quickly.",
       300,
       null, 1, null, ALL_UPGRADES
     ),
@@ -77,23 +77,19 @@ public class Sickbay extends Venue implements BuildConstants {
       50,
       Background.MINDER, 1, APOTHECARY, ALL_UPGRADES
     ),
-    //
-    //  Consider having this serve a different function?  Like providing the
-    //  player with information on staff personalities?  Or identifying latent
-    //  psychics and potential traitors?
-    PSYCH_UNIT = new Upgrade(
+    NEURAL_SCANNING = new Upgrade(
       "Psych Unit",
-      "A separate ward for sufferers of mental illness or degredation allows "+
-      "symptoms to be managed without interfering with other sickbay "+
-      "functions, while maximising chances for recovery.",
+      "Permits neural scans and basic psych evaluation, aiding in detection "+
+      "of mental disturbance or subversion, and permitting engram backups in "+
+      "case of death.  Mandatory for key personnel.",
       350,
-      null, 1, null, ALL_UPGRADES
+      null, 1, SURGERY_THEATRE, ALL_UPGRADES
     ),
     INTENSIVE_CARE = new Upgrade(
       "Intensive Care",
       "Intensive care allows a chance for patients on death's door to make a "+
       "gradual comeback, covering everything from life support and tissue "+
-      "reconstruction to cybernetic prosthesis and engram backups.",
+      "grafting to cybernetic prosthesis and engram fusion.",
       400,
       null, 1, MINDER_STATION, ALL_UPGRADES
     ),
@@ -101,9 +97,9 @@ public class Sickbay extends Venue implements BuildConstants {
       "Physician Station",
       "Physicians undergo extensive education in every aspect of human "+
       "metabolism and anatomy, are adept as surgeons, and can tailor their "+
-      "treatments to the idiosyncracies of individual patients.",
+      "treatments to the idiosyncracies of a given patient.",
       150,
-      Background.PHYSICIAN, 1, SURGERY_WARD, ALL_UPGRADES
+      Background.PHYSICIAN, 1, SURGERY_THEATRE, ALL_UPGRADES
     ) ;
   
   
@@ -132,6 +128,21 @@ public class Sickbay extends Venue implements BuildConstants {
     //
     //  Otherwise, just tend the desk...
     return new Supervision(actor, this) ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact()) return ;
+    
+    final int numU = (1 + structure.numUpgrades()) / 2 ;
+    int medNeed = 2 + numU, powerNeed = 2 + numU ; 
+    //
+    //  Sickbays consumes medicine and power based on current upgrade level,
+    //  and have a mild positive effect on ambience-
+    stocks.incDemand(MEDICINE, medNeed, VenueStocks.TIER_CONSUMER, 1) ;
+    stocks.forceDemand(POWER, powerNeed, VenueStocks.TIER_CONSUMER) ;
+    world.ecology().impingeSqualor(0 - numU, this, true) ;
   }
   
   

@@ -5,9 +5,11 @@
   */
 package src.game.actors ;
 
+import src.util.Table;
 
 
-public interface ActorConstants {
+
+public interface SkillsAndTraits {
   
   
   final public static int
@@ -36,8 +38,11 @@ public interface ActorConstants {
     FORM_COGNITIVE = 3,
     FORM_PSYONIC   = 4,
     FORM_INSTINCT  = 5 ;
+    
   
   
+
+  //  Nanotech/Informatics?  Introspection?  Specific weapon skills?
   
   final public static Skill
     //
@@ -54,12 +59,12 @@ public interface ActorConstants {
   final public static Skill
     //
     //  For the benefit of animals and non-human species-
-    SCENTING       = new Skill("Scenting"      , FORM_INSTINCT, INSIGHT),
-    LIMB_AND_MAW   = new Skill("Limb and Maw"  , FORM_INSTINCT, REFLEX ),
-    NESTING        = new Skill("Nesting"       , FORM_INSTINCT, INSIGHT),
-    MIMESIS        = new Skill("Mimesis"       , FORM_INSTINCT, REFLEX ),
-    PHEREMONIST    = new Skill("Pheremonist"   , FORM_INSTINCT, WILL   ),
-    IMMANENCE      = new Skill("Immanence"     , FORM_INSTINCT, WILL   ),
+    SCENTING       = new Skill("Scenting"      , FORM_INSTINCT, INSIGHT  ),
+    LIMB_AND_MAW   = new Skill("Limb and Maw"  , FORM_INSTINCT, REFLEX   ),
+    NESTING        = new Skill("Nesting"       , FORM_INSTINCT, INSIGHT  ),
+    MIMESIS        = new Skill("Mimesis"       , FORM_INSTINCT, REFLEX   ),
+    PHEREMONIST    = new Skill("Pheremonist"   , FORM_INSTINCT, WILL     ),
+    IMMANENCE      = new Skill("Immanence"     , FORM_INSTINCT, INTELLECT),
     
     INSTINCT_SKILLS[] = Trait.skillsSoFar() ;
   
@@ -86,7 +91,7 @@ public interface ActorConstants {
     //  Research and governance-related.
     ANCIENT_LORE   = new Skill("Ancient Lore"  , FORM_COGNITIVE, INTELLECT),
     BATTLE_TACTICS = new Skill("Battle Tactics", FORM_COGNITIVE, INTELLECT),
-    ADMINISTRATION = new Skill("Administration", FORM_COGNITIVE, INTELLECT),
+    ACCOUNTING     = new Skill("Accounting"    , FORM_COGNITIVE, INTELLECT),
     
     COGNITIVE_SKILLS[] = Trait.skillsSoFar() ;
   
@@ -174,8 +179,6 @@ public interface ActorConstants {
       "Gentle",
       "Pacifist"
     ),
-    //
-    //  TODO:  Merge with the sociable/empathic trait?
     FRIENDLY = new Trait(PERSONALITY,
       "Fawning",
       "Complimentary",
@@ -417,7 +420,27 @@ public interface ActorConstants {
       "Slight Mutation",
       null
     ),
-    CATEGORIC_TRAITS[] = Trait.traitsSoFar(),
+    CATEGORIC_TRAITS[] = Trait.traitsSoFar() ;
+  
+
+  
+  final static int
+    SHORT_LATENCY  = 1,
+    MEDIUM_LATENCY = 10,
+    LONG_LATENCY   = 100,
+    
+    NO_SPREAD    = 0,
+    SLOW_SPREAD  = 2,
+    RAPID_SPREAD = 5,
+    
+    MINIMAL_VIRULENCE   = 5,
+    MILD_VIRULENCE      = 10,
+    MODERATE_VIRULENCE  = 15,
+    HIGH_VIRULENCE      = 20,
+    EXTREME_VIRULENCE   = 25,
+    INCURABLE_VIRULENCE = 30 ;
+  
+  final public static Condition
     
     //
     //  Finally, listings for various conditions that might beset the actor-
@@ -463,48 +486,106 @@ public interface ActorConstants {
     ),
     
     
-    //
-    //  TODO:  These need to apply their effects.
     ILLNESS = new Condition(
+      SHORT_LATENCY, MINIMAL_VIRULENCE, RAPID_SPREAD, Table.make(
+        VIGOUR, -3, BRAWN, -3
+      ),
       "Terminal Illness",
       "Serious Illness",
       "Mild Illness",
        null
+       //  "Illness Immune"
+    ),
+    SOMA_HAZE = new Condition(
+      SHORT_LATENCY, MINIMAL_VIRULENCE, NO_SPREAD, Table.make(
+        REFLEX, -3, INTELLECT, -1, INSIGHT, 1
+      ),
+      "Soma Haze",
+      "Soma Haze",
+      "Soma Haze",
+      null
+      //  "Haze Immune"
+    ),
+    SPICE_ADDICTION = new Condition(
+      LONG_LATENCY, MILD_VIRULENCE, NO_SPREAD, Table.make(
+        VIGOUR, -10, BRAWN, -10, WILL, -5, INTELLECT, -5
+      ),
+      "Complete Spice Addiction",
+      "Heavy Spice Addiction",
+      "Mild Spice Addiction",
+      null
+      //  "Addiction Immune"
     ),
     CANCER = new Condition(
+      LONG_LATENCY, MODERATE_VIRULENCE, NO_SPREAD, Table.make(
+        VIGOUR, -20, BRAWN, -10
+      ),
       "Terminal Cancer",
       "Advanced Cancer",
       "Early Cancer",
       null
-    ),
-    SPICE_ADDICTION = new Condition(
-      "Complete Addiction",
-      "Heavy Addiction",
-      "Mild Addiction",
-      null
+      //  "Cancer Immune"
     ),
     RAGE_INFECTION = new Condition(
-      "Infection Frenzy",
-      "Infection Fever",
-      "Infection Onset",
+      SHORT_LATENCY, HIGH_VIRULENCE, RAPID_SPREAD, Table.make(
+        VIGOUR, 5, BRAWN, 5, AGGRESSIVE, 5, INTELLECT, -15
+      ),
+      "Rage Frenzy",
+      "Rage Fever",
+      "Rage Onset",
       null
+      //  "Rage Immune"
+    ),
+    HIREX_PARASITE = new Condition(
+      MEDIUM_LATENCY, HIGH_VIRULENCE, SLOW_SPREAD, Table.make(
+        INTELLECT, -5, REFLEX, -5, INSIGHT, -5, BRAWN, -5, HANDSOME, -5
+      ),
+      "Hirex Infestation",
+      "Hirex Parasite",
+      "Hirex Gestation",
+      null
+      //  "Hirex Immune"
     ),
     ALBEDAN_STRAIN = new Condition(
+      MEDIUM_LATENCY, EXTREME_VIRULENCE, SLOW_SPREAD, Table.make(
+        DEBAUCHED, 2, VIGOUR, 5, INSIGHT, 5, REFLEX, -5
+      ),
       "Albedan Strain",
       "Albedan Strain",
       "Albedan Strain",
       null
+      //  "Strain Immune"
     ),
-    SILVER_PLAGUE = new Condition(
-      "Silver Plague",
-      "Silver Plague",
-      "Silver Plague",
+    SILVERQUICK = new Condition(
+      SHORT_LATENCY, INCURABLE_VIRULENCE, RAPID_SPREAD, Table.make(
+        IMPASSIVE, 5, VIGOUR, -20, BRAWN, -20
+      ),
+      "Silverquick Ague",
+      "Silverquick Scale",
+      "Silverquick Taint",
       null
+      //  "Silverquick Immune"
+    ),
+    MOEBIUS_PHASE = new Condition(
+      LONG_LATENCY, INCURABLE_VIRULENCE, NO_SPREAD, Table.make(
+        REFLEX, -20, BRAWN, -20
+      ),
+      "Moebius Sublimation",
+      "Moebius Phase",
+      "Moebius Displacement",
+      null
+      //  "Phase Immune"
     ),
     
-    CONDITIONS[] = Trait.traitsSoFar(),
-    DISEASES[] = { ILLNESS, CANCER, SPICE_ADDICTION }
-  ;
+    SPONTANEOUS_DISEASE[] = {
+      ILLNESS, CANCER, HIREX_PARASITE
+    },
+    DISEASES[] = {
+      ILLNESS, SOMA_HAZE, SPICE_ADDICTION,
+      CANCER, RAGE_INFECTION, HIREX_PARASITE,
+      ALBEDAN_STRAIN, SILVERQUICK, MOEBIUS_PHASE
+    } ;
+  final public static Trait CONDITIONS[] = Trait.traitsSoFar() ;
   
   final public static Trait
     ALL_TRAIT_TYPES[] = Trait.from(Trait.allTraits) ;

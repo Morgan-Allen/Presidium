@@ -12,7 +12,7 @@ import src.util.* ;
 
 
 
-public class Performance extends Plan implements ActorConstants {
+public class Performance extends Plan implements SkillsAndTraits {
   
   
   /**  Data fields, setup and save/load functions-

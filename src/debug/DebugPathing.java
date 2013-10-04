@@ -19,7 +19,7 @@ import src.util.* ;
 
 
 
-public class DebugPathing extends PlayLoop implements BuildConstants {
+public class DebugPathing extends PlayLoop implements Economy {
   
   
   
@@ -60,11 +60,11 @@ public class DebugPathing extends PlayLoop implements BuildConstants {
   protected boolean loadedAtStartup() {
     ///if (true) return false ;
     try {
-      ///GameSettings.pathFree = true ;
       PlayLoop.loadGame("saves/test_pathing.rep") ;
       final Base base = PlayLoop.played() ;
       if (base.credits() < 500) base.incCredits(500 - base.credits()) ;
       PlayLoop.setGameSpeed(1.0f) ;
+      //GameSettings.pathFree = true ;
       return true ;
     }
     catch (Exception e) { I.report(e) ; return false ; }

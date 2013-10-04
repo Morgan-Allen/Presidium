@@ -22,7 +22,7 @@ import src.util.* ;
 /**  This class implements a big bunch of helper methods to search for
   *  optimal delivery venues and amounts-
   */
-public class Deliveries implements BuildConstants {
+public class Deliveries implements Economy {
   
   
   final static int

@@ -19,7 +19,7 @@ import src.game.building.Inventory.Owner ;
 //  TODO:  Barges need to be made more persistent.
 
 
-public class Delivery extends Plan implements BuildConstants {
+public class Delivery extends Plan implements Economy {
   
   final public static int
     TYPE_SHOPPING  = 0,

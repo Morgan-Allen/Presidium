@@ -15,7 +15,7 @@ import src.util.* ;
 
 
 
-public class Career implements ActorConstants {
+public class Career implements SkillsAndTraits {
   
   
   

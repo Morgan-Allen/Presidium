@@ -4,14 +4,13 @@
   *  for now, feel free to poke around for non-commercial purposes.
   */
 package src.game.actors ;
-import src.game.building.Item;
 import src.game.common.* ;
-import src.game.planet.Planet ;
+//import src.game.planet.Planet ;
 import src.util.* ;
 
 
 
-public class ActorHealth implements ActorConstants {
+public class ActorHealth implements SkillsAndTraits {
   
   
   
@@ -104,6 +103,10 @@ public class ActorHealth implements ActorConstants {
     state    = STATE_ACTIVE ;
   private float
     ageMultiple = 1.0f ;
+  
+  //
+  //  I don't save/load these, since they refresh frequently anyway(?)
+  private float stressCache = -1 ;
   
   
   
@@ -282,7 +285,7 @@ public class ActorHealth implements ActorConstants {
   
   public int sightRange() {
     float range = 0.5f + (actor.traits.useLevel(SURVEILLANCE) / 10f) ;
-    range *= (Planet.dayValue(actor.world()) + 1) / 2 ;
+    range *= (actor.world().dayValue() + 1) / 2 ;
     return (int) (baseSight * (float) Math.sqrt(range * ageMultiple)) ;
   }
   
@@ -410,25 +413,22 @@ public class ActorHealth implements ActorConstants {
   
   
   public float stressPenalty() {
-    if (! organic) return 0 ;
-    //
-    //  TODO:  Calculate this once every second or two, and cache it for
-    //  reference?
+    if (stressCache != -1) return stressCache ;
+    if (! organic) return stressCache = 0 ;
+    
+    float sumDisease = 0 ;
+    for (Trait t : SkillsAndTraits.DISEASES) {
+      sumDisease += ((Condition) t).virulence * actor.traits.traitLevel(t) ;
+    }
     float sum = Visit.clamp((fatigue + injury) / maxHealth, 0, 1) ;
     final float hunger = (1 - (calories / maxHealth)) + (1 - nutrition) ;
     if (hunger > 0.5f) sum += hunger - 0.5f ;
     if (bleeds) sum += 0.25f ;
+    sum += sumDisease / 100f ;
     sum -= moraleLevel() + 0.25f ;
-    if (sum < 0) return 0 ;
-    return Visit.clamp(sum * sum, 0, 1) ;
-  }
-  
-  
-  public float encumbrance() {
-    float sum = 0 ;
-    for (Item i : actor.gear.allItems()) sum += i.amount ;
-    sum *= fatigueLevel() / maxHealth ;
-    return sum * sum ;
+    
+    if (sum < 0) return stressCache = 0 ;
+    return stressCache = Visit.clamp(sum * sum, 0, 0.5f) ;
   }
   
   
@@ -464,6 +464,7 @@ public class ActorHealth implements ActorConstants {
     if (numUpdates < 0) return ;
     //
     //  Deal with injury, fatigue and stress.
+    stressCache = -1 ;
     final int oldState = state ;
     checkStateChange() ;
     updateStresses() ;
@@ -478,6 +479,7 @@ public class ActorHealth implements ActorConstants {
       I.say(actor+" has entered a non-active state: "+stateDesc()) ;
       actor.enterStateKO() ;
     }
+    if (state <= STATE_RESTING) Condition.checkContagion(actor) ;
   }
   
   
@@ -498,6 +500,10 @@ public class ActorHealth implements ActorConstants {
     }
     if (fatigue + injury >= maxHealth) {
       state = STATE_RESTING ;
+    }
+    if (actor.traits.useLevel(VIGOUR) < 0) {
+      I.say(actor+" has died of disease.") ;
+      state = STATE_DEAD ;
     }
     if (injury >= maxHealth * MAX_INJURY) {
       I.say(actor+" has died of injury.") ;

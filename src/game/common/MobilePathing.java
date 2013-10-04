@@ -157,10 +157,11 @@ public class MobilePathing {
     if (trueTarget == null) path = null ;
     else {
       pathTarget = location(trueTarget) ;
-      checkEndPoint(origin) ;
-      checkEndPoint(pathTarget) ;
       if (verbose) I.sayAbout(mobile, "BETWEEN: "+origin+" AND "+pathTarget) ;
-      path = refreshPath(origin, pathTarget) ;
+      if (checkEndPoint(origin) && checkEndPoint(pathTarget)) {
+        path = refreshPath(origin, pathTarget) ;
+      }
+      else path = null ;
     }
     if (path == null) {
       if (verbose) I.sayAbout(mobile, "COULDN'T PATH TO: "+pathTarget) ;
@@ -191,7 +192,8 @@ public class MobilePathing {
     }
     else {
       return mobile.world().pathingCache.getLocalPath(
-        initB, destB, MAX_PATH_SCAN * 2, mobile
+        initB, destB, MAX_PATH_SCAN * 2,
+        mobile, (verbose && I.talkAbout == mobile)
       ) ;
     }
   }

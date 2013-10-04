@@ -36,7 +36,7 @@ import src.util.* ;
 
 
 public class Plantation extends Venue implements
-  TileConstants, BuildConstants
+  TileConstants, Economy
 {
   
   

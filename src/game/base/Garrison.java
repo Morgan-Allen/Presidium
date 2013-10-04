@@ -15,7 +15,7 @@ import src.util.Rand;
 
 
 
-public class Garrison extends Venue implements BuildConstants {
+public class Garrison extends Venue implements Economy {
   
   
   
@@ -184,6 +184,14 @@ public class Garrison extends Venue implements BuildConstants {
         newYard.doPlace(newYard.origin(), null) ;
         drillYard = newYard ;
       }
+    }
+  }
+  
+  
+  public void onDecommision() {
+    super.onDecommission() ;
+    if (drillYard != null) {
+      drillYard.structure.setState(Structure.STATE_SALVAGE, -1) ;
     }
   }
   

@@ -13,7 +13,7 @@ import src.user.* ;
 
 
 
-public class ActorTraits implements ActorConstants {
+public class ActorTraits implements SkillsAndTraits {
   
   
   
@@ -24,7 +24,10 @@ public class ActorTraits implements ActorConstants {
     DNA_LETTERS = 26,
     MUTATION_PERCENT = 5 ;
 
-  private static class Level { float value ; }  //studyLevel?
+  private static class Level {
+    float value, bonus ;
+  }  //studyLevel?
+  
   private Table <Trait, Level> levels = new Table <Trait, Level> () ;
   
   final Actor actor ;
@@ -135,12 +138,42 @@ public class ActorTraits implements ActorConstants {
   
   
   
+  /**  Methods for assigning temporary bonuses-
+    */
+  protected void updateTraits(int numUpdates) {
+    for (Trait t : levels.keySet()) {
+      if (t.type == CONDITION) continue ;
+      levels.get(t).bonus = 0 ;
+    }
+    for (Trait t : levels.keySet()) {
+      if (t.type != CONDITION) continue ;
+      t.affect(actor) ;
+    }
+  }
+  
+  
+  public void incBonus(Trait type, float bonusInc) {
+    final Level level = levels.get(type) ;
+    if (level == null) return ;
+    level.bonus += bonusInc ;
+  }
+  
+  
+  
+  
   /**  Methods for querying and modifying the levels of assorted traits-
     */
   public float traitLevel(Trait type) {
     final Level level = levels.get(type) ;
     if (level == null) return 0 ;
     return Visit.clamp(level.value, type.minVal, type.maxVal) ;
+  }
+  
+  
+  public int effectBonus(Trait trait) {
+    final Level level = levels.get(trait) ;
+    if (level == null) return 0 ;
+    return (int) (level.bonus) ;
   }
   
   
@@ -151,8 +184,10 @@ public class ActorTraits implements ActorConstants {
   
   
   public float useLevel(Trait type) {
-    if (! actor.health.conscious()) return 0 ;
-    float level = traitLevel(type) ;
+    final Level TL = levels.get(type) ;
+    float level = TL == null ? 0 : (TL.value + (int) TL.bonus) ;
+    if (! actor.health.conscious()) level /= 2 ;
+    
     if (type.type == PHYSICAL) {
       return level * actor.health.ageMultiple() ;
     }
@@ -245,6 +280,9 @@ public class ActorTraits implements ActorConstants {
   }
   
   
+  
+  /**  Accessing particular trait headings-
+    */
   private Batch <Trait> getMatches(Batch <Trait> traits, Trait[] types) {
     if (traits == null) traits = new Batch <Trait> () ;
     for (Trait t : types) {
@@ -257,41 +295,41 @@ public class ActorTraits implements ActorConstants {
   
   
   public Batch <Trait> personality() {
-    return getMatches(null, ActorConstants.PERSONALITY_TRAITS) ;
+    return getMatches(null, SkillsAndTraits.PERSONALITY_TRAITS) ;
   }
   
   
   public Batch <Trait> physique() {
     final Batch <Trait> matches = new Batch <Trait> () ;
-    getMatches(matches, ActorConstants.PHYSICAL_TRAITS) ;
-    getMatches(matches, ActorConstants.BLOOD_TRAITS) ;
+    getMatches(matches, SkillsAndTraits.PHYSICAL_TRAITS) ;
+    getMatches(matches, SkillsAndTraits.BLOOD_TRAITS) ;
     return matches ;
   }
   
   
   public Batch <Trait> characteristics() {
-    return getMatches(null, ActorConstants.CATEGORIC_TRAITS) ;
+    return getMatches(null, SkillsAndTraits.CATEGORIC_TRAITS) ;
   }
   
   
   public Batch <Skill> attributes() {
-    return (Batch) getMatches(null, ActorConstants.ATTRIBUTES) ;
+    return (Batch) getMatches(null, SkillsAndTraits.ATTRIBUTES) ;
   }
   
   
   public Batch <Skill> skillSet() {
     final Batch <Trait> matches = new Batch <Trait> () ;
-    getMatches(matches, ActorConstants.INSTINCT_SKILLS ) ;
-    getMatches(matches, ActorConstants.PHYSICAL_SKILLS ) ;
-    getMatches(matches, ActorConstants.SENSITIVE_SKILLS) ;
-    getMatches(matches, ActorConstants.COGNITIVE_SKILLS) ;
-    getMatches(matches, ActorConstants.PYSONIC_SKILLS  ) ;
+    getMatches(matches, SkillsAndTraits.INSTINCT_SKILLS ) ;
+    getMatches(matches, SkillsAndTraits.PHYSICAL_SKILLS ) ;
+    getMatches(matches, SkillsAndTraits.SENSITIVE_SKILLS) ;
+    getMatches(matches, SkillsAndTraits.COGNITIVE_SKILLS) ;
+    getMatches(matches, SkillsAndTraits.PYSONIC_SKILLS  ) ;
     return (Batch) matches ;
   }
   
   
   public Batch <Condition> conditions() {
-    return (Batch) getMatches(null, ActorConstants.CONDITIONS) ;
+    return (Batch) getMatches(null, SkillsAndTraits.CONDITIONS) ;
   }
   
   

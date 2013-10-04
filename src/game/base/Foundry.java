@@ -17,7 +17,7 @@ import src.util.* ;
 
 
 
-public class Foundry extends Venue implements BuildConstants {
+public class Foundry extends Venue implements Economy {
   
   
   

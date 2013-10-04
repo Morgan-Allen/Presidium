@@ -13,7 +13,7 @@ import src.util.* ;
 
 
 
-public class Archives extends Venue implements BuildConstants {
+public class Archives extends Venue implements Economy {
   
   
 

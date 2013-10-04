@@ -145,6 +145,7 @@ public class Rendering {
   
   
   public void renderDisplay() {
+    ///if (true) return ;
     initSettings() ;
     GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT) ;
     port.applyView() ;

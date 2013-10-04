@@ -71,7 +71,7 @@ public class SpiceMidden extends Fixture implements Selectable {
   
   
   public Item spice() {
-    return Item.withAmount(BuildConstants.SPICE, spiceAmount) ;
+    return Item.withAmount(Economy.SPICE, spiceAmount) ;
   }
   
   

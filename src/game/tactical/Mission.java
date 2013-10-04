@@ -111,6 +111,11 @@ public abstract class Mission implements
   }
   
   
+  public Actor actor() {
+    return null ;
+  }
+  
+  
   //
   //  TODO:  Replace with a general 'rewardAppeal' method, so that you can
   //  employ different enticements.

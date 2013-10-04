@@ -2,16 +2,71 @@
 
 
 package src.game.base ;
+import src.game.building.* ;
+import src.game.common.World;
+import src.util.* ;
 
 
 
 //
 //  I've decided to put this functionality in a separate class for the sake of
-//  de-cluttering and headspace.
+//  de-cluttering and headspace.  And for now, I'm limiting myself to the 5
+//  basic housing types.
 
 
-public class HoldingUpgrades {
+public class HoldingUpgrades implements Economy {
   
+
+  final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
+    HoldingUpgrades.class, "holding_upgrades"
+  ) ;
+  final public static Upgrade
+    TENT_LEVEL = new Upgrade(
+      "Field Tent", "", 0, null, 0, null, ALL_UPGRADES
+    ),
+    PYON_LEVEL = new Upgrade(
+      "Pyon Shacks", "", 0, null, 0, null, ALL_UPGRADES
+    ),
+    FREEBORN_LEVEL = new Upgrade(
+      "Freeborn Holding", "", 0, null, 0, PYON_LEVEL, ALL_UPGRADES
+    ),
+    CITIZEN_LEVEL = new Upgrade(
+      "Citizen Apartment", "", 0, null, 0, FREEBORN_LEVEL, ALL_UPGRADES
+    ),
+    GUILDSMAN_LEVEL = new Upgrade(
+      "Guilder Manse", "", 0, null, 0, CITIZEN_LEVEL, ALL_UPGRADES
+    ) ;
+  
+  final static Object
+    NEEDS_MET = "OKAY" ;
+  final static int
+    LEVEL_TENT     = 0,
+    LEVEL_PYON     = 1,
+    LEVEL_FREEBORN = 2,
+    LEVEL_CITIZEN  = 3,
+    LEVEL_GUILDER  = 4,
+    NUM_LEVELS     = 5 ;
+  final static int
+    OCCUPANCIES[] = { 4, 4, 4, 4, 4 },
+    TAX_LEVELS[]  = { 0, 5, 10, 20, 35 },
+    INTEGRITIES[] = { 15, 35, 80, 125, 200 },
+    BUILD_COSTS[] = { 25, 60, 135, 225, 350 } ;
+  
+  final static String LEVEL_NAMES[] = {
+    
+    "Dreg Towers",
+    "Scavenger Slums",
+    "Field Tent",
+    
+    "Pyon Shacks",
+    "Freeborn Holding",
+    "Citizen Apartment",
+    "Guilder Manse",
+    
+    "Knighted Estate",
+    "Highborn Villa",
+    "Forbidden Palace"
+  } ;
   
   
   //
@@ -52,6 +107,53 @@ public class HoldingUpgrades {
   //  Forbidden Palaces require:
   //    4 parts, 3 plastics, 2 water, 2 decor,
   //    1 power, 1 circuitry, 1 datalink and 1 trophy.
+  final static Conversion MATERIALS[] = {
+    new Conversion(
+      TRIVIAL_DC, ASSEMBLY
+    ),
+    new Conversion(
+      1, PARTS,
+      SIMPLE_DC, ASSEMBLY
+    ),
+    new Conversion(
+      2, PARTS, 1, POWER,
+      ROUTINE_DC, ASSEMBLY
+    ),
+    new Conversion(
+      3, PARTS, 2, POWER, 1, PLASTICS,
+      MODERATE_DC, ASSEMBLY
+    ),
+    new Conversion(
+      2, PARTS, 2, POWER, 2, PLASTICS, 1, WATER, 1, CIRCUITRY, 1, DATALINKS,
+      DIFFICULT_DC, ASSEMBLY
+    ),
+  } ;
+  //  "This holding needs more "+X+" before construction can proceed." ;
+  
+  
+  protected static Conversion materials(int upgradeLevel) {
+    if (upgradeLevel >= 0 && upgradeLevel <= 4) {
+      return MATERIALS[upgradeLevel] ;
+    }
+    return null ;
+  }
+  
+  
+  protected static Object checkMaterials(Holding holding, int upgradeLevel) {
+    final Conversion materials = materials(upgradeLevel) ;
+    
+    for (Item needed : materials.raw) {
+      if (holding.stocks.amountOf(needed) < needed.amount - 0.5f) {
+        if (upgradeLevel > holding.upgradeLevel()) return
+          "This holding needs more "+needed.type+" before further development "+
+          "can proceed." ;
+        else return
+          "This holding is short of "+needed.type+", needed for maintenance "+
+          "and repairs." ;
+      }
+    }
+    return NEEDS_MET ;
+  }
   
   
   
@@ -70,6 +172,82 @@ public class HoldingUpgrades {
   //  Knighted Estates require 2 food types and either Spice or Soma.
   //  Highborn Villas require 3 food types, Soma and Spice.
   //  Forbidden Palaces require 4 food types and Spice from 2 sources.
+
+  //
+  //  TODO:  Create a fourth food type- rations at the Stock Exchange, say.
+  final static Service FOOD_TYPES[] = {
+    CARBS, PROTEIN, SOMA, GREENS,//RATIONS,  SPICE
+  } ;
+  
+  
+  protected static Batch <Item> rationNeeds(Holding holding, int upgradeLevel) {
+    final Batch <Item> needed = new Batch <Item> () ;
+    float foodNeed = holding.personnel.residents().size() * 1.5f ;
+    float sumFood = 0.1f ; for (Service f : FOOD_TYPES) {
+      sumFood += holding.stocks.amountOf(f) ;
+    }
+    final float min = 0.1f ;
+    //
+    //  TODO:  Only demand minimal amounts of a given good if it's not strictly
+    //  needed for housing evolution.
+    
+    for (Service f : FOOD_TYPES) {
+      final float amount = holding.stocks.amountOf(f) ;
+      needed.add(Item.withAmount(f, min + (foodNeed * amount / sumFood))) ;
+    }
+    return needed ;
+  }
+  
+  
+  protected static Object checkRations(Holding holding, int upgradeLevel) {
+    if (upgradeLevel == LEVEL_TENT) return NEEDS_MET ;
+    //
+    //  1 unit of food per resident is the standard.  However, you need to have
+    //  a reasonable 'balance' of food types, in terms of no less than half an
+    //  equal share of the total.
+    float foodNeed = holding.personnel.residents().size() ;
+    int numFoods = 0 ; for (Service f : FOOD_TYPES) {
+      if (holding.stocks.amountOf(f) > 0) numFoods++ ;
+    }
+    final float min = foodNeed / (2 * numFoods) ;
+    numFoods = 0 ; for (Service f : FOOD_TYPES) {
+      if (holding.stocks.amountOf(f) > min) numFoods++ ;
+    }
+    //
+    //  Now, check against the correct upgrade level.
+    if (upgradeLevel >= LEVEL_PYON) {
+      if (numFoods < 1) return
+        "Your pyons need enough of at least one food type before they will "+
+        "feel confident about settling down." ;
+      else return NEEDS_MET ;
+    }
+    if (upgradeLevel >= LEVEL_FREEBORN) {
+      if (numFoods < 2) return
+        "Your freeborn need to have a more varied diet before they will "+
+        "consider their claim here settled." ;
+      else return NEEDS_MET ;
+    }
+    if (upgradeLevel >= LEVEL_CITIZEN) {
+      if (numFoods < 2) return
+        "Your citizens demand a more varied diet as part of their "+
+        "modern lifestyle." ;
+      else if (holding.stocks.amountOf(SOMA) < min) return
+        "Your citizens demand a supply of Soma as an aid to unwinding after "+
+        "work.";
+      else return NEEDS_MET ;
+    }
+    if (upgradeLevel >= LEVEL_GUILDER) {
+      if (numFoods < 3) return
+        "Your guilders need at least three food types to satisfy the demands "+
+        "of an upper-class lifestyle." ;
+      else if (holding.stocks.amountOf(SOMA) < min) return
+        "Your guilders consider a stock of Soma indispensible to their "+
+        "leisure hours." ;
+      else return NEEDS_MET ;
+    }
+    
+    return null ;
+  }
   
   
   
@@ -81,10 +259,10 @@ public class HoldingUpgrades {
   //  Freeborn Holdings require access to a Stock Exchange or Sickbay, and
   //  either an Arena or Cantina.
   //    (free access to goods and services.)
-  //  Citizen Apartments require access to an Archives or Children's Creche.
-  //    (education/upward mobility.)
-  //  Guilder Manses require access to an Audit Office or Counsel Chamber.
+  //  Citizen Apartment require access to an Audit Office or Counsel Chamber.
   //    (political/legal representation.)
+  //  Guilder Manses require access to an Archives or Children's Creche.
+  //    (education/upward mobility.)
   //
   //  Dreg Towers need a Vault System.
   //
@@ -94,6 +272,69 @@ public class HoldingUpgrades {
   //    servants per inhabitant, 2 of them Pyons or better.
   //  Forbidden Palaces require access to a Pleasure Dome, and 10 servants per
   //    inhabitant, 5 of them Pyons or better and 2 of them Citizens or better.
+  
+  
+  protected static Object checkAccess(Holding holding, int upgradeLevel) {
+    if (upgradeLevel == LEVEL_TENT) return NEEDS_MET ;
+    if (upgradeLevel >= LEVEL_PYON) {
+      if (lacksAccess(holding, VaultSystem.class)) return
+        "Your pyons will need access to a Vault System providing shelter and "+
+        "life support before they will feel safe enough to settle down." ;
+    }
+    if (upgradeLevel >= LEVEL_FREEBORN) {
+      if (
+        lacksAccess(holding, StockExchange.class) &&
+        lacksAccess(holding, Sickbay.class)
+      ) return
+        "Your freeborn need access to a Stock Exchange or Sickbay to ensure "+
+        "they can purchase basic nutritional and medical supplements." ;
+      if (
+        lacksAccess(holding, Cantina.class) &&
+        true  //lacksAccess(holding, Arena.class)
+      ) return
+        "Your freeborn will want access to an Arena or Cantina to distract "+
+        "them from the grind of daily life." ;
+    }
+    if (upgradeLevel >= LEVEL_CITIZEN) {
+      if (lacksAccess(holding, StockExchange.class)) return
+        "Your citizens require access to the finer goods provided by a "+
+        "Stock Exchange." ;
+      if (lacksAccess(holding, Sickbay.class)) return
+        "Your citizens need the peace of mind that comes with the medical "+
+        "services of a Sickbay." ;
+      if (
+        lacksAccess(holding, AuditOffice.class) &&
+        true  //lacksAccess(holding, CounselChamber.class)
+      ) return
+        "In accordance with the property requirements for office, your "+
+        "citizens now require access to an Audit Office or Counsel Chamber "+
+        "to represent their interests and resolve disputes." ;
+    }
+    if (upgradeLevel >= LEVEL_GUILDER) {
+      //if (lacksAccess(holding, CounselChamber.class)) return
+      //  "Some of your more ambitious guilders with political aspirations "
+      //  "are clamouring for access to a Counsel Chamber."
+      if (
+        lacksAccess(holding, Archives.class) &&
+        true //lacksAccess(holding, ChildrensCreche.class)
+      ) return
+        "Your upwardly-mobile guilders require access to an Archives or "+
+        "Children's Creche to ensure a better future for their offspring." ;
+    }
+    return NEEDS_MET ;
+  }
+  
+  
+  protected static boolean lacksAccess(Holding holding, Class venueClass) {
+    for (Object o : holding.world().presences.matchesNear(
+      venueClass, holding, World.SECTOR_SIZE * 1.414f
+    )) {
+      final Venue v = (Venue) o ;
+      if (v.base() != holding.base() || ! v.structure.intact()) continue ;
+      return false ;
+    }
+    return true ;
+  }
   
   
   
@@ -109,5 +350,45 @@ public class HoldingUpgrades {
   //  Knighted Estates require non-negative ambience.  (0 or better.)
   //  Highborn Villas require positive ambience.  (5 or better.)
   //  Forbidden Palaces require perfect ambience.  (10 or better.)
+  
+  final static int SAFETY_NEEDS[] = {
+    -15,
+    -5,
+    5,
+    5,
+    5
+  } ;
+  final static int AMBIENCE_NEEDS[] = {
+    -15,
+    -5,
+    -2,
+    2,
+    5
+  } ;
+  
+  
+  protected static Object checkSurrounds(Holding holding, int upgradeLevel) {
+    
+    float safety = 0 - holding.base().dangerMap.valAt(holding.origin()) ;
+    if (safety < SAFETY_NEEDS[upgradeLevel]) return
+      "This area feels too unsettled for your subjects' comfort, hindering "+
+      "further investment in a life here." ;
+    
+    float ambience = 0 - holding.world().ecology().squalorRating(holding) ;
+    if (ambience < AMBIENCE_NEEDS[upgradeLevel]) return
+      "The aesthetics of the area could stand improvement before the "+
+      "residents will commit to improving their property." ;
+    
+    return NEEDS_MET ;
+  }
 }
+
+
+
+
+
+
+
+
+
 

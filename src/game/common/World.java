@@ -256,6 +256,11 @@ public class World {
   }
   
   
+  public float dayValue() {
+    return Planet.dayValue(this) ;
+  }
+  
+  
   
   /**  Rendering and interface methods-
     */
@@ -278,6 +283,7 @@ public class World {
   
   
   public void renderFor(Rendering rendering, Base base) {
+    //if (true) return ;
     //
     //  Set a couple of basic parameters before beginning-
     final Colour c = Planet.lightValue(this) ;

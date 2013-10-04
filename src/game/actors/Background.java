@@ -16,7 +16,7 @@ import src.util.* ;
 //  TODO:  Backgrounds need to include their own descriptions.
 
 
-public class Background implements BuildConstants {
+public class Background implements Economy {
   
   
   
@@ -87,7 +87,7 @@ public class Background implements BuildConstants {
     ),
     GUILDER_BIRTH = new Background(
       "Guilder Birth", "vendor_skin.gif", null, UPPER_CLASS, NOT_A_GUILD,
-      NOVICE, COMMON_CUSTOM, LEARNING, NOBLE_ETIQUETTE, ADMINISTRATION, COUNSEL
+      NOVICE, COMMON_CUSTOM, LEARNING, NOBLE_ETIQUETTE, ACCOUNTING, COUNSEL
     ),
     //
     //  Highborn are not available as normally-generated citizens, only as
@@ -162,7 +162,7 @@ public class Background implements BuildConstants {
     ARCHIVIST = new Background(
       "Archivist", "citizen_skin.gif", null,
       MIDDLE_CLASS, GUILD_PHYSICIAN,
-      EXPERT, ADMINISTRATION, ANCIENT_LORE, NOVICE, COUNSEL, ASSEMBLY,
+      EXPERT, ACCOUNTING, ANCIENT_LORE, NOVICE, COUNSEL, ASSEMBLY,
       ALWAYS, INQUISITIVE, SOMETIMES, NERVOUS, IMPASSIVE,
       OVERALLS
     ),
@@ -248,7 +248,7 @@ public class Background implements BuildConstants {
       "Soma Vendor", "vendor_skin.gif", null,
       MIDDLE_CLASS, GUILD_MERCHANT,
       PRACTICED, COUNSEL, SUASION, NOVICE, DOMESTICS, CHEMISTRY,
-      ADMINISTRATION,
+      ACCOUNTING,
       SOMETIMES, ACQUISITIVE,
       OVERALLS
     ),
@@ -256,14 +256,14 @@ public class Background implements BuildConstants {
     STOCK_VENDOR = new Background(
       "Stock Vendor", "vendor_skin.gif", "vendor_portrait.png",
       MIDDLE_CLASS, GUILD_MERCHANT,
-      PRACTICED, ADMINISTRATION, DOMESTICS, NOVICE, SUASION, HARD_LABOUR,
+      PRACTICED, ACCOUNTING, DOMESTICS, NOVICE, SUASION, HARD_LABOUR,
       OVERALLS
     ),
     
     AUDITOR = new Background(
       "Auditor", "vendor_skin.gif", "vendor_portrait.png",
       UPPER_CLASS, GUILD_MERCHANT,
-      EXPERT, COUNSEL, ADMINISTRATION, PRACTICED, COMMAND, ANCIENT_LORE,
+      EXPERT, COUNSEL, ACCOUNTING, PRACTICED, COMMAND, ANCIENT_LORE,
       ALWAYS, STUBBORN, OFTEN, DUTIFUL,
       SOMETIMES, AMBITIOUS, IMPASSIVE, RARELY, DEBAUCHED,
       OVERALLS
@@ -347,7 +347,7 @@ public class Background implements BuildConstants {
       "Propagandist", "citizen_skin.gif", null,
       UPPER_CLASS, GUILD_AESTHETE,
       EXPERT, GRAPHIC_MEDIA, SUASION,
-      PRACTICED, MUSIC_AND_SONG, ADMINISTRATION,
+      PRACTICED, MUSIC_AND_SONG, ACCOUNTING,
       NOVICE, COUNSEL, PSYCHOANALYSIS,
       RARELY, HONOURABLE, STUBBORN, OFTEN, AMBITIOUS,
       OVERALLS
@@ -485,7 +485,7 @@ public class Background implements BuildConstants {
       "Knighted", "highborn_male_skin.gif", null,
       RULER_CLASS, NOT_A_GUILD,
       PRACTICED, HAND_TO_HAND, BATTLE_TACTICS, SHIELD_AND_ARMOUR, COMMAND,
-      NOBLE_ETIQUETTE, NOVICE, ADMINISTRATION, ANCIENT_LORE, COMMON_CUSTOM,
+      NOBLE_ETIQUETTE, NOVICE, ACCOUNTING, ANCIENT_LORE, COMMON_CUSTOM,
       LEARNING, SUGGESTION, PREMONITION, PROJECTION,
       SOMETIMES, GIFTED, OFTEN, TRADITIONAL, RARELY, NERVOUS
     ) {
@@ -553,7 +553,7 @@ public class Background implements BuildConstants {
     PREFECT = new Background(
       "Prefect", "physician_skin.gif", null,
       RULER_CLASS, NOT_A_GUILD,
-      PRACTICED, COUNSEL, SUASION, ADMINISTRATION, COMMON_CUSTOM,
+      PRACTICED, COUNSEL, SUASION, ACCOUNTING, COMMON_CUSTOM,
       NOVICE, NOBLE_ETIQUETTE, PSYCHOANALYSIS, BATTLE_TACTICS, COMMAND,
       OFTEN, SOCIABLE, AMBITIOUS, SOMETIMES, ACQUISITIVE
     ),

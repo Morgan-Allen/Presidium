@@ -15,7 +15,7 @@ import src.util.* ;
 
 
 
-public class Mining extends Plan implements BuildConstants {
+public class Mining extends Plan implements Economy {
   
   
   

@@ -10,15 +10,26 @@ import src.util.* ;
 
 
 //
-//  So, what about carrying the injured back to a safe haven?  ...I need a new
-//  animation for that.
+//  TODO:  You also need to carry the clinically dead back for treatment or
+//  storage, depending on your upgrade level.
 
-public class Treatment extends Plan implements ActorConstants, BuildConstants {
+
+public class Treatment extends Plan implements SkillsAndTraits, Economy {
   
   
   
   /**  Constants, field definitions, constructors and save/load methods-
     */
+  //
+  //  First Aid is for minor injuries (less than half health), or bleeding.
+  //  Medication is for: Illness, Spice Addiction, and Rage Infection.
+  //  Psych Eval is to get a report on personality and engram backups.
+  //  Surgery is for serious injuries (more than half health,) or death.
+  //  Gene Therapy is for: Cancer and Albedan Strain, or eugenics.
+  //  Conditioning is for re-programming, rehabilitation or engram fusion.
+  
+  
+  
   final public static int
     TYPE_FIRST_AID    = 0, FIRST_AID_DC    = 5 , FIRST_AID_XP    = 10,
     TYPE_MEDICATION   = 1, MEDICATION_DC   = 10, MEDICATION_XP   = 20,
@@ -27,14 +38,16 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     TYPE_GENE_THERAPY = 4, GENE_THERAPY_DC = 25, GENE_THERAPY_XP = 150,
     TYPE_CONDITIONING = 5, CONDITIONING_DC = 30, CONDITIONING_XP = 250 ;
   //*/
+  /*
   final static Table CONDITION_DCS = Table.make(
     ILLNESS, 0,
-    CANCER, 5,  //Replace with Mutation?
+    CANCER, 5,
     SPICE_ADDICTION, 5,
     RAGE_INFECTION, 10,
     ALBEDAN_STRAIN, 15,
     SILVER_PLAGUE, 20
   ) ;
+  //*/
   final static int
     STAGE_NONE = 0,
     STAGE_EMERGENCY = 1,
@@ -70,7 +83,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     patient = (Actor) s.loadObject() ;
     type = s.loadInt() ;
     final int tID = s.loadInt() ;
-    applied = tID < 0 ? null : ActorConstants.ALL_TRAIT_TYPES[tID] ;
+    applied = tID < 0 ? null : SkillsAndTraits.ALL_TRAIT_TYPES[tID] ;
     effectiveness = s.loadFloat() ;
     treatment = Item.loadFrom(s) ;
   }
@@ -172,7 +185,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     float DC = FIRST_AID_DC + (10 * patient.health.injuryLevel()) ;
     float bonus = 0 ;
     if (actor.aboard() instanceof Sickbay) {
-      bonus += 2 + Plan.upgradeBonus(actor.aboard(), Sickbay.SURGERY_WARD) ;
+      bonus += 2 + Plan.upgradeBonus(actor.aboard(), Sickbay.SURGERY_THEATRE) ;
     }
     //
     //  IF YOU HAVE MEDICINE, LOWER DIFFICULTY.
@@ -202,7 +215,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
     final Batch <Item> treatments = patient.gear.matches(SERVICE_TREAT) ;
     for (Trait d : DISEASES) {
       if (hasMedication(treatments, d)) continue ;
-      final float serious = MEDICATION_DC + (Integer) CONDITION_DCS.get(d) ;
+      final float serious = MEDICATION_DC + (((Condition) d).virulence / 2) ;
       priority += patient.traits.traitLevel(d) * serious / 5f ;
     }
     if (priority == 0) return 0 ;
@@ -250,7 +263,7 @@ public class Treatment extends Plan implements ActorConstants, BuildConstants {
   public boolean actionMedicate(Actor actor, Actor patient) {
     //
     //  Calculate the difficulty of treating the condition.
-    int difficulty = (Integer) CONDITION_DCS.get(applied) + MEDICATION_DC ;
+    float difficulty = MEDICATION_DC + (((Condition) applied).virulence / 2) ;
     difficulty += (patient.traits.traitLevel(applied) - 1) * 5 ;
     if (actor.aboard() instanceof Sickbay) {
       float bonus = 2 + Plan.upgradeBonus(actor.aboard(), Sickbay.APOTHECARY) ;

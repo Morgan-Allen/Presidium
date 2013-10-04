@@ -119,10 +119,20 @@ public abstract class Actor extends Mobile implements
   
   protected void pathingAbort() {
     if (actionTaken == null) return ;
-    if (verbose) I.sayAbout(this, "Aborting "+actionTaken.methodName()) ;
-    mind.cancelBehaviour(mind.topBehaviour()) ;
+    if (verbose) I.sayAbout(this, "Aborting "+actionTaken) ;
+    
     final Behaviour top = mind.topBehaviour() ;
-    if (top != null) top.abortBehaviour() ;
+    if (top != null) {
+      top.abortBehaviour() ;
+      mind.cancelBehaviour(top) ;
+    }
+    
+    final Behaviour root = mind.rootBehaviour() ;
+    if (root.finished()) {
+      if (verbose) I.sayAbout(this, "  "+this+" ABORTING: "+root) ;
+      mind.cancelBehaviour(root) ;
+    }
+    
     assignAction(mind.getNextAction()) ;
   }
   
@@ -167,21 +177,21 @@ public abstract class Actor extends Mobile implements
     if (actionTaken != null && ! pathing.checkPathingOkay()) {
       world.schedule.scheduleNow(this) ;
     }
+
+    final Behaviour root = mind.rootBehaviour() ;
+    if (root != null && root != actionTaken && root.finished() && OK) {
+      if (verbose) I.sayAbout(this, "  ROOT BEHAVIOUR COMPLETE... "+root) ;
+      mind.cancelBehaviour(root) ;
+      world.schedule.scheduleNow(this) ;
+    }
+    if (actionTaken != null && actionTaken.finished() && OK) {
+      if (verbose) I.sayAbout(this, "  ACTION COMPLETE: "+actionTaken) ;
+      world.schedule.scheduleNow(this) ;
+    }
     
     if (actionTaken != null) {
       actionTaken.updateMotion(OK) ;
       actionTaken.updateAction() ;
-      
-      final Behaviour root = mind.rootBehaviour() ;
-      if (root != null && root != actionTaken && root.finished() && OK) {
-        if (verbose) I.sayAbout(this, "  ROOT BEHAVIOUR COMPLETE... "+root) ;
-        mind.cancelBehaviour(root) ;
-        world.schedule.scheduleNow(this) ;
-      }
-      if (actionTaken != null && actionTaken.finished() && OK) {
-        if (verbose) I.sayAbout(this, "  ACTION COMPLETE: "+actionTaken) ;
-        world.schedule.scheduleNow(this) ;
-      }
     }
     
     if (aboard instanceof Mobile && (pathing.nextStep() == aboard || ! OK)) {
@@ -191,21 +201,68 @@ public abstract class Actor extends Mobile implements
   
   
   public void updateAsScheduled(int numUpdates) {
+    long realStart = System.currentTimeMillis() ;
+    long startTime, timeTaken ;
+    
+    //
+    //  Update our basic statistics and physical properties-
+    startTime = System.currentTimeMillis() ;
     health.updateHealth(numUpdates) ;
     gear.updateGear(numUpdates) ;
+    traits.updateTraits(numUpdates) ;
+    timeTaken = System.currentTimeMillis() - startTime ;
+    
+    if (verbose && timeTaken > 0 && I.talkAbout == this) {
+      I.say("Time taken for stat updates: "+timeTaken) ;
+    }
     
     if (health.conscious()) {
       //
-      //  Check to see if a new action needs to be decided on.
-      if (actionTaken == null || actionTaken.finished()) {
+      //  Check to see if our current action has expired-
+      if ((actionTaken == null || actionTaken.finished())) {
+        
+        final Behaviour oldRoot = mind.rootBehaviour() ;
+        startTime = System.currentTimeMillis() ;
         final Action action = mind.getNextAction() ;
+        timeTaken = System.currentTimeMillis() - startTime ;
+        final Behaviour newRoot = mind.rootBehaviour() ;
+
+        if (verbose && timeTaken > 0 && I.talkAbout == this) {
+          I.say("Time taken for getting action was "+timeTaken) ;
+        }
+        if (verbose && oldRoot != newRoot && I.talkAbout == this) {
+          I.say("Root behaviour has changed from:") ;
+          I.say("  "+oldRoot+" to\n  "+newRoot) ;
+        }
         if (verbose) I.sayAbout(this, "REFRESHING ACTION! "+action) ;
+        
         assignAction(action) ;
       }
-      if (! pathing.checkPathingOkay()) pathing.refreshPath() ;
+      //
+      //  Ensure our current pathing route is valid-
+      if (! pathing.checkPathingOkay()) {
+        
+        startTime = System.currentTimeMillis() ;
+        pathing.refreshPath() ;
+        timeTaken = System.currentTimeMillis() - startTime ;
+
+        if (verbose && timeTaken > 0 && I.talkAbout == this) {
+          I.say("Time taken for getting path was "+timeTaken) ;
+        }
+      }
+      //
+      //  Update the AI at regular intervals-
+      startTime = System.currentTimeMillis() ;
       mind.updateAI(numUpdates) ;
+      timeTaken = System.currentTimeMillis() - startTime ;
+
+      if (verbose && timeTaken > 0 && I.talkAbout == this) {
+        I.say("Time taken for AI update was "+timeTaken) ;
+      }
       //
       //  Update the intel/danger maps associated with the world's bases.
+      startTime = System.currentTimeMillis() ;
+      
       final float power = Combat.combatStrength(this, null) * 10 ;
       for (Base b : world.bases()) {
         if (b == base()) {
@@ -221,10 +278,16 @@ public abstract class Actor extends Mobile implements
         final float relation = mind.relation(b) ;
         b.dangerMap.impingeVal(origin(), 0 - power * relation) ;
       }
+      timeTaken = System.currentTimeMillis() - startTime ;
+      
+      if (verbose && timeTaken > 0 && I.talkAbout == this) {
+        I.say("Time taken for fog/danger updates was "+timeTaken) ;
+      }
     }
     else {
       if (health.asleep() && numUpdates % 2 == 0) {
-        
+        //
+        //  Check to see if you need to wake up-
         Behaviour root = mind.rootBehaviour() ;
         if (root != null) mind.cancelBehaviour(root) ;
         mind.updateAI(numUpdates) ;
@@ -247,6 +310,13 @@ public abstract class Actor extends Mobile implements
         }
       }
       if (health.decomposed()) setAsDestroyed() ;
+    }
+    
+    //
+    //  Finally, report on total time taken-
+    timeTaken = System.currentTimeMillis() - realStart ;
+    if (verbose && timeTaken > 0 && I.talkAbout == this) {
+      I.say(this+" Time taken for all updates: "+timeTaken) ;
     }
   }
   

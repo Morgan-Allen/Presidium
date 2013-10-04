@@ -17,7 +17,7 @@ import src.util.* ;
 
 
 
-public class Smelter extends Venue implements BuildConstants {
+public class Smelter extends Venue implements Economy {
   
   
   

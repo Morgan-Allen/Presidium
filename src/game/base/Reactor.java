@@ -13,7 +13,7 @@ import src.util.* ;
 
 
 
-public class Reactor extends Venue implements BuildConstants {
+public class Reactor extends Venue implements Economy {
   
   
 
@@ -249,8 +249,8 @@ public class Reactor extends Venue implements BuildConstants {
     //  TODO:  INTRODUCE RADIATION VALUES.
     int radiationVal = (125 / safety) - 25 ;
     radiationVal *= meltdown * Rand.avgNums(3) * 2 ;
-    final Tile centre = world.tileAt(this) ;
-    world.ecology().impingeSqualor(radiationVal, centre, false) ;
+    //final Tile centre = world.tileAt(this) ;
+    world.ecology().impingeSqualor(radiationVal, this, false) ;
     //
     //  TODO:  Add Explosion FX and damage nearby structures (and citizens.)
     //

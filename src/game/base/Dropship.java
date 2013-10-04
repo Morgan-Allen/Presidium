@@ -26,7 +26,7 @@ import src.util.* ;
 
 
 public class Dropship extends Vehicle implements
-  Inventory.Owner, BuildConstants
+  Inventory.Owner, Economy
 {
   
   

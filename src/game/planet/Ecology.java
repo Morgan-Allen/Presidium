@@ -36,6 +36,8 @@ public class Ecology {
     "Paradise"
   } ;
   
+  private static boolean verbose = true ;
+  
   
   final World world ;
   final int SR, SS ;
@@ -77,11 +79,6 @@ public class Ecology {
     for (Species p : Species.ANIMAL_SPECIES) {
       globalAbundance[p.ID] = s.loadFloat() ;
     }
-    /*
-    for (float ff[] : squalorMap) for (float f : ff) if (f != 0) {
-      I.say("Not blank: "+f) ;
-    }
-    //*/
   }
   
   
@@ -140,9 +137,11 @@ public class Ecology {
     }
     
     globalBiomass /= (SS * SS) ;
-
-    final float squareA = SR * SR * 1 ;
-    I.present(squalorMap, "Squalor", 256, 256, squareA, -squareA) ;
+    
+    if (verbose) {
+      final float squareA = SR * SR * 1 ;
+      I.present(squalorMap, "Squalor", 256, 256, squareA, -squareA) ;
+    }
   }
   
   
@@ -179,9 +178,16 @@ public class Ecology {
   }
   
   
+  
+  
+  /**  Terraforming methods-
+    */
+  
+  
   public void pushClimate(Habitat desired, float strength) {
     //  TODO:  This is the next thing to implement.
   }
+  
   
   
   
@@ -215,7 +221,11 @@ public class Ecology {
   ) {
     overlap.setTo(s.area) ;
     overlap.cropBy(bound) ;
-    map[s.x][s.y] += fullVal * overlap.area() / bound.area() ;
+    final float inc = fullVal * overlap.area() / bound.area() ;
+    map[s.x][s.y] += inc ;
+    if (verbose && (Math.abs(inc) > 1) && (inc * fullVal < 0)) {
+      I.say("Value increment: "+inc+" "+overlap.area()) ;
+    }
   }
   
   

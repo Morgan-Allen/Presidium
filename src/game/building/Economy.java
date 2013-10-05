@@ -6,7 +6,7 @@
 
 
 package src.game.building ;
-import src.game.actors.SkillsAndTraits ;
+import src.game.actors.Aptitudes ;
 import src.game.base.* ;
 
 
@@ -22,7 +22,7 @@ TALISMAN   = new Item.Type(C, UNIQUE, "Talisman"   , 250)
 //  TODO:  What about Tensile materials?  Antimass?
 
 
-public interface Economy extends SkillsAndTraits {
+public interface Economy extends Aptitudes {
   
   
   final public static int
@@ -82,6 +82,9 @@ public interface Economy extends SkillsAndTraits {
     WATER        = new Service(BC, "Water"       , "water.png"    , FP, 10),
     LIFE_SUPPORT = new Service(BC, "Life Support", "life_S.png"   , FP, 10),
     POWER        = new Service(BC, "Power"       , "power.png"    , FP, 10),
+    
+    //
+    //  TODO:  This should be a unique item, not a provision?
     DATALINKS    = new Service(BC, "Datalinks"   , "datalinks.png", FP, 10),
     
     ALL_PROVISIONS[] = Service.typesSoFar() ;

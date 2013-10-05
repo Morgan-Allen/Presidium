@@ -12,7 +12,7 @@ import src.util.* ;
 
 
 
-public class Retreat extends Plan implements SkillsAndTraits {
+public class Retreat extends Plan implements Aptitudes {
   
   
   

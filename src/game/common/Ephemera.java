@@ -95,6 +95,7 @@ public class Ephemera {
           if (! port.intersects(s.position, ghost.size)) continue ;
           s.colour = Colour.transparency((duration - timeGone) / duration) ;
           s.fog = base.intelMap.displayFog(ghost.position) ;
+          s.update() ;
           results.add(ghost) ;
         }
       }

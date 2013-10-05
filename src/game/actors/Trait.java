@@ -10,7 +10,7 @@ import src.util.* ;
 
 
 
-public class Trait implements SkillsAndTraits {
+public class Trait implements Aptitudes {
   
   
   

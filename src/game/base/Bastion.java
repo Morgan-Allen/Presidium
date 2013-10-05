@@ -180,6 +180,12 @@ public class Bastion extends Venue implements Economy {
     //  Modify maximum integrity based on upgrades-
     final int BB = structure.upgradeLevel(BLAST_SHIELDS) ;
     structure.updateStats(650 + 250 * BB, 15 + 5 * BB, 0) ;
+    
+    int ambience = structure.numUpgrades() / 4 ;
+    if (ambience == 3) ambience = 10 ;
+    if (ambience == 2) ambience = 5 ;
+    if (ambience == 1) ambience = 2 ;
+    world.ecology().impingeSqualor(ambience, this, true) ;
   }
   
   

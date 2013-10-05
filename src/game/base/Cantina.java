@@ -41,20 +41,37 @@ public class Cantina extends Venue implements Economy {
     "The Purple Haze",
   } ;
   
+  final static float
+    LODGING_PRICE = 20,
+    
+    GAMBLE_PRICE  = 50,
+    BET_SMALL     = 20,
+    BET_LARGE     = 50,
+    POT_INTERVAL  = 20,
+    
+    SOMA_MARGIN   = 1.5f,
+    GAMBLE_MARGIN = 0.2f ;
   
-  private int nameID = -1 ;//, performID = -1 ;
+  
+  private int nameID = -1 ;
+  
+  final Table <Actor, Float> gambleResults = new Table <Actor, Float> () ;
+  float gamblePot = 0 ;
+  Actor playerBets = null ;
+  int playerBetSize = 0 ;
   
   
   public Cantina(Base base) {
     super(4, 3, Venue.ENTRANCE_SOUTH, base) ;
     structure.setupStats(150, 2, 200, 0, Structure.TYPE_VENUE) ;
-    personnel.setShiftType(SHIFTS_BY_HOURS) ;
+    personnel.setShiftType(SHIFTS_BY_DAY) ;
     attachSprite(MODEL.makeSprite()) ;
   }
   
   
   public Cantina(Session s) throws Exception {
     super(s) ;
+    personnel.setShiftType(SHIFTS_BY_DAY) ;
     nameID = s.loadInt() ;
   }
   
@@ -74,6 +91,32 @@ public class Cantina extends Venue implements Economy {
 
   /**  Upgrades, services and economic functions-
     */
+  public Behaviour jobFor(Actor actor) {
+    if (actor.vocation() == Background.SOMA_VENDOR) {
+      final Service needed[] = { SOMA, CARBS } ;
+      final Delivery d = Deliveries.nextCollectionFor(
+        actor, this, needed, 5, null, world
+      ) ;
+      ///I.say("Next delivery is: "+d) ;
+      if (d != null) return d ;
+      return new Supervision(actor, this) ;
+    }
+    if (actor.vocation() == Background.PERFORMER) {
+      return new Performance(actor, this, Aptitudes.MUSIC_AND_SONG) ;
+    }
+    return null ;
+  }
+  
+  
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact()) return ;
+    stocks.forceDemand(SOMA , 5, VenueStocks.TIER_CONSUMER) ;
+    stocks.forceDemand(CARBS, 5, VenueStocks.TIER_CONSUMER) ;
+    if (numUpdates % POT_INTERVAL == 0 && isManned()) splitGamblePot() ;
+  }
+  
+  
   protected Background[] careers() {
     return new Background[] { Background.SOMA_VENDOR, Background.PERFORMER } ;
   }
@@ -86,29 +129,38 @@ public class Cantina extends Venue implements Economy {
     return 0 ;
   }
   
-
-  public Behaviour jobFor(Actor actor) {
-    if (actor.vocation() == Background.SOMA_VENDOR) {
-      return new Supervision(actor, this) ;
-    }
-    if (actor.vocation() == Background.PERFORMER) {
-      return new Performance(actor, this, SkillsAndTraits.MUSIC_AND_SONG) ;
-    }
-    return null ;
-  }
-  
-  
+  //
+  //  TODO:  Allow *any* good to be purchased here, but at double or triple
+  //  normal prices.  And it has to be explicitly commissioned, then delivered
+  //  from off the map by runners.
   public Service[] services() {
+    //return ALL_UNIQUE_ITEMS ;
     return new Service[] { SERVICE_PERFORM } ;
   }
+
+  //
+  //  Enable chance meetings with Runners, based on visitors looking for an
+  //  illegal good or service.  You could theoretically hire them for a
+  //  mission or two yourself...
   
-  
-  public void updateAsScheduled(int numUpdates) {
-    super.updateAsScheduled(numUpdates) ;
-    stocks.forceDemand(SOMA, 10, VenueStocks.TIER_CONSUMER) ;
+  public float priceLodgings() {
+    return 20 ;
   }
   
   
+  public float priceSoma() {
+    return priceFor(SOMA) * 1.5f ;
+  }
+  
+  
+  public float priceBet() {
+    return GAMBLE_PRICE ;
+  }
+  
+  
+  
+  /**  Performance implementation-
+    */
   private Performance performance() {
     for (Actor actor : personnel.workers()) {
       if (actor.aboard() != this) continue ;
@@ -149,6 +201,91 @@ public class Cantina extends Venue implements Economy {
   
   
   
+  /**  Gambling implementation-
+    */
+  public Action nextGambleFor(Actor actor) {
+    if (isGambling(actor)) return null ;
+    final int price = (int) priceBet() ;
+    if ((price > actor.gear.credits() / 2) || ! isManned()) return null ;
+    final Action gamble = new Action(
+      actor, this,
+      this, "actionGamble",
+      Action.TALK_LONG, "Gambling"
+    ) ;
+    float priority = Rand.index(5) ;
+    priority += actor.traits.traitLevel(OPTIMISTIC) * Rand.num() ;
+    priority -= actor.traits.traitLevel(NERVOUS)    * Rand.num() ;
+    priority -= actor.traits.traitLevel(STUBBORN)   * Rand.num() ;
+    priority -= actor.mind.greedFor(price) * Action.ROUTINE ;
+    gamble.setPriority(priority) ;
+    return gamble ;
+  }
+  
+  
+  public boolean isGambling(Actor actor) {
+    if (gambleResults.keySet().contains(actor)) return true ;
+    return false ;
+  }
+  
+  
+  public boolean actionGamble(Actor actor, Cantina venue) {
+    final float price = priceBet() ;
+    actor.gear.incCredits(-price) ;
+    venue.gamblePot += price ;
+    
+    if (actor == playerBets) {
+      base().incCredits(-playerBetSize) ;
+      venue.gamblePot += playerBetSize ;
+    }
+    
+    float success = (Rand.num() * 2) - 1 ;
+    if (actor.traits.test(ACCOUNTING, MODERATE_DC, 1)) success++ ;
+    else success-- ;
+    if (actor.traits.test(MASQUERADE, MODERATE_DC, 1)) success++ ;
+    else success-- ;
+    
+    if (success > 0) {
+      gambleResults.put(actor, success) ;
+      return true ;
+    }
+    else {
+      gambleResults.put(actor, -1f) ;
+      return false ;
+    }
+  }
+  
+  
+  private void splitGamblePot() {
+    if (gambleResults.size() == 0) return ;
+    
+    Actor wins = null ;
+    float bestResult = Float.NEGATIVE_INFINITY ;
+    
+    for (Actor gambles : gambleResults.keySet()) {
+      if (gambles.aboard() != this) continue ;
+      final float result = (Float) gambleResults.get(gambles) ;
+      if (result > bestResult) { bestResult = result ; wins = gambles ; }
+    }
+    
+    if (wins != null) {
+      if (wins == playerBets) {
+        float playerShare = playerBetSize * gambleResults.size() ;
+        playerShare *= 1 - GAMBLE_MARGIN ;
+        base().incCredits(playerShare) ;
+        gamblePot -= playerShare ;
+      }
+      float winsShare = gamblePot * (1 - GAMBLE_MARGIN) ;
+      wins.gear.incCredits(winsShare) ;
+      gamblePot -= winsShare ;
+    }
+    
+    stocks.incCredits(gamblePot) ;
+    gamblePot = 0 ;
+    playerBets = null ;
+    gambleResults.clear() ;
+  }
+  
+  
 
 
   /**  Rendering and interface methods-
@@ -178,15 +315,13 @@ public class Cantina extends Venue implements Economy {
   
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
-    
-    
+    super.writeInformation(d, categoryID, UI) ;
     if (categoryID == 0) {
-      super.writeInformation(d, categoryID, UI) ;
-      
+      //
+      //  Report information on the current performance-
       final Batch <Actor> audience = audience() ;
-      final Performance p = this.performance() ;
+      final Performance p = performance() ;
       d.append("\n\nCurrent performance:\n  ") ;
-      
       if (p == null) d.append("No performance.") ;
       else d.append(p.performDesc()) ;
       d.append("\n  ") ;
@@ -199,20 +334,39 @@ public class Cantina extends Venue implements Economy {
           d.append(a) ;
         }
       }
+      //
+      //  List the current gambling participants, and allow the player to bet
+      //  on one of them.
+      d.append("\n\nGambling:") ;
+      for (final Actor gambles : gambleResults.keySet()) {
+        d.append("\n  ") ; d.append(gambles) ;
+        d.append(new Description.Link("  SMALL BET") {
+          public void whenClicked() {
+            playerBets = gambles ;
+            playerBetSize = (int) BET_SMALL ;
+          }
+        }) ;
+        d.append(new Description.Link("  LARGE BET") {
+          public void whenClicked() {
+            playerBets = gambles ;
+            playerBetSize = (int) BET_LARGE ;
+          }
+        }) ;
+      }
+      if (gambleResults.size() == 0) {
+        d.append("\n  No gambling at present.") ;
+      }
+      else if (playerBets != null) {
+        d.append("\n\n  Betting "+playerBetSize+" each round ") ;
+        d.append(playerBets) ;
+        d.append(new Description.Link("\n  CLEAR BETS") {
+          public void whenClicked() {
+            playerBets = null ;
+            playerBetSize = 0 ;
+          }
+        }) ;
+      }
     }
-    else super.writeInformation(d, categoryID, UI) ;
-    //
-    //  Enable gambling/games of chance/cards.
-    //  ...Select participants from among the visitors, and place your bets
-    //  against them.  The odds of their victory are based on insight scores,
-    //  sleight of hand, et cetera.  Everyone puts in money, whoever wins takes
-    //  the pot, minus a slice for the house.
-    
-    
-    //
-    //  Enable chance meetings with Runners, based on visitors looking for an
-    //  illegal good or service.  You could theoretically hire them for a
-    //  mission or two yourself...
   }
   
 }

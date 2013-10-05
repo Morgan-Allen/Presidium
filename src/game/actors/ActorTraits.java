@@ -13,7 +13,7 @@ import src.user.* ;
 
 
 
-public class ActorTraits implements SkillsAndTraits {
+public class ActorTraits implements Aptitudes {
   
   
   
@@ -295,41 +295,41 @@ public class ActorTraits implements SkillsAndTraits {
   
   
   public Batch <Trait> personality() {
-    return getMatches(null, SkillsAndTraits.PERSONALITY_TRAITS) ;
+    return getMatches(null, Aptitudes.PERSONALITY_TRAITS) ;
   }
   
   
   public Batch <Trait> physique() {
     final Batch <Trait> matches = new Batch <Trait> () ;
-    getMatches(matches, SkillsAndTraits.PHYSICAL_TRAITS) ;
-    getMatches(matches, SkillsAndTraits.BLOOD_TRAITS) ;
+    getMatches(matches, Aptitudes.PHYSICAL_TRAITS) ;
+    getMatches(matches, Aptitudes.BLOOD_TRAITS) ;
     return matches ;
   }
   
   
   public Batch <Trait> characteristics() {
-    return getMatches(null, SkillsAndTraits.CATEGORIC_TRAITS) ;
+    return getMatches(null, Aptitudes.CATEGORIC_TRAITS) ;
   }
   
   
   public Batch <Skill> attributes() {
-    return (Batch) getMatches(null, SkillsAndTraits.ATTRIBUTES) ;
+    return (Batch) getMatches(null, Aptitudes.ATTRIBUTES) ;
   }
   
   
   public Batch <Skill> skillSet() {
     final Batch <Trait> matches = new Batch <Trait> () ;
-    getMatches(matches, SkillsAndTraits.INSTINCT_SKILLS ) ;
-    getMatches(matches, SkillsAndTraits.PHYSICAL_SKILLS ) ;
-    getMatches(matches, SkillsAndTraits.SENSITIVE_SKILLS) ;
-    getMatches(matches, SkillsAndTraits.COGNITIVE_SKILLS) ;
-    getMatches(matches, SkillsAndTraits.PYSONIC_SKILLS  ) ;
+    getMatches(matches, Aptitudes.INSTINCT_SKILLS ) ;
+    getMatches(matches, Aptitudes.PHYSICAL_SKILLS ) ;
+    getMatches(matches, Aptitudes.SENSITIVE_SKILLS) ;
+    getMatches(matches, Aptitudes.COGNITIVE_SKILLS) ;
+    getMatches(matches, Aptitudes.PYSONIC_SKILLS  ) ;
     return (Batch) matches ;
   }
   
   
   public Batch <Condition> conditions() {
-    return (Batch) getMatches(null, SkillsAndTraits.CONDITIONS) ;
+    return (Batch) getMatches(null, Aptitudes.CONDITIONS) ;
   }
   
   

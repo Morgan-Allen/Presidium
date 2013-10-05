@@ -10,46 +10,34 @@ import src.util.* ;
 
 
 //
+//  First Aid is for minor injuries (less than half health), or bleeding.
+//  Medication is for: Illness, Spice Addiction, and Rage Infection.
+//  Psych Eval is to get a report on personality and engram backups.
+//  Surgery is for serious injuries (more than half health,) or death.
+//  Gene Therapy is for: Cancer and Albedan Strain, or eugenics.
+//  Conditioning is for re-programming, rehabilitation or engram fusion.
+//
+//  Focus on the extension of first aid and medication for now.
+//
 //  TODO:  You also need to carry the clinically dead back for treatment or
 //  storage, depending on your upgrade level.
 
 
-public class Treatment extends Plan implements SkillsAndTraits, Economy {
+public class Treatment extends Plan implements Aptitudes, Economy {
   
   
   
   /**  Constants, field definitions, constructors and save/load methods-
     */
-  //
-  //  First Aid is for minor injuries (less than half health), or bleeding.
-  //  Medication is for: Illness, Spice Addiction, and Rage Infection.
-  //  Psych Eval is to get a report on personality and engram backups.
-  //  Surgery is for serious injuries (more than half health,) or death.
-  //  Gene Therapy is for: Cancer and Albedan Strain, or eugenics.
-  //  Conditioning is for re-programming, rehabilitation or engram fusion.
-  
-  
-  
   final public static int
     TYPE_FIRST_AID    = 0, FIRST_AID_DC    = 5 , FIRST_AID_XP    = 10,
     TYPE_MEDICATION   = 1, MEDICATION_DC   = 10, MEDICATION_XP   = 20,
-    TYPE_PSYCH_EVAL   = 2, PSYCH_EVAL_DC   = 15, PSYCH_EVAL_XP   = 40 ;/*,
+    TYPE_PSYCH_EVAL   = 2, PSYCH_EVAL_DC   = 15, PSYCH_EVAL_XP   = 40,
     TYPE_SURGERY      = 3, SURGERY_DC      = 20, SURGERY_XP      = 75,
     TYPE_GENE_THERAPY = 4, GENE_THERAPY_DC = 25, GENE_THERAPY_XP = 150,
     TYPE_CONDITIONING = 5, CONDITIONING_DC = 30, CONDITIONING_XP = 250 ;
-  //*/
-  /*
-  final static Table CONDITION_DCS = Table.make(
-    ILLNESS, 0,
-    CANCER, 5,
-    SPICE_ADDICTION, 5,
-    RAGE_INFECTION, 10,
-    ALBEDAN_STRAIN, 15,
-    SILVER_PLAGUE, 20
-  ) ;
-  //*/
   final static int
-    STAGE_NONE = 0,
+    STAGE_NONE      = 0,
     STAGE_EMERGENCY = 1,
     STAGE_TRANSPORT = 2,
     STAGE_FOLLOW_UP = 3 ;
@@ -83,7 +71,7 @@ public class Treatment extends Plan implements SkillsAndTraits, Economy {
     patient = (Actor) s.loadObject() ;
     type = s.loadInt() ;
     final int tID = s.loadInt() ;
-    applied = tID < 0 ? null : SkillsAndTraits.ALL_TRAIT_TYPES[tID] ;
+    applied = tID < 0 ? null : Aptitudes.ALL_TRAIT_TYPES[tID] ;
     effectiveness = s.loadFloat() ;
     treatment = Item.loadFrom(s) ;
   }
@@ -96,6 +84,13 @@ public class Treatment extends Plan implements SkillsAndTraits, Economy {
     s.saveInt(applied == null ? -1 : applied.traitID) ;
     s.saveFloat(effectiveness) ;
     Item.saveTo(s, treatment) ;
+  }
+  
+  
+  public boolean matchesPlan(Plan p) {
+    if (! super.matchesPlan(p)) return false ;
+    final Treatment t = (Treatment) p ;
+    return t.type == this.type && t.applied == this.applied ;
   }
   
   
@@ -126,13 +121,28 @@ public class Treatment extends Plan implements SkillsAndTraits, Economy {
   }
   
   
-  public boolean matchesPlan(Plan p) {
-    if (! super.matchesPlan(p)) return false ;
-    final Treatment t = (Treatment) p ;
-    return t.type == this.type && t.applied == this.applied ;
+  private void configTreatment(Actor actor, Condition condition) {
+    
+    //
+    //  Pick the right skill and the right DC for the trait in question.
+    if (condition == ILLNESS) {
+      
+    }
+    
   }
   
   
+  /*
+  public static Treatment nextTreatment(Actor treats) {
+    
+  }
+  //*/
+  
+  
+  
+  
+  /**  General implementation of behaviour-
+    */
   protected Behaviour getNextStep() {
     switch (type) {
       case (TYPE_FIRST_AID) : return nextFirstAid() ;
@@ -146,13 +156,6 @@ public class Treatment extends Plan implements SkillsAndTraits, Economy {
     if (patient.health.deceased()) return false ;
     return super.valid() ;
   }
-  
-  
-  /*
-  public static Treatment nextTreatment(Actor treats) {
-    
-  }
-  //*/
   
   
   

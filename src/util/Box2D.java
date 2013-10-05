@@ -217,8 +217,10 @@ public class Box2D {
     if (ypos < box.ypos) ypos = box.ypos ;
     if (xmax > box.xmax) xmax = box.xmax ;
     if (ymax > box.ymax) ymax = box.ymax ;
-    xdim = xmax - xpos ;
-    ydim = ymax - ypos ;
+    if (xmax < xpos) { xmax = xpos ; xdim = 0 ; }
+    else xdim = xmax - xpos ;
+    if (ymax < ypos) { ymax = ypos ; ydim = 0 ; }
+    else ydim = ymax - ypos ;
     return this ;
   }
   

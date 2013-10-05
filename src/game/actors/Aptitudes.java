@@ -9,7 +9,7 @@ import src.util.Table;
 
 
 
-public interface SkillsAndTraits {
+public interface Aptitudes {
   
   
   final public static int
@@ -433,12 +433,12 @@ public interface SkillsAndTraits {
     SLOW_SPREAD  = 2,
     RAPID_SPREAD = 5,
     
+    NO_VIRULENCE        = 0,
     MINIMAL_VIRULENCE   = 5,
     MILD_VIRULENCE      = 10,
-    MODERATE_VIRULENCE  = 15,
+    AVERAGE_VIRULENCE   = 15,
     HIGH_VIRULENCE      = 20,
-    EXTREME_VIRULENCE   = 25,
-    INCURABLE_VIRULENCE = 30 ;
+    EXTREME_VIRULENCE   = 25 ;
   
   final public static Condition
     
@@ -478,6 +478,8 @@ public interface SkillsAndTraits {
       "Malnourished",
       null
     ),
+    //
+    //  TODO:  Use this as a possible side-effect of incompetent foraging?
     POISONED = new Condition(
       "Fatally Poisoned",
       "Badly Poisoned",
@@ -486,6 +488,16 @@ public interface SkillsAndTraits {
     ),
     
     
+    SOMA_HAZE = new Condition(
+      SHORT_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(
+        REFLEX, -3, INTELLECT, -1, INSIGHT, 1
+      ),
+      "Soma Haze",
+      "Soma Haze",
+      "Soma Haze",
+      null
+      //  "Haze Immune"
+    ),
     ILLNESS = new Condition(
       SHORT_LATENCY, MINIMAL_VIRULENCE, RAPID_SPREAD, Table.make(
         VIGOUR, -3, BRAWN, -3
@@ -495,16 +507,6 @@ public interface SkillsAndTraits {
       "Mild Illness",
        null
        //  "Illness Immune"
-    ),
-    SOMA_HAZE = new Condition(
-      SHORT_LATENCY, MINIMAL_VIRULENCE, NO_SPREAD, Table.make(
-        REFLEX, -3, INTELLECT, -1, INSIGHT, 1
-      ),
-      "Soma Haze",
-      "Soma Haze",
-      "Soma Haze",
-      null
-      //  "Haze Immune"
     ),
     SPICE_ADDICTION = new Condition(
       LONG_LATENCY, MILD_VIRULENCE, NO_SPREAD, Table.make(
@@ -517,7 +519,7 @@ public interface SkillsAndTraits {
       //  "Addiction Immune"
     ),
     CANCER = new Condition(
-      LONG_LATENCY, MODERATE_VIRULENCE, NO_SPREAD, Table.make(
+      LONG_LATENCY, AVERAGE_VIRULENCE, NO_SPREAD, Table.make(
         VIGOUR, -20, BRAWN, -10
       ),
       "Terminal Cancer",
@@ -557,7 +559,7 @@ public interface SkillsAndTraits {
       //  "Strain Immune"
     ),
     SILVERQUICK = new Condition(
-      SHORT_LATENCY, INCURABLE_VIRULENCE, RAPID_SPREAD, Table.make(
+      SHORT_LATENCY, EXTREME_VIRULENCE, RAPID_SPREAD, Table.make(
         IMPASSIVE, 5, VIGOUR, -20, BRAWN, -20
       ),
       "Silverquick Ague",
@@ -567,7 +569,7 @@ public interface SkillsAndTraits {
       //  "Silverquick Immune"
     ),
     MOEBIUS_PHASE = new Condition(
-      LONG_LATENCY, INCURABLE_VIRULENCE, NO_SPREAD, Table.make(
+      LONG_LATENCY, EXTREME_VIRULENCE, NO_SPREAD, Table.make(
         REFLEX, -20, BRAWN, -20
       ),
       "Moebius Sublimation",

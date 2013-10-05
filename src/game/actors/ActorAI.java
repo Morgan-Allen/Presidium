@@ -23,7 +23,7 @@ import src.util.* ;
 //  going to be the basis of a bunch of activities.
 
 
-public abstract class ActorAI implements SkillsAndTraits {
+public abstract class ActorAI implements Aptitudes {
   
   
   /**  Field definitions, constructor, save/load methods-
@@ -199,7 +199,6 @@ public abstract class ActorAI implements SkillsAndTraits {
     updateSeen() ;
     if (home != null && home.destroyed()) home = null ;
     if (work != null && work.destroyed()) work = null ;
-    /*
     if (numUpdates % 10 == 0) {
       for (Behaviour b : todoList) if (b.finished()) todoList.remove(b) ;
       final Behaviour
@@ -208,7 +207,6 @@ public abstract class ActorAI implements SkillsAndTraits {
       if (couldSwitch(last, next)) assignBehaviour(next) ;
     }
     for (Behaviour b : agenda) if (b.monitor(actor)) break ;
-    //*/
   }
   
   
@@ -254,9 +252,9 @@ public abstract class ActorAI implements SkillsAndTraits {
       final Behaviour next = current.nextStepFor(actor) ;
       final boolean isDone = current.finished() ;
       if (verbose && I.talkAbout == actor) {
-        I.say("Current action "+current) ;
-        I.say("Next step "+next) ;
-        I.say("Done "+isDone) ;
+        I.say("  Current action "+current) ;
+        I.say("  Next step "+next) ;
+        I.say("  Done "+isDone) ;
       }
       if (isDone || next == null) {
         if (current == rootBehaviour() && ! isDone) {
@@ -379,8 +377,7 @@ public abstract class ActorAI implements SkillsAndTraits {
     cancelBehaviour(replaced) ;
     pushBehaviour(behaviour) ;
     if (replaced != null && ! replaced.finished()) {
-      //if (verbose)
-      I.sayAbout(actor, " SAVING PLAN AS TODO: "+replaced) ;
+      if (verbose) I.sayAbout(actor, " SAVING PLAN AS TODO: "+replaced) ;
       todoList.include(replaced) ;
     }
   }

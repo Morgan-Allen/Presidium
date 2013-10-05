@@ -70,7 +70,7 @@ public class Structure {
   private static boolean verbose = false ;
   
   
-  final Installation venue ;
+  final Installation basis ;
   
   private int baseIntegrity = DEFAULT_INTEGRITY ;
   private int maxUpgrades = NO_UPGRADES ;
@@ -92,7 +92,7 @@ public class Structure {
   
   
   Structure(Installation venue) {
-    this.venue = venue ;
+    this.basis = venue ;
   }
   
   
@@ -108,7 +108,7 @@ public class Structure {
     integrity = s.loadFloat() ;
     burning = s.loadBool() ;
     
-    Index <Upgrade> AU = venue.allUpgrades() ;
+    Index <Upgrade> AU = basis.allUpgrades() ;
     if (AU != null) {
       upgradeProgress = s.loadFloat() ;
       upgradeIndex = s.loadInt() ;
@@ -134,7 +134,7 @@ public class Structure {
     s.saveFloat(integrity) ;
     s.saveBool(burning) ;
     
-    Index <Upgrade> AU = venue.allUpgrades() ;
+    Index <Upgrade> AU = basis.allUpgrades() ;
     if (AU != null) {
       s.saveFloat(upgradeProgress) ;
       s.saveInt(upgradeIndex) ;
@@ -267,11 +267,18 @@ public class Structure {
   
   
   public void takeDamage(float damage) {
+    if (basis.destroyed()) return ;
     if (damage < 0) I.complain("NEGATIVE DAMAGE!") ;
     adjustRepair(0 - damage) ;
     final float burnChance = damage * (1 - repairLevel()) / maxIntegrity() ;
     if (flammable() && Rand.num() < burnChance) burning = true ;
-    if (integrity <= 0) venue.onDestruction() ;
+    if (integrity <= 0) basis.onDestruction() ;
+  }
+  
+  
+  public void setBurning(boolean burns) {
+    if (! flammable()) return ;
+    burning = burns ;
   }
   
   
@@ -280,12 +287,12 @@ public class Structure {
     integrity += inc ;
     if (integrity < 0) {
       state = STATE_RAZED ;
-      ((Element) venue).setAsDestroyed() ;
+      ((Element) basis).setAsDestroyed() ;
       integrity = 0 ;
       checkMaintenance() ;
     }
     else if (integrity >= max) {
-      if (state == STATE_INSTALL) venue.onCompletion() ;
+      if (state == STATE_INSTALL) basis.onCompletion() ;
       if (state != STATE_SALVAGE) state = STATE_INTACT ;
       integrity = max ;
     }
@@ -314,15 +321,15 @@ public class Structure {
   
   
   protected void checkMaintenance() {
-    final World world = ((Element) venue).world() ;
+    final World world = ((Element) basis).world() ;
     if (world == null) return ;
     final boolean needs = (state != STATE_RAZED) && (
       (state == STATE_SALVAGE) || (! goodCondition()) ||
       needsUpgrade() || burning
     ) ;
-    if (verbose) I.sayAbout(venue, "Needs maintenance: "+needs) ;
+    if (verbose) I.sayAbout(basis, "Needs maintenance: "+needs) ;
     world.presences.togglePresence(
-      venue, world.tileAt(venue), needs, "damaged"
+      basis, world.tileAt(basis), needs, "damaged"
     ) ;
   }
   

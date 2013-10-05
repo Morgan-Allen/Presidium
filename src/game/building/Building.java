@@ -11,7 +11,7 @@ import src.util.* ;
 
 
 
-public class Building extends Plan implements SkillsAndTraits {
+public class Building extends Plan implements Aptitudes {
   
   
   
@@ -138,9 +138,7 @@ public class Building extends Plan implements SkillsAndTraits {
   
   protected Behaviour getNextStep() {
     if (built.base().credits() <= 0) return null ;
-    
-    
-    I.sayAbout(actor, "Getting next build step?") ;
+    if (verbose) I.sayAbout(actor, "Getting next build step?") ;
     
     if (built.structure.needsUpgrade() && built.structure.goodCondition()) {
       final Action upgrades = new Action(

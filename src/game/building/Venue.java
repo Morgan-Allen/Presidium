@@ -217,6 +217,7 @@ public abstract class Venue extends Fixture implements
   
   
   public void setAsDestroyed() {
+    buildSprite().clearFX() ;
     super.setAsDestroyed() ;
   }
   
@@ -664,6 +665,7 @@ public abstract class Venue extends Fixture implements
   
   
   protected void renderHealthbars(Rendering rendering, Base base) {
+    if (! structure.intact()) return ;
     if (healthbar == null) healthbar = new Healthbar() ;
     healthbar.level = structure.repairLevel() ;
     
@@ -699,6 +701,7 @@ public abstract class Venue extends Fixture implements
   
   
   protected void toggleStatusFor(Service need) {
+    if (! structure.intact()) buildSprite.toggleFX(need.model, false) ;
     final float
       shortage = stocks.shortageOf(need),
       demand = stocks.demandFor(need) ;
@@ -717,6 +720,7 @@ public abstract class Venue extends Fixture implements
   
   
   protected void renderChat(Rendering rendering, Base base) {
+    if (! structure.intact()) return ;
     if (chat.numPhrases() > 0) {
       chat.position.setTo(sprite().position) ;
       chat.position.z += height() ;
@@ -756,6 +760,7 @@ public abstract class Venue extends Fixture implements
   
   
   protected float goodDisplayAmount(Service good) {
+    if (! structure.intact()) return 0 ;
     return stocks.amountOf(good) ;
   }
   

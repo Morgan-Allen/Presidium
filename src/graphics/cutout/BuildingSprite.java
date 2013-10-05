@@ -115,6 +115,13 @@ public class BuildingSprite extends GroupSprite {
   }
   
   
+  public void clearFX() {
+    statusFX.clear() ;
+    stackFX.clear() ;
+    lightingFX = null ;
+  }
+  
+  
   public void toggleLighting(
     Model lightsModel, boolean lit, float xoff, float yoff, float zoff
   ) {

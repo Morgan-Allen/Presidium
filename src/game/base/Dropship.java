@@ -127,6 +127,7 @@ public class Dropship extends Vehicle implements
         Action.STAND, "boarding "+this
       ) ;
       boardAction.setPriority(stage == STAGE_BOARDING ? Action.CRITICAL : 100) ;
+      I.sayAbout(actor, "Boarding priority: "+boardAction.priorityFor(actor)) ;
       return boardAction ;
     }
     

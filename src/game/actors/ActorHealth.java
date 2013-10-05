@@ -10,7 +10,7 @@ import src.util.* ;
 
 
 
-public class ActorHealth implements SkillsAndTraits {
+public class ActorHealth implements Aptitudes {
   
   
   
@@ -417,7 +417,7 @@ public class ActorHealth implements SkillsAndTraits {
     if (! organic) return stressCache = 0 ;
     
     float sumDisease = 0 ;
-    for (Trait t : SkillsAndTraits.DISEASES) {
+    for (Trait t : Aptitudes.DISEASES) {
       sumDisease += ((Condition) t).virulence * actor.traits.traitLevel(t) ;
     }
     float sum = Visit.clamp((fatigue + injury) / maxHealth, 0, 1) ;

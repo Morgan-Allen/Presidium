@@ -290,6 +290,8 @@ public class Delivery extends Plan implements Economy {
       returns.setMoveTarget(driven) ;
       return returns ;
     }
+    
+    //I.sayAbout(actor, "No next step!") ;
     return null ;
   }
   

@@ -5,8 +5,10 @@ package src.game.base ;
 import src.game.building.* ;
 import src.game.actors.* ;
 import src.game.common.* ;
+import src.game.planet.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.graphics.sfx.* ;
 import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
@@ -22,6 +24,27 @@ public class Reactor extends Venue implements Economy {
   final public static Model MODEL = ImageModel.asSolidModel(
     Reactor.class, "media/Buildings/artificer/reactor.png", 4, 2
   ) ;
+  final static String RISK_DESC[] = {
+    "Negligible",
+    "Minimal",
+    "Low",
+    "Moderate",
+    "High",
+    "Serious",
+    "Critical"
+  } ;
+  final static String CORE_DESC[] = {
+    "Secure",
+    "Steady",
+    "Stable",
+    "Volatile",
+    "Unstable",
+    "Critical",
+    "MELTDOWN"
+  } ;
+  
+  private static boolean verbose = false ;
+  
   
   private float meltdown = 0.0f ;
   
@@ -61,7 +84,7 @@ public class Reactor extends Venue implements Economy {
       "Waste Processing",
       "Reduces the rate at which fuel rods are consumed and ameliorates "+
       "pollution.",
-      350,
+      150,
       null, 1, null, ALL_UPGRADES
     ),
     
@@ -69,27 +92,22 @@ public class Reactor extends Venue implements Economy {
       "Isotope Conversion",
       "Allows metal ores to be synthesised into fuel rods and facilitates "+
       "production of atomics.",
-      500,
+      350,
       null, 1, WASTE_PROCESSING, ALL_UPGRADES
     ),
     
     FEEDBACK_MONITORS = new Upgrade(
       "Feedback Monitors",
       "Reduces the likelihood of meltdown occuring when the reactor is "+
-      "damaged or under-supervised, and reduces the likelihood of sabotage or"+
+      "damaged or under-supervised, and reduces the likelihood of sabotage or "+
       "infiltration.",
-      400,
+      200,
       null, 1, null, ALL_UPGRADES
     ),
     
-    FUSION_CONFINEMENT = new Upgrade(
-      "Fusion Confinement",
-      "Increases power output while limiting pollution and decreasing the "+
-      "severity of any meltdowns.",
-      350,
-      null, 1, FEEDBACK_MONITORS, ALL_UPGRADES
-    ),
-    
+    //
+    //  TODO:  Consider replacing this a boost to Shields generation?  Make
+    //  Fusion confinement dependant on that?
     QUALIA_WAVEFORM_INTERFACE = new Upgrade(
       "Qualia Waveform Interface",
       "Allows reactor output to contribute slightly towards regeneration of "+
@@ -98,10 +116,18 @@ public class Reactor extends Venue implements Economy {
       null, 1, FEEDBACK_MONITORS, ALL_UPGRADES
     ),
     
+    FUSION_CONFINEMENT = new Upgrade(
+      "Fusion Confinement",
+      "Increases power output while limiting pollution and decreasing the "+
+      "severity of any meltdowns.",
+      500,
+      null, 1, FEEDBACK_MONITORS, ALL_UPGRADES
+    ),
+    
     CORE_TECHNICIAN_STATION = new Upgrade(
       "Core Technician Station",
       "Core Technicians provide the expertise and vigilance neccesary to "+
-      "monitor reactor output and synthesise nuclear biproducts.",
+      "monitor core output and manufacture atomics or antimass.",
       100,
       Background.CORE_TECHNICIAN, 1, null, ALL_UPGRADES
     )
@@ -115,14 +141,14 @@ public class Reactor extends Venue implements Economy {
     //  First and foremost, check to see whether a meltdown is in progress, and
     //  arrest it if possible:
     final Choice choice = new Choice(actor) ;
-    if (meltdown >= 0.1f) {
+    if (meltdown > 0) {
       final Action check = new Action(
         actor, this,
         this, "actionCheckMeltdown",
         Action.LOOK,
-        meltdown < 0.5f ? "Checking core condition" : "Containing Meltdown!"
+        meltdown < 0.5f ? "Correcting core condition" : "Containing Meltdown!"
       ) ;
-      check.setPriority(Action.CRITICAL * (meltdown + 0.5f)) ;
+      check.setPriority(Action.ROUTINE * (meltdown + 1)) ;
       choice.add(check) ;
     }
     if (! personnel.onShift(actor)) return choice.weightedPick(0) ;
@@ -161,6 +187,8 @@ public class Reactor extends Venue implements Economy {
     }
     if (success) {
       meltdown -= (1f + FB) / World.STANDARD_DAY_LENGTH ;
+      if (meltdown <= 0) meltdown = 0 ;
+      if (verbose) I.say("Repairing core, meltdown level: "+meltdown) ;
     }
     return true ;
   }
@@ -217,47 +245,119 @@ public class Reactor extends Venue implements Economy {
   }
   
   
-  protected void checkMeltdownAdvance() {
+  private float meltdownChance() {
+    float chance = 1.5f - structure.repairLevel() ;
+    chance *= 1 + (stocks.demandFor(POWER) / 20f) ;
+    if (stocks.amountOf(FUEL_CORES) == 0) chance /= 5 ;
+    chance /= (1f + structure.upgradeLevel(FEEDBACK_MONITORS)) ;
+    return chance ;
+  }
+  
+  
+  private void checkMeltdownAdvance() {
     if ((! structure.intact()) && meltdown == 0) return ;
-    //
-    //  Firstly, calculate the overall risk of a meltdown occurring-
-    float meltdownChance = 1 - structure.repairLevel() ;
-    meltdownChance *= 1 + (stocks.demandFor(POWER) / 20f) ;
-    if (! isManned()) meltdownChance *= 2 ;
-    if (stocks.amountOf(FUEL_CORES) == 0) meltdownChance /= 5 ;
-    meltdownChance /= (1f + structure.upgradeLevel(FEEDBACK_MONITORS)) ;
-    //
-    //  ...and inflict any actual damage, if your luck is poor.
-    if (Rand.num() < (meltdownChance / World.STANDARD_DAY_LENGTH)) {
+    float chance = meltdownChance() / World.STANDARD_DAY_LENGTH ;
+    chance += meltdown / 10f ;
+    if (isManned()) chance /= 2 ;
+    if (Rand.num() < chance) {
       final float melt = 0.1f * Rand.num() ;
       meltdown += melt ;
+      if (verbose) I.say("  MELTDOWN LEVEL: "+meltdown) ;
       if (meltdown >= 1) performMeltdown() ;
       final float damage = melt * meltdown * 2 * Rand.num() ;
       structure.takeDamage(damage) ;
+      structure.setBurning(true) ;
     }
   }
   
   
   public void onDestruction() {
     performMeltdown() ;
+    super.onDestruction() ;
   }
   
   
   protected void performMeltdown() {
     final int safety = 1 + structure.upgradeLevel(FUSION_CONFINEMENT) ;
     //
-    //  TODO:  INTRODUCE RADIATION VALUES.
-    int radiationVal = (125 / safety) - 25 ;
+    //  Pollute the surroundings but cut back the meltdown somewhat-
+    float radiationVal = (125 / safety) - 25 ;
     radiationVal *= meltdown * Rand.avgNums(3) * 2 ;
-    //final Tile centre = world.tileAt(this) ;
     world.ecology().impingeSqualor(radiationVal, this, false) ;
-    //
-    //  TODO:  Add Explosion FX and damage nearby structures (and citizens.)
-    //
-    //  Damage the structure, but cut back the meltdown somewhat:
-    final float damage = structure.repairLevel() * structure.maxIntegrity() ;
-    structure.takeDamage(damage * meltdown / safety) ;
     meltdown /= 1 + (Rand.num() * safety) ;
+    //
+    //  Determine the range and severity of the explosion-
+    final int maxRange = 1 + (int) (radiationVal * 2 / 25f) ;
+    final float maxDamage = (5 - safety) * (5 - safety) * 20 ;
+    final Box2D area = this.area(null).expandBy(maxRange) ;
+    final Batch <Element> inRange = new Batch <Element> () ;
+    //
+    //  Then, deal with all the surrounding terrain-
+    doDamageTo(this, maxDamage, radiationVal, maxRange, inRange) ;
+    for (Tile t : world.tilesIn(area, true)) {
+      final float dist = (Spacing.distance(t, this) - 2) / (maxRange - 2) ;
+      if (dist > 1) continue ;
+      //
+      //  Change the underlying terrain type-
+      if (Rand.num() < 1 - dist) {
+        if (Rand.index(10) != 0 && Rand.num() < (0.5f - dist)) {
+          world.terrain().setHabitat(t, Habitat.BLACK_WASTES) ;
+        }
+        else world.terrain().setHabitat(t, Habitat.BARRENS) ;
+      }
+      //
+      //  And deal damage to nearby objects-
+      if (t.owner() != null && t.flaggedWith() == null) {
+        doDamageTo(t.owner(), maxDamage, radiationVal, maxRange, inRange) ;
+      }
+      for (Mobile m : t.inside()) if (m.flaggedWith() == null) {
+        doDamageTo(m, maxDamage, radiationVal, maxRange, inRange) ;
+      }
+    }
+    for (Mobile m : inside()) if (m.flaggedWith() == null) {
+      doDamageTo(m, maxDamage, radiationVal, maxRange, inRange) ;
+    }
+    for (Element e : inRange) e.flagWith(null) ;
+    //
+    //  Add explosion FX-
+    int multFX = 3 ; while (multFX -- > 0) {
+      final MoteFX blastFX = new MoteFX(
+        BuildingSprite.BLAST_MODEL.makeSprite()
+      ) ;
+      blastFX.scale = this.size * (multFX + 1) / 3f ;
+      blastFX.animTime = 2.0f ;
+      blastFX.update() ;
+      this.viewPosition(blastFX.position) ;
+      world.ephemera.addGhost(null, blastFX.scale, blastFX, 2.0f) ;
+    }
+  }
+  
+  
+  private void doDamageTo(
+    Element e, float maxDamage, float radiation, float maxRange,
+    Batch <Element> inRange
+  ) {
+    e.flagWith(inRange) ;
+    inRange.add(e) ;
+    final float dist = Spacing.distance(this, e) / maxRange ;
+    final float damage = maxDamage * (1 - dist) ;
+    if (e instanceof Installation) {
+      ((Installation) e).structure().takeDamage(damage) ;
+    }
+    else if (e instanceof Actor) {
+      final Actor a = (Actor) e ;
+      a.health.takeInjury(damage) ;
+      a.traits.setLevel(POISONED, radiation / 10f) ;
+      //
+      //  TODO:  Allow for cancer or mutation?
+    }
+    else if (e instanceof Wreckage) return ;
+    else if (Rand.num() < damage / 10) e.setAsDestroyed() ;
+  }
+  
+  
+  public void setMeltdown(float melt) {
+    meltdown = melt ;
   }
   
   
@@ -274,11 +374,25 @@ public class Reactor extends Venue implements Economy {
   
   /**  Rendering and interface-
     */
-  public String fullName() {
-    return "Generator" ;
+  public void writeInformation(Description d, int categoryID, HUD UI) {
+    super.writeInformation(d, categoryID, UI) ;
+    if (categoryID == 0) {
+      final float risk = meltdownChance() + meltdown ;
+      final int nR = RISK_DESC.length ;
+      final String descR = RISK_DESC[Visit.clamp((int) (risk * nR), nR)] ;
+      d.append("\n\n  Meltdown risk: "+descR) ;
+      final int nC = CORE_DESC.length ;
+      final String descC = CORE_DESC[Visit.clamp((int) (meltdown * nC), nC)] ;
+      d.append("\n  Core condition: "+descC) ;
+    }
   }
   
   
+  public String fullName() {
+    return "Generator" ;
+  }
+
+
   public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/reactor_button.gif") ;
   }
@@ -287,7 +401,7 @@ public class Reactor extends Venue implements Economy {
   public String helpInfo() {
     return
       "The Generator provides a copious supply of power to your settlement "+
-      "and is essential to manufacturing atomics or antimatter, but can "+
+      "and is essential to manufacturing atomics or antimass, but can "+
       "also be a dangerous liability." ;
   }
   

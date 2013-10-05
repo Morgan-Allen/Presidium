@@ -125,9 +125,14 @@ public class Resting extends Plan implements Economy {
   
   
   public boolean actionRest(Actor actor, Boardable place) {
-    //  TODO:  If you're in a Cantina, you'll have to pay the
-    //  admission fee.
-    ///I.sayAbout(actor, "ACTOR NOW RESTING") ;
+    //
+    //  If you're in a Cantina, pay the lodging fee-
+    if (place instanceof Cantina) {
+      final Cantina c = (Cantina) place ;
+      final float price = c.priceLodgings() ;
+      actor.gear.incCredits(-price) ;
+      c.stocks.incCredits(price) ;
+    }
     actor.health.setState(ActorHealth.STATE_RESTING) ;
     return true ;
   }
@@ -176,9 +181,12 @@ public class Resting extends Plan implements Economy {
       baseRating += 4 ;
     }
     else if (point instanceof Cantina) {
-      //  Modify this by the cost of paying for accomodations, and whether
-      //  there's space available.
+      final int price = (int) ((Cantina) point).priceLodgings() ;
+      if (price > actor.gear.credits() / 2) return 0 ;
+      //
+      //  TODO:  Ensure the place has space available.
       baseRating += 3 ;
+      baseRating -= actor.mind.greedFor(price) * ROUTINE ;
     }
     else if (point == actor.mind.work()) {
       baseRating += 2 ;

@@ -15,7 +15,7 @@ import src.util.* ;
 
 
 
-public class Combat extends Plan implements SkillsAndTraits {
+public class Combat extends Plan implements Aptitudes {
   
   
   /**  Data fields, constructors and save/load methods-

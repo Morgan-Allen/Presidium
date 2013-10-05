@@ -12,7 +12,7 @@ import src.util.* ;
 //
 //  TODO:  SPLIT THIS INTO DIFFERENT CLASSES
 
-public class Wording implements SkillsAndTraits {
+public class Wording implements Aptitudes {
   
   
   

@@ -34,8 +34,9 @@ public class VenuePersonnel {
     */
   final static int
     REFRESH_INTERVAL = 10,
-    AUDIT_INTERVAL   = World.STANDARD_DAY_LENGTH ;
+    AUDIT_INTERVAL   = World.STANDARD_DAY_LENGTH / 10 ;
   
+  private static boolean verbose = false ;
   
   
   final Venue venue ;
@@ -184,25 +185,27 @@ public class VenuePersonnel {
   protected void allocateWages() {
     if (venue.privateProperty()) return ;
     
-    I.sayAbout(venue, venue+" ALLOCATING WAGES, "+positions.size()+" WORK?") ;
-    
-    I.sayAbout(venue, "  CREDITS ARE: "+venue.stocks.credits()) ;
+    if (verbose && I.talkAbout == venue) {
+      I.say(venue+" ALLOCATING WAGES, "+positions.size()+" WORK?") ;
+      I.say("  CREDITS ARE: "+venue.stocks.credits()) ;
+    }
     //
     //  Firstly, allocate basic salary plus minimum wage.  (Ruler-class
     //  citizens receive no wage, drawing directly on the resources of the
     //  state.)  TODO:  Should that be the case...?
     float sumWages = 0 ;
-    for (Position p : positions) if (p.wages > 0) {
+    for (Position p : positions) if (p.wages >= 0) {
       if (p.role.standing == Background.RULER_CLASS) {
         p.wages = 0 ;
         continue ;
       }
-      float wage = (p.salary + Auditing.BASE_ALMS_PAY) / 10f ;
+      float wage = (p.salary / 10f) + Auditing.BASE_ALMS_PAY ;
       if (p.role.guild == Background.GUILD_MILITANT) {
         wage *= Auditing.MILITANT_BONUS ;
       }
       wage *= AUDIT_INTERVAL * 1f / World.STANDARD_DAY_LENGTH ;
       p.wages += wage ;
+      if (verbose) I.sayAbout(venue, "Wages for "+p.works+" are: "+p.wages) ;
       sumWages += wage ;
     }
     venue.stocks.incCredits(0 - sumWages) ;
@@ -231,7 +234,7 @@ public class VenuePersonnel {
     final Base base = venue.base() ;
     final float balance = venue.stocks.credits() ;
     final float waste = (Rand.num() + base.crimeLevel()) / 2f ;
-    I.sayAbout(venue, "   BALANCE IS: "+balance+", waste: "+waste) ;
+    if (verbose) I.sayAbout(venue, "   BALANCE/WASTE: "+balance+"/"+waste) ;
     final int
       profit = (int) (balance / (1 + waste)),
       losses = (int) ((0 - balance) * (1 + waste)) ;
@@ -247,7 +250,7 @@ public class VenuePersonnel {
     }
     venue.stocks.taxDone() ;
     
-    if (I.talkAbout == venue) for (Position p : positions) {
+    if (verbose && I.talkAbout == venue) for (Position p : positions) {
       if (p.wages > 0) I.say(p.works+" has "+p.wages+" credits in wages") ;
     }
   }
@@ -269,19 +272,6 @@ public class VenuePersonnel {
       return ;
     }
   }
-  
-  
-  /*
-  protected void checkWagePayment() {
-    for (Position p : positions) {
-      if (p.works.aboard() == venue && p.wages > 0) {
-        I.say("DISPENSING "+p.wages+" CREDITS IN WAGES TO "+p.works) ;
-        p.works.gear.incCredits(p.wages) ;
-        p.wages = 0 ;
-      }
-    }
-  }
-  //*/
   
   
   

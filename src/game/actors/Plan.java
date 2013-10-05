@@ -25,6 +25,8 @@ public abstract class Plan implements Saveable, Behaviour {
   
   /**  Fields, constructors, and save/load methods-
     */
+  private static boolean verbose = false ;
+  
   final Saveable signature[] ;
   final int hash ;
   protected Actor actor ;
@@ -114,8 +116,10 @@ public abstract class Plan implements Saveable, Behaviour {
 
   public void abortBehaviour() {
     if (! begun()) return ;
-    I.sayAbout(actor, "\n"+actor+" Aborting plan! "+this+" "+this.hashCode()) ;
-    ///if (I.talkAbout == actor) new Exception().printStackTrace() ;
+    if (verbose && I.talkAbout == actor) {
+      I.say("\n"+actor+" Aborting plan! "+this+" "+this.hashCode()) ;
+      new Exception().printStackTrace() ;
+    }
     nextStep = null ;
     actor.mind.cancelBehaviour(this) ;
   }
@@ -123,8 +127,9 @@ public abstract class Plan implements Saveable, Behaviour {
   
   public Behaviour nextStepFor(Actor actor) {
     if (this.actor != actor) {
+      if (this.actor != null) ;  //TODO:  Give some kind of message here?
       this.actor = actor ;
-      return nextStep = null ;
+      nextStep = null ;
     }
     if (! valid()) { onceInvalid() ; return nextStep = null ; }
     //
@@ -195,7 +200,7 @@ public abstract class Plan implements Saveable, Behaviour {
     final Tile at = actor.world().tileAt(t) ;
     float danger = actor.base().dangerMap.valAt(at) ;
     if (danger < 0) return 0 ;
-    danger *= actor.traits.scaleLevel(SkillsAndTraits.NERVOUS) ;
+    danger *= actor.traits.scaleLevel(Aptitudes.NERVOUS) ;
     return danger * 0.1f / (1 + Combat.combatStrength(actor, null)) ;
   }
   

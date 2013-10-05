@@ -33,15 +33,17 @@ public class Choice {
   
   
   public boolean add(Behaviour plan) {
-    if (
-      plan == null || plan.finished() ||
-      plan.nextStepFor(actor) == null ||
-      plan.priorityFor(actor) == 0
-    ) {
+    if (plan == null) return false ;
+    final boolean finished = plan.finished() ;
+    final float priority = plan.priorityFor(actor) ;
+    final Behaviour nextStep = plan.nextStepFor(actor) ;
+    
+    if (finished || priority <= 0 || nextStep == null) {
       if (reportRejects && plan != null && I.talkAbout == actor) {
-        I.say("  Rejected: "+plan) ;
-        I.say("  Finished/valid: "+plan.finished()+"/"+plan.valid()) ;
-        I.say("  Next step: "+plan.nextStepFor(actor)) ;
+        I.say("  Rejected option: "+plan) ;
+        I.say("  Priority: "+priority) ;
+        I.say("  Finished/valid: "+finished+"/"+plan.valid()) ;
+        I.say("  Next step: "+nextStep) ;
       }
       return false ;
     }

@@ -15,7 +15,7 @@ import src.util.* ;
 
 
 
-public class Career implements SkillsAndTraits {
+public class Career implements Aptitudes {
   
   
   

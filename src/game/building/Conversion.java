@@ -86,7 +86,7 @@ public class Conversion implements Economy {
     skills = new Skill[s.loadInt()] ;
     skillDCs = new float[skills.length] ;
     for (int i = 0 ; i < skills.length ; i++) {
-      skills[i] = (Skill) SkillsAndTraits.ALL_TRAIT_TYPES[s.loadInt()] ;
+      skills[i] = (Skill) Aptitudes.ALL_TRAIT_TYPES[s.loadInt()] ;
       skillDCs[i] = s.loadFloat() ;
     }
     venueType = s.loadClass() ;

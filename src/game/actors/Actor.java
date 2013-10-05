@@ -128,7 +128,7 @@ public abstract class Actor extends Mobile implements
     }
     
     final Behaviour root = mind.rootBehaviour() ;
-    if (root.finished()) {
+    if (root != null && root.finished()) {
       if (verbose) I.sayAbout(this, "  "+this+" ABORTING: "+root) ;
       mind.cancelBehaviour(root) ;
     }

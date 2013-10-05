@@ -124,7 +124,7 @@ public class HoldingUpgrades implements Economy {
       MODERATE_DC, ASSEMBLY
     ),
     new Conversion(
-      2, PARTS, 2, POWER, 2, PLASTICS, 1, WATER, 1, CIRCUITRY, 1, DATALINKS,
+      2, PARTS, 2, POWER, 2, PLASTICS, 1, WATER, 1, CIRCUITRY,// 1, DATALINKS,
       DIFFICULT_DC, ASSEMBLY
     ),
   } ;
@@ -354,8 +354,8 @@ public class HoldingUpgrades implements Economy {
   final static int SAFETY_NEEDS[] = {
     -15,
     -5,
-    5,
-    5,
+    0,
+    2,
     5
   } ;
   final static int AMBIENCE_NEEDS[] = {

@@ -32,7 +32,7 @@ import src.util.* ;
 //  TODO:  You want the chat FX to persist a while after expiry.
 
 
-public class Dialogue extends Plan implements SkillsAndTraits {
+public class Dialogue extends Plan implements Aptitudes {
   
   
   

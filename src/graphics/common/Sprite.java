@@ -51,6 +51,7 @@ public abstract class Sprite implements Rendering.Client {
   
   public void matchTo(Sprite s) {
     position.setTo(s.position) ;
+    scale = s.scale ;
     fog = s.fog ;
     colour = s.colour ;
   }

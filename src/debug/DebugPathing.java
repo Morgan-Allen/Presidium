@@ -58,7 +58,7 @@ public class DebugPathing extends PlayLoop implements Economy {
   /**  Setup and initialisation-
     */
   protected boolean loadedAtStartup() {
-    ///if (true) return false ;
+    //if (true) return false ;
     try {
       PlayLoop.loadGame("saves/test_pathing.rep") ;
       final Base base = PlayLoop.played() ;
@@ -105,26 +105,19 @@ public class DebugPathing extends PlayLoop implements Economy {
   protected void configureScenario(World world, Base base, HUD HUD) {
     I.say("Configuring world...") ;
     
-    
     base.incCredits(10000) ;
-    //GameSettings.noFog = true ;
+    GameSettings.noFog = true ;
     GameSettings.hireFree = true ;
     GameSettings.buildFree = true ;
+    PlayLoop.setGameSpeed(1.0f) ;
     
-    /*
-    final StockExchange EA = new StockExchange(base) ;
-    DebugBehaviour.establishVenue(EA, 5, 5, true) ;
-    EA.stocks.bumpItem(DECOR, 50) ;
+    final Reactor venue = new Reactor(base) ;
+    DebugBehaviour.establishVenue(venue, 12,  4, true) ;
+    venue.stocks.bumpItem(FUEL_CORES, 200) ;
+    venue.structure.takeDamage(venue.structure.maxIntegrity() * 0.99f) ;
+    venue.setMeltdown(1.0f) ;
     
-    final StockExchange EB = new StockExchange(base) ;
-    DebugBehaviour.establishVenue(EB, 15, 5, true) ;
-    EB.stocks.forceDemand(DECOR, 5000, 0) ;
-    //*/
-    
-    final BotanicalStation BS = new BotanicalStation(base) ;
-    DebugBehaviour.establishVenue(BS, 10, 15, true) ;
-    
-    ((BaseUI) HUD).selection.pushSelection(BS, true) ;
+    ((BaseUI) HUD).selection.pushSelection(venue, true) ;
   }
   
   
@@ -205,7 +198,6 @@ public class DebugPathing extends PlayLoop implements Economy {
     */
   public static void highlightPlace() {
     final Tile t = ((BaseUI) currentUI()).selection.pickedTile() ;
-    ////I.say("Picked tile is: "+t) ;
     if (t == null) return ;
     
     final Tile placeTiles[] = world().pathingCache.placeTiles(t) ;

@@ -31,7 +31,7 @@ public class Condition extends Trait {
     Table effects,
     String... names
   ) {
-    super(SkillsAndTraits.CONDITION, names) ;
+    super(Aptitudes.CONDITION, names) ;
     this.latency   = latency   ;
     this.virulence = virulence ;
     this.spread    = spread    ;
@@ -65,7 +65,7 @@ public class Condition extends Trait {
     final Tile o = actor.origin() ;
     final float squalor = actor.world().ecology().squalorRating(o) ;
     
-    for (Object d : SkillsAndTraits.SPONTANEOUS_DISEASE) {
+    for (Object d : Aptitudes.SPONTANEOUS_DISEASE) {
       final Condition c = (Condition) d ;
       //
       //  Let's say that under average squalor, you have a 10% chance of
@@ -102,6 +102,7 @@ public class Condition extends Trait {
   public void affect(Actor a) {
     //
     //  TODO:  Give a mild recovery bonus to younger actors.
+    final float ageBonus = 1.5f - a.health.ageLevel() ;
     
     //
     //  If this is contagious, consider spreading to nearby actors.
@@ -125,6 +126,11 @@ public class Condition extends Trait {
     //
     //  TODO:  You'll need to give the host some kind of 'acquired immunity',
     //  or the trait might never go away.  Use the bonus system for this.
+    
+    //
+    //  Okay.  As the disease progresses, the trait advances.  As immune
+    //  response accrues, the bonus to it decreases.  Once the disease is gone,
+    //  the bonus is transformed into a permanent immunity.
     
     
     float immunePenalty = 5 * (3 - a.traits.traitLevel(this)) ;

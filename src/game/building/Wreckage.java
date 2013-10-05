@@ -69,22 +69,21 @@ public class Wreckage extends Fixture {
   /**  Physical properties, placement and behaviour-
     */
   public static void reduceToSlag(Box2D area, World world) {
+    final int maxSize = (int) (area.xdim() / 2) ;
+    
     for (Tile t : world.tilesIn(area, true)) {
-      //  TODO:  Allow for 2x2 wreckage here...
-      final Wreckage heap = new Wreckage(false, 1) ;
-      heap.enterWorldAt(t.x, t.y, world) ;
+      if (t.owner() != null) continue ;
+      int size = 2 + Rand.index(maxSize) ;
+      
+      while (size-- > 0) {
+        final Wreckage heap = new Wreckage(false, size) ;
+        heap.setPosition(t.x, t.y, world) ;
+        if (! heap.area().containedBy(area)) continue ;
+        if (! heap.canPlace()) continue ;
+        heap.enterWorldAt(t.x, t.y, world) ;
+        break ;
+      }
     }
-  }
-  
-  
-  public void onGrowth(Tile t) {
-    if (permanent) return ;
-    setAsDestroyed() ;
-  }
-  
-  
-  public void exitWorld() {
-    super.exitWorld() ;
   }
   
   

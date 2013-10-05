@@ -12,7 +12,7 @@ import src.util.* ;
 
 
 
-public class Performance extends Plan implements SkillsAndTraits {
+public class Performance extends Plan implements Aptitudes {
   
   
   /**  Data fields, setup and save/load functions-

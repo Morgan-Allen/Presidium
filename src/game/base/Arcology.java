@@ -153,6 +153,11 @@ public class Arcology extends Segment {
     
   }
   
+  
+  protected void updatePaving(boolean inWorld) {
+    base().paving.updatePerimeter(this, inWorld) ;
+  }
+  
 
 
   /**  Rendering and interface methods-

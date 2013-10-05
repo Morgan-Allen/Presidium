@@ -296,7 +296,8 @@ public final class Tile implements
   
   
   public String toString() {
-    return habitat.name+" at X"+x+" Y"+y+"" ;
+    if (habitat == null) return "Tile at X"+x+" Y"+y ;
+    return habitat.name+" at X"+x+" Y"+y ;
   }
   
   

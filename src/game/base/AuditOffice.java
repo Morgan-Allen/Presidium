@@ -23,6 +23,9 @@ import src.util.* ;
 //  the evaluation of total housing values.  This keeps prices more-or-less
 //  constant.  This happens at the Audit Office, directly.
 
+//  PRESSFEED INCREASES EFFECTIVE AMBIENCE!  Up to +2, let's say, depending on
+//  quality.
+
 
 public class AuditOffice extends Venue implements Economy {
   
@@ -134,13 +137,12 @@ public class AuditOffice extends Venue implements Economy {
     if (! isManned()) needPower = 0 ;
     stocks.forceDemand(POWER, needPower, VenueStocks.TIER_CONSUMER) ;
     stocks.bumpItem(POWER, needPower * -0.1f) ;
-    
     //
     //  TODO:  Output additional credits if you have the plastics for it, and
     //  the right upgrades, and the wealth of the settlement merits it.  (But
     //  if it's being printed physically, how do you distribute it?)
-    
     stocks.translateDemands(1, PLASTICS_TO_PRESSFEED) ;
+    world.ecology().impingeSqualor(-2, this, true) ;
   }
   
   

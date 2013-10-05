@@ -24,8 +24,7 @@ public class MoteFX extends SFX {
   } ;
   
   public ImageSprite mote ;
-  public float progress = 0 ;
-  //public int labelID = -1 ;
+  public float progress = 0, animTime = -1 ;
   
   
   
@@ -37,6 +36,14 @@ public class MoteFX extends SFX {
     this.mote = (ImageSprite) mote ;
   }
   
+  
+  public void update() {
+    super.update() ;
+    if (animTime != -1) {
+      progress += 1f / (25 * animTime) ;
+      if (progress > 1) progress = 1 ;
+    }
+  }
   
   
   //final static int DISABLES[] = { GL11.GL_DEPTH_TEST } ;

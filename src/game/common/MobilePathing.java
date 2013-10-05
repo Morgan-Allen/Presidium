@@ -62,13 +62,15 @@ public class MobilePathing {
   
   private boolean checkEndPoint(Boardable b) {
     final boolean
+      exists = b.inWorld(),
       allows = b.allowsEntry(mobile),
       blocks = mobile.blockedBy(b) ;
-    if (allows && ! blocks) return true ;
+    if (exists && allows && ! blocks) return true ;
     if (verbose && I.talkAbout == mobile) {
       I.say("Problem with end point: "+b) ;
-      I.say("  Blocks passage? "+blocks) ;
+      I.say("  Still in world? "+exists ) ;
       I.say("  Forbids entry? "+! allows) ;
+      I.say("  Blocks passage? "+blocks ) ;
     }
     return false ;
   }

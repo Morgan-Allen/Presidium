@@ -65,7 +65,7 @@ import src.util.* ;
 //  and venues for consideration.
 
 
-public class HumanAI extends ActorAI implements SkillsAndTraits {
+public class HumanAI extends ActorAI implements Aptitudes {
   
   
   

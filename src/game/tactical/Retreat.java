@@ -209,8 +209,8 @@ public class Retreat extends Plan implements Aptitudes {
     if (! (t instanceof Venue)) return 1 ;
     final Venue haven = (Venue) t ;
     float rating = 1 ;
-    if (haven.getClass() == prefClass) rating *= 2 ;
-    if (haven.base() == actor.base()) rating *= 2 ;
+    if (haven.getClass() == prefClass) rating *= 4 ;
+    if (haven.base() == actor.base()) rating *= 3 ;
     if (haven == actor.mind.home()) rating *= 2 ;
     final int SS = World.SECTOR_SIZE ;
     rating *= SS / (SS + Spacing.distance(actor, haven)) ;

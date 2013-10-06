@@ -142,6 +142,11 @@ public class HoldingExtra extends Fixture implements TileConstants {
   ) {
     final int sideSize = holding.size ;
     final World world = holding.world() ;
+    
+    if (holding.upgradeLevel() == HoldingUpgrades.LEVEL_TENT) {
+      if (extras.size() > 0) removeExtras(holding, extras) ;
+      return ;
+    }
     if (extras.size() >= sideSize) return ;
     //
     //  If you don't have enough extras yet, see if there's space for some on

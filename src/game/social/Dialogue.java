@@ -201,6 +201,12 @@ public class Dialogue extends Plan implements Aptitudes {
       else forOther.location = location ;
       
       forOther.stage = this.stage = STAGE_TALKING ;
+      
+      final Behaviour root = other.mind.rootBehaviour() ;
+      I.sayAbout(other, other+" obliged to chat with "+actor) ;
+      I.sayAbout(other, "Old priority "+root.priorityFor(other)) ;
+      I.sayAbout(other, "New priority "+forOther.priorityFor(other)) ;
+      
       other.mind.assignBehaviour(forOther) ;
       return true ;
     }

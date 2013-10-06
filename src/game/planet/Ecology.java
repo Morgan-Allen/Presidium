@@ -36,7 +36,7 @@ public class Ecology {
     "Paradise"
   } ;
   
-  private static boolean verbose = true ;
+  private static boolean verbose = false ;
   
   
   final World world ;

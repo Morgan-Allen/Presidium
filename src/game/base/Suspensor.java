@@ -16,6 +16,10 @@ import src.util.* ;
 //  TODO:  Only disappear once inside a venue.  Otherwise, stay where you are,
 //  and wait for someone to pick you up.
 
+//
+//  TODO:  Have this extend the Vehicle class, and be open-plan?  ...Yeah.
+//  That can work.
+
 public class Suspensor extends Mobile {
   
   
@@ -66,6 +70,21 @@ public class Suspensor extends Mobile {
   /**  Performing regular updates-
     */
   public void updateAsScheduled(int numUpdates) {
+  }
+  
+  
+  public static boolean canCarry(Actor carries, Actor actor) {
+    if (carries == null || actor == null) return false ;
+    for (Mobile m : actor.aboard().inside()) {
+      if (m instanceof Suspensor) {
+        final Suspensor s = (Suspensor) m ;
+        if (s.passenger == actor) {
+          if (s.followed == carries) return true ;
+          return false ;
+        }
+      }
+    }
+    return true ;
   }
   
   

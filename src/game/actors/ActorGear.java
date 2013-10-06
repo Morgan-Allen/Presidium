@@ -32,6 +32,8 @@ public class ActorGear extends Inventory implements Economy {
     MAX_FOOD_TYPES = 5,
     MAX_FUEL_CELLS = 5 ;
   
+  private static boolean verbose = false ;
+  
   
   final Actor actor ;
   float baseDamage, baseArmour ;
@@ -85,10 +87,12 @@ public class ActorGear extends Inventory implements Economy {
     if (Float.isNaN(credits)) credits = 0 ;
     if (Float.isNaN(taxed)) taxed = 0 ;
     
+    if (verbose) I.sayAbout(actor, "Updating gear...") ;
     if (outfit != null) regenerateShields() ;
     else currentShields = 0 ;
     for (Item item : allItems()) {
       if (item.refers instanceof Action) {
+        if (verbose) I.sayAbout(actor, "  Applying item effect: "+item.refers) ;
         ((Action) item.refers).applyEffect() ;
       }
     }

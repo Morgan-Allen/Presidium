@@ -235,10 +235,11 @@ public class Delivery extends Plan implements Economy {
     return true ;
   }
   
-  
+  /*
   public boolean finished() {
     return stage == STAGE_DONE ;
   }
+  //*/
   
   
   public void onSuspend() {
@@ -263,6 +264,10 @@ public class Delivery extends Plan implements Economy {
       else stage = STAGE_PICKUP ;
     }
     if (stage == STAGE_PICKUP) {
+      if (passenger != null && ! Suspensor.canCarry(actor, passenger)) {
+        stage = STAGE_DONE ;
+        return null ;
+      }
       final Action pickup = new Action(
         actor, (passenger == null) ? origin : passenger,
         this, "actionPickup",
@@ -323,6 +328,10 @@ public class Delivery extends Plan implements Economy {
 
   public boolean actionPickup(Actor actor, Target target) {
     if (stage != STAGE_PICKUP) return false ;
+    if (passenger != null && ! Suspensor.canCarry(actor, passenger)) {
+      stage = STAGE_DONE ;
+      return false ;
+    }
     //
     //  Vehicles get special treatment-
     if (driven != null) {
@@ -349,7 +358,9 @@ public class Delivery extends Plan implements Economy {
       suspensor.enterWorldAt(o.x, o.y, o.world) ;
       this.suspensor = suspensor ;
     }
-    if (target == passenger) suspensor.passenger = passenger ;
+    if (target == passenger) {
+      suspensor.passenger = passenger ;
+    }
     stage = STAGE_DROPOFF ;
     return true ;
   }

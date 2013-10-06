@@ -109,19 +109,21 @@ public class Holding extends Venue implements Economy {
   /**  Moderating upgrades-
     */
   public void updateAsScheduled(int numUpdates) {
+    if (numUpdates % 10 == 0 && structure.intact()) {
+      HoldingExtra.updateExtras(this, extras, numUpdates) ;
+    }
     super.updateAsScheduled(numUpdates) ;
+    
+    if (! structure.intact()) return ;
     if (personnel.residents().size() == 0) {
       structure.setState(Structure.STATE_SALVAGE, -1) ;
       return ;
     }
-    if (! structure.intact()) return ;
-    
     consumeMaterials() ;
     updateDemands(upgradeLevel + 1) ;
     impingeSqualor() ;
     
     if (numUpdates % 10 == 0) {
-      HoldingExtra.updateExtras(this, extras, numUpdates) ;
       //
       //  Check to see if you're due for an upgrade or downgrade-
       boolean devolve = false, upgrade = false ;
@@ -146,10 +148,11 @@ public class Holding extends Venue implements Economy {
     if (meetLevel > HoldingUpgrades.LEVEL_GUILDER) return false ;
     final Object met = HoldingUpgrades.NEEDS_MET ;
     return
-      HoldingUpgrades.checkAccess   (this, meetLevel) == met &&
-      HoldingUpgrades.checkMaterials(this, meetLevel) == met &&
-      HoldingUpgrades.checkRations  (this, meetLevel) == met &&
-      HoldingUpgrades.checkSurrounds(this, meetLevel) == met ;
+      HoldingUpgrades.checkAccess   (this, meetLevel, false) == met &&
+      HoldingUpgrades.checkMaterials(this, meetLevel, false) == met &&
+      HoldingUpgrades.checkSupport  (this, meetLevel, false) == met &&
+      HoldingUpgrades.checkRations  (this, meetLevel, false) == met &&
+      HoldingUpgrades.checkSurrounds(this, meetLevel, false) == met ;
   }
   
   
@@ -202,6 +205,8 @@ public class Holding extends Venue implements Economy {
     for (Item i : HoldingUpgrades.materials(targetLevel).raw) {
       stocks.forceDemand(i.type, i.amount + 0.5f, VenueStocks.TIER_CONSUMER) ;
     }
+    final float supportNeed = HoldingUpgrades.supportNeed(this, targetLevel) ;
+    stocks.forceDemand(LIFE_SUPPORT, supportNeed, VenueStocks.TIER_CONSUMER) ;
     for (Item i : HoldingUpgrades.rationNeeds(this, targetLevel)) {
       stocks.forceDemand(i.type, i.amount, VenueStocks.TIER_CONSUMER) ;
     }
@@ -330,12 +335,14 @@ public class Holding extends Venue implements Economy {
     meetLevel = Visit.clamp(meetLevel, HoldingUpgrades.NUM_LEVELS) ;
     final Object met = HoldingUpgrades.NEEDS_MET ;
     final Object
-      access    = HoldingUpgrades.checkAccess   (this, meetLevel),
-      materials = HoldingUpgrades.checkMaterials(this, meetLevel),
-      rations   = HoldingUpgrades.checkRations  (this, meetLevel),
-      surrounds = HoldingUpgrades.checkSurrounds(this, meetLevel) ;
+      access    = HoldingUpgrades.checkAccess   (this, meetLevel, true),
+      materials = HoldingUpgrades.checkMaterials(this, meetLevel, true),
+      support   = HoldingUpgrades.checkSupport  (this, meetLevel, true),
+      rations   = HoldingUpgrades.checkRations  (this, meetLevel, true),
+      surrounds = HoldingUpgrades.checkSurrounds(this, meetLevel, true) ;
     if (access    != met) return (String) access    ;
     if (materials != met) return (String) materials ;
+    if (support   != met) return (String) support   ;
     if (rations   != met) return (String) rations   ;
     if (surrounds != met) return (String) surrounds ;
     return null ;

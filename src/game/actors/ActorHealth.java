@@ -392,7 +392,7 @@ public class ActorHealth implements Aptitudes {
   
   
   public boolean asleep() {
-    return state == STATE_RESTING ;
+    return (state == STATE_RESTING) && (injuryLevel() < REVIVE_THRESHOLD) ;
   }
   
   
@@ -509,10 +509,8 @@ public class ActorHealth implements Aptitudes {
       I.say(actor+" has died of injury.") ;
       state = STATE_DEAD ;
     }
-    if (
-      state == STATE_RESTING && fatigue <= 0 &&
-      injuryLevel() < REVIVE_THRESHOLD
-    ) {
+    if (fatigue <= 0 && asleep()) {
+      if (verbose) I.sayAbout(actor, actor+" has revived!") ;
       state = STATE_ACTIVE ;
     }
     //
@@ -591,6 +589,9 @@ public class ActorHealth implements Aptitudes {
   public String stateDesc() {
     if ((state == STATE_RESTING || state == STATE_ACTIVE) && bleeds) {
       return "Bleeding" ;
+    }
+    if (state == STATE_RESTING && ! asleep()) {
+      return "Stable" ;
     }
     return STATE_DESC[state] ;
   }

@@ -20,14 +20,12 @@ import src.util.* ;
 
 
 //  Debug the vats.  Use actor-vision for more activities?
-//  Have pollution effects impact health/life-support, and possibly change the
-//  landscape.
+//  Have pollution/terraforming gradually change the landscape.
 //  
 //  Actors should call for help from allies, and need proper line of sight.
-//  Add Security and Contact missions.  Use the threatLevel() function for both
-//  retreat and attack.  Have missions modify choice priorities.
+//  Add Security and Contact missions.  Have missions modify choice priorities.
 //
-//  Add water and life support from biomass and other buildings.
+//  Spruce up the ambience/aesthetics structures, including biomass FX.
 //
 //  Tweak mechanics for diplomacy and citizen mood.  (Good relations are way
 //  too easy/quick at the moment.)
@@ -118,6 +116,7 @@ public class DebugBehaviour extends PlayLoop implements Economy {
   
   
   protected boolean loadedAtStartup() {
+    if (true) return false ;
     try {
       PlayLoop.loadGame("saves/test_session.rep") ;
       final Base base = PlayLoop.played() ;
@@ -137,9 +136,9 @@ public class DebugBehaviour extends PlayLoop implements Economy {
 
   protected void configureScenario(World world, Base base, HUD HUD) {
     //natureScenario(world, base, HUD) ;
-    baseScenario(world, base, HUD) ;
+    //baseScenario(world, base, HUD) ;
     //missionScenario(world, base, HUD) ;
-    //socialScenario(world, base, HUD) ;
+    socialScenario(world, base, HUD) ;
   }
   
   
@@ -279,23 +278,21 @@ public class DebugBehaviour extends PlayLoop implements Economy {
     base.incCredits(1000) ;
     GameSettings.noFog = true ;
     GameSettings.buildFree = true ;
+    GameSettings.hireFree = true ;
     
     final Actor actor = new Human(Background.PHYSICIAN, base) ;
-    final Actor other = new Human(Background.VETERAN, base) ;
+    final Actor other = new Human(Background.VETERAN  , base) ;
     other.health.takeInjury(other.health.maxHealth()) ;
-    ((BaseUI) UI).selection.pushSelection(actor, true) ;
     
-    actor.enterWorldAt(4, 4, world) ;
-    other.enterWorldAt(6, 6, world) ;
-    establishVenue(new Sickbay(base), 9, 2, true, actor) ;
-    /*
-    establishVenue(new Garrison(base), 2, 9, true, other) ;
-    establishVenue(new Cantina(base), 9, 9, true) ;
-    //*/
+    other.enterWorldAt(15, 6, world) ;
+    final Sickbay sickbay = new Sickbay(base) ;
+    establishVenue(sickbay, 9, 2, true, actor) ;
+    establishVenue(new CultureVats(base), 9, 8, true) ;
+    establishVenue(new VaultSystem(base), 3, 5, true) ;
     
-    final EcologyGen EG = new EcologyGen() ;
-    //EG.populateFlora(world) ;
-    ///EG.populateFauna(world, Species.VAREEN) ;
+    sickbay.stocks.bumpItem(STIM_KITS, 5) ;
+    sickbay.stocks.bumpItem(MEDICINE , 5) ;
+    ((BaseUI) UI).selection.pushSelection(other, true) ;
   }
   
   

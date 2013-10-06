@@ -205,6 +205,10 @@ public abstract class Plan implements Saveable, Behaviour {
   }
   
   
+  //
+  //  TODO:  I'm beginning to think that Plans will need to register themselves
+  //  with all their signature-components for this to work properly...
+  
   public static float competition(Class planClass, Target t, Actor actor) {
     float competition = 0 ;
     final World world = actor.world() ;

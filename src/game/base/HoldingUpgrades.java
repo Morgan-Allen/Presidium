@@ -38,7 +38,8 @@ public class HoldingUpgrades implements Economy {
     ) ;
   
   final static Object
-    NEEDS_MET = "OKAY" ;
+    NEEDS_MET = "OKAY",
+    NOT_MET   = "NOT OKAY" ;
   final static int
     LEVEL_TENT     = 0,
     LEVEL_PYON     = 1,
@@ -139,11 +140,14 @@ public class HoldingUpgrades implements Economy {
   }
   
   
-  protected static Object checkMaterials(Holding holding, int upgradeLevel) {
+  protected static Object checkMaterials(
+    Holding holding, int upgradeLevel, boolean verbose
+  ) {
     final Conversion materials = materials(upgradeLevel) ;
     
     for (Item needed : materials.raw) {
       if (holding.stocks.amountOf(needed) < needed.amount - 0.5f) {
+        if (! verbose) return NOT_MET ;
         if (upgradeLevel > holding.upgradeLevel()) return
           "This holding needs more "+needed.type+" before further development "+
           "can proceed." ;
@@ -153,6 +157,27 @@ public class HoldingUpgrades implements Economy {
       }
     }
     return NEEDS_MET ;
+  }
+  
+  
+  protected static float supportNeed(Holding holding, int upgradeLevel) {
+    final int population = holding.personnel.residents().size() ;
+    final float biomass = holding.world().ecology().globalBiomass() ;
+    return Visit.clamp(population * (1 - biomass), 0, population) ;
+  }
+  
+  
+  protected static Object checkSupport(
+    Holding holding, int upgradeLevel, boolean verbose
+  ) {
+    final float need = supportNeed(holding, upgradeLevel) ;
+    if (holding.stocks.amountOf(LIFE_SUPPORT) < need - 0.5f) {
+      if (verbose) return
+        "This holding needs more "+LIFE_SUPPORT+" to sustain it's population "+
+        "comfortably." ;
+      return NOT_MET ;
+    }
+    else return NEEDS_MET ;
   }
   
   
@@ -199,8 +224,11 @@ public class HoldingUpgrades implements Economy {
   }
   
   
-  protected static Object checkRations(Holding holding, int upgradeLevel) {
+  protected static Object checkRations(
+    Holding holding, int upgradeLevel, boolean verbose
+  ) {
     if (upgradeLevel == LEVEL_TENT) return NEEDS_MET ;
+    final boolean NV = ! verbose ;
     //
     //  1 unit of food per resident is the standard.  However, you need to have
     //  a reasonable 'balance' of food types, in terms of no less than half an
@@ -216,31 +244,31 @@ public class HoldingUpgrades implements Economy {
     //
     //  Now, check against the correct upgrade level.
     if (upgradeLevel >= LEVEL_PYON) {
-      if (numFoods < 1) return
+      if (numFoods < 1) return NV ? NOT_MET :
         "Your pyons need enough of at least one food type before they will "+
         "feel confident about settling down." ;
       else return NEEDS_MET ;
     }
     if (upgradeLevel >= LEVEL_FREEBORN) {
-      if (numFoods < 2) return
+      if (numFoods < 2) return NV ? NOT_MET :
         "Your freeborn need to have a more varied diet before they will "+
         "consider their claim here settled." ;
       else return NEEDS_MET ;
     }
     if (upgradeLevel >= LEVEL_CITIZEN) {
-      if (numFoods < 2) return
+      if (numFoods < 2) return NV ? NOT_MET :
         "Your citizens demand a more varied diet as part of their "+
         "modern lifestyle." ;
-      else if (holding.stocks.amountOf(SOMA) < min) return
+      else if (holding.stocks.amountOf(SOMA) < min) return NV ? NOT_MET :
         "Your citizens demand a supply of Soma as an aid to unwinding after "+
         "work.";
       else return NEEDS_MET ;
     }
     if (upgradeLevel >= LEVEL_GUILDER) {
-      if (numFoods < 3) return
+      if (numFoods < 3) return NV ? NOT_MET :
         "Your guilders need at least three food types to satisfy the demands "+
         "of an upper-class lifestyle." ;
-      else if (holding.stocks.amountOf(SOMA) < min) return
+      else if (holding.stocks.amountOf(SOMA) < min) return NV ? NOT_MET :
         "Your guilders consider a stock of Soma indispensible to their "+
         "leisure hours." ;
       else return NEEDS_MET ;
@@ -274,10 +302,13 @@ public class HoldingUpgrades implements Economy {
   //    inhabitant, 5 of them Pyons or better and 2 of them Citizens or better.
   
   
-  protected static Object checkAccess(Holding holding, int upgradeLevel) {
+  protected static Object checkAccess(
+    Holding holding, int upgradeLevel, boolean verbose
+  ) {
     if (upgradeLevel == LEVEL_TENT) return NEEDS_MET ;
+    final boolean NV = ! verbose ;
     if (upgradeLevel >= LEVEL_PYON) {
-      if (lacksAccess(holding, VaultSystem.class)) return
+      if (lacksAccess(holding, VaultSystem.class)) return NV ? NOT_MET :
         "Your pyons will need access to a Vault System providing shelter and "+
         "life support before they will feel safe enough to settle down." ;
     }
@@ -285,27 +316,27 @@ public class HoldingUpgrades implements Economy {
       if (
         lacksAccess(holding, StockExchange.class) &&
         lacksAccess(holding, Sickbay.class)
-      ) return
+      ) return NV ? NOT_MET :
         "Your freeborn need access to a Stock Exchange or Sickbay to ensure "+
         "they can purchase basic nutritional and medical supplements." ;
       if (
         lacksAccess(holding, Cantina.class) &&
         true  //lacksAccess(holding, Arena.class)
-      ) return
+      ) return NV ? NOT_MET :
         "Your freeborn will want access to an Arena or Cantina to distract "+
         "them from the grind of daily life." ;
     }
     if (upgradeLevel >= LEVEL_CITIZEN) {
-      if (lacksAccess(holding, StockExchange.class)) return
+      if (lacksAccess(holding, StockExchange.class)) return NV ? NOT_MET :
         "Your citizens require access to the finer goods provided by a "+
         "Stock Exchange." ;
-      if (lacksAccess(holding, Sickbay.class)) return
+      if (lacksAccess(holding, Sickbay.class)) return NV ? NOT_MET :
         "Your citizens need the peace of mind that comes with the medical "+
         "services of a Sickbay." ;
       if (
         lacksAccess(holding, AuditOffice.class) &&
         true  //lacksAccess(holding, CounselChamber.class)
-      ) return
+      ) return NV ? NOT_MET :
         "In accordance with the property requirements for office, your "+
         "citizens now require access to an Audit Office or Counsel Chamber "+
         "to represent their interests and resolve disputes." ;
@@ -317,7 +348,7 @@ public class HoldingUpgrades implements Economy {
       if (
         lacksAccess(holding, Archives.class) &&
         true //lacksAccess(holding, ChildrensCreche.class)
-      ) return
+      ) return NV ? NOT_MET :
         "Your upwardly-mobile guilders require access to an Archives or "+
         "Children's Creche to ensure a better future for their offspring." ;
     }
@@ -367,15 +398,18 @@ public class HoldingUpgrades implements Economy {
   } ;
   
   
-  protected static Object checkSurrounds(Holding holding, int upgradeLevel) {
+  protected static Object checkSurrounds(
+    Holding holding, int upgradeLevel, boolean verbose
+  ) {
+    final boolean NV = ! verbose ;
     
     float safety = 0 - holding.base().dangerMap.valAt(holding.origin()) ;
-    if (safety < SAFETY_NEEDS[upgradeLevel]) return
+    if (safety < SAFETY_NEEDS[upgradeLevel]) return NV ? NOT_MET :
       "This area feels too unsettled for your subjects' comfort, hindering "+
       "further investment in a life here." ;
     
     float ambience = 0 - holding.world().ecology().squalorRating(holding) ;
-    if (ambience < AMBIENCE_NEEDS[upgradeLevel]) return
+    if (ambience < AMBIENCE_NEEDS[upgradeLevel]) return NV ? NOT_MET :
       "The aesthetics of the area could stand improvement before the "+
       "residents will commit to improving their property." ;
     

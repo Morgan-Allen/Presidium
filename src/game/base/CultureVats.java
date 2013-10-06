@@ -23,6 +23,8 @@ public class CultureVats extends Venue implements Economy {
   
   /**  Fields, constructors, and save/load methods-
     */
+  //
+  //  TODO:  Fix this model.
   final public static Model MODEL = ImageModel.asSolidModel(
     CultureVats.class, "media/Buildings/physician/culture_vats.png", 3.66f, 3
   ) ;

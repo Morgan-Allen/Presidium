@@ -58,7 +58,7 @@ public class DebugPathing extends PlayLoop implements Economy {
   /**  Setup and initialisation-
     */
   protected boolean loadedAtStartup() {
-    //if (true) return false ;
+    if (true) return false ;
     try {
       PlayLoop.loadGame("saves/test_pathing.rep") ;
       final Base base = PlayLoop.played() ;

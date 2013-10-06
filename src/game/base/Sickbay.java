@@ -11,6 +11,7 @@ import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD;
 import src.user.* ;
+import src.util.I;
 import src.util.Index;
 
 
@@ -104,11 +105,22 @@ public class Sickbay extends Venue implements Economy {
   
   
   public Behaviour jobFor(Actor actor) {
-    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
+    if (! structure.intact()) return null ;
+    final Choice choice = new Choice(actor) ;
+    //
+    //  You should also supervise the venue if patients need looking at-
+    if (
+      numPatients() > 0 && (! personnel.onShift(actor)) &&
+      Plan.competition(Supervision.class, this, actor) == 0
+    ) {
+      final Supervision s = new Supervision(actor, this) ;
+      s.priorityMod = Plan.IDLE ;
+      choice.add(s) ;
+    }
+    if (! personnel.onShift(actor)) return choice.weightedPick(0) ;
     //
     //  If anyone is waiting for treatment, tend to them- including outside the
     //  building.
-    final Choice choice = new Choice(actor) ;
     for (Element m : actor.mind.awareOf()) if (m instanceof Actor) {
       final Actor patient = (Actor) m ;
       choice.add(new Treatment(
@@ -122,12 +134,23 @@ public class Sickbay extends Venue implements Economy {
       )) ;
     }
     //
-    //  You also need to cover treatment of the dead and crazy...
+    //  TODO:  You also need to cover treatment of the dead and crazy...
     final Behaviour picked = choice.weightedPick(actor.mind.whimsy()) ;
     if (picked != null) return picked ;
     //
     //  Otherwise, just tend the desk...
     return new Supervision(actor, this) ;
+  }
+  
+  
+  private int numPatients() {
+    int count = 0 ;
+    for (Mobile m : inside()) if (m instanceof Actor) {
+      final Actor actor = (Actor) m ;
+      if (actor.health.injuryLevel() > 0) count++ ;
+      else if (actor.health.diseased()) count++ ;
+    }
+    return count ;
   }
   
   
@@ -182,7 +205,7 @@ public class Sickbay extends Venue implements Economy {
     return
       "The Sickbay allows your citizens' injuries, diseases and trauma to be "+
       "treated quickly and effectively.  It also helps regulate population"+
-      "growth and provide basic daycare and counselling facilities." ;
+      "growth and provide basic maternity and psych evaluation facilities." ;
   }
   
   

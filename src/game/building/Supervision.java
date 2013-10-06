@@ -51,7 +51,7 @@ public class Supervision extends Plan {
     */
   public float priorityFor(Actor actor) {
     if (Plan.competition(Supervision.class, venue, actor) > 0) return 0 ;
-    return CASUAL ;
+    return CASUAL + priorityMod ;
   }
   
   

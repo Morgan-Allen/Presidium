@@ -9,12 +9,12 @@ import org.lwjgl.opengl.* ;
 
 
 
-public class DebugFog extends ViewLoop {
+public class DebugTerrain extends ViewLoop {
   
 
   
   public static void main(String a[]) {
-    DebugFog DF = new DebugFog() ;
+    DebugTerrain DF = new DebugTerrain() ;
     DF.run() ;
   }
   

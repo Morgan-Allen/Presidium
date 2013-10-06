@@ -112,7 +112,7 @@ public class HumanAI extends ActorAI implements Aptitudes {
       if (this.work == null) {
         //  TODO:  Apply for a new position.
       }
-      if (this.home == null && this.work instanceof Venue) {
+      if (this.home == null) {
         final Holding newHome = Holding.findHoldingFor(actor) ;
         if (newHome != null) {
           if (! newHome.inWorld()) newHome.doPlace(newHome.origin(), null) ;

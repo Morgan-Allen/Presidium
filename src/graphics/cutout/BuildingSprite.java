@@ -214,10 +214,8 @@ public class BuildingSprite extends GroupSprite {
       attach(scaffolding, 0, 0, 0) ;
     }
     else {
-      //
-      //  TODO:  An actual 'grey' filter would be useful here.
-      final float c = (1 + (condition * condition)) / 2f ;
-      this.colour = new Colour(c, c, c, 1) ;
+      final float c = (1 - condition) ;
+      this.fog *= (4 - (c * c)) / 4f ;
     }
   }
   
@@ -230,6 +228,7 @@ public class BuildingSprite extends GroupSprite {
   /**  Actual rendering routines-
     */
   public void renderTo(Rendering rendering) {
+    ///if (colour != null && colour.r < 1) I.say("  Colour: "+colour) ;
     super.renderTo(rendering) ;
 
     final MoteFX displayed = statusFX.atIndex(statusDisplayIndex) ;

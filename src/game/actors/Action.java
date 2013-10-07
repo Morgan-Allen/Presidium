@@ -141,6 +141,7 @@ public class Action implements Behaviour, Model.AnimNames {
   
   
   public boolean finished() {
+    if (progress == -1) return true ;
     return (inRange == 1) && (progress >= 1) ;
   }
   

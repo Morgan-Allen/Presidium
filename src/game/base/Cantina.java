@@ -18,6 +18,8 @@ import src.util.* ;
 //  TODO:  The Cantina should appear by itself once your settlement gets big
 //  enough.  It counts as private property.  (Which is why you can't get rid of
 //  the criminal element!)
+//
+//  TODO:  Citizens should be able to dine here while relaxing (for a price...)
 
 
 public class Cantina extends Venue implements Economy {
@@ -31,7 +33,7 @@ public class Cantina extends Venue implements Economy {
   ) ;
   final static String VENUE_NAMES[] = {
     "The Hive From Home",
-    "The Inverse Square",
+    "The Square In Verse",
     "Uncle Fnargex-3Zs",
     "Feynmann's Fortune",
     "The Heavenly Body",
@@ -39,6 +41,18 @@ public class Cantina extends Venue implements Economy {
     "The Zeroth Point",
     "Lensmans' Folly",
     "The Purple Haze",
+    "The Moving Earth",
+    "Eisley's Franchise",
+    "The Silver Pill",
+    "The Happy Morlock",
+    "Misery Loves Sompany",
+    "The Welcome Fnord",
+    "Nordsei's Landing",
+    "Teller's Afterglow",
+    "The Touchdown",
+    "The Missing Hour",
+    "Bailey's Casket",
+    "The Bastard House",
   } ;
   
   final static float
@@ -55,10 +69,10 @@ public class Cantina extends Venue implements Economy {
   
   private int nameID = -1 ;
   
-  final Table <Actor, Float> gambleResults = new Table <Actor, Float> () ;
   float gamblePot = 0 ;
   Actor playerBets = null ;
   int playerBetSize = 0 ;
+  final Table <Actor, Float> gambleResults = new Table <Actor, Float> () ;
   
   
   public Cantina(Base base) {
@@ -73,12 +87,27 @@ public class Cantina extends Venue implements Economy {
     super(s) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     nameID = s.loadInt() ;
+    gamblePot = s.loadFloat() ;
+    playerBets = (Actor) s.loadObject() ;
+    playerBetSize = s.loadInt() ;
+    for (int n = s.loadInt() ; n-- > 0 ;) {
+      final Actor a = (Actor) s.loadObject() ;
+      final float f = s.loadFloat() ;
+      gambleResults.put(a, f) ;
+    }
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveInt(nameID) ;
+    s.saveFloat(gamblePot) ;
+    s.saveObject(playerBets) ;
+    s.saveInt(playerBetSize) ;
+    s.saveInt(gambleResults.size()) ; for (Actor a : gambleResults.keySet()) {
+      s.saveObject(a) ;
+      s.saveFloat(gambleResults.get(a)) ;
+    }
   }
   
   
@@ -93,7 +122,7 @@ public class Cantina extends Venue implements Economy {
     */
   public Behaviour jobFor(Actor actor) {
     if (actor.vocation() == Background.SOMA_VENDOR) {
-      final Service needed[] = { SOMA, CARBS } ;
+      final Service needed[] = { SOMA, CARBS, PROTEIN, GREENS } ;
       final Delivery d = Deliveries.nextCollectionFor(
         actor, this, needed, 5, null, world
       ) ;
@@ -111,8 +140,10 @@ public class Cantina extends Venue implements Economy {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
-    stocks.forceDemand(SOMA , 5, VenueStocks.TIER_CONSUMER) ;
-    stocks.forceDemand(CARBS, 5, VenueStocks.TIER_CONSUMER) ;
+    stocks.forceDemand(SOMA   , 5, VenueStocks.TIER_CONSUMER) ;
+    stocks.forceDemand(CARBS  , 5, VenueStocks.TIER_CONSUMER) ;
+    stocks.forceDemand(PROTEIN, 5, VenueStocks.TIER_CONSUMER) ;
+    stocks.forceDemand(GREENS , 5, VenueStocks.TIER_CONSUMER) ;
     if (numUpdates % POT_INTERVAL == 0 && isManned()) splitGamblePot() ;
   }
   
@@ -137,11 +168,7 @@ public class Cantina extends Venue implements Economy {
     //return ALL_UNIQUE_ITEMS ;
     return new Service[] { SERVICE_PERFORM } ;
   }
-
-  //
-  //  Enable chance meetings with Runners, based on visitors looking for an
-  //  illegal good or service.  You could theoretically hire them for a
-  //  mission or two yourself...
+  
   
   public float priceLodgings() {
     return 20 ;
@@ -290,6 +317,29 @@ public class Cantina extends Venue implements Economy {
 
   /**  Rendering and interface methods-
     */
+  final static float GOOD_DISPLAY_OFFSETS[] = {
+    -0.00f, 1.0f,
+    -0.00f, 1.5f,
+    -0.00f, 2.0f,
+    -0.00f, 2.5f,
+  } ;
+  
+  
+  protected float[] goodDisplayOffsets() {
+    return GOOD_DISPLAY_OFFSETS ;
+  }
+  
+  
+  protected Service[] goodsToShow() {
+    return new Service[] { GREENS, PROTEIN, CARBS, SOMA } ;
+  }
+  
+  
+  protected float goodDisplayAmount(Service good) {
+    return stocks.amountOf(good) * 2 ;
+  }
+  
+  
   public Composite portrait(HUD UI) {
     return new Composite(UI, "media/GUI/Buttons/cantina_button.gif") ;
   }
@@ -303,9 +353,9 @@ public class Cantina extends Venue implements Economy {
   
   public String helpInfo() {
     return
-      "Citizens can seek lodgings or simply rest and relax at the Cantina, "+
-      "which serves as both a social focal point and a potential breeding "+
-      "ground for criminal activities." ;
+      "Citizens can seek lodgings or simply rest and relax at the Cantina. "+
+      "Though a lively hub for social activities, something about the "+
+      "atmosphere also tends to attract the criminal element." ;
   }
   
 

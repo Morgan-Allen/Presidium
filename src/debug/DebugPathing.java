@@ -58,7 +58,7 @@ public class DebugPathing extends PlayLoop implements Economy {
   /**  Setup and initialisation-
     */
   protected boolean loadedAtStartup() {
-    if (true) return false ;
+    ///if (true) return false ;
     try {
       PlayLoop.loadGame("saves/test_pathing.rep") ;
       final Base base = PlayLoop.played() ;
@@ -73,7 +73,7 @@ public class DebugPathing extends PlayLoop implements Economy {
   
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(
-      128, 0.2f,
+      32, 0.2f,
       //Habitat.OCEAN  , 0.33f,
       Habitat.ESTUARY, 0.25f,
       Habitat.MEADOW , 0.5f,
@@ -115,7 +115,7 @@ public class DebugPathing extends PlayLoop implements Economy {
     DebugBehaviour.establishVenue(venue, 12,  4, true) ;
     venue.stocks.bumpItem(FUEL_CORES, 200) ;
     venue.structure.takeDamage(venue.structure.maxIntegrity() * 0.99f) ;
-    venue.setMeltdown(1.0f) ;
+    venue.setMeltdown(0.99f) ;
     
     ((BaseUI) HUD).selection.pushSelection(venue, true) ;
   }

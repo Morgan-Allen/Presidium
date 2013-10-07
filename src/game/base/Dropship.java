@@ -34,21 +34,27 @@ public class Dropship extends Vehicle implements
   /**  Fields, constants, constructors and save/load methods-
     */
   final static String SHIP_NAMES[] = {
-    "The Rusty Mariner",
+    "The Lusty Mariner",
     "The Solar Wind",
     "The Blue Nebula",
     "The Dejah Thoris",
     "The Royal Organa",
-    "The Consort Irulan",
-    "The Century Wake",
-    "The Lacrimosa",
-    "The Firebrat",
-    "The Orion Belt",
+    "The Princess Irulan",
+    "The Century Hawk",
+    "The Business End",
+    "The Tranquillity",
+    "The Arrow of Orion",
     "The Polaris",
     "The Water Bearer",
     "The Bottle of Klein",
     "The Occam Razor",
-    "The Event Horizon"
+    "The Event Horizon",
+    "The Lacrimosa",
+    "The HMS Magellanic",
+    "The Daedalus IV",
+    "The Firebrat",
+    "The Wing and Prayer",
+    "The Prima Noctis",
   } ;
   
   

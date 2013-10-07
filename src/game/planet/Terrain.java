@@ -51,9 +51,9 @@ public class Terrain implements TileConstants, Session.Saveable {
   final Habitat
     habitats[][] ;
   private byte
-    minerals[][] ;
-  private byte
-    roadCounter[][] ;
+    minerals[][],
+    roadCounter[][],
+    dirtVals[][] ;
   
   
   final TileMask pavingMask = new TileMask() {
@@ -64,16 +64,38 @@ public class Terrain implements TileConstants, Session.Saveable {
       return true ;
     }
     public byte varID(int x, int y) {
-      //
-      //  TODO:  Base this on no. of adjacent fixtures, spaced intervals, etc.
+      //  TODO:  Base this on no. of adjacent fixtures, spaced intervals, etc?
+      return (byte) (x + y) ;
+    }
+  } ;
+  final TileMask squalorMask = new TileMask() {
+    public boolean maskAt(int x, int y) {
+      final byte ID = varsIndex[x][y] ;
+      final byte squalor = dirtVals[x][y] ;
+      return ID * squalor > 10 ;
+    }
+    public boolean nullsCount() {
+      return false ;
+    }
+    public byte varID(int x, int y) {
       return (byte) (x + y) ;
     }
   } ;
   
+  
+  
+  
+  
   private static class MeshPatch {
+    //
+    //  We use this to create a linked-list structure, so that old terrain-
+    //  patches can be faded out gradually.  Once one layer becomes fully-
+    //  opaque, we discard the previous meshes.
+    MeshPatch previous = null ;
+    float inceptTime = -1 ;
     int x, y ;
-    TerrainMesh meshes[], roadsMesh ;//, fogMesh, fogFade ;
-    boolean updateMesh, updateRoads ;
+    TerrainMesh meshes[], roadsMesh, dirtMesh ;
+    boolean updateMesh, updateRoads, updateDirt ;
   }
   
   private int patchGridSize, patchSize ;
@@ -97,6 +119,7 @@ public class Terrain implements TileConstants, Session.Saveable {
       habitats[c.x][c.y] = Habitat.ALL_HABITATS[typeIndex[c.x][c.y]] ;
     }
     this.minerals = new byte[mapSize][mapSize] ;
+    this.dirtVals = new byte[mapSize][mapSize] ;
   }
   
   
@@ -119,7 +142,9 @@ public class Terrain implements TileConstants, Session.Saveable {
       habitats[c.x][c.y] = Habitat.ALL_HABITATS[typeIndex[c.x][c.y]] ;
     }
     minerals = new byte[mapSize][mapSize] ;
+    dirtVals = new byte[mapSize][mapSize] ;
     s.loadByteArray(minerals) ;
+    s.loadByteArray(dirtVals) ;
   }
   
   
@@ -131,6 +156,7 @@ public class Terrain implements TileConstants, Session.Saveable {
     
     s.saveByteArray(roadCounter) ;
     s.saveByteArray(minerals) ;
+    s.saveByteArray(dirtVals) ;
   }
   
   
@@ -203,6 +229,16 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   public void setMinerals(Tile t, byte type, byte degree) {
     minerals[t.x][t.y] = (byte) ((type * NUM_DEGREES) + degree) ;
+  }
+  
+  
+  public void setSqualor(Tile t, byte newVal) {
+    final byte oldVal = dirtVals[t.x][t.y] ;
+    dirtVals[t.x][t.y] = newVal ;
+    if (oldVal != newVal) {
+      final MeshPatch patch = patches[t.x / patchSize][t.y / patchSize] ;
+      patch.updateDirt = true ;
+    }
   }
   
   
@@ -290,11 +326,6 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   /**  Rendering and interface methods-
     */
-  //
-  //  TODO:  If there's been a change to the meshes within a given patch, fade
-  //  in the new version more gradually!  Then you can introduce fancy terra-
-  //  forming effects, smooth changes to the road network, et cetera...
-  
   public void initPatchGrid(int patchSize) {
     this.patchSize = patchSize ;
     this.patchGridSize = mapSize / patchSize ;
@@ -303,39 +334,62 @@ public class Terrain implements TileConstants, Session.Saveable {
       final MeshPatch p = patches[c.x][c.y] = new MeshPatch() ;
       p.x = c.x * patchSize ;
       p.y = c.y * patchSize ;
-      updatePatchMesh(p) ;
-      updatePatchRoads(p) ;
+      p.updateMesh = true ;
+      p.updateRoads = true ;
+      p.updateDirt = true ;
+      updatePatch(p, -1) ;
     }
   }
   
   
-  private void updatePatchMesh(MeshPatch patch) {
-    final int x = patch.x, y = patch.y ;
-    patch.meshes = TerrainMesh.genMeshes(
-      x, y, x + patchSize, y + patchSize,
-      Habitat.BASE_TEXTURES,
-      heightVals, typeIndex, varsIndex
-    ) ;
-    animate(patch.meshes, Habitat.SHALLOWS) ;
-    animate(patch.meshes, Habitat.OCEAN   ) ;
-    /*
-    patch.fogMesh = TerrainMesh.getTexUVMesh(
-      x, y, x + patchSize, y + patchSize,
-      heightVals, mapSize
-    ) ;
-    patch.fogFade = TerrainMesh.meshAsReference(patch.fogMesh) ;
-    //*/
-    patch.updateMesh = false ;
-  }
-  
-  
-  private void updatePatchRoads(MeshPatch patch) {
-    final int x = patch.x, y = patch.y ;
-    patch.roadsMesh = TerrainMesh.genMesh(
-      x, y, x + patchSize, y + patchSize,
-      Habitat.ROAD_TEXTURE, heightVals, pavingMask
-    ) ;
-    patch.updateRoads = false ;
+  private void updatePatch(MeshPatch old, float time) {
+    if (! (old.updateMesh || old.updateRoads || old.updateDirt)) return ;
+    final int x = old.x, y = old.y ;
+    final boolean init = time == -1 ;
+    
+    final MeshPatch patch = init ? old : new MeshPatch() ;
+    if (! init) {
+      patches[x / patchSize][y / patchSize] = patch ;
+      patch.previous = old ;
+      patch.inceptTime = time ;
+      patch.x = old.x ;
+      patch.y = old.y ;
+    }
+    
+    if (old.updateMesh) {
+      patch.meshes = TerrainMesh.genMeshes(
+        x, y, x + patchSize, y + patchSize,
+        Habitat.BASE_TEXTURES,
+        heightVals, typeIndex, varsIndex
+      ) ;
+      animate(patch.meshes, Habitat.SHALLOWS) ;
+      animate(patch.meshes, Habitat.OCEAN   ) ;
+      old.updateMesh = false ;
+    }
+    else {
+      patch.meshes = new TerrainMesh[old.meshes.length] ;
+      for (int i = old.meshes.length ; i-- > 0 ;) {
+        patch.meshes[i] = TerrainMesh.meshAsReference(old.meshes[i]) ;
+      }
+    }
+    
+    if (old.updateRoads) {
+      patch.roadsMesh = TerrainMesh.genMesh(
+        x, y, x + patchSize, y + patchSize,
+        Habitat.ROAD_TEXTURE, heightVals, pavingMask
+      ) ;
+      old.updateRoads = false ;
+    }
+    else patch.roadsMesh = TerrainMesh.meshAsReference(old.roadsMesh) ;
+    
+    if (old.updateDirt) {
+      patch.dirtMesh = TerrainMesh.genMesh(
+        x, y, x + patchSize, y + patchSize,
+        Habitat.SQUALOR_TEXTURE, heightVals, squalorMask
+      ) ;
+      old.updateDirt = false ;
+    }
+    else patch.dirtMesh = TerrainMesh.meshAsReference(old.dirtMesh) ;
   }
   
   
@@ -346,14 +400,37 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   public void renderFor(Box2D area, Rendering rendering, float time) {
     if (patches == null) I.complain("PATCHES MUST BE INITIALISED FIRST!") ;
+    for (MeshPatch patch : patchesUnder(area)) updatePatch(patch, time) ;
     for (MeshPatch patch : patchesUnder(area)) {
-      if (patch.updateMesh ) updatePatchMesh (patch) ;
-      if (patch.updateRoads) updatePatchRoads(patch) ;
-      for (TerrainMesh mesh : patch.meshes) {
-        mesh.setAnimTime(time) ;
-        rendering.addClient(mesh) ;
-      }
-      if (patch.roadsMesh != null) rendering.addClient(patch.roadsMesh) ;
+      renderPatch(patch, rendering, time) ;
+    }
+  }
+  
+  
+  private void renderPatch(MeshPatch patch, Rendering rendering, float time) {
+    if (patch == null) return ;
+    final float alphaVal =
+      patch.inceptTime == -1 ? 1 :
+      ((time - patch.inceptTime) / 2f) ;
+    if (alphaVal >= 1 && patch.previous != null) {
+      patch.previous = null ;
+      patch.inceptTime = -1 ;
+    }
+    else renderPatch(patch.previous, rendering, time) ;
+    
+    final Colour colour = Colour.transparency(alphaVal) ;
+    for (TerrainMesh mesh : patch.meshes) {
+      mesh.colour = colour ;
+      mesh.setAnimTime(time) ;
+      rendering.addClient(mesh) ;
+    }
+    if (patch.roadsMesh != null) {
+      patch.roadsMesh.colour = colour ;
+      rendering.addClient(patch.roadsMesh) ;
+    }
+    if (patch.dirtMesh != null) {
+      patch.dirtMesh.colour = colour ;
+      rendering.addClient(patch.dirtMesh) ;
     }
   }
 }
@@ -361,35 +438,6 @@ public class Terrain implements TileConstants, Session.Saveable {
 
 
 
-
-
-/*
-public void renderFogFor(
-  Box2D area, Texture oldFog, Texture newFog,
-  Rendering rendering, float fogTime
-) {
-  if (oldFog == null || newFog == null) I.complain("FOG IS NULL!") ;
-  if (patches == null) I.complain("PATCHES MUST BE INITIALISED FIRST!") ;
-  
-  fogTime %= 1 ;
-  final float
-    oldFA = 1 - fogTime,
-    newFA = fogTime ;
-  for (MeshPatch patch : patchesUnder(area)) {
-    
-    patch.fogMesh.colour = Colour.transparency(oldFA) ;
-    patch.fogMesh.assignTexture(oldFog) ;
-    rendering.addClient(patch.fogMesh) ;
-    
-    patch.fogFade.colour = Colour.transparency(newFA) ;
-    patch.fogFade.assignTexture(newFog) ;
-    rendering.addClient(patch.fogFade) ;
-    
-    //patch.fogMesh.isFog = true ;
-    //patch.fogFade.isFog = true ;
-  }
-}
-//*/
 
 /**  Generates an initial texture for the whole map.
   *  TODO:  Allow for incremental updates to said texture, whenever the
@@ -448,5 +496,52 @@ private Colour avgSectorColour(int sX, int sY, int resolution) {
   }
 //*/
 
+
+
+
+/*
+public void renderFogFor(
+  Box2D area, Texture oldFog, Texture newFog,
+  Rendering rendering, float fogTime
+) {
+  if (oldFog == null || newFog == null) I.complain("FOG IS NULL!") ;
+  if (patches == null) I.complain("PATCHES MUST BE INITIALISED FIRST!") ;
+  
+  fogTime %= 1 ;
+  final float
+    oldFA = 1 - fogTime,
+    newFA = fogTime ;
+  for (MeshPatch patch : patchesUnder(area)) {
+    
+    patch.fogMesh.colour = Colour.transparency(oldFA) ;
+    patch.fogMesh.assignTexture(oldFog) ;
+    rendering.addClient(patch.fogMesh) ;
+    
+    patch.fogFade.colour = Colour.transparency(newFA) ;
+    patch.fogFade.assignTexture(newFog) ;
+    rendering.addClient(patch.fogFade) ;
+    
+    //patch.fogMesh.isFog = true ;
+    //patch.fogFade.isFog = true ;
+  }
+}
+//*/
+
+
+
+
+/*
+if (true) {
+  I.say("UPDATED PATCH AT "+x+" "+y+", time: "+time) ;
+  I.say(
+    "  Update mesh/roads/dirt? "+p.updateMesh+"/"+
+    p.updateRoads+"/"+p.updateDirt+", "+p.hashCode()
+  ) ;
+}
+      I.say(
+        "Discarding old patch at "+patch.x+" "+patch.y+
+        " "+patch.previous.hashCode()+", time: "+time
+      ) ;
+//*/
 
 

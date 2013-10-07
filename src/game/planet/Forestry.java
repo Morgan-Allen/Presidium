@@ -124,7 +124,8 @@ public class Forestry extends Plan implements Economy {
         this, "actionPlant",
         Action.BUILD, "Planting"
       ) ;
-      plants.setMoveTarget(Spacing.nearestOpenTile(toPlant, actor)) ;
+      final Tile to = Spacing.pickFreeTileAround(toPlant, actor) ;
+      plants.setMoveTarget(to) ;
       return plants ;
     }
     if (stage == STAGE_SAMPLING) {
@@ -179,9 +180,13 @@ public class Forestry extends Plan implements Economy {
     
     if (actor.traits.test(CULTIVATION, MODERATE_DC, 5f)) growStage += 0.75f ;
     if (actor.traits.test(HARD_LABOUR, ROUTINE_DC , 5f)) growStage += 0.75f ;
+    if (growStage <= 0) return false ;
     
     f.enterWorld() ;
-    f.incGrowth(growStage * (Rand.num() + 1) / 4, t.world, false) ;
+    f.incGrowth(growStage * (Rand.num() + 1) / 4, t.world, true) ;
+    
+    //
+    //  TODO:  If you still have seed left, try picking another site...
     stage = STAGE_RETURN ;
     return true ;
   }
@@ -216,7 +221,6 @@ public class Forestry extends Plan implements Economy {
   }
   
   
-
   
   /**  Utility methods for finding suitable plant/harvest targets-
     */
@@ -229,7 +233,7 @@ public class Forestry extends Plan implements Economy {
         nursery, World.SECTOR_SIZE * 2, actor.world()
       ) ;
       tried = Spacing.nearestOpenTile(tried, actor) ;
-      if (tried == null) continue ;
+      if (tried == null || tried.pathType() != Tile.PATH_CLEAR) continue ;
       
       final Flora f = new Flora(tried.habitat()) ;
       f.setPosition(tried.x, tried.y, tried.world) ;

@@ -283,8 +283,8 @@ public class Background implements Economy {
       TASE_STAFF, PHASE_BLASTER, PARTIAL_ARMOUR
     ),
     
-    RESERVIST = new Background(
-      "Reservist", "artificer_skin.gif", "militant_portrait.png",
+    TECH_RESERVE = new Background(
+      "Tech Reserve", "artificer_skin.gif", "militant_portrait.png",
       MIDDLE_CLASS, GUILD_MILITANT,
       PRACTICED, HARD_LABOUR, ASSEMBLY,
       NOVICE, ANATOMY, PHARMACY, MARKSMANSHIP,
@@ -310,7 +310,7 @@ public class Background implements Economy {
       TASE_STAFF, PHASE_BLASTER, BODY_ARMOUR
     ),
     
-    MILITARY_CIRCLES[] = { VOLUNTEER, RESERVIST, SCOUT, VETERAN }
+    MILITARY_CIRCLES[] = { VOLUNTEER, TECH_RESERVE, SCOUT, VETERAN }
   ;
   
   final public static Background

@@ -117,7 +117,7 @@ public class Bastion extends Venue implements Economy {
     if (b == Background.VETERAN) {
       return nO + 2 + structure.upgradeLevel(SECURITY_MEASURES) ;
     }
-    if (b == Background.RESERVIST) {
+    if (b == Background.TECH_RESERVE) {
       return nO + 2 + structure.upgradeLevel(LOGISTIC_SUPPORT) ;
     }
     if (b == Background.AUDITOR) {
@@ -139,7 +139,7 @@ public class Bastion extends Venue implements Economy {
     if (v == Background.VETERAN) {
       return Patrolling.securePerimeter(actor, this, world) ;
     }
-    if (v == Background.RESERVIST) {
+    if (v == Background.TECH_RESERVE) {
       return Building.getNextRepairFor(actor, Plan.CASUAL) ;
     }
     if (v == Background.AUDITOR) {
@@ -191,7 +191,7 @@ public class Bastion extends Venue implements Economy {
   
   protected Background[] careers() {
     return new Background[] {
-      Background.RESERVIST, Background.VETERAN,
+      Background.TECH_RESERVE, Background.VETERAN,
       Background.AUDITOR, Background.STEWARD
     } ;
   }

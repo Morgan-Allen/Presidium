@@ -122,7 +122,7 @@ public class Flora extends Element implements TileConstants {
     growth += inc ;
     if (growth <= 0) { setAsDestroyed() ; return ; }
     final int newGrowth = (int) growth ;
-    if (oldGrowth == newGrowth) return ;
+    if (oldGrowth == newGrowth && ! init) return ;
     
     if (inc > 0 && ! init) {
       final float moisture = origin().habitat().moisture / 10f ;
@@ -141,7 +141,7 @@ public class Flora extends Element implements TileConstants {
     final Sprite oldSprite = this.sprite() ;
     attachSprite(model.makeSprite()) ;
     setAsEstablished(false) ;
-    world.ephemera.addGhost(this, 1, oldSprite, 2.0f) ;
+    if (oldSprite != null) world.ephemera.addGhost(this, 1, oldSprite, 2.0f) ;
   }
   
   

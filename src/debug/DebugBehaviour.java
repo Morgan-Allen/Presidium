@@ -116,7 +116,7 @@ public class DebugBehaviour extends PlayLoop implements Economy {
   
   
   protected boolean loadedAtStartup() {
-    if (true) return false ;
+    //if (true) return false ;
     try {
       PlayLoop.loadGame("saves/test_session.rep") ;
       final Base base = PlayLoop.played() ;
@@ -275,6 +275,10 @@ public class DebugBehaviour extends PlayLoop implements Economy {
     *  treatment.
     */
   private void socialScenario(final World world, Base base, HUD UI) {
+    
+    //
+    //  TODO:  Transfer to DebugSituation.
+    
     base.incCredits(1000) ;
     GameSettings.noFog = true ;
     GameSettings.buildFree = true ;

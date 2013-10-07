@@ -100,10 +100,12 @@ public class Ecology {
     return s[Visit.clamp((int) (level * s.length), s.length)] ;
   }
   
+  
   public static String squalorDesc(float rating) {
     if (rating <= 0) return descFrom(AMBIENCE_DESC, 0 - rating) ;
     return descFrom(SQUALOR_DESC, rating / 2) ;
   }
+  
   
   public static String dangerDesc(float rating) {
     return descFrom(HAZARD_DESC, rating / 10f) ;
@@ -149,6 +151,7 @@ public class Ecology {
     Flora.tryGrowthAt(t.x, t.y, world, false) ;
     final Element owner = t.owner() ;
     if (owner != null) owner.onGrowth(t) ;
+    world.terrain().setSqualor(t, (byte) squalorAmount(t)) ;
   }
   
   

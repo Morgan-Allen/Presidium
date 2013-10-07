@@ -104,8 +104,9 @@ public abstract class Actor extends Mobile implements
   /**  Assigning behaviours and actions-
     */
   public void assignAction(Action action) {
-    if (I.talkAbout == this) {
-      if (verbose) I.sayAbout(this, "ASSIGNING ACTION: "+action) ;
+    if (verbose && I.talkAbout == this) {
+      I.say("  ASSIGNING ACTION: "+action) ;
+      if (action != null) I.add("  "+action.hashCode()+"\n") ;
     }
     world.activities.toggleActive(this.actionTaken, false) ;
     this.actionTaken = action ;
@@ -119,7 +120,6 @@ public abstract class Actor extends Mobile implements
   
   protected void pathingAbort() {
     if (actionTaken == null) return ;
-    if (verbose) I.sayAbout(this, "Aborting "+actionTaken) ;
     
     final Behaviour top = mind.topBehaviour() ;
     if (top != null) {
@@ -128,8 +128,13 @@ public abstract class Actor extends Mobile implements
     }
     
     final Behaviour root = mind.rootBehaviour() ;
+    if (verbose) {
+      I.sayAbout(this, "Aborting "+actionTaken) ;
+      if (actionTaken != null) I.add("  "+actionTaken.hashCode()+"\n") ;
+      I.sayAbout(this, "Root behaviour "+root) ;
+    }
     if (root != null && root.finished()) {
-      if (verbose) I.sayAbout(this, "  "+this+" ABORTING: "+root) ;
+      if (verbose) I.sayAbout(this, "  ABORTING ROOT") ;
       mind.cancelBehaviour(root) ;
     }
     

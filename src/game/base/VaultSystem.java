@@ -101,13 +101,13 @@ public class VaultSystem extends Venue implements Economy {
   
   public int numOpenings(Background b) {
     final int nO = super.numOpenings(b) ;
-    if (b == Background.RESERVIST) return nO + 2 ;
+    if (b == Background.TECH_RESERVE) return nO + 2 ;
     return 0 ;
   }
   
   
   protected Background[] careers() {
-    return new Background[] { Background.RESERVIST } ;
+    return new Background[] { Background.TECH_RESERVE } ;
   }
   
   

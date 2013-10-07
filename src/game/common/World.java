@@ -345,15 +345,14 @@ public class World {
   protected void renderTerrain(
     Batch <Section> sections, Rendering rendering, Base base
   ) {
-    for (Section section : sections) {
-      terrain.renderFor(section.area, rendering, currentTime) ;
-    }
+    float renderTime = currentTime ;
+    renderTime += PlayLoop.frameTime() / PlayLoop.UPDATES_PER_SECOND ;
     
+    for (Section section : sections) {
+      terrain.renderFor(section.area, rendering, renderTime) ;
+    }
     if (base != null && ! GameSettings.noFog) {
-      float alpha = currentTime ;
-      alpha += PlayLoop.frameTime() / PlayLoop.UPDATES_PER_SECOND ;
-      alpha /= 1 ;
-      base.intelMap.updateFogBuffers(alpha) ;
+      base.intelMap.updateFogBuffers(renderTime) ;
       rendering.addClient(base.intelMap.fogOver()) ;
     }
   }

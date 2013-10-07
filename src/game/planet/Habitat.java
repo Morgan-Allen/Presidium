@@ -167,7 +167,12 @@ public class Habitat {
     ALL_HABITATS[] = (Habitat[]) allHabs.toArray(Habitat.class) ;
   final public static Texture
     BASE_TEXTURES[] = new Texture[ALL_HABITATS.length],
-    ROAD_TEXTURE = Texture.loadTexture(TERRAIN_PATH+"road_tiles.gif") ;
+    ROAD_TEXTURE = Texture.loadTexture(
+        TERRAIN_PATH+"road_tiles.gif"
+    ),
+    SQUALOR_TEXTURE = Texture.loadTexture(
+        TERRAIN_PATH+"black_wastes_ground.png"
+    ) ;
   static {
     for (Habitat h : ALL_HABITATS) BASE_TEXTURES[h.ID] = h.baseTex ;
   }

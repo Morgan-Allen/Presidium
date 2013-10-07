@@ -793,6 +793,7 @@ public abstract class Venue extends Fixture implements
   
   public void renderFor(Rendering rendering, Base base) {
     position(buildSprite.position) ;
+    super.renderFor(rendering, base) ;
     buildSprite.updateCondition(
       structure.repairLevel(),
       structure.intact(),
@@ -802,7 +803,6 @@ public abstract class Venue extends Fixture implements
     updateItemSprites() ;
     renderHealthbars(rendering, base) ;
     renderChat(rendering, base) ;
-    super.renderFor(rendering, base) ;
   }
   
 

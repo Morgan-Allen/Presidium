@@ -18,7 +18,7 @@ import src.util.* ;
 
 
 
-public class StockExchange extends Venue implements Economy {
+public class StockExchange extends Venue implements EconomyConstants {
   
   
   /**  Data fields, constructors and save/load functionality-

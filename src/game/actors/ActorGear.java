@@ -20,7 +20,7 @@ import src.util.* ;
 
 
 
-public class ActorGear extends Inventory implements Economy {
+public class ActorGear extends Inventory implements EconomyConstants {
   
   
   final public static float

@@ -12,7 +12,7 @@ import src.util.* ;
 
 
 
-public class Retreat extends Plan implements Aptitudes {
+public class Retreat extends Plan implements AptitudeConstants {
   
   
   
@@ -166,7 +166,7 @@ public class Retreat extends Plan implements Aptitudes {
     */
   public static Target nearestHaven(Actor actor, Class prefClass) {
     //
-    //  TODO:  Use the list of venues the actor is aware of.
+    //  TODO:  Use the list of venues the actor is aware of?
     final Presences p = actor.world().presences ;
     int numC = 3 ;
     

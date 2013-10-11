@@ -27,7 +27,7 @@ import src.util.* ;
 //  quality.
 
 
-public class AuditOffice extends Venue implements Economy {
+public class AuditOffice extends Venue implements EconomyConstants {
   
 
   final public static Model MODEL = ImageModel.asSolidModel(

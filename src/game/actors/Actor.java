@@ -6,7 +6,6 @@
 
 
 package src.game.actors ;
-import src.game.base.Human ;
 import src.game.building.* ;
 import src.game.common.* ;
 import src.game.social.* ;
@@ -34,7 +33,7 @@ public abstract class Actor extends Mobile implements
   final public ActorTraits traits = new ActorTraits(this) ;
   final public ActorGear   gear   = new ActorGear  (this) ;
   
-  final public ActorAI mind = initAI() ;
+  final public ActorMind mind = initAI() ;
   private Action actionTaken ;
   private Base base ;
   
@@ -69,7 +68,7 @@ public abstract class Actor extends Mobile implements
   }
   
   
-  protected abstract ActorAI initAI() ;
+  protected abstract ActorMind initAI() ;
   
   protected MobilePathing initPathing() { return new MobilePathing(this) ; }
   
@@ -231,7 +230,7 @@ public abstract class Actor extends Mobile implements
         final Action action = mind.getNextAction() ;
         timeTaken = System.currentTimeMillis() - startTime ;
         final Behaviour newRoot = mind.rootBehaviour() ;
-
+        
         if (verbose && timeTaken > 0 && I.talkAbout == this) {
           I.say("Time taken for getting action was "+timeTaken) ;
         }
@@ -314,7 +313,7 @@ public abstract class Actor extends Mobile implements
           if (verbose) I.sayAbout(this, "Waking up for: "+root) ;
         }
       }
-      if (health.decomposed()) setAsDestroyed() ;
+      if (health.isDead()) setAsDestroyed() ;
     }
     
     //
@@ -405,7 +404,7 @@ public abstract class Actor extends Mobile implements
       healthbar.level > 0.5f
     ) return ;
     
-    if (health.deceased()) return ;
+    if (health.dying()) return ;
     healthbar.size = 25 ;
     healthbar.matchTo(sprite()) ;
     healthbar.position.z -= radius() ;

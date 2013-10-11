@@ -22,7 +22,7 @@ import src.util.* ;
 
 
 
-public class Human extends Actor implements Aptitudes {
+public class Human extends Actor implements AptitudeConstants {
   
   
   /**  Methods and constants related to preparing media and sprites-
@@ -82,7 +82,7 @@ public class Human extends Actor implements Aptitudes {
   }
   
   
-  protected ActorAI initAI() { return new HumanAI(this) ; }
+  protected ActorMind initAI() { return new HumanAI(this) ; }
   
   public Background vocation() { return career.vocation() ; }
   
@@ -294,8 +294,8 @@ public class Human extends Actor implements Aptitudes {
     }
     final Batch <Condition> conditions = traits.conditions() ;
     for (Condition c : conditions) {
-      d.append("\n  ") ;
-      d.append(traits.levelDesc(c)) ;
+      final String desc = traits.levelDesc(c) ;
+      if (desc != null) d.append("\n  "+desc) ;
     }
     if (healthDesc.size() == 0 && conditions.size() == 0) {
       d.append("\n  Okay") ;
@@ -327,8 +327,10 @@ public class Human extends Actor implements Aptitudes {
     d.append("Attributes: ") ;
     for (Skill skill : traits.attributes()) {
       final int level = (int) traits.traitLevel(skill) ;
+      final int bonus = (int) traits.effectBonus(skill) ;
       d.append("\n  "+skill.name+" "+level+" ") ;
       d.append(Skill.attDesc(level), Skill.skillTone(level)) ;
+      d.append((bonus >= 0 ? " (+" : " (-")+Math.abs(bonus)+")") ;
     }
     d.append("\n\nSkills: ") ;
     final List <Skill> sorting = new List <Skill> () {
@@ -341,10 +343,13 @@ public class Human extends Actor implements Aptitudes {
     sorting.queueSort() ;
     for (Skill skill : sorting) {
       final int level = (int) traits.traitLevel(skill) ;
-      final int rootBonus = traits.rootBonus(skill) ;
+      final int bonus = (int) (
+          traits.rootBonus(skill) +
+          traits.effectBonus(skill)
+      ) ;
       final Colour tone = Skill.skillTone(level) ;
       d.append("\n  "+skill.name+" "+level+" ", tone) ;
-      d.append((rootBonus >= 0 ? "(+" : "(-")+Math.abs(rootBonus)+")") ;
+      d.append((bonus >= 0 ? "(+" : "(-")+Math.abs(bonus)+")") ;
     }
     
     /*
@@ -363,13 +368,13 @@ public class Human extends Actor implements Aptitudes {
     d.append("Background: ") ;
     d.append("\n  "+career.birth()+" on "+career.homeworld()) ;
     d.append("\n  Trained as "+career.vocation().nameFor(this)) ;
-    //d.append("\n  "+BLOOD_TRAITS[bloodID(this)]) ;
     d.append("\n  "+traits.levelDesc(ORIENTATION)) ;
     d.append(" "+traits.levelDesc(GENDER)) ;
     d.append("\n  Age: "+health.exactAge()+" ("+health.agingDesc()+")") ;
     
-    d.appendList("\n\nAppearance: ", descTraits(traits.physique())) ;
+    d.appendList("\n\nAppearance: " , descTraits(traits.physique   ())) ;
     d.appendList("\n\nPersonality: ", descTraits(traits.personality())) ;
+    d.appendList("\n\nMutations: "  , descTraits(traits.mutations  ())) ;
     
     d.append("\n\nRelationships: ") ;
     for (Relation r : mind.relations()) {

@@ -8,7 +8,7 @@ import src.game.building.* ;
 import src.game.base.* ;
 import src.user.* ;
 import src.util.* ;
-import src.game.actors.ActorAI.* ;
+import src.game.actors.ActorMind.* ;
 
 
 

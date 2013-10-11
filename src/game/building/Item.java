@@ -16,7 +16,7 @@ import src.user.* ;
 /**  More representative of the abstract 'listing' of an item than a specific
   *  concrete object.
   */
-public class Item implements Economy {
+public class Item implements EconomyConstants {
   
   
   /**  Type definition.

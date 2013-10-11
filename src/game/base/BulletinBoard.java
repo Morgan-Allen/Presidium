@@ -19,7 +19,7 @@ import src.util.* ;
 
 
 
-public class BulletinBoard extends Venue implements Economy {
+public class BulletinBoard extends Venue implements EconomyConstants {
   
 
   final public static Model MODEL = ImageModel.asSolidModel(

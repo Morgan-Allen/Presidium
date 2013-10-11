@@ -15,7 +15,7 @@ import src.util.* ;
 
 
 
-public class Combat extends Plan implements Aptitudes {
+public class Combat extends Plan implements AptitudeConstants {
   
   
   /**  Data fields, constructors and save/load methods-
@@ -93,7 +93,7 @@ public class Combat extends Plan implements Aptitudes {
   
   public static boolean isDead(Element subject) {
     if (subject instanceof Actor)
-      return ((Actor) subject).health.deceased() ;
+      return ((Actor) subject).health.dying() ;
     if (subject instanceof Venue)
       return ((Venue) subject).structure.destroyed() ;
     return false ;
@@ -340,7 +340,7 @@ public class Combat extends Plan implements Aptitudes {
   /**  Executing the action-
     */
   public boolean actionStrike(Actor actor, Actor target) {
-    if (target.health.deceased()) return false ;
+    if (target.health.dying()) return false ;
     //
     //  You may want a separate category for animals.
     if (actor.gear.meleeWeapon()) {

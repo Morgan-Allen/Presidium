@@ -21,7 +21,7 @@ import src.util.* ;
 //  Processor already has that covered.  (That and mining of course.)
 
 
-public class BotanicalStation extends Venue implements Economy {
+public class BotanicalStation extends Venue implements EconomyConstants {
   
   
   

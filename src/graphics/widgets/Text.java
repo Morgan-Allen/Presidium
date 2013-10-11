@@ -150,6 +150,7 @@ public class Text extends UINode implements Description {
   
   
   public void appendList(String s, Object... l) {
+    if (l.length == 0) return ;
     append(s) ;
     int i = 0 ; for (Object o : l) {
       append(o) ;

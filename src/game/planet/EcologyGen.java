@@ -73,9 +73,12 @@ public class EcologyGen {
           }
         }
         
-        if (Rand.num() > distance) {
-          final Wreckage slag = new Wreckage(true, Rand.yes() ? 1 : 2) ;
-          if (tryInsertion(slag, t, wastes)) continue ;
+        if (Rand.num() > distance && Rand.index(3) == 0) {
+          final Box2D toFill = new Box2D() ;
+          final int size = 1 + Rand.index(4) ;
+          toFill.set(t.x - (size / 2), t.y - (size / 2), size, size) ;
+          toFill.cropBy(world.area()) ;
+          trySlagWithin(world, toFill) ;
         }
       }
     }
@@ -86,8 +89,6 @@ public class EcologyGen {
       barrens.add(n) ;
     }
     for (Tile t : barrens) {
-      //final Habitat h = Rand.index(10) == 0 ?
-        //Habitat.DESERT : Habitat.BARRENS ;
       world.terrain().setHabitat(t, Habitat.BARRENS) ;
       t.flagWith(null) ;
     }
@@ -98,6 +99,22 @@ public class EcologyGen {
     return allRuins ;
   }
   
+  
+  private boolean trySlagWithin(World world, Box2D toFill) {
+    
+    ///I.say("Area to fill: "+toFill) ;
+    final Fixture f = new Fixture((int) toFill.xdim(), 1) {
+      protected boolean canTouch(Element e) {
+        return true ;
+      }
+    } ;
+    f.setPosition(toFill.xpos() + 0.5f, toFill.ypos() + 0.5f, world) ;
+    if (f.canPlace() && Spacing.perimeterFits(f)) {
+      Wreckage.reduceToSlag(toFill, world) ;
+      return true ;
+    }
+    return false ;
+  }
   
   
   private boolean tryInsertion(Fixture f, Tile t, Batch <Tile> under) {

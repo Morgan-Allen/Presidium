@@ -19,7 +19,7 @@ import src.util.* ;
 
 
 
-public class Bastion extends Venue implements Economy {
+public class Bastion extends Venue implements EconomyConstants {
   
   
   

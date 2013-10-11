@@ -54,6 +54,7 @@ public final class Spacing implements TileConstants {
       maxY = (int) (minY + area.ydim() + 1),
       wide = 1 + maxX - minX,
       high = 1 + maxY - minY ;
+    ///if (wide < 3) I.say("WIDE IS: "+wide+", area: "+area) ;
     final Tile perim[] ;
     if (wide == high && wide <= 6) perim = PERIM_ARRAYS[wide - 3] ;
     else perim = new Tile[(wide + high - 2) * 2] ;

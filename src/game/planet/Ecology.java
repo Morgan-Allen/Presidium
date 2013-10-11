@@ -151,7 +151,7 @@ public class Ecology {
     Flora.tryGrowthAt(t.x, t.y, world, false) ;
     final Element owner = t.owner() ;
     if (owner != null) owner.onGrowth(t) ;
-    world.terrain().setSqualor(t, (byte) squalorAmount(t)) ;
+    //world.terrain().setSqualor(t, (byte) squalorAmount(t)) ;
   }
   
   

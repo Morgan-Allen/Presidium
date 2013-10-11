@@ -6,7 +6,7 @@
 
 
 package src.game.building ;
-import src.game.actors.Aptitudes ;
+import src.game.actors.AptitudeConstants ;
 import src.game.base.* ;
 
 
@@ -22,7 +22,7 @@ TALISMAN   = new Item.Type(C, UNIQUE, "Talisman"   , 250)
 //  TODO:  What about Tensile materials?  Antimass?
 
 
-public interface Economy extends Aptitudes {
+public interface EconomyConstants extends AptitudeConstants {
   
   
   final public static int
@@ -33,7 +33,7 @@ public interface Economy extends Aptitudes {
     FORM_OUTFIT         = 4, FO = 4,
     FORM_SERVICE        = 5, FS = 5 ;
   
-  final static Class BC = Economy.class ;
+  final static Class BC = EconomyConstants.class ;
   
   final public static Service
     //
@@ -187,7 +187,7 @@ public interface Economy extends Aptitudes {
   //  TODO:  You should have skins associated with some of these.
   final public static OutfitType
     FINERY         = new OutfitType(
-      BC, "Finery"        , 2 , 200,
+      BC, "Finery"        , 2 , 400,
       new Conversion(2, PLASTICS, Fabricator.class, 15, GRAPHIC_MEDIA)
     ),
     OVERALLS       = new OutfitType(
@@ -216,7 +216,7 @@ public interface Economy extends Aptitudes {
       new Conversion(5, PARTS, Foundry.class, 15, ASSEMBLY)
     ),
     POWER_ARMOUR   = new OutfitType(
-      BC, "Power Armour"  , 20, 250,
+      BC, "Power Armour"  , 20, 275,
       new Conversion(8, PARTS, Foundry.class, 20, ASSEMBLY)
     ),
     GOLEM_ARMOUR   = new OutfitType(
@@ -306,7 +306,7 @@ public interface Economy extends Aptitudes {
       CultureVats.class,
       ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GENE_CULTURE
     ),
-    
+    /*
     POWER_TO_SOMA = new Conversion(
       2, POWER, TO, 1, SOMA,
       CultureVats.class,
@@ -318,19 +318,34 @@ public interface Economy extends Aptitudes {
       CultureVats.class,
       MODERATE_DC, CHEMISTRY, MODERATE_DC, PHARMACY, ROUTINE_DC, GENE_CULTURE
     ),
+    //*/
     
-    SPICE_TO_SOMA = new Conversion(
-      2, POWER, 1, SPICE, 1, GREENS, TO, 10, SOMA,
+    GREENS_TO_SOMA = new Conversion(
+      2, POWER, 1, GREENS, TO, 10, SOMA,
       CultureVats.class,
       ROUTINE_DC, CHEMISTRY, SIMPLE_DC, PHARMACY
     ),
     
     SPICE_TO_MEDICINE = new Conversion(
-      5, POWER, 1, SPICE, 1, GREENS, TO, 5, MEDICINE,
+      5, POWER, 1, SPICE, TO, 5, MEDICINE,
       CultureVats.class,
       MODERATE_DC, CHEMISTRY, ROUTINE_DC, PHARMACY
+    ),
+    
+    NIL_TO_STIM_KITS = new Conversion(
+      TO, 1, STIM_KITS,
+      Sickbay.class,
+      ROUTINE_DC, PHARMACY, ROUTINE_DC, CHEMISTRY
+    ),
+    
+    PROTEIN_TO_REPLICANTS = new Conversion(
+      5, PROTEIN, 5, POWER, TO, 1, REPLICANTS,
+      CultureVats.class,
+      MODERATE_DC, GENE_CULTURE, ROUTINE_DC, CHEMISTRY, SIMPLE_DC, PHARMACY
     ) ;
 }
+
+
 
 
 

@@ -17,7 +17,7 @@ import src.util.* ;
 
 
 
-public class Foundry extends Venue implements Economy {
+public class Foundry extends Venue implements EconomyConstants {
   
   
   
@@ -106,7 +106,7 @@ public class Foundry extends Venue implements Economy {
   
   public Service[] services() {
     return new Service[] {
-      PARTS, CIRCUITRY, SHIELD_BELT,
+      PARTS, CIRCUITRY, SHIELD_BELT,  //Also Replicants!
       TASE_STAFF, PHASE_BLASTER, STUN_PISTOL,
       PARTIAL_ARMOUR, BODY_ARMOUR, GOLEM_ARMOUR
     } ;

@@ -16,7 +16,7 @@ import src.util.* ;
 
 
 
-public class Patrolling extends Plan implements TileConstants, Aptitudes {
+public class Patrolling extends Plan implements TileConstants, AptitudeConstants {
   
   
   /**  Fields, constructors, and save/load methods-
@@ -79,7 +79,7 @@ public class Patrolling extends Plan implements TileConstants, Aptitudes {
     //  Favour patrols through more dangerous areas in absolute terms, but not
     //  in relative terms.  (i.e, go where you're needed, but won't get killed.)
     float absDanger = 0, relDanger = 0 ;
-    for (Target t : patrolled) {
+    if (actor.base() != null) for (Target t : patrolled) {
       final Tile u = actor.world().tileAt(t) ;
       absDanger += actor.base().dangerMap.valAt(u) ;
       relDanger += Plan.dangerPenalty(t, actor) ;
@@ -153,8 +153,10 @@ public class Patrolling extends Plan implements TileConstants, Aptitudes {
 
 
   public boolean actionPatrol(Actor actor, Target spot) {
-    final IntelMap map = actor.base().intelMap ;
-    map.liftFogAround(spot, actor.health.sightRange() * 1.207f) ;
+    if (actor.base() != null) {
+      final IntelMap map = actor.base().intelMap ;
+      map.liftFogAround(spot, actor.health.sightRange() * 1.207f) ;
+    }
     //
     //  If you're on sentry duty, check whether you need to stand watch.
     if (type == TYPE_SENTRY_DUTY) {
@@ -177,9 +179,10 @@ public class Patrolling extends Plan implements TileConstants, Aptitudes {
   
   
   public boolean actionStandWatch(Actor actor, Target spot) {
-    final IntelMap map = actor.base().intelMap ;
-    map.liftFogAround(spot, actor.health.sightRange() * 1.414f) ;
-    
+    if (actor.base() != null) {
+      final IntelMap map = actor.base().intelMap ;
+      map.liftFogAround(spot, actor.health.sightRange() * 1.414f) ;
+    }
     return true ;
   }
   

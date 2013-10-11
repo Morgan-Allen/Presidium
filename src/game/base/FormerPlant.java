@@ -18,7 +18,7 @@ import src.util.* ;
 //         covered by the Solar Array and Condensor?
 
 
-public class FormerPlant extends Venue implements Economy {
+public class FormerPlant extends Venue implements EconomyConstants {
   
   
 

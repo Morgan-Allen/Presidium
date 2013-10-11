@@ -19,14 +19,14 @@ import src.util.* ;
 
 
 
-public class DebugPathing extends PlayLoop implements Economy {
+public class DebugSituation extends PlayLoop implements EconomyConstants {
   
   
   
   /**  Startup and save/load methods-
     */
   public static void main(String args[]) {
-    DebugPathing test = new DebugPathing() ;
+    DebugSituation test = new DebugSituation() ;
     PlayLoop.runLoop(test) ;
   }
   
@@ -35,11 +35,11 @@ public class DebugPathing extends PlayLoop implements Economy {
   private Action lastAction = null ;
   
   
-  protected DebugPathing() {
+  protected DebugSituation() {
     super() ;
   }
   
-  public DebugPathing(Session s) throws Exception {
+  public DebugSituation(Session s) throws Exception {
     super(s) ;
     //if (true) return ;
     citizen = (Human) s.loadObject() ;
@@ -58,7 +58,7 @@ public class DebugPathing extends PlayLoop implements Economy {
   /**  Setup and initialisation-
     */
   protected boolean loadedAtStartup() {
-    ///if (true) return false ;
+    //if (true) return false ;
     try {
       PlayLoop.loadGame("saves/test_pathing.rep") ;
       final Base base = PlayLoop.played() ;
@@ -74,15 +74,12 @@ public class DebugPathing extends PlayLoop implements Economy {
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(
       32, 0.2f,
-      //Habitat.OCEAN  , 0.33f,
       Habitat.ESTUARY, 0.25f,
       Habitat.MEADOW , 0.5f,
       Habitat.BARRENS, 0.3f,
       Habitat.DESERT , 0.2f
     ) ;
     final World world = new World(TG.generateTerrain()) ;
-    //TG.setupMinerals(world, 0.55f, 0.3f, 0.15f) ;
-    //TG.setupOutcrops(world) ;
     //
     //  TODO:  Put in an EcologyGen as well
     return world ;
@@ -102,7 +99,7 @@ public class DebugPathing extends PlayLoop implements Economy {
   }
   
   
-  protected void configureScenario(World world, Base base, HUD HUD) {
+  protected void configureScenario(World world, Base base, HUD UI) {
     I.say("Configuring world...") ;
     
     base.incCredits(10000) ;
@@ -111,13 +108,30 @@ public class DebugPathing extends PlayLoop implements Economy {
     GameSettings.buildFree = true ;
     PlayLoop.setGameSpeed(1.0f) ;
     
-    final Reactor venue = new Reactor(base) ;
-    DebugBehaviour.establishVenue(venue, 12,  4, true) ;
-    venue.stocks.bumpItem(FUEL_CORES, 200) ;
-    venue.structure.takeDamage(venue.structure.maxIntegrity() * 0.99f) ;
-    venue.setMeltdown(0.99f) ;
+    final Actor actor = new Human(Background.PHYSICIAN, base) ;
+    final Actor other = new Human(Background.VETERAN  , base) ;
     
-    ((BaseUI) HUD).selection.pushSelection(venue, true) ;
+    other.health.takeInjury(other.health.maxHealth() * 2) ;
+    //other.traits.incLevel(MUTATION, 1.5f) ;
+    //other.traits.incLevel(ILLNESS, 2.5f) ;
+    
+    other.enterWorldAt(15, 6, world) ;
+    
+    final Sickbay sickbay = new Sickbay(base) ;
+    DebugBehaviour.establishVenue(sickbay, 9, 2, true, actor) ;
+    DebugBehaviour.establishVenue(new CultureVats(base), 9, 8, true) ;
+    DebugBehaviour.establishVenue(new VaultSystem(base), 3, 5, true) ;
+    
+    //final Reactor generator = new Reactor(base) ;
+    //DebugBehaviour.establishVenue(generator, 21, 5, true) ;
+    //generator.structure.setState(Structure.STATE_INTACT, 0.01f) ;
+    //generator.structure.setBurning(true) ;
+    //generator.setMeltdown(1.0f) ;
+    
+    sickbay.stocks.bumpItem(STIM_KITS, 5) ;
+    sickbay.stocks.bumpItem(MEDICINE , 5) ;
+    
+    ((BaseUI) UI).selection.pushSelection(other, true) ;
   }
   
   

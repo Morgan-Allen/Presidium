@@ -15,7 +15,7 @@ import src.util.I;
 //  TODO:  HAVE THIS PLAN RESPONSIBLE FOR AUDITING IF NOBODY ELSE DOES IT FIRST
 
 
-public class Supervision extends Plan {
+public class Supervision extends Plan implements EconomyConstants {
   
   
   /**  Data fields, setup and save/load functions-
@@ -60,7 +60,7 @@ public class Supervision extends Plan {
   protected Behaviour getNextStep() {
     if (beginTime == -1) beginTime = actor.world().currentTime() ;
     final float elapsed = actor.world().currentTime() - beginTime ;
-    if (elapsed > 1) {
+    if (elapsed > WAIT_TIME / 2) {
       final Behaviour nextJob = venue.jobFor(actor) ;
       if (elapsed > WAIT_TIME || ! (nextJob instanceof Supervision)) {
         abortBehaviour() ;
@@ -78,6 +78,13 @@ public class Supervision extends Plan {
   
   
   public boolean actionSupervise(Actor actor, Venue venue) {
+    
+    //
+    //  If you have any items demanded by the venue, put them away-
+    for (Item i : actor.gear.allItems()) {
+      if (i.refers != null || i.type.form != FORM_COMMODITY) continue ;
+      if (venue.stocks.demandFor(i.type) > 0) actor.gear.transfer(i, venue) ;
+    }
     return true ;
   }
   

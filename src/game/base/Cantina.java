@@ -22,7 +22,7 @@ import src.util.* ;
 //  TODO:  Citizens should be able to dine here while relaxing (for a price...)
 
 
-public class Cantina extends Venue implements Economy {
+public class Cantina extends Venue implements EconomyConstants {
   
   
   
@@ -131,7 +131,7 @@ public class Cantina extends Venue implements Economy {
       return new Supervision(actor, this) ;
     }
     if (actor.vocation() == Background.PERFORMER) {
-      return new Performance(actor, this, Aptitudes.MUSIC_AND_SONG) ;
+      return new Performance(actor, this, AptitudeConstants.MUSIC_AND_SONG) ;
     }
     return null ;
   }

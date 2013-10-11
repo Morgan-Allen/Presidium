@@ -15,7 +15,7 @@ import src.util.* ;
 
 
 
-public class Career implements Aptitudes {
+public class Career implements AptitudeConstants {
   
   
   

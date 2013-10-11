@@ -77,7 +77,7 @@ public class Service implements Session.Saveable {
   
   
   public static Service loadConstant(Session s) throws Exception {
-    return Economy.ALL_ITEM_TYPES[s.loadInt()] ;
+    return EconomyConstants.ALL_ITEM_TYPES[s.loadInt()] ;
   }
   
   

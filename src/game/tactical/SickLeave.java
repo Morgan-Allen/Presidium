@@ -5,14 +5,20 @@ package src.game.tactical ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.base.* ;
-import src.user.Description;
+import src.game.building.Item;
+import src.user.* ;
+import src.util.* ;
 
 
 
 public class SickLeave extends Plan {
   
   
+  private static boolean verbose = true ;
+  
   final Sickbay sickbay ;
+  private Treatment needed ;
+  
   
   
   public SickLeave(Actor actor) {
@@ -20,31 +26,51 @@ public class SickLeave extends Plan {
     Object haven = Retreat.nearestHaven(actor, Sickbay.class) ;
     if (haven instanceof Sickbay) sickbay = (Sickbay) haven ;
     else sickbay = null ;
+    needed = new Treatment(null, actor, sickbay) ;
   }
   
   
   public SickLeave(Session s) throws Exception {
     super(s) ;
     sickbay = (Sickbay) s.loadObject() ;
+    needed = (Treatment) s.loadObject() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveObject(sickbay) ;
+    s.saveObject(needed) ;
   }
   
   
-  
   public float priorityFor(Actor actor) {
-    if (sickbay == null) return 0 ;
-    return Treatment.needForMedication(actor) ;
+    if (sickbay == null || needed == null) return 0 ;
+    if (needed.baseUrgency() == 0) return 0 ;
+    
+    final Item treatResult = needed.treatResult() ;
+    if (treatResult != null) {
+      if (begun()) { if (treatResult.amount >= 1) return 0 ; }
+      else { if (treatResult.amount > 0) return 0 ; }
+    }
+    //
+    //  Modify for Psych Eval, since it's only needed in cases of severe bad
+    //  morale or for key personnel...
+    float impetus = needed.baseUrgency() ;
+    if (needed.type == Treatment.TYPE_PSYCH_EVAL) {
+      final Background v = actor.vocation() ;
+      if (v.guild == Background.GUILD_MILITANT) return impetus ;
+      if (v.standing >= Background.UPPER_CLASS) return impetus ;
+      impetus *= (1 - actor.health.moraleLevel()) ;
+    }
+    
+    if (verbose) I.sayAbout(actor, "Sick leave impetus: "+impetus) ;
+    return Visit.clamp(impetus, 0, CRITICAL) ;
   }
   
   
   protected Behaviour getNextStep() {
-    if (sickbay == null) return null ;
-    if (Treatment.needForMedication(actor) == 0) return null ;
+    if (priorityFor(actor) <= 0) return null ;
     final Action leave = new Action(
       actor, sickbay,
       this, "actionLeave",
@@ -60,8 +86,11 @@ public class SickLeave extends Plan {
   
   
   public void describeBehaviour(Description d) {
-    d.append("Seeking Treatment at ") ;
-    d.append(sickbay) ;
+    if (needed == null) {
+      d.append("Seeking Treatment at ") ;
+      d.append(sickbay) ;
+    }
+    else needed.descForPatient(d) ;
   }
 }
 

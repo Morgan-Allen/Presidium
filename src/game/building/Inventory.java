@@ -170,6 +170,7 @@ public class Inventory {
     final Item oldItem = itemTable.get(item) ;
     float amount = item.amount, quality = item.quality ;
     if (oldItem != null) {
+      itemTable.remove(oldItem) ;
       quality = (quality * amount) + (oldItem.amount * oldItem.quality) ;
       amount += oldItem.amount ;
       quality /= amount ;
@@ -201,11 +202,7 @@ public class Inventory {
     *  false otherwise.
     */
   public boolean removeItem(Item item) {
-    if (item.isMatch() || item.amount <= 0) {
-      if (item.isMatch()) I.complain(
-        "REMOVING ILLEGAL ITEM: "+item+" amount/quality:"+
-        item.amount+"/"+item.quality
-      ) ;
+    if (item.amount <= 0) {
       I.sayAbout(owner, "Adding null item... "+item.amount) ;
       new Exception().printStackTrace() ;
       return false ;
@@ -220,7 +217,7 @@ public class Inventory {
       return false ;
     }
     final float newAmount = oldItem.amount - item.amount ;
-    final Item entered = Item.withAmount(item, newAmount) ;
+    final Item entered = Item.withAmount(oldItem, newAmount) ;
     itemTable.put(entered, entered) ;
     if (owner != null) owner.afterTransaction(item, item.amount - newAmount) ;
     return true ;
@@ -293,6 +290,11 @@ public class Inventory {
       if (found.type == type) matches.add(found) ;
     }
     return matches ;
+  }
+  
+  
+  public Item matchFor(Item item) {
+    return itemTable.get(item) ;
   }
   
   

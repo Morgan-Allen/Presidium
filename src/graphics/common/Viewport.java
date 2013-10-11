@@ -32,7 +32,8 @@ public class Viewport {
     cameraRotation = DEFAULT_ROTATE,
     cameraElevated = DEFAULT_ELEVATE,
     cameraZoom = 1.0f ;
-  final Box2D viewBounds = new Box2D() ;
+  final public Box2D
+    viewBounds = new Box2D() ;
   
   private float
     screenX,  //middle-of-the-screen coordinates.
@@ -44,15 +45,15 @@ public class Viewport {
     viewInvert = new Mat3D() ;
   
   
-  Viewport() {
+  public Viewport() {
     this.updateView() ;
   }
   
   /**  Initialises this viewport for use prior to actual scene rendering (to
-    *  ensure that scenegraph culling is performed correctly.  See the Display
+    *  ensure that scenegraph culling is performed correctly.  See the Rendering
     *  class for details.)
     */
-  void updateView() {
+  public void updateView() {
     viewMatrix.setIdentity() ;
     viewMatrix.rotateX(cameraElevated) ;
     viewMatrix.rotateZ(cameraRotation) ;
@@ -63,6 +64,20 @@ public class Viewport {
     invertS = 1f / screenS ;
     projectMode = MODE_INIT ;
   }
+  
+  
+  /**  Called immediately prior to sprite rendering, setting up exact OpenGL
+    *  viewport bounds:
+    */
+  public void applyView() {
+    GL11.glViewport(
+      (int) viewBounds.xpos(),
+      (int) viewBounds.ypos(),
+      (int) viewBounds.xdim(),
+      (int) viewBounds.ydim()
+    ) ;
+  }
+  
   
 
   /**  Checks to see whether the given Box3D intersects the view bounds of this
@@ -143,19 +158,6 @@ public class Viewport {
     MODE_ISOMETRIC  = 3,
     MODE_INIT = -1 ;
   private byte projectMode = MODE_INIT ;
-  
-
-  /**  Called immediately prior to sprite rendering, setting up exact OpenGL
-    *  viewport bounds:
-    */
-  void applyView() {
-    GL11.glViewport(
-      (int) viewBounds.xpos(),
-      (int) viewBounds.ypos(),
-      (int) viewBounds.xdim(),
-      (int) viewBounds.ydim()
-    ) ;
-  }
   
   
   /**  Used to render 2D image-based sprites, flat mode disables lighting and

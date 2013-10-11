@@ -17,7 +17,7 @@ import src.util.* ;
 
 
 
-public class Farming extends Plan implements Economy {
+public class Farming extends Plan implements EconomyConstants {
   
   
   private static boolean verbose = false ;

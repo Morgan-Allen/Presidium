@@ -65,7 +65,7 @@ import src.util.* ;
 //  and venues for consideration.
 
 
-public class HumanAI extends ActorAI implements Aptitudes {
+public class HumanAI extends ActorMind implements AptitudeConstants {
   
   
   
@@ -147,7 +147,7 @@ public class HumanAI extends ActorAI implements Aptitudes {
     //  self or others, or dialogue.
     for (Actor near : actorB) {
       choice.add(new Combat(actor, near)) ;
-      choice.add(new Treatment(actor, near)) ;
+      choice.add(new Treatment(actor, near, null)) ;
       choice.add(new Dialogue(actor, near, null)) ;
     }
     choice.add(new Retreat(actor)) ;

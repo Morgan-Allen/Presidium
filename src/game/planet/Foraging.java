@@ -18,7 +18,7 @@ import src.util.* ;
 
 
 
-public class Foraging extends Plan implements Economy {
+public class Foraging extends Plan implements EconomyConstants {
   
   
   

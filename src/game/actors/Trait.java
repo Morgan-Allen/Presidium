@@ -6,11 +6,12 @@
 
 
 package src.game.actors ;
+import src.game.common.* ;
 import src.util.* ;
 
 
 
-public class Trait implements Aptitudes {
+public class Trait implements AptitudeConstants {
   
   
   
@@ -67,6 +68,19 @@ public class Trait implements Aptitudes {
     ///I.say("Min/max: "+min+"/"+max+" for "+descriptors[0]) ;
     traitsSoFar.add(this) ;
     allTraits.add(this) ;
+  }
+  
+  
+  public static Trait loadFrom(Session s) throws Exception {
+    final int ID = s.loadInt() ;
+    if (ID == -1) return null ;
+    return ALL_TRAIT_TYPES[ID] ;
+  }
+  
+  
+  public static void saveTo(Session s, Trait t) throws Exception {
+    if (t == null) { s.saveInt(-1) ; return ; }
+    s.saveInt(t.traitID) ;
   }
   
   

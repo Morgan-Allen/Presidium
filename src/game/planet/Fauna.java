@@ -70,10 +70,10 @@ public abstract class Fauna extends Actor {
 
   /**  Shared behavioural methods-
     */
-  protected ActorAI initAI() {
+  protected ActorMind initAI() {
     final Fauna actor = this ;
     
-    return new ActorAI(actor) {
+    return new ActorMind(actor) {
       protected Behaviour createBehaviour() {
         final Choice choice = new Choice(actor) ;
         addChoices(choice) ;

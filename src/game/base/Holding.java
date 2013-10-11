@@ -44,7 +44,7 @@ import src.util.* ;
 
 
 
-public class Holding extends Venue implements Economy {
+public class Holding extends Venue implements EconomyConstants {
   
   
   /**  Fields, constructors, and save/load methods-
@@ -238,6 +238,11 @@ public class Holding extends Venue implements Economy {
   protected float crowding() {
     final int maxPop = HoldingUpgrades.OCCUPANCIES[upgradeLevel] ;
     return personnel.residents().size() * 1f / maxPop ;
+  }
+  
+  
+  protected List <HoldingExtra> extras() {
+    return extras ;
   }
   
   

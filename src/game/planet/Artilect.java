@@ -70,9 +70,9 @@ public abstract class Artilect extends Actor {
   }
   
 
-  protected ActorAI initAI() {
+  protected ActorMind initAI() {
     final Artilect actor = this ;
-    return new ActorAI(actor) {
+    return new ActorMind(actor) {
       protected Behaviour createBehaviour() {
         final Choice choice = new Choice(actor) ;
         addChoices(choice) ;
@@ -103,6 +103,7 @@ public abstract class Artilect extends Actor {
   
   
   protected Behaviour nextDefence(Actor near) {
+    if (near == null) return null ;
     final Combat defence = new Combat(this, near) ;
     defence.priorityMod = Plan.ROUTINE ;
     return defence ;
@@ -112,12 +113,10 @@ public abstract class Artilect extends Actor {
   protected void addChoices(Choice choice) {
     //
     //  Patrol around your base and see off intruders.
-    if (mind.home() == null) {
-      //
-      //  TODO:  Wander aimlessly?
-      choice.add(Patrolling.securePerimeter(this, this, world)) ;
-    }
-    else choice.add(Patrolling.securePerimeter(this, mind.home(), world)) ;
+    Element guards = mind.home() == null ? this : mind.home() ;
+    final Patrolling p = Patrolling.securePerimeter(this, guards, world) ;
+    p.priorityMod = Plan.ROUTINE ;
+    choice.add(p) ;
     
     for (Element e : mind.awareOf()) if (e instanceof Actor) {
       choice.add(new Combat(this, (Actor) e)) ;

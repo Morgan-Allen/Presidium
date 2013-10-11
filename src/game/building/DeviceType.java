@@ -9,7 +9,7 @@ import src.util.* ;
 
 
 
-public class DeviceType extends Service implements Economy {
+public class DeviceType extends Service implements EconomyConstants {
   
   
   

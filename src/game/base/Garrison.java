@@ -15,7 +15,7 @@ import src.util.Rand;
 
 
 
-public class Garrison extends Venue implements Economy {
+public class Garrison extends Venue implements EconomyConstants {
   
   
   

@@ -14,7 +14,7 @@ import src.util.* ;
 //  basic housing types.
 
 
-public class HoldingUpgrades implements Economy {
+public class HoldingUpgrades implements EconomyConstants {
   
 
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
@@ -383,11 +383,11 @@ public class HoldingUpgrades implements Economy {
   //  Forbidden Palaces require perfect ambience.  (10 or better.)
   
   final static int SAFETY_NEEDS[] = {
-    -15,
+    -20,
     -5,
+    -2,
     0,
-    2,
-    5
+    2
   } ;
   final static int AMBIENCE_NEEDS[] = {
     -15,
@@ -404,11 +404,13 @@ public class HoldingUpgrades implements Economy {
     final boolean NV = ! verbose ;
     
     float safety = 0 - holding.base().dangerMap.valAt(holding.origin()) ;
+    if (holding.stocks.amountOf(PRESSFEED) > 0.5f) safety += 1.5f ;
     if (safety < SAFETY_NEEDS[upgradeLevel]) return NV ? NOT_MET :
       "This area feels too unsettled for your subjects' comfort, hindering "+
       "further investment in a life here." ;
     
     float ambience = 0 - holding.world().ecology().squalorRating(holding) ;
+    ambience += holding.extras().size() / 2f ;
     if (ambience < AMBIENCE_NEEDS[upgradeLevel]) return NV ? NOT_MET :
       "The aesthetics of the area could stand improvement before the "+
       "residents will commit to improving their property." ;

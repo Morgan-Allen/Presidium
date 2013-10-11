@@ -15,7 +15,7 @@ import src.util.* ;
 
 
 
-public class Reactor extends Venue implements Economy {
+public class Reactor extends Venue implements EconomyConstants {
   
   
 
@@ -293,7 +293,6 @@ public class Reactor extends Venue implements Economy {
     final Batch <Element> inRange = new Batch <Element> () ;
     //
     //  Then, deal with all the surrounding terrain-
-    doDamageTo(this, maxDamage, radiationVal, maxRange, inRange) ;
     for (Tile t : world.tilesIn(area, true)) {
       final float dist = (Spacing.distance(t, this) - 2) / (maxRange - 2) ;
       if (dist > 1) continue ;
@@ -307,17 +306,14 @@ public class Reactor extends Venue implements Economy {
       }
       //
       //  And deal damage to nearby objects-
-      if (t.owner() != null && t.flaggedWith() == null) {
-        doDamageTo(t.owner(), maxDamage, radiationVal, maxRange, inRange) ;
-      }
-      for (Mobile m : t.inside()) if (m.flaggedWith() == null) {
-        doDamageTo(m, maxDamage, radiationVal, maxRange, inRange) ;
-      }
+      markForDamage(t.owner(), inRange) ;
+      for (Mobile m : t.inside()) markForDamage(m, inRange) ;
     }
-    for (Mobile m : inside()) if (m.flaggedWith() == null) {
-      doDamageTo(m, maxDamage, radiationVal, maxRange, inRange) ;
+    markForDamage(this, inRange) ;
+    for (Element e : inRange) {
+      e.flagWith(null) ;
+      doDamageTo(e, maxDamage, radiationVal, maxRange) ;
     }
-    for (Element e : inRange) e.flagWith(null) ;
     //
     //  Add explosion FX-
     int multFX = 3 ; while (multFX -- > 0) {
@@ -333,26 +329,38 @@ public class Reactor extends Venue implements Economy {
   }
   
   
-  private void doDamageTo(
-    Element e, float maxDamage, float radiation, float maxRange,
-    Batch <Element> inRange
-  ) {
+  private void markForDamage(Element e, Batch <Element> inRange) {
+    if (e == null || e.flaggedWith() != null) return ;
     e.flagWith(inRange) ;
     inRange.add(e) ;
+    if (e instanceof Boardable) for (Mobile m : ((Boardable) e).inside()) {
+      markForDamage(m, inRange) ;
+    }
+  }
+  
+  
+  private void doDamageTo(
+    Element e, float maxDamage, float radiation, float maxRange
+  ) {
     final float dist = Spacing.distance(this, e) / maxRange ;
     final float damage = maxDamage * (1 - dist) ;
-    if (e instanceof Installation) {
+
+    if (e instanceof Wreckage) return ;
+    else if (e instanceof Installation) {
+      I.say("Doing "+damage+" to "+e) ;
       ((Installation) e).structure().takeDamage(damage) ;
     }
     else if (e instanceof Actor) {
       final Actor a = (Actor) e ;
-      a.health.takeInjury(damage) ;
-      a.traits.setLevel(POISONED, radiation / 10f) ;
-      //
-      //  TODO:  Allow for cancer or mutation?
+      a.health.takeInjury(damage / 2f) ;
+      a.traits.setLevel(POISONED, radiation / 25f) ;
+      if (Rand.index(100) < radiation) a.traits.incLevel(CANCER, Rand.num()) ;
+      if (Rand.index(100) < radiation) a.traits.incLevel(MUTATION, Rand.num()) ;
     }
-    else if (e instanceof Wreckage) return ;
-    else if (Rand.num() < damage / 10) e.setAsDestroyed() ;
+    else {
+      final float bulk = e.radius() * e.radius() * 4 * (e.height() + 0.5f) ;
+      if ((Rand.num() * bulk) < damage / 10) e.setAsDestroyed() ;
+    }
   }
   
   

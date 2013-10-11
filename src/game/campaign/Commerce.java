@@ -10,7 +10,7 @@ import src.util.* ;
 
 
 
-public class Commerce implements Economy {
+public class Commerce implements EconomyConstants {
   
   
   /**  Fields definitions, constructor, save/load methods-

@@ -11,9 +11,6 @@ import src.util.* ;
 
 
 
-//
-//  TODO:  Allow slag to be of different sizes!  Up to 2x2, anyway.
-
 public class Wreckage extends Fixture {
   
   
@@ -31,13 +28,13 @@ public class Wreckage extends Fixture {
   private float spriteSize ;
   
   
-  public Wreckage(boolean permanent, int size) {
+  private Wreckage(boolean permanent, int size) {
     super(size, size / 2) ;
     this.permanent = permanent ;
-    final int tier = size > 1 ? Rand.index(2) : Rand.index(2) ;
+    final int tier = size > 1 ? Rand.index(2) : Rand.index(3) ;
     final Model model = SLAG_MODELS[Rand.index(3)][tier] ;
     attachSprite(model.makeSprite()) ;
-    spriteSize = (size + Rand.num()) / 2f ;
+    spriteSize = (size + Rand.num() + 0.5f) / 2f ;
   }
   
   
@@ -69,13 +66,13 @@ public class Wreckage extends Fixture {
   /**  Physical properties, placement and behaviour-
     */
   public static void reduceToSlag(Box2D area, World world) {
-    final int maxSize = (int) (area.xdim() / 2) ;
+    final int maxSize = (int) Math.max(1, area.xdim() / 2) ;
     
     for (Tile t : world.tilesIn(area, true)) {
       if (t.owner() != null) continue ;
       int size = 2 + Rand.index(maxSize) ;
       
-      while (size-- > 0) {
+      while (size-- > 1) {
         final Wreckage heap = new Wreckage(false, size) ;
         heap.setPosition(t.x, t.y, world) ;
         if (! heap.area().containedBy(area)) continue ;

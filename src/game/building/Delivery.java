@@ -19,7 +19,7 @@ import src.game.building.Inventory.Owner ;
 //  TODO:  Barges need to be made more persistent.
 
 
-public class Delivery extends Plan implements Economy {
+public class Delivery extends Plan implements EconomyConstants {
   
   final public static int
     TYPE_SHOPPING  = 0,
@@ -417,6 +417,13 @@ public class Delivery extends Plan implements Economy {
       d.append(origin) ;
       return ;
     }
+    if (passenger != null) {
+      d.append("Delivering ") ;
+      d.append(passenger) ;
+      d.append(" to ") ;
+      d.append(destination) ;
+      return ;
+    }
     
     d.append("Delivering ") ;
     final Item available[] = available(actor) ;
@@ -429,5 +436,10 @@ public class Delivery extends Plan implements Economy {
     d.append(destination) ;
   }
 }
+
+
+
+
+
 
 

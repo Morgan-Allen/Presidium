@@ -11,7 +11,7 @@ import src.util.* ;
 
 
 
-public class Building extends Plan implements Aptitudes {
+public class Building extends Plan implements AptitudeConstants {
   
   
   
@@ -110,6 +110,7 @@ public class Building extends Plan implements Aptitudes {
     ) ;
     final Choice choice = new Choice(client) ;
     for (Venue near : toRepair) {
+      if (near.base() == null) continue ;
       final boolean needsRepair =
         near.structure.hasWear() ||
         near.structure.burning() ||

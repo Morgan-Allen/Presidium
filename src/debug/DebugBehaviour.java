@@ -35,7 +35,7 @@ import src.util.* ;
 
 
 
-public class DebugBehaviour extends PlayLoop implements Economy {
+public class DebugBehaviour extends PlayLoop implements EconomyConstants {
   
   
   
@@ -137,8 +137,8 @@ public class DebugBehaviour extends PlayLoop implements Economy {
   protected void configureScenario(World world, Base base, HUD HUD) {
     //natureScenario(world, base, HUD) ;
     //baseScenario(world, base, HUD) ;
-    //missionScenario(world, base, HUD) ;
-    socialScenario(world, base, HUD) ;
+    missionScenario(world, base, HUD) ;
+    //socialScenario(world, base, HUD) ;
   }
   
   
@@ -279,7 +279,7 @@ public class DebugBehaviour extends PlayLoop implements Economy {
     //
     //  TODO:  Transfer to DebugSituation.
     
-    base.incCredits(1000) ;
+    base.incCredits(10000) ;
     GameSettings.noFog = true ;
     GameSettings.buildFree = true ;
     GameSettings.hireFree = true ;

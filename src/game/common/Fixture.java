@@ -50,10 +50,15 @@ public abstract class Fixture extends Element {
     */
   public boolean canPlace() {
     if (origin() == null) return false ;
-    //final Box2D around = new Box2D().setTo(area()) ;//.expandBy(1) ;
-    for (Tile t : origin().world.tilesIn(area, false)) {
+    final World world = origin().world ;
+    for (Tile t : world.tilesIn(area, false)) {
       if (t == null || ! t.habitat().pathClear) return false ;
       if (t.owningType() >= this.owningType()) return false ;
+    }
+    if (area.xdim() < 1) I.say("AREA:"+area+", size: "+size) ;
+    final Tile perim[] = Spacing.perimeter(area, world) ;
+    for (Tile t : perim) if (t != null && t.owner() != null) {
+      if (! canTouch(t.owner())) return false ;
     }
     return true ;
   }

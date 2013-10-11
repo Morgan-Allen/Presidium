@@ -13,7 +13,7 @@ import src.user.* ;
 
 
 
-public class ActorTraits implements Aptitudes {
+public class ActorTraits implements AptitudeConstants {
   
   
   
@@ -48,6 +48,7 @@ public class ActorTraits implements Aptitudes {
       final Trait type = ALL_TRAIT_TYPES[s.loadInt()] ;
       final Level level = new Level() ;
       level.value = s.loadFloat() ;
+      level.bonus = s.loadFloat() ;
       levels.put(type, level) ;
     }
   }
@@ -61,6 +62,7 @@ public class ActorTraits implements Aptitudes {
       s.saveInt(type.traitID) ;
       final Level level = levels.get(type) ;
       s.saveFloat(level.value) ;
+      s.saveFloat(level.bonus) ;
     }
   }
   
@@ -137,17 +139,41 @@ public class ActorTraits implements Aptitudes {
   }
   
   
+  protected void afterMutation(float increase, boolean selected) {
+    //
+    //  Here, we pick randomly from the mutation table.  (Which means that,
+    //  yes, it is theoretically possible to get superpowers this way.)  The
+    //  difference between selected and non-selected mutations is that the
+    //  former are inherited within a particular population and tend to be
+    //  beneficial, whereas the latter are the result of random chance, and
+    //  tend to be harmful.
+    if (GameSettings.hardCore && (! selected) && Rand.num() < increase) {
+      incLevel(CANCER, increase * 2 * Rand.num()) ;
+    }
+    if (Rand.num() > increase / 5f) return ;
+    final Trait MT[] = MUTANT_TRAITS ; final int ML = MT.length ;
+    
+    float roll = Rand.avgNums(3) ;
+    if (selected) roll = (roll * roll) - 0.1f ;
+    else {
+      roll = 1 - (roll * roll) ;
+      if (Rand.yes() || GameSettings.hardCore) incLevel(STERILE, Rand.num()) ;
+    }
+    if (GameSettings.hardCore) roll = Visit.clamp(roll, 0.25f, 0.75f) ;
+    final Trait gained = MT[Visit.clamp((int) (roll * ML), ML)] ;
+    incLevel(gained, 0.5f + Rand.num()) ;
+  }
+  
+  
   
   /**  Methods for assigning temporary bonuses-
     */
   protected void updateTraits(int numUpdates) {
-    for (Trait t : levels.keySet()) {
-      if (t.type == CONDITION) continue ;
-      levels.get(t).bonus = 0 ;
-    }
-    for (Trait t : levels.keySet()) {
-      if (t.type != CONDITION) continue ;
-      t.affect(actor) ;
+    final Batch <Trait> allTraits = new Batch <Trait> (levels.size()) ;
+    for (Trait t : levels.keySet()) allTraits.add(t) ;
+    for (Trait t : allTraits) {
+      if (t.type == CONDITION) t.affect(actor) ;
+      else levels.get(t).bonus = 0 ;
     }
   }
   
@@ -156,6 +182,13 @@ public class ActorTraits implements Aptitudes {
     final Level level = levels.get(type) ;
     if (level == null) return ;
     level.bonus += bonusInc ;
+  }
+  
+  
+  public void setBonus(Trait type, float b) {
+    final Level level = levels.get(type) ;
+    if (level == null) return ;
+    level.bonus = b ;
   }
   
   
@@ -170,10 +203,10 @@ public class ActorTraits implements Aptitudes {
   }
   
   
-  public int effectBonus(Trait trait) {
+  public float effectBonus(Trait trait) {
     final Level level = levels.get(trait) ;
     if (level == null) return 0 ;
-    return (int) (level.bonus) ;
+    return level.bonus ;
   }
   
   
@@ -185,8 +218,7 @@ public class ActorTraits implements Aptitudes {
   
   public float useLevel(Trait type) {
     final Level TL = levels.get(type) ;
-    float level = TL == null ? 0 : (TL.value + (int) TL.bonus) ;
-    if (! actor.health.conscious()) level /= 2 ;
+    float level = TL == null ? 0 : (TL.value + TL.bonus) ;
     
     if (type.type == PHYSICAL) {
       return level * actor.health.ageMultiple() ;
@@ -197,6 +229,7 @@ public class ActorTraits implements Aptitudes {
         return level * actor.health.ageMultiple() ;
       }
       else {
+        if (! actor.health.conscious()) level /= 2 ;
         level += rootBonus(skill) ;
       }
       level *= 1 - actor.health.stressPenalty() ;
@@ -227,7 +260,7 @@ public class ActorTraits implements Aptitudes {
   
   
   public String levelDesc(Trait type) {
-    return Trait.descriptionFor(type, traitLevel(type)) ;
+    return Trait.descriptionFor(type, useLevel(type)) ;
   }
   
   
@@ -239,33 +272,31 @@ public class ActorTraits implements Aptitudes {
   
   
   public void setLevel(Trait type, float toLevel) {
+    if (toLevel == 0) {
+      levels.remove(type) ;
+      return ;
+    }
+    
     Level level = levels.get(type) ;
     if (level == null) levels.put(type, level = new Level()) ;
     
-    final int oldVal = (int) level.value ;
+    final float oldVal = level.value ;
     level.value = toLevel ;
-    tryReport(type, level.value - oldVal) ;
+    if (type == MUTATION) afterMutation(level.value - oldVal, false) ;
+    tryReport(type, level.value - (int) oldVal) ;
   }
   
   
   public float incLevel(Trait type, float boost) {
-    Level level = levels.get(type) ;
-    if (level == null) levels.put(type, level = new Level()) ;
-    
-    final int oldVal = (int) level.value ;
-    level.value += boost ;
-    tryReport(type, level.value - oldVal) ;
-    return level.value ;
+    final float newLevel = traitLevel(type) + boost ;
+    setLevel(type, newLevel) ;
+    return newLevel ;
   }
   
   
   public void raiseLevel(Trait type, float toLevel) {
-    Level level = levels.get(type) ;
-    if (level == null) levels.put(type, level = new Level()) ;
-    
-    final int oldVal = (int) level.value ;
-    level.value = Math.max(toLevel, level.value) ;
-    tryReport(type, level.value - oldVal) ;
+    if (toLevel < traitLevel(type)) return ;
+    setLevel(type, toLevel) ;
   }
   
   
@@ -295,41 +326,46 @@ public class ActorTraits implements Aptitudes {
   
   
   public Batch <Trait> personality() {
-    return getMatches(null, Aptitudes.PERSONALITY_TRAITS) ;
+    return getMatches(null, AptitudeConstants.PERSONALITY_TRAITS) ;
   }
   
   
   public Batch <Trait> physique() {
     final Batch <Trait> matches = new Batch <Trait> () ;
-    getMatches(matches, Aptitudes.PHYSICAL_TRAITS) ;
-    getMatches(matches, Aptitudes.BLOOD_TRAITS) ;
+    getMatches(matches, AptitudeConstants.PHYSICAL_TRAITS) ;
+    getMatches(matches, AptitudeConstants.BLOOD_TRAITS) ;
     return matches ;
   }
   
   
   public Batch <Trait> characteristics() {
-    return getMatches(null, Aptitudes.CATEGORIC_TRAITS) ;
+    return getMatches(null, AptitudeConstants.CATEGORIC_TRAITS) ;
   }
   
   
   public Batch <Skill> attributes() {
-    return (Batch) getMatches(null, Aptitudes.ATTRIBUTES) ;
+    return (Batch) getMatches(null, AptitudeConstants.ATTRIBUTES) ;
   }
   
   
   public Batch <Skill> skillSet() {
     final Batch <Trait> matches = new Batch <Trait> () ;
-    getMatches(matches, Aptitudes.INSTINCT_SKILLS ) ;
-    getMatches(matches, Aptitudes.PHYSICAL_SKILLS ) ;
-    getMatches(matches, Aptitudes.SENSITIVE_SKILLS) ;
-    getMatches(matches, Aptitudes.COGNITIVE_SKILLS) ;
-    getMatches(matches, Aptitudes.PYSONIC_SKILLS  ) ;
+    getMatches(matches, AptitudeConstants.INSTINCT_SKILLS ) ;
+    getMatches(matches, AptitudeConstants.PHYSICAL_SKILLS ) ;
+    getMatches(matches, AptitudeConstants.SENSITIVE_SKILLS) ;
+    getMatches(matches, AptitudeConstants.COGNITIVE_SKILLS) ;
+    getMatches(matches, AptitudeConstants.PYSONIC_SKILLS  ) ;
     return (Batch) matches ;
   }
   
   
   public Batch <Condition> conditions() {
-    return (Batch) getMatches(null, Aptitudes.CONDITIONS) ;
+    return (Batch) getMatches(null, AptitudeConstants.CONDITIONS) ;
+  }
+  
+  
+  public Batch <Trait> mutations() {
+    return (Batch) getMatches(null, AptitudeConstants.MUTANT_TRAITS) ;
   }
   
   

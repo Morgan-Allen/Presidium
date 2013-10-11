@@ -44,8 +44,10 @@ public class Base implements
   final public Paving paving ;
   //  ...You should also have a PresenceMap just for maintenance purposes.
   
+  final public BaseProfiles profiles = new BaseProfiles(this) ;
   final public DangerMap dangerMap ;
   final public IntelMap intelMap = new IntelMap(this) ;
+  
   
   public Colour colour = Colour.BLUE ;
   
@@ -80,6 +82,7 @@ public class Base implements
     paving = new Paving(world) ;
     paving.loadState(s) ;
     
+    profiles.loadState(s) ;
     dangerMap = new DangerMap(world, this) ;
     dangerMap.loadState(s) ;
     intelMap.loadState(s) ;
@@ -102,6 +105,7 @@ public class Base implements
     
     paving.saveState(s) ;
     
+    profiles.saveState(s) ;
     dangerMap.saveState(s) ;
     intelMap.saveState(s) ;
   }
@@ -199,7 +203,7 @@ public class Base implements
   
   public void updateAsScheduled(int numUpdates) {
     commerce.updateCommerce(numUpdates) ;
-    paving.distribute(Economy.ALL_PROVISIONS) ;
+    paving.distribute(EconomyConstants.ALL_PROVISIONS) ;
     dangerMap.updateVals() ;
     for (Mission mission : missions) mission.updateMission() ;
     //

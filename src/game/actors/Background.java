@@ -16,7 +16,7 @@ import src.util.* ;
 //  TODO:  Backgrounds need to include their own descriptions.
 
 
-public class Background implements Economy {
+public class Background implements EconomyConstants {
   
   
   
@@ -454,7 +454,7 @@ public class Background implements Economy {
       PRACTICED, MUSIC_AND_SONG, NATIVE_TABOO, MASQUERADE,
       NOVICE, EROTICS, HANDICRAFTS,
       LEARNING, TRANSDUCTION, SYNESTHESIA, METABOLISM,
-      ALWAYS, GIFTED, OFTEN, MUTATION, RARELY, FRIENDLY, HANDSOME
+      ALWAYS, PSYONIC, OFTEN, MUTATION, RARELY, FRIENDLY, HANDSOME
     ),
     CARGO_CULTIST = new Background(
       "Cargo Cultist", "native_skin.gif", null,
@@ -487,7 +487,7 @@ public class Background implements Economy {
       PRACTICED, HAND_TO_HAND, BATTLE_TACTICS, SHIELD_AND_ARMOUR, COMMAND,
       NOBLE_ETIQUETTE, NOVICE, ACCOUNTING, ANCIENT_LORE, COMMON_CUSTOM,
       LEARNING, SUGGESTION, PREMONITION, PROJECTION,
-      SOMETIMES, GIFTED, OFTEN, TRADITIONAL, RARELY, NERVOUS
+      SOMETIMES, PSYONIC, OFTEN, TRADITIONAL, RARELY, NERVOUS
     ) {
       final Texture female_skin = costumeFor("highborn_male_skin.gif") ;
       public String nameFor(Actor actor) {
@@ -621,6 +621,20 @@ public class Background implements Economy {
     ALL_PLANETS[] = {
       PLANET_ASRA_NOVI, PLANET_PAREM_V, PLANET_HALIBAN, PLANET_AXIS_NOVENA
     } ;
+  
+  
+  /*
+  House Angetenar.  __House Azha.__  House Vega.  House Atik.
+  __House Tien (Yeun/Cheun/Kwan/Yuan Liu/Yuan San).__
+  __House Wei. (similarly, many branches.)__  __House Mesa.__
+  House Navi.  House Rana.  House Regor.  __House Aleph.__  __House Surya.__
+  
+  House Ophiuchus.  House Rigel.  House Mirzam.  House Virgo.
+  House Regulus-Libra.  House Algol.  House Pleiades.
+  House Betelgeuse.  House Ursa Minor.  House Orion.
+  House Antares.  House Sirius.  House Capella.  House Andromeda.
+  House Aldebaran.  House Cygnus-Polari.  House Leo Major.
+  //*/
   
   
   final public static Background

@@ -12,7 +12,7 @@ import src.util.* ;
 
 
 
-public class Performance extends Plan implements Aptitudes {
+public class Performance extends Plan implements AptitudeConstants {
   
   
   /**  Data fields, setup and save/load functions-

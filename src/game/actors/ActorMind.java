@@ -23,7 +23,7 @@ import src.util.* ;
 //  going to be the basis of a bunch of activities.
 
 
-public abstract class ActorAI implements Aptitudes {
+public abstract class ActorMind implements AptitudeConstants {
   
   
   /**  Field definitions, constructor, save/load methods-
@@ -50,7 +50,7 @@ public abstract class ActorAI implements Aptitudes {
   
   
   
-  protected ActorAI(Actor actor) {
+  protected ActorMind(Actor actor) {
     this.actor = actor ;
   }
   
@@ -586,12 +586,18 @@ public abstract class ActorAI implements Aptitudes {
   }
   
   
+  public Relation initRelation(Accountable other, float value) {
+    final Relation r = new Relation(
+      actor, other, value, (int) actor.world().currentTime()
+    ) ;
+    relations.put(other, r) ;
+    return r ;
+  }
+  
+  
   public void incRelation(Accountable other, float inc) {
     Relation r = relations.get(other) ;
-    if (r == null) {
-      r = new Relation(actor, other, 0, (int) actor.world().currentTime()) ;
-      relations.put(other, r) ;
-    }
+    if (r == null) r = initRelation(other, 0) ;
     r.incValue(inc) ;
   }
   

@@ -14,7 +14,7 @@ import src.util.* ;
 
 
 
-public class Drone extends Artilect implements Economy {
+public class Drone extends Artilect implements EconomyConstants {
   
   
   /**  Construction and save/load methods-

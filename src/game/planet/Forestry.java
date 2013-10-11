@@ -17,7 +17,7 @@ import src.util.* ;
 
 
 
-public class Forestry extends Plan implements Economy {
+public class Forestry extends Plan implements EconomyConstants {
   
   
   final public static int

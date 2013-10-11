@@ -9,14 +9,13 @@ import src.game.social.* ;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
-import src.util.I;
-import src.util.Index;
+import src.util.* ;
 
 
 
-public class Sickbay extends Venue implements Economy {
+public class Sickbay extends Venue implements EconomyConstants {
   
   
   
@@ -25,6 +24,12 @@ public class Sickbay extends Venue implements Economy {
   final public static Model MODEL = ImageModel.asSolidModel(
     Sickbay.class, "media/Buildings/physician/physician_clinic.png", 3, 2
   ) ;
+  
+  private static boolean verbose = false ;
+  
+  
+  final List <Plan> neuralScans = new List <Plan> () ;  //TODO:  Use this?
+  final List <Manufacture> cloneOrders = new List <Manufacture> () ;
   
   
   public Sickbay(Base base) {
@@ -40,11 +45,15 @@ public class Sickbay extends Venue implements Economy {
   
   public Sickbay(Session s) throws Exception {
     super(s) ;
+    s.loadObjects(neuralScans) ;
+    s.loadObjects(cloneOrders) ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveObjects(neuralScans) ;
+    s.saveObjects(cloneOrders) ;
   }
   
   
@@ -63,10 +72,11 @@ public class Sickbay extends Venue implements Economy {
       250,
       null, 1, null, ALL_UPGRADES
     ),
-    SURGERY_THEATRE = new Upgrade(
-      "Surgery Theatre",
+    EMERGENCY_AID = new Upgrade(
+      "Emergency Aid",
       "Surgical tools, anaesthetics and plasma reserves ensure that serious "+
-      "injuries, endogenous tumours and parasitism can be deal with quickly.",
+      "(but non-fatal) injuries can be dealt with quickly, and speeds the "+
+      "local production of Stim Kits.",
       300,
       null, 1, null, ALL_UPGRADES
     ),
@@ -79,12 +89,12 @@ public class Sickbay extends Venue implements Economy {
       Background.MINDER, 1, APOTHECARY, ALL_UPGRADES
     ),
     NEURAL_SCANNING = new Upgrade(
-      "Psych Unit",
+      "Neural Scanning",
       "Permits neural scans and basic psych evaluation, aiding in detection "+
       "of mental disturbance or subversion, and permitting engram backups in "+
       "case of death.  Mandatory for key personnel.",
       350,
-      null, 1, SURGERY_THEATRE, ALL_UPGRADES
+      null, 1, EMERGENCY_AID, ALL_UPGRADES
     ),
     INTENSIVE_CARE = new Upgrade(
       "Intensive Care",
@@ -100,41 +110,29 @@ public class Sickbay extends Venue implements Economy {
       "metabolism and anatomy, are adept as surgeons, and can tailor their "+
       "treatments to the idiosyncracies of a given patient.",
       150,
-      Background.PHYSICIAN, 1, SURGERY_THEATRE, ALL_UPGRADES
+      Background.PHYSICIAN, 1, EMERGENCY_AID, ALL_UPGRADES
     ) ;
   
   
   public Behaviour jobFor(Actor actor) {
     if (! structure.intact()) return null ;
+    if (numPatients() == 0 && ! personnel.onShift(actor)) return null ;
     final Choice choice = new Choice(actor) ;
     //
-    //  You should also supervise the venue if patients need looking at-
-    if (
-      numPatients() > 0 && (! personnel.onShift(actor)) &&
-      Plan.competition(Supervision.class, this, actor) == 0
-    ) {
-      final Supervision s = new Supervision(actor, this) ;
-      s.priorityMod = Plan.IDLE ;
-      choice.add(s) ;
-    }
-    if (! personnel.onShift(actor)) return choice.weightedPick(0) ;
+    //  Manufacture Stim Kits for later use-
+    final Manufacture mS = stocks.nextManufacture(actor, NIL_TO_STIM_KITS) ;
+    if (mS != null) choice.add(mS) ;
     //
     //  If anyone is waiting for treatment, tend to them- including outside the
     //  building.
-    for (Element m : actor.mind.awareOf()) if (m instanceof Actor) {
-      final Actor patient = (Actor) m ;
-      choice.add(new Treatment(
-        actor, patient, Treatment.TYPE_FIRST_AID, null
-      )) ;
+    final Batch <Mobile> around = new Batch <Mobile> () ;
+    world.presences.sampleFromKey(this, world, 5, around, Mobile.class) ;
+    for (Mobile m : this.inside()) around.include(m) ;
+    for (Mobile m : around) if (m instanceof Actor) {
+      final Treatment t = new Treatment(actor, (Actor) m, this) ;
+      t.priorityMod = Plan.ROUTINE ;
+      choice.add(t) ;
     }
-    for (Mobile m : this.inside()) if (m instanceof Actor) {
-      final Actor patient = (Actor) m ;
-      if (patient.health.diseased()) choice.add(new Treatment(
-        actor, patient, Treatment.TYPE_MEDICATION, null
-      )) ;
-    }
-    //
-    //  TODO:  You also need to cover treatment of the dead and crazy...
     final Behaviour picked = choice.weightedPick(actor.mind.whimsy()) ;
     if (picked != null) return picked ;
     //
@@ -147,8 +145,9 @@ public class Sickbay extends Venue implements Economy {
     int count = 0 ;
     for (Mobile m : inside()) if (m instanceof Actor) {
       final Actor actor = (Actor) m ;
-      if (actor.health.injuryLevel() > 0) count++ ;
-      else if (actor.health.diseased()) count++ ;
+      if (! actor.health.conscious()) count++ ;
+      else if (actor.health.injuryLevel() > 0) count++ ;
+      else if (actor.isDoing(SickLeave.class, null)) count++ ;
     }
     return count ;
   }
@@ -158,14 +157,89 @@ public class Sickbay extends Venue implements Economy {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
     
+    updateCloneOrders(numUpdates) ;
+    
     final int numU = (1 + structure.numUpgrades()) / 2 ;
-    int medNeed = 2 + numU, powerNeed = 2 + numU ; 
+    int medNeed = 2 + numU, powerNeed = 2 + numU ;
     //
     //  Sickbays consumes medicine and power based on current upgrade level,
     //  and have a mild positive effect on ambience-
-    stocks.incDemand(MEDICINE, medNeed, VenueStocks.TIER_CONSUMER, 1) ;
+    stocks.incDemand(MEDICINE , medNeed, VenueStocks.TIER_CONSUMER, 1) ;
+    stocks.incDemand(STIM_KITS, medNeed, VenueStocks.TIER_TRADER, 1) ;
     stocks.forceDemand(POWER, powerNeed, VenueStocks.TIER_CONSUMER) ;
     world.ecology().impingeSqualor(0 - numU, this, true) ;
+  }
+  
+  
+  private void updateCloneOrders(int numUpdates) {
+    if (numUpdates % 10 != 0) return ;
+    //
+    //  Clean out any orders that have expired (either the destination or the
+    //  client have gone.)
+    for (Manufacture order : cloneOrders) {
+      final Actor patient = (Actor) order.made().refers ;
+      final boolean done =
+          patient.aboard() != this ||
+          (! order.venue.structure.intact()) ||
+          order.finished() ||
+          (! order.venue.stocks.specialOrders().contains(order)) ;
+      if (done) {
+        if (verbose) I.sayAbout(this, "Removing order: "+order) ;
+        cloneOrders.remove(order) ;
+      }
+    }
+    //
+    //  Place part-cloning orders for actors in a critical condition-
+    for (Mobile m : inside()) if (m instanceof Actor) {
+      final Actor actor = (Actor) m ;
+      if (actor.health.suspended()) {
+        if (hasCloneOrder(actor)) continue ;
+        final Venue venue = findCloningVenue() ;
+        if (venue == null) continue ;
+        final Item ordered = Treatment.replicantFor(actor) ;
+        if (ordered == null) continue ;
+        final Manufacture order = new Manufacture(
+          null, venue, PROTEIN_TO_REPLICANTS, Item.withAmount(ordered, 1)
+        ) ;
+        venue.stocks.addSpecialOrder(order) ;
+        cloneOrders.add(order) ;
+        if (verbose) I.sayAbout(this, "Placing order: "+order) ;
+      }
+    }
+  }
+  
+  
+  private boolean hasCloneOrder(Actor a) {
+    for (Manufacture order : cloneOrders) {
+      if (order.made().refers == a) return true ;
+    }
+    return false ;
+  }
+  
+  
+  private Venue findCloningVenue() {
+    final Batch <Venue> near = new Batch <Venue> () ;
+    world.presences.sampleFromKey(this, world, 5, near, CultureVats.class) ;
+    Venue picked = null ;
+    float bestRating = 0 ;
+    for (Venue v : near) {
+      final float rating = rateCloneVenue(v) ;
+      if (rating > bestRating) { bestRating = rating ; picked = v ; }
+    }
+    return picked ;
+  }
+  
+  
+  private float rateCloneVenue(Venue v) {
+    if (! v.structure.intact()) return -1 ;
+    final int UL = v.structure.upgradeLevel(CultureVats.ORGAN_BANKS) ;
+    if (UL <= 0) return -1 ;
+    final int SS = World.SECTOR_SIZE * 2 ;
+    float rating = 10 ;
+    rating *= SS / (SS + Spacing.distance(this, v)) ;
+    rating *= 1 + UL ;
+    rating *= 2 / (2 + v.stocks.specialOrders().size()) ;
+    return rating ;
   }
   
   
@@ -183,7 +257,7 @@ public class Sickbay extends Venue implements Economy {
   
   
   public Service[] services() {
-    return null ;
+    return new Service[] { STIM_KITS } ;
   }
   
   
@@ -191,6 +265,11 @@ public class Sickbay extends Venue implements Economy {
   
   /**  Rendering and interface methods-
     */
+  protected Service[] goodsToShow() {
+    return new Service[] { STIM_KITS, MEDICINE, REPLICANTS } ;
+  }
+  
+  
   public String fullName() {
     return "Sickbay" ;
   }
@@ -204,8 +283,8 @@ public class Sickbay extends Venue implements Economy {
   public String helpInfo() {
     return
       "The Sickbay allows your citizens' injuries, diseases and trauma to be "+
-      "treated quickly and effectively.  It also helps regulate population"+
-      "growth and provide basic maternity and psych evaluation facilities." ;
+      "treated quickly and effectively.  It also alows for basic maternity "+
+      "care and psych evaluation." ;
   }
   
   

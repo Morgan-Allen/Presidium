@@ -11,7 +11,6 @@ import src.util.* ;
 
 /**  'Extras' for a venue serve a couple of functions- primarily decorative,
   *  but also as a mild comfort bonus for the occupants of the holding.
-  *  TODO:  Implement manual placement, or the comfort bonus at least.
   */
 public class HoldingExtra extends Fixture implements TileConstants {
   
@@ -20,6 +19,8 @@ public class HoldingExtra extends Fixture implements TileConstants {
     Holding.class, Texture.loadTexture(Holding.IMG_DIR+"housing_props.png"),
     3, 3, 1.03f, ImageModel.TYPE_FLAT
   ) ;
+  
+  private static boolean verbose = false ;
   
   
   final Holding parent ;
@@ -120,7 +121,7 @@ public class HoldingExtra extends Fixture implements TileConstants {
     Holding holding, List <HoldingExtra> extras, int numUpdates
   ) {
     if (numUpdates % 10 != 0 || ! holding.structure.intact()) return ;
-    I.sayAbout(holding, "Updating extras for: "+holding) ;
+    if (verbose) I.sayAbout(holding, "Updating extras for: "+holding) ;
     
     final int level = 1 + (int) Math.floor(holding.upgradeLevel() / 3f) ;
     addExtras(holding, extras, level) ;
@@ -133,6 +134,7 @@ public class HoldingExtra extends Fixture implements TileConstants {
         holding.base().paving.updatePerimeter(extra, true) ;
         extra.updateLevel(level) ;
       }
+      holding.world().ecology().impingeSqualor(0 - level * 10, extra, true) ;
     }
   }
   

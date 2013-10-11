@@ -183,7 +183,7 @@ public class VenuePersonnel {
   /**  Methods related to payment of wages-
     */
   protected void allocateWages() {
-    if (venue.privateProperty()) return ;
+    if (venue.privateProperty() || venue.base() == null) return ;
     
     if (verbose && I.talkAbout == venue) {
       I.say(venue+" ALLOCATING WAGES, "+positions.size()+" WORK?") ;

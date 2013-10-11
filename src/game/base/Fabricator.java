@@ -17,7 +17,7 @@ import src.util.* ;
 
 
 
-public class Fabricator extends Venue implements Economy {
+public class Fabricator extends Venue implements EconomyConstants {
 
   
   

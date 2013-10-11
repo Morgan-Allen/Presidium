@@ -22,7 +22,7 @@ import src.util.* ;
 /**  This class implements a big bunch of helper methods to search for
   *  optimal delivery venues and amounts-
   */
-public class Deliveries implements Economy {
+public class Deliveries implements EconomyConstants {
   
   
   final static int
@@ -227,7 +227,7 @@ public class Deliveries implements Economy {
     final Object subject = origin ;
     final int
       roundUnit = sizeLimit <= 10 ? (sizeLimit <= 5 ? 1 : 1) : 5,
-      pickUnit  = sizeLimit <= 10 ? (sizeLimit <= 5 ? 1 : 3) : 5 ;
+      pickUnit  = sizeLimit <= 10 ? (sizeLimit <= 5 ? 0 : 2) : 5 ;
     if (verbose) I.sayAbout(subject,
       "Evaluating delivery between "+origin+" and "+client+
       ", goods: "+goods.length

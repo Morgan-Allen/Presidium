@@ -10,7 +10,7 @@ import src.util.* ;
 
 
 
-public class ActorHealth implements Aptitudes {
+public class ActorHealth implements AptitudeConstants {
   
   
   
@@ -22,14 +22,14 @@ public class ActorHealth implements Aptitudes {
     STATE_ACTIVE   = 0,
     STATE_RESTING  = 1,
     STATE_SUSPEND  = 2,
-    STATE_DEAD     = 3,
-    STATE_DECOMP   = 4 ;
+    STATE_DYING    = 3,
+    STATE_DEAD     = 4 ;
   final static String STATE_DESC[] = {
     "Active",
     "Asleep",
-    "In Suspension",
-    "Dead",
-    "Decomposing"
+    "In Suspended Animation",
+    "Mortally Wounded",
+    "Dead"
   } ;
   final public static int
     AGE_JUVENILE = 0,
@@ -311,7 +311,7 @@ public class ActorHealth implements Aptitudes {
     injury += taken ;
     if (organic && Rand.num() * maxHealth < injury) bleeds = true ;
     final float max ;
-    if (deceased()) max = maxHealth * (MAX_INJURY + 1) ;
+    if (dying()) max = maxHealth * (MAX_INJURY + 1) ;
     else {
       max = (maxHealth * MAX_INJURY) + 1 ;
       if (conscious()) morale -= taken / max ;
@@ -382,7 +382,7 @@ public class ActorHealth implements Aptitudes {
   
   
   public boolean bleeding() {
-    return bleeds && ! deceased() ;
+    return bleeds && ! dying() ;
   }
   
   
@@ -396,20 +396,44 @@ public class ActorHealth implements Aptitudes {
   }
   
   
-  public boolean deceased() {
-    return state == STATE_DEAD || state == STATE_DECOMP ;
+  public boolean suspended() {
+    return state == STATE_SUSPEND ;
   }
   
   
-  public boolean decomposed() {
-    return state == STATE_DECOMP ;
+  public boolean alive() {
+    return state <= STATE_RESTING ;
   }
   
   
-  public boolean diseased() {
-    for (Trait d : DISEASES) if (actor.traits.traitLevel(d) > 0) return true ;
+  public boolean dying() {
+    return state >= STATE_DYING ;
+  }
+  
+  
+  public boolean isDead() {
+    return state == STATE_DEAD ;
+  }
+  
+  
+  public boolean isState(int state) {
+    return this.state == state ;
+  }
+  
+  
+  public boolean goodHealth() {
+    return conscious() || (asleep() && actor.traits.effectBonus(VIGOUR) > -5) ;
+  }
+  
+  
+  /*
+  public boolean needsTreatment() {
+    for (Trait d : TREATABLE_CONDITIONS) if (actor.traits.traitLevel(d) > 0) {
+      return true ;
+    }
     return false ;
   }
+  //*/
   
   
   public float stressPenalty() {
@@ -417,7 +441,7 @@ public class ActorHealth implements Aptitudes {
     if (! organic) return stressCache = 0 ;
     
     float sumDisease = 0 ;
-    for (Trait t : Aptitudes.DISEASES) {
+    for (Trait t : AptitudeConstants.TREATABLE_CONDITIONS) {
       sumDisease += ((Condition) t).virulence * actor.traits.traitLevel(t) ;
     }
     float sum = Visit.clamp((fatigue + injury) / maxHealth, 0, 1) ;
@@ -439,7 +463,7 @@ public class ActorHealth implements Aptitudes {
   
   public float maxPsy() {
     final float
-      psyLevel = Math.abs(actor.traits.traitLevel(GIFTED)),
+      psyLevel = Math.abs(actor.traits.traitLevel(PSYONIC)),
       maxPsy = (float) Math.sqrt(psyLevel) * MAX_PSY_MULTIPLE ;
     return maxPsy == 0 ? 0 : (maxPsy + (MAX_PSY_MULTIPLE / 2)) ;
   }
@@ -475,7 +499,7 @@ public class ActorHealth implements Aptitudes {
       advanceAge() ;
     }
     if (oldState != state && state != STATE_ACTIVE) {
-      if (state < STATE_DEAD && ! organic) state = STATE_DEAD ;
+      if (state < STATE_DYING && ! organic) state = STATE_DYING ;
       I.say(actor+" has entered a non-active state: "+stateDesc()) ;
       actor.enterStateKO() ;
     }
@@ -491,10 +515,10 @@ public class ActorHealth implements Aptitudes {
     //
     //  Check for state effects-
     if (state == STATE_SUSPEND) return ;
-    if (state == STATE_DEAD) {
+    if (state == STATE_DYING) {
       injury += maxHealth * 1f / DECOMPOSE_TIME ;
       if (injury > maxHealth * (MAX_INJURY + 1)) {
-        state = STATE_DECOMP ;
+        state = STATE_DEAD ;
       }
       return ;
     }
@@ -503,11 +527,11 @@ public class ActorHealth implements Aptitudes {
     }
     if (actor.traits.useLevel(VIGOUR) < 0) {
       I.say(actor+" has died of disease.") ;
-      state = STATE_DEAD ;
+      state = STATE_DYING ;
     }
     if (injury >= maxHealth * MAX_INJURY) {
       I.say(actor+" has died of injury.") ;
-      state = STATE_DEAD ;
+      state = STATE_DYING ;
     }
     if (fatigue <= 0 && asleep()) {
       if (verbose) I.sayAbout(actor, actor+" has revived!") ;
@@ -520,7 +544,7 @@ public class ActorHealth implements Aptitudes {
     calories = Visit.clamp(calories, 0, maxHealth) ;
     if (calories <= 0) {
       I.say(actor+" has died from lack of energy.") ;
-      state = STATE_DEAD ;
+      state = STATE_DYING ;
     }
   }
   
@@ -577,7 +601,7 @@ public class ActorHealth implements Aptitudes {
       }
       else {
         I.say(actor+" has died of old age.") ;
-        state = STATE_DEAD ;
+        state = STATE_DYING ;
       }
     }
   }
@@ -618,7 +642,7 @@ public class ActorHealth implements Aptitudes {
   
   
   public String moraleDesc() {
-    return descFor(MORALE, morale * 2, -1) ;
+    return descFor(POOR_MORALE, morale * -2, -1) ;
   }
   
   

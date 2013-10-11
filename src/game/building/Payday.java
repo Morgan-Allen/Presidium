@@ -7,7 +7,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.user.* ;
 import src.util.* ;
-import src.game.actors.ActorAI.Employment ;
+import src.game.actors.ActorMind.Employment ;
 
 
 
@@ -28,7 +28,7 @@ public class Payday extends Plan {
   final Employment pays ;
   
   
-  public Payday(Actor actor, ActorAI.Employment pays) {
+  public Payday(Actor actor, ActorMind.Employment pays) {
     super(actor, pays) ;
     this.pays = pays ;
   }

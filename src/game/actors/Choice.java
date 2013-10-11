@@ -62,7 +62,10 @@ public class Choice {
     *  likelihood of their selection.
     */
   public Behaviour weightedPick(float priorityRange) {
-    if (plans.size() == 0) return null ;
+    if (plans.size() == 0) {
+      if (reportRejects) I.sayAbout(actor, "  ...Empty choice!") ;
+      return null ;
+    }
     ///else I.say("Range of choice is "+plans.size()) ;
     //
     //  Firstly, acquire the priorities for each plan.  If the permitted range

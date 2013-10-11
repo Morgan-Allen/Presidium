@@ -86,7 +86,7 @@ public class Commission extends Plan {
   
   private boolean expired() {
     if (orderDate == -1) return false ;
-    final int maxTime = World.STANDARD_DAY_LENGTH * 2 ;
+    final int maxTime = World.STANDARD_DAY_LENGTH * 10 ;
     if (actor.world().currentTime() - orderDate > maxTime) return true ;
     final boolean
       ongoing = shop.stocks.specialOrders().contains(order),

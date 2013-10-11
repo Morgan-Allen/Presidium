@@ -13,7 +13,7 @@ import src.util.* ;
 
 
 
-public class VenueStocks extends Inventory implements Economy {
+public class VenueStocks extends Inventory implements EconomyConstants {
   
   
   
@@ -59,7 +59,7 @@ public class VenueStocks extends Inventory implements Economy {
     int numC = s.loadInt() ;
     while (numC-- > 0) {
       final Demand d = new Demand() ;
-      d.type = Economy.ALL_ITEM_TYPES[s.loadInt()] ;
+      d.type = EconomyConstants.ALL_ITEM_TYPES[s.loadInt()] ;
       d.amountInc    = s.loadFloat() ;
       d.demandAmount = s.loadFloat() ;
       d.tierType     = (int) s.loadFloat() ;
@@ -279,7 +279,7 @@ public class VenueStocks extends Inventory implements Economy {
       venue, "Demand inc is: "+d.amountInc+" bump: "+amount+
       " for: "+type
     ) ;
-    d.tierType = tier ;
+    if (tier != -1) d.tierType = tier ;
   }
   
   
@@ -466,21 +466,20 @@ public class VenueStocks extends Inventory implements Economy {
       if (verbose) I.sayAbout(
         venue, d.type+" demand is: "+d.demandAmount
       ) ;
-
+      
       if (d.tierType == TIER_PRODUCER) continue ;
-      /*
-      if (services != null && Visit.arrayIncludes(services, d.type)) {
-        continue ;
-      }
-      //*/
       diffuseDemand(d.type) ;
+    }
+    
+    for (Manufacture m : specialOrders) {
+      final Item out = m.conversion.out ;
+      final float amount = m.made().amount / (out == null ? 1 : out.amount) ;
+      for (Item i : m.conversion.raw) {
+        incDemand(i.type, i.amount * amount, -1, (int) UPDATE_PERIOD);
+      }
     }
   }
 }
-
-
-
-
 
 
 

@@ -11,7 +11,7 @@ import src.util.* ;
 
 
 
-public class Recreation extends Plan implements Economy {
+public class Recreation extends Plan implements EconomyConstants {
   
   
   /**  Data fields, construction and save/load methods-
@@ -45,11 +45,14 @@ public class Recreation extends Plan implements Economy {
   public float priorityFor(Actor actor) {
     if (actor.mind.work() instanceof Venue) {
       final Venue v = (Venue) actor.mind.work() ;
-      if (v.personnel.onShift(actor)) return 0 ;
+      if (v.personnel.onShift(actor)) return IDLE ;
     }
     float priority = (ROUTINE * (1 - actor.health.moraleLevel())) + IDLE ;
     priority -= Plan.rangePenalty(actor, venue) ;
     priority *= rateVenue(venue, actor) / 10 ;
+    //
+    //  TODO:  Vary based on debauched/indolent traits, et cetera-
+    
     if (verbose) I.sayAbout(actor, "Relax priority for "+venue+": "+priority) ;
     return priority ;
   }

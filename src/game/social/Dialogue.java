@@ -32,7 +32,7 @@ import src.util.* ;
 //  TODO:  You want the chat FX to persist a while after expiry.
 
 
-public class Dialogue extends Plan implements Aptitudes {
+public class Dialogue extends Plan implements AptitudeConstants {
   
   
   
@@ -46,6 +46,9 @@ public class Dialogue extends Plan implements Aptitudes {
     STAGE_DONE     =  4 ;
   final static float
     FINISH_CHANCE = 0.1f ;
+  
+  private static boolean verbose = false ;
+  
   
   final Actor other ;
   final Dialogue inits ;
@@ -99,6 +102,7 @@ public class Dialogue extends Plan implements Aptitudes {
     if (BaseUI.isPicked(actor)) {
       actor.world().ephemera.addGhost(null, 4, chat, 0.5f) ;
     }
+    super.onSuspend() ;
   }
   
   
@@ -203,9 +207,11 @@ public class Dialogue extends Plan implements Aptitudes {
       forOther.stage = this.stage = STAGE_TALKING ;
       
       final Behaviour root = other.mind.rootBehaviour() ;
-      I.sayAbout(other, other+" obliged to chat with "+actor) ;
-      I.sayAbout(other, "Old priority "+root.priorityFor(other)) ;
-      I.sayAbout(other, "New priority "+forOther.priorityFor(other)) ;
+      if (verbose) {
+        I.sayAbout(other, other+" obliged to chat with "+actor) ;
+        I.sayAbout(other, "Old priority "+root.priorityFor(other)) ;
+        I.sayAbout(other, "New priority "+forOther.priorityFor(other)) ;
+      }
       
       other.mind.assignBehaviour(forOther) ;
       return true ;

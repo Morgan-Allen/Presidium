@@ -4,12 +4,11 @@
   *  for now, feel free to poke around for non-commercial purposes.
   */
 package src.game.actors ;
-
-import src.util.Table;
-
+import src.util.* ;
 
 
-public interface Aptitudes {
+
+public interface AptitudeConstants {
   
   
   final public static int
@@ -145,7 +144,20 @@ public interface Aptitudes {
     
     PYSONIC_SKILLS[] = Trait.skillsSoFar() ;
   
-  
+
+  //  Likelihood of aiding/harming others- Empathic vs. Cruel
+  //  Brave danger/retreat- Bold vs. Nervous
+  //  Enjoy/disdain violence- Aggressive vs. Pacifist
+  //  Conversation/relationships- Expressive vs. Impassive
+  //  Adhere to ethics/get results- Principled vs. Amoral
+  //  Persistance/adaptability- Stubborn/Patient vs. Whimsical
+  //  Desire for more/content with lot- Ambitious/Jealous vs. Humble
+  //  Baser motivations- Acquisitive, Lustful, Glutton vs. Moderate
+  //  Desire/need to get outdoors- Restless vs. Indolent
+  //  Desire/need to research- Curious vs. Dull
+  //  Desire/need to socialise- Gregarious vs. Solitary
+  //  Willingness to follow authority- Dutiful vs. Selfish/Rebel
+  //  Willingness to enforce discipline- Strict vs. Lenient
   
   public static Trait
     
@@ -358,7 +370,7 @@ public interface Aptitudes {
     ),
     TALL = new Trait(PHYSICAL,
       "Towering",
-      "Looming",
+      "Big",
       "Tall",
       null,
       "Short",
@@ -374,10 +386,10 @@ public interface Aptitudes {
       "Lean",
       "Gaunt"
     ),
-    GIFTED = new Trait(PHYSICAL,
-      "Prodigiously Gifted",
-      "Highly Gifted",
-      "Gifted",
+    MUTATION = new Trait(CATEGORIC,
+      "Major Mutation",
+      "Minor Mutation",
+      "Nominal Mutation",
       null
     ),
     PHYSICAL_TRAITS[] = Trait.traitsSoFar(),
@@ -414,15 +426,15 @@ public interface Aptitudes {
     BLOOD_TRAITS[] = {
       DESERT_BLOOD, TUNDRA_BLOOD, FOREST_BLOOD, WASTES_BLOOD
     },
-    MUTATION = new Trait(CATEGORIC,
-      "Severe Mutation",
-      "Major Mutation",
-      "Slight Mutation",
-      null
-    ),
     CATEGORIC_TRAITS[] = Trait.traitsSoFar() ;
+  //
+  //  TODO:  Create a list of freaky mutations to pick from, some good, some
+  //  bad.  (Bad is more likely when acquired at random, good more likely as a
+  //  result of natural selection/eugenics.)
   
-
+  
+  
+  
   
   final static int
     SHORT_LATENCY  = 1,
@@ -435,7 +447,7 @@ public interface Aptitudes {
     
     NO_VIRULENCE        = 0,
     MINIMAL_VIRULENCE   = 5,
-    MILD_VIRULENCE      = 10,
+    LOW_VIRULENCE       = 10,
     AVERAGE_VIRULENCE   = 15,
     HIGH_VIRULENCE      = 20,
     EXTREME_VIRULENCE   = 25 ;
@@ -456,14 +468,14 @@ public interface Aptitudes {
       "Mild Fatigue",
       null
     ),
-    MORALE = new Condition(
-      "Fantastic Mood",
-      "Great Mood",
-      "Fair Mood",
+    POOR_MORALE = new Condition(
+      "Terrible Morale",
+      "Broken Morale",
+      "Poor Morale",
       null,
-      "Poor Mood",
-      "Awful Mood",
-      "Wretched Mood"
+      "Fair Morale",
+      "High Morale",
+      "Fantastic Morale"
     ),
     
     
@@ -479,14 +491,17 @@ public interface Aptitudes {
       null
     ),
     //
-    //  TODO:  Use this as a possible side-effect of incompetent foraging?
+    //  TODO:  Use this as a possible side-effect of incompetent foraging.
     POISONED = new Condition(
-      "Fatally Poisoned",
-      "Badly Poisoned",
-      "Poisoned",
-      null
+      SHORT_LATENCY, LOW_VIRULENCE, NO_SPREAD, Table.make(
+        VIGOUR, -5, BRAWN, -5
+      ),
+      "Severe Poisoning",
+      "Bad Poisoning",
+      "Mild Poisoning",
+      null,
+      "Poison Immune"
     ),
-    
     
     SOMA_HAZE = new Condition(
       SHORT_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(
@@ -495,28 +510,28 @@ public interface Aptitudes {
       "Soma Haze",
       "Soma Haze",
       "Soma Haze",
-      null
-      //  "Haze Immune"
+      null,
+      "Haze Immune"
     ),
     ILLNESS = new Condition(
       SHORT_LATENCY, MINIMAL_VIRULENCE, RAPID_SPREAD, Table.make(
-        VIGOUR, -3, BRAWN, -3
+        VIGOUR, -5, BRAWN, -5
       ),
-      "Terminal Illness",
+      "Debilitating Illness",
       "Serious Illness",
       "Mild Illness",
-       null
-       //  "Illness Immune"
+       null,
+       "Illness Immune"
     ),
     SPICE_ADDICTION = new Condition(
-      LONG_LATENCY, MILD_VIRULENCE, NO_SPREAD, Table.make(
+      LONG_LATENCY, LOW_VIRULENCE, NO_SPREAD, Table.make(
         VIGOUR, -10, BRAWN, -10, WILL, -5, INTELLECT, -5
       ),
       "Complete Spice Addiction",
       "Heavy Spice Addiction",
       "Mild Spice Addiction",
-      null
-      //  "Addiction Immune"
+      null,
+      "Addiction Immune"
     ),
     CANCER = new Condition(
       LONG_LATENCY, AVERAGE_VIRULENCE, NO_SPREAD, Table.make(
@@ -525,8 +540,8 @@ public interface Aptitudes {
       "Terminal Cancer",
       "Advanced Cancer",
       "Early Cancer",
-      null
-      //  "Cancer Immune"
+      null,
+      "Cancer Immune"
     ),
     RAGE_INFECTION = new Condition(
       SHORT_LATENCY, HIGH_VIRULENCE, RAPID_SPREAD, Table.make(
@@ -535,18 +550,18 @@ public interface Aptitudes {
       "Rage Frenzy",
       "Rage Fever",
       "Rage Onset",
-      null
-      //  "Rage Immune"
+      null,
+      "Rage Immune"
     ),
     HIREX_PARASITE = new Condition(
       MEDIUM_LATENCY, HIGH_VIRULENCE, SLOW_SPREAD, Table.make(
         INTELLECT, -5, REFLEX, -5, INSIGHT, -5, BRAWN, -5, HANDSOME, -5
       ),
+      "Hirex Fruiting",
       "Hirex Infestation",
-      "Hirex Parasite",
       "Hirex Gestation",
-      null
-      //  "Hirex Immune"
+      null,
+      "Hirex Immune"
     ),
     ALBEDAN_STRAIN = new Condition(
       MEDIUM_LATENCY, EXTREME_VIRULENCE, SLOW_SPREAD, Table.make(
@@ -555,46 +570,74 @@ public interface Aptitudes {
       "Albedan Strain",
       "Albedan Strain",
       "Albedan Strain",
-      null
-      //  "Strain Immune"
+      null,
+      "Strain Immune"
     ),
     SILVERQUICK = new Condition(
       SHORT_LATENCY, EXTREME_VIRULENCE, RAPID_SPREAD, Table.make(
         IMPASSIVE, 5, VIGOUR, -20, BRAWN, -20
       ),
-      "Silverquick Ague",
+      "Silverquick Rictus",
       "Silverquick Scale",
       "Silverquick Taint",
-      null
-      //  "Silverquick Immune"
+      null,
+      "Silverquick Immune"
     ),
-    MOEBIUS_PHASE = new Condition(
+    MOEBIUS_PLAGUE = new Condition(
       LONG_LATENCY, EXTREME_VIRULENCE, NO_SPREAD, Table.make(
         REFLEX, -20, BRAWN, -20
       ),
       "Moebius Sublimation",
-      "Moebius Phase",
       "Moebius Displacement",
-      null
-      //  "Phase Immune"
+      "Moebius Plague",
+      null,
+      "Phase Immune"
     ),
     
     SPONTANEOUS_DISEASE[] = {
       ILLNESS, CANCER, HIREX_PARASITE
     },
-    DISEASES[] = {
+    TREATABLE_CONDITIONS[] = {
+      INJURY, POOR_MORALE, POISONED,
       ILLNESS, SOMA_HAZE, SPICE_ADDICTION,
       CANCER, RAGE_INFECTION, HIREX_PARASITE,
-      ALBEDAN_STRAIN, SILVERQUICK, MOEBIUS_PHASE
+      ALBEDAN_STRAIN, SILVERQUICK, MOEBIUS_PLAGUE
     } ;
   final public static Trait CONDITIONS[] = Trait.traitsSoFar() ;
+  
+  //
+  //  TODO:  Put these in a separate class, so you can concisely describe their
+  //  effects.
+  final public static Trait
+    PSYONIC        = new Trait(PHYSICAL, "Psyonic"       ),
+    REGENERATIVE   = new Trait(PHYSICAL, "Regenerative"  ),
+    SUPERCOGNITIVE = new Trait(PHYSICAL, "Supercognitive"),
+    JUMPER         = new Trait(PHYSICAL, "Jumper"        ),
+    HYPERPHYSICAL  = new Trait(PHYSICAL, "Hyperphysical" ),
+    CHAMELEON      = new Trait(PHYSICAL, "Chameleon"     ),
+    ULTRASENSITIVE = new Trait(PHYSICAL, "Ultrasensitive"),
+    VENOMOUS       = new Trait(PHYSICAL, "Venomous"      ),
+    PHASE_SHIFTER  = new Trait(PHYSICAL, "Phase Shifter" ),
+    GILLED         = new Trait(PHYSICAL, "Gilled"        ),
+    FOUR_ARMED     = new Trait(PHYSICAL, "Four Armed"    ),
+    ODD_COLOUR     = new Trait(PHYSICAL, "Odd Colour"    ),
+    ECCENTRIC      = new Trait(PHYSICAL, "Eccentric"     ),
+    STERILE        = new Trait(PHYSICAL, "Sterile"       ),
+    FURRED         = new Trait(PHYSICAL, "Furred"        ),
+    SCALY          = new Trait(PHYSICAL, "Scaly"         ),
+    SICKLY         = new Trait(PHYSICAL, "Sickly"        ),
+    DISTURBED      = new Trait(PHYSICAL, "Disturbed"     ),
+    DEFORMED       = new Trait(PHYSICAL, "Deformed"      ),
+    LEPROUS        = new Trait(PHYSICAL, "Leprous"       ),
+    NULL_EMPATH    = new Trait(PHYSICAL, "Null Empath"   ),
+    ATAVIST        = new Trait(PHYSICAL, "Atavist"       ),
+    ABOMINATION    = new Trait(PHYSICAL, "Abomination"   ),
+    MUTANT_TRAITS[] = Trait.traitsSoFar() ;
+  
   
   final public static Trait
     ALL_TRAIT_TYPES[] = Trait.from(Trait.allTraits) ;
 }
-
-
-
 
 
 /*
@@ -606,8 +649,30 @@ public interface Aptitudes {
   //    Humanoid, Insectile, Silicate, Artilect, Browser and Predator.
   //  The three non-humanoid species also have a dedicated life-cycle-
   //    Sessile/Changeling/Blossom Node, Larva/Worker/Soldier/Queen, Jovian.
-//*/
 
+
+    PRIME_DIRECTIVES    = new Trait("Prime Directives"   , Type.SUPERNORMAL),
+    ARTILECT            = new Trait("Artilect"           , Type.SUPERNORMAL),
+    SILICATE_METABOLISM = new Trait("Silicate Metabolism", Type.SUPERNORMAL),
+    MINDLESS            = new Trait("Mindless"           , Type.SUPERNORMAL),
+    ANCIENT             = new Trait("Ancient"            , Type.SUPERNORMAL),
+    HUMANOID            = new Trait("Humanoid"           , Type.INNATE     ),
+    INSECTILE           = new Trait("Insectile"          , Type.SUPERNORMAL),
+    PLANT_METABOLISM    = new Trait("Plant Metabolism"   , Type.SUPERNORMAL),
+    IMMOBILE            = new Trait("Immobile"           , Type.SUPERNORMAL),
+    XENOMORPH           = new Trait("Xenomorph"          , Type.SUPERNORMAL),
+    AMORPHOUS           = new Trait("Amorphous"          , Type.SUPERNORMAL),
+    MELDED              = new Trait("Melded"             , Type.SUPERNORMAL),
+    PART_CYBORG         = new Trait("Part Cyborg"        , Type.ACQUIRED   ),
+    FULL_CYBORG         = new Trait("Full Cyborg"        , Type.ACQUIRED   ),
+    FAST_METABOLISM     = new Trait("Fast Metabolism"    , Type.INNATE     ),
+    LONG_LIVED          = new Trait("Long Lived"         , Type.INNATE     ),
+    IMMORTAL            = new Trait("Immortal"           , Type.SUPERNORMAL),
+    SPECIES_TRAITS[] = Trait.traitsSoFar(),
+    
+    ALL_TRAITS[] = Trait.allTraits()
+  ;
+//*/
 
 
 

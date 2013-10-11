@@ -14,7 +14,7 @@ import src.util.* ;
 
 
 
-public class SolarArray extends Segment implements Economy {
+public class SolarArray extends Segment implements EconomyConstants {
   
   
   final static String

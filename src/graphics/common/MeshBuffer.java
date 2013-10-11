@@ -26,10 +26,6 @@ public class MeshBuffer implements Rendering.Client {
   protected int numFacets ;
   private FloatBuffer vertBuffer, normBuffer, textBuffer ;
   
-  //
-  //  TODO:  Replace with something more generalised/secure...
-  ///public boolean isFog = false ;
-  
   
   
   public MeshBuffer(int numFacets) {
@@ -37,6 +33,17 @@ public class MeshBuffer implements Rendering.Client {
     vertBuffer = BufferUtils.createFloatBuffer(numFacets * VFP) ;
     normBuffer = BufferUtils.createFloatBuffer(numFacets * NFP) ;
     textBuffer = BufferUtils.createFloatBuffer(numFacets * TFP) ;
+  }
+  
+  
+  public MeshBuffer(float vertA[], float normA[], float textA[]) {
+    this(vertA.length / VFP) ;
+    update(vertA, normA, textA) ;
+  }
+  
+  
+  public MeshBuffer(Object geom[]) {
+    this((float[]) geom[0], (float[]) geom[1], (float[]) geom[2]) ;
   }
   
   
@@ -60,44 +67,11 @@ public class MeshBuffer implements Rendering.Client {
   
   /**  Rendering methods-
     */
-  /*
-  glActiveTextureARB( GL_TEXTURE0_ARB );
-  glEnable          ( GL_TEXTURE_2D   );
-  glTexEnvi         ( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE ) 
-  glBindTexture     ( GL_TEXTURE_2D, texture0 );
- 
-  glActiveTextureARB( GL_TEXTURE1_ARB );
-  glEnable          ( GL_TEXTURE_2D   );
-  glTexEnvi         ( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE ) ;
-  glBindTexture     ( GL_TEXTURE_2D, texture1 );
-  //*/
-  
-  //
-  //  TODO:  You may need to create a dedicated FogMesh class.
-  
   public void renderTo(Rendering rendering) {
     if (numFacets == 0) return ;
     if (colour != null) colour.bindColour() ;
     render(1, 0, null, vertBuffer, normBuffer, textBuffer, numFacets) ;
   }
-
-  /*
-  //GL11.glDisable(GL11.GL_DEPTH_TEST) ;
-  GL11.glTexEnvf(
-    GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL13.GL_SUBTRACT
-  ) ;
-  GL11.glBlendFunc(GL11.GL_ZERO, GL11.GL_ONE_MINUS_SRC_ALPHA) ;
-  //*/
-  ///GL14.glBlendEquation(GL14.GL_FUNC_REVERSE_SUBTRACT) ;
-
-  ///GL14.glBlendEquation(GL14.GL_FUNC_ADD) ;
-  /*
-  //GL11.glEnable(GL11.GL_DEPTH_TEST) ;
-  GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA) ;
-  GL11.glTexEnvf(
-    GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_MODULATE
-  ) ;
-  //*/
   
   
   final static int GL_DISABLES[] = new int[] {} ;
@@ -155,6 +129,9 @@ public class MeshBuffer implements Rendering.Client {
     vertR = new List <float[]> (),
     normR = new List <float[]> (),
     textR = new List <float[]> () ;
+  private static Batch <Vec3D> vertB = new Batch <Vec3D> () ;
+  private static Batch <Vec3D> normB = new Batch <Vec3D> () ;
+  private static Batch <Vec2D> textB = new Batch <Vec2D> () ;
   
     
   public static void beginRecord() {
@@ -167,6 +144,87 @@ public class MeshBuffer implements Rendering.Client {
     record.clear() ;
     record.add(new float[PORTION_SIZE]) ;
     return 0 ;
+  }
+  
+  
+  public static void recordSimpleQuad(
+    float x, float y, float size, float z
+  ) {
+    recordPoint(
+        x, y, z,
+        0, 0, 0,
+        0, 0
+    ) ;
+    recordPoint(
+        x, y + size, z,
+        0, 0, 0,
+        0, 1
+    ) ;
+    recordPoint(
+        x + size, y + size, z,
+        0, 0, 0,
+        1, 1
+    ) ;
+    recordPoint(
+        x + size, y + size, z,
+        0, 0, 0,
+        1, 1
+    ) ;
+    recordPoint(
+        x + size, y, z,
+        0, 0, 0,
+        1, 0
+    ) ;
+    recordPoint(
+        x, y, z,
+        0, 0, 0,
+        0, 0
+    ) ;
+  }
+  
+  
+  public static void recordPoint(
+    float vX, float vY, float vZ,
+    float nX, float nY, float nZ,
+    float tU, float tV
+  ) {
+    vertB.add(new Vec3D(vX, vY, vZ)) ;
+    normB.add(new Vec3D(nX, nY, nZ)) ;
+    textB.add(new Vec2D(tU, tV)) ;
+  }
+  
+  
+  public static void recordPoint(Vec3D v, Vec3D n, Vec2D t) {
+    vertB.add(v) ;
+    normB.add(n) ;
+    textB.add(t) ;
+  }
+  
+  
+  public static void recordGeom(
+    Vec3D verts[], Vec3D norms[], Vec2D texts[]
+  ) {
+    if (verts.length != norms.length || norms.length != texts.length) {
+      I.complain("All geom arrays must of the same length.") ;
+    }
+    final float
+      vertA[] = new float[verts.length * 3],
+      normA[] = new float[norms.length * 3],
+      textA[] = new float[texts.length * 2] ;
+    for (int i = 0, vI = 0, nI = 0, tI = 0 ; i < verts.length ; i++) {
+      final Vec3D v = verts[i] ;
+      final Vec3D n = norms[i] ;
+      final Vec2D t = texts[i] ;
+      vertA[vI++] = v.x ;
+      vertA[vI++] = v.y ;
+      vertA[vI++] = v.z ;
+      normA[nI++] = n.x ;
+      normA[nI++] = n.y ;
+      normA[nI++] = n.z ;
+      textA[tI++] = t.x ;
+      textA[tI++] = t.y ;
+    }
+    recordGeom(vertA, normA, textA) ;
   }
   
   
@@ -196,6 +254,15 @@ public class MeshBuffer implements Rendering.Client {
   
   
   public static Object[] compileRecord() {
+    if (vertB.size() > 0) {
+      final Vec3D verts[] = vertB.toArray(Vec3D.class) ;
+      final Vec3D norms[] = normB.toArray(Vec3D.class) ;
+      final Vec2D texts[] = textB.toArray(Vec2D.class) ;
+      vertB.clear() ;
+      normB.clear() ;
+      textB.clear() ;
+      recordGeom(verts, norms, texts) ;
+    }
     return new Object[] {
       compile(vertR, vI),
       compile(normR, nI),

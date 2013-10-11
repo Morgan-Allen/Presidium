@@ -16,7 +16,7 @@ import src.user.* ;
 
 
 
-public class Hunting extends Combat implements Economy {
+public class Hunting extends Combat implements EconomyConstants {
   
   
   
@@ -209,7 +209,7 @@ public class Hunting extends Combat implements Economy {
   public boolean actionFeed(Actor actor, Actor prey) {
     //
     //  Tear off chunks of meat and fill your belly.
-    if (! prey.health.deceased()) prey.health.setState(ActorHealth.STATE_DEAD) ;
+    if (! prey.health.dying()) prey.health.setState(ActorHealth.STATE_DYING) ;
     final float
       before = prey.health.injuryLevel(),
       damage = actor.gear.attackDamage() * (Rand.num() + 0.5f) / 2 ;
@@ -248,7 +248,7 @@ public class Hunting extends Combat implements Economy {
   
   
   public boolean actionHarvest(Actor actor, Actor prey) {
-    if (! prey.health.deceased()) prey.health.setState(ActorHealth.STATE_DEAD) ;
+    if (! prey.health.dying()) prey.health.setState(ActorHealth.STATE_DYING) ;
     final float amountMeat = actor.health.maxHealth() / 5f ;
     actor.gear.addItem(Item.withAmount(PROTEIN, amountMeat)) ;
     prey.setAsDestroyed() ;
@@ -269,7 +269,7 @@ public class Hunting extends Combat implements Economy {
   /**  Rendering and interface-
     */
   public void describeBehaviour(Description d) {
-    if (prey.health.deceased()) {
+    if (prey.health.dying()) {
       if (type == TYPE_HARVEST) {
         if (! prey.destroyed()) d.append("Harvesting meat from "+prey) ;
         else d.append("Returning meat to "+actor.mind.work()) ;

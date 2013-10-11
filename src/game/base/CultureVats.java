@@ -17,14 +17,14 @@ import src.util.* ;
 
 
 
-public class CultureVats extends Venue implements Economy {
+public class CultureVats extends Venue implements EconomyConstants {
 
   
   
   /**  Fields, constructors, and save/load methods-
     */
   //
-  //  TODO:  Fix this model.
+  //  TODO:  Fix this model...
   final public static Model MODEL = ImageModel.asSolidModel(
     CultureVats.class, "media/Buildings/physician/culture_vats.png", 3.66f, 3
   ) ;
@@ -36,12 +36,15 @@ public class CultureVats extends Venue implements Economy {
       400, 3, 450,
       Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
+    personnel.setShiftType(SHIFTS_BY_DAY) ;
     this.attachSprite(MODEL.makeSprite()) ;
   }
   
   
   public CultureVats(Session s) throws Exception {
     super(s) ;
+    //stocks.bumpItem(CARBS, 100) ;
+    //stocks.bumpItem(PROTEIN, 100) ;
   }
   
   
@@ -104,8 +107,8 @@ public class CultureVats extends Venue implements Economy {
     
     stocks.translateDemands(1, POWER_TO_CARBS   ) ;
     stocks.translateDemands(1, POWER_TO_PROTEIN ) ;
-    stocks.translateDemands(1, POWER_TO_SOMA    ) ;
-    stocks.translateDemands(1, POWER_TO_MEDICINE) ;
+    stocks.translateDemands(1, GREENS_TO_SOMA   ) ;
+    stocks.translateDemands(1, SPICE_TO_MEDICINE) ;
     
     float needPower = 5 ;
     if (! isManned()) needPower /= 2 ;
@@ -131,7 +134,19 @@ public class CultureVats extends Venue implements Economy {
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
-    
+    //
+    //  Replicants need to be delivered to their Sickbays once ready.
+    for (Item match : stocks.matches(REPLICANTS)) {
+      if (match.amount < 1) continue ;
+      final Actor a = (Actor) match.refers ;
+      if (a.aboard() instanceof Venue) {
+        final Delivery d = new Delivery(match, this, (Venue) a.aboard()) ;
+        d.priorityMod = Plan.CASUAL ;
+        choice.add(d) ;
+      }
+    }
+    //
+    //  Otherwise, see to custom manufacturing-
     final float powerCut = stocks.shortagePenalty(POWER) * 10 ;
     final int cycleBonus = bonusFor(WASTE_DISPOSAL, 1) ;
     
@@ -140,7 +155,8 @@ public class CultureVats extends Venue implements Economy {
       o.checkBonus = cycleBonus + bonusFor(ORGAN_BANKS, 2) ;
       choice.add(o) ;
     }
-    
+    //
+    //  Foodstuffs-
     final Manufacture
       mS = stocks.nextManufacture(actor, POWER_TO_CARBS),
       mP = stocks.nextManufacture(actor, POWER_TO_PROTEIN) ;
@@ -154,10 +170,11 @@ public class CultureVats extends Venue implements Economy {
       mP.checkBonus -= powerCut ;
       choice.add(mP) ;
     }
-    
+    //
+    //  And pharmaceuticals-
     final Manufacture
-      mA = stocks.nextManufacture(actor, POWER_TO_SOMA),
-      mM = stocks.nextManufacture(actor, POWER_TO_MEDICINE) ;
+      mA = stocks.nextManufacture(actor, GREENS_TO_SOMA),
+      mM = stocks.nextManufacture(actor, SPICE_TO_MEDICINE) ;
     if (mA != null) {
       mA.checkBonus = cycleBonus + bonusFor(SOMA_CULTURE, 1.5f) ;
       mA.checkBonus -= powerCut ;

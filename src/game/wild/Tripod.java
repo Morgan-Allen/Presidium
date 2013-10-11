@@ -15,7 +15,7 @@ import src.util.* ;
 
 
 
-public class Tripod extends Artilect implements Economy {
+public class Tripod extends Artilect implements EconomyConstants {
   
   
   final String name ;

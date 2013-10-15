@@ -6,7 +6,7 @@ import java.io.* ;
 
 
 
-public class OutfitType extends Service implements EconomyConstants {
+public class OutfitType extends Service implements Economy {
   
   
   final public float

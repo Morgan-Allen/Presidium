@@ -16,7 +16,7 @@ import src.util.* ;
 //  TODO:  Backgrounds need to include their own descriptions.
 
 
-public class Background implements EconomyConstants {
+public class Background implements Economy {
   
   
   
@@ -94,7 +94,7 @@ public class Background implements EconomyConstants {
     //  visiting NPCs or members of your household.
     HIGH_BIRTH = new Background(
       "High Birth", "highborn_male_skin.gif", null, RULER_CLASS,
-      NOVICE, NOBLE_ETIQUETTE, LEARNING, COMMAND, HAND_TO_HAND, ANCIENT_LORE
+      NOVICE, NOBLE_ETIQUETTE, LEARNING, COMMAND, HAND_TO_HAND, ARCHAEOLOGY
     ),
     
     OPEN_CLASSES[] = { HIVES_BIRTH, PYON_BIRTH, FREE_BIRTH, GUILDER_BIRTH } ;
@@ -107,7 +107,7 @@ public class Background implements EconomyConstants {
     EXCAVATOR = new Background(
       "Excavator", "pyon_skin.gif", null,
       LOWER_CLASS, GUILD_ARTIFICER,
-      EXPERT, HARD_LABOUR, NOVICE, GEOPHYSICS, ASSEMBLY, LEARNING, ANCIENT_LORE,
+      EXPERT, HARD_LABOUR, NOVICE, GEOPHYSICS, ASSEMBLY, LEARNING, ARCHAEOLOGY,
       OFTEN, STUBBORN, RARELY, NERVOUS, HANDSOME,
       OVERALLS
     ),
@@ -133,7 +133,7 @@ public class Background implements EconomyConstants {
       "Artificer", "artificer_skin.gif", "artificer_portrait.png",
       UPPER_CLASS, GUILD_ARTIFICER,
       EXPERT, ASSEMBLY, PRACTICED, FIELD_THEORY, SHIELD_AND_ARMOUR,
-      NOVICE, ANCIENT_LORE, CHEMISTRY,
+      NOVICE, ARCHAEOLOGY, CHEMISTRY,
       SOMETIMES, INQUISITIVE, RARELY, NATURALIST,
       OVERALLS
     ),
@@ -162,7 +162,7 @@ public class Background implements EconomyConstants {
     ARCHIVIST = new Background(
       "Archivist", "citizen_skin.gif", null,
       MIDDLE_CLASS, GUILD_PHYSICIAN,
-      EXPERT, ACCOUNTING, ANCIENT_LORE, NOVICE, COUNSEL, ASSEMBLY,
+      EXPERT, ACCOUNTING, ARCHAEOLOGY, NOVICE, COUNSEL, ASSEMBLY,
       ALWAYS, INQUISITIVE, SOMETIMES, NERVOUS, IMPASSIVE,
       OVERALLS
     ),
@@ -263,7 +263,7 @@ public class Background implements EconomyConstants {
     AUDITOR = new Background(
       "Auditor", "vendor_skin.gif", "vendor_portrait.png",
       UPPER_CLASS, GUILD_MERCHANT,
-      EXPERT, COUNSEL, ACCOUNTING, PRACTICED, COMMAND, ANCIENT_LORE,
+      EXPERT, COUNSEL, ACCOUNTING, PRACTICED, COMMAND, ARCHAEOLOGY,
       ALWAYS, STUBBORN, OFTEN, DUTIFUL,
       SOMETIMES, AMBITIOUS, IMPASSIVE, RARELY, DEBAUCHED,
       OVERALLS
@@ -331,14 +331,14 @@ public class Background implements EconomyConstants {
     FABRICATOR = new Background(
       "Fabricator", "citizen_skin.gif", null,
       MIDDLE_CLASS, GUILD_AESTHETE,
-      PRACTICED, CHEMISTRY, HARD_LABOUR, NOVICE, GRAPHIC_MEDIA, HANDICRAFTS,
+      PRACTICED, CHEMISTRY, HARD_LABOUR, NOVICE, GRAPHIC_DESIGN, HANDICRAFTS,
       SOMETIMES, STUBBORN, NERVOUS
     ),
     
     AESTHETE = new Background(
       "Aesthete", "aesthete_male_skin.gif", null,
       UPPER_CLASS, GUILD_AESTHETE,
-      EXPERT, GRAPHIC_MEDIA, PRACTICED, HANDICRAFTS, NOVICE, ANATOMY,
+      EXPERT, GRAPHIC_DESIGN, PRACTICED, HANDICRAFTS, NOVICE, ANATOMY,
       RARELY, STUBBORN, IMPASSIVE, OFTEN, DEBAUCHED,
       FINERY
     ),
@@ -346,7 +346,7 @@ public class Background implements EconomyConstants {
     PROPAGANDIST = new Background(
       "Propagandist", "citizen_skin.gif", null,
       UPPER_CLASS, GUILD_AESTHETE,
-      EXPERT, GRAPHIC_MEDIA, SUASION,
+      EXPERT, GRAPHIC_DESIGN, SUASION,
       PRACTICED, MUSIC_AND_SONG, ACCOUNTING,
       NOVICE, COUNSEL, PSYCHOANALYSIS,
       RARELY, HONOURABLE, STUBBORN, OFTEN, AMBITIOUS,
@@ -460,14 +460,14 @@ public class Background implements EconomyConstants {
       "Cargo Cultist", "native_skin.gif", null,
       MIDDLE_CLASS, NOT_A_GUILD,
       EXPERT, HANDICRAFTS, PRACTICED, DOMESTICS,
-      NOVICE, ANCIENT_LORE, ASSEMBLY, COMMON_CUSTOM,
+      NOVICE, ARCHAEOLOGY, ASSEMBLY, COMMON_CUSTOM,
       ALWAYS, ACQUISITIVE, OPTIMISTIC, RARELY, NATURALIST
     ),
     SHAMAN = new Background(
       "Shaman", "native_skin.gif", null,
       UPPER_CLASS, NOT_A_GUILD,
       EXPERT, NATIVE_TABOO, COUNSEL, PRACTICED, CULTIVATION,
-      NOVICE, PHARMACY, ANATOMY, ANCIENT_LORE, MUSIC_AND_SONG,
+      NOVICE, PHARMACY, ANATOMY, ARCHAEOLOGY, MUSIC_AND_SONG,
       ALWAYS, TRADITIONAL, OFTEN, DUTIFUL, NATURALIST
     ),
     
@@ -485,7 +485,7 @@ public class Background implements EconomyConstants {
       "Knighted", "highborn_male_skin.gif", null,
       RULER_CLASS, NOT_A_GUILD,
       PRACTICED, HAND_TO_HAND, BATTLE_TACTICS, SHIELD_AND_ARMOUR, COMMAND,
-      NOBLE_ETIQUETTE, NOVICE, ACCOUNTING, ANCIENT_LORE, COMMON_CUSTOM,
+      NOBLE_ETIQUETTE, NOVICE, ACCOUNTING, ARCHAEOLOGY, COMMON_CUSTOM,
       LEARNING, SUGGESTION, PREMONITION, PROJECTION,
       SOMETIMES, PSYONIC, OFTEN, TRADITIONAL, RARELY, NERVOUS
     ) {
@@ -626,7 +626,7 @@ public class Background implements EconomyConstants {
   /*
   House Angetenar.  __House Azha.__  House Vega.  House Atik.
   __House Tien (Yeun/Cheun/Kwan/Yuan Liu/Yuan San).__
-  __House Wei. (similarly, many branches.)__  __House Mesa.__
+  __House Wei. (similarly, many branches.)__  __House Mesa.__  __House Nyame.__
   House Navi.  House Rana.  House Regor.  __House Aleph.__  __House Surya.__
   
   House Ophiuchus.  House Rigel.  House Mirzam.  House Virgo.

@@ -11,7 +11,7 @@ import src.util.* ;
 
 
 
-public class Trait implements AptitudeConstants {
+public class Trait implements Abilities {
   
   
   

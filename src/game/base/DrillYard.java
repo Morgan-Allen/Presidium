@@ -40,16 +40,15 @@ public class DrillYard extends Venue {
     NOT_DRILLING    = -1,
     DRILL_MELEE     =  0,
     DRILL_RANGED    =  1,
-    DRILL_PILOT_SIM =  2,
-    DRILL_SURVIVAL  =  3,
-    NUM_DRILLS      =  4,
+    DRILL_SURVIVAL  =  2,
+    NUM_DRILLS      =  3,
     
-    STATE_RED_ALERT =  5,
-    DRILL_STATES[] = { 0, 1, 2, 3 },
+    STATE_RED_ALERT =  4,
+    DRILL_STATES[] = { 0, 1, 2 },
     
     NUM_DUMMIES = 4 ;
   final static String DRILL_STATE_NAMES[] = {
-    "Close Combat", "Target Practice", "Pilot Simulation", "Survival Course"
+    "Close Combat", "Target Practice", "Endurance Course"
   } ;
   
   
@@ -207,7 +206,6 @@ public class DrillYard extends Venue {
     float offs[] = null ; switch (drill) {
       case (DRILL_MELEE    ) : offs = MELEE_OFFS   ; break ;
       case (DRILL_RANGED   ) : offs = RANGED_OFFS  ; break ;
-      case (DRILL_PILOT_SIM) : offs = PILOT_OFFS   ; break ;
       case (DRILL_SURVIVAL ) : offs = SURVIVE_OFFS ; break ;
       default: return null ;
     }
@@ -230,8 +228,7 @@ public class DrillYard extends Venue {
     switch (state) {
       case (DRILL_MELEE    ) : return Garrison.MELEE_TRAINING     ;
       case (DRILL_RANGED   ) : return Garrison.MARKSMAN_TRAINING  ;
-      case (DRILL_PILOT_SIM) : return Garrison.TECHNICAL_TRAINING ;
-      case (DRILL_SURVIVAL ) : return Garrison.SURVIVAL_TRAINING  ;
+      case (DRILL_SURVIVAL ) : return Garrison.ENDURANCE_TRAINING ;
     }
     return null ;
   }
@@ -312,41 +309,6 @@ public class DrillYard extends Venue {
   }
 }
 
-
-
-
-
-
-
-/*
-private Tile nextOffFree(float offs[], Actor actor) {
-  final Tile o = origin() ;
-  posLoop : for (int n = 0 ; n < offs.length ;) {
-    final Tile t = world.tileAt(o.x + offs[n++], o.y + offs[n++]) ;
-    for (Mobile m : t.inside()) {
-      if (m != actor) continue posLoop ;
-    }
-    return t ;
-  }
-  return null ;
-}
-
-
-protected Target nextMoveTarget(int drillType, Actor actor) {
-  switch (drillType) {
-    case (NOT_DRILLING) : return null ;
-    case (DRILL_MELEE ) : return nextOffFree(MELEE_OFFS, actor) ;
-    case (DRILL_RANGED) : return nextOffFree(RANGED_OFFS, actor) ;
-  }
-  return null ;
-}
-
-
-protected Target nextLookTarget(int drillType, Target moveTarget) {
-  if (moveTarget == null) return null ;
-  return Spacing.nearest(dummies, moveTarget) ;
-}
-//*/
 
 
 

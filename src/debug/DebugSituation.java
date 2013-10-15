@@ -19,7 +19,7 @@ import src.util.* ;
 
 
 
-public class DebugSituation extends PlayLoop implements EconomyConstants {
+public class DebugSituation extends PlayLoop implements Economy {
   
   
   

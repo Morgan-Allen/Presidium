@@ -17,7 +17,7 @@ import src.util.* ;
 
 
 
-public class SeedTailoring extends Plan implements EconomyConstants {
+public class SeedTailoring extends Plan implements Economy {
   
   
   

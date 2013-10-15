@@ -23,7 +23,7 @@ import src.util.* ;
 //  going to be the basis of a bunch of activities.
 
 
-public abstract class ActorMind implements AptitudeConstants {
+public abstract class ActorMind implements Abilities {
   
   
   /**  Field definitions, constructor, save/load methods-

@@ -18,7 +18,10 @@ import src.util.* ;
 
 
 
-public class StockExchange extends Venue implements EconomyConstants {
+
+
+
+public class StockExchange extends Venue implements Economy {
   
   
   /**  Data fields, constructors and save/load functionality-
@@ -100,8 +103,8 @@ public class StockExchange extends Venue implements EconomyConstants {
     ),
     
     //  ...and these two get space in the back.
-    MEDICAL_DISPENSARY = new Upgrade(
-      "Medical Dispenary",
+    MEDICAL_EXCHANGE = new Upgrade(
+      "Medical Exchange",
       "Increases space available to stim kits, soma, medicine and gene seed, "+
       "and augments profits from their sale.",
       250, null, 1, RATIONS_STOCK, ALL_UPGRADES
@@ -114,7 +117,7 @@ public class StockExchange extends Venue implements EconomyConstants {
       250, null, 1, HARDWARE_STOCK, ALL_UPGRADES
     ),
     
-    //  While these two don't show up visually at all.
+    //  While these two don't show up visually at all...
     VENDOR_STATION = new Upgrade(
       "Vendor Station",
       "Vendors are responsible for transport and presentation of both "+
@@ -122,11 +125,12 @@ public class StockExchange extends Venue implements EconomyConstants {
       100, Background.STOCK_VENDOR, 1, null, ALL_UPGRADES
     ),
     
-    ARMS_DEALING = new Upgrade(
-      "Arms Dealing",
-      "Increases space available to power cells, arms and armour, "+
-      "and augments profit from their sale.",
-      200, null, 1, VENDOR_STATION, ALL_UPGRADES
+    CREDITS_RESERVE = new Upgrade(
+      "Credits Reserve",
+      "Allows your subjects to deposit their hard-earned savings and take out "+
+      "temporary loans, while investing a portion of profits to augment "+
+      "revenue.",
+      400, null, 1, VENDOR_STATION, ALL_UPGRADES
     ) ;
   
   
@@ -189,15 +193,19 @@ public class StockExchange extends Venue implements EconomyConstants {
   }
   
   
+  private void updateInvestments() {
+    //
+    //  TODO:  This will have to be based on the overall economic performance
+    //  of the larger setting.
+    
+    
+  }
+  
+  
   public void afterTransaction(Item item, float amount) {
     super.afterTransaction(item, amount) ;
-    /*
-    if (amount > 0) {
-      final float saleBonus = (upgradeForGood(item.type) + 1) / 20f ;
-      if (saleBonus <= 0) return ;
-      stocks.incCredits(amount * priceFor(item.type) * saleBonus) ;
-    }
-    //*/
+    //
+    //  TODO:  Invest a portion in the stock market...
   }
   
   
@@ -216,11 +224,10 @@ public class StockExchange extends Venue implements EconomyConstants {
   private int upgradeForGood(Service type) {
     final Integer key = (Integer) SupplyDepot.SERVICE_KEY.get(type) ;
     final Upgrade KU ;
-    if (type instanceof DeviceType) KU = ARMS_DEALING ;
-    else if (key == null) return -1 ;
+    if (key == null) return -1 ;
     else if (key == SupplyDepot.KEY_RATIONS ) KU = RATIONS_STOCK      ;
     else if (key == SupplyDepot.KEY_MINERALS) KU = PROSPECT_EXCHANGE  ;
-    else if (key == SupplyDepot.KEY_MEDICAL ) KU = MEDICAL_DISPENSARY ;
+    else if (key == SupplyDepot.KEY_MEDICAL ) KU = MEDICAL_EXCHANGE   ;
     else if (key == SupplyDepot.KEY_BUILDING) KU = HARDWARE_STOCK     ;
     else return -1 ;
     return structure.upgradeLevel(KU) ;

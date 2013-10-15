@@ -44,7 +44,7 @@ import src.util.* ;
 
 
 
-public class Holding extends Venue implements EconomyConstants {
+public class Holding extends Venue implements Economy {
   
   
   /**  Fields, constructors, and save/load methods-

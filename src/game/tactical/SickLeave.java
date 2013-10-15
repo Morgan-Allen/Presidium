@@ -14,7 +14,7 @@ import src.util.* ;
 public class SickLeave extends Plan {
   
   
-  private static boolean verbose = true ;
+  private static boolean verbose = false ;
   
   final Sickbay sickbay ;
   private Treatment needed ;
@@ -53,15 +53,18 @@ public class SickLeave extends Plan {
       if (begun()) { if (treatResult.amount >= 1) return 0 ; }
       else { if (treatResult.amount > 0) return 0 ; }
     }
+    
+    final float crowding = begun() ? 0 :
+      Plan.competition(SickLeave.class, sickbay, actor) ;
     //
     //  Modify for Psych Eval, since it's only needed in cases of severe bad
-    //  morale or for key personnel...
-    float impetus = needed.baseUrgency() ;
+    //  morale or for key personnel.
+    float impetus = needed.baseUrgency() - crowding ;
     if (needed.type == Treatment.TYPE_PSYCH_EVAL) {
       final Background v = actor.vocation() ;
       if (v.guild == Background.GUILD_MILITANT) return impetus ;
       if (v.standing >= Background.UPPER_CLASS) return impetus ;
-      impetus *= (1 - actor.health.moraleLevel()) ;
+      impetus *= (0.5f - actor.health.moraleLevel()) ;
     }
     
     if (verbose) I.sayAbout(actor, "Sick leave impetus: "+impetus) ;

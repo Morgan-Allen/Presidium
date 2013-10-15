@@ -19,7 +19,7 @@ import src.util.* ;
 //  TODO:  This class needs to include data for base speed, sight range, damage
 //  and armour, et cetera, et cetera.
 
-public class Species implements Session.Saveable, EconomyConstants {
+public class Species implements Session.Saveable, Economy {
   
   
   /**  Type, instance and media definitions-
@@ -116,7 +116,6 @@ public class Species implements Session.Saveable, EconomyConstants {
       ) ; }
     },
     
-    
     MICOVORE = new Species(
       "Micovore",
       "The Micovore is an imposing bipedal obligate carnivore capable of "+
@@ -135,42 +134,48 @@ public class Species implements Session.Saveable, EconomyConstants {
       ) ; }
     },
     
-    ANIMAL_SPECIES[] = { HUMAN, QUUD, VAREEN, MICOVORE, },
+    ANIMAL_SPECIES[] = Species.speciesSoFar(),
     
-    //
-    //  TODO:  You need to list the 'material composition' of each of tese for
-    //  harvest purposes.
     
-    ONI_RICE    = new Species("Oni Rice"   , Type.FLORA, 2, CARBS),
-    DURWHEAT    = new Species("Durwheat"   , Type.FLORA, 2, CARBS),
-    TUBER_LILY  = new Species("Tuber Lily" , Type.FLORA, 2, GREENS),
-    BROADFRUITS = new Species("Broadfruits", Type.FLORA, 2, GREENS),
+    ONI_RICE    = new Species("Oni Rice"   , Type.FLORA, 2, CARBS  ),
+    DURWHEAT    = new Species("Durwheat"   , Type.FLORA, 2, CARBS  ),
+    SABLE_OAT   = new Species("Sable Oat"  , Type.FLORA, 1, CARBS  ),
+    
+    TUBER_LILY  = new Species("Tuber Lily" , Type.FLORA, 2, GREENS ),
+    BROADFRUITS = new Species("Broadfruits", Type.FLORA, 2, GREENS ),
+    HIBERNUTS   = new Species("Hibernuts"  , Type.FLORA, 1, GREENS ),
+    
     HIVE_GRUBS  = new Species("Hive Grubs" , Type.FLORA, 1, PROTEIN),
     BLUE_VALVES = new Species("Blue Valves", Type.FLORA, 1, PROTEIN),
-    
-    PIONEERS    = new Species("Pioneers"   , "", null, null, Type.FLORA),
-    TIMBER      = new Species("Timber"     , "", null, null, Type.FLORA),
-    
-    HIBERNUTS   = new Species("Hibernuts"  , Type.FLORA, 1, GREENS),
-    SABLE_OAT   = new Species("Sable Oat"  , Type.FLORA, 1, CARBS),
     CLAN_BORE   = new Species("Clan Bore"  , Type.FLORA, 1, PROTEIN),
-    GORG_APHID  = new Species("Gorg Aphid" , Type.FLORA, 1, SPICE),
     
-    CROP_SPECIES[] = {
-      ONI_RICE, DURWHEAT, TUBER_LILY, BROADFRUITS,
-      HIVE_GRUBS, BLUE_VALVES, PIONEERS, TIMBER,
-      HIBERNUTS, SABLE_OAT, CLAN_BORE, GORG_APHID
-    },
+    GORG_APHID  = new Species("Gorg Aphid" , Type.FLORA, 1, SPICE  ),
     
-    ALL_SPECIES[] = {
-      HUMAN, QUUD, VAREEN, MICOVORE,
-      
-      DURWHEAT, ONI_RICE, BROADFRUITS, TUBER_LILY,
-      HIVE_GRUBS, BLUE_VALVES, PIONEERS, TIMBER,
-      HIBERNUTS, SABLE_OAT, CLAN_BORE, GORG_APHID
-    }
+    PIONEERS    = new Species("Pioneers"   , Type.FLORA),
+    TIMBER      = new Species("Timber"     , Type.FLORA),
+    
+    CROP_SPECIES[] = Species.speciesSoFar(),
+    
+    ALL_SPECIES[] = Species.allSpecies()
   ;
   
+  
+  
+  /**  Lists and enumeration-
+    */
+  private static Batch <Species>
+    soFar      = new Batch <Species> (),
+    allSpecies = new Batch <Species> () ;
+  
+  private static Species[] speciesSoFar() {
+    final Species s[] = soFar.toArray(Species.class) ;
+    soFar.clear() ;
+    return s ;
+  }
+  
+  private static Species[] allSpecies() {
+    return allSpecies.toArray(Species.class) ;
+  }
   
   
   /**  Fields and constructors.
@@ -197,6 +202,9 @@ public class Species implements Session.Saveable, EconomyConstants {
     this.model = model ;
     this.type = type ;
     nutrients = new Item[0] ;
+    
+    soFar.add(this) ;
+    allSpecies.add(this) ;
   }
   
   
@@ -214,6 +222,9 @@ public class Species implements Session.Saveable, EconomyConstants {
       if (o instanceof Service) n.add(Item.withAmount((Service) o, amount)) ;
     }
     nutrients = n.toArray(Item.class) ;
+    
+    soFar.add(this) ;
+    allSpecies.add(this) ;
   }
   
   
@@ -291,8 +302,8 @@ final public static Species
   //
   //  Artilects-
   DRONE       = new Species("Drone"), //Y
-  TRIPOD      = new Species("Tripod"), //X
-  CRANIAL     = new Species("Cranial"),
+  TRIPOD      = new Species("Tripod"), //Y
+  CRANIAL     = new Species("Cranial"), //Y
   //
   //  Silicates-
   REM_LEECH   = new Species("Rem Leech"),
@@ -300,28 +311,6 @@ final public static Species
   ARCHON      = new Species("Archon")
 ;
 //*/
-
-
-/*
-final int numH = prefs.length / 2 ;
-preferred = new Habitat[numH] ;
-prefWeights = new float[numH] ;
-for (int n = 0 ; n < numH ; n++) {
-  preferred[n] = (Habitat) prefs[n * 2] ;
-  prefWeights[n] = (Float) prefs[(n * 2) + 1] ;
-}
-//*/
-//final Habitat preferred[] ;
-//final float prefWeights[] ;
-/*
-public float preference(Habitat h) {
-  for (int n = preferred.length ; n-- > 0 ;) {
-    if (preferred[n] == h) return prefWeights[n] ;
-  }
-  return 0 ;
-}
-//*/
-
 
 
 

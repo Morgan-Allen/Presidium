@@ -148,37 +148,37 @@ public class MeshBuffer implements Rendering.Client {
   
   
   public static void recordSimpleQuad(
-    float x, float y, float size, float z
+    float x, float y, float size, float z, float UV[]
   ) {
     recordPoint(
         x, y, z,
         0, 0, 0,
-        0, 0
+        UV[0], UV[1]
     ) ;
     recordPoint(
         x, y + size, z,
         0, 0, 0,
-        0, 1
+        UV[2], UV[3]
     ) ;
     recordPoint(
         x + size, y + size, z,
         0, 0, 0,
-        1, 1
+        UV[4], UV[5]
     ) ;
     recordPoint(
         x + size, y + size, z,
         0, 0, 0,
-        1, 1
+        UV[6], UV[7]
     ) ;
     recordPoint(
         x + size, y, z,
         0, 0, 0,
-        1, 0
+        UV[8], UV[9]
     ) ;
     recordPoint(
         x, y, z,
         0, 0, 0,
-        0, 0
+        UV[10], UV[11]
     ) ;
   }
   

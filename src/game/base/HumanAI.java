@@ -65,7 +65,7 @@ import src.util.* ;
 //  and venues for consideration.
 
 
-public class HumanAI extends ActorMind implements AptitudeConstants {
+public class HumanAI extends ActorMind implements Abilities {
   
   
   
@@ -173,7 +173,7 @@ public class HumanAI extends ActorMind implements AptitudeConstants {
     }
     //
     //  Consider getting paid or leaving the settlement-
-    if (work != null) choice.add(new Payday(actor, work)) ;
+    choice.add(Payday.nextPaydayFor(actor)) ;
     if (! hasToDo(Migration.class)) choice.add(new Migration(actor)) ;
     //
     //  Consider repairing nearby buildings-

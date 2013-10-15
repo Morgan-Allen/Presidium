@@ -14,7 +14,7 @@ import src.util.* ;
 
 
 
-public class Cranial extends Artilect implements EconomyConstants {
+public class Cranial extends Artilect implements Economy {
   
   
   /**  Construction and save/load methods-

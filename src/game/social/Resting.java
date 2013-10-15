@@ -14,7 +14,7 @@ import src.util.* ;
 
 
 
-public class Resting extends Plan implements EconomyConstants {
+public class Resting extends Plan implements Economy {
   
   
   

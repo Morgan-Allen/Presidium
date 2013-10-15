@@ -15,14 +15,14 @@ import src.util.* ;
 
 
 
-public class Reactor extends Venue implements EconomyConstants {
+public class Generator extends Venue implements Economy {
   
   
 
   /**  Data fields, constructors and save/load methods-
     */
   final public static Model MODEL = ImageModel.asSolidModel(
-    Reactor.class, "media/Buildings/artificer/reactor.png", 4, 2
+    Generator.class, "media/Buildings/artificer/reactor.png", 4, 2
   ) ;
   final static String RISK_DESC[] = {
     "Negligible",
@@ -49,7 +49,7 @@ public class Reactor extends Venue implements EconomyConstants {
   private float meltdown = 0.0f ;
   
 
-  public Reactor(Base base) {
+  public Generator(Base base) {
     super(4, 2, Venue.ENTRANCE_EAST, base) ;
     structure.setupStats(
       300, 10, 300,
@@ -60,7 +60,7 @@ public class Reactor extends Venue implements EconomyConstants {
   }
   
   
-  public Reactor(Session s) throws Exception {
+  public Generator(Session s) throws Exception {
     super(s) ;
     meltdown = s.loadFloat() ;
   }
@@ -76,7 +76,7 @@ public class Reactor extends Venue implements EconomyConstants {
   /**  Upgrades, economic functions and behaviour implementations-
     */
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
-    Reactor.class, "reactor_upgrades"
+    Generator.class, "reactor_upgrades"
   ) ;
   public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
@@ -171,7 +171,7 @@ public class Reactor extends Venue implements EconomyConstants {
   }
   
   
-  public boolean actionCheckMeltdown(Actor actor, Reactor reactor) {
+  public boolean actionCheckMeltdown(Actor actor, Generator reactor) {
     float diagnoseDC = 5 + ((1 - meltdown) * 20) ;
     final int FB = structure.upgradeLevel(FEEDBACK_MONITORS) ;
     diagnoseDC -= FB * 5 ;

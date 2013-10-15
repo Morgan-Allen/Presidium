@@ -13,7 +13,7 @@ import src.util.* ;
 
 
 
-public class Archives extends Venue implements EconomyConstants {
+public class Archives extends Venue implements Economy {
   
   
 

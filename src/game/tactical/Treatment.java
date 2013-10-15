@@ -18,7 +18,7 @@ import src.util.* ;
 //  suspensor-persistence in general, since they're related.
 
 
-public class Treatment extends Plan implements EconomyConstants {
+public class Treatment extends Plan implements Economy {
   
   
   
@@ -56,7 +56,8 @@ public class Treatment extends Plan implements EconomyConstants {
   private Item result = null ;
   
   
-  
+  //
+  //  TODO:  Allow the type of treatment to be optionally specified here-
   public Treatment(Actor actor, Actor patient, Venue theatre) {
     super(actor, patient) ;
     this.patient = patient ;
@@ -136,8 +137,6 @@ public class Treatment extends Plan implements EconomyConstants {
     
     treatDC = 0 ;
     accessory = null ;
-    type = -1 ;
-    
     if (
       patient.aboard() != theatre && patient.health.goodHealth() &&
       ! forLeave
@@ -181,7 +180,7 @@ public class Treatment extends Plan implements EconomyConstants {
       }
     }
     
-    if (theatre != null && ofType(TYPE_PSYCH_EVAL, null)) {
+    if (actor != patient && ofType(TYPE_PSYCH_EVAL, null)) {
       final Item psyResult = treatResult(OT, TYPE_PSYCH_EVAL, null) ;
       final Profile profile = theatre.base().profiles.profileFor(patient) ;
       

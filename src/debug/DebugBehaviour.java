@@ -19,7 +19,11 @@ import src.user.* ;
 import src.util.* ;
 
 
-//  Debug the vats.  Use actor-vision for more activities?
+//
+//  TODO:  You will need to profiles/auditing/job-seeking, plus the
+//  surveillance post, plus the whole arcology vs. edifice vs. arcade thing.
+//
+//  Use actor-vision for more activities?
 //  Have pollution/terraforming gradually change the landscape.
 //  
 //  Actors should call for help from allies, and need proper line of sight.
@@ -35,7 +39,7 @@ import src.util.* ;
 
 
 
-public class DebugBehaviour extends PlayLoop implements EconomyConstants {
+public class DebugBehaviour extends PlayLoop implements Economy {
   
   
   
@@ -326,44 +330,5 @@ public class DebugBehaviour extends PlayLoop implements EconomyConstants {
     return v ;
   }
 }
-
-
-
-
-
-/*
-final Actor actorA = new Human(Vocation.RUNNER, base) ;
-actorA.enterWorldAt(15, 15, world) ;
-final Actor actorB = new Human(Vocation.VETERAN, base) ;
-actorB.enterWorldAt(15, 3, world) ;
-
-final Actor target = new Quud() ;
-target.health.setupHealth(0.5f, 1, 0) ;
-target.enterWorldAt(5, 5, world) ;
-
-final Base otherBase = new Base(world) ;
-world.registerBase(otherBase, true) ;
-base.setRelation(otherBase, -1) ;
-otherBase.setRelation(base, -1) ;
-
-final Venue garrison = new Garrison(otherBase) ;
-establishVenue(garrison, 8, 8, true) ;
-actorA.AI.assignBehaviour(new Combat(actorA, garrison)) ;
-actorB.AI.assignBehaviour(new Combat(actorA, garrison)) ;
-((BaseUI) UI).selection.pushSelection(actorA, true) ;
-//*/
-
-/*
-final Mission mission = new ReconMission(base, world.tileAt(20, 20)) ;
-base.addMission(mission) ;
-((BaseUI) UI).selection.setSelected(mission) ;
-((BaseUI) UI).camera.zoomNow(mission.subject()) ;
-//*/
-/*
-final Mission mission = new StrikeMission(base, garrison) ;
-mission.setApplicant(assails, true) ;
-base.addMission(mission) ;
-((BaseUI) UI).selection.setSelected(mission) ;
-//*/
 
 

@@ -2,16 +2,12 @@
 
 package src.graphics.space ;
 import src.graphics.common.* ;
-import src.graphics.cutout.ImageModel;
-//import src.graphics.widgets.* ;
+import src.graphics.cutout.* ;
 import src.util.* ;
 
 import org.lwjgl.opengl.* ;
 
 
-
-//
-//  So, do you implement rendering.client, or extend UINode?
 
 public class Starfield implements Rendering.Client {
   
@@ -23,11 +19,24 @@ public class Starfield implements Rendering.Client {
     //
     //  TODO:  You might also need textures for selection and showing jump
     //  routes, et cetera.
-    STAR_TEX = Texture.loadTexture(IMG_DIR+"star_burst.png"),
-    AXIS_TEX = Texture.loadTexture(IMG_DIR+"sky_axis.png") ;
+    STAR_TEX    = Texture.loadTexture(IMG_DIR+"star_burst.png"   ),
+    AXIS_TEX    = Texture.loadTexture(IMG_DIR+"sky_axis.png"     ),
+    
+    ALL_STAR_TEX = Texture.loadTexture(IMG_DIR+"stellar_objects.png"),
+    SECTORS_TEX  = Texture.loadTexture(IMG_DIR+"chart_sectors.png") ;
   
-  final public static ImageModel
-    STAR_MODEL = ImageModel.asFlatModel(Starfield.class, STAR_TEX, 1) ;
+  final public static int
+    TYPE_GIANT  = 0,
+    TYPE_MAIN   = 1,
+    TYPE_DWARF  = 2,
+    TYPE_EXOTIC = 3,
+    TYPE_NEBULA = 4 ;
+  
+  final static ImageModel
+    STELLAR_BODIES[][] = ImageModel.fromTextureGrid(
+        Starfield.class, ALL_STAR_TEX,
+        5, 1
+    ) ;
   
 
   final public Viewport starPort = new Viewport() ;
@@ -37,9 +46,9 @@ public class Starfield implements Rendering.Client {
   
   private class Star {
     Vec3D coords = new Vec3D() ;
-    //Colour hue = Colour.WHITE ;
     float magnitude = 1.0f ;
     private float depth ;
+    private ImageModel model ;
   }
   
   final float maxDist ;
@@ -52,10 +61,15 @@ public class Starfield implements Rendering.Client {
   }
   
   
-  public void addStar(float x, float y, float z, Colour hue, float mag) {
+  public void addStar(
+    float x, float y, float z, float size, float age
+  ) {
     final Star s = new Star() ;
     s.coords.set(x, y, z) ;
-    s.magnitude = mag ;
+    s.magnitude = (Rand.avgNums(2) + 0.5f) / 2.0f ;
+    final int type = (int) (size * 5) ;
+    
+    s.model = STELLAR_BODIES[type][(int) (age * 4.99f)] ;
     allStars.add(s) ;
   }
   
@@ -87,14 +101,15 @@ public class Starfield implements Rendering.Client {
       s.depth = transform.trans(tV.setTo(s.coords)).z ;
       sorting.add(s) ;
     }
-    //
-    //  TODO:  I want to be able to specify colour as well.  Hue and alpha.
     
     MeshBuffer.beginRecord() ;
+    
     for (Star star : sorting) {
       final Vec3D p = transform.trans(tV.setTo(star.coords)) ;
       final float s = star.magnitude, h = s / 2 ;
-      MeshBuffer.recordSimpleQuad(p.x - h, p.y - h, s, p.z) ;
+      final float UV[] = star.model.framesUV()[0] ;
+      
+      MeshBuffer.recordSimpleQuad(p.x - h, p.y - h, s, p.z, UV) ;
     }
     final Object geom[] = MeshBuffer.compileRecord() ;
     
@@ -102,41 +117,58 @@ public class Starfield implements Rendering.Client {
       (float[]) geom[0], (float[]) geom[1], (float[]) geom[2]
     ) ;
     
-    STAR_TEX.bindTex() ;
     GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE) ;
-    GL11.glColor4f(0.8f, 0.8f, 1, 1.0f) ;
+    
+    GL11.glColor4f(1.0f, 1.0f, 1, 0.5f) ;
+    STAR_TEX.bindTex() ;
     geomBuffer.renderTo(rendering) ;
     
-    AXIS_TEX.bindTex() ;
+    GL11.glColor4f(1.0f, 1.0f, 1, 1.0f) ;
+    ALL_STAR_TEX.bindTex() ;
+    geomBuffer.renderTo(rendering) ;
+    
+    GL11.glColor4f(0.8f, 0.8f, 1, 0.25f) ;
+    final Mat3D oppZ = new Mat3D().setTo(transform) ;
+    axisWithTransform(oppZ, SECTORS_TEX, maxDist) ;
+    
+    GL11.glColor4f(0.8f, 1, 1, 0.25f) ;
+    final Mat3D oppX = new Mat3D().setTo(transform) ;
+    oppX.rotateY((float) Math.PI / 2) ;
+    axisWithTransform(oppX, AXIS_TEX, maxDist * 0.5f) ;
+
+    GL11.glColor4f(1, 0.8f, 1, 0.25f) ;
+    final Mat3D oppY = new Mat3D().setTo(transform) ;
+    oppY.rotateX((float) Math.PI / 2) ;
+    axisWithTransform(oppY, AXIS_TEX, maxDist * 0.5f) ;
+    
+    GL11.glColor4f(1, 1, 1, 1) ;
+  }
+  
+  
+  private void axisWithTransform(Mat3D transform, Texture tex, float radius) {
+    final Vec3D tV = new Vec3D() ;
+    tex.bindTex() ;
     GL11.glBegin(GL11.GL_QUADS) ;
     GL11.glNormal3f(0, 0, 0) ;
-    GL11.glColor4f(0.8f, 0.8f, 1, 1.0f) ;
     
-    transform.trans(tV.set(-maxDist, -maxDist, 0)).scale(1.1f) ;
+    transform.trans(tV.set(-1, -1, 0)).scale(1.1f * radius) ;
     GL11.glVertex3f(tV.x, tV.y, tV.z) ;
     GL11.glTexCoord2f(0, 0) ;
     
-    transform.trans(tV.set( maxDist, -maxDist, 0)).scale(1.1f) ;
+    transform.trans(tV.set( 1, -1, 0)).scale(1.1f * radius) ;
     GL11.glVertex3f(tV.x, tV.y, tV.z) ;
     GL11.glTexCoord2f(1, 0) ;
     
-    transform.trans(tV.set( maxDist,  maxDist, 0)).scale(1.1f) ;
+    transform.trans(tV.set( 1,  1, 0)).scale(1.1f * radius) ;
     GL11.glVertex3f(tV.x, tV.y, tV.z) ;
     GL11.glTexCoord2f(1, 1) ;
     
-    transform.trans(tV.set(-maxDist,  maxDist, 0)).scale(1.1f) ;
+    transform.trans(tV.set(-1,  1, 0)).scale(1.1f * radius) ;
     GL11.glVertex3f(tV.x, tV.y, tV.z) ;
     GL11.glTexCoord2f(0, 1) ;
     
     GL11.glEnd() ;
-    GL11.glColor4f(1, 1, 1, 1) ;
   }
   
 }
-
-
-
-
-
-
 

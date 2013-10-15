@@ -11,7 +11,7 @@ import src.util.* ;
 
 
 
-public class Drilling extends Plan implements EconomyConstants {
+public class Drilling extends Plan implements Economy {
   
   
   
@@ -132,10 +132,6 @@ public class Drilling extends Plan implements EconomyConstants {
         actionName = "actionDrillRanged" ;
         animName = Action.FIRE ;
       break ;
-      case (DrillYard.DRILL_PILOT_SIM) :
-        actionName = "actionDrillPilotSim" ;
-        animName = Rand.yes() ? Action.LOOK : Action.BUILD ;
-      break ;
       case (DrillYard.DRILL_SURVIVAL) :
         actionName = "actionDrillSurvival" ;
         animName = Rand.yes() ? Action.MOVE_FAST : Action.MOVE_SNEAK ;
@@ -211,17 +207,6 @@ public class Drilling extends Plan implements EconomyConstants {
   }
   
   
-  public boolean actionDrillPiloting(Actor actor, Target target) {
-    final int DC = yard.drillDC(DrillYard.DRILL_PILOT_SIM) ;
-    actor.traits.test(PILOTING, DC, 0.5f) ;
-    actor.traits.test(ASSEMBLY, DC - 5, 0.5f) ;
-    
-    //  ...Only with an officer present...
-    //actor.traits.test(BATTLE_TACTICS, DC - 10, 0.5f) ;
-    return true ;
-  }
-  
-  
   public boolean actionDrillSurvival(Actor actor, Target target) {
     final int DC = yard.drillDC(DrillYard.DRILL_SURVIVAL) ;
     actor.traits.test(ATHLETICS, DC, 0.5f) ;
@@ -261,6 +246,18 @@ public class Drilling extends Plan implements EconomyConstants {
 
 
 
+
+/*
+public boolean actionDrillPiloting(Actor actor, Target target) {
+  final int DC = yard.drillDC(DrillYard.DRILL_PILOT_SIM) ;
+  actor.traits.test(PILOTING, DC, 0.5f) ;
+  actor.traits.test(ASSEMBLY, DC - 5, 0.5f) ;
+  
+  //  ...Only with an officer present...
+  //actor.traits.test(BATTLE_TACTICS, DC - 10, 0.5f) ;
+  return true ;
+}
+//*/
 
 
 

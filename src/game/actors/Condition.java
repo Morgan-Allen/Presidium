@@ -32,7 +32,7 @@ public class Condition extends Trait {
     Table effects,
     String... names
   ) {
-    super(AptitudeConstants.CONDITION, names) ;
+    super(Abilities.CONDITION, names) ;
     this.latency   = latency   ;
     this.virulence = virulence ;
     this.spread    = spread    ;
@@ -51,7 +51,7 @@ public class Condition extends Trait {
     if (actor.aboard() instanceof src.game.base.Sickbay) {
       factor /= 2 ;
     }
-    if (actor.gear.outfitType() == src.game.building.EconomyConstants.SEALSUIT) {
+    if (actor.gear.outfitType() == src.game.building.Economy.SEALSUIT) {
       factor /= 5 ;
     }
     if (actor.aboard() == actor.mind.home) {
@@ -72,7 +72,7 @@ public class Condition extends Trait {
     final Tile o = actor.origin() ;
     final float squalor = actor.world().ecology().squalorRating(o) ;
     
-    for (Object d : AptitudeConstants.SPONTANEOUS_DISEASE) {
+    for (Object d : Abilities.SPONTANEOUS_DISEASE) {
       final Condition c = (Condition) d ;
       //
       //  Let's say that under average squalor, you have a 10% chance of

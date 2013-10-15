@@ -6,7 +6,7 @@
 
 
 package src.game.building ;
-import src.game.actors.AptitudeConstants ;
+import src.game.actors.Abilities ;
 import src.game.base.* ;
 
 
@@ -22,7 +22,7 @@ TALISMAN   = new Item.Type(C, UNIQUE, "Talisman"   , 250)
 //  TODO:  What about Tensile materials?  Antimass?
 
 
-public interface EconomyConstants extends AptitudeConstants {
+public interface Economy extends Abilities {
   
   
   final public static int
@@ -33,7 +33,7 @@ public interface EconomyConstants extends AptitudeConstants {
     FORM_OUTFIT         = 4, FO = 4,
     FORM_SERVICE        = 5, FS = 5 ;
   
-  final static Class BC = EconomyConstants.class ;
+  final static Class BC = Economy.class ;
   
   final public static Service
     //
@@ -188,7 +188,7 @@ public interface EconomyConstants extends AptitudeConstants {
   final public static OutfitType
     FINERY         = new OutfitType(
       BC, "Finery"        , 2 , 400,
-      new Conversion(2, PLASTICS, Fabricator.class, 15, GRAPHIC_MEDIA)
+      new Conversion(2, PLASTICS, Fabricator.class, 15, GRAPHIC_DESIGN)
     ),
     OVERALLS       = new OutfitType(
       BC, "Overalls"      , 2, 50,
@@ -196,7 +196,7 @@ public interface EconomyConstants extends AptitudeConstants {
     ),
     CAMOUFLAGE     = new OutfitType(
       BC, "Camouflage"    , 3 , 70,
-      new Conversion(1, PLASTICS, Fabricator.class, 10, GRAPHIC_MEDIA)
+      new Conversion(1, PLASTICS, Fabricator.class, 10, GRAPHIC_DESIGN)
     ),
     SEALSUIT       = new OutfitType(
       BC, "Sealsuit"      , 4 , 150,
@@ -256,19 +256,19 @@ public interface EconomyConstants extends AptitudeConstants {
     PETROCARBS_TO_PLASTICS = new Conversion(
       1, PETROCARBS, TO, 1, PLASTICS,
       Fabricator.class,
-      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_MEDIA
+      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_DESIGN
     ),
     
     CARBS_TO_PLASTICS = new Conversion(
       5, CARBS, TO, 1, PLASTICS,
       Fabricator.class,
-      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_MEDIA
+      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_DESIGN
     ),
     
     PLASTICS_TO_DECOR = new Conversion(
       1, PLASTICS, TO, 2, DECOR,
       Fabricator.class,
-      STRENUOUS_DC, GRAPHIC_MEDIA, MODERATE_DC, HANDICRAFTS
+      STRENUOUS_DC, GRAPHIC_DESIGN, MODERATE_DC, HANDICRAFTS
     ),
     
     //
@@ -276,20 +276,20 @@ public interface EconomyConstants extends AptitudeConstants {
     PLASTICS_TO_CREDITS = new Conversion(
       1, PLASTICS, TO, 500, CREDITS,
       AuditOffice.class,
-      MODERATE_DC, ACCOUNTING, MODERATE_DC, GRAPHIC_MEDIA
+      MODERATE_DC, ACCOUNTING, MODERATE_DC, GRAPHIC_DESIGN
     ),
     
     PLASTICS_TO_PRESSFEED = new Conversion(
       1, PLASTICS, TO, 10, PRESSFEED,
       AuditOffice.class,
-      SIMPLE_DC, ACCOUNTING, DIFFICULT_DC, GRAPHIC_MEDIA
+      SIMPLE_DC, ACCOUNTING, DIFFICULT_DC, GRAPHIC_DESIGN
     ),
     
     //
     //  Reactor conversions-
     METALS_TO_FUEL = new Conversion(
       5, METAL_ORE, TO, 1, FUEL_CORES,
-      Reactor.class,
+      Generator.class,
       MODERATE_DC, CHEMISTRY, MODERATE_DC, FIELD_THEORY
     ),
     

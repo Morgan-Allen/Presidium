@@ -16,7 +16,7 @@ import src.util.* ;
 
 
 
-public class Patrolling extends Plan implements TileConstants, AptitudeConstants {
+public class Patrolling extends Plan implements TileConstants, Abilities {
   
   
   /**  Fields, constructors, and save/load methods-

@@ -9,7 +9,7 @@ package src.game.base ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
-import src.game.social.Auditing ;
+import src.game.social.Audit ;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
@@ -19,7 +19,7 @@ import src.util.* ;
 
 
 
-public class Bastion extends Venue implements EconomyConstants {
+public class Bastion extends Venue implements Economy {
   
   
   
@@ -143,8 +143,8 @@ public class Bastion extends Venue implements EconomyConstants {
       return Building.getNextRepairFor(actor, Plan.CASUAL) ;
     }
     if (v == Background.AUDITOR) {
-      final Venue toAudit = Auditing.getNextAuditFor(actor) ;
-      return toAudit == null ? null : new Auditing(actor, toAudit) ;
+      final Venue toAudit = Audit.getNextAuditFor(actor) ;
+      return toAudit == null ? null : new Audit(actor, toAudit) ;
     }
     if (v == Background.STEWARD) {
       return new Supervision(actor, this) ;
@@ -193,6 +193,8 @@ public class Bastion extends Venue implements EconomyConstants {
     return new Background[] {
       Background.TECH_RESERVE, Background.VETERAN,
       Background.AUDITOR, Background.STEWARD
+      //Background.HONOUR_GUARD, Background.CONSORT
+      //Background.HEIR, Background.ADVISOR
     } ;
   }
   

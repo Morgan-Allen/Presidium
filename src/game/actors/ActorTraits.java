@@ -13,7 +13,7 @@ import src.user.* ;
 
 
 
-public class ActorTraits implements AptitudeConstants {
+public class ActorTraits implements Abilities {
   
   
   
@@ -326,46 +326,46 @@ public class ActorTraits implements AptitudeConstants {
   
   
   public Batch <Trait> personality() {
-    return getMatches(null, AptitudeConstants.PERSONALITY_TRAITS) ;
+    return getMatches(null, Abilities.PERSONALITY_TRAITS) ;
   }
   
   
   public Batch <Trait> physique() {
     final Batch <Trait> matches = new Batch <Trait> () ;
-    getMatches(matches, AptitudeConstants.PHYSICAL_TRAITS) ;
-    getMatches(matches, AptitudeConstants.BLOOD_TRAITS) ;
+    getMatches(matches, Abilities.PHYSICAL_TRAITS) ;
+    getMatches(matches, Abilities.BLOOD_TRAITS) ;
     return matches ;
   }
   
   
   public Batch <Trait> characteristics() {
-    return getMatches(null, AptitudeConstants.CATEGORIC_TRAITS) ;
+    return getMatches(null, Abilities.CATEGORIC_TRAITS) ;
   }
   
   
   public Batch <Skill> attributes() {
-    return (Batch) getMatches(null, AptitudeConstants.ATTRIBUTES) ;
+    return (Batch) getMatches(null, Abilities.ATTRIBUTES) ;
   }
   
   
   public Batch <Skill> skillSet() {
     final Batch <Trait> matches = new Batch <Trait> () ;
-    getMatches(matches, AptitudeConstants.INSTINCT_SKILLS ) ;
-    getMatches(matches, AptitudeConstants.PHYSICAL_SKILLS ) ;
-    getMatches(matches, AptitudeConstants.SENSITIVE_SKILLS) ;
-    getMatches(matches, AptitudeConstants.COGNITIVE_SKILLS) ;
-    getMatches(matches, AptitudeConstants.PYSONIC_SKILLS  ) ;
+    getMatches(matches, Abilities.INSTINCT_SKILLS ) ;
+    getMatches(matches, Abilities.PHYSICAL_SKILLS ) ;
+    getMatches(matches, Abilities.SENSITIVE_SKILLS) ;
+    getMatches(matches, Abilities.COGNITIVE_SKILLS) ;
+    getMatches(matches, Abilities.PYSONIC_SKILLS  ) ;
     return (Batch) matches ;
   }
   
   
   public Batch <Condition> conditions() {
-    return (Batch) getMatches(null, AptitudeConstants.CONDITIONS) ;
+    return (Batch) getMatches(null, Abilities.CONDITIONS) ;
   }
   
   
   public Batch <Trait> mutations() {
-    return (Batch) getMatches(null, AptitudeConstants.MUTANT_TRAITS) ;
+    return (Batch) getMatches(null, Abilities.MUTANT_TRAITS) ;
   }
   
   

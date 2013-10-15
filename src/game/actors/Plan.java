@@ -199,7 +199,7 @@ public abstract class Plan implements Saveable, Behaviour {
     final Tile at = actor.world().tileAt(t) ;
     float danger = actor.base().dangerMap.valAt(at) ;
     if (danger < 0) return 0 ;
-    danger *= actor.traits.scaleLevel(AptitudeConstants.NERVOUS) ;
+    danger *= actor.traits.scaleLevel(Abilities.NERVOUS) ;
     return danger * 0.1f / (1 + Combat.combatStrength(actor, null)) ;
   }
   

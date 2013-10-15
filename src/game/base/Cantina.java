@@ -22,7 +22,7 @@ import src.util.* ;
 //  TODO:  Citizens should be able to dine here while relaxing (for a price...)
 
 
-public class Cantina extends Venue implements EconomyConstants {
+public class Cantina extends Venue implements Economy {
   
   
   
@@ -122,7 +122,7 @@ public class Cantina extends Venue implements EconomyConstants {
     */
   public Behaviour jobFor(Actor actor) {
     if (actor.vocation() == Background.SOMA_VENDOR) {
-      final Service needed[] = { SOMA, CARBS, PROTEIN, GREENS } ;
+      final Service needed[] = { SOMA, CARBS, PROTEIN } ;
       final Delivery d = Deliveries.nextCollectionFor(
         actor, this, needed, 5, null, world
       ) ;
@@ -131,7 +131,7 @@ public class Cantina extends Venue implements EconomyConstants {
       return new Supervision(actor, this) ;
     }
     if (actor.vocation() == Background.PERFORMER) {
-      return new Performance(actor, this, AptitudeConstants.MUSIC_AND_SONG) ;
+      return new Performance(actor, this, MUSIC_AND_SONG) ;
     }
     return null ;
   }
@@ -143,7 +143,6 @@ public class Cantina extends Venue implements EconomyConstants {
     stocks.forceDemand(SOMA   , 5, VenueStocks.TIER_CONSUMER) ;
     stocks.forceDemand(CARBS  , 5, VenueStocks.TIER_CONSUMER) ;
     stocks.forceDemand(PROTEIN, 5, VenueStocks.TIER_CONSUMER) ;
-    stocks.forceDemand(GREENS , 5, VenueStocks.TIER_CONSUMER) ;
     if (numUpdates % POT_INTERVAL == 0 && isManned()) splitGamblePot() ;
   }
   
@@ -318,10 +317,9 @@ public class Cantina extends Venue implements EconomyConstants {
   /**  Rendering and interface methods-
     */
   final static float GOOD_DISPLAY_OFFSETS[] = {
-    -0.00f, 1.0f,
-    -0.00f, 1.5f,
-    -0.00f, 2.0f,
-    -0.00f, 2.5f,
+    -0.5f, 0,
+    -1.0f, 0,
+    -1.5f, 0,
   } ;
   
   
@@ -331,12 +329,12 @@ public class Cantina extends Venue implements EconomyConstants {
   
   
   protected Service[] goodsToShow() {
-    return new Service[] { GREENS, PROTEIN, CARBS, SOMA } ;
+    return new Service[] { PROTEIN, CARBS, SOMA } ;
   }
   
   
   protected float goodDisplayAmount(Service good) {
-    return stocks.amountOf(good) * 2 ;
+    return 5 ;
   }
   
   

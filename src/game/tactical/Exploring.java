@@ -21,7 +21,7 @@ import src.game.building.TileSpread ;
 
 
 
-public class Exploring extends Plan implements AptitudeConstants {
+public class Exploring extends Plan implements Abilities {
   
   
   /**  Construction and save/load methods-

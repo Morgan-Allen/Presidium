@@ -8,7 +8,7 @@ import src.util.* ;
 
 
 
-public interface AptitudeConstants {
+public interface Abilities {
   
   
   final public static int
@@ -37,15 +37,9 @@ public interface AptitudeConstants {
     FORM_COGNITIVE = 3,
     FORM_PSYONIC   = 4,
     FORM_INSTINCT  = 5 ;
-    
   
-  
-
-  //  Nanotech/Informatics?  Introspection?  Specific weapon skills?
   
   final public static Skill
-    //
-    //  TODO:  Simplify these to just 3 attributes?  Physique/senses/cognition?
     VIGOUR    = new Skill("Vigour"   , FORM_NATURAL, null),
     BRAWN     = new Skill("Brawn"    , FORM_NATURAL, null),
     REFLEX    = new Skill("Reflex"   , FORM_NATURAL, null),
@@ -73,64 +67,78 @@ public interface AptitudeConstants {
     ASSEMBLY       = new Skill("Assembly"      , FORM_COGNITIVE, INTELLECT),
     CHEMISTRY      = new Skill("Chemistry"     , FORM_COGNITIVE, INTELLECT),
     FIELD_THEORY   = new Skill("Field Theory"  , FORM_COGNITIVE, INTELLECT),
+    INSCRIPTION    = new Skill("Inscription"   , FORM_COGNITIVE, INTELLECT),
     ASTROGATION    = new Skill("Astrogation"   , FORM_COGNITIVE, INTELLECT),
     //
     //  Ecology-related skills:
-    HANDICRAFTS    = new Skill("Handicrafts"   , FORM_COGNITIVE, INTELLECT),
-    CULTIVATION    = new Skill("Cultivation"   , FORM_COGNITIVE, INTELLECT),
     XENOZOOLOGY    = new Skill("Xenozoology"   , FORM_COGNITIVE, INTELLECT),
+    CULTIVATION    = new Skill("Cultivation"   , FORM_COGNITIVE, INTELLECT),
     GEOPHYSICS     = new Skill("Geophysics"    , FORM_COGNITIVE, INTELLECT),
+    CETANI_ECOLOGY = new Skill("Cetani Ecology", FORM_COGNITIVE, INTELLECT),
+    ALBEDO_ECOLOGY = new Skill("Albedo Ecology", FORM_COGNITIVE, INTELLECT),
+    SILICO_ECOLOGY = new Skill("Silico Ecology", FORM_COGNITIVE, INTELLECT),
     //
     //  Physician-related skills:
     PHARMACY       = new Skill("Pharmacy"      , FORM_COGNITIVE, INTELLECT),
-    ANATOMY        = new Skill("Anatomy"       , FORM_COGNITIVE, INTELLECT),
     GENE_CULTURE   = new Skill("Gene Culture"  , FORM_COGNITIVE, INTELLECT),
+    ANATOMY        = new Skill("Anatomy"       , FORM_COGNITIVE, INTELLECT),
     PSYCHOANALYSIS = new Skill("Psychoanalysis", FORM_COGNITIVE, INTELLECT),
     //
-    //  Research and governance-related.
-    ANCIENT_LORE   = new Skill("Ancient Lore"  , FORM_COGNITIVE, INTELLECT),
+    //  Research and governance:
     BATTLE_TACTICS = new Skill("Battle Tactics", FORM_COGNITIVE, INTELLECT),
     ACCOUNTING     = new Skill("Accounting"    , FORM_COGNITIVE, INTELLECT),
+    ARCHAEOLOGY    = new Skill("Archaeology"   , FORM_COGNITIVE, INTELLECT),
+    FORENSICS      = new Skill("Forensics"     , FORM_COGNITIVE, INTELLECT),
+    LEGISLATION    = new Skill("Legislation"   , FORM_COGNITIVE, INTELLECT),
+    SOCIAL_HISTORY = new Skill("Social History", FORM_COGNITIVE, INTELLECT),
     
     COGNITIVE_SKILLS[] = Trait.skillsSoFar() ;
   
   final public static Skill
     //
-    //  Methods of persuasion-
+    //  Methods of persuasion:
     COMMAND           = new Skill("Command"        , FORM_SENSITIVE, INSIGHT),
     SUASION           = new Skill("Suasion"        , FORM_SENSITIVE, INSIGHT),
     COUNSEL           = new Skill("Counsel"        , FORM_SENSITIVE, INSIGHT),
+    TRUTH_SENSE       = new Skill("Truth Sense"    , FORM_SENSITIVE, INSIGHT),
     //
-    //  Knowing the language and culture-
+    //  Knowing the language and culture:
     NATIVE_TABOO      = new Skill("Native Taboo"   , FORM_SENSITIVE, INSIGHT),
     COMMON_CUSTOM     = new Skill("Common Custom"  , FORM_SENSITIVE, INSIGHT),
     NOBLE_ETIQUETTE   = new Skill("Noble Etiquette", FORM_SENSITIVE, INSIGHT),
+    REPUBLIC_LAWS     = new Skill("Republic Laws"  , FORM_SENSITIVE, INSIGHT),
+    IMPERIAL_DOGMA    = new Skill("Imperial Dogma" , FORM_SENSITIVE, INSIGHT),
+    OUTER_DIALECTS    = new Skill("Outer Dialects" , FORM_SENSITIVE, INSIGHT),
     //
-    //  Forms of artistic expression/entertainment-
+    //  Forms of artistic expression/entertainment:
     EROTICS           = new Skill("Erotics"        , FORM_SENSITIVE, REFLEX ),
     MASQUERADE        = new Skill("Masquerade"     , FORM_SENSITIVE, REFLEX ),
     MUSIC_AND_SONG    = new Skill("Music and Song" , FORM_SENSITIVE, INSIGHT),
-    GRAPHIC_MEDIA     = new Skill("Graphic Media"  , FORM_SENSITIVE, INSIGHT),
+    GRAPHIC_DESIGN    = new Skill("Graphic Design" , FORM_SENSITIVE, INSIGHT),
     
     SENSITIVE_SKILLS[] = Trait.skillsSoFar() ;
   
   final public static Skill
     //
-    //  Direct combat skills-
+    //  Direct combat skills:
     FORMATION_COMBAT  = new Skill("Formation Combat" , FORM_PHYSICAL, WILL  ),
     MARKSMANSHIP      = new Skill("Marksmanship"     , FORM_PHYSICAL, REFLEX),
     HAND_TO_HAND      = new Skill("Hand to Hand"     , FORM_PHYSICAL, REFLEX),
     SHIELD_AND_ARMOUR = new Skill("Shield and Armour", FORM_PHYSICAL, REFLEX),
+    HEAVY_WEAPONS     = new Skill("Heavy Weapons"    , FORM_PHYSICAL, REFLEX),
+    FIREARMS          = new Skill("Firearms"         , FORM_PHYSICAL, REFLEX),
     //
-    //  Exploration and mobility-
+    //  Exploration and mobility:
     ATHLETICS         = new Skill("Athletics"        , FORM_PHYSICAL, WILL  ),
     PILOTING          = new Skill("Piloting"         , FORM_PHYSICAL, REFLEX),
     SURVEILLANCE      = new Skill("Surveillance"     , FORM_PHYSICAL, REFLEX),
     STEALTH_AND_COVER = new Skill("Stealth and Cover", FORM_PHYSICAL, REFLEX),
     //
-    //  General elbow grease-
+    //  General patience and elbow grease:
+    HANDICRAFTS       = new Skill("Handicrafts"      , FORM_PHYSICAL, WILL  ),
     HARD_LABOUR       = new Skill("Hard Labour"      , FORM_PHYSICAL, WILL  ),
     DOMESTICS         = new Skill("Domestics"        , FORM_PHYSICAL, WILL  ),
+    BODY_MEDITATION   = new Skill("Body Meditation"  , FORM_PHYSICAL, WILL  ),
     
     PHYSICAL_SKILLS[] = Trait.skillsSoFar() ;
   
@@ -144,7 +152,7 @@ public interface AptitudeConstants {
     
     PYSONIC_SKILLS[] = Trait.skillsSoFar() ;
   
-
+  
   //  Likelihood of aiding/harming others- Empathic vs. Cruel
   //  Brave danger/retreat- Bold vs. Nervous
   //  Enjoy/disdain violence- Aggressive vs. Pacifist
@@ -453,7 +461,6 @@ public interface AptitudeConstants {
     EXTREME_VIRULENCE   = 25 ;
   
   final public static Condition
-    
     //
     //  Finally, listings for various conditions that might beset the actor-
     INJURY = new Condition(
@@ -469,15 +476,14 @@ public interface AptitudeConstants {
       null
     ),
     POOR_MORALE = new Condition(
-      "Terrible Morale",
       "Broken Morale",
+      "Shaken Morale",
       "Poor Morale",
       null,
       "Fair Morale",
       "High Morale",
-      "Fantastic Morale"
+      "Superb Morale"
     ),
-    
     
     HUNGER = new Condition(
       "Near Starvation",

@@ -9,13 +9,11 @@ import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD;
 import src.user.* ;
-import src.util.I;
-import src.util.Index;
-import src.util.Rand;
+import src.util.* ;
 
 
 
-public class Garrison extends Venue implements EconomyConstants {
+public class Garrison extends Venue implements Economy {
   
   
   
@@ -71,15 +69,15 @@ public class Garrison extends Venue implements EconomyConstants {
       "Prepares your soldiers for ranged marksmanship.",
       150, null, 3, null, ALL_UPGRADES
     ),
-    TECHNICAL_TRAINING = new Upgrade(
-      "Technical Training",
-      "Prepares your soldiers with the expertise needed to pilot vehicles "+
-      "and mechanical armour.",
+    ENDURANCE_TRAINING = new Upgrade(
+      "Endurance Training",
+      "Prepares your soldiers for guerilla warfare and wilderness survival.",
       200, null, 3, null, ALL_UPGRADES
     ),
-    SURVIVAL_TRAINING = new Upgrade(
-      "Survival Training",
-      "Prepares your soldiers for guerilla warfare and wilderness survival.",
+    PEACEKEEPER_TRAINING = new Upgrade(
+      "Peacekeeper Training",
+      "Educates your soldiers about the use of minimal force, local "+
+      "contacts, and proper treatment of prisoners.",
       200, null, 3, null, ALL_UPGRADES
     ),
     VOLUNTEER_STATION = new Upgrade(

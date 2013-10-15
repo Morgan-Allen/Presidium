@@ -2,6 +2,8 @@
 
 
 package src.debug ;
+import org.lwjgl.opengl.GL11;
+
 import src.graphics.common.* ;
 import src.graphics.space.* ;
 import src.util.* ;
@@ -11,11 +13,17 @@ import src.util.* ;
 public class DebugStarcharts extends ViewLoop {
   
   final static int
+    DEFAULT_LIGHT_YEARS = 15,
+    DEFAULT_RIM_PORTION = 4,
+    
     TINY_CLUSTER_COUNT   = 25,
-    SMALL_CLUSTER_COUNT  = 40,
+    SMALL_CLUSTER_COUNT  = 45,
     MEDIUM_CLUSTER_COUNT = 100,
     LARGE_CLUSTER_COUNT  = 250,
-    VAST_CLUSTER_COUNT   = 450 ;
+    VAST_CLUSTER_COUNT   = 600 ;
+  final static float
+    LIGHT_YEAR_SCALE = 1.0f,
+    STAR_MAG_SCALE   = 1.0f ;
   
   
   public static void main(String s[]) {
@@ -29,9 +37,12 @@ public class DebugStarcharts extends ViewLoop {
   
   protected void setup() {
     final int
-      NUM_STARS = MEDIUM_CLUSTER_COUNT,
-      MAX_DIST = (int) (15 * (float) Math.pow(NUM_STARS / 100f, 0.25f)),
-      RIM_PART = 4 ;
+      NUM_STARS   = LARGE_CLUSTER_COUNT,
+      RIM_PORTION = DEFAULT_RIM_PORTION,
+      MAX_DIST = (int) (
+          DEFAULT_LIGHT_YEARS * LIGHT_YEAR_SCALE *
+          (float) Math.pow(NUM_STARS / 100f, 1f / RIM_PORTION)
+      ) ;
     starfield = new Starfield(NUM_STARS, MAX_DIST) ;
     //
     //  Assign a bunch of random stars...
@@ -52,13 +63,17 @@ public class DebugStarcharts extends ViewLoop {
       ) ;
       q.setUnit() ;
       q.putMatrixForm(m) ;
-      final boolean rim = Rand.index(RIM_PART) == 0 ;
+      final boolean rim = Rand.index(RIM_PORTION) == 0 ;
       v.set(0, 0, MAX_DIST * (rim ?
-        (1 - (Rand.num() / RIM_PART)) :
+        (1 - (Rand.num() / RIM_PORTION)) :
         (Rand.num() * Rand.num())
       )) ;
       m.trans(v) ;
-      starfield.addStar(v.x, v.y, v.z, null, 0.5f + Rand.avgNums(2)) ;
+      //final float magnitude = 0.5f + Rand.avgNums(2) ;
+      starfield.addStar(
+        v.x, v.y, v.z,
+        Rand.num() * Rand.num(), Rand.num() * Rand.num()
+      ) ;
     }
   }
   

@@ -29,7 +29,7 @@ public class Manufacture extends Plan implements Behaviour {
   final public Conversion conversion ;
   
   private Item made, needed[] ;
-  public int checkBonus = 0, timeMult = 1 ;
+  public int timeMult = 1, checkBonus = 0 ;
   private boolean pastFive = false ;
   
   
@@ -51,8 +51,8 @@ public class Manufacture extends Plan implements Behaviour {
     conversion = Conversion.loadFrom(s) ;
     made = Item.loadFrom(s) ;
     this.needed = conversion.raw ;
-    checkBonus = s.loadInt() ;
     timeMult   = s.loadInt() ;
+    checkBonus = s.loadInt() ;
   }
   
   
@@ -61,9 +61,8 @@ public class Manufacture extends Plan implements Behaviour {
     s.saveObject(venue) ;
     Conversion.saveTo(s, conversion) ;
     Item.saveTo(s, made) ;
-    //s.saveFloat(timeTaken) ;
-    s.saveInt(checkBonus) ;
     s.saveInt(timeMult  ) ;
+    s.saveInt(checkBonus) ;
   }
   
   

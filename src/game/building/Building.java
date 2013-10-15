@@ -11,7 +11,7 @@ import src.util.* ;
 
 
 
-public class Building extends Plan implements AptitudeConstants {
+public class Building extends Plan implements Abilities {
   
   
   

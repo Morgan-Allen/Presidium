@@ -15,7 +15,7 @@ import src.util.I;
 //  TODO:  HAVE THIS PLAN RESPONSIBLE FOR AUDITING IF NOBODY ELSE DOES IT FIRST
 
 
-public class Supervision extends Plan implements EconomyConstants {
+public class Supervision extends Plan implements Economy {
   
   
   /**  Data fields, setup and save/load functions-

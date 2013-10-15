@@ -14,7 +14,7 @@ import src.util.* ;
 
 
 public class CargoBarge extends Vehicle implements
-  Inventory.Owner, EconomyConstants
+  Inventory.Owner, Economy
 {
   
   /**  Fields, constants, constructors and save/load methods-

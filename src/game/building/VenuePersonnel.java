@@ -41,6 +41,8 @@ public class VenuePersonnel {
   
   final Venue venue ;
   
+  //
+  //  TODO:  I can probably get rid of this class shortly.
   static class Position {
     Background role ;
     Actor works ;
@@ -180,101 +182,6 @@ public class VenuePersonnel {
   
   
   
-  /**  Methods related to payment of wages-
-    */
-  protected void allocateWages() {
-    if (venue.privateProperty() || venue.base() == null) return ;
-    
-    if (verbose && I.talkAbout == venue) {
-      I.say(venue+" ALLOCATING WAGES, "+positions.size()+" WORK?") ;
-      I.say("  CREDITS ARE: "+venue.stocks.credits()) ;
-    }
-    //
-    //  Firstly, allocate basic salary plus minimum wage.  (Ruler-class
-    //  citizens receive no wage, drawing directly on the resources of the
-    //  state.)  TODO:  Should that be the case...?
-    float sumWages = 0 ;
-    for (Position p : positions) if (p.wages >= 0) {
-      if (p.role.standing == Background.RULER_CLASS) {
-        p.wages = 0 ;
-        continue ;
-      }
-      float wage = (p.salary / 10f) + Auditing.BASE_ALMS_PAY ;
-      if (p.role.guild == Background.GUILD_MILITANT) {
-        wage *= Auditing.MILITANT_BONUS ;
-      }
-      wage *= AUDIT_INTERVAL * 1f / World.STANDARD_DAY_LENGTH ;
-      p.wages += wage ;
-      if (verbose) I.sayAbout(venue, "Wages for "+p.works+" are: "+p.wages) ;
-      sumWages += wage ;
-    }
-    venue.stocks.incCredits(0 - sumWages) ;
-    //
-    //  Then split a portion of surplus between employees in proportion to
-    //  basic salary.
-    final float surplus = venue.stocks.unTaxed() ;
-    if (surplus > 0) {
-      float sumSalaries = 0, sumShared = 0 ;
-      for (Position p : positions) if (p.wages >= 0) {
-        if (p.role.standing == Background.RULER_CLASS) continue ;
-        sumSalaries += p.salary ;
-      }
-      for (Position p : positions) if (p.wages >= 0) {
-        if (p.role.standing == Background.RULER_CLASS) continue ;
-        final float shared = surplus * 0.1f * p.salary / sumSalaries ;
-        p.wages += shared ;
-        sumShared += shared ;
-      }
-      venue.stocks.incCredits(0 - sumShared) ;
-    }
-    //
-    //  Finally, report your debts or windfall back to the base.  Debts may
-    //  be exaggerated and/or profits under-reported, unless skilled (and
-    //  honest) auditors get there first.
-    final Base base = venue.base() ;
-    final float balance = venue.stocks.credits() ;
-    final float waste = (Rand.num() + base.crimeLevel()) / 2f ;
-    if (verbose) I.sayAbout(venue, "   BALANCE/WASTE: "+balance+"/"+waste) ;
-    final int
-      profit = (int) (balance / (1 + waste)),
-      losses = (int) ((0 - balance) * (1 + waste)) ;
-    if (profit > 0) {
-      base.incCredits(profit) ;
-      venue.chat.addPhrase((int) profit+" credits in profit") ;
-      venue.stocks.incCredits(0 - profit) ;
-    }
-    if (losses > 0) {
-      base.incCredits(0 - losses) ;
-      venue.chat.addPhrase((int) losses+" credits in debt") ;
-      venue.stocks.incCredits(losses) ;
-    }
-    venue.stocks.taxDone() ;
-    
-    if (verbose && I.talkAbout == venue) for (Position p : positions) {
-      if (p.wages > 0) I.say(p.works+" has "+p.wages+" credits in wages") ;
-    }
-  }
-  
-  
-  public int wagesFor(Actor actor) {
-    for (Position p : positions) {
-      if (p.works == actor && p.wages > 0) return (int) p.wages ;
-    }
-    return 0 ;
-  }
-  
-  
-  public void dispenseWages(Actor actor) {
-    for (Position p : positions) {
-      if (p.works != actor || p.wages <= 0) continue ;
-      actor.gear.incCredits(p.wages) ;
-      p.wages = 0 ;
-      return ;
-    }
-  }
-  
-  
-  
   /**  Handling applications and recruitment-
     */
   public Position applyFor(Background v, Actor applies, int signingCost) {
@@ -358,8 +265,7 @@ public class VenuePersonnel {
         }
       }
     }
-    
-    if (numUpdates % AUDIT_INTERVAL == (AUDIT_INTERVAL - 1)) allocateWages() ;
+    //if (numUpdates % AUDIT_INTERVAL == (AUDIT_INTERVAL - 1)) allocateWages() ;
   }
   
   

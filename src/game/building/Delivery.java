@@ -7,7 +7,7 @@
 
 package src.game.building ;
 import src.game.common.* ;
-import src.game.social.Auditing;
+import src.game.social.Audit;
 import src.game.actors.* ;
 import src.game.base.* ;
 import src.util.* ;
@@ -19,7 +19,7 @@ import src.game.building.Inventory.Owner ;
 //  TODO:  Barges need to be made more persistent.
 
 
-public class Delivery extends Plan implements EconomyConstants {
+public class Delivery extends Plan implements Economy {
   
   final public static int
     TYPE_SHOPPING  = 0,
@@ -139,7 +139,7 @@ public class Delivery extends Plan implements EconomyConstants {
   public static float purchasePrice(Item item, Actor actor, Owner origin) {
     float TP = origin.priceFor(item.type) ;
     if (actor != null && actor.vocation().guild == Background.GUILD_MILITANT) {
-      TP -= Auditing.MILITANT_RATION ;
+      TP -= Audit.MILITANT_RATION ;
       if (TP <= 0) return 0 ;
     }
     return item.amount * TP ;

@@ -14,7 +14,7 @@ import src.util.* ;
 //  basic housing types.
 
 
-public class HoldingUpgrades implements EconomyConstants {
+public class HoldingUpgrades implements Economy {
   
 
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (

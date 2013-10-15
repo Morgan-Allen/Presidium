@@ -15,7 +15,7 @@ import src.util.* ;
 
 
 
-public class Smelting extends Plan implements EconomyConstants {
+public class Smelting extends Plan implements Economy {
   
   
   

@@ -10,7 +10,7 @@ import src.util.* ;
 
 
 
-public class ActorHealth implements AptitudeConstants {
+public class ActorHealth implements Abilities {
   
   
   
@@ -441,7 +441,7 @@ public class ActorHealth implements AptitudeConstants {
     if (! organic) return stressCache = 0 ;
     
     float sumDisease = 0 ;
-    for (Trait t : AptitudeConstants.TREATABLE_CONDITIONS) {
+    for (Trait t : Abilities.TREATABLE_CONDITIONS) {
       sumDisease += ((Condition) t).virulence * actor.traits.traitLevel(t) ;
     }
     float sum = Visit.clamp((fatigue + injury) / maxHealth, 0, 1) ;

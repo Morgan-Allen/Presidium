@@ -14,7 +14,7 @@ import src.util.* ;
 
 
 
-public class SurveillancePost extends Venue implements EconomyConstants {
+public class SurveillancePost extends Venue implements Economy {
   
   
   

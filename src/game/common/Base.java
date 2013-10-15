@@ -38,16 +38,21 @@ public class Base implements
   Venue commandPost ;
   final List <Mission> missions = new List <Mission> () ;
   
-  float communitySpirit, alertLevel, crimeLevel, averageMood ;
+  private float
+    communitySpirit,
+    alertLevel,
+    crimeLevel,
+    averageMood,
+    propertyValues,
+    creditCirculation ;
   final Table <Accountable, Relation> baseRelations = new Table() ;
   
   final public Paving paving ;
-  //  ...You should also have a PresenceMap just for maintenance purposes.
+  final public PresenceMap maintenance ;
   
   final public BaseProfiles profiles = new BaseProfiles(this) ;
   final public DangerMap dangerMap ;
   final public IntelMap intelMap = new IntelMap(this) ;
-  
   
   public Colour colour = Colour.BLUE ;
   
@@ -56,6 +61,7 @@ public class Base implements
   public Base(World world) {
     this.world = world ;
     paving = new Paving(world) ;
+    maintenance = new PresenceMap(world, "damaged") ;
     dangerMap = new DangerMap(world, this) ;
     intelMap.initFog(world) ;
   }
@@ -74,6 +80,9 @@ public class Base implements
     alertLevel = s.loadFloat() ;
     crimeLevel = s.loadFloat() ;
     averageMood = s.loadFloat() ;
+    propertyValues = s.loadFloat() ;
+    creditCirculation = s.loadFloat() ;
+    
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Relation r = Relation.loadFrom(s) ;
       baseRelations.put(r.subject, r) ;
@@ -81,6 +90,7 @@ public class Base implements
     
     paving = new Paving(world) ;
     paving.loadState(s) ;
+    maintenance = (PresenceMap) s.loadObject() ;
     
     profiles.loadState(s) ;
     dangerMap = new DangerMap(world, this) ;
@@ -96,14 +106,20 @@ public class Base implements
     s.saveObject(ruler) ;
     s.saveObjects(missions) ;
     
+    //
+    //  TODO:  Move these to the Reputation/Ratings class!
     s.saveFloat(communitySpirit) ;
     s.saveFloat(alertLevel) ;
     s.saveFloat(crimeLevel) ;
     s.saveFloat(averageMood) ;
+    s.saveFloat(propertyValues) ;
+    s.saveFloat(creditCirculation) ;
+    
     s.saveInt(baseRelations.size()) ;
     for (Relation r : baseRelations.values()) Relation.saveTo(s, r) ;
     
     paving.saveState(s) ;
+    s.saveObject(maintenance) ;
     
     profiles.saveState(s) ;
     dangerMap.saveState(s) ;
@@ -157,7 +173,14 @@ public class Base implements
   }
   
   
-  //  Summarise total supply/demand for all goods here.
+  public float propertyValues() {
+    return propertyValues ;
+  }
+  
+  
+  public float creditCirculation() {
+    return creditCirculation ;
+  }
   
   
   
@@ -203,7 +226,7 @@ public class Base implements
   
   public void updateAsScheduled(int numUpdates) {
     commerce.updateCommerce(numUpdates) ;
-    paving.distribute(EconomyConstants.ALL_PROVISIONS) ;
+    paving.distribute(Economy.ALL_PROVISIONS) ;
     dangerMap.updateVals() ;
     for (Mission mission : missions) mission.updateMission() ;
     //
@@ -214,10 +237,15 @@ public class Base implements
       final Tile t = world.tileAt(0, 0) ;
       int numResidents = 0 ;
       averageMood = 0.5f ;
+      propertyValues = 0 ;
+      creditCirculation = credits ;
       
       for (Object o : world.presences.matchesNear(this, t, -1)) {
         if (! (o instanceof Venue)) continue ;
         final Venue v = (Venue) o ;
+        propertyValues += Audit.propertyValue(v) ;
+        credits += v.stocks.credits() ;
+        
         for (Actor resident : v.personnel.residents()) {
           numResidents++ ;
           averageMood += resident.health.moraleLevel() ;

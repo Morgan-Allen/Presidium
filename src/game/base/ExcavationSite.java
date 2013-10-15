@@ -36,7 +36,7 @@ import src.util.* ;
 
 
 public class ExcavationSite extends Venue implements
-  EconomyConstants, TileConstants
+  Economy, TileConstants
 {
   
   

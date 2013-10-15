@@ -34,16 +34,16 @@ Quest ideas-
   Elysium Sector, Acheron Sector, Tharsis Sector
   
   Other worlds/powers in setting:
-  House Maia (aesthete)     House Fomalhaut (trade)
+  House Maia (artistry)     House Fomalhaut (trade)
     Nordsei system            Solipsus system
-  House Procyon (artificer) House Taygeta (science)
+  House Procyon (industry)  House Taygeta (science)
     Parem V system            Axis Novena system
   House Altair (military)   House Suhail (ecology)
     Haliban system            Asra Novi system
-  Calivor (capital/Senate)  Theta Rho (krech)
+  Calivor (capital/Senate)  Ceta Rho (krech)
   Urym Hive (imperial)      Albedo C97 (changeling)
-  The World Forge (strain)  The Homeworld (jovian)
-  Lightly-settled worlds:  Tovet, Xiridu, Termagant
+  The Outer Sphere (strain) The Homeworld (jovian)
+  Lightly-settled worlds:   Tovet, Xiridu, Inobe
 
 
 
@@ -54,14 +54,12 @@ GARRISON & BASTION
   ...Activate shields/man the defences.
   2 Sentries at Blast Door, as standard.
 
-THE CONDENSOR AND SOLAR ARRAY/WINDTRAPS
-  ...Provides life support and water.
-  ...Provides and stores power, based on daylight values.
-
 THE ARCHIVES
   (requires circuitry)
   ...Allows skills to be researched (after you install their Datalinks.)
   Archivists as a standard complement, based on no. of datalinks.
+
+
 
 
 
@@ -172,7 +170,7 @@ Collective Nexus (the Psyon Choir)
   Collective Gaian       (ecological balance and life support)
   Collective Integral    (maintenance of hardware and surgery)
   Collective Choral      (psyon abilities and emotional rapport)
-  Android/Replicant      (inherent pacifism and memory retention)
+  Android Replicant      (inherent pacifism and memory retention)
   Nexus Vessel           (head of the school)
   
   Based on:  More Than Human, Gaia and Galaxia from the Foundation series,
@@ -201,7 +199,32 @@ Shaper Colony (the Sculptor's Studio)
              aspects of the Na'vi from Avatar and WH40K Chaos
 
 
+The Krech:
+  Helpmeet     (nursing, maintenance)
+  Trailblazer  (exploration, 'light infantry')
+  Tinker       (structural reinforcement, parts and circuitry)
+  Spinner      (interior decor, plastics and tensiles)
+  Warrior      (honour guard, 'heavy cavalry')
+  Matriarch    (queen and all-mother)
+  
+  Based on:  District 9, shades of Alien/Starship Troopers/leafcutter ants, 
+             The Humanx Commonwealth, The Mote In God's Eye
 
+The Changelings:
+  Mimic         (aesthetics/architecture/agriculture)
+  Orgiast       (hedonism, liaison/human relations, gene transfer)
+  Devourer      (defence, assimilation and infiltration)
+  Founder       (offworld diplomacy, command structure, genetic science)
+  
+  Based on:  Odo & Company from DS9, Octavia Butler's Oankali, The Things,
+             Solaris, bits of Three Worlds Collide
+
+The Jovians:
+  Gatekeeper    (astrogation/occasional trade/manufacture)
+  Emissary      (counsel, negotiation, judgement, protection)
+  
+  Based on:  Babylon 5 Vorlons, The Culture Cycle's Dra'Azon/sublimation,
+             Expedition's Eosapiens, Floaters from Cosmos, the Lovecraft Mythos
 
 
 

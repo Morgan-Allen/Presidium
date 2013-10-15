@@ -15,7 +15,7 @@ import src.util.* ;
 
 
 
-public class Sickbay extends Venue implements EconomyConstants {
+public class Sickbay extends Venue implements Economy {
   
   
   
@@ -121,7 +121,11 @@ public class Sickbay extends Venue implements EconomyConstants {
     //
     //  Manufacture Stim Kits for later use-
     final Manufacture mS = stocks.nextManufacture(actor, NIL_TO_STIM_KITS) ;
-    if (mS != null) choice.add(mS) ;
+    if (mS != null) {
+      mS.checkBonus = ((structure.upgradeLevel(EMERGENCY_AID) - 1) * 5) / 2 ;
+      mS.timeMult = 5 ;
+      choice.add(mS) ;
+    }
     //
     //  If anyone is waiting for treatment, tend to them- including outside the
     //  building.
@@ -174,8 +178,7 @@ public class Sickbay extends Venue implements EconomyConstants {
   private void updateCloneOrders(int numUpdates) {
     if (numUpdates % 10 != 0) return ;
     //
-    //  Clean out any orders that have expired (either the destination or the
-    //  client have gone.)
+    //  Clean out any orders that have expired.
     for (Manufacture order : cloneOrders) {
       final Actor patient = (Actor) order.made().refers ;
       final boolean done =
@@ -190,21 +193,21 @@ public class Sickbay extends Venue implements EconomyConstants {
     }
     //
     //  Place part-cloning orders for actors in a critical condition-
+    //
+    //  TODO:  Allow for placement of orders at the Artificer as well?
     for (Mobile m : inside()) if (m instanceof Actor) {
       final Actor actor = (Actor) m ;
-      if (actor.health.suspended()) {
-        if (hasCloneOrder(actor)) continue ;
-        final Venue venue = findCloningVenue() ;
-        if (venue == null) continue ;
-        final Item ordered = Treatment.replicantFor(actor) ;
-        if (ordered == null) continue ;
-        final Manufacture order = new Manufacture(
-          null, venue, PROTEIN_TO_REPLICANTS, Item.withAmount(ordered, 1)
-        ) ;
-        venue.stocks.addSpecialOrder(order) ;
-        cloneOrders.add(order) ;
-        if (verbose) I.sayAbout(this, "Placing order: "+order) ;
-      }
+      if ((! actor.health.suspended()) || hasCloneOrder(actor)) continue ;
+      final Venue venue = findCloningVenue() ;
+      if (venue == null) continue ;
+      final Item ordered = Treatment.replicantFor(actor) ;
+      if (ordered == null) continue ;
+      final Manufacture order = new Manufacture(
+        null, venue, PROTEIN_TO_REPLICANTS, Item.withAmount(ordered, 1)
+      ) ;
+      venue.stocks.addSpecialOrder(order) ;
+      cloneOrders.add(order) ;
+      if (verbose) I.sayAbout(this, "Placing order: "+order) ;
     }
   }
   
@@ -257,7 +260,7 @@ public class Sickbay extends Venue implements EconomyConstants {
   
   
   public Service[] services() {
-    return new Service[] { STIM_KITS } ;
+    return new Service[] { STIM_KITS, SERVICE_TREAT } ;
   }
   
   

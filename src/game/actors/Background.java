@@ -40,13 +40,16 @@ public class Background implements Economy {
     UPPER_CLASS  =  3,
     RULER_CLASS  =  4 ;
   final public static int
-    GUILD_MILITANT = 0,
-    GUILD_MERCHANT = 1,
-    GUILD_AESTHETE = 2,
-    GUILD_ARTIFICER = 3,
-    GUILD_ECOLOGIST = 4,
-    GUILD_PHYSICIAN = 5,
-    NOT_A_GUILD = -1 ;
+    GUILD_MILITANT  =  0,
+    GUILD_MERCHANT  =  1,
+    GUILD_AESTHETE  =  2,
+    GUILD_ARTIFICER =  3,
+    GUILD_ECOLOGIST =  4,
+    GUILD_PHYSICIAN =  5,
+    GUILD_RUNNER    =  6,
+    GUILD_NATIVE    =  7,
+    GUILD_COURT     =  8,
+    NOT_A_GUILD     = -1 ;
   
   final public static int HIRE_COSTS[] = {
     150, 250, 500, 1000, -1  //Represents 10 days' salary.  Can't hire nobles.
@@ -332,7 +335,18 @@ public class Background implements Economy {
       "Fabricator", "citizen_skin.gif", null,
       MIDDLE_CLASS, GUILD_AESTHETE,
       PRACTICED, CHEMISTRY, HARD_LABOUR, NOVICE, GRAPHIC_DESIGN, HANDICRAFTS,
-      SOMETIMES, STUBBORN, NERVOUS
+      SOMETIMES, STUBBORN, NERVOUS,
+      OVERALLS
+    ),
+    
+    ADVERTISER = new Background(
+      "Advertiser", "citizen_skin.gif", null,
+      MIDDLE_CLASS, GUILD_AESTHETE,
+      EXPERT, GRAPHIC_DESIGN, SUASION,
+      PRACTICED, COUNSEL, SOCIAL_HISTORY,
+      NOVICE, ACCOUNTING, MUSIC_AND_SONG,
+      RARELY, HONOURABLE, STUBBORN, SOMETIMES, AMBITIOUS,
+      OVERALLS
     ),
     
     AESTHETE = new Background(
@@ -343,17 +357,7 @@ public class Background implements Economy {
       FINERY
     ),
     
-    PROPAGANDIST = new Background(
-      "Propagandist", "citizen_skin.gif", null,
-      UPPER_CLASS, GUILD_AESTHETE,
-      EXPERT, GRAPHIC_DESIGN, SUASION,
-      PRACTICED, MUSIC_AND_SONG, ACCOUNTING,
-      NOVICE, COUNSEL, PSYCHOANALYSIS,
-      RARELY, HONOURABLE, STUBBORN, OFTEN, AMBITIOUS,
-      OVERALLS
-    ),
-    
-    AESTHETE_CIRCLES[] = { PERFORMER, FABRICATOR, PROPAGANDIST, AESTHETE }
+    AESTHETE_CIRCLES[] = { PERFORMER, FABRICATOR, ADVERTISER, AESTHETE }
   ;
   
   
@@ -367,15 +371,13 @@ public class Background implements Economy {
       NOVICE, STEALTH_AND_COVER, LEARNING, HANDICRAFTS,
       OFTEN, NERVOUS, ACQUISITIVE, RARELY, INDOLENT
     ),
-    /*
     FREE_TRADER = new Background(
       "Free Trader", "pyon_skin.gif", null,
       LOWER_CLASS, NOT_A_GUILD,
-      PRACTICED, SUASION, NOVICE, HANDICRAFTS, ADMINISTRATION, DOMESTICS,
+      PRACTICED, SUASION, NOVICE, HANDICRAFTS, ACCOUNTING, DOMESTICS,
       NATIVE_TABOO, COMMON_CUSTOM,
       SOMETIMES, SOCIABLE, FRIENDLY, RARELY, NERVOUS, AMBITIOUS
     ),
-    //*/
     //
     //  Mechanics and captains keep your dropships in working order.
     SHIP_MECHANIC = new Background(
@@ -394,7 +396,6 @@ public class Background implements Economy {
     //
     //  These classes won't generally stay put, but might visit your settlement
     //  if the place needs their services.
-    /*
     RUNNER = new Background(
       "Runner", "runner_skin.gif", "vendor_portrait.png",
       MIDDLE_CLASS, NOT_A_GUILD,
@@ -403,7 +404,6 @@ public class Background implements Economy {
       OFTEN, ACQUISITIVE, SOMETIMES, NERVOUS, RARELY, HONOURABLE,
       PHASE_BLASTER, CAMOUFLAGE
     ),
-    //*/
     COMPANION = new Background(
       "Companion", "aesthete_female_skin.gif", "aesthete_portrait.png",
       UPPER_CLASS, NOT_A_GUILD,

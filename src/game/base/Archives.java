@@ -51,7 +51,8 @@ public class Archives extends Venue implements Economy {
   //
   //  TODO:  You might not want to implement these as upgrades?  They shouldn't
   //  really be contributing toward hit-points, for example.  Might be better
-  //  to model them as imported items, or some kind of custom object?
+  //  to model them as imported items, or some kind of custom object.
+  /*
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
     Archives.class, "archives_upgrades"
   ) ;
@@ -65,24 +66,54 @@ public class Archives extends Venue implements Economy {
       ) ;
     }
   }
-  
-  //
-  //  TODO:  Also permit sale of datalinks to housing.  Make that an upgrade
-  //  criterion for the Guilder Manse.  And make datalinks a unique item, not
-  //  a provision.
-  //  
-  //  Pressfeed can be dispensed to anyone, but you make no money on it, and
-  //  you have to deliver it yourself.  Citizens will pick up datalinks by
-  //  themselves.  (And they don't wear out.)  Instead, they get checked in and
-  //  out, like library books.
-  
+  //*/
   
   
   public Behaviour jobFor(Actor actor) {
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
+    final Choice choice = new Choice(actor) ;
     //
-    //  Assist folks inside with their researches, or manufacture Datalinks.
-    
-    return null ;
+    //  See if any new datalinks need to be installed or manufactured-
+    final Manufacture m = stocks.nextManufacture(
+      actor, CIRCUITRY_TO_DATALINKS
+    ) ;
+    if (m != null) {
+      choice.add(m) ;
+    }
+    //
+    //  Check to see if any datalinks require delivery- if so, key them to the
+    //  client first.
+    final Delivery baseD = Deliveries.nextDeliveryFor(
+      actor, this, services(), 1, world
+    ) ;
+    if (baseD != null) {
+      final Item custom = Item.withReference(DATALINKS, baseD.destination) ;
+      if (! stocks.hasItem(custom)) {
+        final Action personalise = new Action(
+          actor, baseD.destination,
+          this, "actionKeyDatalink",
+          Action.BUILD, "Personalising Datalinks"
+        ) ;
+        personalise.setMoveTarget(this) ;
+        personalise.setPriority(Action.ROUTINE) ;
+        choice.add(personalise) ;
+      }
+      else choice.add(new Delivery(custom, this, baseD.destination)) ;
+    }
+    if (choice.size() > 0) return choice.weightedPick(actor.mind.whimsy()) ;
+    //
+    //  Otherwise, just hang around and help folks with their inquiries-
+    return new Supervision(actor, this) ;
+  }
+  
+  
+  public boolean actionKeyDatalink(Actor actor, Venue client) {
+    if (stocks.amountOf(DATALINKS) < 1) return false ;
+    if (! actor.traits.test(INSCRIPTION, SIMPLE_DC, 1)) return false ;
+    final Item custom = Item.withReference(DATALINKS, client) ;
+    stocks.bumpItem(DATALINKS, -1) ;
+    stocks.addItem(custom) ;
+    return true ;
   }
   
   
@@ -101,7 +132,7 @@ public class Archives extends Venue implements Economy {
   
   
   public Service[] services() {
-    return new Service[] { CIRCUITRY } ;
+    return new Service[] { DATALINKS } ;
   }
   
   
@@ -120,8 +151,8 @@ public class Archives extends Venue implements Economy {
   
   public String helpInfo() {
     return
-      "The Archives facilitate research and administration within your "+
-      "settlement, and permit citizens a chance at self-education." ;
+      "The Archives facilitates research, administration and self-education "+
+      "programs." ;
   }
   
   

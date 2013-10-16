@@ -450,30 +450,6 @@ public abstract class Venue extends Fixture implements
     d.append("\n  Danger level: "+Ecology.dangerDesc(danger)+DN) ;
     d.append("\n\n") ;
     
-    if (PlayLoop.played() == base && ! privateProperty()) {
-      d.append("Orders: ") ;
-      final Venue v = this ;
-      if (structure.needsSalvage()) {
-        d.append(new Description.Link("\n  Cancel Salvage") {
-          public void whenClicked() {
-            final float condition = structure.repairLevel() ;
-            structure.setState(Structure.STATE_INTACT, condition) ;
-            world.ephemera.addGhost(v, size, buildSprite.scaffolding(), 2.0f) ;
-          }
-        }) ;
-      }
-      else {
-        d.append(new Description.Link("\n  Begin Salvage") {
-          public void whenClicked() {
-            final float condition = structure.repairLevel() ;
-            structure.setState(Structure.STATE_SALVAGE, condition) ;
-            world.ephemera.addGhost(v, size, buildSprite.baseSprite(), 2.0f) ;
-          }
-        }) ;
-      }
-      // TODO:  Allow relocation functions?  Defend/strike flags?
-      d.append("\n\n") ;
-    }
     d.append(helpInfo(), Colour.LIGHT_GREY) ;
   }
   
@@ -590,6 +566,31 @@ public abstract class Venue extends Fixture implements
   private static Upgrade lastCU ;  //last clicked...
   
   private void describeUpgrades(Description d, HUD UI) {
+
+    
+    if (PlayLoop.played() == base && ! privateProperty()) {
+      d.append("Orders: ") ;
+      final Venue v = this ;
+      if (structure.needsSalvage()) {
+        d.append(new Description.Link("\n  Cancel Salvage") {
+          public void whenClicked() {
+            final float condition = structure.repairLevel() ;
+            structure.setState(Structure.STATE_INTACT, condition) ;
+            world.ephemera.addGhost(v, size, buildSprite.scaffolding(), 2.0f) ;
+          }
+        }) ;
+      }
+      else {
+        d.append(new Description.Link("\n  Begin Salvage") {
+          public void whenClicked() {
+            final float condition = structure.repairLevel() ;
+            structure.setState(Structure.STATE_SALVAGE, condition) ;
+            world.ephemera.addGhost(v, size, buildSprite.baseSprite(), 2.0f) ;
+          }
+        }) ;
+      }
+      d.append("\n\n") ;
+    }
     
     final Batch <String> DU = structure.descOngoingUpgrades() ;
     final int numU = structure.numUpgrades(), maxU = structure.maxUpgrades() ;

@@ -19,23 +19,24 @@ import src.util.* ;
 
 
 
-public class BulletinBoard extends Venue implements Economy {
+public class Edifice extends Venue implements Economy {
   
 
   final public static Model MODEL = ImageModel.asSolidModel(
-    Foundry.class, "media/Buildings/aesthete/bulletin_board.png", 2, 3
+    Foundry.class, "media/Buildings/aesthete/edifice.png", 3, 2
   ) ;
   
   
-  public BulletinBoard(Base base) {
-    super(2, 3, ENTRANCE_WEST, base) ;
-    structure.setupStats(15, 2, 50, 0, Structure.TYPE_FIXTURE) ;
-    personnel.setShiftType(SHIFTS_ALWAYS) ;
+  public Edifice(Base base) {
+    super(3, 2, ENTRANCE_NONE, base) ;
+    structure.setupStats(
+      500, 50, 800, 0, Structure.TYPE_FIXTURE
+    ) ;
     this.attachSprite(MODEL.makeSprite()) ;
   }
   
   
-  public BulletinBoard(Session s) throws Exception {
+  public Edifice(Session s) throws Exception {
     super(s) ;
   }
   
@@ -67,19 +68,20 @@ public class BulletinBoard extends Venue implements Economy {
   /**  Rendering and interface methods-
     */
   public String fullName() {
-    return "Bulletin Board" ;
+    return "Edifice" ;
   }
   
   
   public Composite portrait(HUD UI) {
-    return new Composite(UI, "media/GUI/Buttons/bulletin_board_button.gif") ;
+    return new Composite(UI, "media/GUI/Buttons/edifice_button.gif") ;
   }
   
   
   public String helpInfo() {
     return
-      "The Bulletin Board helps to draw citizens' attention to fresh news "+
-      "and recruitment posting, and can help boost morale." ;
+      "The Edifice commemorates significant events in the history of your "+
+      "settlement, preserving a record beneath a frictionless tetra-carbon "+
+      "facade." ;
   }
   
 

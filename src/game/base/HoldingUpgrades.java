@@ -213,8 +213,8 @@ public class HoldingUpgrades implements Economy {
     }
     final float min = 0.1f ;
     //
-    //  TODO:  Only demand minimal amounts of a given good if it's not strictly
-    //  needed for housing evolution.
+    //  TODO:  Only demand minimal amounts of a given food if it's not strictly
+    //  needed for housing evolution...
     
     for (Service f : FOOD_TYPES) {
       final float amount = holding.stocks.amountOf(f) ;
@@ -365,6 +365,49 @@ public class HoldingUpgrades implements Economy {
       return false ;
     }
     return true ;
+  }
+  
+  
+  /**  Special good demands, for pressfeed and inscriptions-
+    */
+  
+  
+  protected static Batch <Item> specialGoods(Holding holding, int targetLevel) {
+    final Batch <Item> needed = new Batch <Item> () ;
+    
+    if (targetLevel >= LEVEL_FREEBORN) {
+      needed.add(Item.withAmount(PRESSFEED, 1)) ;
+    }
+    
+    if (targetLevel >= LEVEL_GUILDER) {
+      needed.add(Item.withAmount(DATALINKS, 1)) ;
+    }
+    
+    return needed ;
+  }
+  
+  
+  protected static Object checkSpecial(
+    Holding holding, int upgradeLevel, boolean verbose
+  ) {
+    
+    if (upgradeLevel >= LEVEL_FREEBORN) {
+      if (verbose && holding.stocks.shortagePenalty(PRESSFEED) > 0) {
+        return
+          "Your freeborn would like a supply of pressfeed to keep up to "+
+          "date with current events.  An Audit Office should supply this." ;
+      }
+    }
+
+    if (upgradeLevel >= LEVEL_GUILDER) {
+      if (holding.stocks.shortagePenalty(DATALINKS) > 0) {
+        return (! verbose) ? NOT_MET :
+          "Your wealthy guilders need the privileged access to information "+
+          "that comes with an Archive's datalinks." ;
+      }
+    }
+    
+    return NEEDS_MET ;
   }
   
   

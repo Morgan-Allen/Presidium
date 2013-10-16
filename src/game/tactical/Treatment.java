@@ -79,11 +79,6 @@ public class Treatment extends Plan implements Economy {
     }
     else this.theatre = theatre ;
     
-    
-    if (type == TYPE_RECONSTRUCT) {
-      I.say("Reconstruction valid? "+valid) ;
-    }
-    
     if (verbose && I.talkAbout == actor && valid) {
       I.say("\nConsidering treatment of "+patient+" at "+theatre) ;
       I.say("Treatment type is: "+type) ;

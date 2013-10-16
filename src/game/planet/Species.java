@@ -54,8 +54,25 @@ public class Species implements Session.Saveable, Economy {
   }
   
   
+  
+  /**  Lists and enumeration-
+    */
+  private static Batch <Species>
+    soFar      = new Batch <Species> (),
+    allSpecies = new Batch <Species> () ;
+  
+  private static Species[] speciesSoFar() {
+    final Species s[] = soFar.toArray(Species.class) ;
+    soFar.clear() ;
+    return s ;
+  }
+  
+  private static Species[] allSpecies() {
+    return allSpecies.toArray(Species.class) ;
+  }
+  
+  
   final public static Species
-    
     
     HUMAN = new Species(
       "Human",
@@ -158,24 +175,6 @@ public class Species implements Session.Saveable, Economy {
     
     ALL_SPECIES[] = Species.allSpecies()
   ;
-  
-  
-  
-  /**  Lists and enumeration-
-    */
-  private static Batch <Species>
-    soFar      = new Batch <Species> (),
-    allSpecies = new Batch <Species> () ;
-  
-  private static Species[] speciesSoFar() {
-    final Species s[] = soFar.toArray(Species.class) ;
-    soFar.clear() ;
-    return s ;
-  }
-  
-  private static Species[] allSpecies() {
-    return allSpecies.toArray(Species.class) ;
-  }
   
   
   /**  Fields and constructors.

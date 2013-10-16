@@ -163,14 +163,13 @@ public class VaultSystem extends Venue implements Economy {
   
   public String helpInfo() {
     return
-      "The Vault System provides an emergency refuge for base personnel while "+
-      "allowing goods to be stockpiled and providing a baseline degree of "+
-      "power and life support." ;
+      "The Vault System provides an emergency refuge and goods stockpile "+
+      "while ensuring essential life support functions." ;
   }
   
   
   public String buildCategory() {
-    return InstallTab.TYPE_MILITANT ;
+    return InstallTab.TYPE_PHYSICIAN ;
   }
   
 

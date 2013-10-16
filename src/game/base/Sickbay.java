@@ -286,8 +286,7 @@ public class Sickbay extends Venue implements Economy {
   public String helpInfo() {
     return
       "The Sickbay allows your citizens' injuries, diseases and trauma to be "+
-      "treated quickly and effectively.  It also alows for basic maternity "+
-      "care and psych evaluation." ;
+      "treated quickly and effectively." ;
   }
   
   

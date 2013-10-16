@@ -152,6 +152,7 @@ public class Holding extends Venue implements Economy {
       HoldingUpgrades.checkMaterials(this, meetLevel, false) == met &&
       HoldingUpgrades.checkSupport  (this, meetLevel, false) == met &&
       HoldingUpgrades.checkRations  (this, meetLevel, false) == met &&
+      HoldingUpgrades.checkSpecial  (this, meetLevel, false) == met &&
       HoldingUpgrades.checkSurrounds(this, meetLevel, false) == met ;
   }
   
@@ -202,12 +203,19 @@ public class Holding extends Venue implements Economy {
   
   private void updateDemands(int targetLevel) {
     targetLevel = Visit.clamp(targetLevel, HoldingUpgrades.NUM_LEVELS) ;
+    
     for (Item i : HoldingUpgrades.materials(targetLevel).raw) {
       stocks.forceDemand(i.type, i.amount + 0.5f, VenueStocks.TIER_CONSUMER) ;
     }
+    
     final float supportNeed = HoldingUpgrades.supportNeed(this, targetLevel) ;
     stocks.forceDemand(LIFE_SUPPORT, supportNeed, VenueStocks.TIER_CONSUMER) ;
+    
     for (Item i : HoldingUpgrades.rationNeeds(this, targetLevel)) {
+      stocks.forceDemand(i.type, i.amount, VenueStocks.TIER_CONSUMER) ;
+    }
+
+    for (Item i : HoldingUpgrades.specialGoods(this, targetLevel)) {
       stocks.forceDemand(i.type, i.amount, VenueStocks.TIER_CONSUMER) ;
     }
   }
@@ -224,6 +232,8 @@ public class Holding extends Venue implements Economy {
     targetLevel = Visit.clamp(targetLevel, HoldingUpgrades.NUM_LEVELS) ;
     //
     //  Combine the listing of non-provisioned materials and demand for rations.
+    //  (Note special goods, like pressfeed and datalinks, are delivered to the
+    //  holding externally, and so are not included here.)
     for (Item i : HoldingUpgrades.materials(targetLevel).raw) {
       if (i.type.form == FORM_PROVISION) continue ;
       needed.add(i.type) ;
@@ -344,11 +354,13 @@ public class Holding extends Venue implements Economy {
       materials = HoldingUpgrades.checkMaterials(this, meetLevel, true),
       support   = HoldingUpgrades.checkSupport  (this, meetLevel, true),
       rations   = HoldingUpgrades.checkRations  (this, meetLevel, true),
+      special   = HoldingUpgrades.checkSpecial  (this, meetLevel, true),
       surrounds = HoldingUpgrades.checkSurrounds(this, meetLevel, true) ;
     if (access    != met) return (String) access    ;
     if (materials != met) return (String) materials ;
     if (support   != met) return (String) support   ;
     if (rations   != met) return (String) rations   ;
+    if (special   != met) return (String) special   ;
     if (surrounds != met) return (String) surrounds ;
     return null ;
   }

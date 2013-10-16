@@ -125,6 +125,10 @@ public class Manufacture extends Plan implements Behaviour {
   
   
   private boolean hasNeeded() {
+    //
+    //  TODO:  Average the shortage of each needed item, so that penalties are
+    //  less stringent for output that demands multiple inputs.
+    
     for (Item need : needed) {
       if (! venue.stocks.hasItem(need)) return false ;
     }

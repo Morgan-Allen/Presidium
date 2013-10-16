@@ -186,21 +186,27 @@ public interface Economy extends Abilities {
   //
   //  TODO:  You should have skins associated with some of these.
   final public static OutfitType
-    FINERY         = new OutfitType(
-      BC, "Finery"        , 2 , 400,
-      new Conversion(2, PLASTICS, Fabricator.class, 15, GRAPHIC_DESIGN)
-    ),
+    
     OVERALLS       = new OutfitType(
       BC, "Overalls"      , 2, 50,
       new Conversion(1, PLASTICS, Fabricator.class, 5, ASSEMBLY)
     ),
+    FINERY         = new OutfitType(
+      BC, "Finery"        , 2 , 400,
+      new Conversion(2, PLASTICS, Fabricator.class, 15, GRAPHIC_DESIGN)
+    ),
+    
     CAMOUFLAGE     = new OutfitType(
       BC, "Camouflage"    , 3 , 70,
-      new Conversion(1, PLASTICS, Fabricator.class, 10, GRAPHIC_DESIGN)
+      new Conversion(1, PLASTICS, Fabricator.class, 5, HANDICRAFTS)
     ),
     SEALSUIT       = new OutfitType(
       BC, "Sealsuit"      , 4 , 150,
-      new Conversion(1, PLASTICS, 1, PARTS, Fabricator.class, 15, ASSEMBLY)
+      new Conversion(1, PLASTICS, 1, PARTS, Fabricator.class, 10, HANDICRAFTS)
+    ),
+    STEALTH_SUIT   = new OutfitType(
+      BC, "Stealth Suit"  , 8 , 250,
+      new Conversion(1, PLASTICS, 2, PARTS, Fabricator.class, 15, HANDICRAFTS)
     ),
     
     SHIELD_BELT = new OutfitType(
@@ -224,7 +230,9 @@ public interface Economy extends Abilities {
       new Conversion(12, PARTS, Foundry.class, 25, ASSEMBLY)
     ),
     
-    INTRINSIC_ARMOUR = new OutfitType(BC, "Intrinsic Armour", 0, 0, null) ;
+    INTRINSIC_ARMOUR = new OutfitType(
+      BC, "Intrinsic Armour", 0, 0, null
+    ) ;
   final public static Service
     ALL_OUTFITS[] = Service.typesSoFar() ;
   
@@ -248,7 +256,7 @@ public interface Economy extends Abilities {
     PARTS_TO_CIRCUITRY = new Conversion(
       1, PARTS, TO, 5, CIRCUITRY,
       Foundry.class,
-      STRENUOUS_DC, ASSEMBLY, MODERATE_DC, FIELD_THEORY
+      DIFFICULT_DC, ASSEMBLY, ROUTINE_DC, INSCRIPTION, SIMPLE_DC, FIELD_THEORY
     ),
     
     //
@@ -256,13 +264,13 @@ public interface Economy extends Abilities {
     PETROCARBS_TO_PLASTICS = new Conversion(
       1, PETROCARBS, TO, 1, PLASTICS,
       Fabricator.class,
-      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_DESIGN
+      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, HANDICRAFTS
     ),
     
     CARBS_TO_PLASTICS = new Conversion(
       5, CARBS, TO, 1, PLASTICS,
       Fabricator.class,
-      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GRAPHIC_DESIGN
+      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, HANDICRAFTS
     ),
     
     PLASTICS_TO_DECOR = new Conversion(
@@ -286,6 +294,14 @@ public interface Economy extends Abilities {
     ),
     
     //
+    //  Archives conversions-
+    CIRCUITRY_TO_DATALINKS = new Conversion(
+      1, CIRCUITRY, TO, 5, DATALINKS,
+      Archives.class,
+      MODERATE_DC, INSCRIPTION, SIMPLE_DC, ASSEMBLY, ACCOUNTING
+    ),
+    
+    //
     //  Reactor conversions-
     METALS_TO_FUEL = new Conversion(
       5, METAL_ORE, TO, 1, FUEL_CORES,
@@ -294,7 +310,7 @@ public interface Economy extends Abilities {
     ),
     
     //
-    //  Culture Vats conversions-
+    //  Culture Vats/Sickbay conversions-
     POWER_TO_CARBS = new Conversion(
       1, POWER, TO, 1, CARBS,
       CultureVats.class,
@@ -306,19 +322,6 @@ public interface Economy extends Abilities {
       CultureVats.class,
       ROUTINE_DC, CHEMISTRY, ROUTINE_DC, GENE_CULTURE
     ),
-    /*
-    POWER_TO_SOMA = new Conversion(
-      2, POWER, TO, 1, SOMA,
-      CultureVats.class,
-      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, PHARMACY
-    ),
-    
-    POWER_TO_MEDICINE = new Conversion(
-      5, POWER, TO, 1, MEDICINE,
-      CultureVats.class,
-      MODERATE_DC, CHEMISTRY, MODERATE_DC, PHARMACY, ROUTINE_DC, GENE_CULTURE
-    ),
-    //*/
     
     GREENS_TO_SOMA = new Conversion(
       2, POWER, 1, GREENS, TO, 10, SOMA,

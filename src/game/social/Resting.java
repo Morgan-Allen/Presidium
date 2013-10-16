@@ -25,7 +25,7 @@ public class Resting extends Plan implements Economy {
   final static int
     MODE_NONE     = -1,
     MODE_DINE     =  0,
-    //MODE_SCAVENGE =  1,
+    MODE_LODGE    =  1,
     MODE_SLEEP    =  2 ;
   
   final Boardable restPoint ;
@@ -101,6 +101,29 @@ public class Resting extends Plan implements Economy {
   }
   
   
+  public boolean actionRest(Actor actor, Boardable place) {
+    //
+    //  If you're resting at home, deposit any taxes due-
+    if (place == actor.mind.home() && place instanceof Venue) {
+      final float taxes = Audit.taxesDue(actor) ;
+      final Venue v = (Venue) place ;
+      v.stocks.incCredits(taxes) ;
+      actor.gear.incCredits(0 - taxes) ;
+      actor.gear.taxDone() ;
+    }
+    //
+    //  If you're in a Cantina, pay the lodging fee-
+    else if (place instanceof Cantina) {
+      final Cantina c = (Cantina) place ;
+      final float price = c.priceLodgings() ;
+      actor.gear.incCredits(-price) ;
+      c.stocks.incCredits(price) ;
+    }
+    actor.health.setState(ActorHealth.STATE_RESTING) ;
+    return true ;
+  }
+
+  
   public boolean actionEats(Actor actor, Venue place) {
     return dineFrom(actor, place) ;
   }
@@ -121,20 +144,6 @@ public class Resting extends Plan implements Economy {
       return true ;
     }
     return false ;
-  }
-  
-  
-  public boolean actionRest(Actor actor, Boardable place) {
-    //
-    //  If you're in a Cantina, pay the lodging fee-
-    if (place instanceof Cantina) {
-      final Cantina c = (Cantina) place ;
-      final float price = c.priceLodgings() ;
-      actor.gear.incCredits(-price) ;
-      c.stocks.incCredits(price) ;
-    }
-    actor.health.setState(ActorHealth.STATE_RESTING) ;
-    return true ;
   }
   
   

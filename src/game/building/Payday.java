@@ -9,17 +9,10 @@ package src.game.building ;
 import src.game.common.* ;
 import src.game.social.* ;
 import src.game.actors.* ;
-import src.game.building.* ;
+import src.game.base.* ;
 import src.user.* ;
 import src.util.* ;
 import src.game.actors.ActorMind.Employment ;
-
-
-
-//
-//  TODO:  Actors must also pay a portion of their income in taxes at the
-//  audit office.  ...In fact, maybe that should be where they get all their
-//  payments!
 
 
 
@@ -33,15 +26,17 @@ public class Payday extends Plan implements Economy {
   private float balance ;
   
   
-  public Payday(Actor actor, ActorMind.Employment pays) {
+  public Payday(Actor actor, ActorMind.Employment pays, Venue admin) {
     super(actor, pays) ;
     this.pays = pays ;
+    this.admin = admin ;
   }
   
   
   public Payday(Session s) throws Exception {
     super(s) ;
     this.pays = (Employment) s.loadObject() ;
+    admin = (Venue) s.loadObject() ;
     balance = s.loadFloat() ;
   }
   
@@ -49,6 +44,7 @@ public class Payday extends Plan implements Economy {
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveObject(pays) ;
+    s.saveObject(admin) ;
     s.saveFloat(balance) ;
   }
   
@@ -72,17 +68,12 @@ public class Payday extends Plan implements Economy {
   
   
   public static Payday nextPaydayFor(Actor actor) {
+    Venue admin = Audit.nearestAdminFor(actor, false) ;
+    if (admin == null) return null ;
     final Employment work = actor.mind.work() ;
-    if (work != null) return new Payday(actor, work) ;
-    
-    if (actor.base() != null) {
-      final Venue admin = Audit.nearestAdminFor(actor) ;
-      final Profile p = actor.base().profiles.profileFor(actor) ;
-      if (admin != null && p.paymentDue() != 0) {
-        return new Payday(actor, admin) ;
-      }
-    }
-    
+    if (work != null) return new Payday(actor, work, admin) ;
+    admin = Audit.nearestAdminFor(actor, true) ;
+    if (admin != null) return new Payday(actor, admin, admin) ;
     return null ;
   }
   
@@ -91,9 +82,6 @@ public class Payday extends Plan implements Economy {
   /**  Behaviour implementation-
     */
   protected Behaviour getNextStep() {
-    if (admin == null || admin.destroyed()) {
-      admin = Audit.nearestAdminFor(actor) ;
-    }
     if (admin == null) return null ;
     if (balance != 0) {
       final Action reports = new Action(
@@ -114,13 +102,19 @@ public class Payday extends Plan implements Economy {
   
   public boolean actionGetPaid(Actor actor, Venue venue) {
     final Profile p = venue.base.profiles.profileFor(actor) ;
+    
     if (p.paymentDue() == 0 && p.daysSinceWageEval(venue.world()) > 1) {
-      balance = Audit.auditEmployer(actor, venue) ;
-      venue.stocks.incCredits(0 - balance) ;
+      if (venue instanceof AuditOffice) {
+        ((AuditOffice) venue).dispenseRelief(actor) ;
+      }
+      else {
+        balance = Audit.auditEmployer(actor, venue) ;
+        venue.stocks.incCredits(0 - balance) ;
+      }
     }
-    //
-    //  TODO:  Deduct this from the venue's credits stock instead?
+    
     final float wages = p.paymentDue() ;
+    venue.stocks.incCredits(0 - wages) ;
     actor.gear.incCredits(wages) ;
     p.clearWages(venue.world()) ;
     return true ;
@@ -129,12 +123,6 @@ public class Payday extends Plan implements Economy {
   
   public boolean actionReport(Actor actor, Venue admin) {
     Audit.fileReport(actor, admin, balance) ;
-    return true ;
-  }
-  
-  
-  public boolean actionPayTax(Actor actor, Venue admin) {
-    
     return true ;
   }
   

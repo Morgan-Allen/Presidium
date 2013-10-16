@@ -18,14 +18,6 @@ import src.util.* ;
 
 
 
-
-//
-//  TODO:  Also, estate taxes!  For the nobility/ruler classes, who wouldn't
-//         otherwise pay.
-//  TODO:  What about getting a portion of support from offworld?  Maybe.
-
-
-
 public class AuditOffice extends Venue implements Economy {
   
 
@@ -74,7 +66,7 @@ public class AuditOffice extends Venue implements Economy {
     RELIEF_AMOUNTS[]  = {  0, 2   , 5   , 8    },
     RELIEF_SAVING[]   = {  0, 100 , 250 , 400  },
     TAX_PERCENTS[]    = {  0, 20  , 50  , 80   },
-    TAX_SAVE_EXEMPT[] = { -1, 1000, 500 , 250  },
+    TAX_EXEMPTED[] = { -1, 1000, 500 , 250  },
     ESTATE_TAX_FEES[] = {  0, 1000, 2500, 5000 },
     
     MAX_INFLATION = 10,
@@ -115,8 +107,8 @@ public class AuditOffice extends Venue implements Economy {
   final public static Upgrade
     PRESS_OFFICE = new Upgrade(
       "Press Office",
-      "Assists in the production of pressfeed and brings Propagandists into "+
-      "your employ, helping to fortify base morale.",
+      "Assists in the production of pressfeed and brings Advertisers into "+
+      "your employ, helping to gather information and fortify base morale.",
       150, null, 1, null, ALL_UPGRADES
     ),
     FILE_SYSTEM = new Upgrade(
@@ -125,15 +117,15 @@ public class AuditOffice extends Venue implements Economy {
       "processed quickly and expands the number of Auditors in your employ.",
       300, null, 1, null, ALL_UPGRADES
     ),
-    WELFARE_SYSTEM = new Upgrade(
-      "Welfare System",
-      "Permits the homeless and unemployed to apply for basic income, and "+
-      "allows a portion of support funding to come from offworld.",
+    RELIEF_AUDIT = new Upgrade(
+      "Relief Audit",
+      "Allows local homeless or unemployed to apply for basic income, while "+
+      "sourcing a portion of support funding from offworld.",
       150, null, 1, FILE_SYSTEM, ALL_UPGRADES
     ),
-    CURRENCY_INJECTION = new Upgrade(
+    CURRENCY_ADJUSTMENT = new Upgrade(
       "Currency Injection",
-      "Permits the office to introduce credits into circulation to reflect "+
+      "Permits the office to modify total credits circulation to reflect "+
       "the settlement's property values.",
       200, null, 1, PRESS_OFFICE, ALL_UPGRADES
     )
@@ -144,26 +136,29 @@ public class AuditOffice extends Venue implements Economy {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
     
-    //
-    //  TODO:  Incorporate legal hearings?
-    
     final int linkMod = (int) (5 * (1 - stocks.shortagePenalty(DATALINKS))) ;
     
     if (actor.vocation() == Background.AUDITOR) {
-      final Venue toAudit = Audit.getNextAuditFor(actor) ;
+      final Venue toAudit = Audit.nextToAuditFor(actor) ;
       if (toAudit != null) {
         final Audit a = new Audit(actor, toAudit) ;
         a.checkBonus = ((structure.upgradeLevel(FILE_SYSTEM) - 1) * 5) / 2 ;
         a.checkBonus += linkMod ;
         choice.add(a) ;
       }
+      //
+      //  TODO:  The Auditor needs to sift data and approve stories for
+      //  publication.  Use local information only.
     }
-
-    //
-    //  TODO:  Deliver pressfeed to nearby housing?
     
-    if (actor.vocation() == Background.PROPAGANDIST) {
-      if (stocks.amountOf(PRESSFEED) >= 10) return null ;
+    if (actor.vocation() == Background.ADVERTISER) {
+      //
+      //  TODO:  Gather information while about your rounds...
+      final Delivery d = Deliveries.nextDeliveryFor(
+        actor, this, services(), 5, world
+      ) ;
+      choice.add(d) ;
+      
       final Manufacture mP = stocks.nextManufacture(
         actor, PLASTICS_TO_PRESSFEED
       ) ;
@@ -183,7 +178,7 @@ public class AuditOffice extends Venue implements Economy {
     if (v == Background.AUDITOR) {
       return nO + 1 + (structure.upgradeLevel(FILE_SYSTEM) / 2) ;
     }
-    if (v == Background.PROPAGANDIST) {
+    if (v == Background.ADVERTISER) {
       return nO + 1 + (structure.upgradeLevel(PRESS_OFFICE) / 2) ;
     }
     return 0 ;
@@ -200,23 +195,16 @@ public class AuditOffice extends Venue implements Economy {
     stocks.forceDemand(POWER, needPower, VenueStocks.TIER_CONSUMER) ;
     stocks.bumpItem(POWER, needPower * -0.1f) ;
     
-    assessDestitute() ;
+    //assessDestitute() ;
     printCredits() ;
     stocks.translateDemands(1, PLASTICS_TO_PRESSFEED) ;
     world.ecology().impingeSqualor(-2, this, true) ;
   }
   
   
-  private void assessDestitute() {
-    int claimRate = structure.upgradeLevel(WELFARE_SYSTEM) ;
+  public void dispenseRelief(Actor assessed) {
+    int claimRate = structure.upgradeLevel(RELIEF_AUDIT) ;
     if (claimRate == 0) return ;
-    
-    final Mobile m = (Mobile) world.presences.randomMatchNear(
-        base(), this, World.SECTOR_SIZE
-    ) ;
-    if (! (m instanceof Actor)) return ;
-    final Actor assessed = (Actor) m ;
-    if (assessed.mind.work() != null && assessed.mind.home() != null) return ;
     
     final Profile p = base().profiles.profileFor(assessed) ;
     final float
@@ -226,15 +214,13 @@ public class AuditOffice extends Venue implements Economy {
       payment  = interval * relief * bonus,
       claimed  = interval * WELFARE_CLAIMS[(int) relief] * bonus ;
     
-    if (assessed.mind.work() == null) {
-      p.incPaymentDue(payment) ;
-      stocks.incCredits(claimed - payment) ;
-    }
+    p.incPaymentDue(payment) ;
+    stocks.incCredits(claimed - payment) ;
   }
   
   
   private void printCredits() {
-    int printRate = structure.upgradeLevel(CURRENCY_INJECTION) ;
+    int printRate = structure.upgradeLevel(CURRENCY_ADJUSTMENT) ;
     if (printRate == 0) return ;
     
     final float
@@ -261,7 +247,7 @@ public class AuditOffice extends Venue implements Economy {
   
   
   protected Background[] careers() {
-    return new Background[] { Background.AUDITOR, Background.PROPAGANDIST } ;
+    return new Background[] { Background.AUDITOR, Background.ADVERTISER } ;
   }
   
   
@@ -275,10 +261,8 @@ public class AuditOffice extends Venue implements Economy {
     */
   public void writeInformation(Description d, int categoryID, HUD UI) {
     super.writeInformation(d, categoryID, UI) ;
-    if (categoryID != 0 || ! structure.intact()) return ;
+    if (categoryID != 3 || ! structure.intact()) return ;
     
-    //
-    //  TODO:  Put this in a separate category tab?
     d.append("\n\nSupport and Taxation:") ;
     describeSetting(
       d, KEY_RELIEF, DEFAULT_RELIEF,
@@ -329,7 +313,7 @@ public class AuditOffice extends Venue implements Economy {
   ) {
     final BaseProfiles BP = base().profiles ;
     final int level = BP.querySetting(key, defaultValue) ;
-
+    
     d.append("\n  "+keyLabel+"\n    ") ;
     d.append(new Description.Link(valLabels[level]) {
       public void whenClicked() {

@@ -143,7 +143,7 @@ public class Bastion extends Venue implements Economy {
       return Building.getNextRepairFor(actor, Plan.CASUAL) ;
     }
     if (v == Background.AUDITOR) {
-      final Venue toAudit = Audit.getNextAuditFor(actor) ;
+      final Venue toAudit = Audit.nextToAuditFor(actor) ;
       return toAudit == null ? null : new Audit(actor, toAudit) ;
     }
     if (v == Background.STEWARD) {

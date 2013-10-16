@@ -181,7 +181,7 @@ public class SurveillancePost extends Venue implements Economy {
   
   
   public String buildCategory() {
-    return UIConstants.TYPE_ECOLOGIST ;
+    return UIConstants.TYPE_MILITANT ;
   }
 }
 

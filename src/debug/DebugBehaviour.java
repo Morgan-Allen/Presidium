@@ -20,14 +20,14 @@ import src.util.* ;
 
 
 //
-//  TODO:  You will need to profiles/auditing/job-seeking, plus the
+//  TODO:  You will need to do job-seeking/migration, polish the archives and
 //  surveillance post, plus the whole arcology vs. edifice vs. arcade thing.
 //
 //  Use actor-vision for more activities?
 //  Have pollution/terraforming gradually change the landscape.
 //  
 //  Actors should call for help from allies, and need proper line of sight.
-//  Add Security and Contact missions.  Have missions modify choice priorities.
+//  Add Security and Contact missions.  Have missions modify choice priorities?
 //
 //  Spruce up the ambience/aesthetics structures, including biomass FX.
 //
@@ -120,7 +120,7 @@ public class DebugBehaviour extends PlayLoop implements Economy {
   
   
   protected boolean loadedAtStartup() {
-    //if (true) return false ;
+    if (true) return false ;
     try {
       PlayLoop.loadGame("saves/test_session.rep") ;
       final Base base = PlayLoop.played() ;

@@ -75,7 +75,7 @@ public class Audit extends Plan implements Economy {
   }
   
   
-  public static Venue getNextAuditFor(Actor actor) {
+  public static Venue nextToAuditFor(Actor actor) {
     
     final World world = actor.world() ;
     final Venue work = (Venue) actor.mind.work() ;
@@ -95,16 +95,21 @@ public class Audit extends Plan implements Economy {
   }
   
   
-  public static Venue nearestAdminFor(Actor actor) {
+  public static Venue nearestAdminFor(Actor actor, boolean welfare) {
     final World world = actor.world() ;
-    Venue admin = null ;
+    final Upgrade WS = AuditOffice.RELIEF_AUDIT ;
+    
     for (Object o : world.presences.sampleFromKey(
       actor, world, 5, null, SERVICE_ADMIN
     )) {
       final Venue v = (Venue) o ;
-      if (v.base() == actor.base()) { admin = v ; break ; }
+      if (v.base() != actor.base()) continue ;
+      if (welfare && v.structure.upgradeBonus(WS) == 0) {
+        continue ;
+      }
+      return v ;
     }
-    return admin ;
+    return null ;
   }
   
   
@@ -116,7 +121,7 @@ public class Audit extends Plan implements Economy {
     I.sayAbout(actor, "Stage was: "+stage) ;
     
     if (stage == STAGE_EVAL) {
-      if (audited == null && balance < 1000) audited = getNextAuditFor(actor) ;
+      if (audited == null && balance < 1000) audited = nextToAuditFor(actor) ;
       if (audited != null) stage = STAGE_AUDIT ;
       else stage = STAGE_REPORT ;
     }
@@ -188,7 +193,7 @@ public class Audit extends Plan implements Economy {
     
     int i = 0 ; for (Actor works : venue.personnel.workers()) {
       final Profile p = BP.profileFor(works) ;
-      final int KR    = BP.querySetting(AuditOffice.KEY_RELIEF) ;
+      final int KR = BP.querySetting(AuditOffice.KEY_RELIEF) ;
       
       final float
         salary = p.salary(),
@@ -202,8 +207,6 @@ public class Audit extends Plan implements Economy {
       sumWages += wages ;
       sumSalaries += salary ;
     }
-    venue.stocks.incCredits(0 - sumWages) ;
-    
     
     final float surplus = venue.stocks.unTaxed() ;
     i = 0 ; if (surplus > 0) for (Profile p : profiles) {
@@ -216,7 +219,7 @@ public class Audit extends Plan implements Economy {
     
     final Base base = venue.base() ;
     float
-      balance = venue.stocks.credits(),
+      balance = venue.stocks.credits() - sumWages,
       waste = (Rand.num() + base.crimeLevel()) / 2f ;
     final float honesty =
       (audits.traits.traitLevel(HONOURABLE) / 2f) -
@@ -238,14 +241,37 @@ public class Audit extends Plan implements Economy {
       losses = (int) (balance * (1 + waste)) ;
     if (profit > 0) return profit ;
     if (losses < 0) return losses ;
+    
     return 0 ;
   }
   
   
-
-  //
-  //  ...Actors need to pay a share of income tax at their home.  Out of
-  //  savings.
+  public static float taxesDue(Actor actor) {
+    final int bracket = actor.vocation().standing ;
+    if (bracket == Background.SLAVE_CLASS) return 0 ;
+    if (bracket == Background.RULER_CLASS) return 0 ;
+    
+    final BaseProfiles BP = actor.base().profiles ;
+    int taxLevel = 0 ;
+    if (bracket == Background.LOWER_CLASS) {
+      taxLevel = BP.querySetting(AuditOffice.KEY_LOWER_TAX) ;
+    }
+    if (bracket == Background.MIDDLE_CLASS) {
+      taxLevel = BP.querySetting(AuditOffice.KEY_MIDDLE_TAX) ;
+    }
+    if (bracket == Background.LOWER_CLASS) {
+      taxLevel = BP.querySetting(AuditOffice.KEY_UPPER_TAX) ;
+    }
+    final int
+      percent = AuditOffice.TAX_PERCENTS[taxLevel],
+      savings = AuditOffice.TAX_EXEMPTED[taxLevel] ;
+    
+    float afterSaving = actor.gear.credits() - savings ;
+    if (afterSaving < 0) return 0 ;
+    afterSaving = Math.min(afterSaving, actor.gear.unTaxed()) ;
+    return afterSaving * percent / 100f ;
+  }
+  
   
   public static float propertyValue(Venue venue) {
     float value = 0 ;
@@ -276,119 +302,6 @@ public class Audit extends Plan implements Economy {
 
 
 
-
-
-
-/*
-if (verbose && I.talkAbout == venue) {
-  I.say(venue+" ALLOCATING WAGES, "+positions.size()+" WORK?") ;
-  I.say("  CREDITS ARE: "+venue.stocks.credits()) ;
-}
-//
-//  Firstly, allocate basic salary plus minimum wage.  (Ruler-class
-//  citizens receive no wage, drawing directly on the resources of the
-//  state.)  TODO:  Should that be the case...?
-float sumWages = 0 ;
-for (Position p : positions) if (p.wages >= 0) {
-  if (p.role.standing == Background.RULER_CLASS) {
-    p.wages = 0 ;
-    continue ;
-  }
-  float wage = (p.salary / 10f) + Audit.BASE_ALMS_PAY ;
-  if (p.role.guild == Background.GUILD_MILITANT) {
-    wage *= Audit.MILITANT_BONUS ;
-  }
-  wage *= AUDIT_INTERVAL * 1f / World.STANDARD_DAY_LENGTH ;
-  p.wages += wage ;
-  if (verbose) I.sayAbout(venue, "Wages for "+p.works+" are: "+p.wages) ;
-  sumWages += wage ;
-}
-venue.stocks.incCredits(0 - sumWages) ;
-//
-//  Then split a portion of surplus between employees in proportion to
-//  basic salary.
-final float surplus = venue.stocks.unTaxed() ;
-if (surplus > 0) {
-  float sumSalaries = 0, sumShared = 0 ;
-  for (Position p : positions) if (p.wages >= 0) {
-    if (p.role.standing == Background.RULER_CLASS) continue ;
-    sumSalaries += p.salary ;
-  }
-  for (Position p : positions) if (p.wages >= 0) {
-    if (p.role.standing == Background.RULER_CLASS) continue ;
-    final float shared = surplus * 0.1f * p.salary / sumSalaries ;
-    p.wages += shared ;
-    sumShared += shared ;
-  }
-  venue.stocks.incCredits(0 - sumShared) ;
-}
-//
-//  Finally, report your debts or windfall back to the base.  Debts may
-//  be exaggerated and/or profits under-reported, unless skilled (and
-//  honest) auditors get there first.
-final Base base = venue.base() ;
-final float balance = venue.stocks.credits() ;
-final float waste = (Rand.num() + base.crimeLevel()) / 2f ;
-if (verbose) I.sayAbout(venue, "   BALANCE/WASTE: "+balance+"/"+waste) ;
-final int
-  profit = (int) (balance / (1 + waste)),
-  losses = (int) ((0 - balance) * (1 + waste)) ;
-if (profit > 0) {
-  base.incCredits(profit) ;
-  venue.chat.addPhrase((int) profit+" credits in profit") ;
-  venue.stocks.incCredits(0 - profit) ;
-}
-if (losses > 0) {
-  base.incCredits(0 - losses) ;
-  venue.chat.addPhrase((int) losses+" credits in debt") ;
-  venue.stocks.incCredits(losses) ;
-}
-venue.stocks.taxDone() ;
-
-if (verbose && I.talkAbout == venue) for (Position p : positions) {
-  if (p.wages > 0) I.say(p.works+" has "+p.wages+" credits in wages") ;
-}
-//*/
-
-
-//Older version of this code, here temporarily for reference purposes.
-/*
-float
-BASE_INCOME_TAX  = 0.50f,
-BASE_SAVINGS_TAX = 0.05f,
-BASE_CAPITAL_TAX = 0.50f,
-MAX_INFLATION    = 1.10f,
-BASE_ALMS_PAY    = 10,
-BASE_SAVINGS     = 1000,
-BASE_CAPITAL     = 100 ;
-
-private void assessRealm() {
-//I.say("Performing Audit...") ;
-real = currency = 0 ;
-for (Mobile mobile : realm.world.allActive()) {
-  if (mobile.realm() != this.realm) continue ;
-  if (! (mobile instanceof Owner)) continue ;
-  assessOwner((Owner) mobile) ;
-}
-for (Venue venue : realm.allVenues()) {
-  assessOwner(venue) ;
-  for (Item item : venue.stocks.allItems()) {
-    real += item.price() ;
-  }
-}
-currency += realm.credits() ;
-//I.say("Total currency in circulation is: "+currency+" credits.") ;
-//I.say("Total value of goods in settlement is: "+real+" credits.") ;
-//real *= 2 ;
-}
-
-private void assessOwner(Owner owns) {
-for (Item item : owns.inventory().allItems()) {
-  real += item.price() ;
-  currency += owns.inventory().credits() ;
-}
-}
-//*/
 
 
 

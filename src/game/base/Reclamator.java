@@ -51,7 +51,7 @@ public class Reclamator extends Venue implements Economy {
   /**  Upgrades, economic functions and behaviour implementation-
     */
   public Behaviour jobFor(Actor actor) { return null ; }
-  protected Background[] careers() { return null ; }
+  public Background[] careers() { return null ; }
   
   
   public Service[] services() {

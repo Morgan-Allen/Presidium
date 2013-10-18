@@ -6,6 +6,7 @@
 
 
 package src.game.actors ;
+import src.game.common.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.game.campaign.System ;
@@ -16,7 +17,7 @@ import src.util.* ;
 //  TODO:  Backgrounds need to include their own descriptions.
 
 
-public class Background implements Economy {
+public class Background implements Economy, Session.Saveable {
   
   
   
@@ -165,7 +166,8 @@ public class Background implements Economy {
     ARCHIVIST = new Background(
       "Archivist", "citizen_skin.gif", null,
       MIDDLE_CLASS, GUILD_PHYSICIAN,
-      EXPERT, ACCOUNTING, ARCHAEOLOGY, NOVICE, COUNSEL, ASSEMBLY,
+      EXPERT, ACCOUNTING, INSCRIPTION, PRACTICED, COUNSEL, ASSEMBLY,
+      NOVICE, ARCHAEOLOGY, LEGISLATION,
       ALWAYS, INQUISITIVE, SOMETIMES, NERVOUS, IMPASSIVE,
       OVERALLS
     ),
@@ -212,9 +214,6 @@ public class Background implements Economy {
       OVERALLS
     ),
     
-    //
-    //  TODO:  Consider making this a Military vocation instead, so that they
-    //  can drill with the rest and get appropriate pay for risks taken.
     EXPLORER = new Background(
       "Explorer", "ecologist_skin.gif", "ecologist_portrait.png",
       MIDDLE_CLASS, GUILD_ECOLOGIST,
@@ -418,7 +417,10 @@ public class Background implements Economy {
       }
     },
     
-    MIGRANT_CIRCLES[] = { SCAVENGER, SHIP_MECHANIC, SHIP_CAPTAIN, COMPANION } ;
+    MIGRANT_CIRCLES[] = {
+        SCAVENGER, FREE_TRADER, SHIP_MECHANIC,
+        SHIP_CAPTAIN, RUNNER, COMPANION
+    } ;
   
   
   final public static Background
@@ -710,6 +712,16 @@ public class Background implements Economy {
   
   public Texture portraitFor(Actor actor) {
     return portrait ;
+  }
+  
+  
+  public static Background loadConstant(Session s) throws Exception {
+    return ALL_BACKGROUNDS[s.loadInt()] ;
+  }
+  
+  
+  public void saveState(Session s) throws Exception {
+    s.saveInt(ID) ;
   }
 }
 

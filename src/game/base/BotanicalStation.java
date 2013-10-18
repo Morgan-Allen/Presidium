@@ -293,7 +293,7 @@ public class BotanicalStation extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.ECOLOGIST, Background.FIELD_HAND } ;
   }
   

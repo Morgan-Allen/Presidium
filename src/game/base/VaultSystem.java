@@ -106,7 +106,7 @@ public class VaultSystem extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.TECH_RESERVE } ;
   }
   
@@ -125,6 +125,8 @@ public class VaultSystem extends Venue implements Economy {
     //
     //  TODO:  Impose cumulative stocking limits.
     super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact()) return ;
+    
     final float condition = (structure.repairLevel() + 1f) / 2 ;
     final float stockBonus = 1 + (stockLevels[0] / 10f) ;
     int powerGen = 5, lifeSGen = 10 ;

@@ -201,8 +201,8 @@ Shaper Colony (the Sculptor's Studio)
 
 The Krech:
   Helpmeet     (nursing, maintenance)
-  Trailblazer  (exploration, 'light infantry')
-  Tinker       (structural reinforcement, parts and circuitry)
+  Trailblazer  (exploration, first contact, 'light infantry')
+  Tinker       (tech/manufacturing, medicine/chemistry)
   Spinner      (interior decor, plastics and tensiles)
   Warrior      (honour guard, 'heavy cavalry')
   Matriarch    (queen and all-mother)
@@ -212,19 +212,22 @@ The Krech:
 
 The Changelings:
   Mimic         (aesthetics/architecture/agriculture)
-  Orgiast       (hedonism, liaison/human relations, gene transfer)
-  Devourer      (defence, assimilation and infiltration)
+  Orgiast       (hedonism, liaison/human-relations, gene transfer)
+  Devourer      (defence, infiltration and assimilation)
   Founder       (offworld diplomacy, command structure, genetic science)
   
-  Based on:  Odo & Company from DS9, Octavia Butler's Oankali, The Things,
+  Based on:  Odo & Company from DS9, Octavia Butler's Oankali, The Thing(s),
              Solaris, bits of Three Worlds Collide
 
 The Jovians:
-  Gatekeeper    (astrogation/occasional trade/manufacture)
+  Gatekeeper    (astrogation/occasional trade/maintenance)
   Emissary      (counsel, negotiation, judgement, protection)
   
   Based on:  Babylon 5 Vorlons, The Culture Cycle's Dra'Azon/sublimation,
              Expedition's Eosapiens, Floaters from Cosmos, the Lovecraft Mythos
+
+
+
 
 
 

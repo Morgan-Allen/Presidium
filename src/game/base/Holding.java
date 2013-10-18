@@ -262,7 +262,7 @@ public class Holding extends Venue implements Economy {
   
   
   public Behaviour jobFor(Actor actor) { return null ; }
-  protected Background[] careers() { return new Background[0] ; }
+  public Background[] careers() { return new Background[0] ; }
   public Service[] services() { return new Service[0] ; }
   
   

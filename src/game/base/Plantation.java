@@ -82,15 +82,17 @@ public class Plantation extends Venue implements
   } ;
   
   
-  
   public static Service speciesYield(Species s) {
-    final int varID = s.ID - Species.ONI_RICE.ID ;
+    final int varID = Visit.indexOf(s, ALL_VARIETIES) ;
     return (Service) CROP_SPECIES[varID][1] ;
+    //
+    //  TODO:  Use this instead...
+    //return s.nutrients[0].type ;
   }
   
   
   public static Model speciesModel(Species s, int growStage) {
-    final int varID = s.ID - Species.ONI_RICE.ID ;
+    final int varID = Visit.indexOf(s, ALL_VARIETIES) ;
     final Model seq[] = (Model[]) CROP_SPECIES[varID][2] ;
     return seq[Visit.clamp(growStage, seq.length)] ;
   }
@@ -344,7 +346,7 @@ public class Plantation extends Venue implements
   
   public Service[] services() { return null ; }
   
-  protected Background[] careers() { return null ; }
+  public Background[] careers() { return null ; }
   
   public Behaviour jobFor(Actor actor) { return null ; }
   

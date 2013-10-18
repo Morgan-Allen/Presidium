@@ -195,7 +195,6 @@ public class AuditOffice extends Venue implements Economy {
     stocks.forceDemand(POWER, needPower, VenueStocks.TIER_CONSUMER) ;
     stocks.bumpItem(POWER, needPower * -0.1f) ;
     
-    //assessDestitute() ;
     printCredits() ;
     stocks.translateDemands(1, PLASTICS_TO_PRESSFEED) ;
     world.ecology().impingeSqualor(-2, this, true) ;
@@ -246,7 +245,7 @@ public class AuditOffice extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.AUDITOR, Background.ADVERTISER } ;
   }
   

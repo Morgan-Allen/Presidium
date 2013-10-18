@@ -89,7 +89,7 @@ public class Career implements Abilities {
     else {
       final Batch <Float> weights = new Batch <Float> () ;
       for (Background v : Background.OPEN_CLASSES) {
-        weights.add(rateSimilarity(root, v)) ;
+        weights.add(ratePromotion(root, v)) ;
       }
       birth = (Background) Rand.pickFrom(
         Background.OPEN_CLASSES, weights.toArray()
@@ -98,7 +98,7 @@ public class Career implements Abilities {
     if (homeworld == null) {
       final Batch <Float> weights = new Batch <Float> () ;
       for (Background v : Background.ALL_PLANETS) {
-        weights.add(rateSimilarity(root, v)) ;
+        weights.add(ratePromotion(root, v)) ;
       }
       homeworld = (Background) Rand.pickFrom(
         Background.ALL_PLANETS, weights.toArray()
@@ -235,7 +235,7 @@ public class Career implements Abilities {
   //
   //  TODO:  Rate the actor's similarity, rather than the vocation's?  And
   //  check for similar traits?
-  private float rateSimilarity(Background next, Background prior) {
+  public static float ratePromotion(Background next, Background prior) {
     float rating = 1 ;
     //
     //  Check for similar skills.
@@ -246,18 +246,27 @@ public class Career implements Abilities {
       rating += rateSimilarity(s, next, prior) ;
     }
     rating /= 1 + next.baseSkills.size() + prior.baseSkills.size() ;
+    
     //
     //  Favour transition to more prestigous vocations-
     if (next.standing < prior.standing) return rating / 10f ;
-    //if (next.standing == prior.standing) rating /= 5 ;
     return rating ;
   }
   
   
-  private float rateSimilarity(Skill s, Background a, Background b) {
+  static float rateSimilarity(Skill s, Background a, Background b) {
     Integer aL = a.baseSkills.get(s), bL = b.baseSkills.get(s) ;
     if (aL == null || bL == null) return 0 ;
     return (aL > bL) ? (bL / aL) : (aL / bL) ;
+  }
+  
+  
+  public static boolean qualifies(Actor a, Background b) {
+    for (Skill s : b.baseSkills.keySet()) {
+      final int level = b.baseSkills.get(s) ;
+      if (a.traits.traitLevel(s) < level) return false ;
+    }
+    return true ;
   }
   
   

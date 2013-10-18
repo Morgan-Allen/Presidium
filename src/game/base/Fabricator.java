@@ -181,7 +181,7 @@ public class Fabricator extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.FABRICATOR, Background.AESTHETE } ;
   }
   

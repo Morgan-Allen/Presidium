@@ -93,7 +93,7 @@ public class EcologyGen {
       t.flagWith(null) ;
     }
     for (Tile t : wastes) {
-      world.terrain().setHabitat(t, Habitat.BLACK_WASTES) ;
+      world.terrain().setHabitat(t, Habitat.CURSED_EARTH) ;
     }
     
     return allRuins ;

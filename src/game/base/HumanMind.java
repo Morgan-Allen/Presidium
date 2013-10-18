@@ -65,7 +65,7 @@ import src.util.* ;
 //  and venues for consideration.
 
 
-public class HumanAI extends ActorMind implements Abilities {
+public class HumanMind extends ActorMind implements Abilities {
   
   
   
@@ -73,7 +73,10 @@ public class HumanAI extends ActorMind implements Abilities {
     */
   private static boolean verbose = false ;
   
-  protected HumanAI(Actor actor) {
+  
+  
+  
+  protected HumanMind(Actor actor) {
     super(actor) ;
   }
   
@@ -109,8 +112,8 @@ public class HumanAI extends ActorMind implements Abilities {
   protected void updateAI(int numUpdates) {
     super.updateAI(numUpdates) ;
     if (numUpdates % 10 == 0) {
-      if (this.work == null) {
-        //  TODO:  Apply for a new position.
+      if (actor.base() != null) {
+        Migration.lookForJob((Human) actor, actor.base()) ;
       }
       if (this.home == null) {
         final Holding newHome = Holding.findHoldingFor(actor) ;
@@ -153,8 +156,7 @@ public class HumanAI extends ActorMind implements Abilities {
     choice.add(new Retreat(actor)) ;
     choice.add(new SickLeave(actor)) ;
     //
-    //  TODO:  Picking up stray items!  Theft and looting!
-    //         ...What about surrendering/arrest for committing crimes?
+    //  TODO:  Picking up stray items.
   }
   
   
@@ -164,7 +166,6 @@ public class HumanAI extends ActorMind implements Abilities {
     //  Find the next jobs waiting for you at work or home.
     if (work != null) {
       Behaviour atWork = work.jobFor(actor) ;
-      if (verbose) I.sayAbout(actor, "  NEXT WORK IS: "+atWork) ;
       if (atWork != null) choice.add(atWork) ;
     }
     if (home != null) {
@@ -172,12 +173,11 @@ public class HumanAI extends ActorMind implements Abilities {
       if (atHome != null) choice.add(atHome) ;
     }
     //
-    //  Consider getting paid or leaving the settlement-
+    //  Consider getting paid, leaving the settlement, or general upkeep-
     choice.add(Payday.nextPaydayFor(actor)) ;
-    if (! hasToDo(Migration.class)) choice.add(new Migration(actor)) ;
-    //
-    //  Consider repairing nearby buildings-
     choice.add(Building.getNextRepairFor(actor, 0)) ;
+    choice.add(Migration.migrationFor(actor)) ;
+    //if (! hasToDo(Migration.class)) choice.add(new Migration(actor)) ;
 	}
   
   
@@ -186,19 +186,13 @@ public class HumanAI extends ActorMind implements Abilities {
     //  Try a range of other spontaneous behaviours, include relaxation,
     //  helping out and spontaneous missions-
     //
-    //  TODO:  You need to have a dedicated Wandering plan.
-    /*
-    final Action wander = (Action) new Patrolling(actor, actor, 5).nextStep() ;
-    wander.setPriority(Plan.IDLE * Planet.dayValue(actor.world())) ;
-    choice.add(wander) ;
-    //*/
+    //  TODO:  You need to have a dedicated Wandering plan.  To look for home.
     
     //
     //  Training and self-improvement-
-    choice.add(Drilling.nextDrillFor(actor)) ;
+    choice.add(Training.nextDrillFor(actor)) ;
     
-    //  TODO:  Visit the Archives too.
-    
+    //  TODO:  Also consider visiting the Archives or Holo-Arcade.
     
     //
     //  Consider going home to rest, or finding a recreational facility of

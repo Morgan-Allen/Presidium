@@ -40,19 +40,8 @@ public class VenuePersonnel {
   
   
   final Venue venue ;
-  
-  //
-  //  TODO:  I can probably get rid of this class shortly.
-  static class Position {
-    Background role ;
-    Actor works ;
-    
-    int salary ;
-    float wages = -1 ;  //If not hired yet.
-  }
-  
-  final List <Position>
-    positions = new List <Position> () ;
+  final List <Application>
+    applications = new List <Application> () ;
   final List <Actor>
     workers   = new List <Actor> (),
     residents = new List <Actor> () ;
@@ -68,32 +57,17 @@ public class VenuePersonnel {
   
   void loadState(Session s) throws Exception {
     shiftType = s.loadInt() ;
+    s.loadObjects(applications) ;
     s.loadObjects(workers) ;
     s.loadObjects(residents) ;
-    
-    for (int n = s.loadInt() ; n-- > 0 ;) {
-      final Position p = new Position() ;
-      p.role = Background.ALL_BACKGROUNDS[s.loadInt()] ;
-      p.works = (Actor) s.loadObject() ;
-      p.salary = s.loadInt() ;
-      p.wages = s.loadFloat() ;
-      positions.add(p) ;
-    }
   }
   
   
   void saveState(Session s) throws Exception {
     s.saveInt(shiftType) ;
+    s.saveObjects(applications) ;
     s.saveObjects(workers) ;
     s.saveObjects(residents) ;
-    
-    s.saveInt(positions.size()) ;
-    for (Position a : positions) {
-      s.saveInt(a.role.ID) ;
-      s.saveObject(a.works) ;
-      s.saveInt(a.salary) ;
-      s.saveFloat(a.wages) ;
-    }
   }
   
   
@@ -184,52 +158,43 @@ public class VenuePersonnel {
   
   /**  Handling applications and recruitment-
     */
-  public Position applyFor(Background v, Actor applies, int signingCost) {
-    final Position p = new Position() ;
-    p.role = v ;
-    p.works = applies ;
-    p.salary = signingCost ;
-    positions.add(p) ;
-    return p ;
+  public List <Application> applications() {
+    return applications ;
   }
   
   
-  protected Position positionFor(Actor works) {
-    for (Position p : positions) if (p.works == works) return p ;
-    return null ;
+  public void setApplicant(Application app, boolean is) {
+    if (is) applications.include(app) ;
+    else applications.remove(app) ;
   }
   
   
-  public void removeApplicant(Actor applied) {
-    final Position p = positionFor(applied) ;
-    if (p != null) positions.remove(p) ;
-  }
-  
-  
-  public int numApplicants(Background v) {
-    int num = 0 ;
-    for (Position a : positions) if (a.role == v && a.wages < 0) num++ ;
-    return num ;
-  }
-  
-  
-  protected void confirmApplication(Position app) {
-    venue.base().incCredits(0 - app.salary) ;
-    app.works.gear.incCredits(app.salary / 2) ;
-    app.works.gear.taxDone() ;
-    app.works.mind.setEmployer(venue) ;
-    
-    if (! app.works.inWorld()) {
-      final Commerce commerce = venue.base().commerce ;
-      commerce.cullCandidates(app.role, venue) ;
-      commerce.addImmigrant(app.works) ;
+  public void confirmApplication(Application a) {
+    venue.base().incCredits(0 - a.hiringFee()) ;
+    final Actor works = a.applies ;
+    //
+    //  TODO:  Once you have incentives worked out, restore this-
+    //works.gear.incCredits(app.salary / 2) ;
+    //works.gear.taxDone() ;
+    works.mind.setEmployer(venue) ;
+    //
+    //  If there are no remaining openings for this background, cull any
+    //  existing applications.  Otherwise, refresh signing costs.
+    for (Application oA : applications) if (oA.position == a.position) {
+      if (venue.numOpenings(oA.position) == 0) {
+        a.applies.mind.setApplication(null) ;
+        applications.remove(oA) ;
+      }
+      else {
+        oA.setHiringFee(Migration.signingCost(oA)) ;
+      }
     }
-  }
-  
-  
-  public float salaryFor(Actor works) {
-    for (Position p : positions) if (p.works == works) return p.salary ;
-    return 0 ;
+    //
+    //  If the actor needs transport, arrange it-
+    if (! works.inWorld()) {
+      final Commerce commerce = venue.base().commerce ;
+      commerce.addImmigrant(works) ;
+    }
   }
   
   
@@ -247,25 +212,22 @@ public class VenuePersonnel {
       //  If there's an unfilled opening, look for someone to fill it.
       //  TODO:  This should really be handled more from the Commerce class?
       if (venue.careers() == null) return ;
+
       for (Background v : venue.careers()) {
-        final int numOpen = venue.numOpenings(v) ;
-        if (numOpen <= 0) continue ;
-        //
-        //  
-        if (GameSettings.hireFree) {
-          final Human citizen = new Human(v, venue.base()) ;
-          citizen.mind.setEmployer(venue) ;
-          final Tile t = venue.mainEntrance() ;
-          citizen.enterWorldAt(t.x, t.y, world) ;
-        }
-        //
-        //  
-        else {
-          venue.base().commerce.genCandidate(v, venue, numOpen) ;
+        final int numOpenings = venue.numOpenings(v) ;
+        if (numOpenings > 0) {
+          if (GameSettings.hireFree) {
+            final Human citizen = new Human(v, venue.base()) ;
+            citizen.mind.setEmployer(venue) ;
+            final Tile t = venue.mainEntrance() ;
+            citizen.enterWorldAt(t.x, t.y, world) ;
+          }
+          else {
+            venue.base.commerce.incDemand(v, numOpenings, REFRESH_INTERVAL) ;
+          }
         }
       }
     }
-    //if (numUpdates % AUDIT_INTERVAL == (AUDIT_INTERVAL - 1)) allocateWages() ;
   }
   
   
@@ -280,19 +242,11 @@ public class VenuePersonnel {
   
   
   public void setWorker(Actor c, boolean is) {
-    if (is) {
-      Position p = positionFor(c) ;
-      if (p == null) {
-        final int cost = Background.HIRE_COSTS[c.vocation().standing] ;
-        p = applyFor(c.vocation(), c, cost) ;
-      }
-      p.wages = 0 ;
-      workers.include(c) ;
+    for (Application a : applications) if (a.applies == c) {
+      applications.remove(a) ;
     }
-    else {
-      removeApplicant(c) ;
-      workers.remove(c) ;
-    }
+    if (is) workers.include(c) ;
+    else workers.remove(c) ;
   }
   
   

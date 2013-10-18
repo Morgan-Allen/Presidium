@@ -300,7 +300,7 @@ public class Generator extends Venue implements Economy {
       //  Change the underlying terrain type-
       if (Rand.num() < 1 - dist) {
         if (Rand.index(10) != 0 && Rand.num() < (0.5f - dist)) {
-          world.terrain().setHabitat(t, Habitat.BLACK_WASTES) ;
+          world.terrain().setHabitat(t, Habitat.CURSED_EARTH) ;
         }
         else world.terrain().setHabitat(t, Habitat.BARRENS) ;
       }
@@ -369,7 +369,7 @@ public class Generator extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.CORE_TECHNICIAN } ;
   }
   

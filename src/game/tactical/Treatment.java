@@ -175,7 +175,10 @@ public class Treatment extends Plan implements Economy {
       }
     }
     
-    if (actor != patient && ofType(TYPE_PSYCH_EVAL, null)) {
+    if (
+      actor != patient && ofType(TYPE_PSYCH_EVAL, null) &&
+      theatre.structure.upgradeLevel(Sickbay.NEURAL_SCANNING) > 0
+    ) {
       final Item psyResult = treatResult(OT, TYPE_PSYCH_EVAL, null) ;
       final Profile profile = theatre.base().profiles.profileFor(patient) ;
       

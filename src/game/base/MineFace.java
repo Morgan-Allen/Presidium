@@ -8,12 +8,17 @@ package src.game.base ;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
+import src.graphics.cutout.* ;
 import src.user.* ;
 import src.util.* ;
 
 
+
+
 //
-//  TODO:  Extend Segment instead?
+//  TODO:  Extend this to include shaft openings, strip mining and mantle
+//  drilling!  ...Which will necessitate being a Fixture.  Ah, well.  Why not?
+//  1x1, 2x2, or 3x3.
 
 
 public class MineFace extends Element implements Boardable, TileConstants {
@@ -21,25 +26,41 @@ public class MineFace extends Element implements Boardable, TileConstants {
   
   /**  Field definitions, constructors and save/load methods-
     */
-  private static Stack <Mobile> NONE_INSIDE = new Stack <Mobile> () ;
+  final static ImageModel
+    MODEL_TYPES[] = ImageModel.loadModels(
+        MineFace.class, 3, 0, "media/Buildings/artificer/",
+        ImageModel.TYPE_SOLID_BOX,
+        "sunk_shaft.gif",
+        "open_shaft_1.png",
+        "open_shaft_2.png"
+    ) ;
   
-  ExcavationSite shaft ;
-  Stack <Mobile> inside = NONE_INSIDE ;
+  final static int
+    TYPE_UNDER_SHAFT = 0,
+    TYPE_OPEN_SHAFT  = 1,
+    TYPE_DRILL_SHAFT = 2 ;
+  final static Stack <Mobile> NONE_INSIDE = new Stack <Mobile> () ;
   
+  
+  final ExcavationSite shaft ;
+  final int type ;
+  
+  private Stack <Mobile> inside = NONE_INSIDE ;
   protected float
     promise = 0,
     workDone = 0 ;
   
   
-  
-  public MineFace(ExcavationSite parent) {
+  public MineFace(ExcavationSite parent, int type) {
     this.shaft = parent ;
+    this.type = type ;
   }
   
   
   public MineFace(Session s) throws Exception {
     super(s) ;
     shaft = (ExcavationSite) s.loadObject() ;
+    type = s.loadInt() ;
     if (s.loadBool()) s.loadObjects(inside = new Stack <Mobile> ()) ;
     else inside = NONE_INSIDE ;
     promise = s.loadFloat() ;
@@ -50,6 +71,7 @@ public class MineFace extends Element implements Boardable, TileConstants {
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveObject(shaft) ;
+    s.saveInt(type) ;
     if (inside == NONE_INSIDE) s.saveBool(false) ;
     else { s.saveBool(true) ; s.saveObjects(inside) ; }
     s.saveFloat(promise) ;

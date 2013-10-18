@@ -66,6 +66,11 @@ public class Skill extends Trait {
     this.form = form ;
     this.parent = parent ;
   }
+  
+
+  public String toString() {
+    return name ;
+  }
 }
 
 

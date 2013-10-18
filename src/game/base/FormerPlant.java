@@ -319,7 +319,7 @@ public class FormerPlant extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.FORMER_ENGINEER } ;
   }
   

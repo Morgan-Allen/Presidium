@@ -11,7 +11,7 @@ import src.util.* ;
 
 
 
-public class Trait implements Abilities {
+public class Trait implements Abilities, Session.Saveable {
   
   
   
@@ -35,6 +35,16 @@ public class Trait implements Abilities {
     final Trait t[] = traitsSoFar.toArray(Trait.class) ;
     traitsSoFar.clear() ;
     return t ;
+  }
+  
+  
+  public static Trait loadConstant(Session s) throws Exception {
+    return ALL_TRAIT_TYPES[s.loadInt()] ;
+  }
+  
+  
+  public void saveState(Session s) throws Exception {
+    s.saveInt(traitID) ;
   }
   
   

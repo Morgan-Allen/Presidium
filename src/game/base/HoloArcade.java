@@ -23,23 +23,7 @@ public class HoloArcade extends Venue implements Economy {
     HoloArcade.class, "media/Buildings/aesthete/arcade.png", 5, 3
   ) ;
   
-  final static int
-    HYPNO_NONE      =  0,
-    HYPNO_LEARNING  =  1,
-    HYPNO_PLEASURE  =  2,
-    HYPNO_OBEDIENCE =  3,
-    HYPNO_ESP       =  4,
-    HYPNO_TYPES[] = { 0, 1, 2, 3, 4 } ;
-  final static String HYPNO_NAMES[] = {
-    "None",
-    "Accelerated Learning",
-    "Pleasure Centre Stimulus",
-    "Obedience Conditioning",
-    "ESP Trigger Induction"
-  } ;
   
-  
-  private int hypnoType = HYPNO_NONE ;
   
 
   public HoloArcade(Base base) {
@@ -54,13 +38,11 @@ public class HoloArcade extends Venue implements Economy {
   
   public HoloArcade(Session s) throws Exception {
     super(s) ;
-    hypnoType = s.loadInt() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveInt(hypnoType) ;
   }
   
   
@@ -78,10 +60,10 @@ public class HoloArcade extends Venue implements Economy {
       "placed on prominent display.",
       250, GRAPHIC_DESIGN, 1, null, ALL_UPGRADES
     ),
-    LARP_THEATRE = new Upgrade(
-      "L.A.R.P. Theatre",
+    LARP_ARENA = new Upgrade(
+      "LARP Arena",
       "Allows historical, dramatic, or purely imaginative scenarios to be "+
-      "collaboratively enacted or improvised.",
+      "collaboratively enacted, simulated or improvised.",
       300, MASQUERADE, 1, MEDIA_EXHIBIT, ALL_UPGRADES
     ),
     MEDITATION_SUITE = new Upgrade(
@@ -93,21 +75,7 @@ public class HoloArcade extends Venue implements Economy {
       "Virtual Sports",
       "Helps visitors to maintain and improve their physical fitness.",
       200, BRAWN, 1, null, ALL_UPGRADES
-    ),
-    HYPNOGOGIC_TRAINING = new Upgrade(
-      "Hypnogogic Training",
-      "Weaves subliminal suggestions into the display matrix to induce "+
-      "desired mental states.  May trigger addictive response.",
-      400, null, 1, null, ALL_UPGRADES
-    ),
-    ESP_INDUCTION = new Upgrade(
-      "ESP Induction",
-      "Helps triggers emergence of latent psyonic abilities within "+
-      "susceptible subjects.",
-      350, null, 1, HYPNOGOGIC_TRAINING, ALL_UPGRADES
     ) ;
-  
-  
   
   
   public Behaviour jobFor(Actor actor) {
@@ -118,17 +86,16 @@ public class HoloArcade extends Venue implements Economy {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
-
-    final boolean hasESP = structure.upgradeLevel(ESP_INDUCTION) > 0 ;
-    if (hypnoType == HYPNO_ESP && ! hasESP) hypnoType = HYPNO_NONE ;
-    
-    stocks.incDemand(CIRCUITRY, 2, VenueStocks.TIER_CONSUMER, 1) ;
+    //
+    //  TODO:  Effectiveness needs to vary based on availability of circuitry
+    //  and datalinks...
+    //stocks.incDemand(CIRCUITRY, 2, VenueStocks.TIER_CONSUMER, 1) ;
     stocks.incDemand(DATALINKS, 2, VenueStocks.TIER_CONSUMER, 1) ;
   }
   
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return null ;
   }
   
@@ -141,7 +108,11 @@ public class HoloArcade extends Venue implements Economy {
   
   /**  Rendering and interface-
     */
-
+  protected Service[] goodsToShow() {
+    return new Service[] { DATALINKS } ;
+  }
+  
+  /*
   public void writeInformation(Description d, int categoryID, HUD UI) {
     super.writeInformation(d, categoryID, UI) ;
     if (categoryID != 3 || ! structure.intact()) return ;
@@ -159,6 +130,7 @@ public class HoloArcade extends Venue implements Economy {
       }
     }
   }
+  //*/
   
   
   public String fullName() {
@@ -187,3 +159,37 @@ public class HoloArcade extends Venue implements Economy {
 
 
 
+/*
+HYPNOGOGIC_TRAINING = new Upgrade(
+  "Hypnogogic Training",
+  "Weaves subliminal suggestions into the display matrix to induce "+
+  "desired mental states.  May trigger addictive response.",
+  400, null, 1, null, ALL_UPGRADES
+),
+ESP_INDUCTION = new Upgrade(
+  "ESP Induction",
+  "Helps triggers emergence of latent psyonic abilities within "+
+  "susceptible subjects.",
+  350, null, 1, HYPNOGOGIC_TRAINING, ALL_UPGRADES
+) ;
+//*/
+/*
+final static int
+  HYPNO_NONE      =  0,
+  HYPNO_LEARNING  =  1,
+  HYPNO_PLEASURE  =  2,
+  HYPNO_OBEDIENCE =  3,
+  HYPNO_ESP       =  4,
+  HYPNO_TYPES[]   = { 0, 1, 2, 3, 4 } ;
+
+//
+//  TODO:  Cut these out or simplify.  (Save for detention bloc?)
+final static String HYPNO_NAMES[] = {
+  "None",
+  "Accelerated Learning",
+  "Pleasure Centre Stimulus",
+  "Obedience Conditioning",
+  "ESP Trigger Induction"
+} ;
+private int hypnoType = HYPNO_NONE ;
+//*/

@@ -12,7 +12,6 @@ import src.game.actors.* ;
 import src.game.base.* ;
 import src.user.* ;
 import src.util.* ;
-import src.game.actors.ActorMind.Employment ;
 
 
 
@@ -26,7 +25,7 @@ public class Payday extends Plan implements Economy {
   private float balance ;
   
   
-  public Payday(Actor actor, ActorMind.Employment pays, Venue admin) {
+  public Payday(Actor actor, Employment pays, Venue admin) {
     super(actor, pays) ;
     this.pays = pays ;
     this.admin = admin ;

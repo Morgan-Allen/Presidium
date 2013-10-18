@@ -83,16 +83,25 @@ public class Presences {
   }
   
   
-  public void togglePresence(Venue venue, boolean is, Object services[]) {
+  public void togglePresence(
+    Venue venue, boolean is//, Object services[]
+  ) {
   	final Tile origin = venue.origin() ;
   	
   	togglePresence(venue, origin, is, Venue.class) ;
+    togglePresence(venue, origin, is, venue.getClass()) ;
     if (venue.base() != null) {
       togglePresence(venue, origin, is, venue.base()) ;
     }
-    togglePresence(venue, origin, is, venue.getClass()) ;
+    
+    final Object services[] = venue.services() ;
     if (services != null) for (Object service : services) {
       togglePresence(venue, origin, is, service) ;
+    }
+    
+    final Object careers[] = venue.careers() ;
+    if (careers != null) for (Object career : careers) {
+      togglePresence(venue, origin, is, career) ;
     }
     
     /*

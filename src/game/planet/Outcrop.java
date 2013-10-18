@@ -98,6 +98,7 @@ public class Outcrop extends Fixture {
     */
   final int type ;
   int mineral = -1 ;
+  float condition = 1.0f ;
   
   
   public Outcrop(int size, int high, int type) {
@@ -110,6 +111,7 @@ public class Outcrop extends Fixture {
     super(s) ;
     type = s.loadInt() ;
     mineral = s.loadInt() ;
+    condition = s.loadFloat() ;
     if (size > 1 || type == TYPE_DUNE) sprite().scale = size / 2f ;
   }
   
@@ -118,11 +120,12 @@ public class Outcrop extends Fixture {
     super.saveState(s) ;
     s.saveInt(type) ;
     s.saveInt(mineral) ;
+    s.saveFloat(condition) ;
   }
   
 
   public boolean canPlace() {
-    //  This only gets called just before entering thw rodl, so I think I can
+    //  This only gets called just before entering the world, so I think I can
     //  put this here.  TODO:  Move the location-verification code from the
     //  TerrainGen class to here?  ...Might be neater.
     final World world = origin().world ;
@@ -150,6 +153,22 @@ public class Outcrop extends Fixture {
   }
   
   
+  public int mineralType() {
+    return mineral ;
+  }
+  
+  
+  public void incCondition(float inc) {
+    condition = Visit.clamp(condition + inc, 0, 1) ;
+    if (condition <= 0) setAsDestroyed() ;
+  }
+  
+  
+  public float condition() {
+    return condition ;
+  }
+  
+  
   
   /**  Rendering and interface methods-
     */
@@ -167,7 +186,8 @@ public class Outcrop extends Fixture {
     return
       "Rock outcrops are a frequent indication of underlying mineral wealth." ;
   }
-
+  
+  
   public String[] infoCategories() {
     return null ;
   }

@@ -77,7 +77,7 @@ public abstract class Segment extends Venue implements TileConstants {
   /**  Behaviour implementations/overrides (not generally used/needed)-
     */
   public Behaviour jobFor(Actor actor) { return null ; }
-  protected Background[] careers() { return null ; }
+  public Background[] careers() { return null ; }
   public Service[] services() { return null ; }
   
   

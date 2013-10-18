@@ -9,6 +9,7 @@ package src.game.building ;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.actors.* ;
+import src.game.social.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.* ;
 import src.graphics.widgets.* ;
@@ -22,7 +23,7 @@ import src.util.* ;
 
 public abstract class Venue extends Fixture implements
   Schedule.Updates, Boardable, Installation,
-  Inventory.Owner, ActorMind.Employment,
+  Inventory.Owner, Employment,
   Selectable, TileConstants, Economy
 {
   
@@ -74,7 +75,7 @@ public abstract class Venue extends Fixture implements
   public Venue(Session s) throws Exception {
     super(s) ;
     buildSprite = (BuildingSprite) sprite() ;
-    
+
     entranceFace = s.loadInt() ;
     entrance = (Tile) s.loadTarget() ;
     base = (Base) s.loadObject() ;
@@ -83,12 +84,12 @@ public abstract class Venue extends Fixture implements
     personnel.loadState(s) ;
     stocks.loadState(s) ;
     structure.loadState(s) ;
+    
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    
     s.saveInt(entranceFace) ;
     s.saveTarget(entrance) ;
     s.saveObject(base) ;
@@ -177,7 +178,8 @@ public abstract class Venue extends Fixture implements
   
   public void enterWorldAt(int x, int y, World world) {
     super.enterWorldAt(x, y, world) ;
-    world.presences.togglePresence(this, true , services()) ;
+
+    world.presences.togglePresence(this, true ) ;
     world.schedule.scheduleForUpdates(this) ;
     personnel.onCommission() ;
   }
@@ -185,9 +187,10 @@ public abstract class Venue extends Fixture implements
   
   public void exitWorld() {
     personnel.onDecommission() ;
-    world.presences.togglePresence(this, false, services()) ;
+    world.presences.togglePresence(this, false) ;
     if (base != null) updatePaving(false) ;
     world.schedule.unschedule(this) ;
+    
     super.exitWorld() ;
   }
   
@@ -321,16 +324,18 @@ public abstract class Venue extends Fixture implements
     personnel.setWorker(actor, is) ;
   }
   
+
+  public void setApplicant(Application app, boolean is) {
+    personnel.setApplicant(app, is) ;
+  }
+  
   
   public int numOpenings(Background v) {
     return structure.upgradeBonus(v) - personnel.numPositions(v) ;
   }
   
   
-  //  Careers, services, goods produced, and goods required.  Space has to be
-  //  reserved for both item-orders and service-seating.  And what about shifts
-  //  at work?
-  protected abstract Background[] careers() ;
+  public abstract Background[] careers() ;
   public abstract Service[] services() ;
   
   
@@ -370,7 +375,6 @@ public abstract class Venue extends Fixture implements
     setPosition(t.x, t.y, t.world) ;
     clearSurrounds() ;
     enterWorld() ;
-    VenuePersonnel.fillVacancies(this) ;
     
     if (GameSettings.buildFree) {
       structure.setState(Structure.STATE_INTACT , 1) ;
@@ -540,14 +544,13 @@ public abstract class Venue extends Fixture implements
       if (numOpen > 0) none = false ;
       if (numOpen > 0) d.append("\n  "+numOpen+" "+v.name+" vacancies") ;
     }
-    for (final VenuePersonnel.Position p : personnel.positions) {
-      if (p.wages != -1) continue ;
+    for (final Application a : personnel.applications) {
       none = false ;
       d.append("\n  ") ;
-      d.append(p.works) ;
-      d.append("\n  ("+p.salary+" credits) ") ;
+      d.append(a.applies) ;
+      d.append("\n  ("+a.hiringFee()+" credits) ") ;
       d.append(new Description.Link("HIRE") {
-        public void whenClicked() { personnel.confirmApplication(p) ; }
+        public void whenClicked() { personnel.confirmApplication(a) ; }
       }) ;
     }
     if (none) d.append("\n  No vacancies or applications.") ;
@@ -566,7 +569,6 @@ public abstract class Venue extends Fixture implements
   private static Upgrade lastCU ;  //last clicked...
   
   private void describeUpgrades(Description d, HUD UI) {
-
     
     if (PlayLoop.played() == base && ! privateProperty()) {
       d.append("Orders: ") ;
@@ -592,39 +594,40 @@ public abstract class Venue extends Fixture implements
       d.append("\n\n") ;
     }
     
-    final Batch <String> DU = structure.descOngoingUpgrades() ;
     final int numU = structure.numUpgrades(), maxU = structure.maxUpgrades() ;
-    d.append("Upgrade slots ("+numU+"/"+maxU+")") ;
-    for (String s : DU) d.append("\n  "+s) ;
-    
-    
-    d.append("\n\nUpgrades available: ") ;
-    final Index <Upgrade> upgrades = allUpgrades() ;
-    if (upgrades != null && upgrades.members().length > 0) {
-      for (final Upgrade upgrade : upgrades) {
-        d.append("\n  ") ;
-        d.append(new Description.Link(upgrade.name) {
-          public void whenClicked() { lastCU = upgrade ; }
-        }) ;
-        d.append(" (x"+structure.upgradeLevel(upgrade)+")") ;
-      }
-      if (lastCU != null) {
-        d.append("\n\n") ;
-        d.append(lastCU.description) ;
-        d.append("\n  Cost: "+lastCU.buildCost+"   ") ;
-        if (lastCU.required != null) {
-          d.append("\n  Requires: "+lastCU.required.name) ;
-        }
-        if (structure.upgradePossible(lastCU)) {
-          d.append(new Description.Link("\n\n  BEGIN UPGRADE") {
-            public void whenClicked() {
-              structure.beginUpgrade(lastCU, false) ;
-            }
+    if (maxU > 0) {
+      final Batch <String> DU = structure.descOngoingUpgrades() ;
+      d.append("Upgrade slots ("+numU+"/"+maxU+")") ;
+      for (String s : DU) d.append("\n  "+s) ;
+      d.append("\n\nUpgrades available: ") ;
+      
+      final Index <Upgrade> upgrades = allUpgrades() ;
+      if (upgrades != null && upgrades.members().length > 0) {
+        for (final Upgrade upgrade : upgrades) {
+          d.append("\n  ") ;
+          d.append(new Description.Link(upgrade.name) {
+            public void whenClicked() { lastCU = upgrade ; }
           }) ;
+          d.append(" (x"+structure.upgradeLevel(upgrade)+")") ;
+        }
+        if (lastCU != null) {
+          d.append("\n\n") ;
+          d.append(lastCU.description) ;
+          d.append("\n  Cost: "+lastCU.buildCost+"   ") ;
+          if (lastCU.required != null) {
+            d.append("\n  Requires: "+lastCU.required.name) ;
+          }
+          if (structure.upgradePossible(lastCU)) {
+            d.append(new Description.Link("\n\n  BEGIN UPGRADE") {
+              public void whenClicked() {
+                structure.beginUpgrade(lastCU, false) ;
+              }
+            }) ;
+          }
         }
       }
+      else d.append("\n  No upgrades.") ;
     }
-    else d.append("\n  No upgrades.") ;
   }
 
   
@@ -716,7 +719,6 @@ public abstract class Venue extends Fixture implements
     toggleStatusFor(LIFE_SUPPORT) ;
     toggleStatusFor(POWER       ) ;
     toggleStatusFor(WATER       ) ;
-    toggleStatusFor(DATALINKS   ) ;
   }
   
   

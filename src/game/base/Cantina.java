@@ -147,7 +147,7 @@ public class Cantina extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.SOMA_VENDOR, Background.PERFORMER } ;
   }
   
@@ -334,7 +334,7 @@ public class Cantina extends Venue implements Economy {
   
   
   protected float goodDisplayAmount(Service good) {
-    return 5 ;
+    return Math.min(5, stocks.amountOf(good)) ;
   }
   
   

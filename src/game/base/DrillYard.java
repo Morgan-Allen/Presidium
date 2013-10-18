@@ -77,10 +77,9 @@ public class DrillYard extends Venue {
   public DrillYard(Session s) throws Exception {
     super(s) ;
     belongs = (Garrison) s.loadObject() ;
-    for (int i = 0 ; i < NUM_DRILLS ; i++) {
+    for (int i = 0 ; i < NUM_DUMMIES; i++) {
       dummies[i] = (Element) s.loadObject() ;
     }
-    
     drill = s.loadInt() ;
     nextDrill = s.loadInt() ;
     equipQuality = s.loadInt() ;
@@ -154,7 +153,7 @@ public class DrillYard extends Venue {
   
   public Service[] services() { return null ; }
   
-  protected Background[] careers() { return null ; }
+  public Background[] careers() { return null ; }
   
   public Behaviour jobFor(Actor actor) { return null ; }
   
@@ -195,7 +194,7 @@ public class DrillYard extends Venue {
   
   protected Target nextDummyFree(int drillType, Actor actor) {
     for (Element e : dummies) {
-      if (Plan.competition(Drilling.class, e, actor) > 0) continue ;
+      if (Plan.competition(Training.class, e, actor) > 0) continue ;
       return e ;
     }
     return null ;

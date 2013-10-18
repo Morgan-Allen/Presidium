@@ -57,7 +57,7 @@ public class Ruins extends Venue {
   }
   
   
-  protected Background[] careers() { return null ; }
+  public Background[] careers() { return null ; }
   public Service[] services() { return null ; }
   
   

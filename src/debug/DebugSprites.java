@@ -4,6 +4,7 @@
 package src.debug ;
 import src.graphics.common.* ;
 import src.graphics.jointed.* ;
+import src.graphics.sfx.* ;
 import src.util.* ;
 import org.lwjgl.opengl.GL11 ;
 
@@ -44,7 +45,7 @@ public class DebugSprites extends ViewLoop {
     XML_PATH = DIR_PATH+"VehicleModels.xml",
     NODE_NAMES[] = {
       "DustCrawler", "Suspensor", "CargoBarge",
-      "Cannon", //"Dropship", //  TODO:  Also include smuggler ship?
+      //"Cannon", //"Dropship", //  TODO:  Also include smuggler ship?
     },
     ANIM_NAME = Model.AnimNames.MOVE ;
   private Batch <Sprite> sprites = new Batch <Sprite> () ;

@@ -197,7 +197,7 @@ public class CultureVats extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.VAT_BREEDER } ;
   }
   

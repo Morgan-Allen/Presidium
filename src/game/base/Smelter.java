@@ -20,7 +20,6 @@ import src.util.* ;
 public class Smelter extends Venue implements Economy {
   
   
-  
   /**  Field definitions, constructors and save/load methods-
     */
   final static String IMG_DIR = "media/Buildings/artificer/" ;
@@ -58,6 +57,11 @@ public class Smelter extends Venue implements Economy {
     MOLD_COOL_TIME = World.STANDARD_DAY_LENGTH / 10 ;
   final static Service
     MINED_TYPES[] = { FUEL_CORES, METAL_ORE, PETROCARBS } ;
+  final static Item
+    SAMPLE_FUEL  = Item.asMatch(SAMPLES, FUEL_CORES),
+    SAMPLE_METAL = Item.asMatch(SAMPLES, METAL_ORE ),
+    SAMPLE_CARBS = Item.asMatch(SAMPLES, PETROCARBS),
+    SAMPLE_TYPES[] = { SAMPLE_FUEL, SAMPLE_METAL, SAMPLE_CARBS } ;
   
   
   static class Mold {
@@ -174,7 +178,7 @@ public class Smelter extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return null ;
   }
   

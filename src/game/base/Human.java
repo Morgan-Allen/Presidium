@@ -82,7 +82,7 @@ public class Human extends Actor implements Abilities {
   }
   
   
-  protected ActorMind initAI() { return new HumanAI(this) ; }
+  protected ActorMind initAI() { return new HumanMind(this) ; }
   
   public Background vocation() { return career.vocation() ; }
   
@@ -274,12 +274,13 @@ public class Human extends Actor implements Abilities {
     //
     //  Describe your job, place of work, and current residence:
     d.append("Is: ") ; describeStatus(d) ;
-    d.append("\nVocation: "+vocation().nameFor(this)) ;
-    d.append("\nWorkplace: ") ;
+    final String VN = vocation().nameFor(this) ;
+    d.append("\nVocation: ") ;
     if (mind.work() != null) {
+      d.append(VN+" at ") ;
       d.append(mind.work()) ;
     }
-    else d.append("Unemployed") ;
+    else d.append("Unemployed "+VN) ;
     d.append("\nResidence: ") ;
     if (mind.home() != null) {
       d.append(mind.home()) ;

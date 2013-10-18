@@ -217,7 +217,7 @@ public class SupplyDepot extends Venue implements
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.SUPPLY_CORPS } ;
   }
   

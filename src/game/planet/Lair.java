@@ -65,7 +65,7 @@ public class Lair extends Venue {
   /**  Behavioural assignments (all null in this case.)
     */
   public Behaviour jobFor(Actor actor) { return null ; }
-  protected Background[] careers() { return null ; }
+  public Background[] careers() { return null ; }
   public Service[] services() { return null ; }
   public int owningType() { return Element.ELEMENT_OWNS ; }
   

@@ -47,6 +47,7 @@ public abstract class ActorMind implements Abilities {
   protected Mission mission ;
   protected Venue home ;
   protected Employment work ;
+  protected Application application ;
   
   
   
@@ -71,6 +72,7 @@ public abstract class ActorMind implements Abilities {
     mission = (Mission) s.loadObject() ;
     home = (Venue) s.loadObject() ;
     work = (Employment) s.loadObject() ;
+    application = (Application) s.loadObject() ;
   }
   
   
@@ -88,6 +90,11 @@ public abstract class ActorMind implements Abilities {
     s.saveObject(mission) ;
     s.saveObject(home) ;
     s.saveObject(work) ;
+    s.saveObject(application) ;
+  }
+  
+  
+  protected void onWorldExit() {
   }
   
   
@@ -287,9 +294,13 @@ public abstract class ActorMind implements Abilities {
   
   /**  Setting home and work venues-
     */
-  public static interface Employment extends Session.Saveable, Boardable {
-    Behaviour jobFor(Actor actor) ;
-    void setWorker(Actor actor, boolean is) ;
+  public Application application() {
+    return application ;
+  }
+  
+  
+  public void setApplication(Application a) {
+    application = a ;
   }
   
   
@@ -318,16 +329,13 @@ public abstract class ActorMind implements Abilities {
   }
   
   
-  protected void onWorldExit() {
-  }
-  
-  
   
   /**  Handling missions-
     */
   //
   //  TODO:  This may have to be thought over.
   public void assignMission(Mission mission) {
+    if (this.mission == mission) return ;
     this.mission = mission ;
     //
     //  This might have to be done with all bases.
@@ -480,8 +488,9 @@ public abstract class ActorMind implements Abilities {
     */
   public float greedFor(int credits) {
     float baseUnit = actor.gear.credits() ;
-    if (work instanceof Venue) {
-      baseUnit += (100 + ((Venue) work).personnel.salaryFor(actor)) / 2f ;
+    if (actor.base() != null) {
+      final Profile p = actor.base().profiles.profileFor(actor) ;
+      baseUnit += (100 + p.salary()) / 2f ;
     }
     baseUnit /= 3f ;
     return (credits / baseUnit) * actor.traits.scaleLevel(ACQUISITIVE) ;

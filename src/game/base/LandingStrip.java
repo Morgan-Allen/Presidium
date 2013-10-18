@@ -124,7 +124,7 @@ public class LandingStrip extends Venue {
   
   public Service[] services() { return null ; }
   
-  protected Background[] careers() { return null ; }
+  public Background[] careers() { return null ; }
   
   public Behaviour jobFor(Actor actor) { return null ; }
   

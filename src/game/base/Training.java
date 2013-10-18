@@ -10,8 +10,15 @@ import src.user.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  This also needs to allow for attendance at the Archives and
+//  Holo-Arcade.  And for the former, you need to have a proper idea of career
+//  ambitions (plus migration.)
 
-public class Drilling extends Plan implements Economy {
+//  Strip Mining.
+
+
+public class Training extends Plan implements Economy {
   
   
   
@@ -19,14 +26,15 @@ public class Drilling extends Plan implements Economy {
     */
   final DrillYard yard ;
   
+  
 
-  public Drilling(Actor actor, DrillYard drillsAt) {
+  public Training(Actor actor, DrillYard drillsAt) {
     super(actor, drillsAt) ;
     this.yard = drillsAt ;
   }
   
   
-  public Drilling(Session s) throws Exception {
+  public Training(Session s) throws Exception {
     super(s) ;
     yard = (DrillYard) s.loadObject() ;
   }
@@ -66,7 +74,7 @@ public class Drilling extends Plan implements Economy {
   }
   
   
-  public static Drilling nextDrillFor(Actor actor) {
+  public static Training nextDrillFor(Actor actor) {
     if (actor.base() == null) return null ;
     if (! (actor.mind.work() instanceof Venue)) return null ;
     //
@@ -81,10 +89,10 @@ public class Drilling extends Plan implements Economy {
     final Choice choice = new Choice(actor) ;
     for (DrillYard yard : yards) if (yard.base() == actor.base()) {
       ///I.sayAbout(actor, "Can drill at "+yard) ;
-      final Drilling drilling = new Drilling(actor, yard) ;
+      final Training drilling = new Training(actor, yard) ;
       choice.add(drilling) ;
     }
-    return (Drilling) choice.weightedPick(0) ;
+    return (Training) choice.weightedPick(0) ;
   }
   
   
@@ -95,7 +103,7 @@ public class Drilling extends Plan implements Economy {
     final int drillType = yard.drillType() ;
     if (
       (yard.nextDrill != yard.drill && ! yard.belongs.destroyed()) &&
-      (Plan.competition(Drilling.class, yard.belongs, actor) < 1)
+      (Plan.competition(Training.class, yard.belongs, actor) < 1)
     ) {
       final Action pickup = new Action(
         actor, yard.belongs,

@@ -54,7 +54,7 @@ public class Edifice extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return null ;
   }
   

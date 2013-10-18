@@ -95,7 +95,7 @@ public class Garrison extends Venue implements Economy {
       Background.VETERAN, 1, VOLUNTEER_STATION, ALL_UPGRADES
     ) ;
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.VOLUNTEER, Background.VETERAN } ;
   }
   

@@ -234,7 +234,7 @@ public class StockExchange extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.STOCK_VENDOR } ;
   }
   

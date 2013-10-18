@@ -113,7 +113,7 @@ public class Foundry extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.TECHNICIAN, Background.ARTIFICER } ;
   }
   

@@ -41,14 +41,12 @@ public class DebugSituation extends PlayLoop implements Economy {
   
   public DebugSituation(Session s) throws Exception {
     super(s) ;
-    //if (true) return ;
     citizen = (Human) s.loadObject() ;
     lastAction = (Action) s.loadObject() ;
   }
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    //if (true) return ;
     s.saveObject(citizen) ;
     s.saveObject(lastAction) ;
   }
@@ -104,34 +102,42 @@ public class DebugSituation extends PlayLoop implements Economy {
     
     base.incCredits(10000) ;
     GameSettings.noFog = true ;
-    GameSettings.hireFree = true ;
+    //GameSettings.hireFree = true ;
     GameSettings.buildFree = true ;
     PlayLoop.setGameSpeed(1.0f) ;
-    
+
     final Actor actor = new Human(Background.PHYSICIAN, base) ;
     final Actor other = new Human(Background.VETERAN  , base) ;
+    actor.enterWorldAt(3, 3, world) ;
+    other.enterWorldAt(5, 5, world) ;
     
+    final Outcrop o = new Outcrop(2, 2, 0) ;
+    o.enterWorldAt(4, 4, world) ;
+    o.setAsEstablished(true) ;
+    
+    DebugBehaviour.establishVenue(new Sickbay(base), 9, 2, true) ;
+    DebugBehaviour.establishVenue(new Garrison(base), 9, 8, true) ;
+    
+    
+    /*
     other.health.takeInjury(other.health.maxHealth() * 2) ;
     //other.traits.incLevel(MUTATION, 1.5f) ;
     //other.traits.incLevel(ILLNESS, 2.5f) ;
-    
     other.enterWorldAt(15, 6, world) ;
-    
     final Sickbay sickbay = new Sickbay(base) ;
     DebugBehaviour.establishVenue(sickbay, 9, 2, true, actor) ;
     DebugBehaviour.establishVenue(new CultureVats(base), 9, 8, true) ;
     DebugBehaviour.establishVenue(new VaultSystem(base), 3, 5, true) ;
-    
     //final Reactor generator = new Reactor(base) ;
     //DebugBehaviour.establishVenue(generator, 21, 5, true) ;
     //generator.structure.setState(Structure.STATE_INTACT, 0.01f) ;
     //generator.structure.setBurning(true) ;
     //generator.setMeltdown(1.0f) ;
-    
     sickbay.stocks.bumpItem(STIM_KITS, 5) ;
     sickbay.stocks.bumpItem(MEDICINE , 5) ;
     
-    ((BaseUI) UI).selection.pushSelection(other, true) ;
+    ((BaseUI) UI).selection.pushSelection(actor, true) ;
+    //*/
   }
   
   

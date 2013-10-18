@@ -4,6 +4,7 @@
 package src.game.campaign ;
 import src.game.base.* ;
 import src.game.common.* ;
+import src.game.social.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.util.* ;
@@ -16,17 +17,26 @@ public class Commerce implements Economy {
   /**  Fields definitions, constructor, save/load methods-
     */
   final public static float
-    SUPPLY_INTERVAL = 200,
-    SUPPLY_DURATION = 100,
+    SUPPLY_INTERVAL = World.STANDARD_DAY_LENGTH / 2f,
+    SUPPLY_DURATION = SUPPLY_INTERVAL / 2f,
     
-    MAX_APPLICANTS = 3 ;
+    APPLY_INTERVAL  = World.STANDARD_DAY_LENGTH / 2f,
+    UPDATE_INTERVAL = 10,
+    DEMAND_INC      = 0.15f,
+    MAX_APPLICANTS  = 3 ;
+  
+  private static boolean verbose = false ;
   
   
   final Base base ;
   System homeworld ;
   List <System> partners = new List <System> () ;
   
-  final Table <Venue, List <Actor>> candidates = new Table() ;
+  final static int NUM_J = Background.ALL_BACKGROUNDS.length ;
+  final float
+    jobSupply[] = new float[NUM_J],
+    jobDemand[] = new float[NUM_J] ;
+  final List <Actor> candidates = new List <Actor> () ;
   final List <Actor> migrantsIn = new List <Actor> () ;
   
   final Inventory
@@ -64,15 +74,9 @@ public class Commerce implements Economy {
       partners.add((System) Background.ALL_BACKGROUNDS[s.loadInt()]) ;
     }
     
-    for (int n = s.loadInt() ; n-- > 0 ;) {
-      final Venue venue = (Venue) s.loadObject() ;
-      final List <Actor> list = new List <Actor> () ;
-      candidates.put(venue, list) ;
-      
-      for (int i = s.loadInt() ; i-- > 0 ;) {
-        final Actor a = (Actor) s.loadObject() ;
-        list.add(a) ;
-      }
+    for (int i = NUM_J ; i-- > 0 ;) {
+      jobSupply[i] = s.loadFloat() ;
+      jobDemand[i] = s.loadFloat() ;
     }
     
     shortages.loadState(s) ;
@@ -82,6 +86,7 @@ public class Commerce implements Economy {
       exportPrices.put(type, s.loadFloat()) ;
     }
     
+    s.loadObjects(candidates) ;
     s.loadObjects(migrantsIn) ;
     ship = (Dropship) s.loadObject() ;
     nextVisitTime = s.loadFloat() ;
@@ -94,12 +99,9 @@ public class Commerce implements Economy {
     s.saveInt(partners.size()) ;
     for (System p : partners) s.saveInt(p.ID) ;
     
-    s.saveInt(candidates.size()) ;
-    for (Venue venue : candidates.keySet()) {
-      s.saveObject(venue) ;
-      final List <Actor> list = candidates.get(venue) ;
-      s.saveInt(list.size()) ;
-      for (Actor a : list) s.saveObject(a) ;
+    for (int i = NUM_J ; i-- > 0 ;) {
+      s.saveFloat(jobSupply[i]) ;
+      s.saveFloat(jobDemand[i]) ;
     }
     
     shortages.saveState(s) ;
@@ -109,6 +111,7 @@ public class Commerce implements Economy {
       s.saveFloat(exportPrices.get(type)) ;
     }
     
+    s.saveObjects(candidates) ;
     s.saveObjects(migrantsIn) ;
     s.saveObject(ship) ;
     s.saveFloat(nextVisitTime) ;
@@ -145,50 +148,79 @@ public class Commerce implements Economy {
   
   /**  Dealing with migrants and cargo-
     */
-  public boolean genCandidate(Background vocation, Venue venue, int numOpen) {
-    //
-    //  You might want to introduce limits on the probability of finding
-    //  candidates based on the relative sizes of the source and destination
-    //  settlements, and the number of existing applicants for a position.
-    final int numA = venue.personnel.numApplicants(vocation) ;
-    if (numA >= numOpen * MAX_APPLICANTS) return false ;
-    final Human candidate = new Human(vocation, venue.base()) ;
-    //
-    //  This requires more work on the subject of pricing.  Some will join for
-    //  free, but others need enticement, depending on distance and willingness
-    //  to relocate, and the friendliness of the home system.
-    final int signingCost = Background.HIRE_COSTS[vocation.standing] ;
-    venue.personnel.applyFor(vocation, candidate, signingCost) ;
-    //
-    //  Insert the candidate in local records, and return.
-    List <Actor> list = candidates.get(venue) ;
-    if (list == null) candidates.put(venue, list = new List <Actor> ()) ;
-    list.add(candidate) ;
-    return true ;
-  }
-  
-  
-  public void cullCandidates(Background vocation, Venue venue) {
-    final List <Actor> list = candidates.get(venue) ;
-    if (list == null) return ;
-    final int numOpenings = venue.numOpenings(vocation) ;
-    if (numOpenings > 0) return ;
-    for (Actor actor : list) if (actor.vocation() == vocation) {
-      list.remove(actor) ;
-      venue.personnel.removeApplicant(actor) ;
-    }
-    if (list.size() == 0) candidates.remove(venue) ;
-  }
-  
-  
   public void addImmigrant(Actor actor) {
     migrantsIn.add(actor) ;
   }
   
   
-  protected void updateCandidates() {
-    //  TODO:  You want to have old applicants give up and new ones appear,
-    //  given enough time.  Once or twice per day, let's say.
+  protected void updateCandidates(int numUpdates) {
+    if ((numUpdates % UPDATE_INTERVAL) != 0) return ;
+    //
+    //  Firstly, decrement supply/demand by a fixed decay rate-
+    for (Background b : Background.ALL_BACKGROUNDS) {
+      final int i = b.ID ;
+      jobDemand[i] *= (1 - DEMAND_INC) ;
+      jobDemand[i] = Math.max(jobDemand[i] - (DEMAND_INC / 100), 0) ;
+      jobSupply[i] *= (1 - DEMAND_INC) ;
+      jobSupply[i] = Math.max(jobSupply[i] - (DEMAND_INC / 100), 0) ;
+    }
+    //
+    //  Consider generating fresh applicants-
+    for (Background b : Background.ALL_BACKGROUNDS) {
+      final float supply = jobSupply[b.ID], demand = jobDemand[b.ID] ;
+      float applyChance = (demand * MAX_APPLICANTS) - supply ;
+      if (verbose && applyChance > 0) {
+        I.say("  Demand/supply for "+b+" is "+demand+"/"+supply) ;
+      }
+      applyChance *= UPDATE_INTERVAL / APPLY_INTERVAL ;
+      if (Rand.num() < applyChance) {
+        final Human applies = new Human(b, base) ;
+        candidates.addFirst(applies) ;
+        if (verbose) I.say("Generated new candidate for "+b) ;
+      }
+      jobSupply[b.ID] = 0 ;
+    }
+    //
+    //  We then iterate, in a crudely time-sliced fashion, over all current
+    //  job candidates and try to find them places of work-
+    final int numProcessed = Visit.clamp(1 + (int) ((
+      candidates.size() * UPDATE_INTERVAL
+    ) / APPLY_INTERVAL), candidates.size() + 1) ;
+    if (verbose && numProcessed > 0) {
+      I.say("Candidates to process: "+numProcessed) ;
+    }
+    //
+    //  (Minimum of one processed, never more than the entire batch-)
+    for (int n = numProcessed ; n-- > 0 ;) {
+      final Human a = (Human) candidates.first() ;
+      //
+      //  Calculate the likelihood of quitting based on supply/demand-
+      float quitChance = 0 ; if (a.mind.application() != null) {
+        final Background b = a.mind.application().position ;
+        final float supply = jobSupply[b.ID], demand = jobDemand[b.ID] ;
+        quitChance = (supply - (demand * MAX_APPLICANTS)) ;
+      }
+      //
+      //  If you don't quit, look for employment in the world-
+      candidates.removeFirst() ;
+      quitChance = Visit.clamp(quitChance, 0.1f, 0.9f) / 2 ;
+      if (Rand.num() > quitChance) {
+        if (verbose) I.say("  "+a+" looking for job from offworld...") ;
+        Migration.lookForJob(a, base) ;
+        candidates.addLast(a) ;
+      }
+      else if (verbose) I.say("  "+a+" has quit offworld job-hunting...") ;
+      
+      final Application app = a.mind.application() ;
+      if (app != null) {
+        jobSupply[app.position.ID] += DEMAND_INC ;
+      }
+    }
+  }
+  
+  
+  public void incDemand(Background b, float amount, int period) {
+    jobDemand[b.ID] += amount * (period / UPDATE_INTERVAL) * DEMAND_INC ;
   }
   
   
@@ -309,9 +341,6 @@ public class Commerce implements Economy {
     ship.cargo.removeAllItems() ;
     I.say("Loading cargo...") ;
     //
-    //  TODO:  Unify this with the compressOrder() function from the Delivery
-    //  class.
-    //
     //  We prioritise items based on the amount of demand and the price of the
     //  goods in question-
     final Sorting <Item> sorting = new Sorting <Item> () {
@@ -346,7 +375,7 @@ public class Commerce implements Economy {
   /**  Perform updates to trigger new events or assess local needs-
     */
   public void updateCommerce(int numUpdates) {
-    ///screenCandidates() ;
+    updateCandidates(numUpdates) ;
     if (numUpdates % 10 == 0) {
       summariseDemand(base) ;
       calculatePrices() ;
@@ -354,11 +383,8 @@ public class Commerce implements Economy {
     updateShipping() ;
   }
   
-  //
-  //  TODO:  Favour landing sites close to supply depots.
   
   protected void updateShipping() {
-    
     
     final int shipStage = ship.flightStage() ;
     if (ship.landed()) {
@@ -409,3 +435,39 @@ public class Commerce implements Economy {
 
 
 
+/*
+public boolean genCandidate(Background vocation, Venue venue, int numOpen) {
+  //
+  //  You might want to introduce limits on the probability of finding
+  //  candidates based on the relative sizes of the source and destination
+  //  settlements, and the number of existing applicants for a position.
+  final int numA = venue.personnel.numApplicants(vocation) ;
+  if (numA >= numOpen * MAX_APPLICANTS) return false ;
+  final Human candidate = new Human(vocation, venue.base()) ;
+  //
+  //  This requires more work on the subject of pricing.  Some will join for
+  //  free, but others need enticement, depending on distance and willingness
+  //  to relocate, and the friendliness of the home system.
+  final int signingCost = Background.HIRE_COSTS[vocation.standing] ;
+  venue.personnel.applyFor(vocation, candidate, signingCost) ;
+  //
+  //  Insert the candidate in local records, and return.
+  List <Actor> list = candidates.get(venue) ;
+  if (list == null) candidates.put(venue, list = new List <Actor> ()) ;
+  list.add(candidate) ;
+  return true ;
+}
+
+
+public void cullCandidates(Background vocation, Venue venue) {
+  final List <Actor> list = candidates.get(venue) ;
+  if (list == null) return ;
+  final int numOpenings = venue.numOpenings(vocation) ;
+  if (numOpenings > 0) return ;
+  for (Actor actor : list) if (actor.vocation() == vocation) {
+    list.remove(actor) ;
+    venue.personnel.removeApplicant(actor) ;
+  }
+  if (list.size() == 0) candidates.remove(venue) ;
+}
+//*/

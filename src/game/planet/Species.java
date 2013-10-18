@@ -270,6 +270,9 @@ public class Species implements Session.Saveable, Economy {
   
   
   public String toString() { return name ; }
+  
+  
+  public Item[] nutrients() { return nutrients ; }
 }
 
 

@@ -16,7 +16,7 @@ import src.util.* ;
 public class Archives extends Venue implements Economy {
   
   
-
+  
   /**  Data fields, constructors and save/load methods-
     */
   final public static Model MODEL = ImageModel.asSolidModel(
@@ -25,10 +25,10 @@ public class Archives extends Venue implements Economy {
   
 
   public Archives(Base base) {
-    super(4, 3, Venue.ENTRANCE_EAST, base) ;
+    super(4, 3, Venue.ENTRANCE_SOUTH, base) ;
     structure.setupStats(
       250, 4, 500,
-      Structure.BIG_MAX_UPGRADES, Structure.TYPE_VENUE
+      Structure.NO_UPGRADES, Structure.TYPE_VENUE
     ) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     attachSprite(MODEL.makeSprite()) ;
@@ -48,27 +48,6 @@ public class Archives extends Venue implements Economy {
 
   /**  Upgrades, economic functions and behaviour implementations-
     */
-  //
-  //  TODO:  You might not want to implement these as upgrades?  They shouldn't
-  //  really be contributing toward hit-points, for example.  Might be better
-  //  to model them as imported items, or some kind of custom object.
-  /*
-  final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
-    Archives.class, "archives_upgrades"
-  ) ;
-  public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
-  static {
-    for (Skill skill : COGNITIVE_SKILLS) {
-      if (skill.parent != INTELLECT) continue ;
-      final Upgrade dataLink = new Upgrade(
-        skill.name+" datalinks", "Allows research in "+skill.name,
-        250, skill, 5, null, ALL_UPGRADES
-      ) ;
-    }
-  }
-  //*/
-  
-  
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
@@ -79,6 +58,10 @@ public class Archives extends Venue implements Economy {
     ) ;
     if (m != null) {
       choice.add(m) ;
+    }
+    final Manufacture o = stocks.nextSpecialOrder(actor) ;
+    if (o != null) {
+      choice.add(o) ;
     }
     //
     //  Check to see if any datalinks require delivery- if so, key them to the
@@ -117,7 +100,13 @@ public class Archives extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public boolean hasDataFor(Skill skill) {
+    final Item match = Item.withReference(DATALINKS, skill) ;
+    return stocks.hasItem(match) ;
+  }
+  
+  
+  public Background[] careers() {
     return new Background[] { Background.ARCHIVIST } ;
   }
   
@@ -139,6 +128,59 @@ public class Archives extends Venue implements Economy {
   
   /**  Rendering and interface-
     */
+  protected Service[] goodsToShow() {
+    return new Service[] { CIRCUITRY, DATALINKS } ;
+  }
+  
+  
+  final static Skill[][] SKILL_CATS = {
+    ARTIFICER_SKILLS, ECOLOGIST_SKILLS, PHYSICIAN_SKILLS, HISTORY_SKILLS
+  } ;
+  final static String CAT_NAMES[] = {
+    "Artificer", "Ecologist", "Physician", "History"
+  } ;
+  final static int CAT_IDS[] = { 0, 1, 2, 3 } ;
+  
+  private static int lastSkillCat = 0 ;
+  //private static Skill lastSkillPick = null ;
+  
+  public void writeInformation(Description d, int categoryID, HUD UI) {
+    super.writeInformation(d, categoryID, UI) ;
+    if (categoryID != 3 || ! structure.intact()) return ;
+    final Venue archives = this ;
+    //
+    //  List the various research categories.
+    d.append("Information Categories:\n  ") ;
+    for (final int n : CAT_IDS) {
+      d.append(new Description.Link(CAT_NAMES[n]) {
+        public void whenClicked() { lastSkillCat = n ; }
+      }) ;
+      d.append(" ") ;
+    }
+    d.append("\n") ;
+    
+    for (final Skill skill : SKILL_CATS[lastSkillCat]) {
+      final Item match = Item.withReference(DATALINKS, skill) ;
+      
+      d.append("\n  "+skill.name) ;
+      if (stocks.hasItem(match)) {
+        d.append(" Installed") ;
+      }
+      else if (stocks.hasOrderFor(match)) {
+        d.append(" Ordered") ;
+      }
+      else d.append(new Description.Link(" Install") {
+        public void whenClicked() {
+          stocks.addSpecialOrder(new Manufacture(
+            null, archives, CIRCUITRY_TO_DATALINKS, match
+          )) ;
+        }
+      }) ;
+    }
+    
+  }
+  
+  
   public String fullName() {
     return "Archives" ;
   }
@@ -163,6 +205,30 @@ public class Archives extends Venue implements Economy {
 
 
 
+/*
+final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
+  Archives.class, "archives_upgrades"
+) ;
+//public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+//
+//  TODO:  You might not want to implement these as upgrades?  They shouldn't
+//  really be contributing toward hit-points, for example.  Might be better
+//  to model them as imported items, or some kind of custom object.
+/*
+final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
+  Archives.class, "archives_upgrades"
+) ;
+public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
+static {
+  for (Skill skill : COGNITIVE_SKILLS) {
+    if (skill.parent != INTELLECT) continue ;
+    final Upgrade dataLink = new Upgrade(
+      skill.name+" datalinks", "Allows research in "+skill.name,
+      250, skill, 5, null, ALL_UPGRADES
+    ) ;
+  }
+}
+//*/
 
 
 

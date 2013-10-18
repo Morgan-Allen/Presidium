@@ -129,6 +129,14 @@ public class VenueStocks extends Inventory implements Economy {
   }
   
   
+  public boolean hasOrderFor(Item made) {
+    for (Manufacture m : specialOrders) {
+      if (m.made().matchKind(made)) return true ;
+    }
+    return false ;
+  }
+  
+  
   public Batch <Item> shortages() {
     final Batch <Item> batch = new Batch <Item> () ;
     for (Demand d : demands.values()) {

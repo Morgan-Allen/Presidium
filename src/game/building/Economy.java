@@ -41,38 +41,44 @@ public interface Economy extends Abilities {
     CARBS       = new Service(BC, "Carbs"     , "carbs.gif"      , FC, 10 ),
     PROTEIN     = new Service(BC, "Protein"   , "protein.gif"    , FC, 20 ),
     GREENS      = new Service(BC, "Greens"    , "greens.gif"     , FC, 50 ),
-    SOMA        = new Service(BC, "Soma"      , "soma.gif"       , FC, 70 ),
+    RATIONS     = new Service(BC, "Rations"   , "rations.gif"    , FC, 80 ),
     //
     //  Mineral wealth-
     METAL_ORE   = new Service(BC, "Metal Ore" , "ores.gif"       , FC, 15 ),
     PETROCARBS  = new Service(BC, "Petrocarbs", "carbons.gif"    , FC, 35 ),
     FUEL_CORES  = new Service(BC, "Fuel Cores", "fuel rods.gif"  , FC, 75 ),
+    ANTIMASS    = new Service(BC, "Antimass"  , "antimass.gif"   , FC, 120),
     //
     //  Building materials-
+    PLASTICS    = new Service(BC, "Plastics"  , "plastics.gif"   , FC, 35 ),
     PARTS       = new Service(BC, "Parts"     , "parts.gif"      , FC, 50 ),
-    PLASTICS    = new Service(BC, "Plastics"  , "plastics.gif"   , FC, 75 ),
+    TENSILES    = new Service(BC, "Tensiles"  , "tensiles.gif"   , FC, 100),
     CIRCUITRY   = new Service(BC, "Circuitry" , "inscription.gif", FC, 140),
-    DECOR       = new Service(BC, "Decor"     , "decor.gif"      , FC, 300),
     //
     //  Medical supplies-
     STIM_KITS   = new Service(BC, "Stim Kit"  , "stimkit.gif"    , FC, 40 ),
+    SOMA        = new Service(BC, "Soma"      , "soma.gif"       , FC, 70 ),
     SPICE       = new Service(BC, "Spice"     , "spices.gif"     , FC, 100),
     MEDICINE    = new Service(BC, "Medicine"  , "medicines.gif"  , FC, 200),
     
-    ALL_FOOD_TYPES[] = { CARBS, PROTEIN, GREENS, SPICE },
+    ALL_FOOD_TYPES[] = { CARBS, PROTEIN, GREENS, RATIONS },
     ALL_COMMODITIES[] = Service.typesSoFar() ;
   
   final public static Service
-    SAMPLES     = new Service(BC, "Samples", "crates_big.gif", FU, -1),
-    CREDITS     = new Service(BC, "Credits", null            , FU, -1),
     
-    TROPHIES    = new Service(BC, FORM_UNIQUE, "Trophy"     , 100 ),
-    RARITIES    = new Service(BC, FORM_UNIQUE, "Rarity"     , 100 ),
+    SAMPLES     = new Service(BC, "Samples"   , "crates_big.gif", FU,  -1),
+    CREDITS     = new Service(BC, "Credits"   , null            , FU,  -1),
+    PRESSFEED   = new Service(BC, "Pressfeed", "pressfeed.gif"  , FU, 200),
     
-    GENE_SEED   = new Service(BC, "Gene Seed" , "gene_seed.gif" , FU, 200 ),
-    REPLICANTS  = new Service(BC, "Replicants", "replicant.gif" , FU, 200 ),
+    TROPHIES    = new Service(BC, FORM_UNIQUE , "Trophy"        ,     100),
+    RARITIES    = new Service(BC, FORM_UNIQUE , "Rarity"        ,     100),
+    DECOR       = new Service(BC, "Decor"     , "decor.gif"     , FU, 300),
+    
+    GENE_SEED   = new Service(BC, "Gene Seed" , "gene_seed.gif" , FU, 200),
+    REPLICANTS  = new Service(BC, "Replicants", "replicant.gif" , FU, 200),
+    DATALINKS   = new Service(BC, "Datalinks" , "datalinks.png" , FU, 200),
+    
     //GHOSTLINE   = new Service(BC, FORM_UNIQUE, "Ghostline"  , 200 ),
-    PRESSFEED   = new Service(BC, "Pressfeed", "pressfeed.gif", FU, 200 ),
     
     ATOMICS     = new Service(BC, FORM_UNIQUE, "Atomic"   , 1000),
     
@@ -82,10 +88,6 @@ public interface Economy extends Abilities {
     WATER        = new Service(BC, "Water"       , "water.png"    , FP, 10),
     LIFE_SUPPORT = new Service(BC, "Life Support", "life_S.png"   , FP, 10),
     POWER        = new Service(BC, "Power"       , "power.png"    , FP, 10),
-    
-    //
-    //  TODO:  This should be a unique item, not a provision?
-    DATALINKS    = new Service(BC, "Datalinks"   , "datalinks.png", FP, 10),
     
     ALL_PROVISIONS[] = Service.typesSoFar() ;
   

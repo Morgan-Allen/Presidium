@@ -66,9 +66,11 @@ public interface Abilities {
     //  Artifice-related skills:
     ASSEMBLY       = new Skill("Assembly"      , FORM_COGNITIVE, INTELLECT),
     CHEMISTRY      = new Skill("Chemistry"     , FORM_COGNITIVE, INTELLECT),
-    FIELD_THEORY   = new Skill("Field Theory"  , FORM_COGNITIVE, INTELLECT),
     INSCRIPTION    = new Skill("Inscription"   , FORM_COGNITIVE, INTELLECT),
+    FIELD_THEORY   = new Skill("Field Theory"  , FORM_COGNITIVE, INTELLECT),
     ASTROGATION    = new Skill("Astrogation"   , FORM_COGNITIVE, INTELLECT),
+    SIMULACRA      = new Skill("Simulacra"     , FORM_COGNITIVE, INTELLECT),
+    ARTIFICER_SKILLS[] = Trait.skillsSoFar(),
     //
     //  Ecology-related skills:
     XENOZOOLOGY    = new Skill("Xenozoology"   , FORM_COGNITIVE, INTELLECT),
@@ -77,22 +79,23 @@ public interface Abilities {
     CETANI_ECOLOGY = new Skill("Cetani Ecology", FORM_COGNITIVE, INTELLECT),
     ALBEDO_ECOLOGY = new Skill("Albedo Ecology", FORM_COGNITIVE, INTELLECT),
     SILICO_ECOLOGY = new Skill("Silico Ecology", FORM_COGNITIVE, INTELLECT),
+    ECOLOGIST_SKILLS[] = Trait.skillsSoFar(),
     //
     //  Physician-related skills:
     PHARMACY       = new Skill("Pharmacy"      , FORM_COGNITIVE, INTELLECT),
     GENE_CULTURE   = new Skill("Gene Culture"  , FORM_COGNITIVE, INTELLECT),
     ANATOMY        = new Skill("Anatomy"       , FORM_COGNITIVE, INTELLECT),
     PSYCHOANALYSIS = new Skill("Psychoanalysis", FORM_COGNITIVE, INTELLECT),
+    FORENSICS      = new Skill("Forensics"     , FORM_COGNITIVE, INTELLECT),
+    SOCIAL_HISTORY = new Skill("Social History", FORM_COGNITIVE, INTELLECT),
+    PHYSICIAN_SKILLS[] = Trait.skillsSoFar(),
     //
     //  Research and governance:
     BATTLE_TACTICS = new Skill("Battle Tactics", FORM_COGNITIVE, INTELLECT),
     ACCOUNTING     = new Skill("Accounting"    , FORM_COGNITIVE, INTELLECT),
     ARCHAEOLOGY    = new Skill("Archaeology"   , FORM_COGNITIVE, INTELLECT),
-    FORENSICS      = new Skill("Forensics"     , FORM_COGNITIVE, INTELLECT),
     LEGISLATION    = new Skill("Legislation"   , FORM_COGNITIVE, INTELLECT),
-    SOCIAL_HISTORY = new Skill("Social History", FORM_COGNITIVE, INTELLECT),
-    
-    COGNITIVE_SKILLS[] = Trait.skillsSoFar() ;
+    HISTORY_SKILLS[] = Trait.skillsSoFar() ;
   
   final public static Skill
     //

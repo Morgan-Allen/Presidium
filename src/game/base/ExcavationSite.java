@@ -34,6 +34,11 @@ import src.util.* ;
 //  TODO:  Have the number of smelters determined by number of staff, and the
 //  type influenced by your upgrades.
 
+//  ...Or maybe by extent?  ...Nah.
+
+//  Okay.  Strip mining and mantle drills/shaft openings.
+
+
 
 public class ExcavationSite extends Venue implements
   Economy, TileConstants
@@ -187,13 +192,19 @@ public class ExcavationSite extends Venue implements
     final int
       offX = t.x - (int) (digArea.xpos() + 0.5f),
       offY = t.y - (int) (digArea.ypos() + 0.5f) ;
-    final MineFace face = new MineFace(this) ;
+    final MineFace face = new MineFace(this, MineFace.TYPE_UNDER_SHAFT) ;
     face.setPosition(t.x, t.y, world) ;
     faceGrid[offX][offY] = face ;
     updatePromise(face) ;
     faceSorting.add(face) ;
     if (verbose) I.sayAbout(this, "Inserted face at: "+face.origin()) ;
     return face ;
+    
+    //
+    //  TODO:  If you're outside the original shaft, and not right next to an
+    //  existing opening, try adding a new opening.  Otherwise, the shaft
+    //  cannot be opened.
+    
   }
   
   
@@ -286,6 +297,8 @@ public class ExcavationSite extends Venue implements
       Background.EXCAVATOR, 1, null, ALL_UPGRADES
     ),
     
+    //
+    //  TODO:  Have this extend the maximum range of excavations?
     STRIP_MINING = new Upgrade(
       "Strip Mining",
       "Allows surface and topsoil mineral deposits to be extracted along "+
@@ -306,7 +319,7 @@ public class ExcavationSite extends Venue implements
   
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.EXCAVATOR } ;
   }
   

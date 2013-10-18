@@ -325,7 +325,7 @@ public class DebugBehaviour extends PlayLoop implements Economy {
         a.goAboard(v, world) ;
       }
     }
-    VenuePersonnel.fillVacancies(v) ;
+    if (GameSettings.hireFree) VenuePersonnel.fillVacancies(v) ;
     v.setAsEstablished(true) ;
     return v ;
   }

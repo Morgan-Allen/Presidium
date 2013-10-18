@@ -353,7 +353,10 @@ public class ActorTraits implements Abilities {
     getMatches(matches, Abilities.INSTINCT_SKILLS ) ;
     getMatches(matches, Abilities.PHYSICAL_SKILLS ) ;
     getMatches(matches, Abilities.SENSITIVE_SKILLS) ;
-    getMatches(matches, Abilities.COGNITIVE_SKILLS) ;
+    getMatches(matches, Abilities.ARTIFICER_SKILLS) ;
+    getMatches(matches, Abilities.ECOLOGIST_SKILLS) ;
+    getMatches(matches, Abilities.PHYSICIAN_SKILLS) ;
+    getMatches(matches, Abilities.HISTORY_SKILLS  ) ;
     getMatches(matches, Abilities.PYSONIC_SKILLS  ) ;
     return (Batch) matches ;
   }

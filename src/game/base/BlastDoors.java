@@ -88,7 +88,7 @@ public class BlastDoors extends ShieldWall implements TileConstants {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.VOLUNTEER } ;
   }
   

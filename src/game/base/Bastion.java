@@ -189,7 +189,7 @@ public class Bastion extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] {
       Background.TECH_RESERVE, Background.VETERAN,
       Background.AUDITOR, Background.STEWARD

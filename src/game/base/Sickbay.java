@@ -246,7 +246,7 @@ public class Sickbay extends Venue implements Economy {
   }
   
   
-  protected Background[] careers() {
+  public Background[] careers() {
     return new Background[] { Background.MINDER, Background.PHYSICIAN } ;
   }
   

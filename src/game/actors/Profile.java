@@ -19,7 +19,6 @@ public class Profile {
     */
   final public Actor actor ;
   
-  //Background position ;
   float paymentDue = 0 ;
   float lastWageEval = -1 ;
   float lastPsychEval = -1 ;

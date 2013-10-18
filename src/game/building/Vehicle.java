@@ -9,6 +9,7 @@ package src.game.building ;
 import src.game.actors.* ;
 import src.game.base.* ;
 import src.game.common.* ;
+import src.game.social.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.HUD;
 import src.user.* ;
@@ -18,11 +19,11 @@ import src.util.* ;
 
 
 //
-//  TODO:  This probably needs to implement the Structural interface.
+//  TODO:  Have Employment return a Personnel class.
 
 
 public abstract class Vehicle extends Mobile implements
-  Boardable, Inventory.Owner, HumanAI.Employment,
+  Boardable, Inventory.Owner, Employment,
   Selectable, Economy, Installation
 {
   
@@ -267,6 +268,13 @@ public abstract class Vehicle extends Mobile implements
   public void setWorker(Actor actor, boolean is) {
     if (is) crew.include(actor) ;
     else crew.remove(actor) ;
+  }
+
+  
+  public void setApplicant(Application app, boolean is) {
+    I.complain("NOT IMPLEMENTED YET!") ;
+    //if (is) applications.include(app) ;
+    //else applications.remove(app) ;
   }
   
   

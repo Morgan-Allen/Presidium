@@ -6,12 +6,12 @@
 
 
 package src.user ;
-import src.game.actors.ActorHealth;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.util.* ;
+import src.game.actors.ActorHealth ;
 
 import org.lwjgl.input.* ;
 import org.lwjgl.opengl.GL11 ;
@@ -52,18 +52,18 @@ public class BaseUI extends HUD implements UIConstants {
   final Rendering rendering ;
   final public Camera camera ;
   
-  Minimap minimap ;
-  Text readout ;
   ///ProgBar psyPoints ;
   //Button charts, policies, household, futures ;  -for Later.
   //UIGroup quickBar, readout ;
-  
   UIGroup helpText ;
+  
+  Minimap minimap ;
+  Text readout ;
   UIGroup infoArea ;
   MainPanel mainPanel ;
+  Quickbar quickbar ;
   
   private ByteBuffer panelFade ;
-  
   private UIGroup currentPanel, newPanel ;
   private long panelInceptTime = -1 ;
   private boolean capturePanel = false ;
@@ -118,22 +118,24 @@ public class BaseUI extends HUD implements UIConstants {
     readout.relBound.set(0, 1, 1, 0) ;
     readout.absBound.set(200, -50, -300, 40) ;
     readout.attachTo(this) ;
-    /*
-    this.psyPoints = new ProgBar(this) ;
-    psyPoints.relBound.set(0, 1, 1, 0) ;
-    psyPoints.absBound.set(450, -20, -750, 5) ;
-    psyPoints.attachTo(this) ;
-    //*/
     
     this.infoArea = new UIGroup(this) ;
     infoArea.relBound.setTo(INFO_BOUNDS) ;
     infoArea.absBound.setTo(INFO_INSETS) ;
     infoArea.attachTo(this) ;
     
-    mainPanel = new MainPanel(this) ;
+    this.mainPanel = new MainPanel(this) ;
     mainPanel.attachTo(infoArea) ;
     currentPanel = newPanel = mainPanel ;
     
+    this.quickbar = new Quickbar(this) ;
+    quickbar.absBound.set(20, 20, 0, 0) ;
+    quickbar.attachTo(this) ;
+    quickbar.setupPowers() ;
+    
+    //
+    //  This *has* to be attached last, to ensure it displays on top of other
+    //  components-
     this.helpText = new Tooltips(this, INFO_FONT, TIPS_TEX, TIPS_INSETS) ;
     helpText.attachTo(this) ;
   }
@@ -166,6 +168,8 @@ public class BaseUI extends HUD implements UIConstants {
   
   
   protected void updateReadout() {
+    //
+    //  TODO:  Move these functions to a separate class.
     if (readout == null) return ;
     readout.setText("") ;
     //

@@ -46,7 +46,7 @@ public class DebugPlanet extends PlayLoop {
     */
   protected boolean loadedAtStartup() {
     try {
-      GameSettings.noFog = true ;
+      GameSettings.fogFree = true ;
       PlayLoop.loadGame("saves/test_planet.rep") ;
       PlayLoop.setGameSpeed(1.0f) ;
       return true ;
@@ -56,7 +56,7 @@ public class DebugPlanet extends PlayLoop {
   
   
   protected World createWorld() {
-    GameSettings.noFog = true ;
+    GameSettings.fogFree = true ;
     PlayLoop.setGameSpeed(5.0f) ;
     
     final TerrainGen TG = new TerrainGen(
@@ -74,7 +74,7 @@ public class DebugPlanet extends PlayLoop {
     TG.setupOutcrops(world) ;
     ///TG.presentMineralMap(world, world.terrain()) ;
     
-    GameSettings.noFog = true ;
+    GameSettings.fogFree = true ;
     final EcologyGen EG = new EcologyGen() ;
     EG.populateFlora(world) ;
     

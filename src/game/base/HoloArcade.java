@@ -20,12 +20,11 @@ public class HoloArcade extends Venue implements Economy {
   /**  Data fields, constructors and save/load methods-
     */
   final public static Model MODEL = ImageModel.asSolidModel(
-    HoloArcade.class, "media/Buildings/aesthete/arcade.png", 5, 3
+    HoloArcade.class, "media/Buildings/aesthete/arcade_redux_preview.png", 5, 3
   ) ;
   
   
   
-
   public HoloArcade(Base base) {
     super(5, 3, Venue.ENTRANCE_SOUTH, base) ;
     structure.setupStats(

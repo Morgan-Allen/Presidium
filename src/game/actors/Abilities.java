@@ -95,7 +95,12 @@ public interface Abilities {
     ACCOUNTING     = new Skill("Accounting"    , FORM_COGNITIVE, INTELLECT),
     ARCHAEOLOGY    = new Skill("Archaeology"   , FORM_COGNITIVE, INTELLECT),
     LEGISLATION    = new Skill("Legislation"   , FORM_COGNITIVE, INTELLECT),
-    HISTORY_SKILLS[] = Trait.skillsSoFar() ;
+    HISTORY_SKILLS[] = Trait.skillsSoFar(),
+    
+    COGNITIVE_SKILLS[] = (Skill[]) Visit.compose(
+      Skill.class,
+      ARTIFICER_SKILLS, ECOLOGIST_SKILLS, PHYSICIAN_SKILLS, HISTORY_SKILLS
+    ) ;
   
   final public static Skill
     //
@@ -109,9 +114,9 @@ public interface Abilities {
     NATIVE_TABOO      = new Skill("Native Taboo"   , FORM_SENSITIVE, INSIGHT),
     COMMON_CUSTOM     = new Skill("Common Custom"  , FORM_SENSITIVE, INSIGHT),
     NOBLE_ETIQUETTE   = new Skill("Noble Etiquette", FORM_SENSITIVE, INSIGHT),
+    OUTER_DIALECTS    = new Skill("Outer Dialects" , FORM_SENSITIVE, INSIGHT),
     REPUBLIC_LAWS     = new Skill("Republic Laws"  , FORM_SENSITIVE, INSIGHT),
     IMPERIAL_DOGMA    = new Skill("Imperial Dogma" , FORM_SENSITIVE, INSIGHT),
-    OUTER_DIALECTS    = new Skill("Outer Dialects" , FORM_SENSITIVE, INSIGHT),
     //
     //  Forms of artistic expression/entertainment:
     EROTICS           = new Skill("Erotics"        , FORM_SENSITIVE, REFLEX ),
@@ -153,7 +158,12 @@ public interface Abilities {
     PROJECTION   = new Skill("Projection"  , FORM_PSYONIC, WILL),
     PREMONITION  = new Skill("Premonition" , FORM_PSYONIC, WILL),
     
-    PYSONIC_SKILLS[] = Trait.skillsSoFar() ;
+    PSYONIC_SKILLS[] = Trait.skillsSoFar() ;
+  
+  final public static Skill ALL_SKILLS[] = (Skill[]) Visit.compose(Skill.class,
+    ATTRIBUTES, INSTINCT_SKILLS, PSYONIC_SKILLS,
+    COGNITIVE_SKILLS, SENSITIVE_SKILLS, PHYSICAL_SKILLS
+  ) ;
   
   
   //  Likelihood of aiding/harming others- Empathic vs. Cruel

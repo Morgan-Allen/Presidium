@@ -386,11 +386,22 @@ public class Human extends Actor implements Abilities {
   }
   
   private Batch <String> descTraits(Batch <Trait> traits) {
+    final Actor actor = this ;
+    final List <Trait> sorting = new List <Trait> () {
+      protected float queuePriority(Trait r) {
+        return 0 - actor.traits.traitLevel(r) ;
+      }
+    } ;
+    for (Trait t : traits) sorting.queueAdd(t) ;
     final Batch <String> desc = new Batch <String> () ;
-    for (Trait t : traits) desc.add(this.traits.levelDesc(t)) ;
+    for (Trait t : sorting) desc.add(this.traits.levelDesc(t)) ;
     return desc ;
   }
 }
+
+
+
+
 
 
 

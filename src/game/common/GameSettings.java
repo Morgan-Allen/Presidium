@@ -14,7 +14,8 @@ public class GameSettings {
   public static boolean
     buildFree = false,
     hireFree  = false,
-    noFog     = false,
+    psyFree   = false,
+    fogFree   = false,
     
     pathFree  = false,
     

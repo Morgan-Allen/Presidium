@@ -94,7 +94,7 @@ public class IntelMap {
   
   
   public float displayFog(Tile t) {
-    if (GameSettings.noFog) return 1 ;
+    if (GameSettings.fogFree) return 1 ;
     return fogOver.valAt(t.x, t.y) ;
   }
   
@@ -108,7 +108,7 @@ public class IntelMap {
   
   
   public float fogAt(Tile t) {
-    if (GameSettings.noFog) return 1 ;
+    if (GameSettings.fogFree) return 1 ;
     return fogVals[t.x][t.y] ;
   }
   

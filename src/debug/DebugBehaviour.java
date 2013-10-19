@@ -19,25 +19,23 @@ import src.user.* ;
 import src.util.* ;
 
 
+
 //
-//  TODO:  You will need to do job-seeking/migration, polish the archives and
-//  surveillance post, plus the whole arcology vs. edifice vs. arcade thing.
+//  TODO:  Test out the archives, finish the surveillance post, and polish the
+//  arcology/edifice/arcade thing.  Expand training.  Fix Stimkit manufacture!
 //
-//  Use actor-vision for more activities?
-//  Have pollution/terraforming gradually change the landscape.
-//  
-//  Actors should call for help from allies, and need proper line of sight.
-//  Add Security and Contact missions.  Have missions modify choice priorities?
+//  Have pollution/terraforming gradually change the landscape.  Or at least
+//  represent squalor correctly.  Also, finish up mining mechanics.
 //
 //  Spruce up the ambience/aesthetics structures, including biomass FX.
 //
 //  Tweak mechanics for diplomacy and citizen mood.  (Good relations are way
-//  too easy/quick at the moment.)
+//  too easy/quick at the moment.)  Actors should call for help from allies,
+//  and need proper line of sight.  Add Security and Contact missions.  Have
+//  missions modify choice priorities?
 //
 //  Simplify the user interface, implement Powers, and add a Main Menu.  That's
 //  it.
-
-
 
 public class DebugBehaviour extends PlayLoop implements Economy {
   
@@ -164,7 +162,7 @@ public class DebugBehaviour extends PlayLoop implements Economy {
   /**  Testing out interactions between alien creatures or primitive humanoids.
     */
   private void natureScenario(World world, Base base, HUD UI) {
-    GameSettings.noFog = true ;
+    GameSettings.fogFree = true ;
     PlayLoop.setGameSpeed(5.0f) ;
     
     final EcologyGen EG = new EcologyGen() ;
@@ -229,7 +227,7 @@ public class DebugBehaviour extends PlayLoop implements Economy {
     */
   private void missionScenario(World world, Base base, HUD UI) {
     
-    GameSettings.noFog = true ;
+    GameSettings.fogFree = true ;
     //GameSettings.hireFree = true ;
     PlayLoop.setGameSpeed(1.0f) ;
     
@@ -284,7 +282,7 @@ public class DebugBehaviour extends PlayLoop implements Economy {
     //  TODO:  Transfer to DebugSituation.
     
     base.incCredits(10000) ;
-    GameSettings.noFog = true ;
+    GameSettings.fogFree = true ;
     GameSettings.buildFree = true ;
     GameSettings.hireFree = true ;
     

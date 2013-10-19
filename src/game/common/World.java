@@ -356,7 +356,7 @@ public class World {
     for (Section section : sections) {
       terrain.renderFor(section.area, rendering, renderTime) ;
     }
-    if (base != null && ! GameSettings.noFog) {
+    if (base != null && ! GameSettings.fogFree) {
       base.intelMap.updateFogBuffers(renderTime) ;
       rendering.addClient(base.intelMap.fogOver()) ;
     }

@@ -105,7 +105,7 @@ public class Minimap extends UINode {
     GL11.glColor4f(1, 1, 1, 1) ;
     mapImage.bindTex() ;
     renderTex(-1) ;
-    if (base != null && ! GameSettings.noFog) {
+    if (base != null && ! GameSettings.fogFree) {
       GL11.glEnable(GL12.GL_TEXTURE_3D) ;
       FogOverlay fogOver = base.intelMap.fogOver() ;
       fogOver.bindAsTex() ;

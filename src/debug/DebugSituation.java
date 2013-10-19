@@ -62,6 +62,7 @@ public class DebugSituation extends PlayLoop implements Economy {
       final Base base = PlayLoop.played() ;
       if (base.credits() < 500) base.incCredits(500 - base.credits()) ;
       PlayLoop.setGameSpeed(1.0f) ;
+      GameSettings.psyFree = true ;
       //GameSettings.pathFree = true ;
       return true ;
     }
@@ -101,9 +102,9 @@ public class DebugSituation extends PlayLoop implements Economy {
     I.say("Configuring world...") ;
     
     base.incCredits(10000) ;
-    GameSettings.noFog = true ;
-    //GameSettings.hireFree = true ;
+    GameSettings.fogFree = true ;
     GameSettings.buildFree = true ;
+    GameSettings.psyFree = true ;
     PlayLoop.setGameSpeed(1.0f) ;
 
     final Actor actor = new Human(Background.PHYSICIAN, base) ;

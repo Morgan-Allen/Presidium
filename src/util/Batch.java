@@ -37,6 +37,7 @@ public class Batch <K> implements Series <K> {
   public int size() { return size ; }
   
   
+  
   /**  Returns an array with identical contents to this Batch.
     */
   final public K[] toArray(Class typeClass) {

@@ -5,6 +5,7 @@
   */
 
 package src.util ;
+import java.lang.reflect.Array;
 import java.util.Iterator ;
 
 
@@ -41,6 +42,17 @@ public class Visit <T> {
   public static int indexOf(Object o, Object a[]) {
     for (int i = a.length ; i-- > 0 ;) if (a[i] == o) return i ;
     return -1 ;
+  }
+  
+  
+  public static Object[] compose(Class arrayClass, Object[]... arrays) {
+    int length = 0, i = 0 ;
+    for (Object a[] : arrays) length += a.length ;
+    final Object[] result = (Object[]) Array.newInstance(arrayClass, length) ;
+    for (Object a[] : arrays) {
+      for (Object o : a) result[i++] = o ;
+    }
+    return result ;
   }
   
   

@@ -28,8 +28,7 @@ public abstract class PlayLoop implements Session.Saveable {
     
     MIN_SLEEP    = 10,
     SLEEP_MARGIN = 2 ;
-  final public static String
-    SAVE_PATH = "saves/test_session.rep" ;
+  //final public static String SAVE_PATH = "saves/test_session.rep" ;
 
   private static boolean verbose = false ;
   
@@ -51,6 +50,7 @@ public abstract class PlayLoop implements Session.Saveable {
   
   private int frameRate = FRAMES_PER_SECOND ;
   private float speedMultiple = 1.0f ;
+  private static long lastSaveTime = -1 ;
   
   
   
@@ -88,6 +88,7 @@ public abstract class PlayLoop implements Session.Saveable {
     played = null ;
     UI = null ;
     rendering.clearAll() ;
+    lastSaveTime = -1 ;
     //RuntimeUtil.gc() ;  //  TODO:  RESTORE THIS.
   }
   
@@ -136,7 +137,10 @@ public abstract class PlayLoop implements Session.Saveable {
   public static void saveGame(String saveFile) {
     if (currentGame == null) return ;
     KeyInput.clearInputs() ;
-    try { Session.saveSession(world(), currentGame, saveFile) ; }
+    try {
+      Session.saveSession(world(), currentGame, saveFile) ;
+      lastSaveTime = lastUpdate ;
+    }
     catch (Exception e) { I.report(e) ; }
   }
   
@@ -150,6 +154,13 @@ public abstract class PlayLoop implements Session.Saveable {
       currentGame = s.loop() ;
     }
     catch (Exception e) { I.report(e) ; }
+  }
+  
+  
+  public static long timeSinceLastSave() {
+    if (currentGame == null || lastSaveTime == -1) return -1 ;
+    return
+      (lastUpdate - lastSaveTime) / UPDATES_PER_SECOND ;
   }
   
   
@@ -307,6 +318,12 @@ public abstract class PlayLoop implements Session.Saveable {
   public static boolean paused() {
     if (currentGame == null) return false ;
     return currentGame.paused ;
+  }
+  
+  
+  public static float gameSpeed() {
+    if (currentGame == null) return -1 ;
+    return currentGame.speedMultiple ;
   }
   
   

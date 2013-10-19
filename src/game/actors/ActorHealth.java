@@ -5,7 +5,6 @@
   */
 package src.game.actors ;
 import src.game.common.* ;
-//import src.game.planet.Planet ;
 import src.util.* ;
 
 

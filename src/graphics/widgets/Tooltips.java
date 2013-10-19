@@ -21,6 +21,7 @@ public class Tooltips extends UIGroup {
     bordering.drawInset.setTo(inset) ;
     bordering.attachTo(this) ;
     infoText = new Text(UI, font) ;
+    infoText.scale = 0.75f ;
     infoText.attachTo(this) ;
   }
   

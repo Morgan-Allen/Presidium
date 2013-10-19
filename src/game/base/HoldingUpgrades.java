@@ -22,7 +22,7 @@ public class HoldingUpgrades implements Economy {
   ) ;
   final public static Upgrade
     TENT_LEVEL = new Upgrade(
-      "Field Tent", "", 0, null, 0, null, ALL_UPGRADES
+      "Seal Tent", "", 0, null, 0, null, ALL_UPGRADES
     ),
     PYON_LEVEL = new Upgrade(
       "Pyon Shacks", "", 0, null, 0, null, ALL_UPGRADES
@@ -57,7 +57,7 @@ public class HoldingUpgrades implements Economy {
     
     "Dreg Towers",
     "Scavenger Slums",
-    "Field Tent",
+    "Seal Tent",
     
     "Pyon Shacks",
     "Freeborn Holding",

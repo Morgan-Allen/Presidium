@@ -279,7 +279,7 @@ public abstract class Mission implements
       if (! role.approved) continue ;
       d.append("\n  ") ;
       d.append(role.applicant) ;
-      d.append(" ") ;
+      d.append(" ("+role.applicant.vocation()+") ") ;
       if (! begun) d.append(new Description.Link("(DISMISS)") {
         public void whenClicked() {
           role.approved = false ;
@@ -292,7 +292,7 @@ public abstract class Mission implements
       if (role.approved) continue ;
       d.append("\n  ") ;
       d.append(role.applicant) ;
-      d.append(" ") ;
+      d.append(" ("+role.applicant.vocation()+") ") ;
       d.append(new Description.Link("(SELECT)") {
         public void whenClicked() {
           role.approved = true ;
@@ -349,13 +349,12 @@ public abstract class Mission implements
       final Element e = (Element) subject ;
       flag.position.setTo(e.viewPosition(null)) ;
       flag.position.z += e.height() + 1 ;
-      flag.scale = 0.5f ;
     }
     else {
       flag.position.setTo(subject.position(null)) ;
       flag.position.z += 1.5f ;
-      flag.scale = 0.5f ;
     }
+    flag.scale = 0.5f ;
   }
   
   
@@ -371,20 +370,5 @@ public abstract class Mission implements
   }
 }
 
-
-
-
-
-
-/**  Targeting/position methods.  (Some are essentially unused.)
-public boolean inWorld() { return subject.inWorld() ; }
-public Vec3D position(Vec3D v) { return subject.position(v) ; }
-
-public float height() { return 1 ; }
-public float radius() { return 0 ; }
-
-public void flagWith(Object f) {}
-public Object flaggedWith() { return null ; }
-//*/
 
 

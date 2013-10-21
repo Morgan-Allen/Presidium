@@ -115,7 +115,7 @@ public class HumanMind extends ActorMind implements Abilities {
       if (actor.base() != null) {
         Migration.lookForJob((Human) actor, actor.base()) ;
       }
-      if (this.home == null) {
+      if (this.home == null && work instanceof Venue) {
         final Holding newHome = Holding.findHoldingFor(actor) ;
         if (newHome != null) {
           if (! newHome.inWorld()) newHome.doPlace(newHome.origin(), null) ;
@@ -186,23 +186,21 @@ public class HumanMind extends ActorMind implements Abilities {
     //  Try a range of other spontaneous behaviours, include relaxation,
     //  helping out and spontaneous missions-
     //
-    //  TODO:  You need to have a dedicated Wandering plan.  To look for home.
-    
+    //  TODO:  You need to have a dedicated Wandering plan.  To look for home?
     //
     //  Training and self-improvement-
     choice.add(Training.nextDrillFor(actor)) ;
-    
-    //  TODO:  Also consider visiting the Archives or Holo-Arcade.
-    
+    choice.add(Research.nextResearchFor(actor)) ;
     //
     //  Consider going home to rest, or finding a recreational facility of
     //  some kind.  That requires iterating over various venues.
     choice.add(Recreation.findRecreation(actor)) ;
     choice.add(new Resting(actor, Resting.pickRestPoint(actor))) ;
+    //
+    //  Foraging and exploration (mainly for natives)-
     if (home instanceof Venue) {
       choice.add(new Foraging(actor, (Venue) home)) ;
     }
-    
     Tile toExplore = Exploring.getUnexplored(actor.base().intelMap, actor) ;
     if (toExplore != null) {
       choice.add(new Exploring(actor, actor.base(), toExplore)) ;

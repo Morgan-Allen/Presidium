@@ -1,4 +1,8 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 
 package src.game.base ;
@@ -83,6 +87,18 @@ public class Archives extends Venue implements Economy {
       }
       else choice.add(new Delivery(custom, this, baseD.destination)) ;
     }
+    //
+    //  Check to see if any catalogues require indexing-
+    final Item indexed = nextToCatalogue() ;
+    if (indexed != null) {
+      final Action catalogues = new Action(
+        actor, this,
+        this, "actionCatalogue",
+        Action.REACH_DOWN, "Indexing catalogue for "+indexed.type
+      ) ;
+      catalogues.setPriority(Action.CASUAL) ;
+      choice.add(catalogues) ;
+    }
     if (choice.size() > 0) return choice.weightedPick(actor.mind.whimsy()) ;
     //
     //  Otherwise, just hang around and help folks with their inquiries-
@@ -100,9 +116,47 @@ public class Archives extends Venue implements Economy {
   }
   
   
+  private Item nextToCatalogue() {
+    float quality = Float.POSITIVE_INFINITY ;
+    Item catalogued = null ;
+    for (Item i : stocks.matches(DATALINKS)) {
+      if (! (i.refers instanceof Skill)) continue ;
+      if (i.quality < quality) { catalogued = i ; quality = i.quality ; }
+    }
+    if (catalogued == null || catalogued.quality >= 5) return null ;
+    return catalogued ;
+  }
+  
+  
+  public boolean actionCatalogue(Actor actor, Archives archive) {
+    final Item catalogued = nextToCatalogue() ;
+    if (catalogued == null) return false ;
+    
+    final float quality = catalogued.quality ;
+    boolean success = true ;
+    success &= actor.traits.test(ACCOUNTING, quality * 2, 1) ;
+    success &= actor.traits.test(INSCRIPTION, quality * 5, 1) ;
+    
+    if (success && Rand.index(10) == 0) {
+      stocks.removeItem(catalogued) ;
+      stocks.addItem(Item.withQuality(catalogued, (int) quality + 1)) ;
+      return true ;
+    }
+    return false ;
+  }
+  
+  
   public boolean hasDataFor(Skill skill) {
     final Item match = Item.withReference(DATALINKS, skill) ;
     return stocks.hasItem(match) ;
+  }
+  
+  
+  public float researchBonus(Skill skill) {
+    Item match = Item.withReference(DATALINKS, skill) ;
+    match = stocks.matchFor(match) ;
+    if (match == null) return -1 ;
+    return (match.quality / 2f) + (isManned() ? 0.5f : 0) ;
   }
   
   
@@ -114,7 +168,10 @@ public class Archives extends Venue implements Economy {
   public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
     if (v == Background.ARCHIVIST) {
-      return nO + 1 + (int) (structure.numUpgrades() / 3) ;
+      int numDL = 0 ; for (Item i : stocks.matches(DATALINKS)) {
+        if (i.refers instanceof Skill) numDL++ ;
+      }
+      return nO + (int) Visit.clamp(1 + (numDL / 5f), 0, 4) ;
     }
     return 0 ;
   }
@@ -134,15 +191,15 @@ public class Archives extends Venue implements Economy {
   
   
   final static Skill[][] SKILL_CATS = {
-    ARTIFICER_SKILLS, ECOLOGIST_SKILLS, PHYSICIAN_SKILLS, HISTORY_SKILLS
+    ARTIFICER_SKILLS, ECOLOGIST_SKILLS, PHYSICIAN_SKILLS, ADMIN_SKILLS
   } ;
   final static String CAT_NAMES[] = {
-    "Artificer", "Ecologist", "Physician", "History"
+    "Artificer", "Ecologist", "Physician", "Admin"
   } ;
   final static int CAT_IDS[] = { 0, 1, 2, 3 } ;
   
   private static int lastSkillCat = 0 ;
-  //private static Skill lastSkillPick = null ;
+  
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
     super.writeInformation(d, categoryID, UI) ;
@@ -172,12 +229,12 @@ public class Archives extends Venue implements Economy {
       else d.append(new Description.Link(" Install") {
         public void whenClicked() {
           stocks.addSpecialOrder(new Manufacture(
-            null, archives, CIRCUITRY_TO_DATALINKS, match
+            null, archives, CIRCUITRY_TO_DATALINKS,
+            Item.withQuality(match, Rand.index(3))
           )) ;
         }
       }) ;
     }
-    
   }
   
   

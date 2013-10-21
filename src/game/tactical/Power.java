@@ -1,5 +1,6 @@
 
 
+
 package src.game.tactical ;
 import src.game.common.* ;
 import src.game.actors.* ;
@@ -14,7 +15,10 @@ import src.user.* ;
 //  (at least for testing purposes) work without a caster.
 //
 //  TODO:  Make this available to actors, once the feedback mechanism is in
-//  place(?)
+//  place(?)  (This will require individual instancing.)
+
+//
+//  TODO:  Make these Saveable for reference purposes?
 
 
 public class Power implements Abilities {
@@ -40,16 +44,6 @@ public class Power implements Abilities {
     this.buttonTex = Texture.loadTexture(IMG_DIR+imgFile) ;
     this.properties = properties ;
   }
-  
-  
-  //
-  //  List of options.  List of target classes, with options for further
-  //  refinement.
-  //  Pass in caster, option, targets after culling, and allow for regular
-  //  updates with a particular binding.
-  
-  //  ...I think I'm overthinking this.  Just invoke directly with the current
-  //  selection and mouse state.
   
   
   public boolean finishedWith(
@@ -188,45 +182,45 @@ public class Power implements Abilities {
       "Imparts spatial moment to a chosen material object.\n(Hurls or carries "+
       "the target in an indicated direction.)"
     ) {
-      /*
-      public boolean acceptsTarget(
-        Target nextTarget, boolean clicked, Target... args
+      private Mobile grabbed = null ;
+      
+      
+      public boolean finishedWith(
+        Actor caster, String option,
+        Target selected, boolean clicked
       ) {
-        if (args.length == 0) {
-          return clicked && nextTarget instanceof Actor ;
+        if (grabbed == null) {
+          if (clicked && selected instanceof Mobile) {
+            grabbed = (Mobile) selected ;
+          }
+          return false ;
         }
-        if (args.length == 1) {
-          return clicked && nextTarget instanceof Tile ;
+        else {
+          if (clicked) {
+            grabbed = null ;
+            return true ;
+          }
+          else return ! pushGrabbed(caster, selected) ;
         }
-        return false ;
       }
       
       
-      public boolean updateWith(Actor caster, Target... args) {
+      private boolean pushGrabbed(Actor caster, Target toward) {
+        if (grabbed == null) return false ;
         
+        float maxDist = 1 ;
+        if (caster != null && ! GameSettings.psyFree) {
+          maxDist = 1 + (caster.traits.useLevel(TRANSDUCTION) / 10f) ;
+          caster.health.adjustPsy(-4f / PlayLoop.FRAMES_PER_SECOND) ;
+        }
+        maxDist /= PlayLoop.FRAMES_PER_SECOND ;
+        
+        final World world = grabbed.world() ;
+        final Tile t = world.tileAt(toward) ;
+        if (Spacing.distance(t, grabbed) > maxDist) return false ;
+        grabbed.setHeading(t.position(null), -1, false, world) ;
         return true ;
       }
-      
-      
-      public boolean finishedWith(Actor caster, Target... args) {
-        return true ;
-      }
-      
-      void applyEffect(Target target, Actor caster) {
-        final BaseUI UI = (BaseUI) PlayLoop.currentUI() ;
-        final Target picked = (Target) UI.selection.hovered() ;
-        if (Spacing.distance(target, picked) < 2f) return ;
-        final Mobile subject = (Mobile) target ;
-        final Vec3D velocity = picked.position(null) ;
-        velocity.sub(subject.position(null)) ;
-        final float bonus = caster.traits.useLevel(TRANSDUCTION) / 5 ;
-        velocity.normalise().scale(2 * (1 + bonus)) ;
-        
-        I.complain("NOT FINISHED YET!") ;
-        //subject.impartVelocity(velocity) ;
-        caster.health.adjustPsy(-4) ;
-      }
-      //*/
     },
     
     
@@ -302,17 +296,29 @@ public class Power implements Abilities {
       "Augments hand-eye coordination and reflex response.\n(Boosts most "+
       "combat and acrobatic skills.)"
     ) {
-      /*
-      void applyEffect(Target target, Actor caster) {
-        final Actor subject = (Actor) target ;
-        final float bonus = caster.traits.useLevel(SYNESTHESIA) / 2 ;
-        subject.traits.incBonus(REFLEX, 5 + bonus) ;
-        for (Skill s : ALL_SKILLS) if (s.parent == REFLEX) {
-          subject.traits.incBonus(s, (5 + bonus) / 2) ;
+      public boolean finishedWith(
+        Actor caster, String option,
+        Target selected, boolean clicked
+      ) {
+        if (clicked != true || ! (selected instanceof Actor)) return true ;
+        final Actor subject = (Actor) selected ;
+        float bonus = 5f ;
+        
+        if (caster != null && ! GameSettings.psyFree) {
+          bonus += caster.traits.useLevel(SYNESTHESIA) / 2 ;
+          caster.health.adjustPsy(-2) ;
         }
-        caster.health.adjustPsy(-0.2f) ;
+        //
+        //  TODO:  You need to create a Condition that does this job... or
+        //  maybe a treatment item?
+        
+        
+        subject.traits.incBonus(REFLEX, bonus) ;
+        for (Skill s : ALL_SKILLS) if (s.parent == REFLEX) {
+          subject.traits.incBonus(s, bonus / 2) ;
+        }
+        return true ;
       }
-      //*/
     },
     
     
@@ -326,31 +332,73 @@ public class Power implements Abilities {
       "Employs mnemonic triggering to incite specific behavioural response."+
       "\n(Compels subject to fight, flee, help or grab a specified target.)"
     ) {
-      /*
-      void applyEffect(Target target, Actor caster) {
-        final Actor subject = (Actor) target ;
-        final float bonus = caster.traits.useLevel(SUGGESTION) / 2 ;
-        I.complain("NOT IMPLEMENTED YET!") ;
-        
-        //
-        //  TODO:  Create a panel for commands, and pass along the subject and
-        //  power bonus.  Then you select a basic activity- flee, fight, help,
-        //  grab or stop.  (Break into sub-commands?  ...Maybe.)
+      
+      final String options[] = new String[] {
+        "Flee",
+        "Fight",
+        "Treat",
+        "Talk"
+      } ;
+      
+      Actor affects = null ;
+      
+      public String[] options() { return options ; }
+      
+      
+      public boolean finishedWith(
+        Actor caster, String option,
+        Target selected, boolean clicked
+      ) {
+        if (affects == null) {
+          if (clicked && selected instanceof Actor) {
+            affects = (Actor) selected ;
+          }
+        }
+        else {
+          if (clicked) return applyEffect(caster, option, selected) ;
+        }
+        return false ;
       }
-      //*/
+      
+      
+      private boolean applyEffect(
+        Actor caster, String option, Target selected
+      ) {
+        Plan command = null ;
+        if (option == options[0] && selected instanceof Tile) {
+          command = new Retreat(affects, (Tile) selected) ;
+        }
+        if (option == options[1] && selected instanceof Actor) {
+          command = new Combat(affects, (Actor) selected) ;
+        }
+        if (option == options[2] && selected instanceof Actor) {
+          command = new Treatment(affects, (Actor) selected, null) ;
+        }
+        if (command == null) return false ;
+        
+        float priorityMod = Plan.IDLE ;
+        if (caster != null && ! GameSettings.psyFree) {
+          priorityMod += caster.traits.useLevel(SUGGESTION) / 5f ;
+          caster.health.adjustPsy(-5) ;
+        }
+        command.priorityMod = priorityMod ;
+        
+        if (affects.mind.couldSwitchTo(command)) {
+          affects.mind.assignBehaviour(command) ;
+        }
+        affects = null ;
+        return true ;
+      }
     },
     
     
     BASIC_POWERS[] = {
         WALK_THE_PATH, DENY_THE_VISION,
         TIME_DILATION, REMOTE_VIEWING,
-        FORCEFIELD, SUSPENSION
-        /*
         TELEKINESIS, FORCEFIELD,
         SUSPENSION,
         KINESTHESIA,
         VOICE_OF_COMMAND
-        //*/
     }
   ;
 }
@@ -358,67 +406,4 @@ public class Power implements Abilities {
 
 
 
-
-
-
-
-/*
-protected Class[] targetTypes() { return null ; }
-
-public boolean acceptArgs(Target... args) {
-  final Class TT[] = targetTypes() ;
-  if (args.length > TT.length) return false ;
-  for (int i = 0 ; i < args.length ; i++) {
-    final Target t = args[i] ;
-    if (t == null) return false ;
-    if (! TT[i].isAssignableFrom(t.getClass())) return false ;
-  }
-  return true ;
-}
-
-
-public String[] options() { return null ; }
-
-
-public boolean finishedWith(Actor caster, String option, Target args[]) {
-  return false ;
-}
-//*/
-
-
-/*
-public boolean hasProperty(int property) {
-  return (properties & property) == property ;
-}
-
-//
-//  ...I don't think the number of targets matters.  But I might want to do
-//  things like screen for allegiance of the subject.
-
-public boolean acceptsTarget(
-  Target nextTarget, boolean clicked, Target... args
-) {
-  return clicked && args.length == 0 && nextTarget instanceof Actor ;
-}
-
-
-public boolean updateWith(Actor caster, Target... args) {
-  return true ;
-}
-
-
-public boolean finishedWith(Actor caster, Target... args) {
-  applyEffect(args[0], caster) ;
-  return true ;
-}
-
-
-public String[] options() {
-  return null ;
-}
-
-
-void applyEffect (Target target, Actor caster) {}
-void cancelEffect(Target target, Actor caster) {}
-//*/
 

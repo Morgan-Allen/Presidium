@@ -1,4 +1,8 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 
 package src.game.base ;
@@ -11,12 +15,13 @@ import src.util.* ;
 
 
 //
-//  TODO:  This also needs to allow for attendance at the Archives and
-//  Holo-Arcade.  And for the former, you need to have a proper idea of career
-//  ambitions (plus migration.)
-
-//  Strip Mining.
-
+//  TODO:  Use this?
+/*
+public static interface Grounds extends Session.Saveable {
+  Training trainingFor(Actor actor) ;
+  float trainingPriority(Actor actor) ;
+}
+//*/
 
 public class Training extends Plan implements Economy {
   
@@ -24,13 +29,17 @@ public class Training extends Plan implements Economy {
   
   /**  Data fields, static constants, constructors and save/load methods-
     */
+  private static boolean verbose = false ;
+  
   final DrillYard yard ;
   
   
 
-  public Training(Actor actor, DrillYard drillsAt) {
-    super(actor, drillsAt) ;
-    this.yard = drillsAt ;
+  public Training(
+    Actor actor, DrillYard grounds
+  ) {
+    super(actor, grounds) ;
+    this.yard = grounds ;
   }
   
   
@@ -47,17 +56,27 @@ public class Training extends Plan implements Economy {
   
   
   
-  /**  Evaluating targets and priorities-
+  /**  Priority and target evaluation-
     */
   public float priorityFor(Actor actor) {
     final Venue work = (Venue) actor.mind.work() ;
     if (work.personnel.shiftFor(actor) != Venue.SECONDARY_SHIFT) {
-      return 0 ;
+      if (! actor.isDoing("actionEquipYard", null)) return 0 ;
     }
     
     float impetus = 0 ;
+    //
+    //  TODO:  Relevant traits might vary depending on type.
     final float pacifism = 0 - actor.traits.traitLevel(AGGRESSIVE) ;
-    impetus -= (pacifism > 0) ? pacifism : (pacifism / 2f) ;
+    switch (yard.drillType()) {
+      case (DrillYard.DRILL_MELEE) :
+      case (DrillYard.DRILL_RANGED) :
+        impetus -= (pacifism > 0) ? pacifism : (pacifism / 2f) ;
+      break ;
+      case (DrillYard.DRILL_AID) :
+        impetus += pacifism / 2f ;
+      break ;
+    }
     
     impetus += actor.traits.traitLevel(DUTIFUL) ;
     impetus -= actor.traits.traitLevel(INDOLENT) ;
@@ -67,6 +86,8 @@ public class Training extends Plan implements Economy {
     else {
       impetus = (impetus + IDLE) / 2 ;
     }
+    //
+    //  TODO:  Modify by importance of associated skills-
     
     impetus -= Plan.rangePenalty(actor, yard) ;
     impetus -= Plan.dangerPenalty(yard, actor) ;
@@ -77,10 +98,6 @@ public class Training extends Plan implements Economy {
   public static Training nextDrillFor(Actor actor) {
     if (actor.base() == null) return null ;
     if (! (actor.mind.work() instanceof Venue)) return null ;
-    //
-    //  TODO:  Use the batch of venues the actor is aware of?
-    
-    ///I.sayAbout(actor, "Getting drill sites") ;
     
     final World world = actor.world() ;
     final Batch <DrillYard> yards = new Batch <DrillYard> () ;
@@ -124,6 +141,9 @@ public class Training extends Plan implements Economy {
     }
     if (yard.equipQuality <= 0) return null ;
     
+    //
+    //  TODO:  If you're a commanding officer, consider supervising the drill-
+    
     final Target
       dummy = yard.nextDummyFree(drillType, actor),
       moveTarget = yard.nextMoveTarget(dummy, actor) ;
@@ -140,29 +160,31 @@ public class Training extends Plan implements Economy {
         actionName = "actionDrillRanged" ;
         animName = Action.FIRE ;
       break ;
-      case (DrillYard.DRILL_SURVIVAL) :
-        actionName = "actionDrillSurvival" ;
-        animName = Rand.yes() ? Action.MOVE_FAST : Action.MOVE_SNEAK ;
+      case (DrillYard.DRILL_ENDURANCE) :
+        actionName = "actionDrillEndurance" ;
+        animName = Action.LOOK ;
+      break ;
+      case (DrillYard.DRILL_AID) :
+        actionName = "actionDrillAid" ;
+        animName = Action.BUILD ;
       break ;
       default : return null ;
     }
     
+    final String DN = DrillYard.DRILL_STATE_NAMES[drillType] ;
     final Action drill = new Action(
       actor, dummy,
       this, actionName,
-      animName, "Drilling"
+      animName, "Drilling "+DN
     ) ;
+    drill.setProperties(Action.QUICK) ;
     drill.setMoveTarget(moveTarget) ;
     return drill ;
   }
   
   
-  
-  /**  Installing and removing equipment-
-    */
   public boolean actionPickupEquipment(Actor actor, Garrison store) {
-    
-    I.say(actor+" Picking up drill equipment...") ;
+    if (verbose) I.sayAbout(actor, "Picking up drill equipment...") ;
     final Item equipment = Item.withReference(SAMPLES, store) ;
     final Upgrade bonus = yard.bonusFor(yard.nextDrill) ;
     final int quality = bonus == null ? 0 :
@@ -171,11 +193,10 @@ public class Training extends Plan implements Economy {
     actor.gear.addItem(Item.withQuality(equipment, quality)) ;
     return true ;
   }
-  
-  
+
+
   public boolean actionEquipYard(Actor actor, Element dummy) {
-    
-    I.say(actor+" Installing drill equipment...") ;
+    if (verbose) I.sayAbout(actor, "Installing drill equipment...") ;
     final Item equipment = actor.gear.bestSample(SAMPLES, yard.belongs, 1) ;
     yard.drill = yard.nextDrill ;
     yard.equipQuality = (int) (equipment.quality * 5) ;
@@ -186,46 +207,38 @@ public class Training extends Plan implements Economy {
   }
   
   
-  
-  /**  Specific practice actions-
-    */
   public boolean actionDrillMelee(Actor actor, Target dummy) {
     final int DC = yard.drillDC(DrillYard.DRILL_MELEE) ;
     actor.traits.test(HAND_TO_HAND, DC, 0.5f) ;
     actor.traits.test(SHIELD_AND_ARMOUR, DC - 5, 0.5f) ;
-    
-    //  ...Only with an officer present...
-    //actor.traits.test(FORMATION_COMBAT, DC - 10, 0.5f) ;
     return true ;
   }
-  
-  
+
+
   public boolean actionDrillRanged(Actor actor, Target target) {
     final int DC = yard.drillDC(DrillYard.DRILL_RANGED) ;
-    
-    //I.say("Success chance "+actor.traits.chance(MARKSMANSHIP, DC)) ;
-    //I.say("Difficulty "+DC) ;
-    
     actor.traits.test(MARKSMANSHIP, DC, 0.5f) ;
     actor.traits.test(SURVEILLANCE, DC - 5, 0.5f) ;
-    
-    //  ...Only with an officer present...
-    ///actor.traits.test(FORMATION_COMBAT, DC - 10, 0.5f) ;
     return true ;
   }
-  
-  
-  public boolean actionDrillSurvival(Actor actor, Target target) {
-    final int DC = yard.drillDC(DrillYard.DRILL_SURVIVAL) ;
+
+
+  public boolean actionDrillEndurance(Actor actor, Target target) {
+    final int DC = yard.drillDC(DrillYard.DRILL_ENDURANCE) ;
     actor.traits.test(ATHLETICS, DC, 0.5f) ;
     actor.traits.test(STEALTH_AND_COVER, DC - 5, 0.5f) ;
-    
-    //  ...Only with an officer present...
-    //actor.traits.test(XENOZOOLOGY, DC - 10, 0.5f) ;
     return true ;
   }
   
   
+  public boolean actionDrillAid(Actor actor, Target target) {
+    final int DC = yard.drillDC(DrillYard.DRILL_AID) ;
+    actor.traits.test(PHARMACY, DC, 0.5f) ;
+    actor.traits.test(ANATOMY, DC - 5, 0.5f) ;
+    return true ;
+  }
+
+
   public boolean actionDrillCommand(Actor actor, DrillYard yard) {
     //
     //  ...Intended for the officer corps.
@@ -240,34 +253,16 @@ public class Training extends Plan implements Economy {
   /**  Rendering and interface-
     */
   public void describeBehaviour(Description d) {
-    if (! describedByStep(d)) d.append("Drilling") ;
+    final String DN = DrillYard.DRILL_STATE_NAMES[yard.drillType()] ;
+    if (! describedByStep(d)) d.append("Drilling "+DN) ;
+    /*
     d.append(" at ") ;
     Target t = lastStepTarget() ;
     if (t == null || Visit.arrayIncludes(yard.dummies, t)) t = yard ;
     d.append(t) ;
+    //*/
   }
 }
-
-
-
-
-
-
-
-
-/*
-public boolean actionDrillPiloting(Actor actor, Target target) {
-  final int DC = yard.drillDC(DrillYard.DRILL_PILOT_SIM) ;
-  actor.traits.test(PILOTING, DC, 0.5f) ;
-  actor.traits.test(ASSEMBLY, DC - 5, 0.5f) ;
-  
-  //  ...Only with an officer present...
-  //actor.traits.test(BATTLE_TACTICS, DC - 10, 0.5f) ;
-  return true ;
-}
-//*/
-
-
 
 
 

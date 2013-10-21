@@ -260,7 +260,7 @@ public final class Spacing implements TileConstants {
     }
     else {
       final Vec3D p = element.position(pA) ;
-      return element.world().tileAt(p.x, p.y) ;
+      return world.tileAt(p.x, p.y) ;
     }
   }
   

@@ -24,7 +24,7 @@ public class LandingStrip extends Venue {
   final static String IMG_DIR = "media/Buildings/merchant/" ;
   final static Model
     STRIP_MODEL = ImageModel.asHollowModel(
-      LandingStrip.class, IMG_DIR+"landing_strip.png", 5.25f, 0
+      LandingStrip.class, IMG_DIR+"landing_strip.png", 4.25f, 0
     ) ;
   
   
@@ -34,7 +34,7 @@ public class LandingStrip extends Venue {
   
   
   public LandingStrip(SupplyDepot belongs) {
-    super(5, 1, ENTRANCE_NORTH, belongs.base()) ;
+    super(4, 1, ENTRANCE_NORTH, belongs.base()) ;
     structure.setupStats(50, 10, 25, 0, Structure.TYPE_FIXTURE) ;
     this.belongs = belongs ;
     
@@ -62,7 +62,7 @@ public class LandingStrip extends Venue {
   /**  Owning/pathing modifications-
     */
   public int owningType() {
-    return FIXTURE_OWNS ;
+    return VENUE_OWNS ;
   }
   
   

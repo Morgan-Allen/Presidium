@@ -104,6 +104,7 @@ public class DebugSituation extends PlayLoop implements Economy {
     base.incCredits(10000) ;
     GameSettings.fogFree = true ;
     GameSettings.buildFree = true ;
+    //GameSettings.hireFree = true ;
     GameSettings.psyFree = true ;
     PlayLoop.setGameSpeed(1.0f) ;
 
@@ -119,26 +120,6 @@ public class DebugSituation extends PlayLoop implements Economy {
     DebugBehaviour.establishVenue(new Sickbay(base), 9, 2, true) ;
     DebugBehaviour.establishVenue(new Garrison(base), 9, 8, true) ;
     
-    
-    /*
-    other.health.takeInjury(other.health.maxHealth() * 2) ;
-    //other.traits.incLevel(MUTATION, 1.5f) ;
-    //other.traits.incLevel(ILLNESS, 2.5f) ;
-    other.enterWorldAt(15, 6, world) ;
-    final Sickbay sickbay = new Sickbay(base) ;
-    DebugBehaviour.establishVenue(sickbay, 9, 2, true, actor) ;
-    DebugBehaviour.establishVenue(new CultureVats(base), 9, 8, true) ;
-    DebugBehaviour.establishVenue(new VaultSystem(base), 3, 5, true) ;
-    //final Reactor generator = new Reactor(base) ;
-    //DebugBehaviour.establishVenue(generator, 21, 5, true) ;
-    //generator.structure.setState(Structure.STATE_INTACT, 0.01f) ;
-    //generator.structure.setBurning(true) ;
-    //generator.setMeltdown(1.0f) ;
-    sickbay.stocks.bumpItem(STIM_KITS, 5) ;
-    sickbay.stocks.bumpItem(MEDICINE , 5) ;
-    
-    ((BaseUI) UI).selection.pushSelection(actor, true) ;
-    //*/
   }
   
   

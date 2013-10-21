@@ -66,8 +66,19 @@ public class Career implements Abilities {
     return homeworld ;
   }
   
+  
   public String fullName() {
     return fullName ;
+  }
+  
+  
+  
+  /**  Fresh developments after recruitment...
+    */
+  public void recordVocation(Background b) {
+    //
+    //  TODO:  Add this to a list of vocations taken!
+    vocation = b ;
   }
   
   
@@ -257,7 +268,7 @@ public class Career implements Abilities {
   static float rateSimilarity(Skill s, Background a, Background b) {
     Integer aL = a.baseSkills.get(s), bL = b.baseSkills.get(s) ;
     if (aL == null || bL == null) return 0 ;
-    return (aL > bL) ? (bL / aL) : (aL / bL) ;
+    return (aL > bL) ? ((bL + 5f) / (aL + 5f)) : ((aL + 5f) / (bL + 5f)) ;
   }
   
   

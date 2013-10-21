@@ -25,10 +25,24 @@ public class Combat extends Plan implements Abilities {
     STYLE_RANGED = 0,
     STYLE_MELEE  = 1,
     STYLE_EITHER = 2,
+    ALL_STYLES[] = { 0, 1, 2 },
     
     OBJECT_SUBDUE  = 0,
     OBJECT_DESTROY = 1,
-    OBJECT_EITHER  = 2 ;
+    OBJECT_EITHER  = 2,
+    ALL_OBJECTS[] = { 0, 1, 2 } ;
+
+  final static String STYLE_NAMES[] = {
+    "Ranged",
+    "Melee",
+    "Either"
+  } ;
+  final static String OBJECT_NAMES[] = {
+    "Capture",
+    "Destroy",
+    "Neutralise"
+  } ;
+  
   
   final Element target ;
   final int style, object ;

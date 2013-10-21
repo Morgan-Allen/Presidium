@@ -351,7 +351,7 @@ public abstract class ActorMind implements Abilities {
       if (! mission.open()) continue ;
       final float priority = mission.priorityFor(actor) ;
       if (priority < Plan.ROUTINE && work != null) continue ;
-      if (priority > chosen.priorityFor(actor)) {
+      if (chosen == null || priority > chosen.priorityFor(actor)) {
         mission.setApplicant(actor, true) ;
       }
       else mission.setApplicant(actor, false) ;

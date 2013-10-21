@@ -16,8 +16,6 @@ import src.user.* ;
 import src.util.* ;
 
 
-//
-//  TODO:  Include a Landing Site right nextdoor?  Yes.
 
 public class SupplyDepot extends Venue implements
   Economy, Service.Trade
@@ -28,7 +26,7 @@ public class SupplyDepot extends Venue implements
   final static Model
     MODEL_UNDER = ImageModel.asSolidModel(
       SupplyDepot.class, "media/Buildings/merchant/depot_under.gif",
-      5.0f, 0
+      4.25f, 0
     ),
     MODEL_CORE = ImageModel.asSolidModel(
       SupplyDepot.class, "media/Buildings/merchant/depot_core.png",
@@ -96,14 +94,14 @@ public class SupplyDepot extends Venue implements
   
   
   public SupplyDepot(Base base) {
-    super(5, 2, ENTRANCE_NORTH, base) ;
+    super(4, 2, ENTRANCE_WEST, base) ;
     
     structure.setupStats(100, 2, 200, 0, Structure.TYPE_VENUE) ;
     personnel.setShiftType(SHIFTS_ALWAYS) ;
     
     final GroupSprite sprite = new GroupSprite() ;
     sprite.attach(MODEL_UNDER, 0, 0, -0.05f) ;
-    sprite.attach(MODEL_CORE, -0.5f, 0.5f, 0) ;
+    sprite.attach(MODEL_CORE, -0.25f, 0.25f, 0) ;
     attachSprite(sprite) ;
   }
   
@@ -164,6 +162,12 @@ public class SupplyDepot extends Venue implements
     
     choice.add(new Supervision(actor, this)) ;
     return choice.weightedPick(actor.mind.whimsy()) ;
+  }
+  
+  
+  public void enterWorldAt(int x, int y, World world) {
+    super.enterWorldAt(x, y, world) ;
+    updateLandingStrip() ;
   }
   
   
@@ -237,31 +241,25 @@ public class SupplyDepot extends Venue implements
   
   /**  Setting up the landing strip-
     */
+  //
+  //  TODO:  Have the landing strip be visible during placement previews?
   protected void updateLandingStrip() {
     if (landingStrip == null || landingStrip.destroyed()) {
       final LandingStrip newStrip = new LandingStrip(this) ;
-      final Tile o = world.tileAt(this) ;
-      
-      final TileSpread spread = new TileSpread(mainEntrance()) {
-        protected boolean canAccess(Tile t) {
-          if (Spacing.distance(t, o) > World.SECTOR_SIZE) return false ;
-          return ! t.blocked() ;
+      final Tile o = origin() ;
+      final int S = this.size ;
+
+      for (int n : TileConstants.N_ADJACENT) {
+        n = (n + 2) % 8 ;
+        newStrip.setPosition(o.x + (N_X[n] * S), o.y + (N_Y[n] * S), world) ;
+        if (newStrip.canPlace()) {
+          newStrip.doPlace(newStrip.origin(), null) ;
+          landingStrip = newStrip ;
+          break ;
         }
-        
-        protected boolean canPlaceAt(Tile t) {
-          newStrip.setPosition(t.x, t.y, t.world) ;
-          if (newStrip.canPlace()) return true ;
-          return false ;
-        }
-      } ;
-      spread.doSearch() ;
-      if (spread.success()) {
-        newStrip.doPlace(newStrip.origin(), null) ;
-        landingStrip = newStrip ;
       }
     }
   }
-  
   
   
   

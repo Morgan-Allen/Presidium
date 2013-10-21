@@ -67,6 +67,7 @@ public class I {
   /**  A few utility printing methods-
     */
   public static String shorten(float f, int decimals) {
+    if (Math.abs(f) < 0.1f) return "0" ;
     final boolean neg = f < 0 ;
     if (neg) f *= -1 ;
     final int i = (int) f ;

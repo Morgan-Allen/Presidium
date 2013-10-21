@@ -47,19 +47,6 @@ Quest ideas-
 
 
 
-GARRISON & BASTION
-  What about Shield Walls/Perimeter Fence?
-  ...Restrict access to particular personnel.
-  ...Afford chance to upgrade along length.
-  ...Activate shields/man the defences.
-  2 Sentries at Blast Door, as standard.
-
-THE ARCHIVES
-  (requires circuitry)
-  ...Allows skills to be researched (after you install their Datalinks.)
-  Archivists as a standard complement, based on no. of datalinks.
-
-
 
 
 
@@ -122,6 +109,17 @@ THE FREE MARKET & MCHQ
   Complement to the Garrison.  Reserves are paid for, instead of
   coming out of your workforce.  Aces/Rail Drivers, perhaps.
 
+
+ENCLOSURE
+  Insulates large portions of terrain on worlds with minimal or toxic
+  atmospheres, and permits construction over outcrops and seabeds.
+
+SHIELD GENERATOR
+  Extends the benefits of shield protection, atmospheric containment or
+  cloaking fields to nominated local structures.
+
+COLONY POD
+  A startup base and supply cache air-dropped directly from orbit.
 
 
 
@@ -188,15 +186,53 @@ Symbiont Circle (the Former Node)
              and various anime biomech armours, including NGE Evas/Angels
 
 Shaper Colony (the Sculptor's Studio)
-  Host                   (basic trainee)
+  Chrysalid              (basic trainee)
   Shaper Metabolist      (physique, regen and crude psyonics)
   Shaper Strain Weaver   (ecology, animal-bonding and mutation)
   Shaper Face Dancer     (the arts, disguise, spying and seduction)
   Xenopath               (potent but unstable psyonic abilities)
-  Chrysalid              (head of the school)
+  Host                   (head of the school)
   
   Based on:  Bene Tleilaxu from Dune, Last And First Men, Hyperion's Ousters,
              aspects of the Na'vi from Avatar and WH40K Chaos
+
+IMPERIAL FANE
+  Improves relations with the Empress and associated worlds
+  Permits exchange of Atomics with other Houses
+  Relics and artifacts may be stored and studied
+  Imperial Guard recruited based on no. of items stored
+
+SKY BRIDGE
+  Greatly facilitates offworld trade and migration
+  Allows customised spacecraft to be commissioned
+  Establishes ground-based Shipyard for parts:
+    Crew Quarters / Cargo Compartment
+    Reactor Core / Propulsion Systems
+    Weapons Array / Navigation Bridge
+  Recruiting crews and Shipwrights
+
+SCULPTOR'S STUDIO
+  Plant life modified to provide free food and aesthetics
+  Permits 'plastic surgery' via gene-grafting/prosthesis
+  Sovereign can nominate/sponsor personnel for transformation
+  Sculptor for free
+
+PSYON CHOIR
+  Permits formal training in psyonic abilities through technological
+  augmentation or replication of natural abilities.
+  Substantially augments the sovereign's Seat of Power.
+  Recruiting Scientists
+  Allows configuration of customised psyonic abilities:
+    Duration/Range
+    Traits affected/Effect type
+    Artifact/Serum vehicles
+
+FORMER NODE
+  Assimilates nearby terrain and non-organic structures (friend or foe)
+  Accelerates terraforming/land reclamation but imposes Silicate ecology
+  Cannot be demolished once growth begins
+  Copious output of minerals without pollution
+
 
 
 The Krech:

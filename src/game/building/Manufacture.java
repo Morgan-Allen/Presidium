@@ -14,6 +14,8 @@ import src.util.* ;
 
 
 
+//
+//  TODO:  Quit after a certain total amount made.
 
 public class Manufacture extends Plan implements Behaviour {
   
@@ -24,6 +26,9 @@ public class Manufacture extends Plan implements Behaviour {
     */
   final static int
     TIME_PER_UNIT = 30 ;
+  
+  private static boolean verbose = true ;
+  
   
   final public Venue venue ;
   final public Conversion conversion ;
@@ -92,13 +97,11 @@ public class Manufacture extends Plan implements Behaviour {
     if (GameSettings.hardCore && ! hasNeeded()) return 0 ;
     //
     //  Don't work on this outside your shift (or at least make it more
-    //  casual.)  TODO:  Implement 'secondary shifts' or overtime?
+    //  casual.)
     final Venue venue = (Venue) actor.mind.work() ;
-    if (! venue.personnel.onShift(actor)) {
-      return 0 ;
-    }
-    //final List <Manufacture> orders = venue.stocks.specialOrders() ;
-    //if (orders.size() > 0 && ! orders.contains(this)) return 0 ;
+    final int shift = venue.personnel.shiftFor(actor) ;
+    if (shift == Venue.OFF_DUTY) return 0 ;
+    if (shift == Venue.SECONDARY_SHIFT) return IDLE ;
     final boolean hasNeeded = hasNeeded() ;
     float competition = begun() ? 0 : venue.personnel.assignedTo(this) ;
     //
@@ -128,7 +131,6 @@ public class Manufacture extends Plan implements Behaviour {
     //
     //  TODO:  Average the shortage of each needed item, so that penalties are
     //  less stringent for output that demands multiple inputs.
-    
     for (Item need : needed) {
       if (! venue.stocks.hasItem(need)) return false ;
     }
@@ -196,6 +198,11 @@ public class Manufacture extends Plan implements Behaviour {
     if (progress > 0) {
       final Item added = Item.withAmount(made, progress) ;
       venue.stocks.addItem(added) ;
+      if (verbose && I.talkAbout == actor) {
+        I.say("Time taken/success: "+timeTaken+"/"+success) ;
+        I.say("Time mult: "+timeMult) ;
+        I.say("Progress on "+made+": "+progress) ;
+      }
     }
     final float newAmount = venue.stocks.amountOf(made) ;
     pastFive = ((int) (oldAmount / 5) > (int) (newAmount / 5)) ;

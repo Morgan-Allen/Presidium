@@ -21,7 +21,7 @@ public class Garrison extends Venue implements Economy {
     */
   final static Model
     MODEL = ImageModel.asSolidModel(
-      Garrison.class, "media/Buildings/military/house_garrison.png", 4, 4
+      Garrison.class, "media/Buildings/military/house_garrison.png", 4.25f, 3
     ) ;
   
   
@@ -29,7 +29,7 @@ public class Garrison extends Venue implements Economy {
   
   
   public Garrison(Base base) {
-    super(4, 4, ENTRANCE_SOUTH, base) ;
+    super(4, 3, ENTRANCE_SOUTH, base) ;
     structure.setupStats(
       500, 20, 250,
       Structure.SMALL_MAX_UPGRADES, Structure.TYPE_FIXTURE
@@ -74,7 +74,7 @@ public class Garrison extends Venue implements Economy {
       "Prepares your soldiers for guerilla warfare and wilderness survival.",
       200, null, 3, null, ALL_UPGRADES
     ),
-    PEACEKEEPER_TRAINING = new Upgrade(
+    AID_TRAINING = new Upgrade(
       "Peacekeeper Training",
       "Educates your soldiers about the use of minimal force, local "+
       "contacts, and proper treatment of prisoners.",
@@ -152,6 +152,11 @@ public class Garrison extends Venue implements Economy {
   }
   
   
+  public void enterWorldAt(int x, int y, World world) {
+    super.enterWorldAt(x, y, world) ;
+    updateDrillYard() ;
+  }
+  
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
@@ -159,28 +164,23 @@ public class Garrison extends Venue implements Economy {
     if (! structure.intact()) return ;
   }
   
-  
+  //
+  //  TODO:  Have the drill yard be visible during placement previews?  Ideally,
+  //  yeah.
   protected void updateDrillYard() {
     if (drillYard == null || drillYard.destroyed()) {
       final DrillYard newYard = new DrillYard(this) ;
-      final Tile o = world.tileAt(this) ;
-      final TileSpread spread = new TileSpread(mainEntrance()) {
-        
-        protected boolean canAccess(Tile t) {
-          if (Spacing.distance(t, o) > World.SECTOR_SIZE) return false ;
-          return ! t.blocked() ;
+      final Tile o = origin() ;
+      final int S = this.size ;
+      
+      for (int n : TileConstants.N_ADJACENT) {
+        n = (n + 2) % 8 ;
+        newYard.setPosition(o.x + (N_X[n] * S), o.y + (N_Y[n] * S), world) ;
+        if (newYard.canPlace()) {
+          newYard.doPlace(newYard.origin(), null) ;
+          drillYard = newYard ;
+          break ;
         }
-        
-        protected boolean canPlaceAt(Tile t) {
-          newYard.setPosition(t.x, t.y, t.world) ;
-          if (newYard.canPlace()) return true ;
-          return false ;
-        }
-      } ;
-      spread.doSearch() ;
-      if (spread.success()) {
-        newYard.doPlace(newYard.origin(), null) ;
-        drillYard = newYard ;
       }
     }
   }

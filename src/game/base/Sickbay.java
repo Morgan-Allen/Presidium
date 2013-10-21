@@ -120,10 +120,10 @@ public class Sickbay extends Venue implements Economy {
     final Choice choice = new Choice(actor) ;
     //
     //  Manufacture Stim Kits for later use-
-    final Manufacture mS = stocks.nextManufacture(actor, NIL_TO_STIM_KITS) ;
+    final Manufacture mS = stocks.nextManufacture(actor, MEDICINE_TO_STIM_KITS) ;
     if (mS != null) {
       mS.checkBonus = ((structure.upgradeLevel(EMERGENCY_AID) - 1) * 5) / 2 ;
-      mS.timeMult = 5 ;
+      //mS.timeMult = 5 ;
       choice.add(mS) ;
     }
     //

@@ -95,11 +95,11 @@ public interface Abilities {
     ACCOUNTING     = new Skill("Accounting"    , FORM_COGNITIVE, INTELLECT),
     ARCHAEOLOGY    = new Skill("Archaeology"   , FORM_COGNITIVE, INTELLECT),
     LEGISLATION    = new Skill("Legislation"   , FORM_COGNITIVE, INTELLECT),
-    HISTORY_SKILLS[] = Trait.skillsSoFar(),
+    ADMIN_SKILLS[] = Trait.skillsSoFar(),
     
     COGNITIVE_SKILLS[] = (Skill[]) Visit.compose(
       Skill.class,
-      ARTIFICER_SKILLS, ECOLOGIST_SKILLS, PHYSICIAN_SKILLS, HISTORY_SKILLS
+      ARTIFICER_SKILLS, ECOLOGIST_SKILLS, PHYSICIAN_SKILLS, ADMIN_SKILLS
     ) ;
   
   final public static Skill
@@ -623,6 +623,36 @@ public interface Abilities {
       ALBEDAN_STRAIN, SILVERQUICK, MOEBIUS_PLAGUE
     } ;
   final public static Trait CONDITIONS[] = Trait.traitsSoFar() ;
+  
+  
+  final public static Trait
+    HYPERKINESIS_EFFECT = new Condition(
+      SHORT_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(
+        REFLEX, 5, HAND_TO_HAND, 5, MARKSMANSHIP, 5, ATHLETICS, 5
+      ),
+      "Hyperkinesis"
+    ),
+    SUSPENSION_EFFECT = new Condition(
+      SHORT_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(),
+      "Suspension"
+    ) {
+      public void affect(Actor a) {
+        a.health.liftInjury(0.1f) ;
+      }
+    },
+    SPICE_VISION_EFFECT = new Condition(
+      SHORT_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(
+        VIGOUR, 10, INTELLECT, 5, INSIGHT, 5, WILL, 5
+      ),
+      "Spice Vision"
+    ) {
+      public void affect(Actor a) {
+        if (a.traits.traitLevel(SPICE_ADDICTION) <= 0) {
+          a.traits.incLevel(SPICE_ADDICTION, Rand.num()) ;
+        }
+      }
+    },
+    EFFECTS[] = Trait.traitsSoFar() ;
   
   //
   //  TODO:  Put these in a separate class, so you can concisely describe their

@@ -1,4 +1,8 @@
-
+/**  
+  *  Written by Morgan Allen.
+  *  I intend to slap on some kind of open-source license here in a while, but
+  *  for now, feel free to poke around for non-commercial purposes.
+  */
 
 
 package src.game.base ;
@@ -12,6 +16,9 @@ import src.user.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  Integrate with the performance and recreation behaviours!
+
 
 public class HoloArcade extends Venue implements Economy {
   
@@ -20,13 +27,13 @@ public class HoloArcade extends Venue implements Economy {
   /**  Data fields, constructors and save/load methods-
     */
   final public static Model MODEL = ImageModel.asSolidModel(
-    HoloArcade.class, "media/Buildings/aesthete/arcade_redux_preview.png", 5, 3
+    HoloArcade.class, "media/Buildings/aesthete/arcade_redux_preview.png", 4, 2
   ) ;
   
   
   
   public HoloArcade(Base base) {
-    super(5, 3, Venue.ENTRANCE_SOUTH, base) ;
+    super(4, 2, Venue.ENTRANCE_SOUTH, base) ;
     structure.setupStats(
       300, 4, 400,
       Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_VENUE
@@ -111,26 +118,6 @@ public class HoloArcade extends Venue implements Economy {
     return new Service[] { DATALINKS } ;
   }
   
-  /*
-  public void writeInformation(Description d, int categoryID, HUD UI) {
-    super.writeInformation(d, categoryID, UI) ;
-    if (categoryID != 3 || ! structure.intact()) return ;
-    
-    final boolean hasESP = structure.upgradeLevel(ESP_INDUCTION) > 0 ;
-    
-    if (structure.upgradeLevel(HYPNOGOGIC_TRAINING) > 0) {
-      d.append("\n\nHypnogogic Training:") ;
-      for (final int type : HYPNO_TYPES) {
-        if (type == HYPNO_ESP && ! hasESP) continue ;
-        d.append("\n  ") ;
-        d.append(new Description.Link(HYPNO_NAMES[type]) {
-          public void whenClicked() { hypnoType = type ; }
-        }, type == hypnoType ? Colour.YELLOW : Colour.BLUE) ;
-      }
-    }
-  }
-  //*/
-  
   
   public String fullName() {
     return "Holo-Arcade" ;
@@ -191,4 +178,25 @@ final static String HYPNO_NAMES[] = {
   "ESP Trigger Induction"
 } ;
 private int hypnoType = HYPNO_NONE ;
+//*/
+
+
+/*
+public void writeInformation(Description d, int categoryID, HUD UI) {
+  super.writeInformation(d, categoryID, UI) ;
+  if (categoryID != 3 || ! structure.intact()) return ;
+  
+  final boolean hasESP = structure.upgradeLevel(ESP_INDUCTION) > 0 ;
+  
+  if (structure.upgradeLevel(HYPNOGOGIC_TRAINING) > 0) {
+    d.append("\n\nHypnogogic Training:") ;
+    for (final int type : HYPNO_TYPES) {
+      if (type == HYPNO_ESP && ! hasESP) continue ;
+      d.append("\n  ") ;
+      d.append(new Description.Link(HYPNO_NAMES[type]) {
+        public void whenClicked() { hypnoType = type ; }
+      }, type == hypnoType ? Colour.YELLOW : Colour.BLUE) ;
+    }
+  }
+}
 //*/

@@ -5,7 +5,6 @@
   */
 
 
-
 package src.game.base ;
 import src.game.building.* ;
 import src.game.common.* ;

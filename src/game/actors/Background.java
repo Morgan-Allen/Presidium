@@ -690,6 +690,28 @@ public class Background implements Economy, Session.Saveable {
   }
   
   
+  public static Background loadConstant(Session s) throws Exception {
+    return ALL_BACKGROUNDS[s.loadInt()] ;
+  }
+  
+  
+  public void saveState(Session s) throws Exception {
+    s.saveInt(ID) ;
+  }
+  
+  
+  
+  /**  Data access-
+    */
+  public int skillLevel(Skill s) {
+    final Integer level = baseSkills.get(s) ;
+    return level == null ? 0 : (int) level ;
+  }
+  
+  
+  
+  /**  Rendering and interface helper methods-
+    */
   protected Texture costumeFor(String texName) {
     return Texture.loadTexture(COSTUME_DIR+texName) ;
   }
@@ -712,16 +734,6 @@ public class Background implements Economy, Session.Saveable {
   
   public Texture portraitFor(Actor actor) {
     return portrait ;
-  }
-  
-  
-  public static Background loadConstant(Session s) throws Exception {
-    return ALL_BACKGROUNDS[s.loadInt()] ;
-  }
-  
-  
-  public void saveState(Session s) throws Exception {
-    s.saveInt(ID) ;
   }
 }
 

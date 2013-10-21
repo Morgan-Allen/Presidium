@@ -17,6 +17,8 @@ public class ReconMission extends Mission {
   
   /**  Field definitions, constructors and save/load methods-
     */
+  
+  int areaSize ;
   Tile inRange[] ;
   boolean done = false ;
   

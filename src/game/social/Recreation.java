@@ -82,6 +82,9 @@ public class Recreation extends Plan implements Economy {
         rating += 2 ;
       }
     }
+    //
+    //  TODO:  Also, the Holo Arcade
+    
     if (venue instanceof Holding) {
       return 2.0f + ((Holding) venue).upgradeLevel() ;
     }
@@ -133,7 +136,7 @@ public class Recreation extends Plan implements Economy {
   private float somaPrice(Venue venue) {
     if (venue instanceof Cantina) {
       final Cantina c = (Cantina) venue ;
-      return c.priceSoma() * 0.1f ;
+      return c.priceFor(SOMA) * 0.1f ;
     }
     return 0 ;
   }

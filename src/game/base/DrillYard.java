@@ -11,10 +11,9 @@ import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
-
 //
-//  Dummies have to be given names.  And probably a dedicated class.
-
+//  TODO:  I need some method of ensuring that actors won't just walk through
+//  the drill yard unless they have business there.
 
 public class DrillYard extends Venue {
   
@@ -25,30 +24,42 @@ public class DrillYard extends Venue {
   final static String IMG_DIR = "media/Buildings/military/" ;
   final static Model
     YARD_MODEL = ImageModel.asHollowModel(
-      DrillYard.class, IMG_DIR+"drill_yard.png", 5, 4
+      DrillYard.class, IMG_DIR+"drill_yard.png", 4.25f, 1
     ),
-    DRILL_MODELS[] = ImageModel.loadModels(
-      DrillYard.class, 2, 1, IMG_DIR, ImageModel.TYPE_HOLLOW_BOX,
-      "drill_melee.png",
-      "drill_ranged.png",
-      "drill_pilot_sim.png",
-      "drill_survival.png"
-    ) ;
+    MELEE_MODEL = ImageModel.asHollowModel(
+      DrillYard.class, IMG_DIR+"drill_melee.png", 2, 1
+    ),
+    RANGED_MODEL = ImageModel.asHollowModel(
+      DrillYard.class, IMG_DIR+"drill_ranged.png", 2, 1
+    ),
+    ENDURE_MODEL = ImageModel.asSolidModel(
+      DrillYard.class, IMG_DIR+"drill_endurance.png", 2, 1
+    ),
+    AID_MODEL = ImageModel.asSolidModel(
+      DrillYard.class, IMG_DIR+"drill_aid_table.png", 2, 1
+    ),
+    DRILL_MODELS[] = {
+      MELEE_MODEL, RANGED_MODEL, ENDURE_MODEL, AID_MODEL
+    } ;
   
   
   final public static int
     NOT_DRILLING    = -1,
     DRILL_MELEE     =  0,
     DRILL_RANGED    =  1,
-    DRILL_SURVIVAL  =  2,
-    NUM_DRILLS      =  3,
+    DRILL_ENDURANCE =  2,
+    DRILL_AID       =  3,
+    NUM_DRILLS      =  4,
     
     STATE_RED_ALERT =  4,
-    DRILL_STATES[] = { 0, 1, 2 },
+    DRILL_STATES[]  = { 0, 1, 2, 3 },
     
-    NUM_DUMMIES = 4 ;
+    NUM_DUMMIES = 2,
+    NUM_OFFSETS = 4,
+    DRILL_INTERVAL = World.STANDARD_DAY_LENGTH ;
+  
   final static String DRILL_STATE_NAMES[] = {
-    "Close Combat", "Target Practice", "Endurance Course"
+    "Close Combat", "Target Practice", "Endurance Course", "Aid Table"
   } ;
   
   
@@ -64,7 +75,7 @@ public class DrillYard extends Venue {
   
   
   public DrillYard(Garrison belongs) {
-    super(5, 1, ENTRANCE_EAST, belongs.base()) ;
+    super(4, 1, ENTRANCE_EAST, belongs.base()) ;
     structure.setupStats(50, 10, 25, 0, Structure.TYPE_FIXTURE) ;
     this.belongs = belongs ;
     
@@ -80,6 +91,8 @@ public class DrillYard extends Venue {
     for (int i = 0 ; i < NUM_DUMMIES; i++) {
       dummies[i] = (Element) s.loadObject() ;
     }
+    dummies = new Element[NUM_DUMMIES] ;
+    setupDummies() ;
     drill = s.loadInt() ;
     nextDrill = s.loadInt() ;
     equipQuality = s.loadInt() ;
@@ -102,7 +115,7 @@ public class DrillYard extends Venue {
   /**  Owning/pathing modifications-
     */
   public int owningType() {
-    return FIXTURE_OWNS ;
+    return VENUE_OWNS ;
   }
   
   
@@ -145,8 +158,15 @@ public class DrillYard extends Venue {
     int numModes = 0 ;
     for (boolean b : drillOrders) if (b) numModes++ ;
     if (numModes > 0) {
-      final int hour = (int) ((world.currentTime() % 1) * 12) ;
-      nextDrill = hour % numModes ;
+      final int mode = (int) (world.currentTime() / DRILL_INTERVAL) ;
+      for (int i = 0, d = 0 ; i < drillOrders.length ; i++) {
+        if (! drillOrders[i]) continue ;
+        if (d == mode % numModes) {
+          nextDrill = DRILL_STATES[i] ;
+          break ;
+        }
+        else d++ ;
+      }
     }
   }
   
@@ -168,17 +188,16 @@ public class DrillYard extends Venue {
     RANGED_OFFS[] = {
       3, 0,  3, 1,  3, 2,  3, 3,
     },
-    PILOT_OFFS[] = {
+    ENDURE_OFFS[] = {
+      0, 0,  0, 3,  3, 3,  3, 0,
+    },
+    AID_OFFS[] = {
       2, 0,  2, 1,  2, 2,  2, 3,
     },
-    SURVIVE_OFFS[] = {
-      0, 0,  0, 3,  4, 3,  4, 0,
-    },
     DUMMY_OFFS[] = {
-      0, 0,  0, 1,  0, 2,  0, 3
+      0.5f, 2,  0.5f, 3,
     }
   ;
-  
   private void setupDummies() {
     final Tile o = origin() ;
     if (o == null) return ;
@@ -203,17 +222,23 @@ public class DrillYard extends Venue {
   
   protected Target nextMoveTarget(Target dummy, Actor actor) {
     float offs[] = null ; switch (drill) {
-      case (DRILL_MELEE    ) : offs = MELEE_OFFS   ; break ;
-      case (DRILL_RANGED   ) : offs = RANGED_OFFS  ; break ;
-      case (DRILL_SURVIVAL ) : offs = SURVIVE_OFFS ; break ;
+      case (DRILL_MELEE    ) : offs = MELEE_OFFS  ; break ;
+      case (DRILL_RANGED   ) : offs = RANGED_OFFS ; break ;
+      case (DRILL_ENDURANCE) : offs = ENDURE_OFFS ; break ;
+      case (DRILL_AID      ) : offs = AID_OFFS    ; break ;
       default: return null ;
     }
-    final Tile o = origin() ;
-    for (int i = dummies.length, n = 0 ; i-- > 0 ;) {
+    final Tile o = origin(), a = actor.origin() ;
+    Tile pick = null ;
+    for (int i = 0, n = 0 ; i < NUM_OFFSETS ; i++) {
       final Tile t = world.tileAt(o.x + offs[n++], o.y + offs[n++]) ;
-      if (dummies[i] == dummy) return t ;
+      if (pick == null) pick = t ;
+      if (t == a) {
+        n = ((i + 1) % NUM_OFFSETS) * 2 ;
+        return world.tileAt(o.x + offs[n++], o.y + offs[n++]) ;
+      }
     }
-    return null ;
+    return pick ;
   }
   
   
@@ -227,7 +252,8 @@ public class DrillYard extends Venue {
     switch (state) {
       case (DRILL_MELEE    ) : return Garrison.MELEE_TRAINING     ;
       case (DRILL_RANGED   ) : return Garrison.MARKSMAN_TRAINING  ;
-      case (DRILL_SURVIVAL ) : return Garrison.ENDURANCE_TRAINING ;
+      case (DRILL_ENDURANCE) : return Garrison.ENDURANCE_TRAINING ;
+      case (DRILL_AID      ) : return Garrison.AID_TRAINING       ;
     }
     return null ;
   }
@@ -260,8 +286,8 @@ public class DrillYard extends Venue {
     if (m != null) {
       //
       //  TODO:  Fade in transparently too...
-      s.attach(m.makeSprite(), -1.5f, -1.5f, 0) ;
-      s.attach(m.makeSprite(), -1.5f,  0.5f, 0) ;
+      s.attach(m.makeSprite(), -0.5f, -1.5f, 0) ;
+      s.attach(m.makeSprite(), -0.5f,  0.5f, 0) ;
     }
   }
   

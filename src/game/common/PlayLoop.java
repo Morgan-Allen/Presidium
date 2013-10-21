@@ -11,6 +11,8 @@ import src.graphics.common.* ;
 import src.user.* ;
 //import jlibs.core.lang.RuntimeUtil ;  //  TODO:  RESTORE THIS.
 
+//
+//  TODO:  Don't make this Saveable.  It's not worth the complications.
 
 
 public abstract class PlayLoop implements Session.Saveable {

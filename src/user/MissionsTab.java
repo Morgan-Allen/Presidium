@@ -19,7 +19,7 @@ import src.util.* ;
 public class MissionsTab extends InfoPanel {
   
   
-  /**  Constants, field defintions and constructors-
+  /**  Constants, field definitions and constructors-
     */
   final static String
     IMG_DIR = "media/GUI/Missions/" ;
@@ -32,16 +32,16 @@ public class MissionsTab extends InfoPanel {
   //  These icons need to be worked on a little more...
   final public static ImageModel
     STRIKE_MODEL = ImageModel.asSolidModel(
-      MissionsTab.class, IMG_DIR+"flag_strike.gif", 1, 3
+      MissionsTab.class, IMG_DIR+"flag_strike.gif", 1, 2
     ),
     RECON_MODEL = ImageModel.asSolidModel(
-      MissionsTab.class, IMG_DIR+"flag_recon.gif", 1, 3
+      MissionsTab.class, IMG_DIR+"flag_recon.gif", 1, 2
     ),
     CONTACT_MODEL = ImageModel.asSolidModel(
-      MissionsTab.class, IMG_DIR+"flag_contact.gif", 1, 3
+      MissionsTab.class, IMG_DIR+"flag_contact.gif", 1, 2
     ),
     SECURITY_MODEL = ImageModel.asSolidModel(
-      MissionsTab.class, IMG_DIR+"flag_security.gif", 1, 3
+      MissionsTab.class, IMG_DIR+"flag_security.gif", 1, 2
     ) ;
   
   
@@ -75,6 +75,13 @@ public class MissionsTab extends InfoPanel {
     }) ;
     detailText.append("\n") ;
     
+    detailText.insert(SECURITY_ICON, 40) ;
+    detailText.append(" Security Mission\n") ;
+    detailText.append(new Text.Clickable() {
+      public String fullName() { return "Target" ; }
+      public void whenClicked() { initSecurityTask() ; }
+    }) ;
+    detailText.append("\n") ;
     
     /*
     detailText.insert(CONTACT_ICON, 40) ;
@@ -85,13 +92,6 @@ public class MissionsTab extends InfoPanel {
     }) ;
     detailText.append("\n") ;
     
-    detailText.insert(SECURITY_ICON, 40) ;
-    detailText.append(" Strike Mission\n") ;
-    detailText.append(new Text.Clickable() {
-      public String fullName() { return "Target" ; }
-      public void whenClicked() { initSecurityTask() ; }
-    }) ;
-    detailText.append("\n") ;
     //*/
   }
   
@@ -104,6 +104,7 @@ public class MissionsTab extends InfoPanel {
   
   
   private void previewFlag(Sprite flag, Target picked, boolean valid) {
+    flag.scale = 0.5f ;
     if (! valid) {
       final World world = UI.world() ;
       final Vec3D onGround = world.pickedGroundPoint(UI, UI.rendering.port) ;
@@ -169,6 +170,25 @@ public class MissionsTab extends InfoPanel {
   
   
   protected void initSecurityTask() {
+    final Sprite flagSprite = SECURITY_MODEL.makeSprite() ;
+    UI.beginTask(new TargetTask(UI, SECURITY_ICON) {
+      
+      boolean validPick(Target pick) {
+        if (! (pick instanceof Actor || pick instanceof Venue)) return false ;
+        if (! ((Element) pick).visibleTo(UI.played())) return false ;
+        return true ;
+      }
+      
+      void previewAt(Target picked, boolean valid) {
+        previewFlag(flagSprite, picked, valid) ;
+      }
+      
+      void performAt(Target picked) {
+        final Mission mission = new SecurityMission(UI.played(), picked) ;
+        UI.played().addMission(mission) ;
+        UI.selection.pushSelection(mission, true) ;
+      }
+    }) ;
   }
   
   

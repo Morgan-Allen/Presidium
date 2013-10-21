@@ -160,7 +160,6 @@ public class Inventory {
         "ADDING ILLEGAL ITEM: "+item+" amount/quality:"+
         item.amount+"/"+item.quality
       ) ;
-      I.sayAbout(owner, "Adding null item... "+item.amount) ;
       new Exception().printStackTrace() ;
       return false ;
     }

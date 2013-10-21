@@ -83,6 +83,9 @@ public class Migration extends Plan {
   }
   
   
+  
+  /**  Helper methods for finding other employment-
+    */
   public static Application lookForJob(Human actor, Base base) {
     //
     //  Set up key comparison variables-
@@ -162,14 +165,17 @@ public class Migration extends Plan {
     //  already employed, etc.  Implement all of that.
     int transport = 0, incentive = 0, guildFees = 0 ;
     
-    if (! app.applies.inWorld()) transport += 100 ;
+    if (! app.applies.inWorld()) {
+      //  ...This could potentially be much higher, depending on origin point.
+      transport += 200 ;
+    }
     guildFees += Background.HIRE_COSTS[app.position.standing] ;
     
     if (app.employer instanceof Venue) {
       final Venue venue = (Venue) app.employer ;
       int numEmployed = venue.personnel.numPositions(app.position) ;
       if (numEmployed == 0) {
-        guildFees /= 2 ;
+        guildFees = 0 ;
         transport /= 2 ;
       }
       else guildFees *= 1 + ((numEmployed - 1) / 2f) ;
@@ -238,24 +244,6 @@ public class Migration extends Plan {
   
   public void describeBehaviour(Description d) {
     d.append("Migrating off-planet") ;
-  }
-  
-  
-  
-  /**  Helper methods for finding suitable employment elsewhere-
-    */
-  static Batch <Venue> nearbyEmployers() {
-    
-    
-    return null ;
-  }
-  
-  
-  
-  public static float rateEmployer(Venue location, Background position) {
-    
-    
-    return 0 ;
   }
 }
 

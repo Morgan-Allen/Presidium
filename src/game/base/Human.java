@@ -90,6 +90,10 @@ public class Human extends Actor implements Abilities {
   
   public Object species() { return Species.HUMAN ; }
   
+  public void setVocation(Background b) {
+    career.recordVocation(b) ;
+  }
+  
   
   
   /**  Utility methods/constants for creating human-citizen sprites and

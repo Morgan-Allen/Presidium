@@ -22,10 +22,11 @@ import src.util.* ;
 
 //
 //  TODO:  Test out the archives, finish the surveillance post, and polish the
-//  arcology/edifice/arcade thing.  Expand training.  Fix Stimkit manufacture!
+//  arcology/edifice/arcade thing.  Test out Research and the HoloArcade.
 //
 //  Have pollution/terraforming gradually change the landscape.  Or at least
-//  represent squalor correctly.  Also, finish up mining mechanics.
+//  represent squalor correctly.  Also, finish up mining mechanics and the
+//  causeway.
 //
 //  Spruce up the ambience/aesthetics structures, including biomass FX.
 //

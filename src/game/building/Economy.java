@@ -337,8 +337,8 @@ public interface Economy extends Abilities {
       MODERATE_DC, CHEMISTRY, ROUTINE_DC, PHARMACY
     ),
     
-    NIL_TO_STIM_KITS = new Conversion(
-      TO, 1, STIM_KITS,
+    MEDICINE_TO_STIM_KITS = new Conversion(
+      1, MEDICINE, TO, 10, STIM_KITS,
       Sickbay.class,
       ROUTINE_DC, PHARMACY, ROUTINE_DC, CHEMISTRY
     ),

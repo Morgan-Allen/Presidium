@@ -14,14 +14,6 @@ import src.util.* ;
 
 
 
-//
-//  TODO:  The Cantina should appear by itself once your settlement gets big
-//  enough.  It counts as private property.  (Which is why you can't get rid of
-//  the criminal element!)
-//
-//  TODO:  Citizens should be able to dine here while relaxing (for a price...)
-
-
 public class Cantina extends Venue implements Economy {
   
   
@@ -29,7 +21,7 @@ public class Cantina extends Venue implements Economy {
   /**  Constants, field definitions, constructors and save/load methods-
     */
   final static Model MODEL = ImageModel.asSolidModel(
-    Cantina.class, "media/Buildings/merchant/cantina.gif", 4, 3
+    Cantina.class, "media/Buildings/merchant/cantina.png", 4, 3
   ) ;
   final static String VENUE_NAMES[] = {
     "The Hive From Home",
@@ -57,14 +49,16 @@ public class Cantina extends Venue implements Economy {
   
   final static float
     LODGING_PRICE = 20,
+    EROTICS_PRICE = 100,
     
     GAMBLE_PRICE  = 50,
     BET_SMALL     = 20,
     BET_LARGE     = 50,
     POT_INTERVAL  = 20,
     
-    SOMA_MARGIN   = 1.5f,
-    GAMBLE_MARGIN = 0.2f ;
+    SOMA_MARGIN    = 1.5f,
+    GAMBLE_MARGIN  = 0.2f,
+    SMUGGLE_MARGIN = 2.0f ;
   
   
   private int nameID = -1 ;
@@ -163,8 +157,22 @@ public class Cantina extends Venue implements Economy {
   //  TODO:  Allow *any* good to be purchased here, but at double or triple
   //  normal prices.  And it has to be explicitly commissioned, then delivered
   //  from off the map by runners.
+  
+  //
+  //  Recruit the Runner to make a single delivery, then have them leave the
+  //  map.
+  private void listenForDemands() {
+    
+  }
+  
+  
+  public float priceFor(Service good) {
+    if (good == SOMA) return SOMA.basePrice * SOMA_MARGIN ;
+    return good.basePrice * SMUGGLE_MARGIN ;
+  }
+  
+  
   public Service[] services() {
-    //return ALL_UNIQUE_ITEMS ;
     return new Service[] { SERVICE_PERFORM } ;
   }
   
@@ -173,10 +181,11 @@ public class Cantina extends Venue implements Economy {
     return 20 ;
   }
   
-  
+  /*
   public float priceSoma() {
     return priceFor(SOMA) * 1.5f ;
   }
+  //*/
   
   
   public float priceBet() {

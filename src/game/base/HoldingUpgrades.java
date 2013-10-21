@@ -13,6 +13,10 @@ import src.util.* ;
 //  de-cluttering and headspace.  And for now, I'm limiting myself to the 5
 //  basic housing types.
 
+//
+//  TODO:  Have biomass reduce life support needs by an absolute, not relative,
+//  degree.
+
 
 public class HoldingUpgrades implements Economy {
   
@@ -368,10 +372,9 @@ public class HoldingUpgrades implements Economy {
   }
   
   
+  
   /**  Special good demands, for pressfeed and inscriptions-
     */
-  
-  
   protected static Batch <Item> specialGoods(Holding holding, int targetLevel) {
     final Batch <Item> needed = new Batch <Item> () ;
     
@@ -398,15 +401,13 @@ public class HoldingUpgrades implements Economy {
           "date with current events.  An Audit Office should supply this." ;
       }
     }
-
     if (upgradeLevel >= LEVEL_GUILDER) {
       if (holding.stocks.shortagePenalty(DATALINKS) > 0) {
         return (! verbose) ? NOT_MET :
-          "Your wealthy guilders need the privileged access to information "+
-          "that comes with an Archive's datalinks." ;
+          "Your wealthy guilders need access to the privileged information "+
+          "that resides in an Archives' encrypted datalinks." ;
       }
     }
-    
     return NEEDS_MET ;
   }
   

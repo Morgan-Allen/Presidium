@@ -123,8 +123,8 @@ public class Causeway extends Segment {
   
   public String helpInfo() {
     return
-      "Causeways facilitate transport between distant sectors of your base, "+
-      "along with distribution of power and life support." ;
+      "Causeways facilitate long-range transport of goods and personnel, "+
+      "along with water, power and life support." ;
   }
   
   

@@ -21,7 +21,7 @@ public class SurveillancePost extends Venue implements Economy {
   /**  Data fields, constructors and save/load methods-
     */
   final public static Model MODEL = ImageModel.asSolidModel(
-    SurveillancePost.class, "media/Buildings/ecologist/surveyor.png", 4, 1
+    SurveillancePost.class, "media/Buildings/ecologist/surveyor.png", 5, 1
   ) ;
   
   
@@ -29,10 +29,10 @@ public class SurveillancePost extends Venue implements Economy {
   
   
   public SurveillancePost(Base base) {
-    super(4, 1, Venue.ENTRANCE_EAST, base) ;
+    super(5, 1, Venue.ENTRANCE_EAST, base) ;
     structure.setupStats(
       100, 4, 150,
-      Structure.SMALL_MAX_UPGRADES, Structure.TYPE_VENUE
+      Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
     personnel.setShiftType(SHIFTS_BY_HOURS) ;
     attachSprite(MODEL.makeSprite()) ;
@@ -97,8 +97,7 @@ public class SurveillancePost extends Venue implements Economy {
     EXPLORER_STATION = new Upgrade(
       "Explorer Station",
       "Explorers are rugged outdoorsman that combine scientific curiosity "+
-      "with a deep respect for natural ecosystems and basic self-defence "+
-      "training.",
+      "with a respect for natural ecosystems and basic self-defence training.",
       100,
       null, 1, null, ALL_UPGRADES
     ) ;

@@ -73,6 +73,7 @@ public abstract class Actor extends Mobile implements
   protected MobilePathing initPathing() { return new MobilePathing(this) ; }
   
   public Background vocation() { return null ; }
+  public void setVocation(Background b) {}
   
   public Object species() { return null ; }
   

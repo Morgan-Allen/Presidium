@@ -61,7 +61,10 @@ public class Commerce implements Economy {
     
     ship = new Dropship() ;
     ship.assignBase(base) ;
-    addCrew(ship, Background.SHIP_CAPTAIN, Background.SHIP_MECHANIC) ;
+    addCrew(ship,
+      Background.SHIP_CAPTAIN,
+      Background.SHIP_MECHANIC
+    ) ;
     nextVisitTime = Rand.num() * SUPPLY_INTERVAL ;
   }
   
@@ -331,6 +334,7 @@ public class Commerce implements Economy {
     for (Background v : positions) {
       final Human staff = new Human(new Career(v), base) ;
       staff.mind.setEmployer(ship) ;
+      //staff.mind.setHomeVenue(ship) ;
     }
   }
   

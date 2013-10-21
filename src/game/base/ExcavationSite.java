@@ -447,8 +447,8 @@ public class ExcavationSite extends Venue implements
 
   public String helpInfo() {
     return
-      "Excavation Shafts permit extraction of useful mineral wealth from "+
-      "the terrain surrounding your settlement." ;
+      "Excavation Sites expedite the extraction of mineral wealth and "+
+      "buried artifacts from the terrain surrounding your settlement." ;
   }
 
   

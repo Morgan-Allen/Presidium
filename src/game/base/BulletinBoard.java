@@ -27,8 +27,12 @@ public class BulletinBoard extends Venue implements Economy {
   ) ;
   
   
-  public BulletinBoard(Base base) {
+  final AuditOffice parent ;
+  
+  
+  public BulletinBoard(Base base, AuditOffice parent) {
     super(2, 3, ENTRANCE_WEST, base) ;
+    this.parent = parent ;
     structure.setupStats(15, 2, 50, 0, Structure.TYPE_FIXTURE) ;
     personnel.setShiftType(SHIFTS_ALWAYS) ;
     this.attachSprite(MODEL.makeSprite()) ;
@@ -37,17 +41,22 @@ public class BulletinBoard extends Venue implements Economy {
   
   public BulletinBoard(Session s) throws Exception {
     super(s) ;
+    parent = (AuditOffice) s.loadObject() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveObject(parent) ;
   }
   
   
   
   /**  Economic functions, upgrades and behaviour implementation-
     */
+  //
+  //  TODO:  Get attention from advertisers.  ...Include the hypnotic suggestion
+  //  techs here?
   public Behaviour jobFor(Actor actor) {
     return null ;
   }
@@ -84,7 +93,7 @@ public class BulletinBoard extends Venue implements Economy {
   
 
   public String buildCategory() {
-    return UIConstants.TYPE_AESTHETE ;
+    return UIConstants.TYPE_MERCHANT ;
   }
 }
 

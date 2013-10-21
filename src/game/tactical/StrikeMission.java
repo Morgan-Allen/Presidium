@@ -8,6 +8,7 @@ package src.game.tactical ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
 
@@ -20,6 +21,11 @@ import src.util.* ;
 public class StrikeMission extends Mission {
   
   
+
+  /**  Field definitions, constants and save/load methods-
+    */
+  int objective = Combat.OBJECT_EITHER ;
+  
   
   public StrikeMission(Base base, Target subject) {
     super(
@@ -31,11 +37,13 @@ public class StrikeMission extends Mission {
   
   public StrikeMission(Session s) throws Exception {
     super(s) ;
+    objective = s.loadInt() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveInt(objective) ;
   }
   
   
@@ -43,7 +51,6 @@ public class StrikeMission extends Mission {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
-    //  TODO:  Try to unify these.
     if (subject instanceof Actor) return Combat.combatPriority(
       actor, (Actor) subject,
       actor.mind.greedFor(rewardAmount(actor)) * ROUTINE,
@@ -58,13 +65,29 @@ public class StrikeMission extends Mission {
   
   public Behaviour nextStepFor(Actor actor) {
     if (finished()) return null ;
-    return new Combat(actor, (Element) subject) ;
+    return new Combat(
+      actor, (Element) subject, Combat.STYLE_EITHER, objective
+    ) ;
   }
 
 
   public boolean finished() {
     if (Combat.isDead((Element) subject)) return true ;
     return false ;
+  }
+  
+  
+  
+  /**  Rendering and interface-
+    */
+  public void writeInformation(Description d, int categoryID, HUD UI) {
+    super.writeInformation(d, categoryID, UI) ;
+    d.append("\n\nObjective: ") ;
+    d.append(new Description.Link(Combat.OBJECT_NAMES[objective]) {
+      public void whenClicked() {
+        objective = (objective + 1) % Combat.ALL_OBJECTS.length ;
+      }
+    }) ;
   }
   
   
@@ -75,6 +98,8 @@ public class StrikeMission extends Mission {
     d.append(subject) ;
   }
 }
+
+
 
 
 

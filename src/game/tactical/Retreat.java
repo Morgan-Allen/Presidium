@@ -25,6 +25,12 @@ public class Retreat extends Plan implements Abilities {
   public Retreat(Actor actor) {
     super(actor) ;
   }
+  
+  
+  public Retreat(Actor actor, Target safePoint) {
+    super(actor) ;
+    this.safePoint = safePoint ;
+  }
 
 
   public Retreat(Session s) throws Exception {

@@ -176,6 +176,7 @@ public class VenuePersonnel {
     //  TODO:  Once you have incentives worked out, restore this-
     //works.gear.incCredits(app.salary / 2) ;
     //works.gear.taxDone() ;
+    works.setVocation(a.position) ;
     works.mind.setEmployer(venue) ;
     //
     //  If there are no remaining openings for this background, cull any
@@ -289,61 +290,3 @@ public class VenuePersonnel {
 }
 
 
-
-
-
-/*
-if (shiftType == -1) return false ;
-if (shiftType == Venue.SHIFTS_ALWAYS) return true ;
-//
-//  Firstly, determine proper indices for the shift and the roster-
-final float time = venue.world().currentTime() / World.STANDARD_DAY_LENGTH ;
-int currentShift = 0, shiftCycle = 0, workerIndex = 0 ;
-int numShifts = 0 ;
-if (shiftType == Venue.SHIFTS_BY_HOURS) {
-  shiftCycle = (int) time ;
-  currentShift = (int) ((time * 3) % 3) ;
-  numShifts = 1;
-}
-if (shiftType == Venue.SHIFTS_BY_DAY) {
-  if ((time % 1) > 0.5f) return false ;
-  shiftCycle = (int) (time / 3) ;
-  currentShift = ((int) time) % 3 ;
-  numShifts = 2 ;
-}
-if (shiftType == Venue.SHIFTS_BY_CALENDAR) {
-  I.complain("CALENDAR NOT IMPLEMENTED YET!") ;
-}
-for (Actor actor : workers) {
-  if (actor == worker) break ;
-  else workerIndex++ ;
-}
-//
-//  Then, see if they match up.  This probably requires a little more
-//  explanation...
-//
-//  Imagine we have Actors 1-through-4, and Shifts A, B, and C.  As each
-//  cycle of shifts proceeds, we want to allot actors to shifts as follows:
-//
-// (Cycle 1)(Cycle 2)(Cycle 3) ...
-//   A B C    A B C    A B C   ...
-//   1 2 3    3 4 1    1 2 3   ...
-//   4 1 2    2 3 4    4 1 2   ...etc.
-//
-//  The basic idea being that all shifts are filled as evenly as possible,
-//  without any single actor being consistently overworked.
-
-//  TODO:  ...Actually, this probably needs to be rethought.  It may not
-//  be performing as advertised, or maybe it's a bad idea.  Maybe leaving
-//  gaps in the roster is better than overworking citizens...?
-
-if (workers.size() < 3) return workerIndex == currentShift ;
-for (int period = 0 ; period < workers.size() ; period += 3) {
-  for (int shiftIndex = numShifts ; shiftIndex-- > 0 ;) {
-    final int index = period + currentShift + shiftIndex + shiftCycle ;
-    if ((index % workers.size()) == workerIndex) return true ;
-  }
-}
-return false ;
-}
-//*/

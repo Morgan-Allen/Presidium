@@ -20,13 +20,13 @@ public class InfoPanel extends UIGroup implements UIConstants {
   
   /**  Constants, fields and setup methods-
     */
-  final public Texture BORDER_TEX = Texture.loadTexture(
+  final public static Texture BORDER_TEX = Texture.loadTexture(
     "media/GUI/Panel.png"
   ) ;
   final public static int
     DEFAULT_TOP_MARGIN = 50,
     MARGIN_WIDTH = 10,
-    HEADER_HEIGHT = 50 ;
+    HEADER_HEIGHT = 35 ;
   
   final static Class INFO_CLASSES[] = {
     Vehicle.class,
@@ -58,11 +58,10 @@ public class InfoPanel extends UIGroup implements UIConstants {
   public InfoPanel(BaseUI UI, Selectable selected, int topMargin) {
     super(UI) ;
     this.UI = UI ;
-    this.relBound.setTo(PANE_BOUNDS) ;
-    //  TODO:  Make the insets part of the constants as well?
-    this.absBound.set(20, 30, -40, -50) ;
-    final int MW = MARGIN_WIDTH, HH = HEADER_HEIGHT ;
+    this.relBound.set(0, 0, 1, 1) ;
     
+    this.absBound.set(20, 20, -40, -40) ;
+    final int MW = MARGIN_WIDTH, HH = HEADER_HEIGHT ;
     this.border = new Bordering(UI, BORDER_TEX) ;
     border.drawInset.set(-40, -40, 80, 80) ;
     border.absBound.set(MW, MW, -2 * MW, -2 * MW) ;

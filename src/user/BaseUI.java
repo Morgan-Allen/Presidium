@@ -16,24 +16,8 @@ import src.game.actors.ActorHealth ;
 import org.lwjgl.input.* ;
 import org.lwjgl.opengl.GL11 ;
 import org.lwjgl.* ;
-
 import java.nio.* ;
 
-
-
-/*
- *  Main View Screen:
- *    Minimap.  Starcharts.  Career & Legislation.
- *    Stardate, Credits, Reputation and Psych Readout.
- *    Quickbar (for Powers, Mission Types, and hotkeyed Actors or Venues.)
- *    Logs and Active Missions.
- *    
- *  Information Panels:
- *    Info on Actors/Missions/Venues (Selectables.)
- *    Guilds/Construction.
- *    Missions/Personnel.
- *    Game Powers/Settings/Seat of Power.
- */
 
 
 
@@ -52,15 +36,11 @@ public class BaseUI extends HUD implements UIConstants {
   final Rendering rendering ;
   final public Camera camera ;
   
-  ///ProgBar psyPoints ;
-  //Button charts, policies, household, futures ;  -for Later.
-  //UIGroup quickBar, readout ;
   UIGroup helpText ;
-  
   Minimap minimap ;
   Text readout ;
   UIGroup infoArea ;
-  MainPanel mainPanel ;
+  //MainPanel mainPanel ;
   Quickbar quickbar ;
   
   private ByteBuffer panelFade ;
@@ -124,14 +104,17 @@ public class BaseUI extends HUD implements UIConstants {
     infoArea.absBound.setTo(INFO_INSETS) ;
     infoArea.attachTo(this) ;
     
-    this.mainPanel = new MainPanel(this) ;
-    mainPanel.attachTo(infoArea) ;
-    currentPanel = newPanel = mainPanel ;
+    //this.mainPanel = new MainPanel(this) ;
+    //mainPanel.attachTo(infoArea) ;
+    currentPanel = newPanel = null ;
     
     this.quickbar = new Quickbar(this) ;
-    quickbar.absBound.set(20, 20, 0, 0) ;
+    quickbar.absBound.set(20, 20, -40, 0) ;
+    quickbar.relBound.set(0, 0, 1, 0) ;
     quickbar.attachTo(this) ;
-    quickbar.setupPowers() ;
+    quickbar.setupMissionButtons() ;
+    quickbar.setupPowersButtons() ;
+    quickbar.setupInstallButtons() ;
     
     //
     //  This *has* to be attached last, to ensure it displays on top of other
@@ -148,7 +131,7 @@ public class BaseUI extends HUD implements UIConstants {
     //if (newPanel != currentPanel) return ;  //Not during a transition...
     if (infoPanel == currentPanel) return ;
     newPanel = infoPanel ;
-    if (newPanel == null) newPanel = mainPanel ;
+    //if (newPanel == null) newPanel = mainPanel ;
   }
   
   
@@ -268,6 +251,11 @@ public class BaseUI extends HUD implements UIConstants {
     */
   public UITask currentTask() {
     return currentTask ;
+  }
+  
+  
+  public UIGroup currentPanel() {
+    return this.currentPanel ;
   }
   
   

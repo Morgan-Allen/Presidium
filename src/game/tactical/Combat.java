@@ -374,19 +374,27 @@ public class Combat extends Plan implements Abilities {
   }
   
   
-  //
-  //  You may also need to decrement shields.
   static void performStrike(
     Actor actor, Actor target,
     Skill offence, Skill defence
   ) {
+    //
+    //  TODO:  Allow for wear and tear to weapons/armour over time...
     final boolean success = actor.traits.test(
       offence, target, defence, 0 - rangePenalty(actor, target), 1
     ) ;
     if (success) {
       float damage = actor.gear.attackDamage() * Rand.avgNums(2) ;
       damage -= target.gear.armourRating() * Rand.avgNums(2) ;
-      if (damage > 0) target.health.takeInjury(damage) ;
+      
+      final float oldDamage = damage ;
+      damage = target.gear.afterShields(damage, actor.gear.physicalWeapon()) ;
+      final boolean hit = damage > 0 ;
+      if (damage != oldDamage) {
+        OutfitType.applyFX(target.gear.outfitType(), target, actor, hit) ;
+      }
+      
+      if (hit) target.health.takeInjury(damage) ;
     }
     DeviceType.applyFX(actor.gear.deviceType(), actor, target, success) ;
   }

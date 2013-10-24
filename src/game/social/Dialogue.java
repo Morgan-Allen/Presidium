@@ -28,9 +28,6 @@ import src.util.* ;
 //    Dispute/Sex Escalation
 //    Kinship Modifiers/Exceptions
 
-//
-//  TODO:  You want the chat FX to persist a while after expiry.
-
 
 public class Dialogue extends Plan implements Abilities {
   
@@ -146,6 +143,8 @@ public class Dialogue extends Plan implements Abilities {
     appeal += attraction / 2 ;
     appeal += novelty * actor.traits.scaleLevel(INQUISITIVE) ;
     appeal *= actor.traits.scaleLevel(SOCIABLE) ;
+    
+    appeal += priorityMod ;
     return Visit.clamp(appeal, 0, CASUAL) ;
   }
   

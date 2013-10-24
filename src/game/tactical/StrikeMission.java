@@ -83,7 +83,8 @@ public class StrikeMission extends Mission {
   public void writeInformation(Description d, int categoryID, HUD UI) {
     super.writeInformation(d, categoryID, UI) ;
     d.append("\n\nObjective: ") ;
-    d.append(new Description.Link(Combat.OBJECT_NAMES[objective]) {
+    if (begun()) d.append(Combat.OBJECT_NAMES[objective]) ;
+    else d.append(new Description.Link(Combat.OBJECT_NAMES[objective]) {
       public void whenClicked() {
         objective = (objective + 1) % Combat.ALL_OBJECTS.length ;
       }

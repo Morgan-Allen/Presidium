@@ -352,7 +352,11 @@ public class ActorHealth implements Abilities {
   
   
   public void setState(int state) {
+    final int oldState = this.state ;
     this.state = state ;
+    if (state != oldState && state != STATE_ACTIVE) {
+      actor.enterStateKO(Action.FALL) ;
+    }
   }
   
   
@@ -425,16 +429,6 @@ public class ActorHealth implements Abilities {
   }
   
   
-  /*
-  public boolean needsTreatment() {
-    for (Trait d : TREATABLE_CONDITIONS) if (actor.traits.traitLevel(d) > 0) {
-      return true ;
-    }
-    return false ;
-  }
-  //*/
-  
-  
   public float stressPenalty() {
     if (stressCache != -1) return stressCache ;
     if (! organic) return stressCache = 0 ;
@@ -500,7 +494,7 @@ public class ActorHealth implements Abilities {
     if (oldState != state && state != STATE_ACTIVE) {
       if (state < STATE_DYING && ! organic) state = STATE_DYING ;
       I.say(actor+" has entered a non-active state: "+stateDesc()) ;
-      actor.enterStateKO() ;
+      actor.enterStateKO(Action.FALL) ;
     }
     if (state <= STATE_RESTING) Condition.checkContagion(actor) ;
   }

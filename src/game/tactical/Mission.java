@@ -25,6 +25,9 @@ public abstract class Mission implements
     TYPE_BOUNTY_MEDIUM = 2,
     TYPE_BOUNTY_LARGE  = 3,
     ALL_TYPES[] = { 0, 1, 2, 3 } ;
+  //
+  //  TODO:  Allow arbitrary reward settings?
+  
   final static String TYPE_DESC[] = {
     "Volunteer",
     "Small Payment",
@@ -116,15 +119,6 @@ public abstract class Mission implements
   }
   
   
-  //
-  //  TODO:  Replace with a general 'rewardAppeal' method, so that you can
-  //  employ different enticements.
-  public int rewardAmount(Actor actor) {
-    final float div = Math.max(2.5f, numApproved()) ;
-    return (int) (REWARD_AMOUNTS[rewardType] / div) ;
-  }
-  
-  
   
   /**  Adding and screening applicants-
     */
@@ -132,6 +126,15 @@ public abstract class Mission implements
     Actor applicant ;
     ///Pledge pledgeMade ;  //Not used at the moment.
     boolean approved ;
+  }
+  
+  
+  //
+  //  TODO:  Replace with a general 'rewardAppeal' method, so that you can
+  //  employ different enticements.
+  public int rewardAmount(Actor actor) {
+    //final float div = Math.max(2.5f, numApproved()) ;
+    return (int) (REWARD_AMOUNTS[rewardType]) ;
   }
   
   
@@ -193,12 +196,12 @@ public abstract class Mission implements
   
   
   protected void endMission(boolean cancelled) {
-    final float reward = REWARD_AMOUNTS[rewardType] / roles.size() ;
+    final float reward = REWARD_AMOUNTS[rewardType] ;// / roles.size() ;
     for (Role role : roles) {
       role.applicant.mind.assignMission(null) ;
       if (! cancelled) role.applicant.gear.incCredits(reward) ;
     }
-    base.incCredits(0 - reward) ;
+    base.incCredits(0 - reward * roles.size()) ;
     base.removeMission(this) ;
   }
   
@@ -263,11 +266,11 @@ public abstract class Mission implements
         }, type == rewardType ? Colour.GREEN : Colour.BLUE) ;
       }
       d.append("\n") ;
-      d.append("\n("+REWARD_AMOUNTS[rewardType]+" CREDITS OFFERED)") ;
+      d.append("\n("+REWARD_AMOUNTS[rewardType]+" credits per applicant)") ;
       
     }
     else {
-      d.append("\n("+REWARD_AMOUNTS[rewardType]+" CREDITS OFFERED)") ;
+      d.append("\n("+REWARD_AMOUNTS[rewardType]+" credits per applicant)") ;
     }
     
     

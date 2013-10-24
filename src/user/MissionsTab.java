@@ -15,6 +15,10 @@ import src.graphics.widgets.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  Cut this out for the moment.  The interface needs some
+//  simplification.
+
 
 public class MissionsTab extends InfoPanel {
   
@@ -51,27 +55,27 @@ public class MissionsTab extends InfoPanel {
   }
   
   
-  protected void updateText(BaseUI UI, Text headerText, Text detailText) {
+  protected void updateText(
+    final BaseUI UI, Text headerText, Text detailText
+  ) {
     //super.updateText(UI, headerText, detailText) ;
     headerText.setText("Missions") ;
     detailText.setText("") ;
     //
     //  List Strike, Recon, Contact and Security missions for now.
-    
     detailText.insert(STRIKE_ICON, 40) ;
     detailText.append(" Strike Mission\n") ;
     detailText.append(new Text.Clickable() {
       public String fullName() { return "Target" ; }
-      public void whenClicked() { initStrikeTask() ; }
+      public void whenClicked() { initStrikeTask(UI) ; }
     }) ;
     detailText.append("\n") ;
-    //  TODO:  You also need to list similar missions, and give info.
     
     detailText.insert(RECON_ICON, 40) ;
     detailText.append(" Recon Mission\n") ;
     detailText.append(new Text.Clickable() {
       public String fullName() { return "Target" ; }
-      public void whenClicked() { initReconTask() ; }
+      public void whenClicked() { initReconTask(UI) ; }
     }) ;
     detailText.append("\n") ;
     
@@ -79,31 +83,25 @@ public class MissionsTab extends InfoPanel {
     detailText.append(" Security Mission\n") ;
     detailText.append(new Text.Clickable() {
       public String fullName() { return "Target" ; }
-      public void whenClicked() { initSecurityTask() ; }
+      public void whenClicked() { initSecurityTask(UI) ; }
     }) ;
     detailText.append("\n") ;
     
-    /*
     detailText.insert(CONTACT_ICON, 40) ;
     detailText.append(" Contact Mission\n") ;
     detailText.append(new Text.Clickable() {
       public String fullName() { return "Target" ; }
-      public void whenClicked() { initContactTask() ; }
+      public void whenClicked() { initContactTask(UI) ; }
     }) ;
     detailText.append("\n") ;
-    
-    //*/
-  }
-  
-  
-  private void appendHelp(String helpString) {
-    
   }
   
   
   
   
-  private void previewFlag(Sprite flag, Target picked, boolean valid) {
+  private static void previewFlag(
+    BaseUI UI, Sprite flag, Target picked, boolean valid
+  ) {
     flag.scale = 0.5f ;
     if (! valid) {
       final World world = UI.world() ;
@@ -119,7 +117,7 @@ public class MissionsTab extends InfoPanel {
   }
   
   
-  protected void initStrikeTask() {
+  protected static void initStrikeTask(BaseUI UI) {
     final Sprite flagSprite = STRIKE_MODEL.makeSprite() ;
     UI.beginTask(new TargetTask(UI, STRIKE_ICON) {
       
@@ -130,12 +128,10 @@ public class MissionsTab extends InfoPanel {
       }
       
       void previewAt(Target picked, boolean valid) {
-        previewFlag(flagSprite, picked, valid) ;
+        previewFlag(UI, flagSprite, picked, valid) ;
       }
       
       void performAt(Target picked) {
-        //
-        //  TODO:  PROBLEM.  BUILDINGS AREN'T A VALID TARGET AT THE MOMENT.
         final Mission mission = new StrikeMission(UI.played(), picked) ;
         UI.played().addMission(mission) ;
         UI.selection.pushSelection(mission, true) ;
@@ -144,7 +140,7 @@ public class MissionsTab extends InfoPanel {
   }
   
   
-  protected void initReconTask() {
+  protected static void initReconTask(BaseUI UI) {
     final Sprite flagSprite = RECON_MODEL.makeSprite() ;
     UI.beginTask(new TargetTask(UI, RECON_ICON) {
       
@@ -157,7 +153,7 @@ public class MissionsTab extends InfoPanel {
       }
       
       void previewAt(Target picked, boolean valid) {
-        previewFlag(flagSprite, picked, valid) ;
+        previewFlag(UI, flagSprite, picked, valid) ;
       }
       
       void performAt(Target picked) {
@@ -169,7 +165,7 @@ public class MissionsTab extends InfoPanel {
   }
   
   
-  protected void initSecurityTask() {
+  protected static void initSecurityTask(BaseUI UI) {
     final Sprite flagSprite = SECURITY_MODEL.makeSprite() ;
     UI.beginTask(new TargetTask(UI, SECURITY_ICON) {
       
@@ -180,7 +176,7 @@ public class MissionsTab extends InfoPanel {
       }
       
       void previewAt(Target picked, boolean valid) {
-        previewFlag(flagSprite, picked, valid) ;
+        previewFlag(UI, flagSprite, picked, valid) ;
       }
       
       void performAt(Target picked) {
@@ -192,7 +188,30 @@ public class MissionsTab extends InfoPanel {
   }
   
   
-  protected void initContactTask() {
+  protected static void initContactTask(BaseUI UI) {
+
+    final Sprite flagSprite = CONTACT_MODEL.makeSprite() ;
+    UI.beginTask(new TargetTask(UI, CONTACT_ICON) {
+      
+      boolean validPick(Target pick) {
+        if (! (pick instanceof Actor)) return false ;
+        if (! ((Element) pick).visibleTo(UI.played())) return false ;
+        if (((Actor) pick).base() == UI.played()) return false ;
+        return true ;
+      }
+      
+      void previewAt(Target picked, boolean valid) {
+        previewFlag(UI, flagSprite, picked, valid) ;
+      }
+      
+      void performAt(Target picked) {
+        final Mission mission = new ContactMission(
+          UI.played(), (Actor) picked
+        ) ;
+        UI.played().addMission(mission) ;
+        UI.selection.pushSelection(mission, true) ;
+      }
+    }) ;
   }
 }
 

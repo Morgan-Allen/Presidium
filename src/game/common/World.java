@@ -344,6 +344,7 @@ public class World {
     for (Visible visible : allVisible) {
       visible.renderFor(rendering, base) ;
     }
+    ephemera.applyScreenFade(rendering) ;
   }
   
   

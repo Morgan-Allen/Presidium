@@ -64,6 +64,8 @@ public class DebugSituation extends PlayLoop implements Economy {
       PlayLoop.setGameSpeed(1.0f) ;
       GameSettings.psyFree = true ;
       //GameSettings.pathFree = true ;
+      final World world = PlayLoop.world() ;
+      world.ephemera.applyFadeColour(Colour.GREY) ;
       return true ;
     }
     catch (Exception e) { I.report(e) ; return false ; }
@@ -120,6 +122,8 @@ public class DebugSituation extends PlayLoop implements Economy {
     DebugBehaviour.establishVenue(new Sickbay(base), 9, 2, true) ;
     DebugBehaviour.establishVenue(new Garrison(base), 9, 8, true) ;
     
+    //other.traits.incLevel(KINESTHESIA_EFFECT, 1) ;
+    ((BaseUI) UI).selection.pushSelection(other, true) ;
   }
   
   
@@ -133,6 +137,15 @@ public class DebugSituation extends PlayLoop implements Economy {
   
   
   protected void renderGameGraphics() {
+    if (PlayLoop.gameSpeed() < 1) {
+      final World world = PlayLoop.world() ;
+      final Colour blur = new Colour().set(0.5f, 0.5f, 0.1f, 0.4f) ;
+      world.ephemera.applyFadeColour(blur) ;
+      //
+      //  TODO:  You'll have to drain Psy points here as well...  Bugger it.
+      
+    }
+    
     super.renderGameGraphics() ;
     if (((BaseUI) currentUI()).currentTask() == null) {
       //highlightPlace() ;
@@ -152,12 +165,16 @@ public class DebugSituation extends PlayLoop implements Economy {
     if (KeyInput.wasKeyPressed('s')) {
       I.say("SAVING GAME...") ;
       PlayLoop.saveGame("saves/test_pathing.rep") ;
+      final World world = PlayLoop.world() ;
+      world.ephemera.applyFadeColour(Colour.BLACK) ;
       return false ;
     }
     if (KeyInput.wasKeyPressed('l')) {
       I.say("LOADING GAME...") ;
       //GameSettings.frozen = true ;
       PlayLoop.loadGame("saves/test_pathing.rep") ;
+      final World world = PlayLoop.world() ;
+      world.ephemera.applyFadeColour(Colour.GREY) ;
       return true ;
     }
     return false ;

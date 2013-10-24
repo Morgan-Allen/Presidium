@@ -6,15 +6,10 @@
 
 
 package src.graphics.sfx ;
-import src.graphics.common.Colour;
-import src.graphics.common.Model;
-import src.graphics.common.Rendering;
-import src.graphics.common.Sprite;
-import src.graphics.common.Texture;
+import src.graphics.common.* ;
 import src.util.* ;
 import java.io.* ;
-
-//import org.lwjgl.opengl.GL11;
+//import org.lwjgl.opengl.GL11 ;
 
 
 
@@ -23,59 +18,75 @@ public class PlaneFX extends SFX {
   
   /**  Model definitions, fields, constructors, and save/load methods-
     */
-  final public static Model PLANE_FX_MODEL = new Model(
-    "plane_fx_model", PlaneFX.class
-  ) {
-    public Sprite makeSprite() { return new PlaneFX() ; }
-  } ;
+  public static class Model extends src.graphics.common.Model {
+    
+    final Texture image ;
+    final float initSize, spin, growth ;
+    final boolean tilted ;
+    
+    
+    public Model(
+      String modelName, Class modelClass,
+      String image, float initSize, float spin, float growth, boolean tilted
+    ) {
+      super(modelName, modelClass) ;
+      this.image = Texture.loadTexture(image) ;
+      this.initSize = initSize ;
+      this.spin = spin ;
+      this.growth = growth ;
+      this.tilted = tilted ;
+    }
+    
+    public Sprite makeSprite() { return new PlaneFX(this) ; }
+  }
   
   
-  Texture image ;
-  float radius ;
+  final Model model ;
+  private float radius ;
   
   
-  public PlaneFX(Texture image, float radius) {
-    this.image = image ;
-    this.radius = radius ;
+  protected PlaneFX(Model model) {
+    this.model = model ;
+    this.radius = model.initSize ;
   }
   
   
   public Model model() {
-    return PLANE_FX_MODEL ;
+    return model ;
   }
   
   
-  protected PlaneFX() {
+  public void update() {
+    super.update() ;
+    rotation = (rotation + model.spin) % 360 ;
+    radius += model.growth ;
   }
-  
-  
-  public void saveTo(DataOutputStream out) throws Exception {
-    super.saveTo(out) ;
-    LoadService.writeString(out, image.name()) ;
-    out.writeFloat(radius) ;
-  }
-  
-  
-  public void loadFrom(DataInputStream in) throws Exception {
-    super.loadFrom(in) ;
-    final String imgName = LoadService.readString(in) ;
-    image = Texture.loadTexture(imgName) ;
-    radius = in.readFloat() ;
-  }
-  
   
   
   /**  Actual rendering-
     */
+  private static Mat3D trans = new Mat3D() ;
+  
   public void renderTo(Rendering rendering) {
     final Vec3D p = this.position ;
-    final float r = this.radius ;
-    verts[0].set(p.x - r, p.y - r, p.z) ;
-    verts[1].set(p.x - r, p.y + r, p.z) ;
-    verts[2].set(p.x + r, p.y + r, p.z) ;
-    verts[3].set(p.x + r, p.y - r, p.z) ;
+    final float r = this.radius * scale ;
+    
+    trans.setIdentity() ;
+    trans.rotateZ((float) (rotation * Math.PI / 180)) ;
+    
+    
+    verts[0].set(0 - r, 0 - r, 0) ;
+    verts[1].set(0 - r, 0 + r, 0) ;
+    verts[2].set(0 + r, 0 + r, 0) ;
+    verts[3].set(0 + r, 0 - r, 0) ;
+    for (Vec3D v : verts) {
+      trans.trans(v) ;
+      if (model.tilted) rendering.port.viewInvert(v) ;
+      v.add(p) ;
+    }
+    
     if (colour != null) colour.bindColour() ;
-    renderTex(verts, image) ;
+    renderTex(verts, model.image) ;
   }
 }
 

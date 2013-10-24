@@ -7,6 +7,8 @@
 package src.graphics.common ;
 import src.util.* ;
 import src.graphics.widgets.HUD ;
+import src.graphics.widgets.UINode;
+
 import org.lwjgl.opengl.* ;
 
 
@@ -17,6 +19,9 @@ public class Rendering {
   
   final public Viewport port ;
   final public Lighting lighting ;
+  
+  public Colour backColour = null, foreColour = null ;
+  
   private int viewWide, viewHigh ;
   private List <Client> clients = new List <Client> () ;
   private HUD HUD = null ;
@@ -61,8 +66,6 @@ public class Rendering {
     lighting = new Lighting() ;
     lighting.setup(1.0f, 1.0f, 1.0f, true, true) ;
     lighting.direct(Lighting.DEFAULT_ANGLE.normalise()) ;
-
-    GL11.glClearColor(0.2f, 0.2f, 0.2f, 1) ;
   }
   
   
@@ -145,9 +148,13 @@ public class Rendering {
   
   
   public void renderDisplay() {
-    ///if (true) return ;
+    
     initSettings() ;
+    
+    final Colour BC = backColour == null ? Colour.DARK_GREY : backColour ;
+    GL11.glClearColor(BC.r, BC.g, BC.b, BC.a) ;
     GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT) ;
+    
     port.applyView() ;
     lighting.bindLight(0) ;
     
@@ -164,6 +171,17 @@ public class Rendering {
     if (HUD != null) {
       HUD.renderHUD(new Box2D().set(0, 0, viewWide, viewHigh)) ;
     }
+    
+    //
+    //  TODO:  Allow a custom image-tex?
+    final Colour FC = foreColour == null ? Colour.NONE : foreColour ;
+    //final Colour FC = Colour.GREY ;
+    FC.bindColour() ;
+
+    GL11.glDisable(GL11.GL_TEXTURE_2D) ;
+    GL11.glBegin(GL11.GL_QUADS) ;
+    UINode.drawQuad(0, 0, viewWide, viewHigh, 0, 0, 1, 1, 0) ;
+    GL11.glEnd() ;
     
     Display.update() ;
   }

@@ -50,9 +50,10 @@ public class Retreat extends Plan implements Abilities {
     */
   public float priorityFor(Actor actor) {
     float danger = dangerAtSpot(actor.origin(), actor, actor.mind.awareOf()) ;
+    danger += priorityMod / ROUTINE ;
     danger *= actor.traits.scaleLevel(NERVOUS) ;
     if (danger <= 0) return 0 ;
-    I.sayAbout(actor, "Danger is: "+danger); 
+    if (verbose) I.sayAbout(actor, "Perceived danger: "+danger) ;
     return Visit.clamp(danger * ROUTINE, 0, PARAMOUNT) ;
   }
   
@@ -60,12 +61,13 @@ public class Retreat extends Plan implements Abilities {
   protected Behaviour getNextStep() {
     if (safePoint == null || actor.aboard() == safePoint) {
       safePoint = nearestHaven(actor, null) ;
+      priorityMod *= 0.5f ;
+      if (priorityMod < 0.25f) priorityMod = 0 ;
     }
     if (safePoint == null) {
       abortBehaviour() ;
       return null ;
     }
-    //if (actor.aboard() == safePoint) return null ;
     final Action flees = new Action(
       actor, safePoint,
       this, "actionFlee",

@@ -150,6 +150,7 @@ public class ActorTraits implements Abilities {
     if (GameSettings.hardCore && (! selected) && Rand.num() < increase) {
       incLevel(CANCER, increase * 2 * Rand.num()) ;
     }
+    /*
     if (Rand.num() > increase / 5f) return ;
     final Trait MT[] = MUTANT_TRAITS ; final int ML = MT.length ;
     
@@ -162,6 +163,7 @@ public class ActorTraits implements Abilities {
     if (GameSettings.hardCore) roll = Visit.clamp(roll, 0.25f, 0.75f) ;
     final Trait gained = MT[Visit.clamp((int) (roll * ML), ML)] ;
     incLevel(gained, 0.5f + Rand.num()) ;
+    //*/
   }
   
   
@@ -171,9 +173,12 @@ public class ActorTraits implements Abilities {
   protected void updateTraits(int numUpdates) {
     final Batch <Trait> allTraits = new Batch <Trait> (levels.size()) ;
     for (Trait t : levels.keySet()) allTraits.add(t) ;
-    for (Trait t : allTraits) {
-      if (t.type == CONDITION) t.affect(actor) ;
-      else levels.get(t).bonus = 0 ;
+    for (Trait t : allTraits) if (t.type != CONDITION) {
+      final Level level = levels.get(t) ;
+      if (level.bonus != 0) level.bonus = 0 ;
+    }
+    for (Trait t : allTraits) if (t.type == CONDITION) {
+      t.affect(actor) ;
     }
   }
   
@@ -282,7 +287,12 @@ public class ActorTraits implements Abilities {
     
     final float oldVal = level.value ;
     level.value = toLevel ;
-    if (type == MUTATION) afterMutation(level.value - oldVal, false) ;
+    if (type == MUTATION) {
+      afterMutation(level.value - oldVal, false) ;
+    }
+    if (level.value > oldVal && type.type == CONDITION) {
+      type.affect(actor) ;
+    }
     tryReport(type, level.value - (int) oldVal) ;
   }
   
@@ -363,10 +373,11 @@ public class ActorTraits implements Abilities {
     return (Batch) getMatches(null, Abilities.CONDITIONS) ;
   }
   
-  
+  /*
   public Batch <Trait> mutations() {
     return (Batch) getMatches(null, Abilities.MUTANT_TRAITS) ;
   }
+  //*/
   
   
   

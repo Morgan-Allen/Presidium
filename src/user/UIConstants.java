@@ -3,6 +3,7 @@
 
 package src.user ;
 import src.graphics.common.* ;
+import src.graphics.sfx.PlaneFX ;
 import src.graphics.widgets.* ;
 import src.util.* ;
 
@@ -15,9 +16,19 @@ public interface UIConstants {
     BUTTONS_PATH = "media/GUI/Buttons/",
     TABS_PATH    = "media/GUI/Tabs/" ;
   
+  final public static PlaneFX.Model
+    SELECT_CIRCLE = new PlaneFX.Model(
+      "select_circle_fx", UIConstants.class,
+      "media/GUI/selectCircle.png", 1, 0, 0, false
+    ),
+    SELECT_SQUARE = new PlaneFX.Model(
+      "select_square_fx", UIConstants.class,
+      "media/GUI/selectSquare.png", 1, 0, 0, false
+    ) ;
+  
   final public static Texture
-    SELECT_CIRCLE = Texture.loadTexture("media/GUI/selectCircle.png"),
-    SELECT_SQUARE = Texture.loadTexture("media/GUI/selectSquare.png"),
+    //SELECT_CIRCLE = Texture.loadTexture("media/GUI/selectCircle.png"),
+    //SELECT_SQUARE = Texture.loadTexture("media/GUI/selectSquare.png"),
     TIPS_TEX      = Texture.loadTexture("media/GUI/tips_frame.png"  ) ;
   
   final public static Alphabet
@@ -62,10 +73,11 @@ public interface UIConstants {
     
     //  TODO:  Have a constant for the width.
     INFO_BOUNDS = new Box2D().set(1, 0, 0, 1.0f),
-    INFO_INSETS = new Box2D().set(-INFO_AREA_WIDE, 0, INFO_AREA_WIDE, 0),
+    INFO_INSETS = new Box2D().set(
+      0 - (INFO_AREA_WIDE + 20), 65, INFO_AREA_WIDE, -75
+    ),
     
-    
-    PANE_BOUNDS = new Box2D().set(0, 0, 1.0f, 0.9f),
+    //PANE_BOUNDS = new Box2D().set(0, 0, 1.0f, 0.9f),
     //TABS_BOUNDS = new Box2D().set(0, 0.9f, 1.0f, 0.1f),
     
     TIPS_INSETS = new Box2D().set(-10, -10, 20, 20) ;

@@ -104,14 +104,13 @@ public class InstallTab extends InfoPanel {
   
   /**  Interface presented-
     */
-  final MainPanel parent ;
   final Category category ;
   private InstallType helpShown = null, listShown = null ;
   
   
-  InstallTab(MainPanel parent, String catName) {
-    super(parent.UI, null, DEFAULT_TOP_MARGIN) ;
-    this.parent = parent ;
+  InstallTab(BaseUI UI, String catName) {
+    super(UI, null, DEFAULT_TOP_MARGIN) ;
+    if (! setupDone) setupTypes() ;
     this.category = categories.get(catName) ;
   }
   
@@ -122,8 +121,8 @@ public class InstallTab extends InfoPanel {
   ) {
     detailText.setText("") ;
     headerText.setText("") ;
-    final String name = category.name.toUpperCase() ;
-    headerText.setText(name+" STRUCTURES") ;
+    final String name = category.name ;//.toUpperCase() ;
+    headerText.setText(name+" structures:") ;
     for (final InstallType type : category.types) {
       final Composite icon = type.sample.portrait(UI) ;
       final String typeName = type.sample.fullName() ;
@@ -173,7 +172,7 @@ public class InstallTab extends InfoPanel {
         }
         detailText.append("\n") ;
       }
-      detailText.append("\n") ;
+      detailText.append("\n\n") ;
     }
   }
   

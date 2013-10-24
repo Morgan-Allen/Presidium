@@ -487,12 +487,13 @@ public abstract class ActorMind implements Abilities {
     *  it's a scalar operation.
     */
   public float greedFor(int credits) {
-    float baseUnit = actor.gear.credits() ;
+    float baseUnit = actor.gear.credits() / 2f ;
     if (actor.base() != null) {
       final Profile p = actor.base().profiles.profileFor(actor) ;
       baseUnit += (100 + p.salary()) / 2f ;
     }
-    baseUnit /= 3f ;
+    baseUnit /= 2f ;
+    if (verbose) I.sayAbout(actor, actor+" greed unit is: "+baseUnit) ;
     return (credits / baseUnit) * actor.traits.scaleLevel(ACQUISITIVE) ;
   }
   

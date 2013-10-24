@@ -4,7 +4,9 @@
 package src.game.tactical ;
 import src.game.common.* ;
 import src.game.actors.* ;
+import src.game.social.* ;
 import src.graphics.common.* ;
+import src.graphics.sfx.* ;
 import src.util.* ;
 import src.user.* ;
 
@@ -24,12 +26,16 @@ import src.user.* ;
 public class Power implements Abilities {
   
   
-  final static String IMG_DIR = "media/GUI/Powers/" ;
+  final static String
+    IMG_DIR = "media/GUI/Powers/",
+    SFX_DIR = "media/SFX/" ;
+  final static float FPS = PlayLoop.FRAMES_PER_SECOND ;
   
   final public static int
     NONE        = 0,
     PLAYER_ONLY = 1,
     MAINTAINED  = 2 ;
+  
   
   final public String name, helpInfo ;
   final public Texture buttonTex ;
@@ -59,10 +65,41 @@ public class Power implements Abilities {
   }
   
   
+  final public static PlaneFX.Model
+    
+    REMOTE_VIEWING_FX_MODEL = new PlaneFX.Model(
+      "RV_swirl_fx", Power.class,
+      SFX_DIR+"remote_viewing.png", 1, 600 / FPS, 2 / FPS, false
+    ),
+    
+    LIGHT_BURST_MODEL = new PlaneFX.Model(
+      "RV_burst_fx", Power.class,
+      SFX_DIR+"light_burst.png", 1, 0, 2 / FPS, true
+    ),
+    
+    KINESTHESIA_FX_MODEL = new PlaneFX.Model(
+      "kinesthesia_fx", Power.class,
+      SFX_DIR+"kinesthesia.png", 0.5f, 360 / FPS, 0, true
+    ),
+    
+    SUSPENSION_FX_MODEL = new PlaneFX.Model(
+      "suspension_fx", Power.class,
+      SFX_DIR+"suspension.png", 0.5f, 360 / FPS, 0, true
+    ),
+    
+    TELEKINESIS_FX_MODEL = new PlaneFX.Model(
+      "telekinesis_fx", Power.class,
+      SFX_DIR+"telekinesis.png", 0.5f, 360 / FPS, 0, true
+    ),
+    
+    VOICE_OF_COMMAND_FX_MODEL = new PlaneFX.Model(
+      "voice_command_fx", Power.class,
+      SFX_DIR+"voice_of_command.png", 1, 360 / FPS, 1, true
+    ) ;
+  
   
   final public static Power
-    //
-    //  Loads the most recently saved game session.
+    
     WALK_THE_PATH = new Power(
       "Walk The Path", PLAYER_ONLY, "power_remembrance.gif",
       "Accept your vision of events and allow them to be fulfilled.\n(Saves "+
@@ -83,8 +120,7 @@ public class Power implements Abilities {
         return true ;
       }
     },
-    //
-    //  Saves the current game session.
+    
     DENY_THE_VISION = new Power(
       "Deny The Vision", PLAYER_ONLY, "power_foresight.gif",
       "Aborts your precognitive vision and lets you choose a different path."+
@@ -104,20 +140,26 @@ public class Power implements Abilities {
         caster = null ;
         PlayLoop.loadGame(saveFile) ;
         caster = PlayLoop.played().ruler() ;
-        if (caster == null) throw new RuntimeException("RULER DOESN'T EXIST!") ;
-        
         final float bonus = caster.traits.useLevel(PREMONITION) / 10 ;
         caster.health.adjustPsy(-10f / (0.5f + bonus)) ;
+        /*
+        //  TODO:  Restore this?
         PlayLoop.saveGame(saveFile) ;
+        //*/
         return true ;
       }
     },
-    //
-    //  Slows down the current game speed.
+    
     TIME_DILATION = new Power(
       "Time Dilation", PLAYER_ONLY | MAINTAINED, "power_time_dilation.gif",
       "Insulates your experience from temporal passage.\n(Reduces game speed.)"
     ) {
+      //
+      //  TODO:  Provide options for the rate of slowing here?
+      
+      //
+      //  TODO:  PROBLEM.  THIS HAS TO TOGGLE SOME KIND OF EXTERNAL MONITOR IN
+      //  ORDER TO WORK CORRECTLY.
       public boolean finishedWith(
         Actor caster, String option,
         Target selected, boolean clicked
@@ -136,13 +178,11 @@ public class Power implements Abilities {
         final float bonus = caster.traits.useLevel(PROJECTION) / 2 ;
         PlayLoop.setGameSpeed(1f / (float) (1f + Math.sqrt(bonus))) ;
         caster.health.adjustPsy(-1) ;
+        
         return true ;
       }
     },
-    //
-    //  Grants vision of a distant portion of the map- drains psych based on
-    //  the relative proportion of new terrain revealed and distance from the
-    //  caster.
+    
     REMOTE_VIEWING = new Power(
       "Remote Viewing", PLAYER_ONLY, "power_remote_viewing.gif",
       "Grants you an extra-sensory perception of distant places or persons."+
@@ -155,28 +195,37 @@ public class Power implements Abilities {
         if (clicked != true || ! (selected instanceof Tile)) return false ;
         final Tile tile = (Tile) selected ;
         
-        if (caster == null || GameSettings.psyFree) {
-          PlayLoop.played().intelMap.liftFogAround(tile.x, tile.y, 9) ;
-          return true ;
+        float bonus = 0 ;
+        if (caster != null && ! GameSettings.psyFree) {
+          bonus += caster.traits.useLevel(PROJECTION) / 5 ;
+          
+          float dist = (float) Math.sqrt(Spacing.distance(tile, caster)) ;
+          caster.health.adjustPsy(
+            -10 * (1 + (dist / World.SECTOR_SIZE))
+          ) ;
         }
         
-        final float bonus = caster.traits.useLevel(PROJECTION) / 5 ;
         final float radius = 9 + (bonus * bonus) ;
-        float revealed = caster.base().intelMap.liftFogAround(
-          tile.x, tile.y, radius
-        ) ;
-        caster.health.adjustPsy(
-          -2f * (revealed / (float) (radius * radius * Math.PI)) *
-          (float) Math.sqrt(Spacing.distance(tile, caster))
-        ) ;
+        PlayLoop.played().intelMap.liftFogAround(tile.x, tile.y, radius) ;
+        
+        final float SS = radius / 1.5f ;
+        final Vec3D p = tile.position(null) ;
+        p.z += 0.5f ;
+        
+        final Sprite swirlFX = REMOTE_VIEWING_FX_MODEL.makeSprite() ;
+        swirlFX.scale = SS / 2 ;
+        swirlFX.position.setTo(p) ;
+        tile.world.ephemera.addGhost(null, SS, swirlFX, 1.0f) ;
+        
+        final Sprite burstFX = LIGHT_BURST_MODEL.makeSprite() ;
+        burstFX.scale = SS / 2 ;
+        burstFX.position.setTo(p) ;
+        tile.world.ephemera.addGhost(null, SS, burstFX, 2.0f) ;
         
         return true ;
       }
     },
     
-    
-    //
-    //  Flings the subject item or actor in a desired direction.
     TELEKINESIS = new Power(
       "Telekinesis", NONE, "power_telekinesis.gif",
       "Imparts spatial moment to a chosen material object.\n(Hurls or carries "+
@@ -195,38 +244,42 @@ public class Power implements Abilities {
           }
           return false ;
         }
-        else {
-          if (clicked) {
-            grabbed = null ;
-            return true ;
-          }
-          else return ! pushGrabbed(caster, selected) ;
+        else if (clicked) {
+          grabbed = null ;
+          return true ;
         }
+        else return ! pushGrabbed(caster, selected) ;
       }
       
       
       private boolean pushGrabbed(Actor caster, Target toward) {
         if (grabbed == null) return false ;
         
+        if (grabbed instanceof Actor) {
+          ((Actor) grabbed).enterStateKO(Action.FALL) ;
+        }
+        
         float maxDist = 1 ;
         if (caster != null && ! GameSettings.psyFree) {
           maxDist = 1 + (caster.traits.useLevel(TRANSDUCTION) / 10f) ;
           caster.health.adjustPsy(-4f / PlayLoop.FRAMES_PER_SECOND) ;
         }
-        maxDist /= PlayLoop.FRAMES_PER_SECOND ;
+        maxDist *= 10f / PlayLoop.FRAMES_PER_SECOND ;
+        maxDist /= 4 * grabbed.radius() ;
         
-        final World world = grabbed.world() ;
-        final Tile t = world.tileAt(toward) ;
-        if (Spacing.distance(t, grabbed) > maxDist) return false ;
-        grabbed.setHeading(t.position(null), -1, false, world) ;
+        final Vec3D pushed = new Vec3D() ;
+        toward.position(pushed).sub(grabbed.position(null)) ;
+        if (pushed.length() > maxDist) pushed.normalise().scale(maxDist) ;
+        pushed.add(grabbed.position(null)) ;
+        
+        grabbed.setHeading(pushed, -1, false, grabbed.world()) ;
+        grabbed.world().ephemera.updateGhost(
+          grabbed, 1, TELEKINESIS_FX_MODEL, 0.2f
+        ) ;
         return true ;
       }
     },
     
-    
-    //
-    //  Grants the subject a significant boost to their shield strength,
-    //  whether they wear armour or not.
     FORCEFIELD = new Power(
       "Forcefield", MAINTAINED, "power_forcefield.gif",
       "Encloses the subject in a selectively permeable suspension barrier.\n"+
@@ -251,10 +304,6 @@ public class Power implements Abilities {
       }
     },
     
-    
-    //
-    //  Stabilises the given subject and suspends all metabolic function,
-    //  slowing the effects of bleeding, disease and intoxicants.
     SUSPENSION = new Power(
       "Suspension", MAINTAINED, "power_suspension.gif",
       "Suspends metabolic function in subject.\n(Can be used to arrest "+
@@ -264,73 +313,53 @@ public class Power implements Abilities {
         Actor caster, String option,
         Target selected, boolean clicked
       ) {
-        if (clicked != true || ! (selected instanceof Actor)) return true ;
+        if (clicked != true || ! (selected instanceof Actor)) return false ;
         final Actor subject = (Actor) selected ;
         
-        if (caster == null || GameSettings.psyFree) {
-          if (! subject.health.isState(ActorHealth.STATE_SUSPEND)) {
-            subject.health.setState(ActorHealth.STATE_SUSPEND) ;
-          }
-          return true ;
+        float bonus = 1 ;
+        if (caster != null && ! GameSettings.psyFree) {
+          caster.health.adjustPsy(-5) ;
+          bonus += caster.traits.useLevel(METABOLISM) / 2 ;
         }
-
-        final float bonus = caster.traits.useLevel(METABOLISM) / 2 ;
-        caster.health.adjustPsy(-0.5f / (1 + bonus)) ;
-        //
-        //  TODO:  Should be resistable...
-        if (! subject.health.isState(ActorHealth.STATE_SUSPEND)) {
+        
+        if (subject.health.conscious()) {
+          if (subject.traits.test(VIGOUR, 10 + bonus, 10)) bonus = 0 ;
+        }
+        if (bonus > 0) {
           subject.health.setState(ActorHealth.STATE_SUSPEND) ;
         }
+        else bonus = 0.1f ;
+        subject.traits.incLevel(SUSPENSION_EFFECT, bonus * 2 / 10f) ;
         return true ;
       }
     },
     
-    
-    //
-    //  Substantially boosts the subject's reflexes and coordination, allowing
-    //  for extraordinary skill in combat and athletics.
-    //
-    //  One target, type actor, condition effect.
     KINESTHESIA = new Power(
       "Kinesthesia", MAINTAINED, "power_kinesthesia.gif",
       "Augments hand-eye coordination and reflex response.\n(Boosts most "+
       "combat and acrobatic skills.)"
     ) {
+      
       public boolean finishedWith(
         Actor caster, String option,
         Target selected, boolean clicked
       ) {
-        if (clicked != true || ! (selected instanceof Actor)) return true ;
+        if (clicked != true || ! (selected instanceof Actor)) return false ;
         final Actor subject = (Actor) selected ;
         float bonus = 5f ;
-        
         if (caster != null && ! GameSettings.psyFree) {
           bonus += caster.traits.useLevel(SYNESTHESIA) / 2 ;
           caster.health.adjustPsy(-2) ;
         }
-        //
-        //  TODO:  You need to create a Condition that does this job... or
-        //  maybe a treatment item?
-        
-        
-        subject.traits.incBonus(REFLEX, bonus) ;
-        for (Skill s : ALL_SKILLS) if (s.parent == REFLEX) {
-          subject.traits.incBonus(s, bonus / 2) ;
-        }
+        subject.traits.incLevel(KINESTHESIA_EFFECT, bonus * 2 / 10f) ;
         return true ;
       }
     },
     
-    
-    //
-    //  Impels the subject to perform a single task, willingly or otherwise-
-    //  however, this will not endear you to an unwilling subject.
-    //
-    //  Two targets, type actor and target, multiple options, further screening.
     VOICE_OF_COMMAND = new Power(
       "Voice of Command", PLAYER_ONLY, "power_voice_of_command.gif",
       "Employs mnemonic triggering to incite specific behavioural response."+
-      "\n(Compels subject to fight, flee, help or grab a specified target.)"
+      "\n(Compels subject to fight, flee, help or speak.)"
     ) {
       
       final String options[] = new String[] {
@@ -374,9 +403,12 @@ public class Power implements Abilities {
         if (option == options[2] && selected instanceof Actor) {
           command = new Treatment(affects, (Actor) selected, null) ;
         }
+        if (option == options[3] && selected instanceof Actor) {
+          command = new Dialogue(affects, (Actor) selected, null) ;
+        }
         if (command == null) return false ;
         
-        float priorityMod = Plan.IDLE ;
+        float priorityMod = Plan.PARAMOUNT ;
         if (caster != null && ! GameSettings.psyFree) {
           priorityMod += caster.traits.useLevel(SUGGESTION) / 5f ;
           caster.health.adjustPsy(-5) ;
@@ -386,6 +418,21 @@ public class Power implements Abilities {
         if (affects.mind.couldSwitchTo(command)) {
           affects.mind.assignBehaviour(command) ;
         }
+        else {
+          I.say("Compulsion refused! "+command) ;
+          I.say("Priority was: "+command.priorityFor(affects)) ;
+        }
+        
+        affects.world().ephemera.addGhost(
+          affects, 1, VOICE_OF_COMMAND_FX_MODEL.makeSprite(), 0.5f
+        ) ;
+        final Sprite selectFX = VOICE_OF_COMMAND_FX_MODEL.makeSprite() ;
+        selectFX.scale = selected.radius() ;
+        selected.position(selectFX.position) ;
+        affects.world().ephemera.addGhost(
+          null, 1, selectFX, 0.5f
+        ) ;
+
         affects = null ;
         return true ;
       }

@@ -6,6 +6,7 @@ import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.actors.* ;
 import src.graphics.common.* ;
+import src.graphics.widgets.HUD;
 import src.user.* ;
 import src.util.* ;
 
@@ -17,10 +18,23 @@ public class ReconMission extends Mission {
   
   /**  Field definitions, constructors and save/load methods-
     */
+  final static float SETTING_AREAS[] = {
+    World.SECTOR_SIZE * (float) Math.sqrt(0.25f),
+    World.SECTOR_SIZE * (float) Math.sqrt(0.50f),
+    World.SECTOR_SIZE * (float) Math.sqrt(0.75f),
+  } ;
+  final static String AREA_NAMES[] = {
+    "Small",
+    "Medium",
+    "Large"
+  } ;
   
-  int areaSize ;
-  Tile inRange[] ;
+  private static boolean verbose = false ;
+  
+  int areaSetting = 0 ;
+  Tile inRange[] = new Tile[0] ;
   boolean done = false ;
+  
   
   
   public ReconMission(Base base, Tile subject) {
@@ -29,14 +43,12 @@ public class ReconMission extends Mission {
       MissionsTab.RECON_MODEL.makeSprite(),
       "Exploring "+subject.habitat().name+" at "+subject.x+" "+subject.y
     ) ;
-    inRange = Exploring.grabExploreArea(
-      base.intelMap, subject, World.SECTOR_SIZE / 2f
-    ) ;
   }
   
   
   public ReconMission(Session s) throws Exception {
     super(s) ;
+    areaSetting = s.loadInt() ;
     inRange = (Tile[]) s.loadTargetArray(Tile.class) ;
     done = s.loadBool() ;
   }
@@ -44,8 +56,14 @@ public class ReconMission extends Mission {
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveInt(areaSetting) ;
     s.saveTargetArray(inRange) ;
     s.saveBool(done) ;
+  }
+  
+  
+  public float exploreRadius() {
+    return SETTING_AREAS[areaSetting] ;
   }
   
   
@@ -56,23 +74,28 @@ public class ReconMission extends Mission {
     final Tile centre = (Tile) subject ;
     float reward = actor.mind.greedFor(rewardAmount(actor)) * ROUTINE ;
     float priority = Exploring.rateExplorePoint(actor, centre, reward) ;
-    //I.sayAbout(actor, "Recon mission priority is: "+priority) ;
-    //I.sayAbout(actor, "Reward priority is: "+reward+", amount: "+rewardAmount(actor)) ;
+    priority *= SETTING_AREAS[1] / exploreRadius() ;
+    if (verbose) I.sayAbout(actor,
+      actor+" priority is: "+priority+", base reward: "+rewardAmount(actor)+
+      "\nperceived reward: "+reward
+    ) ;
     return priority ;
   }
   
   
-  int count = 0 ;
+  protected void beginMission() {
+    super.beginMission() ;
+    inRange = Exploring.grabExploreArea(
+      base.intelMap, (Tile) subject, exploreRadius()
+    ) ;
+  }
+
 
   public Behaviour nextStepFor(Actor actor) {
-    ///I.say("Getting next step in recon, for "+actor) ;
-    //
-    //  TODO:  Refresh the list of tiles to explore every 10 seconds or so?
+    
     final IntelMap map = base.intelMap ;
     Tile lookedAt = null ;
     float bestRating = 0 ;
-    //float minFog = 1 ;
-    
     
     for (Tile t : inRange) if (! t.blocked()) {
       final float fog = map.fogAt(t) ;
@@ -92,10 +115,9 @@ public class ReconMission extends Mission {
       done = true ;
       return null ;
     }
-    ///I.say(actor+" assigned to look at "+lookedAt) ;
     
     final Exploring e = new Exploring(actor, base, lookedAt) ;
-    e.priorityMod = actor.mind.greedFor(rewardAmount(actor)) * ROUTINE ;
+    //e.priorityMod = actor.mind.greedFor(rewardAmount(actor)) * ROUTINE ;
     return e ;
   }
   
@@ -108,17 +130,30 @@ public class ReconMission extends Mission {
   
   /**  Rendering and interface methods-
     */
+  public void writeInformation(Description d, int categoryID, HUD UI) {
+    super.writeInformation(d, categoryID, UI) ;
+    d.append("\n\nArea: ") ;
+    if (begun()) d.append(AREA_NAMES[areaSetting]) ;
+    else d.append(new Description.Link(AREA_NAMES[areaSetting]) {
+      public void whenClicked() {
+        areaSetting = (areaSetting + 1) % SETTING_AREAS.length ;
+      }
+    }) ;
+  }
+  
+  
   public void describeBehaviour(Description d) {
     d.append("On ") ;
     d.append("Recon Mission", this) ;
     final Tile tile = (Tile) subject ;
-    d.append(" around "+tile) ;
+    d.append(" around ") ;
+    d.append(tile) ;
   }
   
   
   public void renderSelection(Rendering rendering, boolean hovered) {
     Selection.renderPlane(
-      rendering, subject.position(null), World.SECTOR_SIZE / 2f,
+      rendering, subject.position(null), exploreRadius(),
       hovered ? Colour.transparency(0.25f) : Colour.transparency(0.5f),
       Selection.SELECT_SQUARE
     ) ;

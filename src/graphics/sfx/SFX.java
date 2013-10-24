@@ -32,7 +32,9 @@ public abstract class SFX extends Sprite {
   
   
   final static int GL_DISABLES[] = {
-    GL11.GL_CULL_FACE
+    GL11.GL_CULL_FACE,
+    GL11.GL_LIGHTING,
+    GL11.GL_ALPHA_TEST
   } ;
   //  TODO:  use GL11.glDepthMask() here, in a dedicated rendering pass.
   //         Remove it from the renderTex() method below...

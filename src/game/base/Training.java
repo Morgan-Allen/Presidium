@@ -64,6 +64,9 @@ public class Training extends Plan implements Economy {
       if (! actor.isDoing("actionEquipYard", null)) return 0 ;
     }
     
+    //
+    //  TODO:  You can't drill if you lack an appropriate device type!
+    
     float impetus = 0 ;
     //
     //  TODO:  Relevant traits might vary depending on type.
@@ -175,7 +178,7 @@ public class Training extends Plan implements Economy {
     final Action drill = new Action(
       actor, dummy,
       this, actionName,
-      animName, "Drilling "+DN
+      animName, "Training "+DN
     ) ;
     drill.setProperties(Action.QUICK) ;
     drill.setMoveTarget(moveTarget) ;
@@ -211,14 +214,16 @@ public class Training extends Plan implements Economy {
     final int DC = yard.drillDC(DrillYard.DRILL_MELEE) ;
     actor.traits.test(HAND_TO_HAND, DC, 0.5f) ;
     actor.traits.test(SHIELD_AND_ARMOUR, DC - 5, 0.5f) ;
+    DeviceType.applyFX(actor.gear.deviceType(), actor, dummy, true) ;
     return true ;
   }
 
 
-  public boolean actionDrillRanged(Actor actor, Target target) {
+  public boolean actionDrillRanged(Actor actor, Target dummy) {
     final int DC = yard.drillDC(DrillYard.DRILL_RANGED) ;
     actor.traits.test(MARKSMANSHIP, DC, 0.5f) ;
     actor.traits.test(SURVEILLANCE, DC - 5, 0.5f) ;
+    DeviceType.applyFX(actor.gear.deviceType(), actor, dummy, true) ;
     return true ;
   }
 
@@ -253,14 +258,14 @@ public class Training extends Plan implements Economy {
   /**  Rendering and interface-
     */
   public void describeBehaviour(Description d) {
-    final String DN = DrillYard.DRILL_STATE_NAMES[yard.drillType()] ;
-    if (! describedByStep(d)) d.append("Drilling "+DN) ;
-    /*
+    final int DT = yard.drillType() ;
+    if ((! describedByStep(d)) && DT >= 0) {
+      d.append("Training "+DrillYard.DRILL_STATE_NAMES[DT]) ;
+    }
     d.append(" at ") ;
     Target t = lastStepTarget() ;
     if (t == null || Visit.arrayIncludes(yard.dummies, t)) t = yard ;
     d.append(t) ;
-    //*/
   }
 }
 

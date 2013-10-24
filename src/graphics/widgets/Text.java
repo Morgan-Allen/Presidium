@@ -436,8 +436,8 @@ public class Text extends UINode implements Description {
         final ImageEntry entry = (ImageEntry) open.refers ;
         entry.visible = true ;
         entry.set(
-          0, ypos + lineHigh - (entry.high * scale),
-          entry.wide * scale, entry.high * scale
+          0, ypos + lineHigh - (entry.high),
+          entry.wide * scale, entry.high
         ) ;
         xpos = entry.wide ;
         lastBullet = entry ;

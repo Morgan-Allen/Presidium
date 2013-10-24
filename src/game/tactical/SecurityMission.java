@@ -13,6 +13,9 @@ import src.user.* ;
 import src.util.* ;
 
 
+//
+//  Patrolling should have you attack anything that attacks your client.  When
+//  they retreat, you stay put.
 
 public class SecurityMission extends Mission implements Abilities {
   
@@ -67,9 +70,17 @@ public class SecurityMission extends Mission implements Abilities {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
+    if (actor == subject) return 0 ;
+    
     float impetus = actor.mind.greedFor(rewardAmount(actor)) * ROUTINE ;
     impetus -= Plan.dangerPenalty(subject, actor) ;
     impetus -= duration() * 0.5f / World.STANDARD_DAY_LENGTH ;
+    if (subject instanceof Actor) {
+      impetus += actor.mind.relation((Actor) subject) * ROUTINE ;
+    }
+    if (subject instanceof Venue) {
+      impetus += actor.mind.relation((Venue) subject) * ROUTINE ;
+    }
     //
     //  Modify by possession of combat and surveillance skills-
     float ability = 1 ;
@@ -96,7 +107,8 @@ public class SecurityMission extends Mission implements Abilities {
 
   public Behaviour nextStepFor(Actor actor) {
     //
-    //  TODO:  You'll also have to allow for sleeping and resting behaviours.
+    //  TODO:  You'll also have to allow for sleeping and resting behaviours,
+    //  and medical treatment of the subject.
     return Patrolling.securePerimeter(actor, (Element) subject, base.world) ;
   }
   
@@ -108,7 +120,8 @@ public class SecurityMission extends Mission implements Abilities {
   public void writeInformation(Description d, int categoryID, HUD UI) {
     super.writeInformation(d, categoryID, UI) ;
     d.append("\n\nDuration: ") ;
-    d.append(new Description.Link(DURATION_NAMES[durationSetting]) {
+    if (begun()) d.append(DURATION_NAMES[durationSetting]) ;
+    else d.append(new Description.Link(DURATION_NAMES[durationSetting]) {
       public void whenClicked() {
         durationSetting = (durationSetting + 1) % DURATION_LENGTHS.length ;
       }

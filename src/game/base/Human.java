@@ -335,7 +335,9 @@ public class Human extends Actor implements Abilities {
       final int bonus = (int) traits.effectBonus(skill) ;
       d.append("\n  "+skill.name+" "+level+" ") ;
       d.append(Skill.attDesc(level), Skill.skillTone(level)) ;
-      d.append((bonus >= 0 ? " (+" : " (-")+Math.abs(bonus)+")") ;
+      if (bonus != 0) {
+        d.append((bonus >= 0 ? " (+" : " (-")+Math.abs(bonus)+")") ;
+      }
     }
     d.append("\n\nSkills: ") ;
     final List <Skill> sorting = new List <Skill> () {
@@ -354,7 +356,9 @@ public class Human extends Actor implements Abilities {
       ) ;
       final Colour tone = Skill.skillTone(level) ;
       d.append("\n  "+skill.name+" "+level+" ", tone) ;
-      d.append((bonus >= 0 ? "(+" : "(-")+Math.abs(bonus)+")") ;
+      if (bonus != 0) {
+        d.append((bonus >= 0 ? "(+" : "(-")+Math.abs(bonus)+")") ;
+      }
     }
     
     /*
@@ -379,7 +383,7 @@ public class Human extends Actor implements Abilities {
     
     d.appendList("\n\nAppearance: " , descTraits(traits.physique   ())) ;
     d.appendList("\n\nPersonality: ", descTraits(traits.personality())) ;
-    d.appendList("\n\nMutations: "  , descTraits(traits.mutations  ())) ;
+    //d.appendList("\n\nMutations: "  , descTraits(traits.mutations  ())) ;
     
     d.append("\n\nRelationships: ") ;
     for (Relation r : mind.relations()) {

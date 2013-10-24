@@ -17,9 +17,11 @@ import src.util.* ;
 public abstract class Mobile extends Element
   implements Schedule.Updates
 {
-
-  final public static Texture
-    GROUND_SHADOW = Texture.loadTexture("media/SFX/ground_shadow.png") ;
+  
+  final public static PlaneFX.Model SHADOW_MODEL = new PlaneFX.Model(
+    "ground_shadow_model", Mobile.class,
+    "media/SFX/ground_shadow.png", 1, 0, 0, false
+  ) ;
   
   final static int
     MAX_PATH_SCAN = World.SECTOR_SIZE ;
@@ -307,9 +309,8 @@ public abstract class Mobile extends Element
     //
     //  Render your shadow, either on the ground or on top of occupants-
     final float R2 = (float) Math.sqrt(2) ;
-    final PlaneFX shadow = new PlaneFX(
-      GROUND_SHADOW, radius() * scale * R2
-    ) ;
+    final PlaneFX shadow = (PlaneFX) SHADOW_MODEL.makeSprite() ;
+    shadow.scale = radius() * scale * R2 ;
     final Vec3D p = s.position ;
     shadow.position.setTo(p) ;
     shadow.position.z = shadowHeight(p) ;

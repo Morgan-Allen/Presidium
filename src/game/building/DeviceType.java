@@ -4,6 +4,7 @@ package src.game.building ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.sfx.* ;
+import src.graphics.sfx.PlaneFX.Model ;
 import src.graphics.jointed.* ;
 import src.util.* ;
 
@@ -17,6 +18,12 @@ public class DeviceType extends Service implements Economy {
     */
   final static Texture
     LASER_TEX = Texture.loadTexture("media/SFX/laser_beam.gif") ;
+  final static PlaneFX.Model
+    SLASH_FX_MODEL = new PlaneFX.Model(
+      "slash_fx", DeviceType.class,
+      "media/SFX/melee_slash.png", 0.5f, 0, 0, false
+    ) ;
+  
   
   final public float baseDamage ;
   final public int properties ;
@@ -73,12 +80,21 @@ public class DeviceType extends Service implements Economy {
     
     final World world = uses.world() ;
     if (type == null || type.hasProperty(MELEE)) {
+      //
       //  Put in a little 'splash' FX, in the direction of the arc.
+      final float r = uses.radius() ;
+      final Sprite slashFX = SLASH_FX_MODEL.makeSprite() ;
+      slashFX.scale = r * 2 ;
+      world.ephemera.addGhost(uses, r, slashFX, 0.33f) ;
     }
     else if (type.hasProperty(RANGED | PHYSICAL)) {
       //  You'll have to create a missile effect, with similar parameters.
+      //
+      //  TODO:  IMPLEMENT THAT
     }
     else if (type.hasProperty(RANGED | ENERGY)) {
+      //
+      //  Otherwise, create an appropriate 'beam' FX-
       final BeamFX beam = new BeamFX(LASER_TEX, 0.05f) ;
       
       uses.position(beam.origin) ;
@@ -87,10 +103,7 @@ public class DeviceType extends Service implements Economy {
       beam.target.setTo(hitPoint(applied, hits)) ;
       
       beam.position.setTo(beam.origin).add(beam.target).scale(0.5f) ;
-      final Vec3D p = beam.position ;
-      final Tile centre = world.tileAt(p.x, p.y) ;
-      final float size = beam.origin.sub(beam.target, null).length() ;
-      
+      final float size = beam.origin.sub(beam.target, null).length() / 2 ;
       world.ephemera.addGhost(null, size, beam, 0.33f) ;
     }
   }

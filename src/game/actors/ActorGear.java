@@ -228,25 +228,15 @@ public class ActorGear extends Inventory implements Economy {
   
   
   /**  Returns the amount of damage left after shield reductions are taken into
-    *  account.  (Also initialises and updates SFX for shields, if needed.)
+    *  account...
     */
-  /*
-  public float afterShields(Target threat, float damage, boolean physical) {
+  public float afterShields(float damage, boolean physical) {
     float reduction = shieldCharge() * Rand.num() ;
-    if (reduction > 0 && shieldFX == null) {
-      shieldFX = new ShieldFX() ;
-      actor.position(shieldFX.position) ;
-    }
-    if (shieldFX != null) {
-      //I.say("Threat is: "+threat.targPos()) ;
-      shieldFX.attachBurstFromPoint(threat.position(null), damage > reduction) ;
-    }
     if (physical) reduction /= 2 ;
     if (reduction > damage) reduction = damage ;
     currentShields -= reduction ;
     return damage - reduction ;
   }
-  //*/
   
   
   private void regenerateShields() {

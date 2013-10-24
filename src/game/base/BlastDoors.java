@@ -17,6 +17,17 @@ import src.util.* ;
 
 
 
+/*
+TODO:
+-  What about Shield Walls/Perimeter Fence?
+-  ...Restrict access to particular personnel.
+-  ...Afford chance to upgrade along length.
+-  ...Activate shields/man the defences.
+-  2 Sentries at Blast Door, as standard.
+
+//*/
+
+
 public class BlastDoors extends ShieldWall implements TileConstants {
   
   

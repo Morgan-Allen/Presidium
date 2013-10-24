@@ -33,7 +33,7 @@ public class Condition extends Trait {
     String... names
   ) {
     super(Abilities.CONDITION, names) ;
-    this.latency   = latency   ;
+    this.latency   = Math.max(latency, 0.1f) ;
     this.virulence = virulence ;
     this.spread    = spread    ;
     
@@ -99,8 +99,7 @@ public class Condition extends Trait {
   }
   
   
-  
-  public void affect(Actor a) {
+  protected void affectAsDisease(Actor a, float progress, float response) {
     //
     //  If this is contagious, consider spreading to nearby actors.
     if (spread > 0 && Rand.index(10) < spread * cleanFactor(a)) {
@@ -123,8 +122,6 @@ public class Condition extends Trait {
     //
     //  Next, consider effects upon the host-
     final float
-      progress = a.traits.traitLevel(this),
-      response = 0 - a.traits.effectBonus(this),
       noticeDC = 5 * (3 - (progress + response)),
       ageBonus = 1.5f - a.health.ageLevel(),
       immuneDC = (virulence + noticeDC) / (1 + ageBonus) ;
@@ -154,12 +151,6 @@ public class Condition extends Trait {
       a.traits.setBonus(this, Visit.clamp((inc / 2) - response, -3, 0)) ;
       a.traits.setLevel(this, Visit.clamp(progress + inc, 0, 3)) ;
     }
-    //
-    //  Impose penalties/bonuses to various attributes, if still symptomatic-
-    final float symptoms = progress - response ;
-    if (symptoms > 0) for (int i = affected.length ; i-- > 0 ;) {
-      a.traits.incBonus(affected[i], modifiers[i] * symptoms / 2) ;
-    }
     if (verbose && I.talkAbout == a) {
       I.say("Reporting on: "+this+" for "+a) ;
       I.say("  Immune DC/vigour: "+immuneDC+"/"+a.traits.useLevel(VIGOUR)) ;
@@ -167,15 +158,30 @@ public class Condition extends Trait {
       I.say("  Progress/response: "+progress+"/"+response) ;
     }
   }
+  
+  
+  public void affect(Actor a) {
+    //
+    //  Impose penalties/bonuses to various attributes, if still symptomatic-
+    final float
+      progress = a.traits.traitLevel(this),
+      response = 0 - a.traits.effectBonus(this),
+      symptoms = progress - response ;
+    if (symptoms > 0) for (int i = affected.length ; i-- > 0 ;) {
+      //I.sayAbout(a, "Affecting: "+affected[i]+", symptoms: "+symptoms) ;
+      a.traits.incBonus(affected[i], modifiers[i] * symptoms / 2) ;
+    }
+    //
+    //  Check to see if the condition spreads/worsens or fades-
+    if (virulence > 0) {
+      affectAsDisease(a, progress, response) ;
+    }
+    else {
+      final float inc = 1 * 1f / (latency * World.STANDARD_DAY_LENGTH) ;
+      a.traits.setLevel(this, Math.max(0, progress - inc)) ;
+    }
+  }
 }
-
-
-
-
-
-
-
-
 
 
 

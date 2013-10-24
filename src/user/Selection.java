@@ -149,10 +149,11 @@ public class Selection implements UIConstants {
   
   
   public static void renderPlane(
-    Rendering r, Vec3D pos, float radius, Colour c, Texture ringTex
+    Rendering r, Vec3D pos, float radius, Colour c, PlaneFX.Model texModel
   ) {
-    final PlaneFX ring = new PlaneFX(ringTex, radius) ;
+    final PlaneFX ring = (PlaneFX) texModel.makeSprite() ;
     ring.colour = c ;
+    ring.scale = radius ;
     ring.position.setTo(pos) ;
     r.addClient(ring) ;
   }

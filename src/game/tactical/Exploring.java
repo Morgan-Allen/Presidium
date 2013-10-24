@@ -11,15 +11,6 @@ import src.game.common.WorldSections.Section ;
 import src.game.building.TileSpread ;
 
 
-//
-//  Alright.  In the case of exploring a definite area, you grab every reachable
-//  tile- and either all of that is accessible to a given actor, or none of it
-//  is.  Then you pick tiles from within that general area, based on proximity
-//  to the actor.
-
-//  You also need to merge Exploring with Recon, and Combat with Strike.
-
-
 
 public class Exploring extends Plan implements Abilities {
   
@@ -76,7 +67,7 @@ public class Exploring extends Plan implements Abilities {
     
     impetus -= Plan.rangePenalty(actor, point) ;
     impetus -= Plan.dangerPenalty(point, actor) ;
-    impetus *= actor.health.sightRange() / ActorHealth.DEFAULT_SIGHT ;
+    impetus *= actor.health.sightRange() * 2 / ActorHealth.DEFAULT_SIGHT ;
     
     return impetus ;
   }
@@ -118,6 +109,10 @@ public class Exploring extends Plan implements Abilities {
   public static Tile getUnexplored(
     IntelMap intelMap, Target target
   ) {
+    //
+    //  TODO:  Restrict this to within a given Box2D area if possible.
+    
+    
     final Vec3D pos = target.position(null) ;
     final MipMap map = intelMap.fogMap() ;
     int high = map.high() + 1, x = 0, y = 0, kX, kY ;
@@ -178,7 +173,7 @@ public class Exploring extends Plan implements Abilities {
       this, "actionLook",
       Action.LOOK, "Looking at "+lookedAt.habitat().name
     ) ;
-    //looking.setProperties(Action.RANGED) ;
+    looking.setProperties(Action.RANGED) ;
     return looking ;
   }
   

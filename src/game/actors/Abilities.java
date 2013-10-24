@@ -4,6 +4,7 @@
   *  for now, feel free to poke around for non-commercial purposes.
   */
 package src.game.actors ;
+import src.game.tactical.Power;
 import src.util.* ;
 
 
@@ -407,12 +408,6 @@ public interface Abilities {
       "Lean",
       "Gaunt"
     ),
-    MUTATION = new Trait(CATEGORIC,
-      "Major Mutation",
-      "Minor Mutation",
-      "Nominal Mutation",
-      null
-    ),
     PHYSICAL_TRAITS[] = Trait.traitsSoFar(),
     
     //
@@ -444,6 +439,15 @@ public interface Abilities {
       "Wastes Blood", //  "Wastesborn", "Pale"
       null
     ),
+    MUTATION = new Trait(CATEGORIC,
+      "Major Mutation",
+      "Minor Mutation",
+      "Nominal Mutation",
+      null
+    ),
+    PSYONIC = new Trait(CATEGORIC,
+      "Psyon"
+    ),
     BLOOD_TRAITS[] = {
       DESERT_BLOOD, TUNDRA_BLOOD, FOREST_BLOOD, WASTES_BLOOD
     },
@@ -458,6 +462,7 @@ public interface Abilities {
   
   
   final static int
+    NO_LATENCY     = 0,
     SHORT_LATENCY  = 1,
     MEDIUM_LATENCY = 10,
     LONG_LATENCY   = 100,
@@ -523,7 +528,7 @@ public interface Abilities {
     ),
     
     SOMA_HAZE = new Condition(
-      SHORT_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(
+      NO_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(
         REFLEX, -3, INTELLECT, -1, INSIGHT, 1
       ),
       "Soma Haze",
@@ -544,7 +549,7 @@ public interface Abilities {
     ),
     SPICE_ADDICTION = new Condition(
       LONG_LATENCY, LOW_VIRULENCE, NO_SPREAD, Table.make(
-        VIGOUR, -10, BRAWN, -10, WILL, -5, INTELLECT, -5
+        VIGOUR, -10, INSIGHT, -5, WILL, -5, INTELLECT, -5
       ),
       "Complete Spice Addiction",
       "Heavy Spice Addiction",
@@ -626,68 +631,83 @@ public interface Abilities {
   
   
   final public static Trait
-    HYPERKINESIS_EFFECT = new Condition(
-      SHORT_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(
-        REFLEX, 5, HAND_TO_HAND, 5, MARKSMANSHIP, 5, ATHLETICS, 5
+    KINESTHESIA_EFFECT = new Condition(
+      NO_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(
+        REFLEX, 10, HAND_TO_HAND, 10, MARKSMANSHIP, 10, ATHLETICS, 10
       ),
-      "Hyperkinesis"
-    ),
-    SUSPENSION_EFFECT = new Condition(
-      SHORT_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(),
-      "Suspension"
+      "Kinesthesia", "Kinesthesia", "Kinesthesia", null
     ) {
       public void affect(Actor a) {
-        a.health.liftInjury(0.1f) ;
+        super.affect(a) ;
+        a.world().ephemera.updateGhost(a, 1, Power.KINESTHESIA_FX_MODEL, 1) ;
+      }
+    },
+    SUSPENSION_EFFECT = new Condition(
+      NO_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(),
+      "Suspension", "Suspension", "Suspension", null
+    ) {
+      public void affect(Actor a) {
+        super.affect(a) ;
+        if (a.traits.useLevel(this) <= 0) {
+          a.health.setState(ActorHealth.STATE_RESTING) ;
+        }
+        else {
+          a.health.liftInjury(0.1f) ;
+          a.world().ephemera.updateGhost(a, 1, Power.SUSPENSION_FX_MODEL, 1) ;
+        }
       }
     },
     SPICE_VISION_EFFECT = new Condition(
-      SHORT_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(
+     SHORT_LATENCY, NO_VIRULENCE, NO_SPREAD, Table.make(
         VIGOUR, 10, INTELLECT, 5, INSIGHT, 5, WILL, 5
       ),
-      "Spice Vision"
+      "Spice Vision", "Spice Vision", "Spice Vision", null
     ) {
       public void affect(Actor a) {
+        super.affect(a) ;
         if (a.traits.traitLevel(SPICE_ADDICTION) <= 0) {
-          a.traits.incLevel(SPICE_ADDICTION, Rand.num()) ;
+          a.traits.incLevel(SPICE_ADDICTION, Rand.num() / 10f) ;
         }
       }
     },
     EFFECTS[] = Trait.traitsSoFar() ;
-  
-  //
-  //  TODO:  Put these in a separate class, so you can concisely describe their
-  //  effects.
-  final public static Trait
-    PSYONIC        = new Trait(PHYSICAL, "Psyonic"       ),
-    REGENERATIVE   = new Trait(PHYSICAL, "Regenerative"  ),
-    SUPERCOGNITIVE = new Trait(PHYSICAL, "Supercognitive"),
-    JUMPER         = new Trait(PHYSICAL, "Jumper"        ),
-    HYPERPHYSICAL  = new Trait(PHYSICAL, "Hyperphysical" ),
-    CHAMELEON      = new Trait(PHYSICAL, "Chameleon"     ),
-    ULTRASENSITIVE = new Trait(PHYSICAL, "Ultrasensitive"),
-    VENOMOUS       = new Trait(PHYSICAL, "Venomous"      ),
-    PHASE_SHIFTER  = new Trait(PHYSICAL, "Phase Shifter" ),
-    GILLED         = new Trait(PHYSICAL, "Gilled"        ),
-    FOUR_ARMED     = new Trait(PHYSICAL, "Four Armed"    ),
-    ODD_COLOUR     = new Trait(PHYSICAL, "Odd Colour"    ),
-    ECCENTRIC      = new Trait(PHYSICAL, "Eccentric"     ),
-    STERILE        = new Trait(PHYSICAL, "Sterile"       ),
-    FURRED         = new Trait(PHYSICAL, "Furred"        ),
-    SCALY          = new Trait(PHYSICAL, "Scaly"         ),
-    SICKLY         = new Trait(PHYSICAL, "Sickly"        ),
-    DISTURBED      = new Trait(PHYSICAL, "Disturbed"     ),
-    DEFORMED       = new Trait(PHYSICAL, "Deformed"      ),
-    LEPROUS        = new Trait(PHYSICAL, "Leprous"       ),
-    NULL_EMPATH    = new Trait(PHYSICAL, "Null Empath"   ),
-    ATAVIST        = new Trait(PHYSICAL, "Atavist"       ),
-    ABOMINATION    = new Trait(PHYSICAL, "Abomination"   ),
-    MUTANT_TRAITS[] = Trait.traitsSoFar() ;
   
   
   final public static Trait
     ALL_TRAIT_TYPES[] = Trait.from(Trait.allTraits) ;
 }
 
+
+/*
+//
+//  TODO:  Put these in a separate class, so you can concisely describe their
+//  effects.
+final public static Trait
+PSYONIC        = new Trait(PHYSICAL, "Psyonic"       ),
+REGENERATIVE   = new Trait(PHYSICAL, "Regenerative"  ),
+SUPERCOGNITIVE = new Trait(PHYSICAL, "Supercognitive"),
+JUMPER         = new Trait(PHYSICAL, "Jumper"        ),
+HYPERPHYSICAL  = new Trait(PHYSICAL, "Hyperphysical" ),
+CHAMELEON      = new Trait(PHYSICAL, "Chameleon"     ),
+ULTRASENSITIVE = new Trait(PHYSICAL, "Ultrasensitive"),
+VENOMOUS       = new Trait(PHYSICAL, "Venomous"      ),
+PHASE_SHIFTER  = new Trait(PHYSICAL, "Phase Shifter" ),
+GILLED         = new Trait(PHYSICAL, "Gilled"        ),
+FOUR_ARMED     = new Trait(PHYSICAL, "Four Armed"    ),
+ODD_COLOUR     = new Trait(PHYSICAL, "Odd Colour"    ),
+ECCENTRIC      = new Trait(PHYSICAL, "Eccentric"     ),
+STERILE        = new Trait(PHYSICAL, "Sterile"       ),
+FURRED         = new Trait(PHYSICAL, "Furred"        ),
+SCALY          = new Trait(PHYSICAL, "Scaly"         ),
+SICKLY         = new Trait(PHYSICAL, "Sickly"        ),
+DISTURBED      = new Trait(PHYSICAL, "Disturbed"     ),
+DEFORMED       = new Trait(PHYSICAL, "Deformed"      ),
+LEPROUS        = new Trait(PHYSICAL, "Leprous"       ),
+NULL_EMPATH    = new Trait(PHYSICAL, "Null Empath"   ),
+ATAVIST        = new Trait(PHYSICAL, "Atavist"       ),
+ABOMINATION    = new Trait(PHYSICAL, "Abomination"   ),
+MUTANT_TRAITS[] = Trait.traitsSoFar() ;
+//*/
 
 /*
   //  Logicians, Spacers, Initiates, Shapers, Collective and Symbiotes-

@@ -187,11 +187,11 @@ public abstract class Actor extends Mobile implements
     if (root != null && root != actionTaken && root.finished() && OK) {
       if (verbose) I.sayAbout(this, "  ROOT BEHAVIOUR COMPLETE... "+root) ;
       mind.cancelBehaviour(root) ;
-      world.schedule.scheduleNow(this) ;
+      //world.schedule.scheduleNow(this) ;
     }
     if (actionTaken != null && actionTaken.finished() && OK) {
       if (verbose) I.sayAbout(this, "  ACTION COMPLETE: "+actionTaken) ;
-      world.schedule.scheduleNow(this) ;
+      //world.schedule.scheduleNow(this) ;
     }
     
     if (actionTaken != null) {
@@ -329,12 +329,12 @@ public abstract class Actor extends Mobile implements
   
   /**  Dealing with state changes-
     */
-  protected void enterStateKO() {
+  public void enterStateKO(String animName) {
     ///I.say(this+" HAS BEEN KO'D") ;
     if (isDoing("actionFall", null)) return ;
     final Action falling = new Action(
       this, this, this, "actionFall",
-      Action.FALL, "Stricken"
+      animName, "Stricken"
     ) ;
     pathing.updateTarget(null) ;
     mind.cancelBehaviour(mind.rootBehaviour()) ;

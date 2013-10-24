@@ -19,30 +19,27 @@ import src.util.* ;
 //  Save    (screen fade black)
 //  Load    (screen fade grey)
 //  Game speed  (screen overlay brown)
-//  Far sight  (swirly FX)
+//  Far sight  (swirly FX)  (DONE)
 //  Pushing   (swirly tilted FX)
 //  Shields   (tilted FX)
 //  Freezing  (Skin effect)
 //  Reflex buff  (swirly tilted FX)
 //  Telling  (tilted one-off FX)
-/*
-        WALK_THE_PATH, DENY_THE_VISION,
-        TIME_DILATION, REMOTE_VIEWING,
-        TELEKINESIS, FORCEFIELD,
-        SUSPENSION,
-        KINESTHESIA,
-        VOICE_OF_COMMAND
-//*/
+
+//
+//  TODO:  ...I need some method of maintaining persistant SFX on a given
+//  mobile target.  ...The ephemera class can probably be extended to handle
+//  that.
 
 
 
 public class Quickbar extends UIGroup implements UIConstants {
   
   final static int
-    BUT_SIZE = 40 ;
+    BUT_SIZE = 40,
+    SPACING  = 2 ;
   
   final BaseUI UI ;
-  final Button slots[] = new Button[NUM_QUICK_SLOTS] ;
   private UIGroup optionList ;
   
   
@@ -53,16 +50,49 @@ public class Quickbar extends UIGroup implements UIConstants {
   }
   
   
+  private void addToSlot(
+    Button button, UIGroup parent, List <Button> allSlots
+  ) {
+    final Button last = allSlots.last() ;
+    button.absBound.set(0, 0, BUT_SIZE, BUT_SIZE) ;
+    if (last != null) button.absBound.xpos(last.absBound.xmax() + SPACING) ;
+    allSlots.add(button) ;
+    button.attachTo(parent) ;
+  }
+  
+  
+  private float lengthFor(List <Button> allSlots) {
+    return (allSlots.size() * (BUT_SIZE + SPACING)) - SPACING ;
+  }
+  
+  
+  
+  /**  
+    */
+  //
+  //  TODO:  Export this to a dedicated PowersTab class.  Probably.
+  
   class PowerTask implements UITask {
     
     final Power power ;
     final String option ;
     final Actor caster ;
+    final Image preview ;
     
-    PowerTask(Power p, String o, Actor c) {
+    final float PS = BUT_SIZE * 0.75f, HPS = PS / 2 ;
+    
+    
+    PowerTask(Quickbar bar, Power p, String o, Actor c) {
       power = p ;
       option = o ;
       caster = c ;
+      preview = new Image(UI, power.buttonTex) {
+        protected UINode selectionAt(Vec2D mousePos) {
+          return null ;
+        }
+      } ;
+      preview.attachTo(UI) ;
+      preview.relAlpha = 0.5f ;
     }
     
     
@@ -70,28 +100,39 @@ public class Quickbar extends UIGroup implements UIConstants {
       final boolean clicked = UI.mouseClicked() ;
       Object hovered = UI.selection.hovered() ;
       if (hovered == null) hovered = UI.selection.pickedTile() ;
+      preview.absBound.set(
+        UI.mouseX() - HPS,
+        UI.mouseY() - HPS,
+        PS, PS
+      ) ;
       
-      if (hovered instanceof Target) {
-        final Target picked = (Target) hovered ;
-        if (power.finishedWith(caster, null, picked, clicked)) {
-          cancelTask() ;
-        }
+      if (! (hovered instanceof Target)) hovered = null ;
+      final Target picked = (Target) hovered ;
+      if (power.finishedWith(caster, option, picked, clicked)) {
+        cancelTask() ;
       }
     }
     
-    public void cancelTask() { UI.endCurrentTask() ; }
+    
+    public void cancelTask() {
+      UI.endCurrentTask() ;
+      preview.detach() ;
+    }
+    
     public Texture cursorImage() { return power.buttonTex ; }
   }
   
   
   private UIGroup constructOptionList(final Power power, String options[]) {
     final UIGroup list = new UIGroup(UI) ;
+    final Quickbar bar = this ;
+    
     int i = 0 ; for (final String option : options) {
       final Text text = new Text(UI, Text.INFO_FONT) ;
       text.append(new Description.Link(option) {
         public void whenClicked() {
           final Actor caster = UI.played().ruler() ;
-          final PowerTask task = new PowerTask(power, option, caster) ;
+          final PowerTask task = new PowerTask(bar, power, option, caster) ;
           UI.beginTask(task) ;
           optionList.detach() ;
         }
@@ -104,10 +145,13 @@ public class Quickbar extends UIGroup implements UIConstants {
   }
   
   
-  protected void setupPowers() {
+  protected void setupPowersButtons() {
     final Quickbar bar = this ;
+    final UIGroup powerGroup = new UIGroup(UI) ;
+    final List <Button> powerSlots = new List <Button> () ;
     
-    int i = 0 ; for (final Power power : Power.BASIC_POWERS) {
+    for (final Power power : Power.BASIC_POWERS) {
+      
       final Button button = new Button(
         UI, power.buttonTex, Button.ICON_LIT_TEX,
         power.name.toUpperCase()+"\n  "+power.helpInfo
@@ -130,22 +174,129 @@ public class Quickbar extends UIGroup implements UIConstants {
             power.finishedWith(caster, null, null, true)
           ) return ;
           else {
-            final PowerTask task = new PowerTask(power, null, caster) ;
+            ///I.say("Power needs a task...") ;
+            final PowerTask task = new PowerTask(bar, power, null, caster) ;
             UI.beginTask(task) ;
           }
         }
       } ;
-      button.absBound.set(i++ * (BUT_SIZE + 2), 0, BUT_SIZE, BUT_SIZE) ;
-      button.attachTo(this) ;
+      addToSlot(button, powerGroup, powerSlots) ;
     }
+    
+    powerGroup.attachTo(this) ;
   }
   
   
-  //
-  //  TODO:  Use the task construction functions from theMissionsTab class.
   protected void setupMissionButtons() {
+    final UIGroup missionGroup = new UIGroup(UI) ;
+    final List <Button> missionSlots = new List <Button> () ;
+    
+    final Button strikeMB = new Button(
+      UI, MissionsTab.STRIKE_ICON, Button.ICON_LIT_TEX,
+      "Strike Mission\n  Destroy, capture or neutralise a chosen target"
+    ) {
+      public void whenClicked() { MissionsTab.initStrikeTask(UI) ; }
+    } ;
+    addToSlot(strikeMB, missionGroup, missionSlots) ;
+    
+    final Button reconMB = new Button(
+      UI, MissionsTab.RECON_ICON, Button.ICON_LIT_TEX,
+      "Recon Mission\n  Explore a given area or follow a chosen subject"
+    ) {
+      public void whenClicked() { MissionsTab.initReconTask(UI) ; }
+    } ;
+    addToSlot(reconMB, missionGroup, missionSlots) ;
+    
+    final Button securityMB = new Button(
+      UI, MissionsTab.SECURITY_ICON, Button.ICON_LIT_TEX,
+      "Security Mission\n  Protect a given area, structure or subject"
+    ) {
+      public void whenClicked() { MissionsTab.initSecurityTask(UI) ; }
+    } ;
+    addToSlot(securityMB, missionGroup, missionSlots) ;
+    
+    final Button contactMB = new Button(
+      UI, MissionsTab.CONTACT_ICON, Button.ICON_LIT_TEX,
+      "Contact Mission\n  Establish better relations with the subject"
+    ) {
+      public void whenClicked() { MissionsTab.initContactTask(UI) ; }
+    } ;
+    addToSlot(contactMB, missionGroup, missionSlots) ;
+    
+    final float length = this.lengthFor(missionSlots) ;
+    missionGroup.relBound.set(0.55f, 0, 0, 0) ;
+    missionGroup.absBound.set(-length / 2, 0, 0, 0) ;
+    missionGroup.attachTo(this) ;
+  }
+  
+  
+  protected void setupInstallButtons() {
+    final UIGroup installGroup = new UIGroup(UI) ;
+    final List <Button> installSlots = new List <Button> () ;
+    
+    createGuildButton(
+      "militant_category_button", "Militant Structures",
+      0, installGroup, installSlots
+    ) ;
+    createGuildButton(
+      "merchant_category_button", "Merchant Structures",
+      1, installGroup, installSlots
+    ) ;
+    createGuildButton(
+      "aesthete_category_button", "Aesthete Structures",
+      2, installGroup, installSlots
+    ) ;
+    createGuildButton(
+      "artificer_category_button", "Artificer Structures",
+      3, installGroup, installSlots
+    ) ;
+    createGuildButton(
+      "ecologist_category_button", "Ecologist Structures",
+      4, installGroup, installSlots
+    ) ;
+    createGuildButton(
+      "physician_category_button", "Physician Structures",
+      5, installGroup, installSlots
+    ) ;
+    
+    installGroup.relBound.set(1, 0, 0, 0) ;
+    installGroup.absBound.set(-INFO_AREA_WIDE, 0, 0, 0) ;
+    installGroup.attachTo(this) ;
+  }
+  
+
+  private void createGuildButton(
+    String img, String help, final int buttonID,
+    UIGroup installGroup, List <Button> installSlots
+  ) {
+    final String catName = INSTALL_CATEGORIES[buttonID] ;
+    final InstallTab newTab = new InstallTab(UI, catName) ;
+    final Button button = new Button(
+      UI, BUTTONS_PATH+img+".png", help
+    ) {
+      protected void whenClicked() {
+        UI.beginPanelFade() ;
+        if (UI.currentPanel() == newTab) {
+          UI.setInfoPanel(null) ;
+        }
+        else UI.setInfoPanel(newTab) ;
+      }
+    } ;
+    button.stretch = true ;
+    
+    button.absBound.set(0, 0, INFO_AREA_WIDE / 6f, BUT_SIZE) ;
+    final Button last = installSlots.last() ;
+    if (last != null) button.absBound.xpos(last.absBound.xmax()) ;
+    installSlots.add(button) ;
+    button.attachTo(installGroup) ;
+    //addToSlot(button, installGroup, installSlots) ;
   }
 }
+
+
+
+
+
 
 
 

@@ -139,7 +139,7 @@ public class Camera {
       //  target, and displace accordingly-
       final float drift = Math.min(1,
         ((distance + 2) * 2) / (PlayLoop.FRAMES_PER_SECOND * distance)
-      ) ;
+      ) * PlayLoop.gameSpeed() ;
       viewPos.add(displace.scale(drift)) ;
     }
   }

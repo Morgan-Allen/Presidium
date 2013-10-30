@@ -11,6 +11,7 @@ import src.game.actors.* ;
 import src.game.base.* ;
 import src.game.building.* ;
 import src.game.common.* ;
+import src.game.campaign.* ;
 import src.graphics.widgets.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.* ;
@@ -19,7 +20,7 @@ import src.util.* ;
 
 
 
-public class DebugSituation extends PlayLoop implements Economy {
+public class DebugSituation extends Scenario implements Economy {
   
   
   
@@ -27,7 +28,7 @@ public class DebugSituation extends PlayLoop implements Economy {
     */
   public static void main(String args[]) {
     DebugSituation test = new DebugSituation() ;
-    PlayLoop.runLoop(test) ;
+    PlayLoop.setupAndLoop(test.UI, test) ;
   }
   
   
@@ -36,7 +37,7 @@ public class DebugSituation extends PlayLoop implements Economy {
   
   
   protected DebugSituation() {
-    super() ;
+    super("saves/test_pathing.rep") ;
   }
   
   public DebugSituation(Session s) throws Exception {
@@ -59,12 +60,12 @@ public class DebugSituation extends PlayLoop implements Economy {
     //if (true) return false ;
     try {
       PlayLoop.loadGame("saves/test_pathing.rep") ;
-      final Base base = PlayLoop.played() ;
+      final Base base = PlayLoop.currentScenario().base ;
       if (base.credits() < 500) base.incCredits(500 - base.credits()) ;
       PlayLoop.setGameSpeed(1.0f) ;
       GameSettings.psyFree = true ;
       //GameSettings.pathFree = true ;
-      final World world = PlayLoop.world() ;
+      final World world = PlayLoop.currentScenario().world ;
       world.ephemera.applyFadeColour(Colour.GREY) ;
       return true ;
     }
@@ -87,24 +88,11 @@ public class DebugSituation extends PlayLoop implements Economy {
   }
   
   
-  protected Base createBase(World world) {
-    Base base = new Base(world) ;
-    return base ;
-  }
-  
-  
-  protected HUD createUI(Base base, Rendering rendering) {
-    BaseUI UI = new BaseUI(base.world, rendering) ;
-    UI.assignBaseSetup(base, new Vec3D(8, 8, 0)) ;
-    return UI ;
-  }
-  
-  
-  protected void configureScenario(World world, Base base, HUD UI) {
+  protected void configureScenario(World world, Base base, BaseUI UI) {
     I.say("Configuring world...") ;
     
     base.incCredits(10000) ;
-    GameSettings.fogFree = true ;
+    //GameSettings.fogFree = true ;
     GameSettings.buildFree = true ;
     //GameSettings.hireFree = true ;
     GameSettings.psyFree = true ;
@@ -119,8 +107,8 @@ public class DebugSituation extends PlayLoop implements Economy {
     o.enterWorldAt(4, 4, world) ;
     o.setAsEstablished(true) ;
     
-    DebugBehaviour.establishVenue(new Sickbay(base), 9, 2, true) ;
-    DebugBehaviour.establishVenue(new Garrison(base), 9, 8, true) ;
+    Scenario.establishVenue(new Sickbay(base), 9, 2, true, world) ;
+    Scenario.establishVenue(new Garrison(base), 9, 8, true, world) ;
     
     //other.traits.incLevel(KINESTHESIA_EFFECT, 1) ;
     ((BaseUI) UI).selection.pushSelection(other, true) ;
@@ -130,31 +118,16 @@ public class DebugSituation extends PlayLoop implements Economy {
   
   /**  Updates and monitoring-
     */
-  protected void updateGameState() {
-    super.updateGameState() ;
-    ///assignRandomTarget(citizen) ;
-  }
-  
-  
-  protected void renderGameGraphics() {
-    if (PlayLoop.gameSpeed() < 1) {
-      final World world = PlayLoop.world() ;
-      final Colour blur = new Colour().set(0.5f, 0.5f, 0.1f, 0.4f) ;
-      world.ephemera.applyFadeColour(blur) ;
-      //
-      //  TODO:  You'll have to drain Psy points here as well...  Bugger it.
-      
-    }
-    
-    super.renderGameGraphics() ;
-    if (((BaseUI) currentUI()).currentTask() == null) {
+  public void renderVisuals(Rendering rendering) {
+    super.renderVisuals(rendering) ;
+    if (UI.currentTask() == null) {
       //highlightPlace() ;
       //highlightPath() ;
     }
   }
   
-  
-  protected boolean shouldExitLoop() {
+  /*
+  public boolean shouldExitLoop() {
     if (KeyInput.wasKeyPressed('r')) {
       resetGame() ;
       return false ;
@@ -179,6 +152,7 @@ public class DebugSituation extends PlayLoop implements Economy {
     }
     return false ;
   }
+  //*/
   
   
   
@@ -186,17 +160,17 @@ public class DebugSituation extends PlayLoop implements Economy {
     */
   private void introduceCitizen(Tile free) {
     if (free == null) return ;
-    citizen = new Human(Background.ARTIFICER, played()) ;
-    citizen.enterWorldAt(free.x, free.y, world()) ;
-    ((BaseUI) currentUI()).selection.pushSelection(citizen, true) ;
+    citizen = new Human(Background.ARTIFICER, base) ;
+    citizen.enterWorldAt(free.x, free.y, world) ;
+    UI.selection.pushSelection(citizen, true) ;
   }
   
   
   private void assignRandomTarget(Human c) {
     if (c == null) return ;
     if (c.mind.topBehaviour() == lastAction) return ;
-    final int size = world().size ;
-    Tile dest = world().tileAt(Rand.index(size), Rand.index(size)) ;
+    final int size = world.size ;
+    Tile dest = world.tileAt(Rand.index(size), Rand.index(size)) ;
     dest = Spacing.nearestOpenTile(dest, dest) ;
     if (dest == null) return ;
     I.say("SENDING ACTOR TO: "+dest) ;
@@ -215,31 +189,33 @@ public class DebugSituation extends PlayLoop implements Economy {
   
   /**  Debugging pathfinding and region-caching-
     */
-  public static void highlightPlace() {
-    final Tile t = ((BaseUI) currentUI()).selection.pickedTile() ;
+  public static void highlightPlace(
+    Rendering rendering, World world, BaseUI UI
+  ) {
+    final Tile t = UI.selection.pickedTile() ;
     if (t == null) return ;
     
-    final Tile placeTiles[] = world().pathingCache.placeTiles(t) ;
-    final Tile placeRoutes[][] = world().pathingCache.placeRoutes(t) ;
+    final Tile placeTiles[] = world.pathingCache.placeTiles(t) ;
+    final Tile placeRoutes[][] = world.pathingCache.placeRoutes(t) ;
     
     if (placeTiles == null || placeTiles.length < 1) return ;
-    final TerrainMesh placeMesh = world().terrain().createOverlay(
-      world(), placeTiles, false, Texture.WHITE_TEX
+    final TerrainMesh placeMesh = world.terrain().createOverlay(
+      world, placeTiles, false, Texture.WHITE_TEX
     ) ;
     placeMesh.colour = Colour.SOFT_YELLOW ;
-    rendering().addClient(placeMesh) ;
+    rendering.addClient(placeMesh) ;
     
     if (KeyInput.wasKeyPressed('p')) {
       I.say(t.x+" "+t.y+" has "+placeRoutes.length+" routes") ;
-      I.say("  road mask: "+world().terrain().roadMask(t)) ;
+      I.say("  road mask: "+world.terrain().roadMask(t)) ;
     }
     for (Tile route[] : placeRoutes) {
       if (placeRoutes == null || placeRoutes.length < 1) return ;
-      final TerrainMesh routeMesh = world().terrain().createOverlay(
-        world(), route, false, Texture.WHITE_TEX
+      final TerrainMesh routeMesh = world.terrain().createOverlay(
+        world, route, false, Texture.WHITE_TEX
       ) ;
       routeMesh.colour = Colour.SOFT_CYAN ;
-      rendering().addClient(routeMesh) ;
+      rendering.addClient(routeMesh) ;
     }
   }
 
@@ -249,10 +225,11 @@ public class DebugSituation extends PlayLoop implements Economy {
   private static Boardable lastSuccessPath[] ;
   
   
-  public static void highlightPath() {
-    final BaseUI UI = (BaseUI) currentUI() ;
-    renderOverlay(lastFailAll, Colour.SOFT_MAGENTA) ;
-    renderOverlay(lastFailPath, Colour.SOFT_RED) ;
+  public static void highlightPath(
+    Rendering rendering, World world, BaseUI UI
+  ) {
+    renderOverlay(rendering, world, lastFailAll, Colour.SOFT_MAGENTA) ;
+    renderOverlay(rendering, world, lastFailPath, Colour.SOFT_RED) ;
     if (UI.mouseClicked()) {
       if (picked != null) picked = null ;
       else picked = hovered(UI) ;
@@ -261,7 +238,7 @@ public class DebugSituation extends PlayLoop implements Economy {
     if (picked != null && hovered != null) {
       
       final PathingSearch search = (! GameSettings.pathFree) ?
-        world().pathingCache.fullPathSearch(picked, hovered, null, 16) :
+        world.pathingCache.fullPathSearch(picked, hovered, null, 16) :
         new PathingSearch(picked, hovered) ;
       
       if (search != null) {
@@ -277,13 +254,15 @@ public class DebugSituation extends PlayLoop implements Economy {
         }
         else {
           lastSuccessPath = bestPath ;
-          renderOverlay(allSearched, Colour.SOFT_GREEN) ;
-          renderOverlay(bestPath, Colour.SOFT_BLUE) ;
+          renderOverlay(rendering, world, allSearched, Colour.SOFT_GREEN) ;
+          renderOverlay(rendering, world, bestPath, Colour.SOFT_BLUE) ;
         }
       }
     }
     else if (hovered instanceof Tile) {
-      renderOverlay(new Tile[] { (Tile) hovered }, Colour.SOFT_GREEN) ;
+      renderOverlay(
+        rendering, world, new Tile[] { (Tile) hovered }, Colour.SOFT_GREEN
+      ) ;
       if (KeyInput.wasKeyPressed('p')) {
         final Tile tile = ((Tile) hovered) ;
         I.say("Current tile: "+tile) ;
@@ -322,17 +301,19 @@ public class DebugSituation extends PlayLoop implements Economy {
   }
   
   
-  private static void renderOverlay(Boardable path[], Colour c) {
+  private static void renderOverlay(
+    Rendering rendering, World world, Boardable path[], Colour c
+  ) {
     final Batch <Tile> tiles = new Batch <Tile> () ;
     if (path != null) for (Boardable b : path) {
       if (b instanceof Tile) tiles.add((Tile) b) ;
     }
     if (tiles.size() > 0) {
-      final TerrainMesh overlay = world().terrain().createOverlay(
-        world(), tiles.toArray(Tile.class), false, Texture.WHITE_TEX
+      final TerrainMesh overlay = world.terrain().createOverlay(
+        world, tiles.toArray(Tile.class), false, Texture.WHITE_TEX
       ) ;
       overlay.colour = c ;
-      rendering().addClient(overlay) ;
+      rendering.addClient(overlay) ;
     }
   }
 }

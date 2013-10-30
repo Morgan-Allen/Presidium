@@ -5,17 +5,18 @@
   */
 
 package src.game.common ;
+import org.lwjgl.opengl.Display;
+
+import src.game.campaign.* ;
 import src.graphics.widgets.* ;
 import src.util.* ;
 import src.graphics.common.* ;
 import src.user.* ;
 //import jlibs.core.lang.RuntimeUtil ;  //  TODO:  RESTORE THIS.
 
-//
-//  TODO:  Don't make this Saveable.  It's not worth the complications.
 
 
-public abstract class PlayLoop implements Session.Saveable {
+public final class PlayLoop {
   
   
   /**  Fields and constant definitions-
@@ -30,28 +31,24 @@ public abstract class PlayLoop implements Session.Saveable {
     
     MIN_SLEEP    = 10,
     SLEEP_MARGIN = 2 ;
-  //final public static String SAVE_PATH = "saves/test_session.rep" ;
 
   private static boolean verbose = false ;
   
   
-  private static PlayLoop currentGame ;
   private static Rendering rendering ;
+  private static HUD UI ;
+  private static Scenario scenario ;
+  
   private static long lastFrame, lastUpdate, sT, rT ;
   private static float frameTime ;
   
-  
-  private HUD UI ;
-  private World world ;
-  private Base played ;
-
-  private boolean
+  private static boolean
     paused  = false,
     started = true,
-    loop    = true ;
+    loop    = false ;
   
-  private int frameRate = FRAMES_PER_SECOND ;
-  private float speedMultiple = 1.0f ;
+  private static int frameRate = FRAMES_PER_SECOND ;
+  private static float speedMultiple = 1.0f ;
   private static long lastSaveTime = -1 ;
   
   
@@ -59,89 +56,32 @@ public abstract class PlayLoop implements Session.Saveable {
   /**  Returns the components of the current game state-
     */
   public static HUD currentUI() {
-    if (currentGame == null) return null ;
-    return currentGame.UI ;
+    return UI ;
   }
   
   public static Rendering rendering() {
+    if (rendering == null) rendering = new Rendering(
+      DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_HERTZ, false
+    ) ;
     return rendering ;
   }
   
-  public static World world() {
-    if (currentGame == null) return null ;
-    return currentGame.world ;
+  
+  public static Scenario currentScenario() {
+    return scenario ;
   }
-  
-  public static Base played() {
-    if (currentGame == null) return null ;
-    return currentGame.played ;
-  }
-  
-  
-  
-  /**  Overall loop setup, control, and execution.
-    */
-  protected PlayLoop() {
-  }
-  
-  
-  protected void gameStateWipe() {
-    world = null ;
-    played = null ;
-    UI = null ;
-    rendering.clearAll() ;
-    lastSaveTime = -1 ;
-    //RuntimeUtil.gc() ;  //  TODO:  RESTORE THIS.
-  }
-  
-  
-  protected boolean loadedAtStartup() {
-    return false ;
-  }
-  
-  
-  protected void resetGame() {
-    I.say("_____RESETING_WORLD______") ;
-    gameStateWipe() ;
-    world = createWorld() ;
-    played = createBase(world) ;
-    world.registerBase(played, true) ;
-    UI = createUI(played, rendering) ;
-    configureScenario(world, played, UI) ;
-  }
-  
-  
-  protected abstract World createWorld() ;
-  protected abstract Base createBase(World world) ;
-  protected abstract HUD createUI(Base base, Rendering rendering) ;
-  protected abstract void configureScenario(World world, Base base, HUD HUD) ;
   
   
   
   /**  Save and load functionality-
     */
-  public PlayLoop(Session s) throws Exception {
-    this() ;
-    s.cacheInstance(this) ;
-    world = s.world() ;
-    played = (Base) s.loadObject() ;
-    UI = createUI(played, rendering) ;
-    if (UI instanceof BaseUI) ((BaseUI) UI).loadState(s) ;
-  }
-  
-  
-  public void saveState(Session s) throws Exception {
-    s.saveObject(played) ;
-    if (UI instanceof BaseUI) ((BaseUI) UI).saveState(s) ;
-  }
-  
-  
   public static void saveGame(String saveFile) {
-    if (currentGame == null) return ;
+    if (scenario == null) return ;
     KeyInput.clearInputs() ;
     try {
-      Session.saveSession(world(), currentGame, saveFile) ;
+      Session.saveSession(scenario.world, scenario, saveFile) ;
       lastSaveTime = lastUpdate ;
+      scenario.afterSaving() ;
     }
     catch (Exception e) { I.report(e) ; }
   }
@@ -149,78 +89,69 @@ public abstract class PlayLoop implements Session.Saveable {
   
   public static void loadGame(String saveFile) {
     try {
-      KeyInput.clearInputs() ;
-      currentGame.gameStateWipe() ;
-      currentGame = null ;
+      gameStateWipe() ;
       final Session s = Session.loadSession(saveFile) ;
-      currentGame = s.loop() ;
+      scenario = s.scenario() ;
+      scenario.afterLoading() ;
     }
     catch (Exception e) { I.report(e) ; }
   }
   
   
+  protected static void gameStateWipe() {
+    KeyInput.clearInputs() ;
+    scenario = null ;
+    rendering.clearAll() ;
+    lastSaveTime = -1 ;
+    //RuntimeUtil.gc() ;  //  TODO:  RESTORE THIS.
+  }
+  
+  
   public static long timeSinceLastSave() {
-    if (currentGame == null || lastSaveTime == -1) return -1 ;
-    return
-      (lastUpdate - lastSaveTime) / UPDATES_PER_SECOND ;
+    if (scenario == null || lastSaveTime == -1) return -1 ;
+    return (lastUpdate - lastSaveTime) / UPDATES_PER_SECOND ;
   }
   
   
   
-  /**  Methods for override by subclasses-
+  /**  The big static setup, run and exit methods-
     */
-  protected void updateGameInputs() {
-    UI.updateMouse() ;
+  public static void setupAndLoop(HUD UI, Scenario scenario) {
+    PlayLoop.UI = UI ;
+    PlayLoop.scenario = scenario ;
+    runLoop() ;
   }
   
   
-  protected void renderGameGraphics() {
-    world.renderFor(rendering, played) ;
-    played.renderFor(rendering) ;
-    UI.renderWorldFX() ;
+  public static void exitLoop() {
+    loop = false ;
+    PlayLoop.UI = null ;
+    PlayLoop.scenario = null ;
   }
   
   
-  protected void updateGameState() {
-    world.updateWorld() ;
-  }
-  
-  
-  protected boolean shouldExitLoop() {
-    return false ;
-  }
-  
-  
-  
-  /**  The big static runLoop method-
-    */
-  public static void runLoop(PlayLoop toLoop) {
-    if (rendering == null) rendering = new Rendering(
-      DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_HERTZ, false
-    ) ;
+  protected static void runLoop() {
+    if (loop) return ;
     LoadService.loadClassesInDir("src/", "src") ;
+    rendering() ;
     
-    currentGame = toLoop ;
-    if (currentGame != null) {
-      if (! currentGame.loadedAtStartup()) currentGame.resetGame() ;
-      currentGame.updateGameState() ;
+    if (scenario != null) {
+      scenario.updateGameState() ;
     }
-
+    
     lastUpdate = lastFrame = timeMS() ;
+    loop = true ;
     long simTime = 0, renderTime = 0, loopNum = 0 ;
-    while (currentGame == null || currentGame.loop) {
+    while (loop) {
       final long time = timeMS() ;
-      if (currentGame != null) {
-        currentGame.playLoop() ;
-      }
+      loopCycle() ;
       //
       //  Go to sleep until the next round of updates are called for:
       try {
-        final int FRAME_INTERVAL = currentGame == null ?
-          MIN_SLEEP : (1000 / currentGame.frameRate) ;
         final int
+          frameInterval = (1000 / frameRate),
           taken = (int) (timeMS() - time),
-          sleeps = Math.max(FRAME_INTERVAL + (SLEEP_MARGIN - taken), 0) ;
+          sleeps = Math.max(frameInterval + (SLEEP_MARGIN - taken), 0) ;
         if (sleeps > 0) Thread.sleep(sleeps) ;
         simTime += sT ;
         renderTime += rT ;
@@ -239,10 +170,13 @@ public abstract class PlayLoop implements Session.Saveable {
       }
       catch (InterruptedException e) {}
     }
+
+    Display.destroy() ;
+    java.lang.System.exit(0) ;
   }
   
   
-  protected void playLoop() {
+  protected static void loopCycle() {
     //
     //  If you've just come out of pausing, update for the last frame.
     if (started) {
@@ -274,12 +208,21 @@ public abstract class PlayLoop implements Session.Saveable {
       }
       rendering.updateViews() ;
       
-      KeyInput.updateKeyboard() ;
-      updateGameInputs() ;
-      if (shouldExitLoop()) return ;
+      if (UI != null) {
+        KeyInput.updateKeyboard() ;
+        UI.updateMouse() ;
+      }
       
-      renderGameGraphics() ;
-      rendering.assignHUD(UI) ;
+      if (scenario != null) {
+        if (scenario.shouldExitLoop()) return ;
+        scenario.renderVisuals(rendering) ;
+      }
+      
+      if (UI != null) {
+        UI.renderWorldFX() ;
+        rendering.assignHUD(UI) ;
+      }
+      
       rendering.renderDisplay() ;
       lastFrame = time ;
       rT = timeMS() - checkTime ;
@@ -293,8 +236,8 @@ public abstract class PlayLoop implements Session.Saveable {
       int numUpdates = (int) (updateGap / UPDATE_INTERVAL) ;
       numUpdates = Math.min(numUpdates, maxUpdates) ;
       
-      for (int n = numUpdates ; n-- > 0 ;) {
-        updateGameState() ;
+      if (scenario != null) for (int n = numUpdates ; n-- > 0 ;) {
+        scenario.updateGameState() ;
       }
       //
       //  Now we essentially 'pretend' that updates were occurring once every
@@ -304,7 +247,9 @@ public abstract class PlayLoop implements Session.Saveable {
     }
   }
   
-  private static long timeMS() { return System.nanoTime() / 1000000 ; }
+  private static long timeMS() {
+    return java.lang.System.nanoTime() / 1000000 ;
+  }
   
   
   
@@ -312,41 +257,78 @@ public abstract class PlayLoop implements Session.Saveable {
     *  frame rate.
     */
   public static float frameTime() {
-    if (currentGame == null) return 0 ;
     return frameTime ;
   }
   
   
   public static boolean paused() {
-    if (currentGame == null) return false ;
-    return currentGame.paused ;
+    return paused ;
   }
   
   
   public static float gameSpeed() {
-    if (currentGame == null) return -1 ;
-    return currentGame.speedMultiple ;
+    return speedMultiple ;
   }
   
   
   public static void setGameSpeed(float mult) {
-    if (currentGame == null) return ;
-    currentGame.speedMultiple = Math.max(0, mult) ;
+    speedMultiple = Math.max(0, mult) ;
   }
   
   
   public static void setFrameRate(int rate) {
-    if (currentGame == null) return ;
-    currentGame.frameRate = Math.max(0, rate) ;
+    frameRate = Math.max(0, rate) ;
   }
   
   
   public static void setPaused(boolean p) {
-    if (currentGame == null) return ;
-    if (currentGame.paused && ! p) currentGame.started = true ;
-    currentGame.paused = p ;
+    if (paused && ! p) started = true ;
+    paused = p ;
   }
 }
 
 
 
+/*
+protected PlayLoop() {
+}
+
+
+protected boolean loadedAtStartup() {
+  return false ;
+}
+
+
+protected void resetGame() {
+  I.say("_____RESETING_WORLD______") ;
+  gameStateWipe() ;
+  world = createWorld() ;
+  played = createBase(world) ;
+  world.registerBase(played, true) ;
+  UI = createUI(played, rendering) ;
+  configureScenario(world, played, UI) ;
+}
+
+
+protected abstract World createWorld() ;
+protected abstract Base createBase(World world) ;
+protected abstract HUD createUI(Base base, Rendering rendering) ;
+protected abstract void configureScenario(World world, Base base, HUD HUD) ;
+//*/
+
+/*
+public PlayLoop(Session s) throws Exception {
+  this() ;
+  s.cacheInstance(this) ;
+  world = s.world() ;
+  played = (Base) s.loadObject() ;
+  UI = createUI(played, rendering) ;
+  if (UI instanceof BaseUI) ((BaseUI) UI).loadState(s) ;
+}
+
+
+public void saveState(Session s) throws Exception {
+  s.saveObject(played) ;
+  if (UI instanceof BaseUI) ((BaseUI) UI).saveState(s) ;
+}
+//*/

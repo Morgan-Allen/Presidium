@@ -149,7 +149,7 @@ public class Migration extends Plan {
     if (! Career.qualifies(a, app.position)) return -1 ;
     
     float rating = 1 ;
-    rating *= Career.ratePromotion(app.position, a.vocation()) ;
+    rating *= Career.ratePromotion(app.position, a) ;
     
     if (a.mind.home() != null) {
       rating /= 1 + Spacing.distance(a.mind.home(), app.employer) ;

@@ -94,7 +94,7 @@ public interface Abilities {
     //  Research and governance:
     BATTLE_TACTICS = new Skill("Battle Tactics", FORM_COGNITIVE, INTELLECT),
     ACCOUNTING     = new Skill("Accounting"    , FORM_COGNITIVE, INTELLECT),
-    ARCHAEOLOGY    = new Skill("Archaeology"   , FORM_COGNITIVE, INTELLECT),
+    ANCIENT_LORE   = new Skill("Ancient Lore"  , FORM_COGNITIVE, INTELLECT),
     LEGISLATION    = new Skill("Legislation"   , FORM_COGNITIVE, INTELLECT),
     ADMIN_SKILLS[] = Trait.skillsSoFar(),
     

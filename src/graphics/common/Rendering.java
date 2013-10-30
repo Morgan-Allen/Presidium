@@ -6,9 +6,7 @@
 
 package src.graphics.common ;
 import src.util.* ;
-import src.graphics.widgets.HUD ;
-import src.graphics.widgets.UINode;
-
+import src.graphics.widgets.* ;
 import org.lwjgl.opengl.* ;
 
 
@@ -57,6 +55,7 @@ public class Rendering {
       Display.setResizable(true) ;
       Display.setVSyncEnabled(true) ;
       Display.setSwapInterval(25) ;
+      Display.setTitle("Presidium") ;
       Display.create() ;
     }
     catch (Exception e) {

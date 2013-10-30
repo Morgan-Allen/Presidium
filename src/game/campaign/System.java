@@ -20,6 +20,7 @@ public class System extends Background {
   
   
   
+  final public String houseName ;
   final Texture image ;
   final Vec2D starCoords ;
   
@@ -30,10 +31,11 @@ public class System extends Background {
   
   
   public System(
-    String name, String imgName, float starX, float starY,
+    String name, String houseName, String imgName, float starX, float starY,
     Trait climate, int gravity, Object... args
   ) {
     super(name, null, null, -1, NOT_A_GUILD, args) ;
+    this.houseName = houseName ;
     this.image = imgName == null ? null : Texture.loadTexture(imgName) ;
     this.starCoords = new Vec2D(starX, starY) ;
     

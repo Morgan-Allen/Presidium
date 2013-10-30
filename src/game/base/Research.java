@@ -100,13 +100,13 @@ public class Research extends Plan implements Economy {
     //  TODO:  Have the actor's core AI make this selection at infrequent
     //  intervals, more thoroughly.
     Background ambition = v ;
-    float bestRating = Career.ratePromotion(v, v) * Rand.num() * 2 ;
+    float bestRating = Career.ratePromotion(v, actor) * Rand.num() * 2 ;
     for (Background b : Background.ALL_BACKGROUNDS) {
       if (b.guild == Background.NOT_A_GUILD) continue ;
       if (b.guild != v.guild && Rand.index(5) != 0) continue ;
       //
       //  Improve the rating if the career is available nearby:
-      float rating = Career.ratePromotion(b, v) ;
+      float rating = Career.ratePromotion(b, actor) ;
       if (world.presences.randomMatchNear(b, archives, -1) != null) {
         rating *= 2 ;
       }

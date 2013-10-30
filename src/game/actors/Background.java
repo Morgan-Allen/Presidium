@@ -69,6 +69,14 @@ public class Background implements Economy, Session.Saveable {
   
   
   final public static Background
+    MALE_BIRTH = new Background(
+      "Male Birth", null, null, -1, NOT_A_GUILD,
+      3, BRAWN, 1, REFLEX, SOMETIMES, TALL, NEVER, FEMININE
+    ),
+    FEMALE_BIRTH = new Background(
+      "Female Birth", null, null, -1, NOT_A_GUILD,
+      2, VIGOUR, 2, INSIGHT, RARELY, STOUT, ALWAYS, FEMININE
+    ),
     //
     //  Natives can only be recruited locally, not from offworld.
     NATIVE_BIRTH = new Background(
@@ -98,7 +106,7 @@ public class Background implements Economy, Session.Saveable {
     //  visiting NPCs or members of your household.
     HIGH_BIRTH = new Background(
       "High Birth", "highborn_male_skin.gif", null, RULER_CLASS,
-      NOVICE, NOBLE_ETIQUETTE, LEARNING, COMMAND, HAND_TO_HAND, ARCHAEOLOGY
+      NOVICE, NOBLE_ETIQUETTE, LEARNING, COMMAND, HAND_TO_HAND, ANCIENT_LORE
     ),
     
     OPEN_CLASSES[] = { HIVES_BIRTH, PYON_BIRTH, FREE_BIRTH, GUILDER_BIRTH } ;
@@ -111,7 +119,7 @@ public class Background implements Economy, Session.Saveable {
     EXCAVATOR = new Background(
       "Excavator", "pyon_skin.gif", null,
       LOWER_CLASS, GUILD_ARTIFICER,
-      EXPERT, HARD_LABOUR, NOVICE, GEOPHYSICS, ASSEMBLY, LEARNING, ARCHAEOLOGY,
+      EXPERT, HARD_LABOUR, NOVICE, GEOPHYSICS, ASSEMBLY, LEARNING, ANCIENT_LORE,
       OFTEN, STUBBORN, RARELY, NERVOUS, HANDSOME,
       OVERALLS
     ),
@@ -137,7 +145,7 @@ public class Background implements Economy, Session.Saveable {
       "Artificer", "artificer_skin.gif", "artificer_portrait.png",
       UPPER_CLASS, GUILD_ARTIFICER,
       EXPERT, ASSEMBLY, PRACTICED, FIELD_THEORY, SHIELD_AND_ARMOUR,
-      NOVICE, ARCHAEOLOGY, CHEMISTRY,
+      NOVICE, ANCIENT_LORE, CHEMISTRY,
       SOMETIMES, INQUISITIVE, RARELY, NATURALIST,
       OVERALLS
     ),
@@ -167,7 +175,7 @@ public class Background implements Economy, Session.Saveable {
       "Archivist", "citizen_skin.gif", null,
       MIDDLE_CLASS, GUILD_PHYSICIAN,
       EXPERT, ACCOUNTING, INSCRIPTION, PRACTICED, COUNSEL, ASSEMBLY,
-      NOVICE, ARCHAEOLOGY, LEGISLATION,
+      NOVICE, ANCIENT_LORE, LEGISLATION,
       ALWAYS, INQUISITIVE, SOMETIMES, NERVOUS, IMPASSIVE,
       OVERALLS
     ),
@@ -265,7 +273,7 @@ public class Background implements Economy, Session.Saveable {
     AUDITOR = new Background(
       "Auditor", "vendor_skin.gif", "vendor_portrait.png",
       UPPER_CLASS, GUILD_MERCHANT,
-      EXPERT, COUNSEL, ACCOUNTING, PRACTICED, COMMAND, ARCHAEOLOGY,
+      EXPERT, COUNSEL, ACCOUNTING, PRACTICED, COMMAND, ANCIENT_LORE,
       ALWAYS, STUBBORN, OFTEN, DUTIFUL,
       SOMETIMES, AMBITIOUS, IMPASSIVE, RARELY, DEBAUCHED,
       OVERALLS
@@ -462,14 +470,14 @@ public class Background implements Economy, Session.Saveable {
       "Cargo Cultist", "native_skin.gif", null,
       MIDDLE_CLASS, NOT_A_GUILD,
       EXPERT, HANDICRAFTS, PRACTICED, DOMESTICS,
-      NOVICE, ARCHAEOLOGY, ASSEMBLY, COMMON_CUSTOM,
+      NOVICE, ANCIENT_LORE, ASSEMBLY, COMMON_CUSTOM,
       ALWAYS, ACQUISITIVE, OPTIMISTIC, RARELY, NATURALIST
     ),
     SHAMAN = new Background(
       "Shaman", "native_skin.gif", null,
       UPPER_CLASS, NOT_A_GUILD,
       EXPERT, NATIVE_TABOO, COUNSEL, PRACTICED, CULTIVATION,
-      NOVICE, PHARMACY, ANATOMY, ARCHAEOLOGY, MUSIC_AND_SONG,
+      NOVICE, PHARMACY, ANATOMY, ANCIENT_LORE, MUSIC_AND_SONG,
       ALWAYS, TRADITIONAL, OFTEN, DUTIFUL, NATURALIST
     ),
     
@@ -487,7 +495,7 @@ public class Background implements Economy, Session.Saveable {
       "Knighted", "highborn_male_skin.gif", null,
       RULER_CLASS, NOT_A_GUILD,
       PRACTICED, HAND_TO_HAND, BATTLE_TACTICS, SHIELD_AND_ARMOUR, COMMAND,
-      NOBLE_ETIQUETTE, NOVICE, ACCOUNTING, ARCHAEOLOGY, COMMON_CUSTOM,
+      NOBLE_ETIQUETTE, NOVICE, ACCOUNTING, ANCIENT_LORE, COMMON_CUSTOM,
       LEARNING, SUGGESTION, PREMONITION, PROJECTION,
       SOMETIMES, PSYONIC, OFTEN, TRADITIONAL, RARELY, NERVOUS
     ) {
@@ -499,15 +507,44 @@ public class Background implements Economy, Session.Saveable {
         return actor.traits.male() ? costume : female_skin ;
       }
     },
-    BARON    = null,
-    COUNT    = null,
-    DUKE     = null,
-    //  TODO:  What about Prince/Lord Solar and Emperor/Empress?
+    BARON = new Background(
+      "Baron", "highborn_male_skin.gif", null,
+      RULER_CLASS, NOT_A_GUILD,
+      EXPERT, HAND_TO_HAND, BATTLE_TACTICS, SHIELD_AND_ARMOUR, COMMAND,
+      NOBLE_ETIQUETTE, PRACTICED, ACCOUNTING, ANCIENT_LORE, COMMON_CUSTOM,
+      NOVICE, SUGGESTION, PREMONITION, PROJECTION,
+      OFTEN, PSYONIC, OFTEN, TRADITIONAL, RARELY, NERVOUS
+    ) {
+      final Texture female_skin = costumeFor("highborn_male_skin.gif") ;
+      public String nameFor(Actor actor) {
+        return actor.traits.male() ? "Baron" : "Baroness" ;
+      }
+      public Texture costumeFor(Actor actor) {
+        return actor.traits.male() ? costume : female_skin ;
+      }
+    },
+    COUNT = new Background(
+      "Count", "highborn_male_skin.gif", null,
+      RULER_CLASS, NOT_A_GUILD,
+      MASTER, HAND_TO_HAND, BATTLE_TACTICS, SHIELD_AND_ARMOUR, COMMAND,
+      NOBLE_ETIQUETTE, EXPERT, ACCOUNTING, ANCIENT_LORE, COMMON_CUSTOM,
+      PRACTICED, SUGGESTION, PREMONITION, PROJECTION,
+      ALWAYS, PSYONIC, OFTEN, TRADITIONAL, RARELY, NERVOUS
+    ) {
+      final Texture female_skin = costumeFor("highborn_male_skin.gif") ;
+      public String nameFor(Actor actor) {
+        return actor.traits.male() ? "Count" : "Countess" ;
+      }
+      public Texture costumeFor(Actor actor) {
+        return actor.traits.male() ? costume : female_skin ;
+      }
+    },
+    DUKE = null,
     RULING_POSITIONS[] = { KNIGHTED, COUNT, BARON, DUKE },
     //
     //  Your family, servants, bodyguards and captives-
-    CONSORT = new Background(
-      "Consort", "highborn_female_skin.gif", null,
+    FIRST_CONSORT = new Background(
+      "First Consort", "highborn_female_skin.gif", null,
       RULER_CLASS, NOT_A_GUILD,
       PRACTICED, COMMAND, SUASION, NOVICE, EROTICS, MASQUERADE, DOMESTICS,
       RARELY, IMPASSIVE, STUBBORN, OFTEN, AMBITIOUS, ACQUISITIVE,
@@ -527,6 +564,19 @@ public class Background implements Economy, Session.Saveable {
         return actor.traits.female() ? costume : male_skin ;
       }
     },
+    MINISTER_FOR_ACCOUNTS = new Background(
+      "Minister for Accounts", "vendor_skin.gif", null,
+      RULER_CLASS, NOT_A_GUILD,
+      EXPERT, ACCOUNTING, PRACTICED, SOCIAL_HISTORY, COUNSEL, SUASION
+    ),
+    WARMASTER = new Background(
+      "Warmaster", "highborn_male_skin.gif", null,
+      RULER_CLASS, NOT_A_GUILD,
+      EXPERT, HAND_TO_HAND, SHIELD_AND_ARMOUR, BATTLE_TACTICS, PRACTICED,
+      SURVEILLANCE, MARKSMANSHIP
+    ),
+    
+    
     STEWARD = new Background(
       "Steward", "citizen_skin.gif", null,
       UPPER_CLASS, NOT_A_GUILD,
@@ -534,10 +584,26 @@ public class Background implements Economy, Session.Saveable {
       GENE_CULTURE, NOVICE, NOBLE_ETIQUETTE,
       ALWAYS, DUTIFUL, OFTEN, TRADITIONAL, NEVER, AGGRESSIVE
     ),
+
+    //
+    //  These positions are for the benefit of citizens elected at the Counsel
+    //  Chamber.
+    PREFECT = new Background(
+      "Prefect", "physician_skin.gif", null,
+      RULER_CLASS, NOT_A_GUILD,
+      PRACTICED, COUNSEL, SUASION, ACCOUNTING, COMMON_CUSTOM,
+      NOVICE, NOBLE_ETIQUETTE, SOCIAL_HISTORY, BATTLE_TACTICS, COMMAND,
+      OFTEN, SOCIABLE, AMBITIOUS, SOMETIMES, ACQUISITIVE
+    ),
+    GOVERNOR = null,
+    SENATOR  = null,
+    CONSUL   = null,
+    ELECTED_POSITIONS[] = { PREFECT, GOVERNOR, SENATOR, CONSUL },
+    
+    COURT_CIRCLES[] = {}
+    /*
     HONOUR_GUARD = null,
     HOSTAGE      = null,
-    
-    COURT_CIRCLES[] = {},
     //
     //  Ministers confer the benefits of a portion of their skills on the
     //  planet as a whole (including stuff off the main map.)
@@ -549,23 +615,11 @@ public class Background implements Economy, Session.Saveable {
     MINISTER_FOR_ACCOUNTS   = null,
     MINISTER_FOR_PROPAGANDA = null,
     FIRST_CONSORT           = null,
-    //
-    //  These positions are for the benefit of citizens elected at the Counsel
-    //  Chamber.  TODO:  Add these later.
-    PREFECT = new Background(
-      "Prefect", "physician_skin.gif", null,
-      RULER_CLASS, NOT_A_GUILD,
-      PRACTICED, COUNSEL, SUASION, ACCOUNTING, COMMON_CUSTOM,
-      NOVICE, NOBLE_ETIQUETTE, PSYCHOANALYSIS, BATTLE_TACTICS, COMMAND,
-      OFTEN, SOCIABLE, AMBITIOUS, SOMETIMES, ACQUISITIVE
-    ),
-    GOVERNOR = null,
-    SENATOR  = null,
-    CONSUL   = null,
     
     GOVERNMENT_CIRCLES[] = {}
     //
     //  TODO:  Do you need positions for leadership within the Strains?
+    //*/
   ;
   
   
@@ -582,42 +636,42 @@ public class Background implements Economy, Session.Saveable {
     //         Introduce Calivor and Theta Rho.
     //         Give each system a brief text description.
     PLANET_ASRA_NOVI = new System(
-      "Asra Novi", null, 0, 1,
+      "Asra Novi", "House Suhail", null, 0, 1,
       DESERT_BLOOD, MILD_GRAVITY,
       MAKES, SOMA, PLASTICS, DECOR, SPICE,
       NEEDS, WATER, SERVICE_CONSORTS, DATALINKS,
       FREE_BIRTH,
+      LEARNING, CULTIVATION, CHEMISTRY,
       OFTEN, ECOLOGIST_CIRCLES, SOMETIMES, COURT_CIRCLES, AESTHETE_CIRCLES
-      //  House Suhail
     ),
     PLANET_PAREM_V = new System(
-      "Parem V", null, 1, 1,
+      "Parem V", "House Procyon", null, 1, 1,
       WASTES_BLOOD, NORMAL_GRAVITY,
       MAKES, PARTS, DATALINKS, REPLICANTS,
       NEEDS, PETROCARBS, DECOR, RARITIES,
       HIVES_BIRTH, PYON_BIRTH,
+      LEARNING, ASSEMBLY, ANCIENT_LORE,
       OFTEN, ARTIFICER_CIRCLES, SOMETIMES, COURT_CIRCLES,
       RARELY, ECOLOGIST_CIRCLES
-      //  House Procyon
     ),
     PLANET_HALIBAN = new System(
-      "Haliban", null, 0, 0,
+      "Haliban", "House Altair", null, 0, 0,
       FOREST_BLOOD, STRONG_GRAVITY,
       MAKES, CARBS, GREENS, PETROCARBS,
       NEEDS, SERVICE_ARMAMENT, PARTS, MEDICINE,
       GUILDER_BIRTH, FREE_BIRTH,
+      LEARNING, MARKSMANSHIP, ANATOMY,
       OFTEN, MILITARY_CIRCLES, SOMETIMES, PHYSICIAN_CIRCLES,
       RARELY, VENDOR_CIRCLES
-      //  House Altair
     ),
     PLANET_AXIS_NOVENA = new System(
-      "Axis Novena", null, 1, 0,
+      "Axis Novena", "House Taygeta", null, 1, 0,
       TUNDRA_BLOOD, NOMINAL_GRAVITY,
       MAKES, CIRCUITRY, MEDICINE, SERVICE_SHIPPING,
       NEEDS, GREENS, METAL_ORE, FUEL_CORES,
       HIVES_BIRTH, GUILDER_BIRTH,
+      LEARNING, FIELD_THEORY, ACCOUNTING,
       OFTEN, PHYSICIAN_CIRCLES, ARTIFICER_CIRCLES, RARELY, AESTHETE_CIRCLES
-      //  House Taygeta
     ),
     
     ALL_PLANETS[] = {
@@ -706,6 +760,30 @@ public class Background implements Economy, Session.Saveable {
   public int skillLevel(Skill s) {
     final Integer level = baseSkills.get(s) ;
     return level == null ? 0 : (int) level ;
+  }
+  
+  
+  public List <Skill> skills() {
+    final List <Skill> b = new List <Skill> () {
+      protected float queuePriority(Skill r) { return r.traitID ; }
+    } ;
+    for (Skill s : baseSkills.keySet()) b.queueAdd(s) ;
+    return b ;
+  }
+  
+  
+  public float traitChance(Trait t) {
+    final Float chance = traitChances.get(t) ;
+    return chance == null ? 0 : (float) chance ;
+  }
+  
+  
+  public List <Trait> traits() {
+    final List <Trait> b = new List <Trait> () {
+      protected float queuePriority(Trait r) { return r.traitID ; }
+    } ;
+    for (Trait t : traitChances.keySet()) b.queueAdd(t) ;
+    return b ;
   }
   
   

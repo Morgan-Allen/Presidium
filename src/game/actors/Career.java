@@ -20,8 +20,19 @@ public class Career implements Abilities {
   
   
   private Actor subject ;
+  private Background gender ;
   private Background vocation, birth, homeworld ;
   private String fullName = null ;
+  
+  
+  public Career(
+    boolean male, Background vocation, Background birth, Background homeworld
+  ) {
+    this.gender = male ? Background.MALE_BIRTH : Background.FEMALE_BIRTH ;
+    this.vocation = vocation ;
+    this.birth = birth ;
+    this.homeworld = homeworld ;
+  }
   
   
   public Career(Background root) {
@@ -36,18 +47,20 @@ public class Career implements Abilities {
   
   public void loadState(Session s) throws Exception {
     subject = (Actor) s.loadObject() ;
-    vocation = Background.ALL_BACKGROUNDS[s.loadInt()] ;
-    birth = Background.ALL_BACKGROUNDS[s.loadInt()] ;
-    homeworld = Background.ALL_BACKGROUNDS[s.loadInt()] ;
+    gender    = (Background) s.loadObject() ;
+    birth     = (Background) s.loadObject() ;
+    homeworld = (Background) s.loadObject() ;
+    vocation  = (Background) s.loadObject() ;
     fullName = s.loadString() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     s.saveObject(subject) ;
-    s.saveInt(vocation.ID) ;
-    s.saveInt(birth.ID) ;
-    s.saveInt(homeworld.ID) ;
+    s.saveObject(gender   ) ;
+    s.saveObject(birth    ) ;
+    s.saveObject(homeworld) ;
+    s.saveObject(vocation ) ;
     s.saveString(fullName) ;
   }
   
@@ -64,6 +77,15 @@ public class Career implements Abilities {
   
   public Background homeworld() {
     return homeworld ;
+  }
+  
+  
+  public Background topBackground() {
+    if (vocation  != null) return vocation  ;
+    if (homeworld != null) return homeworld ;
+    if (birth     != null) return birth     ;
+    if (gender    != null) return gender    ;
+    return null ;
   }
   
   
@@ -88,42 +110,9 @@ public class Career implements Abilities {
     */
   public void applyCareer(Human actor) {
     subject = actor ;
-    Background root = vocation ;
-    //
-    //  Firstly, determine a basic background suitable to the root vocation-
-    if (root.standing == Background.RULER_CLASS && Rand.index(10) > 0) {
-      birth = Background.HIGH_BIRTH ;
-      if (Visit.arrayIncludes(Background.RULING_POSITIONS, vocation)) {
-        homeworld = actor.base().commerce.homeworld() ;
-      }
-    }
-    else {
-      final Batch <Float> weights = new Batch <Float> () ;
-      for (Background v : Background.OPEN_CLASSES) {
-        weights.add(ratePromotion(root, v)) ;
-      }
-      birth = (Background) Rand.pickFrom(
-        Background.OPEN_CLASSES, weights.toArray()
-      ) ;
-    }
-    if (homeworld == null) {
-      final Batch <Float> weights = new Batch <Float> () ;
-      for (Background v : Background.ALL_PLANETS) {
-        weights.add(ratePromotion(root, v)) ;
-      }
-      homeworld = (Background) Rand.pickFrom(
-        Background.ALL_PLANETS, weights.toArray()
-      ) ;
-    }
-    applyVocation(homeworld, actor) ;
-    applyVocation(birth    , actor) ;
-    applyVocation(vocation , actor) ;
-    setupAttributes(actor) ;
+    applyBackgrounds(actor) ;
     //
     //  We top up basic attributes to match.
-    //
-    //  TODO:  Try adding 1 - 3 family members, possibly as potential
-    //  co-migrants?
     actor.traits.initDNA(0) ;
     actor.health.setupHealth(
       Visit.clamp(Rand.avgNums(2), 0.26f, 0.94f),
@@ -157,43 +146,68 @@ public class Career implements Abilities {
   }
   
   
+  private void applyBackgrounds(Human actor) {
+    Background root = vocation ;
+    if (birth == null) {
+      final Batch <Float> weights = new Batch <Float> () ;
+      for (Background v : Background.OPEN_CLASSES) {
+        weights.add(ratePromotion(root, actor)) ;
+      }
+      birth = (Background) Rand.pickFrom(
+        Background.OPEN_CLASSES, weights.toArray()
+      ) ;
+    }
+    if (homeworld == null) {
+      final Batch <Float> weights = new Batch <Float> () ;
+      for (Background v : Background.ALL_PLANETS) {
+        weights.add(ratePromotion(root, actor)) ;
+      }
+      homeworld = (Background) Rand.pickFrom(
+        Background.ALL_PLANETS, weights.toArray()
+      ) ;
+    }
+    applyVocation(homeworld, actor) ;
+    applyVocation(birth    , actor) ;
+    applyVocation(vocation , actor) ;
+    setupAttributes(actor) ;
+  }
+  
+  
   private void setupAttributes(Actor actor) {
+    float minPhys = 0, minSens = 0, minCogn = 0 ;
     for (Skill s : actor.traits.skillSet()) {
       final float level = actor.traits.traitLevel(s) ;
-      actor.traits.raiseLevel(s.parent, level + Rand.index(10) - 5) ;
-      if (s.form == FORM_COGNITIVE) {
-        actor.traits.raiseLevel(INTELLECT, 5 + Rand.index(10)) ;
-        actor.traits.raiseLevel(WILL     , 5 + Rand.index(10)) ;
-      }
-      if (s.form == FORM_SENSITIVE) {
-        actor.traits.raiseLevel(REFLEX   , 5 + Rand.index(10)) ;
-        actor.traits.raiseLevel(INSIGHT  , 5 + Rand.index(10)) ;
-      }
-      if (s.form == FORM_PHYSICAL) {
-        actor.traits.raiseLevel(VIGOUR   , 5 + Rand.index(10)) ;
-        actor.traits.raiseLevel(BRAWN    , 5 + Rand.index(10)) ;
-      }
+      actor.traits.raiseLevel(s.parent, level - Rand.index(5)) ;
+      if (s.form == FORM_COGNITIVE) minCogn = Math.max(level, minCogn + 1) ;
+      if (s.form == FORM_SENSITIVE) minSens = Math.max(level, minSens + 1) ;
+      if (s.form == FORM_PHYSICAL ) minPhys = Math.max(level, minPhys + 1) ;
     }
-    for (int i = 0 ; i < ATTRIBUTES.length ; i++) {
-      final Skill att = ATTRIBUTES[i] ;
-      actor.traits.incLevel(att, Rand.index(10) - 5) ;
-      final float minVal = Math.max(
-        actor.traits.traitLevel(ATTRIBUTES[(i + 1) % 6]),
-        actor.traits.traitLevel(ATTRIBUTES[(i + 5) % 6])
-      ) / 2f ;
-      actor.traits.raiseLevel(att, minVal) ;
-      actor.traits.raiseLevel(att, 5 + Rand.index(10)) ;
-    }
+    actor.traits.raiseLevel(BRAWN    , (minPhys + Rand.rollDice(3, 7)) / 2f) ;
+    actor.traits.raiseLevel(VIGOUR   , (minPhys + Rand.rollDice(3, 7)) / 2f) ;
+    actor.traits.raiseLevel(REFLEX   , (minSens + Rand.rollDice(3, 7)) / 2f) ;
+    actor.traits.raiseLevel(INSIGHT  , (minSens + Rand.rollDice(3, 7)) / 2f) ;
+    actor.traits.raiseLevel(INTELLECT, (minCogn + Rand.rollDice(3, 7)) / 2f) ;
+    actor.traits.raiseLevel(WILL     , (minCogn + Rand.rollDice(3, 7)) / 2f) ;
   }
   
   
   private void applySex(Human actor) {
+    if (gender == null) {
+      final float
+        rateM = ratePromotion(Background.MALE_BIRTH  , actor),
+        rateF = ratePromotion(Background.FEMALE_BIRTH, actor) ;
+      if (rateM * Rand.avgNums(2) > rateF * Rand.avgNums(2)) {
+        gender = Background.MALE_BIRTH ;
+      }
+      else gender = Background.FEMALE_BIRTH ;
+    }
     //
     //  TODO:  Some of these traits need to be rendered 'dormant' in younger
     //  citizens...
+    applyVocation(gender, actor) ;
     float ST = Visit.clamp(Rand.rangeAvg(-1, 3, 2), 0, 3) ;
     if (Rand.index(20) == 0) ST = -1 ;
-    if (Rand.yes()) {
+    if (gender == Background.FEMALE_BIRTH) {
       actor.traits.setLevel(GENDER, "Female") ;
       actor.traits.setLevel(FEMININE, ST) ;
     }
@@ -242,31 +256,33 @@ public class Career implements Abilities {
     actor.traits.incLevel(STOUT, Rand.num() * 1 * world.gravity) ;
   }
   
-  
+
   //
-  //  TODO:  Rate the actor's similarity, rather than the vocation's?  And
-  //  check for similar traits?
-  public static float ratePromotion(Background next, Background prior) {
+  //  TODO:  Check for similar traits?
+  public static float ratePromotion(Background next, Actor actor) {
     float rating = 1 ;
     //
     //  Check for similar skills.
     for (Skill s : next.baseSkills.keySet()) {
-      rating += rateSimilarity(s, next, prior) ;
+      rating += rateSimilarity(s, next, actor) ;
     }
-    for (Skill s : prior.baseSkills.keySet()) {
-      rating += rateSimilarity(s, next, prior) ;
+    final Batch <Skill> skills = actor.traits.skillSet() ;
+    for (Skill s : actor.traits.skillSet()) {
+      rating += rateSimilarity(s, next, actor) ;
     }
-    rating /= 1 + next.baseSkills.size() + prior.baseSkills.size() ;
-    
+    rating /= 1 + next.baseSkills.size() + skills.size() ;
     //
-    //  Favour transition to more prestigous vocations-
-    if (next.standing < prior.standing) return rating / 10f ;
+    //  Favour transition to more prestigious vocations-
+    if (actor instanceof Human) {
+      final Background prior = ((Human) actor).career().topBackground() ;
+      if (next.standing < prior.standing) return rating / 10f ;
+    }
     return rating ;
   }
   
   
-  static float rateSimilarity(Skill s, Background a, Background b) {
-    Integer aL = a.baseSkills.get(s), bL = b.baseSkills.get(s) ;
+  static float rateSimilarity(Skill s, Background a, Actor actor) {
+    Integer aL = a.baseSkills.get(s), bL = (int) actor.traits.traitLevel(s) ;
     if (aL == null || bL == null) return 0 ;
     return (aL > bL) ? ((bL + 5f) / (aL + 5f)) : ((aL + 5f) / (bL + 5f)) ;
   }
@@ -323,12 +339,24 @@ public class Career implements Abilities {
 
 
 
-
-
-
-
-
-
-
+/*
+public static float ratePromotion(Background next, Background prior) {
+  float rating = 1 ;
+  //
+  //  Check for similar skills.
+  for (Skill s : next.baseSkills.keySet()) {
+    rating += rateSimilarity(s, next, prior) ;
+  }
+  for (Skill s : prior.baseSkills.keySet()) {
+    rating += rateSimilarity(s, next, prior) ;
+  }
+  rating /= 1 + next.baseSkills.size() + prior.baseSkills.size() ;
+  
+  //
+  //  Favour transition to more prestigous vocations-
+  if (next.standing < prior.standing) return rating / 10f ;
+  return rating ;
+}
+//*/
 
 

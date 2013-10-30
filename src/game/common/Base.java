@@ -32,7 +32,7 @@ public class Base implements
     */
   final public World world ;
   final public Commerce commerce = new Commerce(this) ;
-  float credits = 0 ;
+  float credits = 0, interest = 0 ;
   
   Actor ruler ;
   Venue commandPost ;
@@ -58,7 +58,14 @@ public class Base implements
   
   
   
-  public Base(World world) {
+  public static Base createFor(World world) {
+    final Base base = new Base(world) ;
+    world.registerBase(base, true) ;
+    return base ;
+  }
+  
+  
+  private Base(World world) {
     this.world = world ;
     paving = new Paving(world) ;
     maintenance = new PresenceMap(world, "damaged") ;
@@ -72,6 +79,7 @@ public class Base implements
     this.world = s.world() ;
     commerce.loadState(s) ;
     credits = s.loadFloat() ;
+    interest = s.loadFloat() ;
 
     ruler = (Actor) s.loadObject() ;
     s.loadObjects(missions) ;
@@ -102,6 +110,7 @@ public class Base implements
   public void saveState(Session s) throws Exception {
     commerce.saveState(s) ;
     s.saveFloat(credits) ;
+    s.saveFloat(interest) ;
     
     s.saveObject(ruler) ;
     s.saveObjects(missions) ;
@@ -170,6 +179,11 @@ public class Base implements
   
   public boolean hasCredits(float sum) {
     return credits >= sum ;
+  }
+  
+  
+  public void setInterestPaid(float paid) {
+    this.interest = paid ;
   }
   
   
@@ -255,6 +269,9 @@ public class Base implements
       averageMood /= (numResidents + 1) ;
       communitySpirit = 1f / (1 + (numResidents / 100f)) ;
       communitySpirit = (communitySpirit + averageMood) / 2f ;
+      
+      final float repaid = credits * interest / 100f ;
+      if (repaid > 0) incCredits(0 - repaid) ;
     }
   }
   

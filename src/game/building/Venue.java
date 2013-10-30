@@ -569,8 +569,9 @@ public abstract class Venue extends Fixture implements
   private static Upgrade lastCU ;  //last clicked...
   
   private void describeUpgrades(Description d, HUD UI) {
+    final Base played = PlayLoop.currentScenario().base ;
     
-    if (PlayLoop.played() == base && ! privateProperty()) {
+    if (played == base && ! privateProperty()) {
       d.append("Orders: ") ;
       final Venue v = this ;
       if (structure.needsSalvage()) {

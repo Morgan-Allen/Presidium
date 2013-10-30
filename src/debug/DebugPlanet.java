@@ -7,6 +7,7 @@
 package src.debug ;
 import src.game.common.* ;
 import src.game.planet.* ;
+import src.game.campaign.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.user.* ;
@@ -14,7 +15,7 @@ import src.util.* ;
 
 
 
-public class DebugPlanet extends PlayLoop {
+public class DebugPlanet extends Scenario {
   
   
   
@@ -22,12 +23,12 @@ public class DebugPlanet extends PlayLoop {
     */
   public static void main(String args[]) {
     DebugPlanet test = new DebugPlanet() ;
-    PlayLoop.runLoop(test) ;
+    PlayLoop.setupAndLoop(test.UI, test) ;
   }
   
   
   protected DebugPlanet() {
-    super() ;
+    super("saves/test_planet.rep") ;
   }
   
   
@@ -86,48 +87,7 @@ public class DebugPlanet extends PlayLoop {
   }
   
   
-  protected Base createBase(World world) {
-    Base base = new Base(world) ;
-    return base ;
-  }
-  
-  
-  protected HUD createUI(Base base, Rendering rendering) {
-    BaseUI UI = new BaseUI(base.world, rendering) ;
-    UI.assignBaseSetup(base, new Vec3D(8, 8, 0)) ;
-    return UI ;
-  }
-  
-  
   protected void configureScenario(World world, Base base, HUD HUD) {
-  }
-  
-  
-  protected void updateGameState() {
-    super.updateGameState() ;
-  }
-  
-  
-  protected boolean shouldExitLoop() {
-    if (KeyInput.wasKeyPressed('r')) {
-      resetGame() ;
-      return false ;
-    }
-    if (KeyInput.wasKeyPressed('f')) {
-      PlayLoop.setPaused(! PlayLoop.paused()) ;
-    }
-    if (KeyInput.wasKeyPressed('s')) {
-      I.say("\nSAVING GAME...") ;
-      PlayLoop.saveGame("saves/test_planet.rep") ;
-      return false ;
-    }
-    if (KeyInput.wasKeyPressed('l')) {
-      I.say("\nLOADING GAME...") ;
-      //GameSettings.frozen = true ;
-      PlayLoop.loadGame("saves/test_planet.rep") ;
-      return true ;
-    }
-    return false ;
   }
 }
 

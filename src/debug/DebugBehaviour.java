@@ -13,6 +13,7 @@ import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.tactical.* ;
 import src.game.wild.* ;
+import src.game.campaign.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.user.* ;
@@ -38,7 +39,7 @@ import src.util.* ;
 //  Simplify the user interface, implement Powers, and add a Main Menu.  That's
 //  it.
 
-public class DebugBehaviour extends PlayLoop implements Economy {
+public class DebugBehaviour extends Scenario implements Economy {
   
   
   
@@ -46,12 +47,12 @@ public class DebugBehaviour extends PlayLoop implements Economy {
     */
   public static void main(String args[]) {
     DebugBehaviour test = new DebugBehaviour() ;
-    PlayLoop.runLoop(test) ;
+    PlayLoop.setupAndLoop(test.UI, test) ;
   }
   
   
   protected DebugBehaviour() {
-    super() ;
+    super("saves/test_session.rep") ;
   }
   
   
@@ -68,30 +69,6 @@ public class DebugBehaviour extends PlayLoop implements Economy {
   
   /**  Setup and updates-
     */
-  protected boolean shouldExitLoop() {
-    if (KeyInput.wasKeyPressed('r')) {
-      resetGame() ;
-      return false ;
-    }
-    if (KeyInput.wasKeyPressed('f')) {
-      I.say("Paused? "+PlayLoop.paused()) ;
-      PlayLoop.setPaused(! PlayLoop.paused()) ;
-    }
-    if (KeyInput.wasKeyPressed('s')) {
-      I.say("SAVING GAME...") ;
-      PlayLoop.saveGame("saves/test_session.rep") ;
-      return false ;
-    }
-    if (KeyInput.wasKeyPressed('l')) {
-      I.say("LOADING GAME...") ;
-      //GameSettings.frozen = true ;
-      PlayLoop.loadGame("saves/test_session.rep") ;
-      return true ;
-    }
-    return false ;
-  }
-  
-  
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(
       32, 0.2f,
@@ -105,57 +82,11 @@ public class DebugBehaviour extends PlayLoop implements Economy {
   }
   
   
-  protected Base createBase(World world) {
-    Base base = new Base(world) ;
-    return base ;
-  }
-  
-  
-  protected HUD createUI(Base base, Rendering rendering) {
-    BaseUI UI = new BaseUI(base.world, rendering) ;
-    UI.assignBaseSetup(base, new Vec3D(8, 8, 0)) ;
-    return UI ;
-  }
-  
-  
-  protected boolean loadedAtStartup() {
-    if (true) return false ;
-    try {
-      PlayLoop.loadGame("saves/test_session.rep") ;
-      final Base base = PlayLoop.played() ;
-      if (base.credits() < 2000) base.incCredits(2000) ;
-      PlayLoop.setGameSpeed(1.0f) ;
-      return true ;
-    }
-    catch (Exception e) { I.report(e) ; return false ; }
-  }
-  
-  
-  protected void finalize() throws Throwable {
-    I.say(this+" BEING GARBAGE COLLECTED!") ;
-    super.finalize() ;
-  }
-
-
-  protected void configureScenario(World world, Base base, HUD HUD) {
+  protected void configureScenario(World world, Base base, BaseUI HUD) {
     //natureScenario(world, base, HUD) ;
     //baseScenario(world, base, HUD) ;
     missionScenario(world, base, HUD) ;
     //socialScenario(world, base, HUD) ;
-  }
-  
-  
-  protected void renderGameGraphics() {
-    super.renderGameGraphics() ;
-    if (((BaseUI) currentUI()).currentTask() == null) {
-      //DebugPathing.highlightPlace() ;
-      //DebugPathing.highlightPath() ;
-    }
-  }
-  
-
-  protected void updateGameState() {
-    super.updateGameState() ;
   }
   
   
@@ -200,7 +131,7 @@ public class DebugBehaviour extends PlayLoop implements Economy {
     Human spouse = null ;
     float bestRating = Float.NEGATIVE_INFINITY ;
     for (int n = 10 ; n-- > 0 ;) {
-      final Human match = new Human(Background.CONSORT, base) ;
+      final Human match = new Human(Background.FIRST_CONSORT, base) ;
       final float rating =
         knight.mind.attraction(match) +
         (match.mind.attraction(knight) / 2) ;
@@ -215,10 +146,10 @@ public class DebugBehaviour extends PlayLoop implements Economy {
     spouse.mind.setRelation(knight, relation, initTime) ;
     
     base.assignRuler(knight) ;
-    establishVenue(bastion, 9, 9, true, knight, spouse) ;
+    Scenario.establishVenue(bastion, 9, 9, true, world, knight, spouse) ;
     ((BaseUI) UI).selection.pushSelection(knight, true) ;
     
-    establishVenue(new SupplyDepot(base), 20, 10, true) ;
+    Scenario.establishVenue(new SupplyDepot(base), 20, 10, true, world) ;
   }
   
   
@@ -232,7 +163,7 @@ public class DebugBehaviour extends PlayLoop implements Economy {
     //GameSettings.hireFree = true ;
     PlayLoop.setGameSpeed(1.0f) ;
     
-    final Base otherBase = new Base(world) ;
+    final Base otherBase = Base.createFor(world) ;
     world.registerBase(otherBase, true) ;
     base.setRelation(otherBase, -1) ;
     otherBase.setRelation(base, -1) ;
@@ -293,9 +224,9 @@ public class DebugBehaviour extends PlayLoop implements Economy {
     
     other.enterWorldAt(15, 6, world) ;
     final Sickbay sickbay = new Sickbay(base) ;
-    establishVenue(sickbay, 9, 2, true, actor) ;
-    establishVenue(new CultureVats(base), 9, 8, true) ;
-    establishVenue(new VaultSystem(base), 3, 5, true) ;
+    Scenario.establishVenue(sickbay, 9, 2, true, world, actor) ;
+    Scenario.establishVenue(new CultureVats(base), 9, 8, true, world) ;
+    Scenario.establishVenue(new VaultSystem(base), 3, 5, true, world) ;
     
     sickbay.stocks.bumpItem(STIM_KITS, 5) ;
     sickbay.stocks.bumpItem(MEDICINE , 5) ;
@@ -303,11 +234,12 @@ public class DebugBehaviour extends PlayLoop implements Economy {
   }
   
   
+  /*
   public static Venue establishVenue(
     Venue v, int atX, int atY, boolean intact,
     Actor... employed
   ) {
-    final World world = PlayLoop.world() ;
+    final World world = PlayLoop.currentScenario().world ;
     v.enterWorldAt(atX, atY, world) ;
     if (intact) {
       v.structure.setState(Structure.STATE_INTACT, 1.0f) ;
@@ -328,6 +260,7 @@ public class DebugBehaviour extends PlayLoop implements Economy {
     v.setAsEstablished(true) ;
     return v ;
   }
+  //*/
 }
 
 

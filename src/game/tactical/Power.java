@@ -5,6 +5,7 @@ package src.game.tactical ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.social.* ;
+import src.game.campaign.* ;
 import src.graphics.common.* ;
 import src.graphics.sfx.* ;
 import src.util.* ;
@@ -19,8 +20,6 @@ import src.user.* ;
 //  TODO:  Make this available to actors, once the feedback mechanism is in
 //  place(?)  (This will require individual instancing.)
 
-//
-//  TODO:  Make these Saveable for reference purposes?
 
 
 public class Power implements Abilities {
@@ -39,9 +38,8 @@ public class Power implements Abilities {
   
   final public String name, helpInfo ;
   final public Texture buttonTex ;
-
   final int properties ;
-  static String saveFile = "saves/main_session.rep" ;  //GET FROM SESSION CLASS
+  //static String saveFile = "saves/main_session.rep" ;  //GET FROM SESSION CLASS
   
   
   Power(String name, int properties, String imgFile, String helpInfo) {
@@ -69,7 +67,7 @@ public class Power implements Abilities {
     
     REMOTE_VIEWING_FX_MODEL = new PlaneFX.Model(
       "RV_swirl_fx", Power.class,
-      SFX_DIR+"remote_viewing.png", 1, 600 / FPS, 2 / FPS, false
+      SFX_DIR+"remote_viewing.png", 1, -360 / FPS, 2 / FPS, false
     ),
     
     LIGHT_BURST_MODEL = new PlaneFX.Model(
@@ -98,6 +96,28 @@ public class Power implements Abilities {
     ) ;
   
   
+  public static void applyTimeDilation(float gameSpeed, Scenario scenario) {
+    
+  }
+  
+  
+  public static void applyWalkPath(Scenario scenario) {
+    final Actor caster = scenario.base.ruler() ;
+    if (caster == null || GameSettings.psyFree) return ;
+    final float bonus = caster.traits.useLevel(PREMONITION) / 1 ;
+    float lastSave = PlayLoop.timeSinceLastSave() ;
+    caster.health.adjustPsy(0 - (lastSave / 1000f) * (10 + bonus)) ;
+  }
+  
+  
+  public static void applyDenyVision(Scenario scenario) {
+    final Actor caster = scenario.base.ruler() ;
+    if (caster == null || GameSettings.psyFree) return ;
+    final float bonus = caster.traits.useLevel(PREMONITION) / 10 ;
+    caster.health.adjustPsy(-10f / (0.5f + bonus)) ;
+  }
+  
+  
   final public static Power
     
     WALK_THE_PATH = new Power(
@@ -109,14 +129,7 @@ public class Power implements Abilities {
         Actor caster, String option,
         Target selected, boolean clicked
       ) {
-        if (caster == null || GameSettings.psyFree) {
-          PlayLoop.saveGame(saveFile) ;
-          return true ;
-        }
-        final float bonus = caster.traits.useLevel(PREMONITION) / 1 ;
-        float lastSave = PlayLoop.timeSinceLastSave() ;
-        caster.health.adjustPsy(0 - (lastSave / 1000f) * (10 + bonus)) ;
-        PlayLoop.saveGame(saveFile) ;
+        PlayLoop.saveGame(PlayLoop.currentScenario().saveFile()) ;
         return true ;
       }
     },
@@ -130,22 +143,9 @@ public class Power implements Abilities {
         Actor caster, String option,
         Target selected, boolean clicked
       ) {
-        //
-        //  You have to get rid of references to the target/caster in order for
-        //  garbage collection to work.
-        if (caster == null || GameSettings.psyFree) {
-          PlayLoop.loadGame(saveFile) ;
-          return true ;
-        }
         caster = null ;
-        PlayLoop.loadGame(saveFile) ;
-        caster = PlayLoop.played().ruler() ;
-        final float bonus = caster.traits.useLevel(PREMONITION) / 10 ;
-        caster.health.adjustPsy(-10f / (0.5f + bonus)) ;
-        /*
-        //  TODO:  Restore this?
-        PlayLoop.saveGame(saveFile) ;
-        //*/
+        selected = null ;
+        PlayLoop.loadGame(PlayLoop.currentScenario().saveFile()) ;
         return true ;
       }
     },
@@ -206,7 +206,8 @@ public class Power implements Abilities {
         }
         
         final float radius = 9 + (bonus * bonus) ;
-        PlayLoop.played().intelMap.liftFogAround(tile.x, tile.y, radius) ;
+        final Base played = PlayLoop.currentScenario().base ;
+        played.intelMap.liftFogAround(tile.x, tile.y, radius) ;
         
         final float SS = radius / 1.5f ;
         final Vec3D p = tile.position(null) ;

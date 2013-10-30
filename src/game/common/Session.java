@@ -5,6 +5,7 @@
   */
 
 package src.game.common ;
+import src.game.campaign.* ;
 import java.io.* ;
 import java.lang.reflect.* ;
 import src.util.* ;
@@ -29,7 +30,7 @@ import src.graphics.common.Model ;
 public class Session {
   
   
-  private PlayLoop playLoop = null ;
+  private Scenario scenario ;
   private World world = null ;
   
   
@@ -62,7 +63,7 @@ public class Session {
   /**  Methods for saving and loading session data:
     */
   public static Session saveSession(
-    World world, PlayLoop loop, String saveFile
+    World world, Scenario scenario, String saveFile
   ) throws Exception {
     final Session s = new Session() ;
     s.out = new DataOutputStream(new BufferedOutputStream(
@@ -73,8 +74,7 @@ public class Session {
     s.world = world ;
     s.saveInt(world.size) ;
     s.world.saveState(s) ;
-    s.playLoop = loop ;
-    s.saveObject(s.playLoop) ;
+    s.saveObject(scenario) ;
     s.finish() ;
     
     I.say("\nDISPLAYING TOTAL SAVE COUNTS:") ;
@@ -96,7 +96,7 @@ public class Session {
     Model.clearModelIDs() ;
     s.world = new World(s.loadInt()) ;
     s.world.loadState(s) ;
-    s.playLoop = (PlayLoop) s.loadObject() ;
+    s.scenario = (Scenario) s.loadObject() ;
     s.finish() ;
     return s ;
   }
@@ -120,8 +120,9 @@ public class Session {
     }
   }
   
+  
   public World world() { return world ; }
-  public PlayLoop loop() { return playLoop ; }
+  public Scenario scenario() { return scenario ; }
   
   
   

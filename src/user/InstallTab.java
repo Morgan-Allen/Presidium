@@ -50,10 +50,7 @@ public class InstallTab extends InfoPanel {
     initCategory(TYPE_ARTIFICER) ;
     initCategory(TYPE_ECOLOGIST) ;
     initCategory(TYPE_PHYSICIAN) ;
-    final Batch <Class> baseClasses = LoadService.loadClassesInDir(
-      "src/game/base", "src.game.base"
-    ) ;
-    for (Class baseClass : baseClasses) {
+    for (Class baseClass : LoadService.loadPackage("src.game.base")) {
       //
       //  Firstly, we need to ensure that the class refers to a type of venue
       //  and has an appropriate constructor.

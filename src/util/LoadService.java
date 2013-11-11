@@ -8,6 +8,10 @@ package src.util ;
 import java.awt.image.BufferedImage ;
 import javax.imageio.ImageIO ;
 import java.io.* ;
+import java.lang.reflect.* ;
+import java.security.* ;
+import java.util.zip.* ;
+import java.net.* ;
 
 
 
@@ -35,33 +39,74 @@ public class LoadService {
   
   /**  Recursively loads all classes in the given directory.
     */
-  public static Batch <Class> loadClassesInDir(
-    String dirName, String packageName
-  ) {
-    //
-    //  TODO:  THIS WON'T WORK IF YOU HAVE EVERYTHING PACKED INTO A .JAR FILE.
-    //  YOU'LL NEED TO LOAD THINGS AS RESOURCES INSTEAD.  Look here-
-    //  http://stackoverflow.com/questions/2393194/how-to-access-resources-in-jar-file
-    final Batch <Class> loaded = new Batch <Class> () ;
-    final char sep = java.io.File.separatorChar ;
-    File baseDir = new File(dirName) ;
-    if (baseDir.isDirectory())  for (File defined : baseDir.listFiles()) try {
-      final String fileName = defined.getName() ;
-      if (defined.isDirectory()) {
-        loadClassesInDir(dirName+sep+fileName, packageName+"."+fileName) ;
-        continue ;
-      }
-      if (! fileName.endsWith(".java")) continue ;
-      final String className = fileName.substring(0, fileName.length() - 5) ;
-      //I.say("Loading class: "+packageName+"."+className) ;
-      loaded.add(Class.forName(packageName+"."+className)) ;
-    }
-    catch (Exception e) {}// I.report(e) ; }
-    return loaded ;
+  public static Batch <Class> loadPackage(String packageName) {
+    final Batch <Class> zipped = loadZippedClasses(packageName) ;
+    if (zipped != null) return zipped ;
+    return loadClassesInDir(packageName, null) ;
   }
   
   
-  final public static char REP_SEP = '/' ;
+  private static Batch <Class> loadClassesInDir(
+    String packageName, Batch <Class> loaded
+  ) {
+    if (loaded == null) loaded = new Batch <Class> () ;
+    final File baseDir = new File(packageName.replace('.', '/')) ;
+    
+    if (baseDir.isDirectory()) for (File defined : baseDir.listFiles()) try {
+      final String fileName = defined.getName() ;
+      if (defined.isDirectory()) {
+        loadClassesInDir(packageName+"."+fileName, loaded) ;
+        continue ;
+      }
+      if (! fileName.endsWith(".java")) continue ;
+      
+      final int cutoff = fileName.length() - ".java".length() ;
+      final String className = fileName.substring(0, cutoff) ;
+      loaded.add(Class.forName(packageName+"."+className)) ;
+    }
+    catch (Exception e) { I.report(e) ; }
+    return loaded ;
+  }
+  
+  //
+  //  TODO:  Only do this once, and cache the results?
+  
+  private static Batch <Class> loadZippedClasses(String packageName) {
+    
+    CodeSource code = LoadService.class.getProtectionDomain().getCodeSource() ;
+    if (code == null) return null ;
+    
+    final File file = new File(code.getLocation().getFile()) ;
+    if (! file.exists()) return null ;
+    
+    final Batch <Class> loaded = new Batch <Class> () ;
+    try {
+      //
+      //  TODO:  Specifying the name of the Jar File should NOT be needed...
+      final URL jarURL = new URL(code.getLocation()+"/presidium_run_jar.jar") ;
+      ZipInputStream zip = new ZipInputStream(jarURL.openStream()) ;
+      for (ZipEntry e ; (e = zip.getNextEntry()) != null ;) {
+        if (e.isDirectory()) continue ;
+        
+        final String name = e.getName() ;
+        if (! name.endsWith(".class")) continue ;
+        if (name.indexOf('$') != -1) continue ;
+        
+        final int cutoff = name.length() - ".class".length() ;
+        final String className = name.substring(0, cutoff).replace('/', '.') ;
+        if (packageName != null && ! className.startsWith(packageName)) {
+          continue ;
+        }
+        
+        //I.say("Trying to load: "+className) ;
+        try { loaded.add(Class.forName(className)) ; }
+        catch (ClassNotFoundException c) { I.report(c) ; }
+      }
+    }
+    catch (IOException e) { I.report(e) ; }
+    return loaded ;
+  }
+  
   
 
   /**  Writes a string to the given data output stream.
@@ -114,9 +159,12 @@ public class LoadService {
     return rgba ;
   }
   
+  
   /**  Seperates the given full file path into it's path and file-name components,
     *  returning them as a two-element array- (path first, file name second.)
     */
+  final public static char REP_SEP = '/' ;
+  
   public static String[] sepPath(String fullPath) {
     char[] fP = fullPath.toCharArray() ;
     int ind ;

@@ -539,6 +539,9 @@ public class Background implements Economy, Session.Saveable {
         return actor.traits.male() ? costume : female_skin ;
       }
     },
+    //  TODO:  Duke may also be called Prince in some systems.  Lord Solar
+    //  applies to any ruler of an entire system, or Emperor/Empress to a ruler
+    //  of the setting as a whole (a largely ceremonial position.)
     DUKE = null,
     RULING_POSITIONS[] = { KNIGHTED, COUNT, BARON, DUKE },
     //
@@ -569,8 +572,8 @@ public class Background implements Economy, Session.Saveable {
       RULER_CLASS, NOT_A_GUILD,
       EXPERT, ACCOUNTING, PRACTICED, SOCIAL_HISTORY, COUNSEL, SUASION
     ),
-    WARMASTER = new Background(
-      "Warmaster", "highborn_male_skin.gif", null,
+    WAR_MASTER = new Background(
+      "War Master", "highborn_male_skin.gif", null,
       RULER_CLASS, NOT_A_GUILD,
       EXPERT, HAND_TO_HAND, SHIELD_AND_ARMOUR, BATTLE_TACTICS, PRACTICED,
       SURVEILLANCE, MARKSMANSHIP
@@ -587,7 +590,8 @@ public class Background implements Economy, Session.Saveable {
 
     //
     //  These positions are for the benefit of citizens elected at the Counsel
-    //  Chamber.
+    //  Chamber, and politically have a similar degree of influence (Consuls,
+    //  in principle, are on an equal footing with the Emperor/Empress.)
     PREFECT = new Background(
       "Prefect", "physician_skin.gif", null,
       RULER_CLASS, NOT_A_GUILD,
@@ -608,7 +612,7 @@ public class Background implements Economy, Session.Saveable {
     //  Ministers confer the benefits of a portion of their skills on the
     //  planet as a whole (including stuff off the main map.)
     MASTER_OF_ASSASSINS     = null,
-    WARMASTER               = null,
+    WAR_MASTER              = null,
     CHIEF_ARTIFICER         = null,
     PLANETOLOGIST           = null,
     MINISTER_FOR_HEALTH     = null,
@@ -632,11 +636,15 @@ public class Background implements Economy, Session.Saveable {
   
   final public static System
     //
-    //  TODO:  List ruling houses and common names.
-    //         Introduce Calivor and Theta Rho.
-    //         Give each system a brief text description.
+    //  TODO:  List common names and minor houses.
+    //         Introduce Calivor, Nordsei, Solipsus, Urym Hive & The Outer
+    //         Sphere. (aliens later.)
     PLANET_ASRA_NOVI = new System(
-      "Asra Novi", "House Suhail", null, 0, 1,
+      "Asra Novi", "House Suhail",
+      "Asra Novi is a heavily-terraformed 'desert oasis' world noted for it's "+
+      "expertise in ecology and botanical science, together with polyamorous "+
+      "traditions and luxury exports.",
+      null, 0, 1,
       DESERT_BLOOD, MILD_GRAVITY,
       MAKES, SOMA, PLASTICS, DECOR, SPICE,
       NEEDS, WATER, SERVICE_CONSORTS, DATALINKS,
@@ -645,17 +653,25 @@ public class Background implements Economy, Session.Saveable {
       OFTEN, ECOLOGIST_CIRCLES, SOMETIMES, COURT_CIRCLES, AESTHETE_CIRCLES
     ),
     PLANET_PAREM_V = new System(
-      "Parem V", "House Procyon", null, 1, 1,
+      "Parem V", "House Procyon",
+      "Parem V was one of the first-settled systems in the known quadrant, "+
+      "and though squalid and repressive, remains host to numerous machine-"+
+      "cults and revered arcane relics.",
+      null, 1, 1,
       WASTES_BLOOD, NORMAL_GRAVITY,
       MAKES, PARTS, DATALINKS, REPLICANTS,
       NEEDS, PETROCARBS, DECOR, RARITIES,
       HIVES_BIRTH, PYON_BIRTH,
       LEARNING, ASSEMBLY, ANCIENT_LORE,
       OFTEN, ARTIFICER_CIRCLES, SOMETIMES, COURT_CIRCLES,
-      RARELY, ECOLOGIST_CIRCLES
+      RARELY, ECOLOGIST_CIRCLES, AESTHETE_CIRCLES
     ),
     PLANET_HALIBAN = new System(
-      "Haliban", "House Altair", null, 0, 0,
+      "Haliban", "House Altair",
+      "Noted for it's spartan regimen and stern justice, Haliban's early "+
+      "defection to the Calivor Republic have earned it several foes- and a "+
+      "crucial role in quadrant defence strategy.",
+      null, 0, 0,
       FOREST_BLOOD, STRONG_GRAVITY,
       MAKES, CARBS, GREENS, PETROCARBS,
       NEEDS, SERVICE_ARMAMENT, PARTS, MEDICINE,
@@ -665,13 +681,17 @@ public class Background implements Economy, Session.Saveable {
       RARELY, VENDOR_CIRCLES
     ),
     PLANET_AXIS_NOVENA = new System(
-      "Axis Novena", "House Taygeta", null, 1, 0,
+      "Axis Novena", "House Taygeta",
+      "Aided by it's low gravity and thin atmosphere, Axis Novena became the "+
+      "centre of a large shipping industry and trade network- along with "+
+      "rampant smuggling and illicit research programs.",
+      null, 1, 0,
       TUNDRA_BLOOD, NOMINAL_GRAVITY,
       MAKES, CIRCUITRY, MEDICINE, SERVICE_SHIPPING,
       NEEDS, GREENS, METAL_ORE, FUEL_CORES,
       HIVES_BIRTH, GUILDER_BIRTH,
-      LEARNING, FIELD_THEORY, ACCOUNTING,
-      OFTEN, PHYSICIAN_CIRCLES, ARTIFICER_CIRCLES, RARELY, AESTHETE_CIRCLES
+      LEARNING, FIELD_THEORY, STEALTH_AND_COVER,
+      OFTEN, VENDOR_CIRCLES, MIGRANT_CIRCLES, ARTIFICER_CIRCLES
     ),
     
     ALL_PLANETS[] = {

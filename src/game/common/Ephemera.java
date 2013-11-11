@@ -2,6 +2,7 @@
 
 package src.game.common ;
 import src.graphics.common.* ;
+import src.graphics.sfx.* ;
 import src.util.* ;
 import src.game.common.WorldSections.Section ;
 
@@ -127,7 +128,7 @@ public class Ephemera {
   ) {
     final Vec3D p = ghost.sprite.position ;
     ghost.tracked.viewPosition(p) ;
-    p.z += ghost.tracked.height() / 2f ;
+    if (ghost.sprite instanceof SFX) p.z += ghost.tracked.height() / 2f ;
     final Section section = world.sections.sectionAt((int) p.x, (int) p.y) ;
     if (section == oldSection) return ;
     SG.remove(ghost) ;

@@ -57,9 +57,12 @@ public class MainMenu extends UIGroup {
   
   public void configMainText(Object args[]) {
     text.setText("") ;
+    //
+    //  TODO:  Add a Tutorial/Quickstart option?
     Call.add("\n  New Game"       , this, "configForNew"     , text) ;
+    Call.add("\n  Quick Tutorial" , this, "configQuickstart" , text) ;
     Call.add("\n  Continue Game"  , this, "configToContinue" , text) ;
-    Call.add("\n  Change Settings", this, "configForSettings", text) ;
+    //Call.add("\n  Change Settings", this, "configForSettings", text) ;
     Call.add("\n  Quit"           , this, "configToQuit"     , text) ;
   }
   
@@ -73,7 +76,7 @@ public class MainMenu extends UIGroup {
   final static Background ADVISOR_BACKGROUNDS[] = {
     Background.FIRST_CONSORT,
     Background.MINISTER_FOR_ACCOUNTS,
-    Background.WARMASTER
+    Background.WAR_MASTER
   } ;
   final static Background COLONIST_BACKGROUNDS[] = {
     Background.VOLUNTEER,
@@ -127,6 +130,10 @@ public class MainMenu extends UIGroup {
     for (Skill s : g.skills()) {
       text.append(s.name+" +"+g.skillLevel(s)+" ", Colour.LIGHT_GREY) ;
     }
+    
+    //
+    //  TODO:  Give an accompanying description of the House in question, using
+    //  a preview image and side-text.
     
     text.append("\n  House:") ;
     for (Background b : Background.ALL_PLANETS) {
@@ -314,59 +321,11 @@ public class MainMenu extends UIGroup {
   
   
   public void beginNewGame(Object args[]) {
-    
     final World world = generateWorld() ;
     final Base base = generateBase(world) ;
     
-    String title = base.ruler().fullName() ;
-    while (true) {
-      File match = new File("saves/"+title+".rep") ;
-      if (! match.exists()) break ;
-      title = title+"I" ;
-    }
-    
-    final Scenario scenario = new Scenario(world, base, "saves/"+title+".rep") ;
-    PlayLoop.setupAndLoop(scenario.UI, scenario) ;
-  }
-  
-  
-  private World generateWorld() {
-    float forest = 0, meadow = 0, barrens = 0, desert = 0, wastes = 0 ;
-    
-    switch (landPerks[0]) {
-      case(0) : wastes = 3 ; desert = 2 ; barrens = 4 ; break ;
-      case(1) : meadow = 4 ; barrens = 2 ; desert = 2 ; break ;
-      case(2) : forest = 2 ; meadow = 3 ; barrens = 2 ; break ;
-    }
-    
-    final TerrainGen TG = new TerrainGen(
-      128, 0.2f,
-      Habitat.SWAMPLANDS  , forest ,
-      Habitat.MEADOW      , meadow ,
-      Habitat.BARRENS     , barrens,
-      Habitat.DESERT      , desert ,
-      Habitat.CURSED_EARTH, wastes
-    ) ;
-    final World world = new World(TG.generateTerrain()) ;
-    TG.setupMinerals(world, 0, 0, 0) ;
-    TG.setupOutcrops(world) ;
-    
-    return world ;
-  }
-  
-  
-  private Base generateBase(World world) {
-    final Base base = Base.createFor(world) ;
-    
-    int funding = -1, interest = -1 ;
-    switch (landPerks[1]) {
-      case(0) : funding = 7500  ; interest = 3 ; break ;
-      case(1) : funding = 10000 ; interest = 2 ; break ;
-      case(2) : funding = 12500 ; interest = 1 ; break ;
-    }
-    base.incCredits(funding) ;
-    base.setInterestPaid(interest) ;
-    base.commerce.assignHomeworld((System) house) ;
+    //
+    //  TODO-  Break this up a bit more.
     
     //
     //  Determine relevant attributes for the ruler-
@@ -406,7 +365,6 @@ public class MainMenu extends UIGroup {
       }
       if (picked != null) advisors.add(picked) ;
     }
-    
     //
     //  Pick out some random colonists-
     final List <Human> colonists = new List <Human> () ;
@@ -416,7 +374,134 @@ public class MainMenu extends UIGroup {
         colonists.add(c) ;
       }
     }
+
+    final Bastion bastion = establishBastion(
+      world, base, ruler, advisors, colonists
+    ) ;
     
+    String title = base.ruler().fullName() ; while (true) {
+      File match = new File("saves/"+title+".rep") ;
+      if (! match.exists()) break ;
+      title = title+"I" ;
+    }
+    
+    final Scenario scenario = new Scenario(world, base, "saves/"+title+".rep") ;
+    scenario.UI.assignBaseSetup(base, bastion.position(null)) ;
+    PlayLoop.setupAndLoop(scenario.UI, scenario) ;
+  }
+  
+  
+  private World generateWorld() {
+    float forest = 0, meadow = 0, barrens = 0, desert = 0, wastes = 0 ;
+    
+    switch (landPerks[0]) {
+      case(0) : wastes = 3 ; desert = 2 ; barrens = 4 ; break ;
+      case(1) : meadow = 4 ; barrens = 2 ; desert = 2 ; break ;
+      case(2) : forest = 2 ; meadow = 3 ; barrens = 2 ; break ;
+    }
+    
+    final TerrainGen TG = new TerrainGen(
+      128, 0.2f,
+      Habitat.ESTUARY     , forest ,
+      Habitat.MEADOW      , meadow ,
+      Habitat.BARRENS     , barrens,
+      Habitat.DESERT      , desert ,
+      Habitat.CURSED_EARTH, wastes
+    ) ;
+    final World world = new World(TG.generateTerrain()) ;
+    TG.setupMinerals(world, 0, 0, 0) ;
+    TG.setupOutcrops(world) ;
+    
+    return world ;
+  }
+  
+  
+  private Base generateBase(World world) {
+    final Base base = Base.createFor(world) ;
+    
+    int funding = -1, interest = -1 ;
+    switch (landPerks[1]) {
+      case(0) : funding = 7500  ; interest = 3 ; break ;
+      case(1) : funding = 10000 ; interest = 2 ; break ;
+      case(2) : funding = 12500 ; interest = 1 ; break ;
+    }
+    base.incCredits(funding) ;
+    base.setInterestPaid(interest) ;
+    base.commerce.assignHomeworld((System) house) ;
+    return base ;
+  }
+  
+  
+  
+  /**  Beginning a quick-start game-
+    */
+  public void configQuickstart(Object args[]) {
+    
+    //
+    //
+    final TerrainGen TG = new TerrainGen(
+      64, 0.0f,
+      Habitat.ESTUARY, 0.15f,
+      Habitat.MEADOW , 0.35f,
+      Habitat.BARRENS, 0.35f,
+      Habitat.DESERT , 0.15f
+    ) ;
+    final World world = new World(TG.generateTerrain()) ;
+    TG.setupMinerals(world, 0, 0, 0) ;
+    TG.setupOutcrops(world) ;
+    final Base base = Base.createFor(world) ;
+    
+    //
+    //  
+    final Human ruler = new Human(new Career(
+      Rand.yes(), Background.KNIGHTED, Background.HIGH_BIRTH,
+      (Background) Rand.pickFrom(Background.ALL_PLANETS)
+    ), base) ;
+    final Human consort = new Human(new Career(
+      ruler.traits.female(), Background.FIRST_CONSORT,
+      Background.HIGH_BIRTH, ruler.career().homeworld()
+    ), base) ;
+    
+    final List <Human> advisors = new List <Human> () ;
+    advisors.add(ruler) ;
+    advisors.add(consort) ;
+    final List <Human> colonists = new List <Human> () ;
+    for (int n = 2 ; n-- > 0 ;) {
+      colonists.add(new Human(Background.VOLUNTEER  , base)) ;
+      colonists.add(new Human(Background.SUPPLY_CORPS, base)) ;
+      colonists.add(new Human(Background.TECHNICIAN  , base)) ;
+    }
+    for (int n = 3 ; n-- > 0 ;) {
+      final Background b = (Background) Rand.pickFrom(COLONIST_BACKGROUNDS) ;
+      colonists.add(new Human(b, base)) ;
+    }
+    
+    base.incCredits(10000) ;
+    base.setInterestPaid(2) ;
+    base.commerce.assignHomeworld((System) ruler.career().homeworld()) ;
+    final Bastion bastion = establishBastion(
+      world, base, ruler, advisors, colonists
+    ) ;
+    
+    String title = base.ruler().fullName() ; while (true) {
+      File match = new File("saves/"+title+".rep") ;
+      if (! match.exists()) break ;
+      title = title+"I" ;
+    }
+    
+    final Scenario scenario = new TutorialScenario(
+      world, base, "saves/"+title+".rep"
+    ) ;
+    scenario.UI.assignBaseSetup(base, bastion.position(null)) ;
+    PlayLoop.setupAndLoop(scenario.UI, scenario) ;
+  }
+  
+  
+  
+  private Bastion establishBastion(
+    World world, Base base,
+    Human ruler, List <Human> advisors, List <Human> colonists
+  ) {
     //
     //  And finally, initiate the settlement within the world-
     final Bastion bastion = new Bastion(base) ;
@@ -424,14 +509,18 @@ public class MainMenu extends UIGroup {
     base.assignRuler(ruler) ;
     Human AA[] = advisors.toArray(Human.class) ;
     Scenario.establishVenue(bastion, 12, 12, true, world, AA) ;
+    bastion.clearSurrounds() ;
+    for (Actor a : advisors) {
+      a.mind.setHomeVenue(bastion) ;
+    }
     for (Actor a : colonists) {
       a.assignBase(base) ;
       a.enterWorldAt(bastion, world) ;
       a.goAboard(bastion, world) ;
     }
-    
-    return base ;
+    return bastion ;
   }
+  
   
   
   
@@ -456,6 +545,7 @@ public class MainMenu extends UIGroup {
     
     final File savesDir = new File("saves/") ;
     for (File saved : savesDir.listFiles()) {
+      if (! saved.getName().endsWith(".rep")) continue ;
       allSaved.add(saved) ;
     }
     return allSaved ;
@@ -465,6 +555,7 @@ public class MainMenu extends UIGroup {
   public void loadSavedGame(Object args[]) {
     final File saved = (File) args[0] ;
     String fullPath = "saves/"+saved.getName() ;
+    I.say("Loading game: "+fullPath) ;
     try {
       final Session s = Session.loadSession(fullPath) ;
       final Scenario scenario = s.scenario() ;

@@ -255,14 +255,15 @@ public class Session {
     Object loadMethod = loadMethods.get(classID) ;
     if (loadMethod == null) {
       final String className = LoadService.readString(in) ;
-      //I.say("Loading new class- "+className+" ID: "+classID) ;
-      final ClassLoader loader = ClassLoader.getSystemClassLoader() ; 
-      final Class loadClass = loader.loadClass(className) ;
-      try {
-        loadMethod = loadClass.getConstructor(Session.class) ;
+      final Class loadClass = Class.forName(className) ;
+      
+      try { loadMethod = loadClass.getConstructor(Session.class) ; }
+      catch (NoSuchMethodException e) {}
+      if (loadMethod == null) try {
+        loadMethod = loadClass.getMethod("loadConstant", Session.class) ;
       }
       catch (NoSuchMethodException e) {
-        loadMethod = loadClass.getMethod("loadConstant", Session.class) ;
+        I.complain("NO SUITABLE LOADING METHOD FOR "+className) ;
       }
       loadMethods.put(classID, loadMethod) ;
     }

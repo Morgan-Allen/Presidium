@@ -14,6 +14,10 @@ import src.user.* ;
 
 
 //
+//  TODO:  The save/load methods need to schedule saving/loading, rather than
+//  performing it instantly?
+
+//
 //  TODO:  These need to actually test the psyonic skills in question, and
 //  (at least for testing purposes) work without a caster.
 //

@@ -65,7 +65,8 @@ public abstract class Model {
     if (loaded != null) return loaded ;
     final String modelName = LoadService.readString(in) ;
     final String className = LoadService.readString(in) ;
-    ClassLoader.getSystemClassLoader().loadClass(className) ;
+    Class.forName(className) ;
+    //ClassLoader.getSystemClassLoader().loadClass(className) ;
     loaded = modelCache.get(modelName) ;
     
     if (loaded == null) I.complain(

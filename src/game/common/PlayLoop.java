@@ -132,7 +132,7 @@ public final class PlayLoop {
   
   protected static void runLoop() {
     if (loop) return ;
-    LoadService.loadClassesInDir("src/", "src") ;
+    LoadService.loadPackage("src") ;
     rendering() ;
     
     if (scenario != null) {
@@ -288,47 +288,3 @@ public final class PlayLoop {
 }
 
 
-
-/*
-protected PlayLoop() {
-}
-
-
-protected boolean loadedAtStartup() {
-  return false ;
-}
-
-
-protected void resetGame() {
-  I.say("_____RESETING_WORLD______") ;
-  gameStateWipe() ;
-  world = createWorld() ;
-  played = createBase(world) ;
-  world.registerBase(played, true) ;
-  UI = createUI(played, rendering) ;
-  configureScenario(world, played, UI) ;
-}
-
-
-protected abstract World createWorld() ;
-protected abstract Base createBase(World world) ;
-protected abstract HUD createUI(Base base, Rendering rendering) ;
-protected abstract void configureScenario(World world, Base base, HUD HUD) ;
-//*/
-
-/*
-public PlayLoop(Session s) throws Exception {
-  this() ;
-  s.cacheInstance(this) ;
-  world = s.world() ;
-  played = (Base) s.loadObject() ;
-  UI = createUI(played, rendering) ;
-  if (UI instanceof BaseUI) ((BaseUI) UI).loadState(s) ;
-}
-
-
-public void saveState(Session s) throws Exception {
-  s.saveObject(played) ;
-  if (UI instanceof BaseUI) ((BaseUI) UI).saveState(s) ;
-}
-//*/

@@ -115,7 +115,7 @@ public class HumanMind extends ActorMind implements Abilities {
       if (actor.base() != null) {
         Migration.lookForJob((Human) actor, actor.base()) ;
       }
-      if (this.home == null && work instanceof Venue) {
+      if (this.home == null && (work == null || work instanceof Venue)) {
         final Holding newHome = Holding.findHoldingFor(actor) ;
         if (newHome != null) {
           if (! newHome.inWorld()) newHome.doPlace(newHome.origin(), null) ;

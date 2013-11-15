@@ -638,7 +638,7 @@ public class Background implements Economy, Session.Saveable {
     //
     //  TODO:  List common names and minor houses.
     //         Introduce Calivor, Nordsei, Solipsus, Urym Hive & The Outer
-    //         Sphere. (aliens later.)
+    //         Sphere. (aliens and freeholds later.)
     PLANET_ASRA_NOVI = new System(
       "Asra Novi", "House Suhail",
       "Asra Novi is a heavily-terraformed 'desert oasis' world noted for it's "+
@@ -684,7 +684,7 @@ public class Background implements Economy, Session.Saveable {
       "Axis Novena", "House Taygeta",
       "Aided by it's low gravity and thin atmosphere, Axis Novena became the "+
       "centre of a large shipping industry and trade network- along with "+
-      "rampant smuggling and illicit research programs.",
+      "rampant smuggling and black market research.",
       null, 1, 0,
       TUNDRA_BLOOD, NOMINAL_GRAVITY,
       MAKES, CIRCUITRY, MEDICINE, SERVICE_SHIPPING,

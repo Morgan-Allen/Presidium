@@ -1,35 +1,14 @@
 
 
 package src.user ;
+import org.lwjgl.input.Keyboard;
+
 import src.game.common.* ;
 import src.game.tactical.* ;
 import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.util.* ;
-
-
-
-//
-//  TODO:  I need more SFX for the various powers.
-//  Fade in/out for the save/load functions.
-//  Swirly FX for remote vision.  Similar for kinesthesia.
-//  Shield FX are done, they just need to be restored.
-
-//  Save    (screen fade black)
-//  Load    (screen fade grey)
-//  Game speed  (screen overlay brown)
-//  Far sight  (swirly FX)  (DONE)
-//  Pushing   (swirly tilted FX)
-//  Shields   (tilted FX)
-//  Freezing  (Skin effect)
-//  Reflex buff  (swirly tilted FX)
-//  Telling  (tilted one-off FX)
-
-//
-//  TODO:  ...I need some method of maintaining persistant SFX on a given
-//  mobile target.  ...The ephemera class can probably be extended to handle
-//  that.
 
 
 
@@ -63,6 +42,14 @@ public class Quickbar extends UIGroup implements UIConstants {
   
   private float lengthFor(List <Button> allSlots) {
     return (allSlots.size() * (BUT_SIZE + SPACING)) - SPACING ;
+  }
+  
+  
+  protected void updateState() {
+    super.updateState() ;
+    if (KeyInput.isKeyDown(Keyboard.KEY_ESCAPE)) {
+      if (optionList != null) optionList.detach() ;
+    }
   }
   
   
@@ -123,6 +110,12 @@ public class Quickbar extends UIGroup implements UIConstants {
   }
   
   
+  //
+  //  Ideally, you'll want a nicer way to present these- give them a little
+  //  background, similar to text bubbles, and stretch to accommodate the
+  //  longest string.
+  //  TODO:  Also, the escape key needs to quit options-display.
+  
   private UIGroup constructOptionList(final Power power, String options[]) {
     final UIGroup list = new UIGroup(UI) ;
     final Quickbar bar = this ;
@@ -137,7 +130,7 @@ public class Quickbar extends UIGroup implements UIConstants {
           optionList.detach() ;
         }
       }, Colour.GREY) ;
-      text.absBound.set(0, i++ * 20, 66, 16) ;
+      text.absBound.set(0, i++ * 20, 300, 16) ;
       text.attachTo(list) ;
     }
     optionList = list ;

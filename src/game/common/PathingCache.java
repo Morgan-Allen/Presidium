@@ -8,6 +8,7 @@
 package src.game.common ;
 import src.game.common.WorldSections.Section ;
 import src.game.building.* ;
+import src.game.planet.* ;
 import src.util.* ;
 
 
@@ -52,14 +53,15 @@ public class PathingCache {
   
   final World world ;
   final Place tilePlaces[][] ;
-  Table <Section, Caching> allCached = new Table <Section, Caching> () ;
-  ///Batch <Zone> allZones = new Batch <Zone> () ;
+  final Table <Section, Caching> allCached = new Table <Section, Caching> () ;
+  //final MipMap pathMipMap ;
   
   
   
   public PathingCache(World world) {
     this.world = world ;
     this.tilePlaces = new Place[world.size][world.size] ;
+    //this.pathMipMap = new MipMap(world.size) ;
   }
   
   

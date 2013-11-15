@@ -374,20 +374,12 @@ public class MainMenu extends UIGroup {
         colonists.add(c) ;
       }
     }
-
+    
     final Bastion bastion = establishBastion(
       world, base, ruler, advisors, colonists
     ) ;
     
-    String title = base.ruler().fullName() ; while (true) {
-      File match = new File("saves/"+title+".rep") ;
-      if (! match.exists()) break ;
-      title = title+"I" ;
-    }
-    
-    final Scenario scenario = new Scenario(world, base, "saves/"+title+".rep") ;
-    scenario.UI.assignBaseSetup(base, bastion.position(null)) ;
-    PlayLoop.setupAndLoop(scenario.UI, scenario) ;
+    beginGame(world, base, bastion) ;
   }
   
   
@@ -483,14 +475,20 @@ public class MainMenu extends UIGroup {
       world, base, ruler, advisors, colonists
     ) ;
     
+    beginGame(world, base, bastion) ;
+  }
+  
+  
+  
+  private void beginGame(World world, Base base, Bastion bastion) {
     String title = base.ruler().fullName() ; while (true) {
-      File match = new File("saves/"+title+".rep") ;
+      File match = new File(Scenario.fullSavePath(title, null)) ;
       if (! match.exists()) break ;
       title = title+"I" ;
     }
     
     final Scenario scenario = new TutorialScenario(
-      world, base, "saves/"+title+".rep"
+      world, base, title
     ) ;
     scenario.UI.assignBaseSetup(base, bastion.position(null)) ;
     PlayLoop.setupAndLoop(scenario.UI, scenario) ;
@@ -508,6 +506,14 @@ public class MainMenu extends UIGroup {
     advisors.add(ruler) ;
     base.assignRuler(ruler) ;
     Human AA[] = advisors.toArray(Human.class) ;
+    
+    //
+    //  TODO:  You need to actively search for a suitable location to place the
+    //  Bastion.  Somewhere that won't be clipped by unpathable terrain, but
+    //  preferably close to one edge of the map.  (Then you can build up lairs
+    //  away from it!)
+    
+    
     Scenario.establishVenue(bastion, 12, 12, true, world, AA) ;
     bastion.clearSurrounds() ;
     for (Actor a : advisors) {
@@ -530,31 +536,20 @@ public class MainMenu extends UIGroup {
     text.setText("") ;
     
     text.append("\n  Saved Games:") ;
-    for (File saved : savedFiles()) {
+    for (String fileName : Scenario.savedFiles(null)) {
       text.append("\n    ") ;
-      String fileName = saved.getName() ;
-      Call.add(fileName, this, "loadSavedGame", text, saved) ;
+      int cutoff = (Scenario.CURRENT_SAVE+".rep").length() ;
+      String playName = fileName.substring(0, fileName.length() - cutoff) ;
+      Call.add(playName, this, "loadSavedGame", text, fileName) ;
     }
     
     Call.add("\n\n  Back", this, "configMainText", text) ;
   }
   
   
-  private List <File> savedFiles() {
-    final List <File> allSaved = new List <File> () ;
-    
-    final File savesDir = new File("saves/") ;
-    for (File saved : savesDir.listFiles()) {
-      if (! saved.getName().endsWith(".rep")) continue ;
-      allSaved.add(saved) ;
-    }
-    return allSaved ;
-  }
-  
-  
   public void loadSavedGame(Object args[]) {
-    final File saved = (File) args[0] ;
-    String fullPath = "saves/"+saved.getName() ;
+    final String fileName = (String) args[0] ;
+    String fullPath = "saves/"+fileName ;
     I.say("Loading game: "+fullPath) ;
     try {
       final Session s = Session.loadSession(fullPath) ;

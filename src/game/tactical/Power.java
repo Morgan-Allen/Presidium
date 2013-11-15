@@ -18,6 +18,12 @@ import src.user.* ;
 //  performing it instantly?
 
 //
+//  TODO:  Grant multiple options for saving/loading, so that you can choose
+//  which scenario to load, or quit after saving (which restores more Psi, but
+//  obliges time to pass.)
+
+
+//
 //  TODO:  These need to actually test the psyonic skills in question, and
 //  (at least for testing purposes) work without a caster.
 //
@@ -43,7 +49,6 @@ public class Power implements Abilities {
   final public String name, helpInfo ;
   final public Texture buttonTex ;
   final int properties ;
-  //static String saveFile = "saves/main_session.rep" ;  //GET FROM SESSION CLASS
   
   
   Power(String name, int properties, String imgFile, String helpInfo) {
@@ -101,16 +106,38 @@ public class Power implements Abilities {
   
   
   public static void applyTimeDilation(float gameSpeed, Scenario scenario) {
+    final Actor caster = scenario.base.ruler() ;
+    if (caster == null || GameSettings.psyFree) return ;
+    final float bonus = caster.traits.useLevel(PROJECTION) / 10f ;
+    float drain = -1 / (1 + bonus) ;
     
+    caster.health.adjustPsy(drain) ;
+  }
+  
+  
+  public static void applyResting(float gameSpeed, Scenario scenario) {
+    final Actor caster = scenario.base.ruler() ;
+    if (caster == null || GameSettings.psyFree) {
+      PlayLoop.setGameSpeed(1) ;
+      return ;
+    }
+    //
+    //  Restore psi points/fatigue/etc. and return to normal speed when done.
+    caster.health.adjustPsy(2) ;
+    PlayLoop.setNoInput(true) ;
+    if (caster.health.psyPoints() >= caster.health.maxPsy()) {
+      PlayLoop.setGameSpeed(1) ;
+      PlayLoop.setNoInput(false) ;
+    }
   }
   
   
   public static void applyWalkPath(Scenario scenario) {
     final Actor caster = scenario.base.ruler() ;
     if (caster == null || GameSettings.psyFree) return ;
-    final float bonus = caster.traits.useLevel(PREMONITION) / 1 ;
+    final float bonus = caster.traits.useLevel(PREMONITION) / 10 ;
     float lastSave = PlayLoop.timeSinceLastSave() ;
-    caster.health.adjustPsy(0 - (lastSave / 1000f) * (10 + bonus)) ;
+    caster.health.adjustPsy((lastSave / 1000f) * (0.5f + bonus)) ;
   }
   
   
@@ -129,11 +156,32 @@ public class Power implements Abilities {
       "Accept your vision of events and allow them to be fulfilled.\n(Saves "+
       "current game.)"
     ) {
+      final String
+        OPTION_QUIT = "Save and Exit",
+        OPTION_REST = "Save and Rest",
+        OPTION_MARK = "Save and Remember" ;
+    
+      public String[] options() {
+        return new String[] {
+          OPTION_QUIT, OPTION_REST, OPTION_MARK
+        } ;
+      }
+      
       public boolean finishedWith(
         Actor caster, String option,
         Target selected, boolean clicked
       ) {
-        PlayLoop.saveGame(PlayLoop.currentScenario().saveFile()) ;
+        if (option.equals(OPTION_QUIT)) {
+          PlayLoop.currentScenario().saveProgress(true) ;
+          PlayLoop.exitLoop() ;
+        }
+        if (option.equals(OPTION_REST)) {
+          PlayLoop.currentScenario().saveProgress(true) ;
+          PlayLoop.setGameSpeed(5.0f) ;
+        }
+        if (option.equals(OPTION_MARK)) {
+          PlayLoop.currentScenario().saveProgress(false) ;
+        }
         return true ;
       }
     },
@@ -143,13 +191,25 @@ public class Power implements Abilities {
       "Aborts your precognitive vision and lets you choose a different path."+
       "\n(Loads a previous game.)"
     ) {
+      public String[] options() {
+        return PlayLoop.currentScenario().loadOptions() ;
+      }
+      
       public boolean finishedWith(
         Actor caster, String option,
         Target selected, boolean clicked
       ) {
+        //
+        //  Clean up arguments to allow garbage collection, and delete later
+        //  saves in the timeline-
         caster = null ;
         selected = null ;
-        PlayLoop.loadGame(PlayLoop.currentScenario().saveFile()) ;
+        PlayLoop.currentScenario().wipeSavesAfter(option) ;
+        //
+        //  Load the older save, and make it current-
+        final String prefix = PlayLoop.currentScenario().savesPrefix() ;
+        PlayLoop.loadGame(Scenario.fullSavePath(prefix, option)) ;
+        PlayLoop.currentScenario().saveProgress(true) ;
         return true ;
       }
     },
@@ -160,10 +220,6 @@ public class Power implements Abilities {
     ) {
       //
       //  TODO:  Provide options for the rate of slowing here?
-      
-      //
-      //  TODO:  PROBLEM.  THIS HAS TO TOGGLE SOME KIND OF EXTERNAL MONITOR IN
-      //  ORDER TO WORK CORRECTLY.
       public boolean finishedWith(
         Actor caster, String option,
         Target selected, boolean clicked

@@ -44,9 +44,32 @@ Quest ideas-
   Urym Hive (imperial)      Albedo C97 (changeling)
   The Outer Sphere (strain) The Homeworld (jovian)
   Lightly-settled worlds:   Tovet, Xiridu, Inobe
-
-
-
+  
+  
+  Altair Household
+    The Prince Regnant Corhal Tezumec Altair, and Lord Consort Aban Maia
+    War Master, Minister for Health, Minister for Propaganda
+    No heir
+  Suhail Household
+    The Duchess Solar Omuro Suhail, Colonel Amall Fadun, and Mysha 401A
+    Planetologist, Minister for Propaganda, War Master
+    Five heirs
+  Procyon Household
+    The Divine Empress Vledimiz Procyon XXIV, and Gestator-Surrogate Inyz-Rigel
+    Chief Artificer, Minister for Propaganda, Master of Assassins
+    Three heirs
+  Taygeta Household
+    The Count Solar & CEO Yetzun Taygeta, and Operative Xe Nong Hti 'Eclipse'
+    Master of Assassins, Minister for Accounts, Chief Artificer
+    No heir, at least three unacknowledged seed-child
+  Maia Household
+    The Duke Solar Dabien Maia, and Lady Consort Jivi Man
+    Minister for Propaganda, Minister for Health, Planetologist
+    One heir
+  Fomalhaut Household
+    The Baron Algeb Fomalhaut Gamma, and Contract-Betrothed Xe Nong Ken
+    Minister for Accounts, Planetologist, War Master
+    No heir, two acknowledged seed-child
 
 
 

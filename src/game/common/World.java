@@ -42,8 +42,6 @@ public class World {
   
   private Terrain terrain ;
   private Ecology ecology ;
-  //private RandomScan growth ;  //Move to the Planet or Terrain class...
-  ///final public Offworld offworld = new Offworld(this) ;
   private List <Base> bases = new List <Base> () ;
   
   final public Activities activities ;

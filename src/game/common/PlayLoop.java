@@ -5,8 +5,7 @@
   */
 
 package src.game.common ;
-import org.lwjgl.opengl.Display;
-
+import org.lwjgl.opengl.Display ;
 import src.game.campaign.* ;
 import src.graphics.widgets.* ;
 import src.util.* ;
@@ -45,7 +44,8 @@ public final class PlayLoop {
   private static boolean
     paused  = false,
     started = true,
-    loop    = false ;
+    loop    = false,
+    noInput = false ;
   
   private static int frameRate = FRAMES_PER_SECOND ;
   private static float speedMultiple = 1.0f ;
@@ -92,6 +92,7 @@ public final class PlayLoop {
       gameStateWipe() ;
       final Session s = Session.loadSession(saveFile) ;
       scenario = s.scenario() ;
+      UI       = scenario.UI  ;
       scenario.afterLoading() ;
     }
     catch (Exception e) { I.report(e) ; }
@@ -101,9 +102,10 @@ public final class PlayLoop {
   protected static void gameStateWipe() {
     KeyInput.clearInputs() ;
     scenario = null ;
+    UI       = null ;
     rendering.clearAll() ;
     lastSaveTime = -1 ;
-    //RuntimeUtil.gc() ;  //  TODO:  RESTORE THIS.
+    //RuntimeUtil.gc() ;  //  TODO:  RESTORE THIS?
   }
   
   
@@ -208,7 +210,7 @@ public final class PlayLoop {
       }
       rendering.updateViews() ;
       
-      if (UI != null) {
+      if (UI != null && ! noInput) {
         KeyInput.updateKeyboard() ;
         UI.updateMouse() ;
       }
@@ -284,6 +286,11 @@ public final class PlayLoop {
   public static void setPaused(boolean p) {
     if (paused && ! p) started = true ;
     paused = p ;
+  }
+  
+  
+  public static void setNoInput(boolean n) {
+    noInput = n ;
   }
 }
 

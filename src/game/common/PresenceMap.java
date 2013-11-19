@@ -296,7 +296,7 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
         }
         if (range > 0 && dist > range) continue ;
         sumWeights += weights[i++] =
-          pop * World.SECTION_RESOLUTION / (World.SECTION_RESOLUTION + dist) ;
+          pop * World.PATCH_RESOLUTION / (World.PATCH_RESOLUTION + dist) ;
       }
       //
       //  If no child is a valid selection, quit.  Otherwise, choose one child

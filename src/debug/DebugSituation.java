@@ -59,7 +59,7 @@ public class DebugSituation extends Scenario implements Economy {
   protected boolean loadedAtStartup() {
     //if (true) return false ;
     try {
-      PlayLoop.loadGame("saves/test_pathing.rep") ;
+      PlayLoop.loadGame("saves/test_pathing.rep", true) ;
       final Base base = PlayLoop.currentScenario().base ;
       if (base.credits() < 500) base.incCredits(500 - base.credits()) ;
       PlayLoop.setGameSpeed(1.0f) ;

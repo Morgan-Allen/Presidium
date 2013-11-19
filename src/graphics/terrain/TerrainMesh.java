@@ -69,12 +69,14 @@ public class TerrainMesh extends MeshBuffer implements TileConstants {
     GL11.glDepthMask(false) ;
     textures[(int) animFrame].bindTex() ;
     super.renderTo(rendering) ;
+    
     if (textures.length > 1) {
       Texture nextTex = textures[(int) (animFrame + 1) % textures.length] ;
       float opacity = animFrame - (int) animFrame ;
-      GL11.glColor4f(1, 1, 1, opacity) ;
+      final Colour c = colour == null ? Colour.WHITE : colour ;
+      GL11.glColor4f(c.r, c.g, c.b, c.a * opacity) ;
       nextTex.bindTex() ;
-      super.renderTo(rendering) ;
+      render(1, 0, null, vertBuffer, normBuffer, textBuffer, numFacets) ;
     }
     GL11.glDepthMask(true) ;
   }

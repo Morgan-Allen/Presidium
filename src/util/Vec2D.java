@@ -185,6 +185,12 @@ public class Vec2D {
   }
   
   
+  public float side(float x, float y) {
+    return (y * this.x) - (x * this.y) ;
+  }
+  
+  
+  
   /**  Returns the given point vector's distance from the line represented by
     *  this vector.  This value is always positive, and not scaled by vector
     *  length.
@@ -193,6 +199,12 @@ public class Vec2D {
     return Math.abs(side(vector) / length()) ;
   }
   
+  
+  public float lineDist(float x, float y) {
+    return Math.abs(side(x, y) / length()) ;
+  }
+  
+  
 
   /**  Returns the given point vector's distance from the point represented by
     *  this vector.
@@ -200,6 +212,13 @@ public class Vec2D {
   public float pointDist(Vec2D vector) {
     temp.x = x - vector.x ;
     temp.y = y - vector.y ;
+    return temp.length() ;
+  }
+  
+  
+  public float pointDist(float x, float y) {
+    temp.x = x - this.x ;
+    temp.y = y - this.y ;
     return temp.length() ;
   }
   

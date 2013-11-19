@@ -22,6 +22,10 @@ import src.util.* ;
 
 
 //
+//  TODO:  Contact missions, holo-theatre, and ambience.  Those are the ones.
+
+
+//
 //  TODO:  Test out the archives, finish the surveillance post, and polish the
 //  arcology/edifice/arcade thing.  Test out Research and the HoloArcade.
 //
@@ -35,9 +39,7 @@ import src.util.* ;
 //  too easy/quick at the moment.)  Actors should call for help from allies,
 //  and need proper line of sight.  Add Security and Contact missions.  Have
 //  missions modify choice priorities?
-//
-//  Simplify the user interface, implement Powers, and add a Main Menu.  That's
-//  it.
+
 
 public class DebugBehaviour extends Scenario implements Economy {
   
@@ -85,19 +87,21 @@ public class DebugBehaviour extends Scenario implements Economy {
   protected void configureScenario(World world, Base base, BaseUI HUD) {
     //natureScenario(world, base, HUD) ;
     //baseScenario(world, base, HUD) ;
-    missionScenario(world, base, HUD) ;
+    //missionScenario(world, base, HUD) ;
     //socialScenario(world, base, HUD) ;
   }
+}
   
+  
+  /*
   
   
   /**  Testing out interactions between alien creatures or primitive humanoids.
-    */
   private void natureScenario(World world, Base base, HUD UI) {
     GameSettings.fogFree = true ;
     PlayLoop.setGameSpeed(5.0f) ;
     
-    final EcologyGen EG = new EcologyGen() ;
+    final EcologyGen EG = new EcologyGen(world) ;
     EG.populateFlora(world) ;
     
     final Actor hunter = new Micovore() ;
@@ -117,7 +121,6 @@ public class DebugBehaviour extends Scenario implements Economy {
   
   /**  These are scenarios associated with upkeep, maintenance and
     *  construction of the settlement-
-    */
   private void baseScenario(World world, Base base, HUD UI) {
     
     ///PlayLoop.rendering().port.cameraZoom = 1.33f ;
@@ -156,7 +159,6 @@ public class DebugBehaviour extends Scenario implements Economy {
   
   /**  Testing out directed behaviour like combat, exploration, security or
     *  contact missions.
-    */
   private void missionScenario(World world, Base base, HUD UI) {
     
     GameSettings.fogFree = true ;
@@ -186,9 +188,9 @@ public class DebugBehaviour extends Scenario implements Economy {
     ///I.say("TOTAL POWER OF ALLIES: "+sumPower) ;
     
     //*
-    final EcologyGen EG = new EcologyGen() ;
-    final Batch <Ruins> ruins = EG.populateRuins(world.tileAt(8, 8), 16) ;
-    EG.populateArtilects(ruins, world) ;
+    final EcologyGen EG = new EcologyGen(world) ;
+    //final Batch <Ruins> ruins = EG.populateRuins(world.tileAt(8, 8), 16) ;
+    //EG.populateArtilects(ruins, world) ;
     EG.populateFlora(world) ;
     //*/
     
@@ -201,13 +203,13 @@ public class DebugBehaviour extends Scenario implements Economy {
     I.say("POWER OF ENEMY: "+Combat.combatStrength(enemy, null)) ;
     //*/
     //((BaseUI) UI).selection.pushSelection(allies.atIndex(0), true) ;
+  /*
   }
   
   
   
   /**  Testing out pro-social behaviour like dialogue, recreation and medical
     *  treatment.
-    */
   private void socialScenario(final World world, Base base, HUD UI) {
     
     //
@@ -261,6 +263,6 @@ public class DebugBehaviour extends Scenario implements Economy {
     return v ;
   }
   //*/
-}
+//}
 
 

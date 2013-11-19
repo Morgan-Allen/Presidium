@@ -131,6 +131,7 @@ public class Outcrop extends Fixture {
     final World world = origin().world ;
     for (Tile t : world.tilesIn(area(), false)) {
       if (t == null || t.blocked()) return false ;
+      if (type == TYPE_DUNE && t.habitat() != Habitat.DESERT) return false ;
     }
     return true ;
   }

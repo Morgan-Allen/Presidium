@@ -55,7 +55,7 @@ public class Ecology {
   
   public Ecology(final World world) {
     this.world = world ;
-    SR = World.SECTION_RESOLUTION ;
+    SR = World.PATCH_RESOLUTION ;
     SS = world.size / SR ;
     growthMap = new RandomScan(world.size) {
       protected void scanAt(int x, int y) { growthAt(world.tileAt(x, y)) ; }

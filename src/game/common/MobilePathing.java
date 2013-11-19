@@ -143,7 +143,7 @@ public class MobilePathing {
     //  we're approaching the terminus-
     if (validPath && (! nearTarget) && (Visit.last(path) != dest)) {
       final int dist = path.length - (stepIndex + 1) ;
-      if (dist < World.SECTION_RESOLUTION / 2) {
+      if (dist < World.PATCH_RESOLUTION / 2) {
         if (verbose) I.sayAbout(mobile, "NEAR END OF PATH") ;
         validPath = false ;
       }

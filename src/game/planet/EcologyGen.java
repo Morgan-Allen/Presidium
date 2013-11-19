@@ -12,9 +12,16 @@ import src.game.wild.* ;
 import src.util.* ;
 
 
-//
-//  Treat each corner of the map as, potentially, a kind of base.
+/*
+...I need a system for describing alliances.  During contact missions at least.
 
+I need a system for generating local flora and fauna.  Base this, directly, on
+underlying terrain.  Player location goes first.  (For that, you still need
+fertility assessments.)  Then fill in ruins and natives (not too many.)  Then
+put in animal lairs and flora (not too close to other structures.)
+
+TODO:  Put in mineral outcrops during this phase as well?
+//*/
 
 
 
@@ -23,16 +30,116 @@ public class EcologyGen {
   
   /**  Field definitions, constructors and setup methods.
     */
+  final static int
+    WORLD_SIZE_CATS[] = { 32, 64, 128, 256 },
+    MAJOR_LAIR_COUNTS[] = { 0, 0, 1, 4 },
+    MINOR_LAIR_COUNTS[] = { 0, 1, 4, 8 },
+    VARIANCE = 4 ;
+  //
+  //  TODO:  Try creating a dedicated 'LairSite' class.
   
+  
+  final World world ;
+  final TerrainGen terGen ;
+  
+  private float fertilityLevels[][] ;
+  private int numMinor, numMajor ;
+  private List <Vec2D> allSites = new List <Vec2D> () ;
+  
+  
+  public EcologyGen(World world, TerrainGen terGen) {
+    this.world = world ;
+    this.terGen = terGen ;
+    summariseFertilities() ;
+    calcNumSites() ;
+  }
+  
+  
+  private void summariseFertilities() {
+    final int SS = World.SECTOR_SIZE, SR = world.size / World.SECTOR_SIZE ;
+    fertilityLevels = new float[SR][SR] ;
+    for (Coord c : Visit.grid(0, 0, world.size, world.size, 1)) {
+      final Tile t = world.tileAt(c.x, c.y) ;
+      final Habitat h = t.habitat() ;
+      float f = h.moisture() ;
+      if (! h.pathClear) f = -5 ;
+      if (h == Habitat.CURSED_EARTH) f = -10 ;
+      fertilityLevels[c.x / SS][c.y / SS] += f ;
+    }
+    for (Coord c : Visit.grid(0, 0, SR, SR, 1)) {
+      fertilityLevels[c.x][c.y] /= SS * SS * 10 ;
+    }
+  }
+  
+  
+  private void calcNumSites() {
+    int i = WORLD_SIZE_CATS.length ;
+    for (; i-- > 0 ;) {
+      if (WORLD_SIZE_CATS[i] == world.size) break ;
+    }
+    numMajor = MAJOR_LAIR_COUNTS[i] ;
+    numMinor = MINOR_LAIR_COUNTS[i] ;
+    final int majorVar = numMajor / VARIANCE, minorVar = numMinor / VARIANCE ;
+    numMajor += Rand.index((majorVar * 2) + 1) - majorVar ;
+    numMinor += Rand.index((minorVar * 2) + 1) - minorVar ;
+  }
+  
+  
+  private Coord findBasePosition(
+    Vec2D preferred, float fertilityMult
+  ) {
+    final int SR = fertilityLevels.length ;
+    Coord best = null ;
+    float bestRating = Float.NEGATIVE_INFINITY ;
+    
+    for (Coord c : Visit.grid(0, 0, SR, SR, 1)) {
+      float rating = fertilityLevels[c.x][c.y], distPenalty = 0 ;
+      for (Vec2D pos : allSites) {
+        final float dist = pos.pointDist(c.x, c.y) ;
+        distPenalty += 1f / (1 + dist) ;
+      }
+      if (allSites.size() > 1) distPenalty /= allSites.size() ;
+      if (preferred != null) {
+        final float dist = preferred.pointDist(c.x, c.y) ;
+        distPenalty += dist / SR ;
+      }
+      rating = (rating * fertilityMult) - distPenalty ;
+      if (rating > bestRating) { best = new Coord(c) ; bestRating = rating ; }
+    }
+    
+    return best ;
+  }
+  
+  
+  
+  /**  Placement of ruins-
+    */
+  public void populateWithRuins() {
+    final int SS = World.SECTOR_SIZE ;
+    final float ruined = terGen.baseAmount(Habitat.CURSED_EARTH) ;
+    final int
+      numMajorRuins = (int) ((ruined * numMajor) + 0.5f),
+      numMinorRuins = (int) ((ruined * numMinor) + 0.5f) ;
+    I.say("Major/minor ruins: "+numMajorRuins+"/"+numMinorRuins) ;
+    
+    
+    for (int n = numMajorRuins + numMinorRuins ; n-- > 0 ;) {
+      Coord pos = findBasePosition(null, -1) ;
+      I.say("Ruins site at: "+pos) ;
+      final Tile centre = world.tileAt(
+        (pos.x + 0.5f) * SS,
+        (pos.y + 0.5f) * SS
+      ) ;
+      final boolean minor = n < numMinorRuins ;
+      final Batch <Ruins> ruins = populateRuins(centre, SS / (minor ? 2 : 1)) ;
+      populateArtilects(ruins, minor) ;
+    }
+  }
   
 
-  
-  
-  
-  /**  Populates a given area of the map with ruins and ruin-associated
-    *  species.
-    */
-  public Batch <Ruins> populateRuins(Tile centre, float radius) {
+  //
+  //  TODO:  Get rid of the terrain-painting?
+  private Batch <Ruins> populateRuins(Tile centre, float radius) {
     
     final World world = centre.world ;
     final Box2D area = new Box2D() ;
@@ -78,7 +185,7 @@ public class EcologyGen {
           final int size = 1 + Rand.index(4) ;
           toFill.set(t.x - (size / 2), t.y - (size / 2), size, size) ;
           toFill.cropBy(world.area()) ;
-          trySlagWithin(world, toFill) ;
+          trySlagWithin(toFill) ;
         }
       }
     }
@@ -99,8 +206,7 @@ public class EcologyGen {
     return allRuins ;
   }
   
-  
-  private boolean trySlagWithin(World world, Box2D toFill) {
+  private boolean trySlagWithin(Box2D toFill) {
     
     ///I.say("Area to fill: "+toFill) ;
     final Fixture f = new Fixture((int) toFill.xdim(), 1) {
@@ -131,22 +237,27 @@ public class EcologyGen {
   }
   
   
-  public void populateArtilects(Batch <Ruins> ruins, World world) {
+  private void populateArtilects(Batch <Ruins> ruins, boolean minor) {
     int lairNum = 0 ; for (Ruins r : ruins) {
       if (lairNum++ > 0 && Rand.yes()) continue ;
+      
       final Tile e = r.mainEntrance() ;
       int numT = Rand.index(3) == 0 ? 1 : 0, numD = 1 + Rand.index(2) ;
+      if (minor && Rand.yes()) { numT = 0 ; numD-- ; }
+      
       while (numT-- > 0) {
         final Tripod tripod = new Tripod() ;
         tripod.enterWorldAt(e.x, e.y, world) ;
         tripod.mind.setHomeVenue(r) ;
       }
+      
       while (numD-- > 0) {
         final Drone drone = new Drone() ;
         drone.enterWorldAt(e.x, e.y, world) ;
         drone.mind.setHomeVenue(r) ;
       }
-      if (lairNum == 1 && Rand.yes()) {
+      
+      if (lairNum == 1 && Rand.yes() && ! minor) {
         final Cranial cranial = new Cranial() ;
         cranial.enterWorldAt(e.x, e.y, e.world) ;
         cranial.mind.setHomeVenue(r) ;
@@ -156,11 +267,9 @@ public class EcologyGen {
   
   
   
-  
-  
-  /**  Methods for populating the world-
+  /**  Placement of natural flora and animal dens/populations-
     */
-  public void populateFlora(World world) {
+  public void populateFlora() {
     //
     //  Migrate the population code for the Flora class over to here?
     for (Coord c : Visit.grid(0, 0, world.size, world.size, 1)) {
@@ -169,9 +278,8 @@ public class EcologyGen {
   }
   
   
-  
   public void populateFauna(
-    final World world, final Species... species
+    final Species... species
   ) {
     final Lair typeLairs[] = new Lair[species.length] ;
     
@@ -202,17 +310,6 @@ public class EcologyGen {
     scan.doFullScan() ;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 
 

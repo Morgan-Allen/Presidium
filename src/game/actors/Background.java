@@ -425,7 +425,7 @@ public class Background implements Economy, Session.Saveable {
       }
     },
     
-    MIGRANT_CIRCLES[] = {
+    OUTLAW_CIRCLES[] = {
         SCAVENGER, FREE_TRADER, SHIP_MECHANIC,
         SHIP_CAPTAIN, RUNNER, COMPANION
     } ;
@@ -640,12 +640,11 @@ public class Background implements Economy, Session.Saveable {
     //         Introduce Calivor, Nordsei, Solipsus, Urym Hive & The Outer
     //         Sphere. (aliens and freeholds later.)
     PLANET_ASRA_NOVI = new System(
-      "Asra Novi", "House Suhail",
+      "Asra Novi", "House Major Suhail",
       "Asra Novi is a heavily-terraformed 'desert oasis' world noted for it's "+
       "expertise in ecology and botanical science, together with polyamorous "+
       "traditions and luxury exports.",
-      null, 0, 1,
-      DESERT_BLOOD, MILD_GRAVITY,
+      null, 0, 1, DESERT_BLOOD, MILD_GRAVITY,
       MAKES, SOMA, PLASTICS, DECOR, SPICE,
       NEEDS, WATER, SERVICE_CONSORTS, DATALINKS,
       FREE_BIRTH,
@@ -653,12 +652,11 @@ public class Background implements Economy, Session.Saveable {
       OFTEN, ECOLOGIST_CIRCLES, SOMETIMES, COURT_CIRCLES, AESTHETE_CIRCLES
     ),
     PLANET_PAREM_V = new System(
-      "Parem V", "House Procyon",
+      "Parem V", "House Major Procyon",
       "Parem V was one of the first-settled systems in the known quadrant, "+
-      "and though squalid and repressive, remains host to numerous machine-"+
+      "and though dour and repressive, remains host to numerous machine-"+
       "cults and revered arcane relics.",
-      null, 1, 1,
-      WASTES_BLOOD, NORMAL_GRAVITY,
+      null, 1, 1, WASTES_BLOOD, NORMAL_GRAVITY,
       MAKES, PARTS, DATALINKS, REPLICANTS,
       NEEDS, PETROCARBS, DECOR, RARITIES,
       HIVES_BIRTH, PYON_BIRTH,
@@ -667,12 +665,11 @@ public class Background implements Economy, Session.Saveable {
       RARELY, ECOLOGIST_CIRCLES, AESTHETE_CIRCLES
     ),
     PLANET_HALIBAN = new System(
-      "Haliban", "House Altair",
+      "Haliban", "House Major Altair",
       "Noted for it's spartan regimen and stern justice, Haliban's early "+
       "defection to the Calivor Republic have earned it several foes- and a "+
       "crucial role in quadrant defence strategy.",
-      null, 0, 0,
-      FOREST_BLOOD, STRONG_GRAVITY,
+      null, 0, 0, FOREST_BLOOD, STRONG_GRAVITY,
       MAKES, CARBS, GREENS, PETROCARBS,
       NEEDS, SERVICE_ARMAMENT, PARTS, MEDICINE,
       GUILDER_BIRTH, FREE_BIRTH,
@@ -681,21 +678,64 @@ public class Background implements Economy, Session.Saveable {
       RARELY, VENDOR_CIRCLES
     ),
     PLANET_AXIS_NOVENA = new System(
-      "Axis Novena", "House Taygeta",
+      "Axis Novena", "House Major Taygeta",
       "Aided by it's low gravity and thin atmosphere, Axis Novena became the "+
       "centre of a large shipping industry and trade network- along with "+
       "rampant smuggling and black market research.",
-      null, 1, 0,
-      TUNDRA_BLOOD, NOMINAL_GRAVITY,
+      null, 1, 0, TUNDRA_BLOOD, NOMINAL_GRAVITY,
       MAKES, CIRCUITRY, MEDICINE, SERVICE_SHIPPING,
       NEEDS, GREENS, METAL_ORE, FUEL_CORES,
       HIVES_BIRTH, GUILDER_BIRTH,
       LEARNING, FIELD_THEORY, STEALTH_AND_COVER,
-      OFTEN, VENDOR_CIRCLES, MIGRANT_CIRCLES, ARTIFICER_CIRCLES
+      OFTEN, VENDOR_CIRCLES, OUTLAW_CIRCLES, SOMETIMES, ARTIFICER_CIRCLES
+    ),
+    //
+    //  TODO:  ...These need more detail.
+    PLANET_SOLIPSUS_VIER = new System(
+      "Solipsus Vier", "House Major Fomalhaut",
+      "Notable for it's peculiar blend of pastoral tradition and caste "+
+      "eugenics, Solipsus Vier is ruled by insular scientific elites fixated "+
+      "on mental and physical purity.",
+      null, 2, 1, WASTES_BLOOD, NORMAL_GRAVITY,
+      OFTEN, PHYSICIAN_CIRCLES, SOMETIMES, ECOLOGIST_CIRCLES, MILITARY_CIRCLES,
+      RARELY, VENDOR_CIRCLES, NEVER, OUTLAW_CIRCLES
+    ),
+    PLANET_NORUSEI = new System(
+      "Norusei", "House Major Maia",
+      "Once a pleasure planet for the nouveau riche, and still famed for its "+
+      "celebrity cargo cults, Norusei's art & tourist trade has only recently "+
+      "recovered from the devastating machine-wars.",
+      null, 2, 0, FOREST_BLOOD, NORMAL_GRAVITY,
+      OFTEN, AESTHETE_CIRCLES, SOMETIMES, ECOLOGIST_CIRCLES,
+      RARELY, ARTIFICER_CIRCLES, COURT_CIRCLES
+    ),
+    
+    PLANET_URYM_HIVE = new System(
+      "Urym Hive", "House Algol (Minor)",
+      "Chief factory-world of the Empire in its prime, today inescapable "+
+      "poverty, desperate squalor and seething unrest render Urym Hive's "+
+      "uncounted billions governable in name only.",
+      null, 0, 2, WASTES_BLOOD, INTENSE_GRAVITY
+    ),
+    PLANET_CALIVOR = new System(
+      "Calivor", "House Regulus (Minor)",
+      "Capital of the Republic whose meteoric rise to prominence saw a dozen "+
+      "major houses unseated in disgrace, to many Calivor remains a "+
+      "shining beacon of freedom and prosperity.",
+      null, 1, 2, TUNDRA_BLOOD, NORMAL_GRAVITY
+    ),
+    PLANET_THE_OUTER_SPHERE = new System(
+      "The Outer Sphere", "House Ophiuchus (Exiled)",
+      "Shrouded in rumour and dense nebulae, the Outer Sphere is reputedly a "+
+      "hollow organic world, host to the fleets of Strain vessels which raid "+
+      "or colonise the quadrant periphery.",
+      null, 2, 2, MUTATION, MILD_GRAVITY
     ),
     
     ALL_PLANETS[] = {
-      PLANET_ASRA_NOVI, PLANET_PAREM_V, PLANET_HALIBAN, PLANET_AXIS_NOVENA
+      PLANET_ASRA_NOVI, PLANET_PAREM_V, PLANET_HALIBAN,
+      PLANET_AXIS_NOVENA,// PLANET_SOLIPSUS_VIER, PLANET_NORUSEI,
+      //PLANET_URYM_HIVE, PLANET_CALIVOR, PLANET_THE_OUTER_SPHERE
     } ;
   
   

@@ -48,7 +48,7 @@ public class DebugPlanet extends Scenario {
   protected boolean loadedAtStartup() {
     try {
       GameSettings.fogFree = true ;
-      PlayLoop.loadGame("saves/test_planet.rep") ;
+      PlayLoop.loadGame("saves/test_planet.rep", true) ;
       PlayLoop.setGameSpeed(1.0f) ;
       return true ;
     }
@@ -60,6 +60,7 @@ public class DebugPlanet extends Scenario {
     GameSettings.fogFree = true ;
     PlayLoop.setGameSpeed(5.0f) ;
     
+    /*
     final TerrainGen TG = new TerrainGen(
       64, 0.33f,
       Habitat.OCEAN  , 0.33f,
@@ -68,6 +69,23 @@ public class DebugPlanet extends Scenario {
       Habitat.BARRENS, 0.3f,
       Habitat.DESERT , 0.2f
     ) ;
+    //*/
+    //*
+    final TerrainGen TG = new TerrainGen(
+      128, 0,
+      Habitat.OCEAN       , 0.5f,
+      Habitat.MEADOW      , 1f,
+      Habitat.BARRENS     , 2f,
+      Habitat.DESERT      , 3f,
+      Habitat.CURSED_EARTH, 2f
+    ) ;
+    //*/
+    /*
+    final TerrainGen TG = new TerrainGen(
+      32, 0,
+      Habitat.OCEAN, 1.0f
+    ) ;
+    //*/
     final World world = new World(TG.generateTerrain()) ;
     
     //*
@@ -76,12 +94,12 @@ public class DebugPlanet extends Scenario {
     ///TG.presentMineralMap(world, world.terrain()) ;
     
     GameSettings.fogFree = true ;
-    final EcologyGen EG = new EcologyGen() ;
-    EG.populateFlora(world) ;
+    final EcologyGen EG = new EcologyGen(world, TG) ;
+    EG.populateWithRuins() ;
     
-    EG.populateFauna(world, Species.VAREEN, Species.QUUD) ;
-    EG.populateFauna(world, Species.MICOVORE) ;
-    //*/
+    //EG.populateFlora() ;
+    //EG.populateFauna(Species.VAREEN, Species.QUUD) ;
+    //EG.populateFauna(Species.MICOVORE) ;
     
     return world ;
   }

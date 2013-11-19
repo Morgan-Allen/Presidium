@@ -16,7 +16,6 @@ import src.user.* ;
 public class ActorTraits implements Abilities {
   
   
-  
   /**  Common fields, constructors, and save/load methods-
     */
   final static int 
@@ -435,6 +434,12 @@ public class ActorTraits implements Abilities {
   public void practice(Skill skillType, float practice) {
     incLevel(skillType, practice / (traitLevel(skillType) + 1)) ;
     if (skillType.parent != null) practice(skillType.parent, practice / 5) ;
+  }
+  
+  
+  public void practiceAgainst(int DC, float duration, Skill skillType) {
+    final float chance = chance(skillType, null, null, 0 - DC) ;
+    practice(skillType, chance * duration / 10) ;
   }
   
   

@@ -23,13 +23,14 @@ public class World {
     */
   final public static int
     
-    SECTION_RESOLUTION  = 8,
+    PATCH_RESOLUTION  = 8,
     SECTOR_SIZE = 16,
     
     STANDARD_DAY_LENGTH  = 480,
     STANDARD_YEAR_LENGTH = STANDARD_DAY_LENGTH * 60,
     
-    GROWTH_INTERVAL = STANDARD_DAY_LENGTH / 2 ;
+    GROWTH_INTERVAL = STANDARD_DAY_LENGTH / 2,
+    INIT_TIME = STANDARD_DAY_LENGTH / 3 ;
   
   
   final public int size ;
@@ -37,7 +38,7 @@ public class World {
   final public WorldSections sections ;
   
   final public Schedule schedule ;
-  private float currentTime ;
+  private float currentTime = INIT_TIME ;
   private List <Mobile> mobiles = new List <Mobile> () ;
   
   private Terrain terrain ;
@@ -54,7 +55,7 @@ public class World {
   public World(Terrain terrain) {
     this(terrain.mapSize) ;
     this.terrain = terrain ;
-    terrain.initPatchGrid(SECTION_RESOLUTION) ;
+    terrain.initPatchGrid(PATCH_RESOLUTION) ;
   }
   
   
@@ -64,7 +65,7 @@ public class World {
     for (Coord c : Visit.grid(0, 0, size, size, 1)) {
       tiles[c.x][c.y] = new Tile(this, c.x, c.y) ;
     }
-    sections = new WorldSections(this, SECTION_RESOLUTION) ;
+    sections = new WorldSections(this, PATCH_RESOLUTION) ;
     schedule = new Schedule() ;
     
     ecology = new Ecology(this) ;
@@ -86,7 +87,7 @@ public class World {
     schedule.loadFrom(s) ;
     
     terrain = (Terrain) s.loadObject() ;
-    terrain.initPatchGrid(SECTION_RESOLUTION) ;
+    terrain.initPatchGrid(PATCH_RESOLUTION) ;
     ecology.loadState(s) ;
     
     s.loadObjects(bases) ;
@@ -287,6 +288,7 @@ public class World {
   
   public void renderFor(Rendering rendering, Base base) {
     //if (true) return ;
+    ///I.say("Rendering world...") ;
     //
     //  Set a couple of basic parameters before beginning-
     final Colour c = Planet.lightValue(this) ;

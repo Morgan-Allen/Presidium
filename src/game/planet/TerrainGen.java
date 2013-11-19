@@ -74,6 +74,14 @@ public class TerrainGen implements TileConstants {
   }
   
   
+  public float baseAmount(Habitat h) {
+    float sum = 0 ; for (Float f : habitatAmounts) sum += f ;
+    final int index = Visit.indexOf(h, habitats) ;
+    if (index == -1) return 0 ;
+    return habitatAmounts[index] / sum ;
+  }
+  
+  
   
   /**  Generating the overall region layout:
     */
@@ -107,6 +115,12 @@ public class TerrainGen implements TileConstants {
       sectors[c.x][c.y] = s ;
     }
   }
+  
+  
+  
+  //
+  //  TODO:  Allow these 'seed values' to be provided as a starting argument.
+  //         Also, use static factory methods, not an object.
   
   
   private void initSectorVals(int GS) {
@@ -189,20 +203,28 @@ public class TerrainGen implements TileConstants {
         sampleY = Visit.clamp(c.y + blendsY[YBI][c.x], 0, mapSize - 1) ;
       float sum = Visit.sampleMap(mapSize, sectorVal, sampleX, sampleY) ;
       
-      int gradID = Visit.clamp((int) sum, habitats.length) ;
-      if (! habitats[gradID].isOcean) {
+      Habitat under = habitats[Visit.clamp((int) sum, habitats.length)] ;
+      
+      if (! under.isOcean) {
         float detail = Visit.sampleMap(mapSize, detailGrid, c.x, c.y) / 10f ;
         sum += detail * detail * 2 ;
-        gradID = Visit.clamp((int) sum, habitats.length) ;
-        typeIndex[c.x][c.y] = (byte) habitats[gradID].ID ;
-      }
-      
-      if (habitats[gradID] == Habitat.ESTUARY && Rand.index(4) == 0) {
-        typeIndex[c.x][c.y] = (byte) Habitat.MEADOW.ID ;
+        under = habitats[Visit.clamp((int) sum, habitats.length)] ;
+        typeIndex[c.x][c.y] = (byte) under.ID ;
+        
+        if (under == Habitat.ESTUARY && Rand.index(4) == 0) {
+          typeIndex[c.x][c.y] = (byte) Habitat.MEADOW.ID ;
+        }
+        if (under == Habitat.CURSED_EARTH) {
+          boolean paint = (detail * detail) > 0.25f ;
+          if (paint) { if (Rand.index(4) == 0) paint = false ; }
+          else if (Rand.index(10) == 0) paint = true ;
+          if (paint) typeIndex[c.x][c.y] = (byte) Habitat.STRIP_MINING.ID ;
+        }
       }
     }
     //
     //  Finally, pain the interiors of any ocean tiles-
+    //paintEdge(Habitat.STRIP_MINING.ID, Habitat.CURSED_EARTH.ID) ;
     paintEdge(Habitat.OCEAN.ID, Habitat.SHORELINE.ID) ;
     paintEdge(Habitat.OCEAN.ID, Habitat.SHALLOWS .ID) ;
     for (Coord c : Visit.grid(0, 0, mapSize, mapSize, 1)) {
@@ -227,7 +249,7 @@ public class TerrainGen implements TileConstants {
       for (int i : N_INDEX) {
         try {
           final int n = typeIndex[c.x + N_X[i]][c.y + N_Y[i]] ;
-          if (n != edgeID) { inside = false ; break ; }
+          if (n != edgeID && n != replaceID) { inside = false ; break ; }
         }
         catch (Exception e) { continue ; }
       }

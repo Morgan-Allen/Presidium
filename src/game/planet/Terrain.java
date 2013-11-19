@@ -165,8 +165,8 @@ public class Terrain implements TileConstants, Session.Saveable {
     */
   private MeshPatch[] patchesUnder(Box2D area) {
     final int
-      minX = (int) (area.xpos() / patchSize),
-      minY = (int) (area.ypos() / patchSize),
+      minX = (int) ((area.xpos() + 1) / patchSize),
+      minY = (int) ((area.ypos() + 1) / patchSize),
       dimX = 1 + (int) ((area.xmax() - 1) / patchSize) - minX,
       dimY = 1 + (int) ((area.ymax() - 1) / patchSize) - minY ;
     final MeshPatch under[] = new MeshPatch[dimX * dimY] ;
@@ -400,7 +400,9 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   public void renderFor(Box2D area, Rendering rendering, float time) {
     if (patches == null) I.complain("PATCHES MUST BE INITIALISED FIRST!") ;
-    for (MeshPatch patch : patchesUnder(area)) updatePatch(patch, time) ;
+    for (MeshPatch patch : patchesUnder(area)) {
+      updatePatch(patch, time) ;
+    }
     for (MeshPatch patch : patchesUnder(area)) {
       renderPatch(patch, rendering, time) ;
     }

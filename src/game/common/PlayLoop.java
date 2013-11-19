@@ -11,7 +11,7 @@ import src.graphics.widgets.* ;
 import src.util.* ;
 import src.graphics.common.* ;
 import src.user.* ;
-//import jlibs.core.lang.RuntimeUtil ;  //  TODO:  RESTORE THIS.
+//import jlibs.core.lang.RuntimeUtil ;  //  TODO:  RESTORE THIS?
 
 
 
@@ -87,13 +87,13 @@ public final class PlayLoop {
   }
   
   
-  public static void loadGame(String saveFile) {
+  public static void loadGame(String saveFile, boolean fromMenu) {
     try {
       gameStateWipe() ;
       final Session s = Session.loadSession(saveFile) ;
       scenario = s.scenario() ;
       UI       = scenario.UI  ;
-      scenario.afterLoading() ;
+      scenario.afterLoading(fromMenu) ;
     }
     catch (Exception e) { I.report(e) ; }
   }
@@ -215,10 +215,8 @@ public final class PlayLoop {
         UI.updateMouse() ;
       }
       
-      if (scenario != null) {
-        if (scenario.shouldExitLoop()) return ;
-        scenario.renderVisuals(rendering) ;
-      }
+      if (scenario != null && scenario.shouldExitLoop()) return ;
+      if (scenario != null) scenario.renderVisuals(rendering) ;
       
       if (UI != null) {
         UI.renderWorldFX() ;

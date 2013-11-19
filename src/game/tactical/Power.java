@@ -14,21 +14,8 @@ import src.user.* ;
 
 
 //
-//  TODO:  The save/load methods need to schedule saving/loading, rather than
-//  performing it instantly?
-
-//
-//  TODO:  Grant multiple options for saving/loading, so that you can choose
-//  which scenario to load, or quit after saving (which restores more Psi, but
-//  obliges time to pass.)
-
-
-//
-//  TODO:  These need to actually test the psyonic skills in question, and
-//  (at least for testing purposes) work without a caster.
-//
 //  TODO:  Make this available to actors, once the feedback mechanism is in
-//  place(?)  (This will require individual instancing.)
+//  place(?)  (This will most likely require individual instancing.)
 
 
 
@@ -108,10 +95,12 @@ public class Power implements Abilities {
   public static void applyTimeDilation(float gameSpeed, Scenario scenario) {
     final Actor caster = scenario.base.ruler() ;
     if (caster == null || GameSettings.psyFree) return ;
-    final float bonus = caster.traits.useLevel(PROJECTION) / 10f ;
-    float drain = -1 / (1 + bonus) ;
     
-    caster.health.adjustPsy(drain) ;
+    final float
+      bonus = caster.traits.useLevel(PROJECTION) / 10f,
+      drain = 1f / ((1 + bonus) * PlayLoop.UPDATES_PER_SECOND * gameSpeed) ;
+    caster.health.adjustPsy(0 - drain) ;
+    caster.traits.practiceAgainst(10, drain * 2, PROJECTION) ;
   }
   
   
@@ -123,7 +112,7 @@ public class Power implements Abilities {
     }
     //
     //  Restore psi points/fatigue/etc. and return to normal speed when done.
-    caster.health.adjustPsy(2) ;
+    caster.health.adjustPsy(2 / PlayLoop.UPDATES_PER_SECOND) ;
     PlayLoop.setNoInput(true) ;
     if (caster.health.psyPoints() >= caster.health.maxPsy()) {
       PlayLoop.setGameSpeed(1) ;
@@ -135,17 +124,25 @@ public class Power implements Abilities {
   public static void applyWalkPath(Scenario scenario) {
     final Actor caster = scenario.base.ruler() ;
     if (caster == null || GameSettings.psyFree) return ;
-    final float bonus = caster.traits.useLevel(PREMONITION) / 10 ;
-    float lastSave = PlayLoop.timeSinceLastSave() ;
-    caster.health.adjustPsy((lastSave / 1000f) * (0.5f + bonus)) ;
+    
+    final float
+      bonus = caster.traits.useLevel(PREMONITION) / 10,
+      lastSave = PlayLoop.timeSinceLastSave(),
+      boost = (lastSave / 1000f) * (0.5f + bonus) ;
+    caster.health.adjustPsy(boost) ;
+    caster.traits.practiceAgainst(10, boost / 2, PREMONITION) ;
   }
   
   
   public static void applyDenyVision(Scenario scenario) {
     final Actor caster = scenario.base.ruler() ;
     if (caster == null || GameSettings.psyFree) return ;
-    final float bonus = caster.traits.useLevel(PREMONITION) / 10 ;
-    caster.health.adjustPsy(-10f / (0.5f + bonus)) ;
+    
+    final float
+      bonus = caster.traits.useLevel(PREMONITION) / 10,
+      cost = 10f / (0.5f + bonus) ;
+    caster.health.adjustPsy(0 - cost) ;
+    caster.traits.practiceAgainst(10, cost, PREMONITION) ;
   }
   
   
@@ -208,7 +205,7 @@ public class Power implements Abilities {
         //
         //  Load the older save, and make it current-
         final String prefix = PlayLoop.currentScenario().savesPrefix() ;
-        PlayLoop.loadGame(Scenario.fullSavePath(prefix, option)) ;
+        PlayLoop.loadGame(Scenario.fullSavePath(prefix, option), false) ;
         PlayLoop.currentScenario().saveProgress(true) ;
         return true ;
       }
@@ -218,27 +215,35 @@ public class Power implements Abilities {
       "Time Dilation", PLAYER_ONLY | MAINTAINED, "power_time_dilation.gif",
       "Insulates your experience from temporal passage.\n(Reduces game speed.)"
     ) {
-      //
-      //  TODO:  Provide options for the rate of slowing here?
+      final String SPEED_SETTINGS[] = {
+        "66% speed",
+        "50% speed",
+        "33% speed"
+      } ;
+      final float SPEED_VALS[] = { 0.66f, 0.5f, 0.33f } ;
+      
+      
+      public String[] options() {
+        if (PlayLoop.gameSpeed() < 1) return null ;
+        return SPEED_SETTINGS ;
+      }
+      
+      
       public boolean finishedWith(
         Actor caster, String option,
         Target selected, boolean clicked
       ) {
-        final boolean slowed = PlayLoop.gameSpeed() < 1 ;
-        if (slowed) {
+        if (option == null) {
           PlayLoop.setGameSpeed(1) ;
           return true ;
         }
         
+        float speedVal = SPEED_VALS[Visit.indexOf(option, SPEED_SETTINGS)] ;
         if (caster == null || GameSettings.psyFree) {
-          PlayLoop.setGameSpeed(0.5f) ;
+          PlayLoop.setGameSpeed(speedVal) ;
           return true ;
         }
-        
-        final float bonus = caster.traits.useLevel(PROJECTION) / 2 ;
-        PlayLoop.setGameSpeed(1f / (float) (1f + Math.sqrt(bonus))) ;
-        caster.health.adjustPsy(-1) ;
-        
+        PlayLoop.setGameSpeed(speedVal) ;
         return true ;
       }
     },
@@ -254,15 +259,15 @@ public class Power implements Abilities {
       ) {
         if (clicked != true || ! (selected instanceof Tile)) return false ;
         final Tile tile = (Tile) selected ;
-        
+
         float bonus = 0 ;
         if (caster != null && ! GameSettings.psyFree) {
           bonus += caster.traits.useLevel(PROJECTION) / 5 ;
-          
+
           float dist = (float) Math.sqrt(Spacing.distance(tile, caster)) ;
-          caster.health.adjustPsy(
-            -10 * (1 + (dist / World.SECTOR_SIZE))
-          ) ;
+          float cost = 10 * (1 + (dist / World.SECTOR_SIZE)) ;
+          caster.health.adjustPsy(0 - cost) ;
+          caster.traits.practiceAgainst(10, cost, PROJECTION) ;
         }
         
         final float radius = 9 + (bonus * bonus) ;
@@ -323,7 +328,9 @@ public class Power implements Abilities {
         float maxDist = 1 ;
         if (caster != null && ! GameSettings.psyFree) {
           maxDist = 1 + (caster.traits.useLevel(TRANSDUCTION) / 10f) ;
-          caster.health.adjustPsy(-4f / PlayLoop.FRAMES_PER_SECOND) ;
+          final float drain = 4f / PlayLoop.FRAMES_PER_SECOND ;
+          caster.health.adjustPsy(0 - drain) ;
+          caster.traits.practiceAgainst(10, drain, TRANSDUCTION) ;
         }
         maxDist *= 10f / PlayLoop.FRAMES_PER_SECOND ;
         maxDist /= 4 * grabbed.radius() ;
@@ -358,9 +365,12 @@ public class Power implements Abilities {
           return true ;
         }
         
-        final float bonus = caster.traits.useLevel(TRANSDUCTION) / 2 ;
+        final float
+          bonus = caster.traits.useLevel(TRANSDUCTION) / 2,
+          cost = 5 ;
         subject.gear.boostShields(5 + bonus) ;
-        caster.health.adjustPsy(-1.5f) ;
+        caster.health.adjustPsy(0 - cost) ;
+        caster.traits.practiceAgainst(10, cost, TRANSDUCTION) ;
         return true ;
       }
     },
@@ -379,8 +389,10 @@ public class Power implements Abilities {
         
         float bonus = 1 ;
         if (caster != null && ! GameSettings.psyFree) {
-          caster.health.adjustPsy(-5) ;
+          final float cost = 5 ;
+          caster.health.adjustPsy(0 - cost) ;
           bonus += caster.traits.useLevel(METABOLISM) / 2 ;
+          caster.traits.practiceAgainst(10, cost, METABOLISM) ;
         }
         
         if (subject.health.conscious()) {
@@ -408,9 +420,12 @@ public class Power implements Abilities {
         if (clicked != true || ! (selected instanceof Actor)) return false ;
         final Actor subject = (Actor) selected ;
         float bonus = 5f ;
+        
         if (caster != null && ! GameSettings.psyFree) {
           bonus += caster.traits.useLevel(SYNESTHESIA) / 2 ;
-          caster.health.adjustPsy(-2) ;
+          final float cost = 2.5f ;
+          caster.health.adjustPsy(0 - cost) ;
+          caster.traits.practiceAgainst(10, cost, SYNESTHESIA) ;
         }
         subject.traits.incLevel(KINESTHESIA_EFFECT, bonus * 2 / 10f) ;
         return true ;
@@ -471,8 +486,10 @@ public class Power implements Abilities {
         
         float priorityMod = Plan.PARAMOUNT ;
         if (caster != null && ! GameSettings.psyFree) {
+          final float cost = 5f ;
           priorityMod += caster.traits.useLevel(SUGGESTION) / 5f ;
-          caster.health.adjustPsy(-5) ;
+          caster.health.adjustPsy(0 - cost) ;
+          caster.traits.practiceAgainst(10, cost, SYNESTHESIA) ;
         }
         command.priorityMod = priorityMod ;
         

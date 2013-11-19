@@ -136,25 +136,21 @@ public class Habitat {
     //  related to extreme temperature, slope, pollution or volcanism-
     MESA = new Habitat("Mesa",
       "mesa_ground.gif", NO_FLORA,
-      -1, false, MOISTURE, 1, INSOLATION, 5, MINERALS, 5,
+      -1, false, MOISTURE, 1, INSOLATION, 5, MINERALS, 7,
       IS_WASTE
     ),
-    //  Bordering on Mesa and Cratered terrain, are what I'm looking for here.
-    //  Replace the next two with those.  That should be everything required,
-    //  aside from Tundra habitats...
-    
     CURSED_EARTH = new Habitat("Cursed Earth",
-      "black_wastes_ground_old.png", null,// WASTES_FLORA_MODELS,
-      -1, true, MOISTURE, 3, INSOLATION, 3, MINERALS, 7,
+      "black_wastes_ground_old.png", NO_FLORA,// WASTES_FLORA_MODELS,
+      -1, true, MOISTURE, 3, INSOLATION, 3, MINERALS, 5,
       IS_WASTE
     ),
     STRIP_MINING = new Habitat("Strip Mining",
-      "strip_mining_ground.gif", WASTES_FLORA_MODELS,
-      -1, true, MOISTURE, 5, INSOLATION, 7, MINERALS, 9,
+      "strip_mining_ground.gif", NO_FLORA,//WASTES_FLORA_MODELS,
+      -1, true, MOISTURE, 5, INSOLATION, 7, MINERALS, 0,
       IS_WASTE
     ),
     //
-    //  This is the gradient of habitats going from most to least insolation-
+    //  This is the gradient of habitats going from least to most insolation-
     INSOLATION_GRADIENT[] = {
       SWAMPLANDS,
       ESTUARY,
@@ -162,6 +158,7 @@ public class Habitat {
       SAVANNAH,
       BARRENS,
       DESERT,
+      //CURSED_EARTH
     } ;
   final public static Habitat
     ALL_HABITATS[] = (Habitat[]) allHabs.toArray(Habitat.class) ;

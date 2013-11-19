@@ -34,9 +34,9 @@ Quest ideas-
   Elysium Sector, Acheron Sector, Tharsis Sector
   
   Other worlds/powers in setting:
-  House Maia (artistry)     House Fomalhaut (trade)
-    Nordsei system            Solipsus system
-  House Procyon (industry)  House Taygeta (science)
+  House Maia (artistry)     House Fomalhaut (health)
+    Norusei system            Solipsus Vier system
+  House Procyon (industry)  House Taygeta (trade)
     Parem V system            Axis Novena system
   House Altair (military)   House Suhail (ecology)
     Haliban system            Asra Novi system
@@ -47,28 +47,28 @@ Quest ideas-
   
   
   Altair Household
-    The Prince Regnant Corhal Tezumec Altair, and Lord Consort Aban Maia
-    War Master, Minister for Health, Minister for Propaganda
+    The Prince Regnant Corhal Tezumec Altair, and Lord Physical Aban Maia
+    War Master, Minister for Health, Minister for Accounts
     No heir
   Suhail Household
     The Duchess Solar Omuro Suhail, Colonel Amall Fadun, and Mysha 401A
     Planetologist, Minister for Propaganda, War Master
     Five heirs
   Procyon Household
-    The Divine Empress Vledimiz Procyon XXIV, and Gestator-Surrogate Inyz-Rigel
+    The Divine Empress Vledimiz Procyon XXIV, and Gestator-Surrogate Inyz-Algol
     Chief Artificer, Minister for Propaganda, Master of Assassins
     Three heirs
   Taygeta Household
     The Count Solar & CEO Yetzun Taygeta, and Operative Xe Nong Hti 'Eclipse'
-    Master of Assassins, Minister for Accounts, Chief Artificer
+    Minister for Accounts, Master of Assassins, Chief Artificer
     No heir, at least three unacknowledged seed-child
   Maia Household
-    The Duke Solar Dabien Maia, and Lady Consort Jivi Man
+    The Duke Solar Dabien Maia, and Lady Choral Jivi Man
     Minister for Propaganda, Minister for Health, Planetologist
     One heir
   Fomalhaut Household
-    The Baron Algeb Fomalhaut Gamma, and Contract-Betrothed Xe Nong Ken
-    Minister for Accounts, Planetologist, War Master
+    The Baron Albrech Fomalhaut Gamma, and Contract-Betrothed Xe Nong Ken
+    Minister for Health, Planetologist, Chief Artificer
     No heir, two acknowledged seed-child
 
 

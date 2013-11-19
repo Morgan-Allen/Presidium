@@ -86,15 +86,29 @@ public class MainMenu extends UIGroup {
     Background.FIELD_HAND,
     Background.MINDER
   } ;
-  final String
-    SITE_DESC[]    = { "Wasteland", "Wilderness", "Settled"  },
+  final static String
+    SITE_DESC[] = {
+      "Wasteland",
+      "Wilderness",
+      "Settled"
+    },
     FUNDING_DESC[] = {
-      "Minimal (7500 Credits, 3% interest)",
+      "Minimal  (7500  Credits, 3% interest)",
       "Standard (10000 Credits, 2% interest)",
       "Generous (12500 Credits, 1% interest)"
     },
-    TITLE_MALE[]   = { "Knighted Lord", "Count"   , "Baron"    },
-    TITLE_FEMALE[] = { "Knighted Lady", "Countess", "Baroness" } ;
+    TITLE_MALE[] = {
+      "Knighted Lord (Small Estate)",
+      "Count (Typical Estate)",
+      "Baron (Large Estate)"
+    },
+    TITLE_FEMALE[] = {
+      "Knighted Lady (Small Estate)",
+      "Countess (Typical Estate)",
+      "Baroness (Large Estate)"
+    } ;
+  final static int
+    MAP_SIZES[] = { 64, 128, 256 } ;
   
   
   private int gender = 1 ;
@@ -384,16 +398,19 @@ public class MainMenu extends UIGroup {
   
   
   private World generateWorld() {
+    final int station = landPerks[2] ;
+    float water = 2 ;
     float forest = 0, meadow = 0, barrens = 0, desert = 0, wastes = 0 ;
     
     switch (landPerks[0]) {
-      case(0) : wastes = 3 ; desert = 2 ; barrens = 4 ; break ;
-      case(1) : meadow = 4 ; barrens = 2 ; desert = 2 ; break ;
-      case(2) : forest = 2 ; meadow = 3 ; barrens = 2 ; break ;
+      case(0) : wastes = 3 ; desert  = 2 ; barrens = 4 ; water = 0 ; break ;
+      case(1) : meadow = 4 ; barrens = 2 ; desert  = 2 ; water = 3 ; break ;
+      case(2) : forest = 2 ; meadow  = 3 ; barrens = 2 ; water = 1 ; break ;
     }
     
     final TerrainGen TG = new TerrainGen(
-      128, 0.2f,
+      MAP_SIZES[station], 0.2f,
+      Habitat.OCEAN       , water  ,
       Habitat.ESTUARY     , forest ,
       Habitat.MEADOW      , meadow ,
       Habitat.BARRENS     , barrens,
@@ -403,6 +420,9 @@ public class MainMenu extends UIGroup {
     final World world = new World(TG.generateTerrain()) ;
     TG.setupMinerals(world, 0, 0, 0) ;
     TG.setupOutcrops(world) ;
+    
+    //
+    //  TODO:  Generate ecology as well!
     
     return world ;
   }
@@ -492,6 +512,7 @@ public class MainMenu extends UIGroup {
     ) ;
     scenario.UI.assignBaseSetup(base, bastion.position(null)) ;
     PlayLoop.setupAndLoop(scenario.UI, scenario) ;
+    PlayLoop.currentScenario().saveProgress(false) ;
   }
   
   

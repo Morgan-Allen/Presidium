@@ -264,9 +264,9 @@ public class Scenario implements Session.Saveable {
   }
   
   
-  public void afterLoading() {
+  public void afterLoading(boolean fromMenu) {
     world.ephemera.applyFadeColour(Colour.BLACK) ;
-    Power.applyDenyVision(this) ;
+    if (! fromMenu) Power.applyDenyVision(this) ;
   }
   
   

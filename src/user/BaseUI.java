@@ -140,13 +140,18 @@ public class BaseUI extends HUD implements UIConstants {
     */
   public void updateMouse() {
     super.updateMouse() ;
-    updateReadout() ;
     if (selection.updateSelection(world, rendering.port, infoArea)) {
       if (mouseClicked() && currentTask == null) {
         selection.pushSelection(selection.hovered(), true) ;
       }
     }
     I.talkAbout = selection.selected() ;
+  }
+  
+  
+  protected void updateState() {
+    super.updateState() ;
+    updateReadout() ;
   }
   
   

@@ -24,7 +24,7 @@ public class MeshBuffer implements Rendering.Client {
   
   public Colour colour ;
   protected int numFacets ;
-  private FloatBuffer vertBuffer, normBuffer, textBuffer ;
+  protected FloatBuffer vertBuffer, normBuffer, textBuffer ;
   
   
   

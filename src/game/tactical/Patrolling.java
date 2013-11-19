@@ -219,7 +219,7 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
     search.doSearch() ;
     if (! search.success()) return null ;
     final Boardable path[] = search.fullPath(Boardable.class) ;
-    float interval = World.SECTION_RESOLUTION ;
+    float interval = World.PATCH_RESOLUTION ;
     
     for (int i = 0 ; i < path.length ; i += interval) {
       patrolled.add(path[i]) ;

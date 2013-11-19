@@ -435,7 +435,7 @@ public class PathingCache {
         if (spot instanceof Tile && dist < closestDist) {
           closest = (Tile) spot ;
         }
-        dist += (PPL - (PPI + 1)) * World.SECTION_RESOLUTION ;
+        dist += (PPL - (PPI + 1)) * World.PATCH_RESOLUTION ;
         final Boardable best = bestFound() ;
         if (best != null) dist += Spacing.distance(closest, spot) / 3.0f ;
         return dist * 1.1f ;

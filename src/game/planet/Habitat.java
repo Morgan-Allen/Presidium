@@ -24,7 +24,7 @@ public class Habitat {
   
   final static String
     TERRAIN_PATH = "media/Terrain/" ;
-  final static ImageModel
+  final public static ImageModel
     DESERT_FLORA_MODELS[][] = ImageModel.fromTextureGrid(
       Habitat.class,
       Texture.loadTexture(TERRAIN_PATH+"old_flora_resize.png"),
@@ -42,6 +42,7 @@ public class Habitat {
       Texture.loadTexture(TERRAIN_PATH+"wastes_flora.png"),
       4, 4, 2.0f, ImageModel.TYPE_FLAT
     ),
+    TUNDRA_FLORA_MODELS[][] = null,
     PLANKTON_MODELS[][] = null,
     ANNUALS_MODELS[][]  = null,
     NO_FLORA[][]        = null,
@@ -179,7 +180,7 @@ public class Habitat {
   
   final public String name ;
   final public Texture animTex[], baseTex ;
-  final ImageModel floraModels[][] ;
+  final public ImageModel floraModels[][] ;
   final public boolean pathClear ;
   
   final int biosphere ;

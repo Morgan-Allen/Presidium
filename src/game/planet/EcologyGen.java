@@ -6,12 +6,17 @@
 
 
 package src.game.planet ;
+import src.game.campaign.Scenario ;
+import src.game.base.* ;
 import src.game.common.* ;
+import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.wild.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  Give this a less specifically-ecological name?  Like Placement?
 /*
 ...I need a system for describing alliances.  During contact missions at least.
 
@@ -42,7 +47,7 @@ public class EcologyGen {
   final World world ;
   final TerrainGen terGen ;
   
-  private float fertilityLevels[][] ;
+  private float fertilityLevels[][], totalFertility ;
   private int numMinor, numMajor ;
   private List <Vec2D> allSites = new List <Vec2D> () ;
   
@@ -65,10 +70,12 @@ public class EcologyGen {
       if (! h.pathClear) f = -5 ;
       if (h == Habitat.CURSED_EARTH) f = -10 ;
       fertilityLevels[c.x / SS][c.y / SS] += f ;
+      totalFertility += f ;
     }
     for (Coord c : Visit.grid(0, 0, SR, SR, 1)) {
       fertilityLevels[c.x][c.y] /= SS * SS * 10 ;
     }
+    totalFertility /= world.size * world.size * 10 ;
   }
   
   
@@ -93,12 +100,19 @@ public class EcologyGen {
     float bestRating = Float.NEGATIVE_INFINITY ;
     
     for (Coord c : Visit.grid(0, 0, SR, SR, 1)) {
+      final Habitat base = terGen.baseHabitat(c, World.SECTOR_SIZE) ;
+      if (! base.pathClear) continue ;
+      
       float rating = fertilityLevels[c.x][c.y], distPenalty = 0 ;
+      if (fertilityMult > 0 && rating < (1 - fertilityMult)) continue ;
+      if (fertilityMult < 0 && base.moisture() > 5) continue ;
+      
       for (Vec2D pos : allSites) {
         final float dist = pos.pointDist(c.x, c.y) ;
         distPenalty += 1f / (1 + dist) ;
       }
       if (allSites.size() > 1) distPenalty /= allSites.size() ;
+      
       if (preferred != null) {
         final float dist = preferred.pointDist(c.x, c.y) ;
         distPenalty += dist / SR ;
@@ -107,23 +121,99 @@ public class EcologyGen {
       if (rating > bestRating) { best = new Coord(c) ; bestRating = rating ; }
     }
     
+    if (best == null) return null ;
+    allSites.add(new Vec2D(best.x, best.y)) ;
     return best ;
+  }
+  
+  
+  
+  /**  Placement of natives-
+    */
+  public void populateWithNatives() {
+    float meadowed = (1 + totalFertility) / 2f ;
+    final int
+      numMajorHuts = (int) ((meadowed * numMajor) + 0.5f),
+      numMinorHuts = (int) ((meadowed * numMinor) + 0.5f) ;
+    I.say("Major/minor huts: "+numMajorHuts+"/"+numMinorHuts) ;
+    
+    final Base base = Base.createFor(world) ;
+    
+    for (int n = numMajorHuts + numMinorHuts ; n-- > 0 ;) {
+      final int SS = World.SECTOR_SIZE ;
+      Coord pos = findBasePosition(null, 1) ;
+      I.say("Huts site at: "+pos) ;
+      final Tile centre = world.tileAt(
+        (pos.x + 0.5f) * SS,
+        (pos.y + 0.5f) * SS
+      ) ;
+      final boolean minor = n < numMinorHuts ;
+      
+      int maxRuins = (minor ? 3 : 1) + Rand.index(3) ;
+      final Batch <Venue> huts = new Batch <Venue> () ;
+      final Habitat under = terGen.baseHabitat(pos, World.SECTOR_SIZE) ;
+      
+      while (maxRuins-- > 0) {
+        final NativeHut r = new NativeHut(under, base) ;
+        Scenario.establishVenue(r, centre.x, centre.y, true, world) ;
+        if (r.inWorld()) huts.add(r) ;
+      }
+      
+      populateNatives(huts, minor) ;
+    }
+  }
+  
+  
+  private void populateNatives(Batch <Venue> huts, boolean minor) {
+    final Background
+      NB   = Background.NATIVE_BIRTH,
+      NH   = Background.PLANET_DIAPSOR,
+      NC[] = Background.NATIVE_CIRCLES ;
+    
+    for (Venue hut : huts) {
+      int numHab = 1 + Rand.index(3) ;
+      while (numHab-- > 0) {
+        float roll = Math.abs(Rand.avgNums(2) - 0.5f) * 2 ;
+        final Background b = NC[(int) (roll * NC.length)] ;
+        boolean male = Rand.yes() ;
+        
+        if (Rand.index(5) != 0) {
+          if (Visit.arrayIncludes(Background.NATIVE_MALE_JOBS  , b)) {
+            male = true  ;
+          }
+          if (Visit.arrayIncludes(Background.NATIVE_FEMALE_JOBS, b)) {
+            male = false ;
+          }
+        }
+        
+        final Career c = new Career(male, b, NB, NH) ;
+        final Human lives = new Human(c, hut.base()) ;
+        lives.mind.setHomeVenue(hut) ;
+        lives.mind.setEmployer(hut) ;
+        lives.enterWorldAt(hut, world) ;
+        lives.goAboard(hut, world) ;
+      }
+    }
   }
   
   
   
   /**  Placement of ruins-
     */
+  //
+  //  TODO:  You might want to pass in a constructor.
+  
   public void populateWithRuins() {
-    final int SS = World.SECTOR_SIZE ;
-    final float ruined = terGen.baseAmount(Habitat.CURSED_EARTH) ;
+    float ruined = terGen.baseAmount(Habitat.CURSED_EARTH) ;
+    ruined = (ruined + (1 - totalFertility)) / 2f ;
+    
     final int
       numMajorRuins = (int) ((ruined * numMajor) + 0.5f),
       numMinorRuins = (int) ((ruined * numMinor) + 0.5f) ;
     I.say("Major/minor ruins: "+numMajorRuins+"/"+numMinorRuins) ;
     
-    
     for (int n = numMajorRuins + numMinorRuins ; n-- > 0 ;) {
+      final int SS = World.SECTOR_SIZE ;
       Coord pos = findBasePosition(null, -1) ;
       I.say("Ruins site at: "+pos) ;
       final Tile centre = world.tileAt(
@@ -131,114 +221,30 @@ public class EcologyGen {
         (pos.y + 0.5f) * SS
       ) ;
       final boolean minor = n < numMinorRuins ;
-      final Batch <Ruins> ruins = populateRuins(centre, SS / (minor ? 2 : 1)) ;
+      
+      int maxRuins = (minor ? 3 : 1) + Rand.index(3) ;
+      final Batch <Venue> ruins = new Batch <Venue> () ;
+      while (maxRuins-- > 0) {
+        final Ruins r = new Ruins() ;
+        Scenario.establishVenue(r, centre.x, centre.y, true, world) ;
+        if (r.inWorld()) ruins.add(r) ;
+      }
+      
+      for (Venue r : ruins) for (Tile t : world.tilesIn(r.area(), true)) {
+        Habitat h = Rand.yes() ? Habitat.CURSED_EARTH : Habitat.DESERT ;
+        world.terrain().setHabitat(t, h) ;
+      }
       populateArtilects(ruins, minor) ;
     }
-  }
-  
-
-  //
-  //  TODO:  Get rid of the terrain-painting?
-  private Batch <Ruins> populateRuins(Tile centre, float radius) {
-    
-    final World world = centre.world ;
-    final Box2D area = new Box2D() ;
-    final int maxRuins = 1 + (int) ((Rand.avgNums(2) + 0.5f) * radius / 4) ;
-    final Batch <Ruins> allRuins = new Batch <Ruins> () ;
-    final Batch <Tile> wastes = new Batch <Tile> () ;
-    final Batch <Tile> barrens = new Batch <Tile> () ;
-    Ruins ruins = null ;
-    
-    for (int d = 0 ; d < radius ; d++) {
-      area.set(centre.x - 0.5f, centre.y - 0.5f, 1, 1).expandBy(d) ;
-      final Tile perim[] = Spacing.perimeter(area, world) ;
-      final int off = Rand.index(perim.length) ;
-      for (int step = perim.length ; step-- > 0 ;) {
-        final Tile t = perim[(step + off) % perim.length] ;
-        if (t == null) continue ;
-        final float distance = Spacing.distance(t, centre) / radius ;
-        if (distance > 1) continue ;
-        if (Rand.avgNums(2) > distance) {
-          if (Rand.yes()) wastes.add(t) ;
-          barrens.add(t) ;
-        }
-        
-        if (allRuins.size() < maxRuins) {
-          if (ruins == null) ruins = new Ruins() ;
-          //final int HS = ruins.size / 2 ;
-          final Tile i = t ;// world.tileAt(t.x - HS, t.y - HS) ;
-          if (tryInsertion(ruins, i, wastes)) {
-            ruins.clearSurrounds() ;
-            ruins.structure.setState(
-              Structure.STATE_INTACT,
-              (Rand.num() + 1) / 2f
-            ) ;
-            ruins.setAsEstablished(true) ;
-            allRuins.add(ruins) ;
-            ruins = null ;
-            continue ;
-          }
-        }
-        
-        if (Rand.num() > distance && Rand.index(3) == 0) {
-          final Box2D toFill = new Box2D() ;
-          final int size = 1 + Rand.index(4) ;
-          toFill.set(t.x - (size / 2), t.y - (size / 2), size, size) ;
-          toFill.cropBy(world.area()) ;
-          trySlagWithin(toFill) ;
-        }
-      }
-    }
-    
-    for (Tile t : wastes) for (Tile n : t.allAdjacent(Spacing.tempT8)) {
-      if (n == null || n.flaggedWith() != null) continue ;
-      n.flagWith(t) ;
-      barrens.add(n) ;
-    }
-    for (Tile t : barrens) {
-      world.terrain().setHabitat(t, Habitat.BARRENS) ;
-      t.flagWith(null) ;
-    }
-    for (Tile t : wastes) {
-      world.terrain().setHabitat(t, Habitat.CURSED_EARTH) ;
-    }
-    
-    return allRuins ;
-  }
-  
-  private boolean trySlagWithin(Box2D toFill) {
-    
-    ///I.say("Area to fill: "+toFill) ;
-    final Fixture f = new Fixture((int) toFill.xdim(), 1) {
-      protected boolean canTouch(Element e) {
-        return true ;
-      }
-    } ;
-    f.setPosition(toFill.xpos() + 0.5f, toFill.ypos() + 0.5f, world) ;
-    if (f.canPlace() && Spacing.perimeterFits(f)) {
-      Wreckage.reduceToSlag(toFill, world) ;
-      return true ;
-    }
-    return false ;
+    //
+    //  TODO:  The slag/wreckage positioning must be done in a distinct pass.
   }
   
   
-  private boolean tryInsertion(Fixture f, Tile t, Batch <Tile> under) {
-    if (t == null) return false ;
-    f.setPosition(t.x, t.y, t.world) ;
-    if (f.canPlace() && Spacing.perimeterFits(f)) {
-      f.enterWorld() ;
-      for (Tile u : t.world.tilesIn(f.area(), false)) {
-        under.add(u) ;
-      } ;
-      return true ;
-    }
-    return false ;
-  }
-  
-  
-  private void populateArtilects(Batch <Ruins> ruins, boolean minor) {
-    int lairNum = 0 ; for (Ruins r : ruins) {
+  private void populateArtilects(Batch <Venue> ruins, boolean minor) {
+    //
+    //  TODO:  Generalise this, too?  Using pre-initialised actors?
+    int lairNum = 0 ; for (Venue r : ruins) {
       if (lairNum++ > 0 && Rand.yes()) continue ;
       
       final Tile e = r.mainEntrance() ;
@@ -312,4 +318,63 @@ public class EcologyGen {
 }
 
 
+
+
+
+/*
+if (Rand.num() > distance && Rand.index(3) == 0) {
+  final Box2D toFill = new Box2D() ;
+  final int size = 1 + Rand.index(4) ;
+  toFill.set(t.x - (size / 2), t.y - (size / 2), size, size) ;
+  toFill.cropBy(world.area()) ;
+  trySlagWithin(toFill) ;
+}
+//*/
+/*
+private boolean trySlagWithin(Box2D toFill) {
+  
+  ///I.say("Area to fill: "+toFill) ;
+  final Fixture f = new Fixture((int) toFill.xdim(), 1) {
+    protected boolean canTouch(Element e) {
+      return true ;
+    }
+  } ;
+  f.setPosition(toFill.xpos(), toFill.ypos(), world) ;
+  if (f.canPlace() && Spacing.perimeterFits(f)) {
+    Wreckage.reduceToSlag(toFill, world) ;
+    return true ;
+  }
+  return false ;
+}
+//*/
+
+/*
+//final int maxRuins = 1 + (int) ((Rand.avgNums(2) + 0.5f) * radius / 4) ;
+//final Batch <Ruins> allRuins = new Batch <Ruins> () ;
+//Ruins ruins = null ;
+
+for (int d = 0 ; d < radius ; d++) {
+  area.set(centre.x - 0.5f, centre.y - 0.5f, 1, 1).expandBy(d) ;
+  final Tile perim[] = Spacing.perimeter(area, world) ;
+  final int off = Rand.index(perim.length) ;
+  
+  for (int step = perim.length ; step-- > 0 ;) {
+    final Tile t = perim[(step + off) % perim.length] ;
+    if (t == null) continue ;
+    final float distance = Spacing.distance(t, centre) / radius ;
+    if (distance > 1) continue ;
+    
+    if (allRuins.size() < maxRuins) {
+      if (ruins == null) ruins = new Ruins() ;
+      if (Scenario.establishVenue(ruins, t.x, t.y, true, world) != null) {
+        allRuins.add(ruins) ;
+        ruins = null ;
+        continue ;
+      }
+    }
+  }
+}
+return allRuins ;
+    //*/
+//}
 

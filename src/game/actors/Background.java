@@ -449,15 +449,6 @@ public class Background implements Economy, Session.Saveable {
       NOVICE, HAND_TO_HAND, HANDICRAFTS, MASQUERADE,
       SOMETIMES, NATURALIST
     ),
-    CHIEFTAIN = new Background(
-      "Chieftain", "native_skin.gif", null,
-      UPPER_CLASS, NOT_A_GUILD,
-      EXPERT, NATIVE_TABOO, COMMAND, SUASION, MARKSMANSHIP,
-      PRACTICED, HAND_TO_HAND, BATTLE_TACTICS,
-      RARELY, NERVOUS, OFTEN, TRADITIONAL
-    ),
-    //
-    //  Depending on tribal culture, you might also get the following-
     MUTANT_PARIAH = new Background(
       "Mutant Pariah", "native_skin.gif", null,
       LOWER_CLASS, NOT_A_GUILD,
@@ -480,12 +471,20 @@ public class Background implements Economy, Session.Saveable {
       NOVICE, PHARMACY, ANATOMY, ANCIENT_LORE, MUSIC_AND_SONG,
       ALWAYS, TRADITIONAL, OFTEN, DUTIFUL, NATURALIST
     ),
+    CHIEFTAIN = new Background(
+      "Chieftain", "native_skin.gif", null,
+      UPPER_CLASS, NOT_A_GUILD,
+      EXPERT, NATIVE_TABOO, COMMAND, SUASION, MARKSMANSHIP,
+      PRACTICED, HAND_TO_HAND, BATTLE_TACTICS,
+      RARELY, NERVOUS, OFTEN, TRADITIONAL
+    ),
     
-    //  TODO:  Implement a soFar() method for these
     NATIVE_CIRCLES[] = {
-      GATHERER, HUNTER, CHIEFTAIN,
-      MUTANT_PARIAH, CARGO_CULTIST, SHAMAN
-    } ;
+      GATHERER, HUNTER, MUTANT_PARIAH,
+      CARGO_CULTIST, SHAMAN, CHIEFTAIN
+    },
+    NATIVE_MALE_JOBS[]   = { HUNTER, CHIEFTAIN },
+    NATIVE_FEMALE_JOBS[] = { GATHERER, SHAMAN  } ;
   
   
   final public static Background
@@ -730,6 +729,12 @@ public class Background implements Economy, Session.Saveable {
       "hollow organic world, host to the fleets of Strain vessels which raid "+
       "or colonise the quadrant periphery.",
       null, 2, 2, MUTATION, MILD_GRAVITY
+    ),
+    
+    PLANET_DIAPSOR = new System(
+      "Diapsor", "No House (freehold)",
+      "",
+      null, -1, -1, MUTATION, NORMAL_GRAVITY
     ),
     
     ALL_PLANETS[] = {

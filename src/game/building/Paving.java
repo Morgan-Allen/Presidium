@@ -19,6 +19,7 @@ public class Paving {
   /**  Field definitions, constructor and save/load methods-
     */
   final static int PATH_RANGE = World.SECTOR_SIZE / 2 ;
+  private static boolean verbose = false ;
   
   final World world ;
   PresenceMap junctions ;
@@ -157,12 +158,12 @@ public class Paving {
   
   
   private boolean routeBetween(Tile a, Tile b) {
+    if (a == b) return false ;
     //
     //  Firstly, determine the correct current route.
-    final Route route = new Route(a, b) ;
-    //
     //  TODO:  Allow the road search to go through arbitrary Boardables, and
-    //  screen out any non-tiles or blocked tiles.
+    //  screen out any non-tiles or blocked tiles?
+    final Route route = new Route(a, b) ;
     final RoadSearch search = new RoadSearch(
       route.start, route.end, Element.FIXTURE_OWNS
     ) ;
@@ -173,15 +174,23 @@ public class Paving {
     //  If the new route differs from the old, delete it.  Otherwise return.
     final Route oldRoute = allRoutes.get(route) ;
     if (roadsEqual(route, oldRoute)) return false ;
-    if (oldRoute != null) deleteRoute(oldRoute) ;
-    if (! search.success()) return false ;
+    
+    if (verbose) {
+      I.say("Route between "+a+" and "+b+" has changed!") ;
+      this.reportPath("Old route", oldRoute) ;
+      this.reportPath("New route", route   ) ;
+    }
+    
     //
     //  If the route needs an update, clear the tiles and store the data.
-    allRoutes.put(route, route) ;
-    toggleRoute(route, route.start, true) ;
-    toggleRoute(route, route.end  , true) ;
-    world.terrain().maskAsPaved(route.path, true) ;
-    clearRoad(route.path) ;
+    if (search.success()) {
+      allRoutes.put(route, route) ;
+      toggleRoute(route, route.start, true) ;
+      toggleRoute(route, route.end  , true) ;
+      world.terrain().maskAsPaved(route.path, true) ;
+      clearRoad(route.path) ;
+    }
+    if (oldRoute != null) deleteRoute(oldRoute) ;
     return true ;
   }
   

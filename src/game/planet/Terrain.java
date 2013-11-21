@@ -40,6 +40,9 @@ public class Terrain implements TileConstants, Session.Saveable {
     NUM_DEGREES = 4,
     MAX_MINERAL_AMOUNT = 10 ;
   
+  final static int
+    TIME_INIT = -1,
+    TIME_DONE = -2 ;
   
   final public int
     mapSize ;
@@ -83,16 +86,13 @@ public class Terrain implements TileConstants, Session.Saveable {
   } ;
   
   
-  
-  
-  
   private static class MeshPatch {
     //
     //  We use this to create a linked-list structure, so that old terrain-
     //  patches can be faded out gradually.  Once one layer becomes fully-
     //  opaque, we discard the previous meshes.
     MeshPatch previous = null ;
-    float inceptTime = -1 ;
+    float inceptTime = TIME_INIT ;
     int x, y ;
     TerrainMesh meshes[], roadsMesh, dirtMesh ;
     boolean updateMesh, updateRoads, updateDirt ;
@@ -267,18 +267,19 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   public void maskAsPaved(Tile tiles[], boolean is) {
     if (tiles == null || tiles.length == 0) return ;
-    ///if (! is) I.say("...Roads masking begins.") ;
     Box2D bounds = null ;
     for (Tile t : tiles) if (t != null) {
-      if (bounds == null) bounds = new Box2D().set(t.x, t.y, 0, 0) ;
+      final boolean wasRoad = roadCounter[t.x][t.y] > 0 ;
       final byte c = (roadCounter[t.x][t.y] += is ? 1 : -1) ;
-      ///if (! is) I.say("  Counter is: "+c+" at "+t.x+"/"+t.y) ;
       if (c < 0) I.complain("CANNOT HAVE NEGATIVE ROAD COUNTER: "+t) ;
+      if (wasRoad == roadCounter[t.x][t.y] > 0) continue ;
+      if (bounds == null) bounds = new Box2D().set(t.x, t.y, 0, 0) ;
       bounds.include(t.x, t.y, 0.5f) ;
     }
-    bounds.expandBy(1) ;
-    for (MeshPatch patch : patchesUnder(bounds)) patch.updateRoads = true ;
-    ///if (! is) I.say("...Roads masking complete.") ;
+    if (bounds != null) {
+      bounds.expandBy(1) ;
+      for (MeshPatch patch : patchesUnder(bounds)) patch.updateRoads = true ;
+    }
   }
   
   
@@ -334,27 +335,31 @@ public class Terrain implements TileConstants, Session.Saveable {
       final MeshPatch p = patches[c.x][c.y] = new MeshPatch() ;
       p.x = c.x * patchSize ;
       p.y = c.y * patchSize ;
-      p.updateMesh = true ;
+      
+      p.updateMesh  = true ;
       p.updateRoads = true ;
-      p.updateDirt = true ;
-      updatePatch(p, -1) ;
+      p.updateDirt  = true ;
     }
   }
   
   
-  private void updatePatch(MeshPatch old, float time) {
+  private void updatePatch(final MeshPatch old, final float time) {
     if (! (old.updateMesh || old.updateRoads || old.updateDirt)) return ;
     final int x = old.x, y = old.y ;
-    final boolean init = time == -1 ;
     
+    final boolean init = old.inceptTime == TIME_INIT ;
     final MeshPatch patch = init ? old : new MeshPatch() ;
-    if (! init) {
-      patches[x / patchSize][y / patchSize] = patch ;
+    if (init) {
+      old.inceptTime = TIME_DONE ;
+    }
+    else {
       patch.previous = old ;
       patch.inceptTime = time ;
-      patch.x = old.x ;
-      patch.y = old.y ;
+      patch.x = x ;
+      patch.y = y ;
+      patches[x / patchSize][y / patchSize] = patch ;
     }
+    ///I.say("Updating patch: "+x+"/"+y+", incept: "+patch.inceptTime) ;
     
     if (old.updateMesh) {
       patch.meshes = TerrainMesh.genMeshes(
@@ -412,11 +417,11 @@ public class Terrain implements TileConstants, Session.Saveable {
   private void renderPatch(MeshPatch patch, Rendering rendering, float time) {
     if (patch == null) return ;
     final float alphaVal =
-      patch.inceptTime == -1 ? 1 :
+      patch.inceptTime == TIME_DONE ? 1 :
       ((time - patch.inceptTime) / 2f) ;
     if (alphaVal >= 1 && patch.previous != null) {
       patch.previous = null ;
-      patch.inceptTime = -1 ;
+      patch.inceptTime = TIME_DONE ;
     }
     else renderPatch(patch.previous, rendering, time) ;
     
@@ -444,6 +449,7 @@ public class Terrain implements TileConstants, Session.Saveable {
 /**  Generates an initial texture for the whole map.
   *  TODO:  Allow for incremental updates to said texture, whenever the
   *  terrain in a given sector is disturbed.
+  *  TODO:  Or just use the minimap texture?
   */
 /*
 //
@@ -496,54 +502,6 @@ private Colour avgSectorColour(int sX, int sY, int resolution) {
         (byte) (level + (diff / 2)) ;
     }
   }
-//*/
-
-
-
-
-/*
-public void renderFogFor(
-  Box2D area, Texture oldFog, Texture newFog,
-  Rendering rendering, float fogTime
-) {
-  if (oldFog == null || newFog == null) I.complain("FOG IS NULL!") ;
-  if (patches == null) I.complain("PATCHES MUST BE INITIALISED FIRST!") ;
-  
-  fogTime %= 1 ;
-  final float
-    oldFA = 1 - fogTime,
-    newFA = fogTime ;
-  for (MeshPatch patch : patchesUnder(area)) {
-    
-    patch.fogMesh.colour = Colour.transparency(oldFA) ;
-    patch.fogMesh.assignTexture(oldFog) ;
-    rendering.addClient(patch.fogMesh) ;
-    
-    patch.fogFade.colour = Colour.transparency(newFA) ;
-    patch.fogFade.assignTexture(newFog) ;
-    rendering.addClient(patch.fogFade) ;
-    
-    //patch.fogMesh.isFog = true ;
-    //patch.fogFade.isFog = true ;
-  }
-}
-//*/
-
-
-
-
-/*
-if (true) {
-  I.say("UPDATED PATCH AT "+x+" "+y+", time: "+time) ;
-  I.say(
-    "  Update mesh/roads/dirt? "+p.updateMesh+"/"+
-    p.updateRoads+"/"+p.updateDirt+", "+p.hashCode()
-  ) ;
-}
-      I.say(
-        "Discarding old patch at "+patch.x+" "+patch.y+
-        " "+patch.previous.hashCode()+", time: "+time
-      ) ;
 //*/
 
 

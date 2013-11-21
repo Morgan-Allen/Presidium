@@ -2,18 +2,14 @@
 
 
 package src.game.wild ;
-import src.game.actors.Actor;
-import src.game.actors.Background;
-import src.game.actors.Behaviour;
+import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.common.* ;
+import src.game.planet.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
-import src.graphics.widgets.HUD;
-import src.user.Composite;
-import src.user.Description;
-import src.user.Selection;
-import src.user.UIConstants;
+import src.graphics.widgets.HUD ;
+import src.user.* ;
 import src.util.* ;
 
 
@@ -24,20 +20,31 @@ public class NativeHut extends Venue {
   final static Model HUT_MODELS[] = ImageModel.loadModels(
     Ruins.class, 4, 2, "media/Buildings/lairs and ruins/",
     ImageModel.TYPE_SOLID_BOX,
-    "forest_huts.png",
     "desert_huts.png",
+    "forest_huts.png",
     "wastes_huts.png",
     "tundra_huts.png"
   ) ;
-  private static int NI = (int) (Math.random() * 3) ;
+  final static ImageModel[][][] MODEL_KEYS = {
+    Habitat.FOREST_FLORA_MODELS,
+    Habitat.DESERT_FLORA_MODELS,
+    Habitat.WASTES_FLORA_MODELS,
+    Habitat.TUNDRA_FLORA_MODELS
+  } ;
+  
+  private static Model modelFor(Habitat h) {
+    int index = Visit.indexOf(h.floraModels, MODEL_KEYS) ;
+    if (index == -1) index = 0 ;
+    return HUT_MODELS[index] ;
+  }
   
   
-  public NativeHut() {
-    super(4, 1, ENTRANCE_SOUTH, null) ;
+  
+  public NativeHut(Habitat h, Base base) {
+    super(4, 1, ENTRANCE_SOUTH, base) ;
     structure.setupStats(100, 4, 0, 0, Structure.TYPE_CRAFTED) ;
     personnel.setShiftType(SHIFTS_ALWAYS) ;
-    final int index = (NI++ + Rand.index(1)) % 3 ;
-    attachSprite(HUT_MODELS[index].makeSprite()) ;
+    attachModel(modelFor(h)) ;
   }
   
   
@@ -65,9 +72,10 @@ public class NativeHut extends Venue {
   
   public Background[] careers() { return null ; }
   public Service[] services() { return null ; }
-  
-  
-  
+  protected void updatePaving(boolean inWorld) {}
+
+
+
   /**  Rendering and interface methods-
     */
   public String fullName() {

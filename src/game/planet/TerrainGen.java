@@ -74,11 +74,18 @@ public class TerrainGen implements TileConstants {
   }
   
   
-  public float baseAmount(Habitat h) {
+  protected float baseAmount(Habitat h) {
     float sum = 0 ; for (Float f : habitatAmounts) sum += f ;
     final int index = Visit.indexOf(h, habitats) ;
     if (index == -1) return 0 ;
     return habitatAmounts[index] / sum ;
+  }
+  
+  
+  protected Habitat baseHabitat(Coord c, int resolution) {
+    final int grid = World.SECTOR_SIZE / resolution ;
+    final int ID = sectors[c.x / grid][c.y / grid].gradientID ;
+    return habitats[ID] ;
   }
   
   
@@ -406,9 +413,9 @@ public class TerrainGen implements TileConstants {
         final Habitat habitat = terrain.habitatAt(x, y) ;
         final Tile location = world.tileAt(x, y) ;
         float rockAmount = detailGrid[x][y] / 10f ;
-        rockAmount *= rockAmount ;
+        rockAmount *= rockAmount * Rand.num() * 1.25f ;
         
-        if ((rockAmount * 11) > (10 - habitat.rockiness)) {
+        if ((rockAmount * 10) > (10 - habitat.rockiness)) {
           //
           //  If placement was successful, 'paint' the perimeter with suitable
           //  habitat types-
@@ -416,6 +423,7 @@ public class TerrainGen implements TileConstants {
             Outcrop.TYPE_MESA, location, 3, 1
           ) ;
           if (o != null) for (Tile t : world.tilesIn(o.area(), false)) {
+            if (t.habitat() == Habitat.SHORELINE) continue ;
             if (Rand.index(4) > 0) terrain.setHabitat(t, Habitat.BARRENS) ;
             else terrain.setHabitat(t, Habitat.MESA) ;
           }

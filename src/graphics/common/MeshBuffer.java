@@ -48,7 +48,7 @@ public class MeshBuffer implements Rendering.Client {
   
   
   protected MeshBuffer(MeshBuffer refers) {
-    this.numFacets = refers.numFacets ;
+    numFacets  = refers.numFacets  ;
     vertBuffer = refers.vertBuffer ;
     normBuffer = refers.normBuffer ;
     textBuffer = refers.textBuffer ;

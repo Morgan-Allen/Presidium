@@ -28,7 +28,7 @@ public class DebugPlanet extends Scenario {
   
   
   protected DebugPlanet() {
-    super("saves/test_planet.rep") ;
+    super("test_planet") ;
   }
   
   
@@ -74,6 +74,7 @@ public class DebugPlanet extends Scenario {
     final TerrainGen TG = new TerrainGen(
       128, 0,
       Habitat.OCEAN       , 0.5f,
+      Habitat.ESTUARY     , 0.2f,
       Habitat.MEADOW      , 1f,
       Habitat.BARRENS     , 2f,
       Habitat.DESERT      , 3f,
@@ -94,10 +95,15 @@ public class DebugPlanet extends Scenario {
     ///TG.presentMineralMap(world, world.terrain()) ;
     
     GameSettings.fogFree = true ;
+    GameSettings.hireFree = true ;
+    GameSettings.buildFree = true ;
     final EcologyGen EG = new EcologyGen(world, TG) ;
-    EG.populateWithRuins() ;
+    //EG.populateWithRuins() ;
+    EG.populateWithNatives() ;
     
-    //EG.populateFlora() ;
+    EG.populateFlora() ;
+    //
+    //  TODO:  These all seem to be dying of disease...  Look into that.
     //EG.populateFauna(Species.VAREEN, Species.QUUD) ;
     //EG.populateFauna(Species.MICOVORE) ;
     

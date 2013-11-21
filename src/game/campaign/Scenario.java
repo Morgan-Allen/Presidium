@@ -291,6 +291,7 @@ public class Scenario implements Session.Saveable {
     
     Tile init = world.tileAt(atX, atY) ;
     init = Spacing.nearestOpenTile(init, init) ;
+    if (init == null) return null ;
     
     final TileSpread search = new TileSpread(init) {
       protected boolean canAccess(Tile t) {
@@ -303,7 +304,7 @@ public class Scenario implements Session.Saveable {
     } ;
     search.doSearch() ;
     
-    if (! search.success()) I.complain("NO STARTING POSITION FOUND!") ;
+    if (! search.success()) return null ;//I.complain("NO STARTING POSITION FOUND!") ;
     else v.doPlace(v.origin(), null) ;
     
     if (intact) {

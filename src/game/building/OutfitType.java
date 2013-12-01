@@ -4,6 +4,7 @@ package src.game.building ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.sfx.ShieldFX;
+import src.util.I;
 
 import java.io.* ;
 
@@ -20,7 +21,7 @@ public class OutfitType extends Service implements Economy {
   
   
   public OutfitType(
-    Class baseClass, String name, int defence, int basePrice,
+    Class baseClass, String name, int defence, int shieldBonus, int basePrice,
     Conversion materials
   ) {
     super(
@@ -28,7 +29,7 @@ public class OutfitType extends Service implements Economy {
       basePrice + (materials == null ? 0 : materials.rawPriceValue())
     ) ;
     this.defence = defence ;
-    this.shieldBonus = defence ;
+    this.shieldBonus = shieldBonus ;
     this.materials = materials ;
     final String imagePath = ITEM_PATH+name+"_skin.gif" ;
     if (new File(imagePath).exists())
@@ -57,6 +58,7 @@ public class OutfitType extends Service implements Economy {
     }
     else {
       final ShieldFX shieldFX = new ShieldFX() ;
+      shieldFX.scale = 0.5f ;
       world.ephemera.addGhost(uses, 1, shieldFX, 2) ;
     }
   }

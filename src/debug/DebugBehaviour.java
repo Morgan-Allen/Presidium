@@ -24,6 +24,9 @@ import src.util.* ;
 //
 //  TODO:  Contact missions, holo-theatre, and ambience.  Those are the ones.
 
+//
+//  TODO:  If you lack funding for construction, buildings need to display an
+//  error message.
 
 //
 //  TODO:  Test out the archives, finish the surveillance post, and polish the
@@ -48,13 +51,14 @@ public class DebugBehaviour extends Scenario implements Economy {
   /**  Startup and save/load methods-
     */
   public static void main(String args[]) {
+    if (Scenario.loadedFrom("test_behaviour")) return ;
     DebugBehaviour test = new DebugBehaviour() ;
-    PlayLoop.setupAndLoop(test.UI, test) ;
+    PlayLoop.setupAndLoop(test.UI(), test) ;
   }
   
   
   protected DebugBehaviour() {
-    super("saves/test_session.rep") ;
+    super("test_behaviour", true) ;
   }
   
   
@@ -85,17 +89,41 @@ public class DebugBehaviour extends Scenario implements Economy {
   
   
   protected void configureScenario(World world, Base base, BaseUI HUD) {
-    //natureScenario(world, base, HUD) ;
-    //baseScenario(world, base, HUD) ;
-    //missionScenario(world, base, HUD) ;
-    //socialScenario(world, base, HUD) ;
+    combatScenario(world, base, UI()) ;
+  }
+  
+  
+  //
+  //  ...Okay.  This will clearly take some time.
+  private void combatScenario(World world, Base base, BaseUI UI) {
+    
+    //GameSettings.buildFree = true ;
+    //base.incCredits(4000) ;
+    GameSettings.fogFree = true ;
+    
+    Tripod tripod = new Tripod() ;
+    tripod.health.setupHealth(0.5f, 1, 0) ;
+    tripod.enterWorldAt(31, 31, world) ;
+    
+    int numH = 5 ;
+    Human humans[] = new Human[numH] ;
+    while (numH-- > 0) {
+      humans[numH] = new Human(Background.VOLUNTEER, base) ;
+    }
+    Scenario.establishVenue(new Bastion(base), 4, 4, true, world, humans) ;
+    
+    
+    //Micovore micovore = new Micovore() ;
+    //micovore.health.setupHealth(0.5f, 1, 0) ;
+    //micovore.enterWorldAt(9, 9, world) ;
+    
+    UI.selection.pushSelection(humans[0], true) ;
   }
 }
-  
-  
+
+
+
   /*
-  
-  
   /**  Testing out interactions between alien creatures or primitive humanoids.
   private void natureScenario(World world, Base base, HUD UI) {
     GameSettings.fogFree = true ;

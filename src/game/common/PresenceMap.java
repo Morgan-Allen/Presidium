@@ -142,7 +142,7 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
       n = root ;
     }
     if (n.section.depth == 0) {
-      if (n.contains(t)) {
+      if (n.includes(t)) {
         I.say("  "+key+" FOUND SECTION MATCHES FOR "+t) ;
         I.say("    SECTION AT "+n.section.area) ;
       }

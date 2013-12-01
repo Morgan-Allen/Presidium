@@ -39,7 +39,7 @@ public class ActorGear extends Inventory implements Economy {
   float baseDamage, baseArmour ;
   Item device = null ;
   Item outfit = null ;
-  float fuelCells, currentShields ;
+  float fuelCells = 0, currentShields ;
   
   
   public ActorGear(Actor actor) {
@@ -221,21 +221,40 @@ public class ActorGear extends Inventory implements Economy {
   }
   
   
-  public void boostShields(float boost) {
+  public void boostShields(float boost, boolean capped) {
     currentShields += boost ;
+    if (capped) currentShields = Visit.clamp(currentShields, 0, maxShields()) ;
   }
   
   
-  
-  /**  Returns the amount of damage left after shield reductions are taken into
-    *  account...
-    */
   public float afterShields(float damage, boolean physical) {
+    if (damage <= 0 || ! actor.health.conscious()) return damage ;
     float reduction = shieldCharge() * Rand.num() ;
     if (physical) reduction /= 2 ;
     if (reduction > damage) reduction = damage ;
-    currentShields -= reduction ;
+    currentShields -= reduction / SHIELD_CHARGE ;
     return damage - reduction ;
+  }
+  
+  
+  public float fuelCells() {
+    return fuelCells ;
+  }
+  
+  
+  public float maxShields() {
+    if (outfit == null) return 0 ;
+    final OutfitType type = (OutfitType) outfit.type ;
+    return 
+      (SHIELD_CHARGE + type.shieldBonus) *
+      (float) Math.sqrt(fuelCells / MAX_FUEL_CELLS) ;
+  }
+  
+  
+  public boolean hasShields() {
+    if (outfit == null) return false ;
+    final OutfitType type = (OutfitType) outfit.type ;
+    return type.shieldBonus > 0 ;
   }
   
   
@@ -243,9 +262,7 @@ public class ActorGear extends Inventory implements Economy {
     final OutfitType type = (OutfitType) outfit.type ;
     final float regenTime =
       SHIELD_REGEN_TIME * 2f / (2 + type.shieldBonus) ;
-    final float maxShield =
-      (SHIELD_CHARGE + type.shieldBonus) *
-      (float) Math.sqrt(fuelCells / MAX_FUEL_CELLS) ;
+    final float maxShield = maxShields() ;
     if (currentShields < maxShield) {
       final float nudge = maxShield / regenTime ;
       currentShields += nudge ;
@@ -259,12 +276,6 @@ public class ActorGear extends Inventory implements Economy {
     }
   }
   
-  /*
-  public ShieldFX shieldFX() {
-    //if (shieldFX == null) shieldFX = new ShieldFX() ;
-    return shieldFX ;
-  }
-  //*/
   
 
   /**  Here we deal with equipping/removing Devices-
@@ -311,6 +322,7 @@ public class ActorGear extends Inventory implements Economy {
     final JointSprite sprite = (JointSprite) actor.sprite() ;
     final Item oldItem = this.outfit ;
     this.outfit = outfit ;
+    if (hasShields()) fuelCells = MAX_FUEL_CELLS ;
     //
     //  Attach/detach the appropriate media-
     if (oldItem != null) {

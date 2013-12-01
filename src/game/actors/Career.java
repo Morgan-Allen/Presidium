@@ -330,6 +330,7 @@ public class Career implements Abilities {
     if (actor.gear.credits() == 0) {
       actor.gear.incCredits((50 + Rand.index(100)) * BQ / 2f) ;
     }
+    actor.gear.boostShields(actor.gear.maxShields() / 2f, true) ;
   }
 }
 

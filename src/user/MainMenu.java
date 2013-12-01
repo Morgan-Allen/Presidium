@@ -163,7 +163,7 @@ public class MainMenu extends UIGroup {
     text.append("("+chosenSkills.size()+"/"+MAX_SKILLS+")") ;
     for (Skill s : Background.KNIGHTED.skills()) {
       if (Background.KNIGHTED.skillLevel(s) <= 5) continue ;
-      final Colour c = chosenSkills.contains(s) ? Colour.CYAN : null ;
+      final Colour c = chosenSkills.includes(s) ? Colour.CYAN : null ;
       Call.add("\n    "+s.name, c, this, "toggleSkill", text, s) ;
     }
     
@@ -172,7 +172,7 @@ public class MainMenu extends UIGroup {
     for (Trait t : Background.KNIGHTED.traits()) {
       final float l = Background.KNIGHTED.traitChance(t) > 0 ? 2 : -2 ;
       final String name = Trait.descriptionFor(t, l) ;
-      final Colour c = chosenTraits.contains(t) ? Colour.CYAN : null ;
+      final Colour c = chosenTraits.includes(t) ? Colour.CYAN : null ;
       Call.add("\n    "+name, c, this, "toggleTrait", text, t) ;
     }
     
@@ -209,7 +209,7 @@ public class MainMenu extends UIGroup {
   
   public void toggleSkill(Object args[]) {
     final Skill s = (Skill) args[0] ;
-    if (chosenSkills.contains(s)) {
+    if (chosenSkills.includes(s)) {
       chosenSkills.remove(s) ;
     }
     else {
@@ -222,7 +222,7 @@ public class MainMenu extends UIGroup {
   
   public void toggleTrait(Object args[]) {
     final Trait t = (Trait) args[0] ;
-    if (chosenTraits.contains(t)) {
+    if (chosenTraits.includes(t)) {
       chosenTraits.remove(t) ;
     }
     else {
@@ -256,7 +256,7 @@ public class MainMenu extends UIGroup {
     text.append("\n  Accompanying Household:") ;
     text.append(" ("+advisors.size()+"/"+MAX_ADVISORS+")") ;
     for (Background b : ADVISOR_BACKGROUNDS) {
-      final Colour c = advisors.contains(b) ? Colour.CYAN : null ;
+      final Colour c = advisors.includes(b) ? Colour.CYAN : null ;
       Call.add("\n    "+b.name, c, this, "setAdvisor", text, b) ;
     }
     
@@ -293,7 +293,7 @@ public class MainMenu extends UIGroup {
   
   public void setAdvisor(Object args[]) {
     final Background b = (Background) args[0] ;
-    if (advisors.contains(b)) {
+    if (advisors.includes(b)) {
       advisors.remove(b) ;
     }
     else if (advisors.size() < MAX_ADVISORS) {
@@ -510,8 +510,8 @@ public class MainMenu extends UIGroup {
     final Scenario scenario = new TutorialScenario(
       world, base, title
     ) ;
-    scenario.UI.assignBaseSetup(base, bastion.position(null)) ;
-    PlayLoop.setupAndLoop(scenario.UI, scenario) ;
+    scenario.UI().assignBaseSetup(base, bastion.position(null)) ;
+    PlayLoop.setupAndLoop(scenario.UI(), scenario) ;
     PlayLoop.currentScenario().saveProgress(false) ;
   }
   
@@ -569,15 +569,17 @@ public class MainMenu extends UIGroup {
   
   
   public void loadSavedGame(Object args[]) {
-    final String fileName = (String) args[0] ;
-    String fullPath = "saves/"+fileName ;
+    final String fullPath = "saves/"+(String) args[0] ;
     I.say("Loading game: "+fullPath) ;
+    PlayLoop.loadGame(fullPath, true) ;
+    /*
     try {
       final Session s = Session.loadSession(fullPath) ;
       final Scenario scenario = s.scenario() ;
-      PlayLoop.setupAndLoop(scenario.UI, scenario) ;
+      PlayLoop.setupAndLoop(scenario.UI(), scenario) ;
     }
     catch (Exception e) { I.report(e) ; }
+    //*/
   }
   
   

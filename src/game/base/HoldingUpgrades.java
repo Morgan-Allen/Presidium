@@ -44,14 +44,14 @@ public class HoldingUpgrades implements Economy {
   final static Object
     NEEDS_MET = "OKAY",
     NOT_MET   = "NOT OKAY" ;
-  final static int
+  final public static int
     LEVEL_TENT     = 0,
     LEVEL_PYON     = 1,
     LEVEL_FREEBORN = 2,
     LEVEL_CITIZEN  = 3,
     LEVEL_GUILDER  = 4,
     NUM_LEVELS     = 5 ;
-  final static int
+  final public static int
     OCCUPANCIES[] = { 4, 4, 4, 4, 4 },
     TAX_LEVELS[]  = { 0, 5, 10, 20, 35 },
     INTEGRITIES[] = { 15, 35, 80, 125, 200 },
@@ -447,7 +447,7 @@ public class HoldingUpgrades implements Economy {
   ) {
     final boolean NV = ! verbose ;
     
-    float safety = 0 - holding.base().dangerMap.valAt(holding.origin()) ;
+    float safety = 0 - holding.base().dangerMap.shortTermVal(holding.origin()) ;
     if (holding.stocks.amountOf(PRESSFEED) > 0.5f) safety += 1.5f ;
     if (safety < SAFETY_NEEDS[upgradeLevel]) return NV ? NOT_MET :
       "This area feels too unsettled for your subjects' comfort, hindering "+

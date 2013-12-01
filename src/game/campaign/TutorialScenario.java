@@ -11,7 +11,7 @@ public class TutorialScenario extends Scenario {
   
   
   public TutorialScenario(String saveFile) {
-    super(saveFile) ;
+    super(saveFile, false) ;
   }
   
   

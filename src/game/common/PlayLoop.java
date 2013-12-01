@@ -79,7 +79,7 @@ public final class PlayLoop {
     if (scenario == null) return ;
     KeyInput.clearInputs() ;
     try {
-      Session.saveSession(scenario.world, scenario, saveFile) ;
+      Session.saveSession(scenario.world(), scenario, saveFile) ;
       lastSaveTime = lastUpdate ;
       scenario.afterSaving() ;
     }
@@ -92,18 +92,18 @@ public final class PlayLoop {
       gameStateWipe() ;
       final Session s = Session.loadSession(saveFile) ;
       scenario = s.scenario() ;
-      UI       = scenario.UI  ;
       scenario.afterLoading(fromMenu) ;
+      setupAndLoop(scenario.UI(), scenario) ;
     }
     catch (Exception e) { I.report(e) ; }
   }
   
   
-  protected static void gameStateWipe() {
+  public static void gameStateWipe() {
     KeyInput.clearInputs() ;
     scenario = null ;
     UI       = null ;
-    rendering.clearAll() ;
+    if (rendering != null) rendering.clearAll() ;
     lastSaveTime = -1 ;
     //RuntimeUtil.gc() ;  //  TODO:  RESTORE THIS?
   }

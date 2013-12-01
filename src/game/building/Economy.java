@@ -190,50 +190,53 @@ public interface Economy extends Abilities {
   final public static OutfitType
     
     OVERALLS       = new OutfitType(
-      BC, "Overalls"      , 2, 50,
+      BC, "Overalls"      , 2, 0, 50,
       new Conversion(1, PLASTICS, Fabricator.class, 5, ASSEMBLY)
     ),
     FINERY         = new OutfitType(
-      BC, "Finery"        , 2 , 400,
+      BC, "Finery"        , 2, 0 , 400,
       new Conversion(2, PLASTICS, Fabricator.class, 15, GRAPHIC_DESIGN)
     ),
     
     CAMOUFLAGE     = new OutfitType(
-      BC, "Camouflage"    , 3 , 70,
+      BC, "Camouflage"    , 3, 0, 70,
       new Conversion(1, PLASTICS, Fabricator.class, 5, HANDICRAFTS)
     ),
     SEALSUIT       = new OutfitType(
-      BC, "Sealsuit"      , 4 , 150,
+      BC, "Sealsuit"      , 4, 1, 150,
       new Conversion(1, PLASTICS, 1, PARTS, Fabricator.class, 10, HANDICRAFTS)
     ),
     STEALTH_SUIT   = new OutfitType(
-      BC, "Stealth Suit"  , 8 , 250,
+      BC, "Stealth Suit"  , 8, 5, 250,
       new Conversion(1, PLASTICS, 2, PARTS, Fabricator.class, 15, HANDICRAFTS)
     ),
     
     SHIELD_BELT = new OutfitType(
-      BC, "Shield Belt"   , 5 , 50,
+      BC, "Shield Belt"   , 5, 10, 50,
       new Conversion(1, PARTS, Foundry.class, 5, ASSEMBLY)
     ),
     PARTIAL_ARMOUR = new OutfitType(
-      BC, "Partial Armour", 10, 100,
+      BC, "Partial Armour", 10, 10, 100,
       new Conversion(2, PARTS, Foundry.class, 10, ASSEMBLY)
     ),
     BODY_ARMOUR    = new OutfitType(
-      BC, "Body Armour"   , 15, 150,
+      BC, "Body Armour"   , 15, 10, 150,
       new Conversion(5, PARTS, Foundry.class, 15, ASSEMBLY)
     ),
     POWER_ARMOUR   = new OutfitType(
-      BC, "Power Armour"  , 20, 275,
+      BC, "Power Armour"  , 20, 10, 275,
       new Conversion(8, PARTS, Foundry.class, 20, ASSEMBLY)
     ),
     GOLEM_ARMOUR   = new OutfitType(
-      BC, "Golem Armour"  , 25, 500,
+      BC, "Golem Armour"  , 25, 10, 500,
       new Conversion(12, PARTS, Foundry.class, 25, ASSEMBLY)
     ),
     
-    INTRINSIC_ARMOUR = new OutfitType(
-      BC, "Intrinsic Armour", 0, 0, null
+    NATURAL_ARMOUR = new OutfitType(
+      BC, "Natural Armour", 0, 0, 0, null
+    ),
+    ARTILECT_ARMOUR = new OutfitType(
+      BC, "Artilect Armour", 0, 10, 0, null
     ) ;
   final public static Service
     ALL_OUTFITS[] = Service.typesSoFar() ;

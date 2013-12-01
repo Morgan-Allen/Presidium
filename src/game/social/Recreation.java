@@ -75,6 +75,8 @@ public class Recreation extends Plan implements Economy {
   
   
   private static float rateVenue(Venue venue, Actor actor) {
+    if (! venue.structure.intact()) return -1 ;
+    
     float rating = 0 ;
     if (venue instanceof Cantina) {
       rating += 4.0f + ((Cantina) venue).performValue() ;
@@ -83,7 +85,14 @@ public class Recreation extends Plan implements Economy {
       }
     }
     //
-    //  TODO:  Also, the Holo Arcade
+    //  TODO:  You need to choose the appropriate recreation type for the
+    //  Holocade- meditation, sport, exhibition or role-play- and whether you
+    //  join or spectate.
+    if (venue instanceof Holocade) {
+      rating += 4.0f ;// + ((Holocade) venue).performValue() ;
+      
+    }
+    
     
     if (venue instanceof Holding) {
       return 2.0f + ((Holding) venue).upgradeLevel() ;

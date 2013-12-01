@@ -74,6 +74,9 @@ public class Resting extends Plan implements Economy {
   
   protected Behaviour getNextStep() {
     if (restPoint == null) return null ;
+    if (restPoint instanceof Tile) {
+      if (((Tile) restPoint).blocked()) return null ;
+    }
     if (restPoint instanceof Venue && menuFor((Venue) restPoint).size() > 0) {
       if (actor.health.hungerLevel() > 0.1f) {
         final Action eats = new Action(
@@ -158,11 +161,13 @@ public class Resting extends Plan implements Economy {
     safePoints.add(actor.mind.work()) ;
     safePoints.add(presences.nearestMatch(Cantina.class, actor, -1)) ;
     //
-    //  Now pick whichever option is most attractive.
-    final Target picked = new Visit <Target> () {
-      public float rate(Target b) { return ratePoint(actor, b) ; }
-    }.pickBest(safePoints) ;
-    
+    //  Now pick whichever option is most attractive-
+    Target picked = null ;
+    float bestRating = 0 ;
+    for (Target t : safePoints) {
+      final float rate = ratePoint(actor, t) ;
+      if (rate > bestRating) { bestRating = rate ; picked = t ; }
+    }
     if (verbose) I.sayAbout(
       actor, "Have picked "+picked+", home rating: "+
       ratePoint(actor, actor.mind.home())

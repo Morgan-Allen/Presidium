@@ -135,7 +135,7 @@ public abstract class Plan implements Saveable, Behaviour {
     //  We do not cache steps for dormant or 'under consideration' plans, since
     //  that can screw up proper sequence of evaluation/execution.  Start from
     //  scratch instead.
-    if (! actor.mind.agenda.includes(this)) {
+    if (! actor.mind.agenda().includes(this)) {
       nextStep = lastStep = null ;
       return getNextStep() ;
     }
@@ -197,7 +197,7 @@ public abstract class Plan implements Saveable, Behaviour {
     //  TODO:  Incorporate estimate of dangers along entire route using
     //  path-caching.
     final Tile at = actor.world().tileAt(t) ;
-    float danger = actor.base().dangerMap.valAt(at) ;
+    float danger = actor.base().dangerMap.shortTermVal(at) ;
     if (danger < 0) return 0 ;
     danger *= actor.traits.scaleLevel(Abilities.NERVOUS) ;
     return danger * 0.1f / (1 + Combat.combatStrength(actor, null)) ;

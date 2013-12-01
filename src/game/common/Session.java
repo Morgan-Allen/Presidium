@@ -62,6 +62,9 @@ public class Session {
   
   /**  Methods for saving and loading session data:
     */
+  //
+  //  TODO:  Also save and load game settings.
+  
   public static Session saveSession(
     World world, Scenario scenario, String saveFile
   ) throws Exception {
@@ -75,6 +78,7 @@ public class Session {
     s.saveInt(world.size) ;
     s.world.saveState(s) ;
     s.saveObject(scenario) ;
+    GameSettings.saveSettings(s) ;
     s.finish() ;
     
     I.say("\nDISPLAYING TOTAL SAVE COUNTS:") ;
@@ -97,6 +101,7 @@ public class Session {
     s.world = new World(s.loadInt()) ;
     s.world.loadState(s) ;
     s.scenario = (Scenario) s.loadObject() ;
+    GameSettings.loadSettings(s) ;
     s.finish() ;
     return s ;
   }

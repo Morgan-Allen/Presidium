@@ -25,6 +25,7 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
     TYPE_SECURITY      = 0,
     TYPE_STREET_PATROL = 1,
     TYPE_SENTRY_DUTY   = 2,
+    TYPE_WANDERING     = 3,
     
     WATCH_TIME = 10 ;
   
@@ -75,13 +76,16 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
   /**  Obtaining and evaluating patrols targets-
     */
   public float priorityFor(Actor actor) {
+    if (type == TYPE_WANDERING) {
+      return IDLE ;
+    }
     //
     //  Favour patrols through more dangerous areas in absolute terms, but not
     //  in relative terms.  (i.e, go where you're needed, but won't get killed.)
     float absDanger = 0, relDanger = 0 ;
     if (actor.base() != null) for (Target t : patrolled) {
       final Tile u = actor.world().tileAt(t) ;
-      absDanger += actor.base().dangerMap.valAt(u) ;
+      absDanger += actor.base().dangerMap.longTermVal(u) ;
       relDanger += Plan.dangerPenalty(t, actor) ;
     }
     absDanger /= patrolled.size() ;
@@ -107,6 +111,10 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
     final World world = actor.world() ;
     Target stop = goes ;
     if (verbose) I.sayAbout(actor, "Goes: "+goes+", post time: "+postTime) ;
+    
+    //
+    //  TODO:  You need to add an intercept/attack behaviour for enemies near
+    //  the guarded target (if any.)
     
     if (type != TYPE_SENTRY_DUTY) {
       Tile open = world.tileAt(goes) ;
@@ -153,6 +161,8 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
 
 
   public boolean actionPatrol(Actor actor, Target spot) {
+    //I.say("Patrolling to: "+spot) ;
+    
     if (actor.base() != null) {
       final IntelMap map = actor.base().intelMap ;
       map.liftFogAround(spot, actor.health.sightRange() * 1.207f) ;
@@ -190,18 +200,29 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
   
   /**  External factory methods-
     */
+  public static Patrolling wandering(Actor actor) {
+    final List <Target> patrolled = new List <Target> () ;
+    final float range = actor.health.sightRange() + actor.aboard().radius() ;
+    patrolled.add(Spacing.pickRandomTile(actor, range, actor.world())) ;
+    return new Patrolling(actor, actor, patrolled, TYPE_WANDERING) ;
+  }
+  
+  
   public static Patrolling securePerimeter(
     Actor actor, Element guarded, World world
   ) {
     final List <Target> patrolled = new List <Target> () ;
-    final float range = guarded.radius() * 2 ;
+    final float range = Math.max(
+      guarded.radius() * 2,
+      actor.health.sightRange() / 2
+    ) ;
     final Vec3D centre = guarded.position(null) ;
     for (int n : N_ADJACENT) {
       Tile point = world.tileAt(
         Visit.clamp(centre.x + (N_X[n] * range), 0, world.size - 1),
         Visit.clamp(centre.y + (N_Y[n] * range), 0, world.size - 1)
       ) ;
-      if (point != null) patrolled.add(point) ;
+      if (point != null) patrolled.include(point) ;
     }
     return new Patrolling(actor, guarded, patrolled, TYPE_SECURITY) ;
   }
@@ -222,7 +243,7 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
     float interval = World.PATCH_RESOLUTION ;
     
     for (int i = 0 ; i < path.length ; i += interval) {
-      patrolled.add(path[i]) ;
+      patrolled.include(path[i]) ;
     }
     patrolled.add(dest) ;
     return new Patrolling(actor, init, patrolled, TYPE_STREET_PATROL) ;
@@ -274,7 +295,7 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
     BlastDoors doors = null ;
     for (Target b : enRoute) {
       final ShieldWall s = (ShieldWall) b ;
-      if (s.isTower()) patrolled.add(b) ;
+      if (s.isTower()) patrolled.include(b) ;
       if (s.isGate()) {
         if (doors == null || (
           Spacing.distance(s, actor) < Spacing.distance(doors, actor)
@@ -290,6 +311,9 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
   /**  Rendering and interface methods-
     */
   public void describeBehaviour(Description d) {
+    if (type == TYPE_WANDERING) {
+      d.append("Wandering") ;
+    }
     if (type == TYPE_SECURITY) {
       d.append("Securing perimeter for ") ;
       d.append(guarded) ;

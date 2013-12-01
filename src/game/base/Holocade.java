@@ -20,19 +20,19 @@ import src.util.* ;
 //  TODO:  Integrate with the performance and recreation behaviours!
 
 
-public class HoloArcade extends Venue implements Economy {
+public class Holocade extends Venue implements Economy {
   
   
 
   /**  Data fields, constructors and save/load methods-
     */
   final public static Model MODEL = ImageModel.asSolidModel(
-    HoloArcade.class, "media/Buildings/aesthete/arcade_redux_preview.png", 4, 2
+    Holocade.class, "media/Buildings/aesthete/arcade_redux_preview.png", 4, 2
   ) ;
   
   
   
-  public HoloArcade(Base base) {
+  public Holocade(Base base) {
     super(4, 2, Venue.ENTRANCE_SOUTH, base) ;
     structure.setupStats(
       300, 4, 400,
@@ -42,7 +42,7 @@ public class HoloArcade extends Venue implements Economy {
   }
   
   
-  public HoloArcade(Session s) throws Exception {
+  public Holocade(Session s) throws Exception {
     super(s) ;
   }
   
@@ -56,7 +56,7 @@ public class HoloArcade extends Venue implements Economy {
   /**  Upgrades, economic functions and behaviour implementations-
     */
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
-    HoloArcade.class, "arcade_upgrades"
+    Holocade.class, "arcade_upgrades"
   ) ;
   public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
@@ -120,7 +120,7 @@ public class HoloArcade extends Venue implements Economy {
   
   
   public String fullName() {
-    return "Holo-Arcade" ;
+    return "Holocade" ;
   }
   
   
@@ -131,9 +131,8 @@ public class HoloArcade extends Venue implements Economy {
   
   public String helpInfo() {
     return
-      "The Holo-Arcade affords musicians, artists, performers and the lay "+
-      "public a chance to congregate and either exhibit or appreciate their "+
-      "work." ;
+      "The Holocade affords musicians, artists, performers and the lay public "+
+      "a chance to congregate and either exhibit or appreciate their work." ;
   }
   
   
@@ -143,60 +142,3 @@ public class HoloArcade extends Venue implements Economy {
 }
 
 
-
-
-/*
-HYPNOGOGIC_TRAINING = new Upgrade(
-  "Hypnogogic Training",
-  "Weaves subliminal suggestions into the display matrix to induce "+
-  "desired mental states.  May trigger addictive response.",
-  400, null, 1, null, ALL_UPGRADES
-),
-ESP_INDUCTION = new Upgrade(
-  "ESP Induction",
-  "Helps triggers emergence of latent psyonic abilities within "+
-  "susceptible subjects.",
-  350, null, 1, HYPNOGOGIC_TRAINING, ALL_UPGRADES
-) ;
-//*/
-/*
-final static int
-  HYPNO_NONE      =  0,
-  HYPNO_LEARNING  =  1,
-  HYPNO_PLEASURE  =  2,
-  HYPNO_OBEDIENCE =  3,
-  HYPNO_ESP       =  4,
-  HYPNO_TYPES[]   = { 0, 1, 2, 3, 4 } ;
-
-//
-//  TODO:  Cut these out or simplify.  (Save for detention bloc?)
-final static String HYPNO_NAMES[] = {
-  "None",
-  "Accelerated Learning",
-  "Pleasure Centre Stimulus",
-  "Obedience Conditioning",
-  "ESP Trigger Induction"
-} ;
-private int hypnoType = HYPNO_NONE ;
-//*/
-
-
-/*
-public void writeInformation(Description d, int categoryID, HUD UI) {
-  super.writeInformation(d, categoryID, UI) ;
-  if (categoryID != 3 || ! structure.intact()) return ;
-  
-  final boolean hasESP = structure.upgradeLevel(ESP_INDUCTION) > 0 ;
-  
-  if (structure.upgradeLevel(HYPNOGOGIC_TRAINING) > 0) {
-    d.append("\n\nHypnogogic Training:") ;
-    for (final int type : HYPNO_TYPES) {
-      if (type == HYPNO_ESP && ! hasESP) continue ;
-      d.append("\n  ") ;
-      d.append(new Description.Link(HYPNO_NAMES[type]) {
-        public void whenClicked() { hypnoType = type ; }
-      }, type == hypnoType ? Colour.YELLOW : Colour.BLUE) ;
-    }
-  }
-}
-//*/

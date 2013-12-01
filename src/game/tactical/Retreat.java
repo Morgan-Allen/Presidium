@@ -18,8 +18,8 @@ public class Retreat extends Plan implements Abilities {
   
   /**  Constants, field definitions, constructors and save/load methods-
     */
-  static boolean verbose = false ;
-  Target safePoint = null ;
+  static boolean verbose = true ;
+  Boardable safePoint = null ;
   
   
   public Retreat(Actor actor) {
@@ -27,7 +27,7 @@ public class Retreat extends Plan implements Abilities {
   }
   
   
-  public Retreat(Actor actor, Target safePoint) {
+  public Retreat(Actor actor, Boardable safePoint) {
     super(actor) ;
     this.safePoint = safePoint ;
   }
@@ -35,7 +35,7 @@ public class Retreat extends Plan implements Abilities {
 
   public Retreat(Session s) throws Exception {
     super(s) ;
-    this.safePoint = s.loadTarget() ;
+    this.safePoint = (Boardable) s.loadTarget() ;
   }
   
   
@@ -49,17 +49,33 @@ public class Retreat extends Plan implements Abilities {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
-    float danger = dangerAtSpot(actor.origin(), actor, actor.mind.awareOf()) ;
+    float danger = dangerAtSpot(
+      actor.origin(), actor, null, actor.mind.awareOf()
+    ) ;
     danger += priorityMod / ROUTINE ;
-    danger *= actor.traits.scaleLevel(NERVOUS) ;
     if (danger <= 0) return 0 ;
-    if (verbose) I.sayAbout(actor, "Perceived danger: "+danger) ;
-    return Visit.clamp(danger * ROUTINE, 0, PARAMOUNT) ;
+    
+    final float stress = Visit.clamp(
+      actor.health.stressPenalty() +
+      actor.health.injuryLevel(), 0, 1
+    ) ;
+    danger = Math.max(danger, stress * 2) ;
+    danger *= actor.traits.scaleLevel(NERVOUS) ;
+    //danger = ((1 - stress) * danger) + (stress * 2) ;
+    
+    if (verbose && I.talkAbout == actor) {
+      I.say("Perceived danger: "+danger+", stress: "+stress) ;
+    }
+    if (danger <= 0) return 0 ;
+    return Visit.clamp(danger * PARAMOUNT, 0, PARAMOUNT * 2) ;
   }
   
   
   protected Behaviour getNextStep() {
-    if (safePoint == null || actor.aboard() == safePoint) {
+    if (
+      safePoint == null || actor.aboard() == safePoint ||
+      safePoint.pathType() == Tile.PATH_BLOCKS
+    ) {
       safePoint = nearestHaven(actor, null) ;
       priorityMod *= 0.5f ;
       if (priorityMod < 0.25f) priorityMod = 0 ;
@@ -96,25 +112,36 @@ public class Retreat extends Plan implements Abilities {
   
   /**  These methods select safe points to withdraw to in a local area.
     */
-  public static Tile pickWithdrawPoint(
+  public static Target pickWithdrawPoint(
     Actor actor, float range,
     Target target, float salt
   ) {
-    final int numPicks = 3 ;  //Make this an argument, instead of range?
-    Tile pick = actor.origin() ;
-    float bestRating = dangerAtSpot(pick, actor, actor.mind.awareOf()) ;
+    final int numPicks = 3 ;  // TODO:  Make this an argument, instead of range
+    Target pick = actor.aboard() ;
+    float bestRating = salt > 0 ?
+      Float.POSITIVE_INFINITY : Float.NEGATIVE_INFINITY ;
     for (int i = numPicks ; i-- > 0 ;) {
-      
       //
-      //  TODO:  Check by compass-point directions instead of purely at random.
-      final Tile tried = Spacing.pickRandomTile(actor, range, actor.world()) ;
+      //  TODO:  Check by compass-point directions instead of purely at random?
+      Tile tried = Spacing.pickRandomTile(actor, range, actor.world()) ;
       if (tried == null) continue ;
+      tried = Spacing.nearestOpenTile(tried, target) ;
+      ///I.say("Tried is: "+tried) ;
       if (Spacing.distance(tried, target) > range) continue ;
       
       //
-      //  TODO:  USE THE DANGER MAP INSTEAD.  Significantly cheaper.
-      float tryRating = dangerAtSpot(tried, actor, actor.mind.awareOf()) ;
+      //  Use the danger map if possible, since it's substantially cheaper
+      //  TODO:  Have every actor assigned to a base?  ...Probably safer.
+      float tryRating ;
+      if (actor.base() != null) {
+        tryRating = actor.base().dangerMap.shortTermVal(tried) ;
+      }
+      else {
+        tryRating = dangerAtSpot(tried, actor, null, actor.mind.awareOf()) ;
+      }
+      
       tryRating += (Rand.num() - 0.5f) * salt ;
+      if (salt < 0) tryRating *= -1 ;
       if (tryRating < bestRating) { bestRating = tryRating ; pick = tried ; }
     }
     return pick ;
@@ -122,14 +149,46 @@ public class Retreat extends Plan implements Abilities {
   
   
   public static float dangerAtSpot(
-    Target spot, Actor actor, Batch <Element> seen
+    Target spot, Actor actor, Actor enemy, Batch <Element> seen
   ) {
+    if (spot == null) return 0 ;
+
+    // final boolean report = verbose && I.talkAbout == actor ;
+    
+    final float basePower = Combat.combatStrength(actor, enemy) ;
+    float sumAllies = basePower, sumEnemies = 0 ;
+    
+    //float estimate = 0 - basePower ;
+
+    for (Element m : seen) {
+      if (m == actor || ! (m instanceof Actor)) continue ;
+      final Actor near = (Actor) m ;
+      if (near.indoors() || ! near.health.conscious()) continue ;
+      
+      final float relation = near.mind.relation(actor) ;
+      final float power = Combat.combatStrength(near, enemy) ;
+      if (relation > 0) {
+        sumAllies += power ;
+      }
+      if (relation < 0) {
+        sumEnemies += power ;
+      }
+    }
+    
+    return sumEnemies / (sumEnemies + sumAllies) ;
+  }
+    
+    /*
     //
     //  Get a reading of threats based on all actors visible to this one, and
     //  their distance from the spot in question.  TODO:  Retain awareness
     //  longer?
     final boolean report = verbose && I.talkAbout == actor ;
     if (report) I.say("\n"+actor+" GETTING DANGER AT "+spot) ;
+    
+    //
+    //  TODO:  What about regional danger estimates?  Use twice the regional
+    //  danger, I would say, and take the maximum value.
     
     //float sumDanger = 0, minDanger = 0 ;
     float sumThreats = 0, sumAllies = Combat.combatStrength(actor, null) ;
@@ -166,15 +225,17 @@ public class Retreat extends Plan implements Abilities {
     final float estimate = sumThreats / (sumThreats + sumAllies) ;
     if (report) I.say("Total danger is: "+estimate) ;
     return estimate ;
-  }
+    //*/
+  //}
   
   
   
   /**  These methods select safe venues to run to, over longer distances.
     */
-  public static Target nearestHaven(Actor actor, Class prefClass) {
+  public static Boardable nearestHaven(Actor actor, Class prefClass) {
     //
     //  TODO:  Use the list of venues the actor is aware of?
+    if (actor == null) I.say("NO ACTOR!") ;
     final Presences p = actor.world().presences ;
     int numC = 3 ;
     
@@ -206,7 +267,7 @@ public class Retreat extends Plan implements Abilities {
       actor, actor.health.sightRange(), actor, 0.1f
     ) ;
     
-    return (Target) picked ;
+    return (Boardable) picked ;
   }
   
   
@@ -216,6 +277,7 @@ public class Retreat extends Plan implements Abilities {
     //  dangerous area.
     if (! (t instanceof Venue)) return 1 ;
     final Venue haven = (Venue) t ;
+    if (! haven.structure.intact()) return -1 ;
     float rating = 1 ;
     if (haven.getClass() == prefClass) rating *= 4 ;
     if (haven.base() == actor.base()) rating *= 3 ;

@@ -163,7 +163,7 @@ public abstract class Segment extends Venue implements TileConstants {
       if (n == null) continue ;
       if (n.owner() != null && n.owner().getClass() == this.getClass()) {
         final Segment s = (Segment) n.owner() ;
-        if (prior != null && prior.contains(s)) continue ;
+        if (prior != null && prior.includes(s)) continue ;
         s.refreshFromNear(prior) ;
       }
     }

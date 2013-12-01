@@ -33,16 +33,18 @@ public abstract class ActorMind implements Abilities {
     MAX_RELATIONS = 100,
     MAX_VALUES    = 100 ;
   
-  private static boolean verbose = false ;
+  private static boolean
+    reactionsVerbose = false ,
+    updatesVerbose   = false ;
   
   
   final protected Actor actor ;
   
-  protected Stack <Behaviour> agenda = new Stack() ;
-  protected List <Behaviour> todoList = new List() ;
+  final Stack <Behaviour> agenda = new Stack() ;
+  final List <Behaviour> todoList = new List() ;
   
-  protected Table <Element, Session.Saveable> seen = new Table() ;
-  protected Table <Accountable, Relation> relations = new Table() ;
+  final Table <Element, Session.Saveable> seen = new Table() ;
+  final Table <Accountable, Relation> relations = new Table() ;
   
   protected Mission mission ;
   protected Venue home ;
@@ -114,6 +116,11 @@ public abstract class ActorMind implements Abilities {
   
   
   public boolean awareOf(Element e) {
+    return seen.get(e) != null ;
+  }
+  
+  
+  public boolean hasSeen(Element e) {
     return seen.get(e) != null ;
   }
   
@@ -193,6 +200,10 @@ public abstract class ActorMind implements Abilities {
     //  Finally, add reactions to anything novel-
     for (Element NS : justSaw) {
       final Behaviour reaction = reactionTo(NS) ;
+      if (reactionsVerbose && I.talkAbout == actor) {
+        I.say("Just saw: "+NS) ;
+        I.say("Reaction is: "+reaction) ;
+      }
       if (couldSwitchTo(reaction)) assignBehaviour(reaction) ;
     }
   }
@@ -208,9 +219,15 @@ public abstract class ActorMind implements Abilities {
     if (work != null && work.destroyed()) work = null ;
     if (numUpdates % 10 == 0) {
       for (Behaviour b : todoList) if (b.finished()) todoList.remove(b) ;
-      final Behaviour
-        last = rootBehaviour(),
-        next = nextBehaviour() ;
+      final Behaviour last = rootBehaviour() ;
+      final Behaviour next = nextBehaviour() ;
+      
+      if (updatesVerbose && I.talkAbout == actor) {
+        I.say("\nPerformed periodic AI update.") ;
+        I.say("  LAST PLAN: "+last+" "+last.priorityFor(actor)) ;
+        I.say("  NEXT PLAN: "+next+" "+next.priorityFor(actor)) ;
+        I.say("\n") ;
+      }
       if (couldSwitch(last, next)) assignBehaviour(next) ;
     }
     for (Behaviour b : agenda) if (b.monitor(actor)) break ;
@@ -222,8 +239,10 @@ public abstract class ActorMind implements Abilities {
       notDone = new Choice(actor, todoList).weightedPick(0),
       newChoice = createBehaviour(),
       taken = couldSwitch(notDone, newChoice) ? newChoice : notDone ;
-    if (verbose && I.talkAbout == actor) {
-      I.say("  Persistance: "+persistance()) ;
+    
+    if (updatesVerbose && I.talkAbout == actor) {
+      //I.say("  Persistance: "+persistance()) ;
+      I.say("  LAST PLAN: "+rootBehaviour()) ;
       I.say("  NOT DONE: "+notDone) ;
       I.say("  NEW CHOICE: "+newChoice) ;
       I.say("  CURRENT FAVOURITE: "+taken) ;
@@ -240,13 +259,16 @@ public abstract class ActorMind implements Abilities {
   protected Action getNextAction() {
     final int MAX_LOOP = 100 ;  // Safety feature, see below...
     for (int loop = MAX_LOOP ; loop-- > 0 ;) {
-      if (verbose) I.sayAbout(actor, actor+" in action loop.") ;
+      if (updatesVerbose) I.sayAbout(actor, "...in action loop.") ;
       //
       //  If all current behaviours are complete, generate a new one.
       if (agenda.size() == 0) {
+        if (updatesVerbose && I.talkAbout == actor) {
+          I.say("Current agenda is empty!") ;
+        }
         final Behaviour taken = nextBehaviour() ;
         if (taken == null) {
-          if (verbose) I.sayAbout(actor, "No next behaviour!") ;
+          if (updatesVerbose) I.sayAbout(actor, "No next behaviour!") ;
           return null ;
         }
         pushBehaviour(taken) ;
@@ -258,7 +280,7 @@ public abstract class ActorMind implements Abilities {
       final Behaviour current = topBehaviour() ;
       final Behaviour next = current.nextStepFor(actor) ;
       final boolean isDone = current.finished() ;
-      if (verbose && I.talkAbout == actor) {
+      if (updatesVerbose && I.talkAbout == actor) {
         I.say("  Current action "+current) ;
         I.say("  Next step "+next) ;
         I.say("  Done "+isDone) ;
@@ -270,7 +292,10 @@ public abstract class ActorMind implements Abilities {
         popBehaviour() ;
       }
       else if (current instanceof Action) {
-        if (verbose) I.sayAbout(actor, "Next action: "+current) ;
+        if (updatesVerbose && I.talkAbout == actor) {
+          I.say("Next action: "+current) ;
+          I.say("Agenda size: "+agenda.size()) ;
+        }
         return (Action) current ;
       }
       else {
@@ -363,14 +388,20 @@ public abstract class ActorMind implements Abilities {
   /**  Methods related to maintaining the agenda stack-
     */
   private void pushBehaviour(Behaviour b) {
-    if (todoList.contains(b)) todoList.remove(b) ;
+    if (todoList.includes(b)) todoList.remove(b) ;
     agenda.addFirst(b) ;
+    if (updatesVerbose && I.talkAbout == actor) {
+      I.say("PUSHING BEHAVIOUR: "+b) ;
+    }
     actor.world().activities.toggleActive(b, true) ;
   }
   
   
   private Behaviour popBehaviour() {
     final Behaviour b = agenda.removeFirst() ;
+    if (updatesVerbose && I.talkAbout == actor) {
+      I.say("POPPING BEHAVIOUR: "+b) ;
+    }
     actor.world().activities.toggleActive(b, false) ;
     if (b != null) b.onSuspend() ;
     return b ;
@@ -379,13 +410,13 @@ public abstract class ActorMind implements Abilities {
   
   public void assignBehaviour(Behaviour behaviour) {
     if (behaviour == null) I.complain("CANNOT ASSIGN NULL BEHAVIOUR.") ;
-    if (verbose) I.sayAbout(actor, "Assigning behaviour "+behaviour) ;
+    if (updatesVerbose) I.sayAbout(actor, "Assigning behaviour "+behaviour) ;
     actor.assignAction(null) ;
     final Behaviour replaced = rootBehaviour() ;
     cancelBehaviour(replaced) ;
     pushBehaviour(behaviour) ;
     if (replaced != null && ! replaced.finished()) {
-      if (verbose) I.sayAbout(actor, " SAVING PLAN AS TODO: "+replaced) ;
+      if (updatesVerbose) I.sayAbout(actor, " SAVING PLAN AS TODO: "+replaced) ;
       todoList.include(replaced) ;
     }
   }
@@ -432,11 +463,16 @@ public abstract class ActorMind implements Abilities {
     final float
       lastPriority = last.priorityFor(actor),
       persist = persistance(),
-      margin = Math.min(
+      threshold = Math.min(
         lastPriority + persist,
         lastPriority * (1 + (persist / 2))
-      ) ;
-    return next.priorityFor(actor) >= margin ;
+      ),
+      nextPriority = next.priorityFor(actor) ;
+    if (reactionsVerbose && I.talkAbout == actor) {
+      I.say("Last/next priority is: "+lastPriority+"/"+nextPriority) ;
+      I.say("Threshold is: "+threshold) ;
+    }
+    return nextPriority >= threshold ;
   }
   
   
@@ -454,7 +490,7 @@ public abstract class ActorMind implements Abilities {
   }
   
   
-  public Stack <Behaviour> agenda() {
+  public Series <Behaviour> agenda() {
     return agenda ;
   }
   
@@ -493,7 +529,7 @@ public abstract class ActorMind implements Abilities {
       baseUnit += (100 + p.salary()) / 2f ;
     }
     baseUnit /= 2f ;
-    if (verbose) I.sayAbout(actor, actor+" greed unit is: "+baseUnit) ;
+    //if (updatesVerbose) I.sayAbout(actor, actor+" greed unit is: "+baseUnit) ;
     return (credits / baseUnit) * actor.traits.scaleLevel(ACQUISITIVE) ;
   }
   

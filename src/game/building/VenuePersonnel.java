@@ -187,7 +187,7 @@ public class VenuePersonnel {
         applications.remove(oA) ;
       }
       else {
-        oA.setHiringFee(Migration.signingCost(oA)) ;
+        oA.setHiringFee(FindWork.signingCost(oA)) ;
       }
     }
     //

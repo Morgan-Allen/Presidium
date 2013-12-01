@@ -36,7 +36,7 @@ public class Action implements Behaviour, Model.AnimNames {
   final public Method toCall ;
   
   private float priority ;
-
+  
   private int properties ;
   private byte inRange = -1 ;
   private Target actionTarget, moveTarget ;
@@ -267,8 +267,9 @@ public class Action implements Behaviour, Model.AnimNames {
       I.say("Move target is: "+moveTarget) ;
       I.say("Closed/facing: "+closed+"/"+facing+", move okay? "+moveOK) ;
       
-      I.say("Distance: "+moveDist) ;
-      I.say("Faced is: "+faced) ;
+      I.say("Is ranged? "+((properties & RANGED) != 0)) ;
+      I.say("Distance: "+moveDist+", min: "+minDist) ;
+      I.say("Faced is: "+faced+"\n") ;
     }
     
     if (moveOK) actor.pathing.headTowards(faced, moveRate(), ! closed) ;

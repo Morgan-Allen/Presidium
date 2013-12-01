@@ -86,7 +86,7 @@ public class KeyInput {
   }
   
   public static void addListener(Listener l) {
-    if (! listeners.contains(l)) listeners.addLast(l) ;
+    if (! listeners.includes(l)) listeners.addLast(l) ;
   }
 }
 

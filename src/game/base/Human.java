@@ -321,8 +321,9 @@ public class Human extends Actor implements Abilities {
     
     for (Item item : gear.allItems()) d.append("\n  "+item) ;
     d.append("\n  "+((int) gear.credits())+" Credits") ;
-    ///d.append("\n  Fuel Cells: "+((int) gear.fuelCells)) ;
-    ///d.append("\n  Rations: "+((int) gear.currentRations)) ;
+    if (gear.hasShields()) {
+      d.append("\n  Fuel Cells: "+((int) gear.fuelCells())) ;
+    }
   }
   
   

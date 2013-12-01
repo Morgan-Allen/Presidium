@@ -28,7 +28,7 @@ public class DebugSituation extends Scenario implements Economy {
     */
   public static void main(String args[]) {
     DebugSituation test = new DebugSituation() ;
-    PlayLoop.setupAndLoop(test.UI, test) ;
+    PlayLoop.setupAndLoop(test.UI(), test) ;
   }
   
   
@@ -37,8 +37,9 @@ public class DebugSituation extends Scenario implements Economy {
   
   
   protected DebugSituation() {
-    super("saves/test_pathing.rep") ;
+    super("test_situation", true) ;
   }
+  
   
   public DebugSituation(Session s) throws Exception {
     super(s) ;
@@ -60,12 +61,12 @@ public class DebugSituation extends Scenario implements Economy {
     //if (true) return false ;
     try {
       PlayLoop.loadGame("saves/test_pathing.rep", true) ;
-      final Base base = PlayLoop.currentScenario().base ;
+      final Base base = PlayLoop.currentScenario().base() ;
       if (base.credits() < 500) base.incCredits(500 - base.credits()) ;
       PlayLoop.setGameSpeed(1.0f) ;
       GameSettings.psyFree = true ;
       //GameSettings.pathFree = true ;
-      final World world = PlayLoop.currentScenario().world ;
+      final World world = PlayLoop.currentScenario().world() ;
       world.ephemera.applyFadeColour(Colour.GREY) ;
       return true ;
     }
@@ -120,7 +121,7 @@ public class DebugSituation extends Scenario implements Economy {
     */
   public void renderVisuals(Rendering rendering) {
     super.renderVisuals(rendering) ;
-    if (UI.currentTask() == null) {
+    if (UI().currentTask() == null) {
       //highlightPlace() ;
       //highlightPath() ;
     }
@@ -160,17 +161,17 @@ public class DebugSituation extends Scenario implements Economy {
     */
   private void introduceCitizen(Tile free) {
     if (free == null) return ;
-    citizen = new Human(Background.ARTIFICER, base) ;
-    citizen.enterWorldAt(free.x, free.y, world) ;
-    UI.selection.pushSelection(citizen, true) ;
+    citizen = new Human(Background.ARTIFICER, base()) ;
+    citizen.enterWorldAt(free.x, free.y, world()) ;
+    UI().selection.pushSelection(citizen, true) ;
   }
   
   
   private void assignRandomTarget(Human c) {
     if (c == null) return ;
     if (c.mind.topBehaviour() == lastAction) return ;
-    final int size = world.size ;
-    Tile dest = world.tileAt(Rand.index(size), Rand.index(size)) ;
+    final int size = world().size ;
+    Tile dest = world().tileAt(Rand.index(size), Rand.index(size)) ;
     dest = Spacing.nearestOpenTile(dest, dest) ;
     if (dest == null) return ;
     I.say("SENDING ACTOR TO: "+dest) ;

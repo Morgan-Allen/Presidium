@@ -64,6 +64,11 @@ import src.util.* ;
 //  TODO:  You need to have some generalised routines for getting actors
 //  and venues for consideration.
 
+//  TODO:  Have a 'fear' metric built in to determine retreat behaviour, that
+//  can build up gradually over a few seconds?
+
+
+
 
 public class HumanMind extends ActorMind implements Abilities {
   
@@ -73,6 +78,8 @@ public class HumanMind extends ActorMind implements Abilities {
     */
   private static boolean verbose = false ;
   
+  //  private Background careerInterest ;
+  //  private float lifeSatisfaction ;
   
   
   
@@ -80,9 +87,11 @@ public class HumanMind extends ActorMind implements Abilities {
     super(actor) ;
   }
   
+  
   protected void loadState(Session s) throws Exception {
     super.loadState(s) ;
   }
+  
   
   protected void saveState(Session s) throws Exception {
     super.saveState(s) ;
@@ -95,6 +104,7 @@ public class HumanMind extends ActorMind implements Abilities {
   protected Behaviour createBehaviour() {
     final Choice choice = new Choice(actor) ;
     choice.add(mission) ;
+    choice.add(new Retreat(actor)) ;
     
     addReactions(choice) ;
     addWork(choice) ;
@@ -104,7 +114,9 @@ public class HumanMind extends ActorMind implements Abilities {
     
     //
     //  TODO:  Mission application needs to become a Plan in itself.
-    if (actor.health.conscious()) applyForMissions(chosen) ;
+    applyForMissions(chosen) ;
+    FindWork.lookForJob((Human) actor, actor.base()) ;
+    FindHome.lookForHome((Human) actor, actor.base()) ;
     return chosen ;
   }
   
@@ -112,16 +124,6 @@ public class HumanMind extends ActorMind implements Abilities {
   protected void updateAI(int numUpdates) {
     super.updateAI(numUpdates) ;
     if (numUpdates % 10 == 0) {
-      if (actor.base() != null) {
-        Migration.lookForJob((Human) actor, actor.base()) ;
-      }
-      if (this.home == null && (work == null || work instanceof Venue)) {
-        final Holding newHome = Holding.findHoldingFor(actor) ;
-        if (newHome != null) {
-          if (! newHome.inWorld()) newHome.doPlace(newHome.origin(), null) ;
-          setHomeVenue(newHome) ;
-        }
-      }
     }
   }
   
@@ -191,6 +193,7 @@ public class HumanMind extends ActorMind implements Abilities {
     //  Training and self-improvement-
     choice.add(Training.nextDrillFor(actor)) ;
     choice.add(Research.nextResearchFor(actor)) ;
+    choice.add(Patrolling.wandering(actor)) ;
     //
     //  Consider going home to rest, or finding a recreational facility of
     //  some kind.  That requires iterating over various venues.

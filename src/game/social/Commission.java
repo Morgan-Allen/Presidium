@@ -89,7 +89,7 @@ public class Commission extends Plan {
     final int maxTime = World.STANDARD_DAY_LENGTH * 10 ;
     if (actor.world().currentTime() - orderDate > maxTime) return true ;
     final boolean
-      ongoing = shop.stocks.specialOrders().contains(order),
+      ongoing = shop.stocks.specialOrders().includes(order),
       hasItem = shop.stocks.hasItem(item) ;
     if (ongoing || hasItem) return false ;
     return true ;

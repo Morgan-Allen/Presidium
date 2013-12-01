@@ -93,7 +93,7 @@ public class Power implements Abilities {
   
   
   public static void applyTimeDilation(float gameSpeed, Scenario scenario) {
-    final Actor caster = scenario.base.ruler() ;
+    final Actor caster = scenario.base().ruler() ;
     if (caster == null || GameSettings.psyFree) return ;
     
     final float
@@ -105,7 +105,7 @@ public class Power implements Abilities {
   
   
   public static void applyResting(float gameSpeed, Scenario scenario) {
-    final Actor caster = scenario.base.ruler() ;
+    final Actor caster = scenario.base().ruler() ;
     if (caster == null || GameSettings.psyFree) {
       PlayLoop.setGameSpeed(1) ;
       return ;
@@ -122,7 +122,7 @@ public class Power implements Abilities {
   
   
   public static void applyWalkPath(Scenario scenario) {
-    final Actor caster = scenario.base.ruler() ;
+    final Actor caster = scenario.base().ruler() ;
     if (caster == null || GameSettings.psyFree) return ;
     
     final float
@@ -135,7 +135,7 @@ public class Power implements Abilities {
   
   
   public static void applyDenyVision(Scenario scenario) {
-    final Actor caster = scenario.base.ruler() ;
+    final Actor caster = scenario.base().ruler() ;
     if (caster == null || GameSettings.psyFree) return ;
     
     final float
@@ -148,8 +148,8 @@ public class Power implements Abilities {
   
   final public static Power
     
-    WALK_THE_PATH = new Power(
-      "Walk The Path", PLAYER_ONLY, "power_remembrance.gif",
+    FORESIGHT = new Power(
+      "Foresight", PLAYER_ONLY, "power_foresight.gif",
       "Accept your vision of events and allow them to be fulfilled.\n(Saves "+
       "current game.)"
     ) {
@@ -183,8 +183,8 @@ public class Power implements Abilities {
       }
     },
     
-    DENY_THE_VISION = new Power(
-      "Deny The Vision", PLAYER_ONLY, "power_foresight.gif",
+    REMEMBRANCE = new Power(
+      "Remembrance", PLAYER_ONLY, "power_remembrance.gif",
       "Aborts your precognitive vision and lets you choose a different path."+
       "\n(Loads a previous game.)"
     ) {
@@ -271,7 +271,7 @@ public class Power implements Abilities {
         }
         
         final float radius = 9 + (bonus * bonus) ;
-        final Base played = PlayLoop.currentScenario().base ;
+        final Base played = PlayLoop.currentScenario().base() ;
         played.intelMap.liftFogAround(tile.x, tile.y, radius) ;
         
         final float SS = radius / 1.5f ;
@@ -361,14 +361,14 @@ public class Power implements Abilities {
         final Actor subject = (Actor) selected ;
         
         if (caster == null || GameSettings.psyFree) {
-          subject.gear.boostShields(5) ;
+          subject.gear.boostShields(5, false) ;
           return true ;
         }
         
         final float
           bonus = caster.traits.useLevel(TRANSDUCTION) / 2,
           cost = 5 ;
-        subject.gear.boostShields(5 + bonus) ;
+        subject.gear.boostShields(5 + bonus, false) ;
         caster.health.adjustPsy(0 - cost) ;
         caster.traits.practiceAgainst(10, cost, TRANSDUCTION) ;
         return true ;
@@ -518,7 +518,7 @@ public class Power implements Abilities {
     
     
     BASIC_POWERS[] = {
-        WALK_THE_PATH, DENY_THE_VISION,
+        FORESIGHT, REMEMBRANCE,
         TIME_DILATION, REMOTE_VIEWING,
         TELEKINESIS, FORCEFIELD,
         SUSPENSION,

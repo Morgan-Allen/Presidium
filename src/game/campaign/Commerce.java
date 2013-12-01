@@ -209,7 +209,7 @@ public class Commerce implements Economy {
       quitChance = Visit.clamp(quitChance, 0.1f, 0.9f) / 2 ;
       if (Rand.num() > quitChance) {
         if (verbose) I.say("  "+a+" looking for job from offworld...") ;
-        Migration.lookForJob(a, base) ;
+        FindWork.lookForJob(a, base) ;
         candidates.addLast(a) ;
       }
       else if (verbose) I.say("  "+a+" has quit offworld job-hunting...") ;

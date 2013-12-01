@@ -449,7 +449,7 @@ public abstract class Venue extends Fixture implements
       final String AN = " ("+I.shorten(squalor * -10, 1)+")" ;
       d.append("\n  Ambience:  "+Ecology.squalorDesc(squalor)+AN) ;
     }
-    final float danger = base().dangerMap.valAt(world.tileAt(this)) ;
+    final float danger = base().dangerMap.longTermVal(world.tileAt(this)) ;
     final String DN = " ("+I.shorten(danger, 1)+")" ;
     d.append("\n  Danger level: "+Ecology.dangerDesc(danger)+DN) ;
     d.append("\n\n") ;
@@ -569,7 +569,7 @@ public abstract class Venue extends Fixture implements
   private static Upgrade lastCU ;  //last clicked...
   
   private void describeUpgrades(Description d, HUD UI) {
-    final Base played = PlayLoop.currentScenario().base ;
+    final Base played = PlayLoop.currentScenario().base() ;
     
     if (played == base && ! privateProperty()) {
       d.append("Orders: ") ;

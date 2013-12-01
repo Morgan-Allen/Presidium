@@ -20,10 +20,14 @@ public class Combat extends Plan implements Abilities {
   
   /**  Data fields, constructors and save/load methods-
     */
-  static boolean verbose = false, reportStrength = false ;
+  private static boolean
+    verbose        = false,
+    reportEvents   = false,
+    reportStrength = false ;
+  
   final static int
-    STYLE_RANGED = 0,
-    STYLE_MELEE  = 1,
+    STYLE_RANGED = 0,  //TODO:  Replace with hit-and-run/skirmish
+    STYLE_MELEE  = 1,  //TODO:  Replace with stand ground/direct assault
     STYLE_EITHER = 2,
     ALL_STYLES[] = { 0, 1, 2 },
     
@@ -44,7 +48,7 @@ public class Combat extends Plan implements Abilities {
   } ;
   
   
-  final Element target ;
+  final Element target ;  //, concern. (in case of defensive action.)
   final int style, object ;
   
   
@@ -85,9 +89,12 @@ public class Combat extends Plan implements Abilities {
     */
   public float priorityFor(Actor actor) {
     if (isDead(target)) return 0 ;
+
+    final boolean report = verbose && begun() && I.talkAbout == actor ;
+    
     if (target instanceof Actor) {
       final Actor struck = (Actor) target ;
-      float BP = combatPriority(actor, struck, priorityMod, PARAMOUNT) ;
+      float BP = combatPriority(actor, struck, priorityMod, PARAMOUNT, report) ;
       return BP <= 0 ? 0 : BP + ROUTINE ;
     }
     if (target instanceof Venue) {
@@ -114,8 +121,8 @@ public class Combat extends Plan implements Abilities {
   }
   
   
-  public static float combatPriority(
-    Actor actor, Actor enemy, float winReward, float lossCost
+  protected static float combatPriority(
+    Actor actor, Actor enemy, float winReward, float lossCost, boolean report
   ) {
     if (actor == enemy) return 0 ;
     //
@@ -124,32 +131,23 @@ public class Combat extends Plan implements Abilities {
     //  TODO:  Fix up the Danger Map.  Needs to be smoother, area-wise.
     final Batch <Element> known = actor.mind.awareOf() ;
     known.include(enemy) ;
-    float danger = Retreat.dangerAtSpot(enemy, actor, known) ;
+    float danger = Retreat.dangerAtSpot(enemy, actor, enemy, known) ;
     if (actor.base() != null) {
       danger += Plan.dangerPenalty(enemy, actor) ;
     }
     final float chance = Visit.clamp(1 - danger, 0.1f, 0.9f) ;
     //
     //  Then we calculate the risk/reward ratio associated with the act-
-    /*
-    final Target victim = enemy.targetFor(Combat.class) ;
-    if (victim instanceof Actor) {
-      float mod = actor.mind.relation((Actor) victim) * PARAMOUNT ;
-      lossCost -= mod / 2 ;
-      winReward += mod / 2 ;
-    }
-    //*/
     float appeal = 0 ;
-    final float ER = threatFrom(actor, enemy) ;
+    final float ER = 0 - actor.mind.relation(enemy) * Plan.PARAMOUNT ;
     lossCost -= ER / 2 ;
     winReward += ER / 2 ;
-    appeal += ER * PARAMOUNT ;
     appeal += winReward ;
     appeal *= actor.traits.scaleLevel(AGGRESSIVE) ;
     appeal /= actor.traits.scaleLevel(NERVOUS   ) ;
     
     
-    if (verbose && I.talkAbout == actor) {
+    if (report) {
       I.say(
         "  "+actor+" considering COMBAT with "+enemy+
         ", time: "+actor.world().currentTime()
@@ -160,17 +158,19 @@ public class Combat extends Plan implements Abilities {
       ) ;
     }
     if (chance <= 0) {
-      if (verbose) I.sayAbout(actor, "  No chance of victory!\n") ;
+      if (report) I.say("  No chance of victory!\n") ;
       return 0 ;
     }
     appeal = (appeal * chance) - ((1 - chance) * lossCost) ;
-    if (verbose) I.sayAbout(actor, "  Final appeal: "+appeal+"\n") ;
+    if (report) I.say("  Final appeal: "+appeal+"\n") ;
     return appeal ;
   }
   
   
   
-  public static float threatFrom(Actor actor, Actor from) {
+  //public static float threatFrom(Actor actor, Actor from) {
+    
+    /*
     float baseThreat = 0 - actor.mind.relation(from), threatMult = 1 ;
     
     final Target victim = from.targetFor(Combat.class) ;
@@ -192,18 +192,8 @@ public class Combat extends Plan implements Abilities {
     if (baseThreat > 0) return threatMult ;
     if (baseThreat < 0) return 0 - threatMult ;
     return 0 ;
-  }
-  
-  
-  /*
-  public static float alliance(Actor a, Actor b) {
-    //
-    //  TODO:  Try averaging the two instead?  Or just base on one?  Replace
-    //  with a threatFrom() method, that includes things like retreat status,
-    //  et cetera?  ...Yes.  Factor it out.
-    return Math.min(a.mind.relation(b), b.mind.relation(a)) ;
-  }
-  //*/
+    //*/
+  //}
   
   
   //
@@ -275,15 +265,21 @@ public class Combat extends Plan implements Abilities {
   /**  Actual behaviour implementation-
     */
   protected Behaviour getNextStep() {
+    if (reportEvents && begun()) {
+      I.sayAbout(actor, "NEXT COMBAT STEP "+this.hashCode()) ;
+    }
     //
     //  This might need to be tweaked in cases of self-defence, where you just
     //  want to see off an attacker.
-    if (isDead(target)) return null ;
+    if (isDead(target) || priorityFor(actor) < 0) {
+      if (reportEvents && begun()) I.sayAbout(actor, "COMBAT COMPLETE") ;
+      return null ;
+    }
     Action strike = null ;
     final boolean melee = actor.gear.meleeWeapon() ;
     final boolean razes = target instanceof Venue ;
     final float danger = Retreat.dangerAtSpot(
-      actor.origin(), actor, actor.mind.awareOf()
+      actor.origin(), actor, null, actor.mind.awareOf()
     ) ;
     
     final String strikeAnim = melee ?
@@ -313,6 +309,7 @@ public class Combat extends Plan implements Abilities {
   
   
   private void configMeleeAction(Action strike, boolean razes, float danger) {
+    //if (reportEvents) I.sayAbout(actor, "Configuring melee attack.\n") ;
     final World world = actor.world() ;
     strike.setProperties(Action.QUICK) ;
     if (razes) {
@@ -328,25 +325,34 @@ public class Combat extends Plan implements Abilities {
   
   
   private void configRangedAction(Action strike, boolean razes, float danger) {
+    
     final float range = actor.health.sightRange() ;
     boolean underFire = actor.world().activities.includes(actor, Combat.class) ;
-    boolean tooFar = Spacing.distance(actor, target) > range ;
-    if ((Rand.num() < danger && underFire) || tooFar) {
-      final Tile WP = Retreat.pickWithdrawPoint(actor, range, target, 0.1f) ;
-      strike.setMoveTarget(WP) ;
-      strike.setProperties(Action.QUICK) ;
-    }
-    else if (razes && Rand.num() < 0.2f) {
-      final Tile alt = Spacing.pickRandomTile(actor, 3, actor.world()) ;
-      if ((Spacing.distance(alt, target) < range) && alt.owner() == null) {
-        strike.setMoveTarget(alt) ;
-        strike.setProperties(Action.QUICK) ;
+    if (razes && Rand.num() < 0.1f) underFire = true ;
+    
+    boolean dodges = false ;
+    if (actor.mind.hasSeen(target)) {
+      final float distance = Spacing.distance(actor, target) / range ;
+      //
+      //  If not under fire, consider advancing for a clearer shot-
+      if (Rand.num() < distance && ! underFire) {
+        final Target AP = Retreat.pickWithdrawPoint(
+          actor, range, target, -0.1f
+        ) ;
+        if (AP != null) { dodges = true ; strike.setMoveTarget(AP) ; }
       }
-      else strike.setProperties(Action.RANGED | Action.QUICK) ;
+      //
+      //  Otherwise, consider falling back for cover-
+      if (underFire && Rand.num() > distance) {
+        final Target WP = Retreat.pickWithdrawPoint(
+          actor, range, target, 0.1f
+        ) ;
+        if (WP != null) { dodges = true ; strike.setMoveTarget(WP) ; }
+      }
     }
-    else {
-      strike.setProperties(Action.RANGED | Action.QUICK) ;
-    }
+    
+    if (dodges) strike.setProperties(Action.QUICK) ;
+    else strike.setProperties(Action.RANGED | Action.QUICK) ;
   }
   
   
@@ -380,9 +386,9 @@ public class Combat extends Plan implements Abilities {
   ) {
     //
     //  TODO:  Allow for wear and tear to weapons/armour over time...
-    final boolean success = actor.traits.test(
+    final boolean success = actor.health.conscious() ? actor.traits.test(
       offence, target, defence, 0 - rangePenalty(actor, target), 1
-    ) ;
+    ) : true ;
     if (success) {
       float damage = actor.gear.attackDamage() * Rand.avgNums(2) ;
       damage -= target.gear.armourRating() * Rand.avgNums(2) ;
@@ -393,7 +399,6 @@ public class Combat extends Plan implements Abilities {
       if (damage != oldDamage) {
         OutfitType.applyFX(target.gear.outfitType(), target, actor, hit) ;
       }
-      
       if (hit) target.health.takeInjury(damage) ;
     }
     DeviceType.applyFX(actor.gear.deviceType(), actor, target, success) ;

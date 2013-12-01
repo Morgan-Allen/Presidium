@@ -7,8 +7,8 @@ import src.game.actors.* ;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.user.* ;
+import src.graphics.widgets.* ;
 import src.util.* ;
-
 import java.io.* ;
 
 
@@ -16,19 +16,12 @@ import java.io.* ;
 
 public class Scenario implements Session.Saveable {
   
-  /*
-  final public static String
-    SAVE_1ST = " (1st Save)",
-    SAVE_2ND = " (2nd Save)",
-    SAVE_3RD = " (3rd Save)",
-    SAVE_SUFFIXES[] = { SAVE_1ST, SAVE_2ND, SAVE_3RD } ;
-  //*/
   
+  private World world ;
+  private Base base ;
+  final boolean isDebug ;
   
-  final public World world ;
-  final public Base base ;
-  
-  final public BaseUI UI ;
+  private BaseUI UI ;
   private List <String> timeStamps = new List <String> () ;
   private String savesPrefix ;
   
@@ -38,16 +31,22 @@ public class Scenario implements Session.Saveable {
     this.world = world ;
     this.base = base ;
     this.savesPrefix = saveFile ;
+    this.isDebug = false ;
     
     UI = createUI(base, PlayLoop.rendering()) ;
   }
   
   
-  public Scenario(String saveFile) {
+  public Scenario(String saveFile, boolean isDebug) {
+    this.savesPrefix = saveFile ;
+    this.isDebug = isDebug ;
+    setupScenario() ;
+  }
+  
+  
+  private void setupScenario() {
     this.world = createWorld() ;
     this.base = createBase(world) ;
-    this.savesPrefix = saveFile ;
-    
     UI = createUI(base, PlayLoop.rendering()) ;
     configureScenario(world, base, UI) ;
   }
@@ -58,6 +57,7 @@ public class Scenario implements Session.Saveable {
     world = s.world() ;
     base = (Base) s.loadObject() ;
     savesPrefix = s.loadString() ;
+    isDebug = s.loadBool() ;
     for (int i = s.loadInt() ; i-- > 0 ;) timeStamps.add(s.loadString()) ;
     
     UI = createUI(base, PlayLoop.rendering()) ;
@@ -68,11 +68,17 @@ public class Scenario implements Session.Saveable {
   public void saveState(Session s) throws Exception {
     s.saveObject(base) ;
     s.saveString(savesPrefix) ;
+    s.saveBool(isDebug) ;
     s.saveInt(timeStamps.size()) ;
     for (String stamp : timeStamps) s.saveString(stamp) ;
     
     UI.saveState(s) ;
   }
+  
+  
+  public World world() { return world ; }
+  public Base base() { return base ; }
+  public BaseUI UI() { return UI ; }
   
   
   
@@ -97,6 +103,16 @@ public class Scenario implements Session.Saveable {
   
   
   protected void configureScenario(World world, Base base, BaseUI UI) {
+  }
+  
+  
+  protected void resetScenario() {
+    this.world = null ;
+    this.base = null ;
+    this.UI = null ;
+    PlayLoop.gameStateWipe() ;
+    setupScenario() ;
+    PlayLoop.setupAndLoop(UI, this) ;
   }
   
   
@@ -207,32 +223,45 @@ public class Scenario implements Session.Saveable {
   }
   
   
+  public static boolean loadedFrom(String prefix) {
+    final String fullPath = fullSavePath(prefix, CURRENT_SAVE) ;
+    final File file = new File(fullPath) ;
+    if (! file.exists()) return false ;
+    try {
+      PlayLoop.loadGame(fullPath, true) ;
+      return true ;
+    }
+    catch (Exception e) { I.report(e) ; }
+    return false ;
+  }
+  
+  
   
   
   /**  Methods for override by subclasses-
     */
   public boolean shouldExitLoop() {
-    /*
-    if (KeyInput.wasKeyPressed('r')) {
-      I.say("RESET MISSION?") ;
-      //resetGame() ;
-      return false ;
+    if (isDebug) {
+      if (KeyInput.wasKeyPressed('r')) {
+        I.say("RESET MISSION?") ;
+        resetScenario() ;
+        return false ;
+      }
+      if (KeyInput.wasKeyPressed('f')) {
+        I.say("Paused? "+PlayLoop.paused()) ;
+        PlayLoop.setPaused(! PlayLoop.paused()) ;
+      }
+      if (KeyInput.wasKeyPressed('s')) {
+        I.say("SAVING GAME...") ;
+        PlayLoop.saveGame(fullSavePath(savesPrefix, CURRENT_SAVE)) ;
+        return false ;
+      }
+      if (KeyInput.wasKeyPressed('l')) {
+        I.say("LOADING GAME...") ;
+        PlayLoop.loadGame(fullSavePath(savesPrefix, CURRENT_SAVE), true) ;
+        return true ;
+      }
     }
-    if (KeyInput.wasKeyPressed('f')) {
-      I.say("Paused? "+PlayLoop.paused()) ;
-      PlayLoop.setPaused(! PlayLoop.paused()) ;
-    }
-    if (KeyInput.wasKeyPressed('s')) {
-      I.say("SAVING GAME...") ;
-      PlayLoop.saveGame(saveFile) ;
-      return false ;
-    }
-    if (KeyInput.wasKeyPressed('l')) {
-      I.say("LOADING GAME...") ;
-      PlayLoop.loadGame(saveFile) ;
-      return true ;
-    }
-    //*/
     return false ;
   }
   

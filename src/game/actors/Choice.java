@@ -43,7 +43,7 @@ public class Choice {
         I.say("  Rejected option: "+plan) ;
         I.say("  Priority: "+priority) ;
         I.say("  Finished/valid: "+finished+"/"+plan.valid()) ;
-        I.say("  Next step: "+nextStep) ;
+        I.say("  Next step: "+nextStep+"\n") ;
       }
       return false ;
     }

@@ -38,7 +38,7 @@ public class ShieldFX extends SFX {
   
   
   class Burst { float angle, timer ; }
-  public float radius = 1.0f ;
+  //public float radius = 1.0f ;
   private Stack <Burst> bursts = new Stack <Burst> () ;
   private float glowAlpha = 0.0f ;
   private static Mat3D rotMat = new Mat3D() ;
@@ -88,7 +88,7 @@ public class ShieldFX extends SFX {
   
   public Vec3D interceptPoint(Vec3D origin) {
     final Vec3D offset = new Vec3D().setTo(position).sub(origin) ;
-    final float newLength = offset.length() - this.radius ;
+    final float newLength = offset.length() - scale ;
     offset.scale(newLength / offset.length()) ;
     offset.add(origin) ;
     return offset ;
@@ -117,11 +117,11 @@ public class ShieldFX extends SFX {
   public void renderTo(Rendering rendering) {
     //
     //  First, establish coordinates for the halo corners-
-    final Vec3D off = new Vec3D(1.0f, 1.0f, 0).scale(radius) ;
+    final Vec3D off = new Vec3D(1.0f, 1.0f, 0).scale(scale) ;
     rendering.port.viewInvert(off) ;
     verts[0].setTo(position).add(off) ;
     verts[2].setTo(position).sub(off) ;
-    off.set(1.0f, -1.0f, 0).scale(radius) ;
+    off.set(1.0f, -1.0f, 0).scale(scale) ;
     rendering.port.viewInvert(off) ;
     verts[1].setTo(position).add(off) ;
     verts[3].setTo(position).sub(off) ;
@@ -146,7 +146,7 @@ public class ShieldFX extends SFX {
     rotMat.setIdentity().rotateZ((float) Math.toRadians(burst.angle)) ;
     for (Vec3D v : verts) {
       rotMat.trans(v) ;
-      v.scale(radius / 2f) ;
+      v.scale(scale / 2f) ;
       v.add(position) ;
     }
     GL11.glColor4f(1, 1, 1, Math.min(1, burst.timer * MAX_BURST_ALPHA)) ;

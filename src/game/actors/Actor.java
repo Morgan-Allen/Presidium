@@ -185,7 +185,11 @@ public abstract class Actor extends Mobile implements
 
     final Behaviour root = mind.rootBehaviour() ;
     if (root != null && root != actionTaken && root.finished() && OK) {
-      if (verbose) I.sayAbout(this, "  ROOT BEHAVIOUR COMPLETE... "+root) ;
+      if (verbose && I.talkAbout == this) {
+        I.say("  ROOT BEHAVIOUR COMPLETE... "+root) ;
+        I.say("  PRIORITY: "+root.priorityFor(this)) ;
+        I.say("  NEXT STEP: "+root.nextStepFor(this)) ;
+      }
       mind.cancelBehaviour(root) ;
       //world.schedule.scheduleNow(this) ;
     }

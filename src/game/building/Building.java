@@ -58,11 +58,11 @@ public class Building extends Plan implements Abilities {
     skillRating += actor.traits.chance(HARD_LABOUR, ROUTINE_DC) ;
     skillRating /= 2 ;
     
-    final boolean broke = built.base().credits() <= 0 ;
+    //final boolean broke = built.base().credits() <= 0 ;
     float impetus = skillRating * attachment ;
     impetus -= actor.traits.traitLevel(NATURALIST) / 10f ;
     impetus -= actor.traits.traitLevel(INDOLENT) / 10f ;
-    if (broke || impetus <= 0 || attachment <= 0) impetus = 0 ;
+    if (impetus <= 0 || attachment <= 0) impetus = 0 ;
     else impetus += attachment / 2f ;
     //
     //  If damage is higher than 50%, priority converges to maximum, regardless
@@ -96,7 +96,13 @@ public class Building extends Plan implements Abilities {
     //  Finally, scale, offset and clamp appropriately-
     impetus = (impetus * needRepair * URGENT) - competition ;
     impetus -= Plan.rangePenalty(actor, built) ;
-    if (! broke) impetus += priorityMod ;
+    
+    //
+    //  TODO:  What about native huts?  ...They won't have a credit balance.
+    final float brokeRating = 0 - built.base().credits() / 500f ;
+    if (brokeRating > 0) impetus -= brokeRating ;
+    
+    //if (! broke) impetus += priorityMod ;
     if (verbose) I.sayAbout(actor, "Priority for "+this+" is "+impetus) ;
     return Visit.clamp(impetus, 0, URGENT) ;
   }
@@ -130,7 +136,7 @@ public class Building extends Plan implements Abilities {
   /**  Behaviour implementation-
     */
   public boolean finished() {
-    if (super.finished() || built.base().credits() <= 0) return true ;
+    if (super.finished()) return true ;
     if (built.structure.hasWear()) return false ;
     if (built.structure.needsUpgrade()) return false ;
     return true ;
@@ -138,7 +144,6 @@ public class Building extends Plan implements Abilities {
   
   
   protected Behaviour getNextStep() {
-    if (built.base().credits() <= 0) return null ;
     if (verbose) I.sayAbout(actor, "Getting next build step?") ;
     
     if (built.structure.needsUpgrade() && built.structure.goodCondition()) {
@@ -174,6 +179,7 @@ public class Building extends Plan implements Abilities {
     //
     //  Double the rate of repair again if you have proper tools and materials.
     final boolean salvage = built.structure.needsSalvage() ;
+    final boolean free = GameSettings.buildFree ;
     int success = actor.traits.test(HARD_LABOUR, ROUTINE_DC, 1) ? 1 : 0 ;
     //
     //  TODO:  Base assembly DC (or other skills) on a Conversion for the
@@ -182,7 +188,7 @@ public class Building extends Plan implements Abilities {
       success *= actor.traits.test(ASSEMBLY, 5, 1) ? 2 : 1 ;
       final float amount = 0 - built.structure.repairBy(success * 5f / -2) ;
       final float cost = amount * built.structure.buildCost() ;
-      built.stocks.incCredits(cost * 0.5f) ;
+      if (! free) built.stocks.incCredits(cost * 0.5f) ;
     }
     else {
       success *= actor.traits.test(ASSEMBLY, 10, 0.5f) ? 2 : 1 ;
@@ -190,7 +196,7 @@ public class Building extends Plan implements Abilities {
       final boolean intact = built.structure.intact() ;
       final float amount = built.structure.repairBy(success * 5f / 2) ;
       final float cost = amount * built.structure.buildCost() ;
-      built.stocks.incCredits((0 - cost) * (intact ? 0.5f : 1)) ;
+      if (! free) built.stocks.incCredits((0 - cost) * (intact ? 0.5f : 1)) ;
     }
     return true ;
   }

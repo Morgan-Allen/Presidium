@@ -74,8 +74,9 @@ public class Treatment extends Plan implements Economy {
     
     final boolean valid = canTreat() ;
     
-    if (theatre == null && valid) {
-      this.theatre = (Venue) Retreat.nearestHaven(actor, Sickbay.class) ;
+    final Target haven = Retreat.nearestHaven(patient, Sickbay.class) ;
+    if (theatre == null && valid && haven instanceof Venue) {
+      this.theatre = (Venue) haven ;
     }
     else this.theatre = theatre ;
     
@@ -281,6 +282,9 @@ public class Treatment extends Plan implements Economy {
   
   
   private boolean canTreat() {
+    //
+    //  TODO:  Dat's racist!
+    if (! (patient instanceof Human)) return false ;
     if (type == -1 || accessory == null || result == null) return false ;
     if (GameSettings.hardCore || type == TYPE_RECONSTRUCT) {
       if (actor.gear.amountOf(accessory) >= 0.1f) return true ;

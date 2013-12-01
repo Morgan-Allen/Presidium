@@ -176,11 +176,13 @@ public class List <T> extends ListEntry <T> implements Series <T> {
     return null ;
   }
   
+  
   /**  Returns whether the given element is present in the list.
     */
-  final public boolean contains(final T r) {
+  final public boolean includes(final T r) {
     return match(r) != null ;
   }
+  
   
   /**  Includes the given element in this list if not already present.
     */

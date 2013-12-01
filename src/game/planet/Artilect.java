@@ -5,11 +5,9 @@ package src.game.planet ;
 import src.game.actors.* ;
 import src.game.common.* ;
 import src.game.tactical.* ;
-import src.game.wild.Tripod;
-import src.game.building.* ;
-import src.graphics.common.Model;
-import src.graphics.jointed.MS3DModel;
-import src.graphics.widgets.HUD;
+import src.graphics.common.Model ;
+import src.graphics.jointed.MS3DModel ;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
@@ -111,17 +109,22 @@ public abstract class Artilect extends Actor {
   
   
   protected void addChoices(Choice choice) {
+    
     //
     //  Patrol around your base and see off intruders.
     Element guards = mind.home() == null ? this : mind.home() ;
     final Patrolling p = Patrolling.securePerimeter(this, guards, world) ;
-    p.priorityMod = Plan.ROUTINE ;
+    p.priorityMod = Plan.IDLE ;
     choice.add(p) ;
     
     for (Element e : mind.awareOf()) if (e instanceof Actor) {
       choice.add(new Combat(this, (Actor) e)) ;
     }
+    //
+    //  TODO:  Consider getting rid of retreat behaviours.  They're supposed to
+    //  be pretty implacable.  And/or suicidal(?)
     choice.add(new Retreat(this)) ;
+    
     //
     //  Return to base for repairs/recharge.
     //

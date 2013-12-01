@@ -10,6 +10,8 @@ public interface Series <T> extends Iterable <T> {
   
   int size() ;
   void add(T t) ;
+  boolean includes(T t) ;
+  
   Object[] toArray() ;
   Object[] toArray(Class typeClass) ;
 }

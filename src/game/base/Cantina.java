@@ -218,16 +218,9 @@ public class Cantina extends Venue implements Economy {
   
   
   public float performValue() {
-    float value = 0, count = 0 ;
-    for (Mobile m : inside()) if (m instanceof Actor) {
-      final Actor visits = (Actor) m ;
-      Performance p = null ;
-      for (Behaviour b : visits.mind.agenda()) if (b instanceof Performance) {
-        value += ((Performance) b).performValue() ;
-        count++ ;
-        break ;
-      }
-    }
+    float value = 0, count = 1 ;
+    final Performance p = performance() ;
+    value += p.performValue() ;
     if (count == 0) return 0 ;
     value /= count ;
     value *= 1 + ((count - 1) / 2f) ;

@@ -314,7 +314,7 @@ public abstract class Sorting <K> implements Series <K> {
   }
   
   
-  public boolean contains(K value) {
+  public boolean includes(K value) {
     final Batch <Node> matches = matchesFor(value) ;
     for (Node node : matches) {
       if (node.value == value) return true ;

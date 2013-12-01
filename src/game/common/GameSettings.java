@@ -12,6 +12,7 @@ public class GameSettings {
   
   
   public static boolean
+    
     buildFree = false,
     hireFree  = false,
     psyFree   = false,
@@ -21,8 +22,24 @@ public class GameSettings {
     
     hardCore  = false ;
   
+  
+  
+  protected static void saveSettings(Session s) throws Exception {
+    s.saveBool(buildFree) ;
+    s.saveBool(hireFree) ;
+    s.saveBool(psyFree) ;
+    s.saveBool(fogFree) ;
+    s.saveBool(pathFree) ;
+    s.saveBool(hardCore) ;
+  }
+  
+  protected static void loadSettings(Session s) throws Exception {
+    buildFree = s.loadBool() ;
+    hireFree = s.loadBool() ;
+    psyFree = s.loadBool() ;
+    fogFree = s.loadBool() ;
+    pathFree = s.loadBool() ;
+    hardCore = s.loadBool() ;
+  }
 }
-
-
-
 

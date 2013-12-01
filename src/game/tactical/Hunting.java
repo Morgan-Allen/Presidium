@@ -88,7 +88,9 @@ public class Hunting extends Combat implements Economy {
     }
     reward += priorityMod ;
     
-    float priority = Combat.combatPriority(actor, prey, reward, PARAMOUNT) ;
+    float priority = Combat.combatPriority(
+      actor, prey, reward, PARAMOUNT, false
+    ) ;
     priority -= Plan.rangePenalty(actor, prey) ;
     if (BaseUI.isPicked(actor)) I.say("Hunting "+prey+" priority: "+priority) ;
     return priority ;

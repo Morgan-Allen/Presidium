@@ -23,12 +23,12 @@ public class DebugPlanet extends Scenario {
     */
   public static void main(String args[]) {
     DebugPlanet test = new DebugPlanet() ;
-    PlayLoop.setupAndLoop(test.UI, test) ;
+    PlayLoop.setupAndLoop(test.UI(), test) ;
   }
   
   
   protected DebugPlanet() {
-    super("test_planet") ;
+    super("test_planet", true) ;
   }
   
   

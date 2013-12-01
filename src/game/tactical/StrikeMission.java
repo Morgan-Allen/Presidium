@@ -54,7 +54,7 @@ public class StrikeMission extends Mission {
     if (subject instanceof Actor) return Combat.combatPriority(
       actor, (Actor) subject,
       actor.mind.greedFor(rewardAmount(actor)) * ROUTINE,
-      PARAMOUNT
+      PARAMOUNT, false
     ) ;
     if (subject instanceof Venue) {
       return actor.mind.greedFor(rewardAmount(actor)) * ROUTINE ;

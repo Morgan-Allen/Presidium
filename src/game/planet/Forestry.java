@@ -260,7 +260,7 @@ public class Forestry extends Plan implements Economy {
       final Flora f = (Flora) t ;
       if (f.growth < 2) continue ;
       float rating = 0 - Spacing.distance(t, actor) ;
-      rating -= actor.base().dangerMap.valAt(f.origin()) ;
+      rating -= actor.base().dangerMap.longTermVal(f.origin()) ;
       rating += (f.growStage() - 2) * 10 ;
       if (rating > bestRating) { picked = f ; bestRating = rating ; }
     }

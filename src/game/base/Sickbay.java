@@ -185,7 +185,7 @@ public class Sickbay extends Venue implements Economy {
           patient.aboard() != this ||
           (! order.venue.structure.intact()) ||
           order.finished() ||
-          (! order.venue.stocks.specialOrders().contains(order)) ;
+          (! order.venue.stocks.specialOrders().includes(order)) ;
       if (done) {
         if (verbose) I.sayAbout(this, "Removing order: "+order) ;
         cloneOrders.remove(order) ;

@@ -156,8 +156,6 @@ public class Audit extends Plan implements Economy {
   
   public boolean actionAudit(Actor actor, Venue audited) {
     final float balance = auditForBalance(actor, audited) ;
-    audited.stocks.incCredits(0 - balance) ;
-    audited.stocks.taxDone() ;
     this.balance += balance ;
     stage = STAGE_EVAL ;
     
@@ -220,7 +218,7 @@ public class Audit extends Plan implements Economy {
       sumSalaries += salary ;
     }
 
-    final float surplus = venue.stocks.unTaxed() ;
+    final float surplus = venue.stocks.credits() ;
     
     if (verbose && I.talkAbout == audits) {
       I.say(audits+" auditing "+venue+", surplus: "+surplus) ;
@@ -238,12 +236,17 @@ public class Audit extends Plan implements Economy {
       sumSplits += split ;
     }
     
-    final Base base = venue.base() ;
+    final float balance = venue.stocks.credits() ;
+    venue.stocks.incCredits(0 - balance) ;
+    venue.stocks.taxDone() ;
+    
+    I.sayAbout(venue, "Balance is now: "+venue.stocks.credits()) ;
+    return balance ;
+    //  TODO:  Restore this in some form later.
+    /*
     float
-      balance = 0 - (sumWages + sumSplits),
+      balance = venue.stocks.credits(),
       waste = (Rand.num() + base.crimeLevel()) / 2f ;
-    if (venue.stocks.credits() > 0) balance += venue.stocks.unTaxed() ;
-    else balance += venue.stocks.credits() ;
     
     final float honesty =
       (audits.traits.traitLevel(HONOURABLE) / 2f) -
@@ -276,6 +279,7 @@ public class Audit extends Plan implements Economy {
     }
     venue.stocks.taxDone() ;
     return 0 ;
+    //*/
   }
   
   

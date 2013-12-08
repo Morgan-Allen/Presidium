@@ -454,7 +454,7 @@ public class HoldingUpgrades implements Economy {
       "further investment in a life here." ;
     
     float ambience = 0 - holding.world().ecology().squalorRating(holding) ;
-    ambience += holding.extras().size() / 2f ;
+    ambience = (ambience * 10) + holding.extras().size() / 2f ;
     if (ambience < AMBIENCE_NEEDS[upgradeLevel]) return NV ? NOT_MET :
       "The aesthetics of the area could stand improvement before the "+
       "residents will commit to improving their property." ;
@@ -462,9 +462,6 @@ public class HoldingUpgrades implements Economy {
     return NEEDS_MET ;
   }
 }
-
-
-
 
 
 

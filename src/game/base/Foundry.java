@@ -165,13 +165,11 @@ public class Foundry extends Venue implements Economy {
         if (DT.hasProperty(PHYSICAL)) o.checkBonus += CMB ;
         if (DT.hasProperty(ENERGY)) o.checkBonus += FCB ;
       }
+      
       if (made instanceof OutfitType) {
-        //
-        //  TODO:  Have separate ratings for shield and armour values
-        //  associated with armour, and scale appropriately.
         final OutfitType OT = (OutfitType) made ;
-        if (OT.defence <= 10) o.checkBonus += FCB ;
-        else o.checkBonus += CMB ;
+        o.checkBonus += OT.shieldBonus * FCB / 10f ;
+        o.checkBonus += OT.defence * CMB / 10f ;
       }
       o.timeMult = 5 ;
       o.checkBonus -= powerCut ;

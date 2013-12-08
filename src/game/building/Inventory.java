@@ -101,6 +101,10 @@ public class Inventory {
         credits = 0 ;
       }
     }
+    if (taxed < 0) {
+      credits += taxed ;
+      taxed = 0 ;
+    }
     //owner.afterTransaction() ;
   }
   

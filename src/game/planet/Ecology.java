@@ -122,6 +122,9 @@ public class Ecology {
     for (FadingMap map : allMaps) {
       map.performFade() ;
     }
+    
+    //
+    //  TODO:  Let the player view this on the minimap!
     //squalorMap.presentVals("Squalor", -1, true) ;
   }
   
@@ -171,6 +174,7 @@ public class Ecology {
   public float biomassAmount(Tile t) {
     return biomass.longTermVal(t) ;
   }
+  
   
   public float biomassRating(Tile t) {
     return biomass.longTermVal(t) * 4f / (SR * SR) ;

@@ -35,6 +35,9 @@ public interface Economy extends Abilities {
   
   final static Class BC = Economy.class ;
   
+  //
+  //  TODO:  Trim the unnecesary bits away here.
+  
   final public static Service
     //
     //  Food types-
@@ -68,7 +71,7 @@ public interface Economy extends Abilities {
     
     SAMPLES     = new Service(BC, "Samples"   , "crates_big.gif", FU,  -1),
     CREDITS     = new Service(BC, "Credits"   , null            , FU,  -1),
-    PRESSFEED   = new Service(BC, "Pressfeed", "pressfeed.gif"  , FU, 200),
+    PRESSFEED   = new Service(BC, "Pressfeed", "pressfeed.gif"  , FC,  20),
     
     TROPHIES    = new Service(BC, FORM_UNIQUE , "Trophy"        ,     100),
     RARITIES    = new Service(BC, FORM_UNIQUE , "Rarity"        ,     100),
@@ -76,7 +79,7 @@ public interface Economy extends Abilities {
     
     GENE_SEED   = new Service(BC, "Gene Seed" , "gene_seed.gif" , FU, 200),
     REPLICANTS  = new Service(BC, "Replicants", "replicant.gif" , FU, 200),
-    DATALINKS   = new Service(BC, "Datalinks" , "datalinks.png" , FU, 200),
+    DATALINKS   = new Service(BC, "Datalinks" , "datalinks.png" , FC, 200),
     
     //GHOSTLINE   = new Service(BC, FORM_UNIQUE, "Ghostline"  , 200 ),
     

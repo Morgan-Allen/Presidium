@@ -98,7 +98,14 @@ public class Edifice extends Venue implements Economy {
   }
   
   
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact()) return ;
+    world.ecology().impingeSqualor(-10, this, true) ;
+  }
   
+
+
   /**  Rendering and interface methods-
     */
   public void writeInformation(Description d, int categoryID, HUD UI) {

@@ -52,11 +52,24 @@ public class Archives extends Venue implements Economy {
 
   /**  Upgrades, economic functions and behaviour implementations-
     */
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact()) return ;
+    stocks.translateDemands(1, CIRCUITRY_TO_DATALINKS) ;
+  }
+  
+  
   public Behaviour jobFor(Actor actor) {
-    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
+    //if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
     //
     //  See if any new datalinks need to be installed or manufactured-
+    final Delivery baseC = Deliveries.nextCollectionFor(
+      actor, this, new Service[] { CIRCUITRY }, 5, null, world
+    ) ;
+    if (baseC != null) {
+      choice.add(baseC) ;
+    }
     final Manufacture m = stocks.nextManufacture(
       actor, CIRCUITRY_TO_DATALINKS
     ) ;
@@ -70,9 +83,13 @@ public class Archives extends Venue implements Economy {
     //
     //  Check to see if any datalinks require delivery- if so, key them to the
     //  client first.
+    
+    Batch <Venue> clients = new Batch <Venue> () ;
+    world.presences.sampleFromKey(this, world, 5, clients, Holding.class) ;
     final Delivery baseD = Deliveries.nextDeliveryFor(
-      actor, this, services(), 1, world
+      actor, this, services(), clients, 1, world
     ) ;
+    I.sayAbout(this, "Next base delivery is: "+baseD) ;
     if (baseD != null) {
       final Item custom = Item.withReference(DATALINKS, baseD.destination) ;
       if (! stocks.hasItem(custom)) {
@@ -261,31 +278,6 @@ public class Archives extends Venue implements Economy {
 }
 
 
-
-/*
-final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
-  Archives.class, "archives_upgrades"
-) ;
-//public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
-//
-//  TODO:  You might not want to implement these as upgrades?  They shouldn't
-//  really be contributing toward hit-points, for example.  Might be better
-//  to model them as imported items, or some kind of custom object.
-/*
-final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
-  Archives.class, "archives_upgrades"
-) ;
-public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
-static {
-  for (Skill skill : COGNITIVE_SKILLS) {
-    if (skill.parent != INTELLECT) continue ;
-    final Upgrade dataLink = new Upgrade(
-      skill.name+" datalinks", "Allows research in "+skill.name,
-      250, skill, 5, null, ALL_UPGRADES
-    ) ;
-  }
-}
-//*/
 
 
 

@@ -20,7 +20,7 @@ public class VenueStocks extends Inventory implements Economy {
   /**  Fields, constructors, and save/load methods-
     */
   final public static float
-    UPDATE_PERIOD = 1,
+    UPDATE_PERIOD = 10,
     POTENTIAL_INC = 0.15f,
     SEARCH_RADIUS = 16,
     MAX_CHECKED   = 5 ;
@@ -160,10 +160,12 @@ public class VenueStocks extends Inventory implements Economy {
     if (shortage <= 0) return null ;
     //
     //  TODO:  Manufactures need to update the amount required...
-    return new Manufacture(
+    final Manufacture m = new Manufacture(
       actor, venue, c,
       Item.withAmount(c.out, shortage + 5)
     ) ;
+    m.priorityMod = this.shortageUrgency(c.out.type) ;
+    return m ;
   }
   
   
@@ -283,7 +285,7 @@ public class VenueStocks extends Inventory implements Economy {
   public void incDemand(Service type, float amount, int tier, int period) {
     if (amount == 0) return ;
     final Demand d = demandRecord(type) ;
-    final float inc = POTENTIAL_INC * period ;
+    final float inc = POTENTIAL_INC * (period * 1f / UPDATE_PERIOD) ;
     if (inc >= 1) I.complain("DEMAND INCREMENT TOO HIGH") ;
     d.amountInc += amount * inc ;
     if (verbose) I.sayAbout(
@@ -441,31 +443,7 @@ public class VenueStocks extends Inventory implements Economy {
       if (m.finished()) specialOrders.remove(m) ;
     }
     //
-    //  TODO:  This is going to have to be looked into in more detail.
-    /*
-    final Service services[] = venue.services() ;
-    if (numUpdates % UPDATE_PERIOD == 0) for (Item i : allItems()) {
-      if (demandFor(i.type) > 0 || i.type.form == FORM_UNIQUE) continue ;
-      boolean needed = false ;
-      if (Visit.arrayIncludes(services, i.type)) continue ;
-      for (Manufacture m : specialOrders) if (m.made().matchKind(i)) {
-        needed = true ;
-      }
-      if (i.refers instanceof Actor) {
-        if (((Actor) i.refers).mind.hasToDo(src.game.social.Commission.class)) {
-          //
-          //  TODO:  Specifically check if the actor has a commission placed
-          //  *here*.
-          needed = true ;
-        }
-      }
-      if (! needed) {
-        I.say(venue+" clearing out "+i) ;
-        I.say("Unique? "+(i.type.form == FORM_UNIQUE)) ;
-        removeItem(i) ;
-      }
-    }
-    //*/
+    //  TODO:  Just have all stocks wear out/go off, given enough time.
   }
   
   
@@ -496,7 +474,7 @@ public class VenueStocks extends Inventory implements Economy {
       final Item out = m.conversion.out ;
       final float amount = m.made().amount / (out == null ? 1 : out.amount) ;
       for (Item i : m.conversion.raw) {
-        incDemand(i.type, i.amount * amount, -1, (int) UPDATE_PERIOD);
+        incDemand(i.type, i.amount * amount, -1, (int) UPDATE_PERIOD) ;
       }
     }
   }

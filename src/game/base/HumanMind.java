@@ -76,7 +76,7 @@ public class HumanMind extends ActorMind implements Abilities {
   
   /**  Constructor and save/load functions-
     */
-  private static boolean verbose = false ;
+  private static boolean verbose = true ;
   
   //  private Background careerInterest ;
   //  private float lifeSatisfaction ;

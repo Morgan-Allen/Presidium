@@ -6,8 +6,8 @@
 
 
 //
-//  ...This class really needs to be sorted out properly.  Supply and demand in
-//  general, really.
+//  TODO:  This still suffers from some imbalances in the case of reciprocal
+//         trade.
 
 
 package src.game.building ;
@@ -224,10 +224,11 @@ public class Deliveries implements Economy {
     //  First, get the amount of each item available for trade at the point of
     //  origin, and desired by the destination/client, which constrains the
     //  quantities involved-
-    final Object subject = origin ;
+    final Object subject = pays ;
     final int
       roundUnit = sizeLimit < 10 ? (sizeLimit <= 5 ? 1 : 2) : 5,
       pickUnit  = sizeLimit < 10 ? (sizeLimit <= 5 ? 0 : 2) : 5 ;
+    
     if (verbose) I.sayAbout(subject,
       "Evaluating delivery between "+origin+" and "+client+
       ", goods: "+goods.length
@@ -301,7 +302,10 @@ public class Deliveries implements Economy {
       if (price <= 0) continue ;
       sumPrice += price ;
     }
-    if (sumAmounts == 0) return new Item[0] ;
+    if (sumAmounts == 0) {
+      if (verbose && I.talkAbout == subject) I.say("  Nothing to deliver!") ;
+      return new Item[0] ;
+    }
     
     if (sumAmounts > sizeLimit) {
       scale = sizeLimit / sumAmounts ;
@@ -314,7 +318,7 @@ public class Deliveries implements Economy {
       scale *= priceLimit / sumPrice ;
     }
     
-    if (verbose && sumAmounts > 0 && I.talkAbout == subject) {
+    if (verbose && I.talkAbout == subject) {
       I.say("Size/price limits: "+sizeLimit+" "+priceLimit+", goods:") ;
       for (Item v : viable) I.say("  "+v) ;
     }
@@ -351,7 +355,7 @@ public class Deliveries implements Economy {
       if (noneTrimmed) break ;
     }
     
-    if (verbose && sumAmounts > 0 && I.talkAbout == subject) {
+    if (verbose && I.talkAbout == subject) {
       I.say("AFTER TRIM") ;
       i = 0 ;
       for (Item v : viable) {

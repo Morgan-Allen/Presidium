@@ -17,12 +17,17 @@ import src.user.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  Rename this to the Press Office, and move auditor functions to the
+//  Enforcer Bloc.
+
+
 
 public class AuditOffice extends Venue implements Economy {
   
-
+  
   final public static Model MODEL = ImageModel.asSolidModel(
-    Foundry.class, "media/Buildings/merchant/audit_office.png", 2.75f, 2
+    AuditOffice.class, "media/Buildings/merchant/audit_office.png", 2.75f, 2
   ) ;
   
   final public static String
@@ -154,9 +159,14 @@ public class AuditOffice extends Venue implements Economy {
     if (actor.vocation() == Background.ADVERTISER) {
       //
       //  TODO:  Gather information while about your rounds...
+      Batch <Venue> clients = new Batch <Venue> () ;
+      world.presences.sampleFromKey(this, world, 5, clients, Holding.class) ;
+      
       final Delivery d = Deliveries.nextDeliveryFor(
-        actor, this, services(), 5, world
+        actor, this, services(), clients, 5, world
       ) ;
+      //I.sayAbout(this, "Next delivery is: "+d) ;
+      
       choice.add(d) ;
       
       final Manufacture mP = stocks.nextManufacture(

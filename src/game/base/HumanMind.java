@@ -111,11 +111,11 @@ public class HumanMind extends ActorMind implements Abilities {
     addLeisure(choice) ;
     addPurchases(choice) ;
     final Behaviour chosen = choice.weightedPick(whimsy()) ;
-    
     //
-    //  TODO:  Mission application needs to become a Plan in itself.
+    //  TODO:  Mission application needs to become a Plan in itself.  Likewise
+    //  for finding jobs and homes(?)
     applyForMissions(chosen) ;
-    FindWork.lookForJob((Human) actor, actor.base()) ;
+    FindWork.lookForWork((Human) actor, actor.base()) ;
     FindHome.lookForHome((Human) actor, actor.base()) ;
     return chosen ;
   }
@@ -123,8 +123,6 @@ public class HumanMind extends ActorMind implements Abilities {
   
   protected void updateAI(int numUpdates) {
     super.updateAI(numUpdates) ;
-    if (numUpdates % 10 == 0) {
-    }
   }
   
   

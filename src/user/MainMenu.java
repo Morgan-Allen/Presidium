@@ -385,6 +385,9 @@ public class MainMenu extends UIGroup {
     for (int i = COLONIST_BACKGROUNDS.length ; i-- > 0 ;) {
       for (int n = this.colonists[i] ; n-- > 0 ;) {
         final Human c = new Human(COLONIST_BACKGROUNDS[i], base) ;
+        for (Skill s : house.skills()) if (c.traits.traitLevel(s) > 0) {
+          c.traits.incLevel(s, 5) ;
+        }
         colonists.add(c) ;
       }
     }
@@ -487,8 +490,14 @@ public class MainMenu extends UIGroup {
       final Background b = (Background) Rand.pickFrom(COLONIST_BACKGROUNDS) ;
       colonists.add(new Human(b, base)) ;
     }
+    for (Human c : colonists) {
+      for (Skill s : house.skills()) if (c.traits.traitLevel(s) > 0) {
+        c.traits.incLevel(s, 5) ;
+      }
+    }
     
     base.incCredits(10000) ;
+    base.commerce.assignHomeworld((System) house) ;
     base.setInterestPaid(2) ;
     base.commerce.assignHomeworld((System) ruler.career().homeworld()) ;
     final Bastion bastion = establishBastion(

@@ -39,7 +39,7 @@ public class AuditOffice extends Venue implements Economy {
   final static String
     DESC_SUPPORT[] = {
       "No Relief",
-      "Minimal (2 credits/day, savings +100)",
+      "Minimal  (2 credits/day, savings +100)",
       "Standard (5 credits/day, savings +250)",
       "Generous (8 credits/day, savings +400)"
     },

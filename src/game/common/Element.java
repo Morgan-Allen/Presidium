@@ -81,15 +81,16 @@ public class Element implements
   }
   
   
-  public void enterWorldAt(int x, int y, World world) {
+  public boolean enterWorldAt(int x, int y, World world) {
     if (inWorld()) I.complain("Already in world...") ;
-    setPosition(x, y, world) ;
+    if (! setPosition(x, y, world)) return false ;
     this.toggleProperty(PROP_IN_WORLD, true) ;
     this.world = world ;
     this.inceptTime = world.currentTime() ;
     if (owningType() != NOTHING_OWNS && ! isMobile()) {
       location.setOwner(this) ;
     }
+    return true ;
   }
   
   
@@ -116,9 +117,10 @@ public class Element implements
   }
   
   
-  public void setPosition(float x, float y, World world) {
+  public boolean setPosition(float x, float y, World world) {
     this.location = world.tileAt(x, y) ;
-    if (location == null) I.complain("Bad location for element: "+x+" "+y) ;
+    if (location == null) return false ;
+    else return true ;
   }
   
   
@@ -128,10 +130,11 @@ public class Element implements
   }
   
   
-  public void enterWorldAt(Target t, World world) {
+  public boolean enterWorldAt(Target t, World world) {
     final Vec3D p = t.position(null) ;
-    setPosition(p.x, p.y, world) ;
+    if (! setPosition(p.x, p.y, world)) return false ;
     enterWorld() ;
+    return true ;
   }
   
   

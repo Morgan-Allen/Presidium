@@ -518,8 +518,15 @@ public class ActorHealth implements Abilities {
     if (fatigue + injury >= maxHealth) {
       state = STATE_RESTING ;
     }
-    if (actor.traits.useLevel(VIGOUR) < 0) {
+    if (actor.traits.useLevel(VIGOUR) < -5) {
       I.say(actor+" has died of disease.") ;
+      I.say("Effective vigour: "+actor.traits.useLevel(VIGOUR)) ;
+      I.say("Maximum vigour: "+actor.traits.traitLevel(VIGOUR)) ;
+      I.say("Conditions: ") ; for (Trait t : CONDITIONS) {
+        final float level = actor.traits.useLevel(t) ;
+        if (level <= 0) continue ;
+        I.add(t.toString()+": "+level+", ") ;
+      }
       state = STATE_DYING ;
     }
     if (injury >= maxHealth * MAX_INJURY) {

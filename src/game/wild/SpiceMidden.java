@@ -42,9 +42,10 @@ public class SpiceMidden extends Fixture implements Selectable {
   
   /**  Registration, life cycle and physical properties-
     */
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
+  public boolean enterWorldAt(int x, int y, World world) {
+    if (! super.enterWorldAt(x, y, world)) return false ;
     world.presences.togglePresence(this, origin(), true, SpiceMidden.class) ;
+    return true ;
   }
   
   

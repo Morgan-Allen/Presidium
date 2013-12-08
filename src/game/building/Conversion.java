@@ -24,6 +24,11 @@ public class Conversion implements Economy {
   final public float skillDCs[] ;
   final public Class venueType ;
   
+  
+  public String toString() {
+    return raw[0]+" to "+out ;
+  }
+  
 
   public Conversion(Object... args) {
     //

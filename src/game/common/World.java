@@ -23,14 +23,15 @@ public class World {
     */
   final public static int
     
-    PATCH_RESOLUTION  = 8,
-    SECTOR_SIZE = 16,
+    PATCH_RESOLUTION  = 8 ,
+    SECTOR_SIZE       = 16,
+    DAYS_PER_YEAR     = 60,
     
+    STANDARD_FADE_TIME   = 6,
     STANDARD_DAY_LENGTH  = 480,
-    STANDARD_YEAR_LENGTH = STANDARD_DAY_LENGTH * 60,
-    
-    GROWTH_INTERVAL = STANDARD_DAY_LENGTH / 2,
-    INIT_TIME = STANDARD_DAY_LENGTH / 3 ;
+    STANDARD_YEAR_LENGTH = STANDARD_DAY_LENGTH * DAYS_PER_YEAR,
+    GROWTH_INTERVAL      = STANDARD_DAY_LENGTH / 2,
+    INIT_TIME            = STANDARD_DAY_LENGTH / 3 ;
   
   
   final public int size ;

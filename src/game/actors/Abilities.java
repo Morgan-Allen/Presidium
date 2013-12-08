@@ -615,7 +615,7 @@ public interface Abilities {
       "Moebius Displacement",
       "Moebius Plague",
       null,
-      "Phase Immune"
+      "Plague Immune"
     ),
     
     SPONTANEOUS_DISEASE[] = {

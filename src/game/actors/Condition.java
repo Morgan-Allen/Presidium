@@ -15,7 +15,7 @@ import src.util.* ;
 public class Condition extends Trait {
   
   
-  private static boolean verbose = false ;
+  private static boolean verbose = false, reportEffects = false ;
   
   final public float latency, virulence, spread ;
   final public Trait affected[] ;
@@ -167,9 +167,20 @@ public class Condition extends Trait {
       progress = a.traits.traitLevel(this),
       response = 0 - a.traits.effectBonus(this),
       symptoms = progress - response ;
+    
+    if (reportEffects && I.talkAbout == a) {
+      I.say(this+" has symptoms: "+symptoms) ;
+      //new Exception().printStackTrace() ;
+    }
+    //  ...Shoot.  It really does seem to be potentially fatal.
+    
     if (symptoms > 0) for (int i = affected.length ; i-- > 0 ;) {
-      //I.sayAbout(a, "Affecting: "+affected[i]+", symptoms: "+symptoms) ;
-      a.traits.incBonus(affected[i], modifiers[i] * symptoms / 2) ;
+      final float impact = modifiers[i] * symptoms / 2 ;
+      if (reportEffects && I.talkAbout == a) {
+        I.say("Affecting: "+affected[i]+", impact: "+impact) ;
+        I.say("Normal level: "+a.traits.traitLevel(affected[i])) ;
+      }
+      a.traits.incBonus(affected[i], impact) ;
     }
     //
     //  Check to see if the condition spreads/worsens or fades-

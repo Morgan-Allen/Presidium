@@ -55,9 +55,10 @@ public abstract class Fauna extends Actor {
   
   /**  Registering abundance with the ecology class-
     */
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
+  public boolean enterWorldAt(int x, int y, World world) {
+    if (! super.enterWorldAt(x, y, world)) return false ;
     world.ecology().impingeAbundance(this, false) ;
+    return true ;
   }
   
   

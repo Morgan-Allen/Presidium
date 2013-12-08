@@ -8,12 +8,8 @@ package src.game.building ;
 import src.game.actors.* ;
 import src.game.common.* ;
 import src.util.* ;
-
 import java.lang.reflect.* ;
 
-
-//
-//  Modify this so that Vehicles can possess it too?  Put in an interface?
 
 
 public class Structure {

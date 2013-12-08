@@ -253,7 +253,7 @@ public interface Economy extends Abilities {
     //
     //  Artificer conversions-
     METALS_TO_PARTS = new Conversion(
-      1, METAL_ORE, TO, 1, PARTS,
+      1, METAL_ORE, TO, 2, PARTS,
       Foundry.class,
       MODERATE_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
     ),
@@ -267,13 +267,13 @@ public interface Economy extends Abilities {
     //
     //  Fabricator conversions-
     PETROCARBS_TO_PLASTICS = new Conversion(
-      1, PETROCARBS, TO, 1, PLASTICS,
+      1, PETROCARBS, TO, 5, PLASTICS,
       Fabricator.class,
       ROUTINE_DC, CHEMISTRY, ROUTINE_DC, HANDICRAFTS
     ),
     
     CARBS_TO_PLASTICS = new Conversion(
-      5, CARBS, TO, 1, PLASTICS,
+      1, CARBS, TO, 2, PLASTICS,
       Fabricator.class,
       ROUTINE_DC, CHEMISTRY, ROUTINE_DC, HANDICRAFTS
     ),
@@ -309,7 +309,7 @@ public interface Economy extends Abilities {
     //
     //  Reactor conversions-
     METALS_TO_FUEL = new Conversion(
-      5, METAL_ORE, TO, 1, FUEL_CORES,
+      10, METAL_ORE, TO, 1, FUEL_CORES,
       Generator.class,
       MODERATE_DC, CHEMISTRY, MODERATE_DC, FIELD_THEORY
     ),

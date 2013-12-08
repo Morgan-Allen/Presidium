@@ -160,8 +160,9 @@ public abstract class Actor extends Mobile implements
   
   /**  Life cycle and updates-
     */
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
+  public boolean enterWorldAt(int x, int y, World world) {
+    if (! super.enterWorldAt(x, y, world)) return false ;
+    return true ;
   }
   
   
@@ -285,7 +286,7 @@ public abstract class Actor extends Mobile implements
         }
         if (! visibleTo(b)) continue ;
         final float relation = mind.relation(b) ;
-        b.dangerMap.impingeVal(origin(), 0 - power * relation) ;
+        b.dangerMap.impingeVal(origin(), 0 - power * relation, true) ;
       }
       timeTaken = System.currentTimeMillis() - startTime ;
       
@@ -294,7 +295,7 @@ public abstract class Actor extends Mobile implements
       }
     }
     else {
-      if (health.asleep() && numUpdates % 2 == 0) {
+      if (health.asleep() && numUpdates % 10 == 0) {
         //
         //  Check to see if you need to wake up-
         Behaviour root = mind.rootBehaviour() ;

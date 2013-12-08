@@ -127,10 +127,11 @@ public class ExcavationSite extends Venue implements
   
   /**  Presence in the world and boardability-
     */
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
+  public boolean enterWorldAt(int x, int y, World world) {
+    if (! super.enterWorldAt(x, y, world)) return false ;
     digArea.setTo(area()).expandBy(MAX_DIG_RANGE) ;
     firstFace = insertFace(world.tileAt(this)) ;
+    return true ;
   }
   
   

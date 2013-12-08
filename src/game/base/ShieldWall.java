@@ -142,9 +142,10 @@ public class ShieldWall extends Segment {
   }
   
   
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
+  public boolean enterWorldAt(int x, int y, World world) {
+    if (! super.enterWorldAt(x, y, world)) return false ;
     entrances = null ;
+    return true ;
   }
   
   

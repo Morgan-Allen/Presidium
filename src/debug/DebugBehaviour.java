@@ -22,26 +22,19 @@ import src.util.* ;
 
 
 //
-//  TODO:  Contact missions, holo-theatre, and ambience.  Those are the ones.
-
+//  TODO:  Contact/security missions and holo-theatre must be completed.
 //
-//  TODO:  If you lack funding for construction, buildings need to display an
-//  error message.
-
+//  TODO:  Test out the archives functions, finish the surveillance post, and
+//  polish the arcology/edifice/arcade structures.
 //
-//  TODO:  Test out the archives, finish the surveillance post, and polish the
-//  arcology/edifice/arcade thing.  Test out Research and the HoloArcade.
-//
-//  Have pollution/terraforming gradually change the landscape.  Or at least
-//  represent squalor correctly.  Also, finish up mining mechanics and the
-//  causeway.
-//
-//  Spruce up the ambience/aesthetics structures, including biomass FX.
+//  Have pollution/terraforming gradually change the landscape.  Finish up
+//  mining mechanics and the causeway.
 //
 //  Tweak mechanics for diplomacy and citizen mood.  (Good relations are way
-//  too easy/quick at the moment.)  Actors should call for help from allies,
-//  and need proper line of sight.  Add Security and Contact missions.  Have
-//  missions modify choice priorities?
+//  too easy/quick at the moment.)
+//
+//  Actors should call for help from allies, and need proper line of sight.
+
 
 
 public class DebugBehaviour extends Scenario implements Economy {
@@ -88,8 +81,9 @@ public class DebugBehaviour extends Scenario implements Economy {
   }
   
   
-  protected void configureScenario(World world, Base base, BaseUI HUD) {
-    combatScenario(world, base, UI()) ;
+  protected void configureScenario(World world, Base base, BaseUI UI) {
+    //combatScenario(world, base, UI) ;
+    ambientScenario(world, base, UI) ;
   }
   
   
@@ -112,12 +106,17 @@ public class DebugBehaviour extends Scenario implements Economy {
     }
     Scenario.establishVenue(new Bastion(base), 4, 4, true, world, humans) ;
     
-    
     //Micovore micovore = new Micovore() ;
     //micovore.health.setupHealth(0.5f, 1, 0) ;
     //micovore.enterWorldAt(9, 9, world) ;
     
     UI.selection.pushSelection(humans[0], true) ;
+  }
+  
+  
+  private void ambientScenario(World world, Base base, BaseUI UI) {
+    GameSettings.fogFree = true ;
+    GameSettings.buildFree = true ;
   }
 }
 

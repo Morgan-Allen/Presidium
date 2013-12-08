@@ -23,11 +23,11 @@ public class Starfield implements Rendering.Client {
     //
     //  TODO:  You might also need textures for selection and showing jump
     //  routes, et cetera.
-    STAR_TEX    = Texture.loadTexture(IMG_DIR+"star_burst.png"   ),
-    AXIS_TEX    = Texture.loadTexture(IMG_DIR+"sky_axis.png"     ),
-    
+    STAR_TEX     = Texture.loadTexture(IMG_DIR+"star_burst.png"   ),
     ALL_STAR_TEX = Texture.loadTexture(IMG_DIR+"stellar_objects.png"),
-    SECTORS_TEX  = Texture.loadTexture(IMG_DIR+"chart_sectors.png") ;
+    
+    AXIS_TEX     = Texture.loadTexture(IMG_DIR+"sky_axis.png"     ),
+    SECTORS_TEX  = Texture.loadTexture(IMG_DIR+"chart_sectors.png"  ) ;
   
   final public static int
     TYPE_GIANT  = 0,
@@ -38,8 +38,8 @@ public class Starfield implements Rendering.Client {
   
   final static ImageModel
     STELLAR_BODIES[][] = ImageModel.fromTextureGrid(
-        Starfield.class, ALL_STAR_TEX,
-        5, 1
+      Starfield.class, ALL_STAR_TEX,
+      5, 1
     ) ;
   
 
@@ -131,6 +131,7 @@ public class Starfield implements Rendering.Client {
     ALL_STAR_TEX.bindTex() ;
     geomBuffer.renderTo(rendering) ;
     
+    
     GL11.glColor4f(0.8f, 0.8f, 1, 0.25f) ;
     final Mat3D oppZ = new Mat3D().setTo(transform) ;
     axisWithTransform(oppZ, SECTORS_TEX, maxDist) ;
@@ -139,7 +140,7 @@ public class Starfield implements Rendering.Client {
     final Mat3D oppX = new Mat3D().setTo(transform) ;
     oppX.rotateY((float) Math.PI / 2) ;
     axisWithTransform(oppX, AXIS_TEX, maxDist * 0.5f) ;
-
+    
     GL11.glColor4f(1, 0.8f, 1, 0.25f) ;
     final Mat3D oppY = new Mat3D().setTo(transform) ;
     oppY.rotateX((float) Math.PI / 2) ;
@@ -152,24 +153,26 @@ public class Starfield implements Rendering.Client {
   private void axisWithTransform(Mat3D transform, Texture tex, float radius) {
     final Vec3D tV = new Vec3D() ;
     tex.bindTex() ;
+    
     GL11.glBegin(GL11.GL_QUADS) ;
+    
     GL11.glNormal3f(0, 0, 0) ;
     
     transform.trans(tV.set(-1, -1, 0)).scale(1.1f * radius) ;
-    GL11.glVertex3f(tV.x, tV.y, tV.z) ;
     GL11.glTexCoord2f(0, 0) ;
+    GL11.glVertex3f(tV.x, tV.y, tV.z) ;
     
     transform.trans(tV.set( 1, -1, 0)).scale(1.1f * radius) ;
-    GL11.glVertex3f(tV.x, tV.y, tV.z) ;
     GL11.glTexCoord2f(1, 0) ;
+    GL11.glVertex3f(tV.x, tV.y, tV.z) ;
     
     transform.trans(tV.set( 1,  1, 0)).scale(1.1f * radius) ;
-    GL11.glVertex3f(tV.x, tV.y, tV.z) ;
     GL11.glTexCoord2f(1, 1) ;
+    GL11.glVertex3f(tV.x, tV.y, tV.z) ;
     
     transform.trans(tV.set(-1,  1, 0)).scale(1.1f * radius) ;
-    GL11.glVertex3f(tV.x, tV.y, tV.z) ;
     GL11.glTexCoord2f(0, 1) ;
+    GL11.glVertex3f(tV.x, tV.y, tV.z) ;
     
     GL11.glEnd() ;
   }

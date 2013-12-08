@@ -129,7 +129,8 @@ public class SupplyDepot extends Venue implements
   
   public float priceFor(Service service) {
     final int level = exportLevel(service) ;
-    if (level <= 0) return base().commerce.importPrice(service) ;
+    if (level == 0) return service.basePrice ;
+    else if (level < 0) return base().commerce.importPrice(service) ;
     else return base().commerce.exportPrice(service) ;
   }
   
@@ -145,7 +146,7 @@ public class SupplyDepot extends Venue implements
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Choice choice = new Choice(actor) ;
-
+    
     final Delivery d = Deliveries.nextDeliveryFor(
       actor, this, services(), 10, world
     ) ;
@@ -165,9 +166,10 @@ public class SupplyDepot extends Venue implements
   }
   
   
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
+  public boolean enterWorldAt(int x, int y, World world) {
+    if (! super.enterWorldAt(x, y, world)) return false ;
     updateLandingStrip() ;
+    return true ;
   }
   
   
@@ -243,6 +245,8 @@ public class SupplyDepot extends Venue implements
     */
   //
   //  TODO:  Have the landing strip be visible during placement previews?
+  //  TODO:  Also, you need to guarantee that the attempted position isn't off
+  //  the border of the map!
   protected void updateLandingStrip() {
     if (landingStrip == null || landingStrip.destroyed()) {
       final LandingStrip newStrip = new LandingStrip(this) ;
@@ -266,7 +270,7 @@ public class SupplyDepot extends Venue implements
   /**  Rendering and interface methods-
     */
   protected float[] goodDisplayOffsets() {
-    return new float[] { -3.5f, 0.5f } ;
+    return new float[] { -3.0f, 0.0f } ;
   }
   
   

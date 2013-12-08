@@ -164,8 +164,13 @@ public class VenuePersonnel {
   
   
   public void setApplicant(Application app, boolean is) {
-    if (is) applications.include(app) ;
-    else applications.remove(app) ;
+    if (is) {
+      for (Application a : applications) if (a.matches(app)) return ;
+      applications.add(app) ;
+    }
+    else for (Application a : applications) if (a.matches(app)) {
+      applications.remove(a) ;
+    }
   }
   
   
@@ -185,9 +190,6 @@ public class VenuePersonnel {
       if (venue.numOpenings(oA.position) == 0) {
         a.applies.mind.setApplication(null) ;
         applications.remove(oA) ;
-      }
-      else {
-        oA.setHiringFee(FindWork.signingCost(oA)) ;
       }
     }
     //

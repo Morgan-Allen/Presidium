@@ -85,6 +85,7 @@ public class Audit extends Plan implements Economy {
     Venue picked = null ;
     float bestRating = 0, rating ;
     for (Venue v : batch) {
+      //if (v.privateProperty()) continue ;
       rating = Math.abs(v.inventory().credits()) / 100f ;
       rating -= Plan.rangePenalty(v, actor) ;
       rating -= Plan.competition(Audit.class, v, actor) ;
@@ -121,11 +122,13 @@ public class Audit extends Plan implements Economy {
     I.sayAbout(actor, "Stage was: "+stage) ;
     
     if (stage == STAGE_EVAL) {
-      if (audited == null && balance < 1000) audited = nextToAuditFor(actor) ;
+      if (audited == null && Rand.num() > (Math.abs(balance) / 1000f)) {
+        audited = nextToAuditFor(actor) ;
+      }
       if (audited != null) stage = STAGE_AUDIT ;
       else stage = STAGE_REPORT ;
     }
-    I.sayAbout(actor, "Stage is now: "+stage) ;
+    I.sayAbout(actor, "Stage is now: "+stage+", audited: "+audited) ;
     
     if (stage == STAGE_AUDIT) {
       final Action audit = new Action(
@@ -133,6 +136,10 @@ public class Audit extends Plan implements Economy {
         this, "actionAudit",
         Action.TALK, "Auditing "+audited
       ) ;
+      final Tile e = audited.mainEntrance() ;
+      if (e == null || e.blocked()) {
+        audit.setMoveTarget(Spacing.nearestOpenTile(audited.origin(), actor)) ;
+      }
       return audit ;
     }
     if (stage == STAGE_REPORT) {
@@ -148,7 +155,7 @@ public class Audit extends Plan implements Economy {
   
   
   public boolean actionAudit(Actor actor, Venue audited) {
-    final float balance = auditEmployer(actor, audited) ;
+    final float balance = auditForBalance(actor, audited) ;
     audited.stocks.incCredits(0 - balance) ;
     audited.stocks.taxDone() ;
     this.balance += balance ;
@@ -161,29 +168,28 @@ public class Audit extends Plan implements Economy {
   
   
   public boolean actionFileReport(Actor actor, Venue office) {
-    fileReport(actor, office, balance) ;
+    fileEarnings(actor, office, balance) ;
     stage = STAGE_DONE ;
     return true ;
   }
   
   
-  
-  public static void fileReport(Actor actor, Venue office, float balance) {
+  public static void fileEarnings(Actor actor, Venue office, float balance) {
     final Base base = office.base() ;
+    base.incCredits(balance) ;
     if (balance > 0) {
-      base.incCredits(balance) ;
       office.chat.addPhrase((int) balance+" credits in profit") ;
     }
     if (balance < 0) {
-      base.incCredits(balance) ;
       office.chat.addPhrase((int) (0 - balance)+" credits in debt") ;
     }
   }
   
   
-  
-  public static float auditEmployer(Actor audits, Venue venue) {
-    if (venue.privateProperty() || venue.base() == null) return 0 ;
+  public static float auditForBalance(Actor audits, Venue venue) {
+    
+    if (venue.base() == null) return 0 ;
+    
     float sumWages = 0, sumSalaries = 0, sumSplits = 0 ;
     
     final BaseProfiles BP = venue.base().profiles ;
@@ -193,55 +199,82 @@ public class Audit extends Plan implements Economy {
     
     int i = 0 ; for (Actor works : venue.personnel.workers()) {
       final Profile p = BP.profileFor(works) ;
+      profiles[i] = p ;
       final int KR = BP.querySetting(AuditOffice.KEY_RELIEF) ;
       
       final float
         salary = p.salary(),
         relief = AuditOffice.RELIEF_AMOUNTS[KR],
         payInterval = p.daysSinceWageEval(venue.world()),
-        wages = ((salary / 10f) + relief) * payInterval ;
+        wages = ((salary / World.DAYS_PER_YEAR) + relief) * payInterval ;
       
-      profiles[i] = p ;
+      if (verbose && I.talkAbout == audits) {
+        I.say(works+" is due: "+wages+" over "+payInterval+" days") ;
+        I.say("Salary: "+salary+", relief: "+relief) ;
+        I.say("Wages ALREADY DUE: "+p.paymentDue()) ;
+      }
+      
       salaries[i++] = salary ;
       p.incPaymentDue(wages) ;
       sumWages += wages ;
       sumSalaries += salary ;
     }
-    
+
     final float surplus = venue.stocks.unTaxed() ;
-    i = 0 ; if (surplus > 0) for (Profile p : profiles) {
+    
+    if (verbose && I.talkAbout == audits) {
+      I.say(audits+" auditing "+venue+", surplus: "+surplus) ;
+      I.say("Sum of salaries is: "+sumSalaries) ;
+    }
+    
+    i = 0 ;
+    if (surplus > 0 && sumSalaries > 0) for (Profile p : profiles) {
       final float split = salaries[i++] * surplus / (sumSalaries * 10) ;
+      if (verbose && I.talkAbout == audits) {
+        I.say(p.actor+" getting profit bonus: "+split) ;
+      }
+      
       p.incPaymentDue(split) ;
       sumSplits += split ;
     }
-    venue.stocks.incCredits(0 - sumSplits) ;
-    
     
     final Base base = venue.base() ;
     float
-      balance = venue.stocks.credits() - sumWages,
+      balance = 0 - (sumWages + sumSplits),
       waste = (Rand.num() + base.crimeLevel()) / 2f ;
+    if (venue.stocks.credits() > 0) balance += venue.stocks.unTaxed() ;
+    else balance += venue.stocks.credits() ;
+    
     final float honesty =
       (audits.traits.traitLevel(HONOURABLE) / 2f) -
       (audits.traits.traitLevel(ACQUISITIVE) * waste) ;
     
-    if (Rand.num() > honesty) {
+    if (Rand.num() > (honesty + 1f) / 2) {
       waste *= 1.5f ;
       final float bribe = BASE_BRIBE_SIZE * waste ;
       balance -= bribe ;
       audits.gear.incCredits(bribe) ;
     }
     else {
-      if (audits.traits.test(ACCOUNTING, 15, 5)) waste = 0 ;
-      if (audits.traits.test(ACCOUNTING, 5, 5)) waste /= 2 ;
+      if (audits.traits.test(ACCOUNTING, 15, 5)) waste  = 0 ;
+      if (audits.traits.test(ACCOUNTING, 5 , 5)) waste /= 2 ;
     }
-    
     final int
       profit = (int) (balance / (1 + waste)),
       losses = (int) (balance * (1 + waste)) ;
-    if (profit > 0) return profit ;
-    if (losses < 0) return losses ;
     
+    
+    if (profit > 0) {
+      venue.stocks.incCredits(0 - profit) ;
+      venue.stocks.taxDone() ;
+      return profit ;
+    }
+    if (losses < 0) {
+      venue.stocks.incCredits(0 - losses) ;
+      venue.stocks.taxDone() ;
+      return losses ;
+    }
+    venue.stocks.taxDone() ;
     return 0 ;
   }
   
@@ -291,10 +324,12 @@ public class Audit extends Plan implements Economy {
     if (stage == STAGE_AUDIT && audited != null) {
       d.append("Auditing: ") ;
       d.append(audited) ;
+      d.append(" (Balance "+balance+")") ;
     }
     else if (stage == STAGE_REPORT) {
       d.append("Filing a financial report at ") ;
       d.append(actor.mind.work()) ;
+      d.append(" (Balance "+balance+")") ;
     }
     else d.append("Auditing "+audited) ;
   }

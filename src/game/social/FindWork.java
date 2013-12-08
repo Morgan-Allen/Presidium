@@ -15,34 +15,39 @@ public class FindWork {
   
   private static boolean verbose = false ;
   
-
   
+  
+  //
+  //  TODO:  Have this used by the Commerce class as well.  In fact, this could
+  //  all stand to be 'gated' a little better.
   
   /**  Helper methods for finding other employment-
     */
-  public static Application lookForJob(Human actor, Base base) {
+  public static Application lookForWork(Human actor, Base base) {
+    final Employment work = actor.mind.work() ;
+    if (work instanceof Vehicle) return null ;
     //
     //  Set up key comparison variables-
     final World world = base.world ;
     Application picked = null ;
     float bestRating = 0 ;
-    Application oldApp = actor.mind.application() ;
-    if (oldApp == null && actor.mind.work() != null) {
-      oldApp = new Application(actor, actor.vocation(), actor.mind.work()) ;
-    }
-    //
-    //  Sample the venues nearby that might offer a suitable job-
     final Batch <Venue> batch = new Batch <Venue> () ;
-    if (oldApp != null) {
-      world.presences.sampleFromKeys(
-        actor, world, 2, batch, oldApp.position, actor.vocation(), base
-      ) ;
-      picked = oldApp ;
-      bestRating = rateApplication(oldApp) * 1.5f ;
+    
+    if (work != null) {
+      picked = new Application(actor, actor.vocation(), work) ;
     }
-    else world.presences.sampleFromKeys(
-      actor, world, 2, batch, actor.vocation(), base
-    ) ;
+    if (picked != null) {
+      world.presences.sampleFromKeys(
+        actor, world, 2, batch, picked.position, actor.vocation(), base
+      ) ;
+      bestRating = rateApplication(picked) * 1.5f ;
+    }
+    else {
+      world.presences.sampleFromKeys(
+        actor, world, 2, batch, actor.vocation(), base
+      ) ;
+    }
+    
     //
     //  Assess the attractiveness of applying for jobs at each venue-
     for (Venue venue : batch) {
@@ -51,6 +56,11 @@ public class FindWork {
       for (Background c : careers) if (venue.numOpenings(c) > 0) {
         final Application newApp = new Application(actor, c, venue) ;
         final float rating = rateApplication(newApp) ;
+        
+        if (verbose && I.talkAbout == actor) {
+          I.say("Rating for "+c+" at "+venue+" is: "+rating) ;
+        }
+        
         if (rating > bestRating) {
           bestRating = rating ;
           picked = newApp ;
@@ -59,8 +69,10 @@ public class FindWork {
     }
     //
     //  If a new opening is more attractive, apply for the position-
-    if (picked != null && picked != oldApp) {
+    final Application oldApp = actor.mind.application() ;
+    if (picked != null && ! picked.matches(oldApp)) {
       if (oldApp != null) oldApp.employer.setApplicant(oldApp, false) ;
+      
       final int signingCost = signingCost(picked) ;
       picked.setHiringFee(signingCost) ;
       picked.employer.setApplicant(picked, true) ;
@@ -73,7 +85,12 @@ public class FindWork {
       
       return picked ;
     }
-    return null ;
+    else {
+      if (oldApp != null && work != oldApp.employer) {
+        oldApp.employer.setApplicant(oldApp, true) ;
+      }
+      return null ;
+    }
   }
   
   
@@ -94,16 +111,20 @@ public class FindWork {
   
   
   public static int signingCost(Application app) {
+    
     //
     //  TODO:  Signing cost is based on transport factors, attraction, no.
     //  already employed, etc.  Implement all of that.
     int transport = 0, incentive = 0, guildFees = 0 ;
+    guildFees += Background.HIRE_COSTS[app.position.standing] ;
     
     if (! app.applies.inWorld()) {
       //  ...This could potentially be much higher, depending on origin point.
-      transport += 200 ;
+      transport += 100 ;
     }
-    guildFees += Background.HIRE_COSTS[app.position.standing] ;
+    else if (app.applies.mind.work() == null) {
+      guildFees = 0 ;
+    }
     
     if (app.employer instanceof Venue) {
       final Venue venue = (Venue) app.employer ;
@@ -112,10 +133,16 @@ public class FindWork {
         guildFees = 0 ;
         transport /= 2 ;
       }
-      else guildFees *= 1 + ((numEmployed - 1) / 2f) ;
+      else if (numEmployed == 1) {
+        guildFees /= 2 ;
+      }
+      else guildFees *= 1 + ((numEmployed - 2) / 2f) ;
     }
     
     return guildFees + transport + incentive ;
   }
   
 }
+
+
+

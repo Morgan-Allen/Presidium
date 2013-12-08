@@ -95,11 +95,12 @@ public abstract class Mobile extends Element
   
   /**  Called whenever the mobile enters/exits the world...
    */
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
+  public boolean enterWorldAt(int x, int y, World world) {
+    if (! super.enterWorldAt(x, y, world)) return false ;
     (aboard = origin()).setInside(this, true) ;
     world().schedule.scheduleForUpdates(this) ;
     world().toggleActive(this, true) ;
+    return true ;
   }
   
   
@@ -144,31 +145,31 @@ public abstract class Mobile extends Element
       pos.z += aboveGroundHeight() ;
       setHeading(pos, nextRotation, true, world) ;
     }
-    if (verbose && BaseUI.isPicked(this)) I.say("NOW aboard: "+aboard) ;
+    if (verbose) I.sayAbout(this, "NOW aboard: "+aboard) ;
   }
   
 
-  public void setPosition(float xp, float yp, World world) {
-    if (verbose && BaseUI.isPicked(this)) I.say("SETTING POSITION") ;
+  public boolean setPosition(float xp, float yp, World world) {
+    if (verbose) I.sayAbout(this, "SETTING POSITION") ;
     nextPosition.set(xp, yp, aboveGroundHeight()) ;
-    setHeading(nextPosition, nextRotation, true, world) ;
+    return setHeading(nextPosition, nextRotation, true, world) ;
   }
   
   
-  public void setHeading(
+  public boolean setHeading(
     Vec3D pos, float rotation, boolean instant, World world
   ) {
     final Tile
       oldTile = origin(),
       newTile = world.tileAt(pos.x, pos.y) ;
-    super.setPosition(pos.x, pos.y, world) ;
+    if (! super.setPosition(pos.x, pos.y, world)) return false ;
     if (pos != null) nextPosition.setTo(pos) ;
     if (rotation != -1) nextRotation = rotation ;
     
     if (aboard == null || ! aboard.area(null).contains(newTile.x, newTile.y)) {
       if (aboard != null) aboard.setInside(this, false) ;
       (aboard = newTile).setInside(this, true) ;
-      if (verbose && BaseUI.isPicked(this)) I.say("FORCED aboard: "+aboard) ;
+      if (verbose) I.sayAbout(this, "FORCED aboard: "+aboard) ;
     }
     if (instant) {
       this.position.setTo(pos) ;
@@ -177,6 +178,7 @@ public abstract class Mobile extends Element
         onTileChange(oldTile, newTile) ;
       }
     }
+    return true ;
   }
   
   
@@ -216,7 +218,7 @@ public abstract class Mobile extends Element
       aboard.position(nextPosition) ;
     }
     else if (next != null && next.getClass() != aboard.getClass()) {
-      if (verbose && BaseUI.isPicked(this)) I.say("Jumping to: "+next) ;
+      if (verbose) I.sayAbout(this, "Jumping to: "+next) ;
       aboard.setInside(this, false) ;
       (aboard = next).setInside(this, true) ;
       next.position(nextPosition) ;
@@ -236,7 +238,7 @@ public abstract class Mobile extends Element
       }
       else if (outOfBounds) {
         if (awry) onMotionBlock(newTile) ;
-        if (verbose && BaseUI.isPicked(this)) I.say("Entering tile: "+newTile) ;
+        if (verbose) I.sayAbout(this, "Entering tile: "+newTile) ;
         aboard.setInside(this, false) ;
         (aboard = newTile).setInside(this, true) ;
       }

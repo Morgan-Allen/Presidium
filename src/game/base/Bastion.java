@@ -136,17 +136,17 @@ public class Bastion extends Venue implements Economy {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final Background v = actor.vocation() ;
     
-    if (v == Background.VETERAN) {
+    if (v == Background.VETERAN || v == Background.WAR_MASTER) {
       return Patrolling.securePerimeter(actor, this, world) ;
     }
     if (v == Background.TECH_RESERVE) {
       return Building.getNextRepairFor(actor, Plan.CASUAL) ;
     }
-    if (v == Background.AUDITOR) {
+    if (v == Background.AUDITOR || v == Background.MINISTER_FOR_ACCOUNTS) {
       final Venue toAudit = Audit.nextToAuditFor(actor) ;
       return toAudit == null ? null : new Audit(actor, toAudit) ;
     }
-    if (v == Background.STEWARD) {
+    if (v == Background.STEWARD || v == Background.FIRST_CONSORT) {
       return new Supervision(actor, this) ;
     }
     return new Supervision(actor, this) ;

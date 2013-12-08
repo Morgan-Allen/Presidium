@@ -2,7 +2,6 @@
 
 package src.game.planet ;
 import src.game.common.* ;
-import src.game.common.WorldSections.Section ;
 import src.util.* ;
 
 
@@ -38,19 +37,16 @@ public class Ecology {
   
   private static boolean verbose = false ;
   
-  
   final World world ;
   final int SR, SS ;
   final RandomScan growthMap ;
+  final public FadingMap
+    biomass,
+    squalorMap,
+    preyMap, hunterMap,
+    abundances[] ;
+  final Batch <FadingMap> allMaps = new Batch <FadingMap> () ;
   
-  final float biomass[][] ;   //Of crops/flora.
-  final float squalorMap[][] ;    //For pollution/ambience.
-  final float preyMap[][], hunterMap[][], abundances[][][] ;  //Of species.
-  
-  final float globalAbundance[] ;
-  final Batch <float[][]> allMaps = new Batch <float[][]> () ;
-  
-  private float globalBiomass = 0 ;
   
   
   public Ecology(final World world) {
@@ -60,35 +56,34 @@ public class Ecology {
     growthMap = new RandomScan(world.size) {
       protected void scanAt(int x, int y) { growthAt(world.tileAt(x, y)) ; }
     } ;
-    allMaps.add(biomass = new float[SS][SS]) ;
-    allMaps.add(squalorMap  = new float[SS][SS]) ;
-    allMaps.add(preyMap     = new float[SS][SS]) ;
-    allMaps.add(hunterMap   = new float[SS][SS]) ;
-    abundances = new float[Species.ANIMAL_SPECIES.length][SS][SS] ;
-    for (float map[][] : abundances) allMaps.add(map) ;
-    globalAbundance = new float[Species.ANIMAL_SPECIES.length] ;
+    
+    //final int mapRes = 4 ;
+    allMaps.add(biomass    = new FadingMap(world, SS)) ;
+    allMaps.add(squalorMap = new FadingMap(world, SS)) ;
+    
+    
+    allMaps.add(preyMap    = new FadingMap(world, SS)) ;
+    allMaps.add(hunterMap  = new FadingMap(world, SS)) ;
+    abundances = new FadingMap[Species.ANIMAL_SPECIES.length] ;
+    for (int i = 0 ; i < Species.ANIMAL_SPECIES.length ; i++) {
+      abundances[i] = new FadingMap(world, SS) ;
+      allMaps.add(abundances[i]) ;
+    }
+    //globalAbundance = new float[Species.ANIMAL_SPECIES.length] ;
   }
   
   
   public void loadState(Session s) throws Exception {
-    I.say("Loading ecology state...") ;
+    //I.say("Loading ecology state...") ;
     growthMap.loadState(s) ;
-    for (float map[][] : allMaps) for (Coord c : Visit.grid(0, 0, SS, SS, 1)) {
-      map[c.x][c.y] = s.loadFloat() ;
-    }
-    for (Species p : Species.ANIMAL_SPECIES) {
-      globalAbundance[p.ID] = s.loadFloat() ;
-    }
+    for (FadingMap map : allMaps) map.loadState(s) ;
   }
   
   
   public void saveState(Session s) throws Exception {
     growthMap.saveState(s) ;
-    for (float map[][] : allMaps) for (Coord c : Visit.grid(0, 0, SS, SS, 1)) {
-      s.saveFloat(map[c.x][c.y]) ;
-    }
-    for (Species p : Species.ANIMAL_SPECIES) {
-      s.saveFloat(globalAbundance[p.ID]) ;
+    for (FadingMap map : allMaps) {
+      map.saveState(s) ;
     }
   }
   
@@ -123,27 +118,11 @@ public class Ecology {
     float growIndex = (time % World.GROWTH_INTERVAL) ;
     growIndex *= size * size * 1f / World.GROWTH_INTERVAL ;
     growthMap.scanThroughTo((int) growIndex) ;
-    globalBiomass = 0 ;
     
-    for (float map[][] : allMaps) for (Coord c : Visit.grid(0, 0, SS, SS, 1)) {
-      if (map == biomass) {
-        map[c.x][c.y] *= 1 - (UPDATE_INC / World.GROWTH_INTERVAL) ;
-        ///I.say("Val is: "+map[c.x][c.y]) ;
-        globalBiomass += map[c.x][c.y] ;
-        continue ;
-      }
-      map[c.x][c.y] *= 1 - UPDATE_INC ;
+    for (FadingMap map : allMaps) {
+      map.performFade() ;
     }
-    for (Species p : Species.ANIMAL_SPECIES) {
-      globalAbundance[p.ID] *= 1 - UPDATE_INC ;
-    }
-    
-    globalBiomass /= (SS * SS) ;
-    
-    if (verbose) {
-      final float squareA = SR * SR * 1 ;
-      I.present(squalorMap, "Squalor", 256, 256, squareA, -squareA) ;
-    }
+    //squalorMap.presentVals("Squalor", -1, true) ;
   }
   
   
@@ -156,28 +135,22 @@ public class Ecology {
   
   
   public void impingeBiomass(Element e, float amount, boolean gradual) {
-    final Tile t = e.origin() ;
-    ///I.say("Impinging growth: "+g) ;
-    biomass[t.x / SR][t.y / SR] += amount * (gradual ? UPDATE_INC : 1) ;
+    biomass.impingeVal(e.origin(), amount, gradual) ;
   }
   
   
   public void impingeSqualor(float squalorVal, Fixture f, boolean gradual) {
-    impingeOnMap(squalorVal, f.area(), squalorMap, gradual) ;
+    squalorMap.impingeVal(f.area(), squalorVal, gradual) ;
   }
   
   
   public void impingeAbundance(Fauna f, boolean gradual) {
-    //
-    //  TODO:  Impinge over an area?  Like with squalor?
     final Tile t = f.origin() ;
     final Species s = f.species ;
-    final float inc = (gradual ? UPDATE_INC : 1) * f.health.maxHealth() ;
-    final int aX = t.x / SR, aY = t.y / SR ;
-    abundances[s.ID][aX][aY] += inc ;
-    globalAbundance[s.ID] += inc ;
-    if (s.type == Species.Type.BROWSER ) preyMap  [aX][aY] += inc ;
-    if (s.type == Species.Type.PREDATOR) hunterMap[aX][aY] += inc ;
+    final float inc = f.health.maxHealth() ;
+    abundances[s.ID].impingeVal(t, inc, gradual) ;
+    if (s.type == Species.Type.BROWSER ) preyMap.impingeVal(t, inc, gradual) ;
+    if (s.type == Species.Type.PREDATOR) hunterMap.impingeVal(t, inc, gradual) ;
   }
   
   
@@ -185,8 +158,6 @@ public class Ecology {
   
   /**  Terraforming methods-
     */
-  
-  
   public void pushClimate(Habitat desired, float strength) {
     //  TODO:  This is the next thing to implement.
   }
@@ -194,68 +165,34 @@ public class Ecology {
   
   
   
-  /**  Diffusing effects over a wider area-
-    */
-  private Section batchS[] = new Section[8] ;
-  private Box2D overlap = new Box2D() ;
-  
-  
-  private void impingeOnMap(
-    float val, Box2D bound, float map[][], boolean gradual
-  ) {
-    final float fullVal = val * bound.area() * (gradual ? UPDATE_INC : 1) / 2 ;
-    final Box2D aura = new Box2D().setTo(bound).expandBy(SR / 2) ;
-    final Vec2D c = bound.centre() ;
-    
-    final Section centre = world.sections.sectionAt((int) c.x, (int) c.y) ;
-    impingeOnSection(bound, fullVal, centre, map) ;
-    impingeOnSection(aura , fullVal, centre, map) ;
-    
-    for (Section s : world.sections.neighbours(centre, batchS)) {
-      if (s == null) continue ;
-      impingeOnSection(bound, fullVal, s, map) ;
-      impingeOnSection(aura , fullVal, s, map) ;
-    }
-  }
-  
-  
-  private void impingeOnSection(
-    Box2D bound, float fullVal, Section s, float map[][]
-  ) {
-    overlap.setTo(s.area) ;
-    overlap.cropBy(bound) ;
-    final float inc = fullVal * overlap.area() / bound.area() ;
-    map[s.x][s.y] += inc ;
-    if (verbose && (Math.abs(inc) > 1) && (inc * fullVal < 0)) {
-      I.say("Value increment: "+inc+" "+overlap.area()) ;
-    }
-  }
-  
-  
-  
   
   /**  Querying sample values-
     */
   public float biomassAmount(Tile t) {
-    return Visit.sampleMap(world.size, biomass, t.x, t.y) ;
+    return biomass.longTermVal(t) ;
   }
   
-  
   public float biomassRating(Tile t) {
-    return biomassAmount(t) / (SR * SR) ;
+    return biomass.longTermVal(t) * 4f / (SR * SR) ;
   }
   
   
   public float squalorAmount(Tile t) {
-    return Visit.sampleMap(world.size, squalorMap, t.x, t.y) ;
+    return squalorMap.longTermVal(t) ;
   }
   
   
   public float squalorRating(Tile t) {
-    return squalorAmount(t) / (SR * SR) ;
+    return squalorMap.shortTermVal(t) * 4f / (SR * SR) ;
   }
   
   
+  public float squalorRating(Element e) {
+    return squalorRating(world.tileAt(e)) ;
+  }
+  
+  
+  /*
   public float squalorRating(Fixture f) {
     float sum = 0, count = 0 ;
     for (Tile t : world.tilesIn(f.area(), true)) {
@@ -264,25 +201,28 @@ public class Ecology {
     }
     return sum / (count * SR * SR) ;
   }
+  //*/
   
   
   public float preyDensityAt(Tile t) {
-    return Visit.sampleMap(world.size, preyMap, t.x, t.y) ;
+    return preyMap.longTermVal(t) ;
+    //return Visit.sampleMap(world.size, preyMap, t.x, t.y) ;
   }
   
   
   public float hunterDensityAt(Tile t) {
-    return Visit.sampleMap(world.size, hunterMap, t.x, t.y) ;
+    return hunterMap.longTermVal(t) ;
+    //return Visit.sampleMap(world.size, hunterMap, t.x, t.y) ;
   }
   
   
   public float absoluteAbundanceAt(Species s, Tile t) {
-    return Visit.sampleMap(world.size, abundances[s.ID], t.x, t.y) ;
+    return abundances[s.ID].longTermVal(t) ;
   }
   
   
   public float globalAbundance(Species s) {
-    return globalAbundance[s.ID] ;
+    return abundances[s.ID].overallSum() / (world.size * world.size) ;
   }
   
   
@@ -324,7 +264,7 @@ public class Ecology {
   
   
   public float globalBiomass() {
-    return globalBiomass / (SS * SS) ;
+    return biomass.overallSum() / (world.size * world.size) ;
   }
 }
 

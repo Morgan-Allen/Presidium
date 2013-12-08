@@ -10,6 +10,9 @@ package src.game.common ;
 
 public class GameSettings {
   
+  //
+  //  TODO:  It's possible that these should be base or scenario-specific,
+  //  rather than global...
   
   public static boolean
     

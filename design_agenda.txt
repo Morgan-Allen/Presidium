@@ -76,6 +76,29 @@ Quest ideas-
 //
 //  THESE WILL HAVE TO BE IMPLEMENTED LATER, I THINK
 
+'Victory conditions'- the planet will be ceded to a particular house when all
+rival forces have been driven out, forced into vassalhood (for a short time),
+or allied with (for a longer period.)  You can continue to play on afterwards,
+of course, either as a vassal, victor, or ally, gaining further mild prestige
+or economic benefits.  Vassals and allies will, however, have more limited
+demesnes.
+
+Some of these structures need to be House-specific.  (Or based on alliance at
+any rate...)
+House Suhail-  Training House + Highborn Villas, no Excavation Site
+House Procyon- Arena + Imperial Fane + Slums, no Holocade or Botanical Station
+House Taygeta- Free Market + MCHQ, no Garrison
+House Altair-  Counsel Chamber + Field Generator, no Enclosure
+
+House Maia-      Sculptor + Psyon Choir + Counsel Chamber, heavy tribute levied
+House Fomalhaut- Imperial Fane, gene bonus, homeworld migrants only, no support
+
+(Contact)  Diplomacy + Spying & Marriage
+(Strike)   Invasion + Capture & Recovery
+(Recon)    Exploration + Settlement & Trade
+(Security) Defence + Support & Policing
+
+
 THE TRAINING HOUSE
   Music and Song and Dance.
   Physical pleasure/carnal delights.
@@ -218,6 +241,58 @@ Shaper Colony (the Sculptor's Studio)
   
   Based on:  Bene Tleilaxu from Dune, Last And First Men, Hyperion's Ousters,
              aspects of the Na'vi from Avatar and WH40K Chaos
+
+
+School-specific abilities- possibility to work on:
+
+Logician Training:
+  Eidetic Blueprint (boosts assembly/construction)
+  Estimation        (aids premonition efforts)
+  Mnemonic Mantra   (aids learning/calming)
+  Neural Meld       (psi interrogation/teaching)
+  Combat Precision  (aids close/nonlethal combat)
+  Augment Field     (psi boosts personal shields)
+
+Initiate Training:
+  Drone Uplink      (crafting drone servants)
+  Device Interface  (augments artifacts)
+  Stasis Field      (slows motion/reflexes)
+  Command Routine   (controls enemy robots)
+  Hibernate         (slows aging, safer travel)
+  Red Phylactery    (memories intact if killed)
+
+Spacer Training:
+  Displacement      (assists evasion & mobility)
+  Concentration     (aids valued cognitive skills)
+  Homing Anchor     (instant teleport home)
+  Transducer        (structural power & psi bonus)
+  Subspace Medium   (off-planet communication)
+  Star Gate         (aids ship & convoy travel)
+
+Collective Training
+  Empath            (aids human relationships)
+  Homo Gestalt      (blend skills and experience)
+  Fast Healing      (improves recovery)
+  Choral Locus      (multiply group psi abilities)
+  Tabula Rasa       (erases subject memories)
+  Greater Gaia      (animals tame, more fertility)
+
+Symbiont Training
+  Arc Conduit       (electrical damage)
+  Assimilate        (converts buildings/silicates)
+  Secret Fire       (no need for sleep/food)
+  Glaive Armour     (encases in resilient shell)
+  Zero Point Energy (meltdown-level explosion)
+  Archon Phase      (change into higher being)
+
+Shaper Training
+  Pheremonist       (aids animal relationships)
+  Venom Secretion   (free, undetectable poison)
+  Sculpt Flesh      (aid disguise/appearance)
+  Instinct Psyon    (psi + bonus for stress)
+  Retroviral Taint  (endow with mutations)
+  Metamorphosis     (adopt different species)
+
 
 IMPERIAL FANE
   Improves relations with the Empress and associated worlds

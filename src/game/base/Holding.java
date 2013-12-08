@@ -222,7 +222,7 @@ public class Holding extends Venue implements Economy {
   
   
   private void impingeSqualor() {
-    world.ecology().impingeSqualor(2 - upgradeLevel, this, true) ;
+    world.ecology().impingeSqualor((2 - upgradeLevel) * 2, this, true) ;
   }
   
   

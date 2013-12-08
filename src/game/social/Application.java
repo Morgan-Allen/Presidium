@@ -54,6 +54,22 @@ public class Application implements Session.Saveable {
   public void setHiringFee(int fee) {
     this.hiringFee = fee ;
   }
+  
+  
+  public boolean matches(Application a) {
+    if (a == null) return false ;
+    return
+      a.applies == applies &&
+      a.position == position &&
+      a.employer == employer ;
+  }
+  
+  
+  /*
+  public boolean valid() {
+    return employer.hasApplication(this) ;
+  }
+  //*/
 }
 
 

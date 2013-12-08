@@ -20,6 +20,8 @@ public class Payday extends Plan implements Economy {
   
   /**  Data fields, setup and save/load functions-
     */
+  //  TODO:  Use stages here.
+  
   final Employment pays ;
   private Venue admin ;
   private float balance ;
@@ -52,10 +54,9 @@ public class Payday extends Plan implements Economy {
   /**  Evaluating targets and priority-
     */
   public float priorityFor(Actor actor) {
+    if (admin == null) return 0 ;
     if (! (pays instanceof Venue)) return 0 ;
-    if (balance > 0) {
-      return CASUAL * actor.traits.scaleLevel(DUTIFUL) ;
-    }
+    if (balance > 0) return URGENT ;
     
     final Venue venue = (Venue) pays ;
     final Profile p = venue.base.profiles.profileFor(actor) ;
@@ -82,6 +83,8 @@ public class Payday extends Plan implements Economy {
     */
   protected Behaviour getNextStep() {
     if (admin == null) return null ;
+    
+    //I.say("Getting next payday: "+this.hashCode()) ;
     if (balance != 0) {
       final Action reports = new Action(
         actor, admin,
@@ -101,18 +104,23 @@ public class Payday extends Plan implements Economy {
   
   public boolean actionGetPaid(Actor actor, Venue venue) {
     final Profile p = venue.base.profiles.profileFor(actor) ;
+    I.sayAbout(actor, "Getting paid at "+venue) ;
+    //Audit.auditEmployer(actor, venue) ;
     
     if (p.paymentDue() == 0 && p.daysSinceWageEval(venue.world()) > 1) {
       if (venue instanceof AuditOffice) {
+        I.say("Dispensing relief...") ;
         ((AuditOffice) venue).dispenseRelief(actor) ;
       }
       else {
-        balance = Audit.auditEmployer(actor, venue) ;
-        venue.stocks.incCredits(0 - balance) ;
+        balance = Audit.auditForBalance(actor, venue) ;
+        I.say("Getting balance: "+balance) ;
+        venue.base.incCredits(balance) ;
       }
     }
     
     final float wages = p.paymentDue() ;
+    I.sayAbout(actor, "Wages due "+wages) ;
     venue.stocks.incCredits(0 - wages) ;
     actor.gear.incCredits(wages) ;
     p.clearWages(venue.world()) ;
@@ -121,7 +129,10 @@ public class Payday extends Plan implements Economy {
   
   
   public boolean actionReport(Actor actor, Venue admin) {
-    Audit.fileReport(actor, admin, balance) ;
+    I.say("Filing report...") ;
+    Audit.fileEarnings(actor, admin, balance) ;
+    this.admin = null ;
+    this.balance = 0 ;
     return true ;
   }
   

@@ -7,7 +7,7 @@ import src.game.base.* ;
 import src.game.wild.* ;
 import src.game.building.* ;
 import src.game.common.* ;
-import src.game.common.Session.Saveable;
+//import src.game.common.Session.Saveable ;
 import src.user.Description;
 import src.util.* ;
 
@@ -16,7 +16,7 @@ import src.util.* ;
 public class FindHome extends Plan implements Economy {
   
   
-  private static boolean verbose = true ;
+  private static boolean verbose = false ;
   
 
 
@@ -54,15 +54,28 @@ public class FindHome extends Plan implements Economy {
   
   /**  Static helper methods for home placement/location-
     */
+  //
+  //  ...No.
+  public static interface Residence {
+    
+  }
+  
+  
+  
   public static Holding lookForHome(Human client, Base base) {
     final World world = base.world ;
+    final Venue oldHome = client.mind.home() ;
     
     Holding best = null ;
     float bestRating = 0 ;
-
-    if (client.mind.home() instanceof Holding) {
-      final Holding h = (Holding) client.mind.home() ;
-      bestRating = rateHolding(client, h) ;
+    
+    //
+    //  TODO:  Also, Native Huts and the Bastion need to count here!
+    
+    if (oldHome instanceof Holding) {
+      final Holding h = (Holding) oldHome ;
+      best = h ;
+      bestRating = rateHolding(client, h) * 2f ;
     }
     
     for (Object o : world.presences.sampleFromKey(
@@ -75,9 +88,9 @@ public class FindHome extends Plan implements Economy {
 
     //
     //  TODO:  You need to allow for construction of native hutments if there's
-    //  no conventional refuge available-
+    //  no more conventional refuge available-
     
-    if (Rand.index(1) == 0) {
+    if (best == null || Rand.index(10) == 0) {
       final Venue refuge = (Venue) world.presences.nearestMatch(
         SERVICE_REFUGE, client, World.SECTOR_SIZE
       ) ;
@@ -91,14 +104,14 @@ public class FindHome extends Plan implements Economy {
       I.say("Looking for home, best site: "+best) ;
     }
     
-    if (best != null) {
-      if (best != client.mind.home() && ! best.inWorld()) {
+    if (best != null && best != oldHome) {
+      if (! best.inWorld()) {
         best.doPlace(best.origin(), null) ;
       }
       client.mind.setHomeVenue(best) ;
+      return best ;
     }
-    
-    return best ;
+    else return null ;
   }
   
   

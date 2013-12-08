@@ -39,7 +39,7 @@ public class DebugStarcharts extends ViewLoop {
   
   protected void setup() {
     final int
-      NUM_STARS   = LARGE_CLUSTER_COUNT,
+      NUM_STARS   = MEDIUM_CLUSTER_COUNT,
       RIM_PORTION = DEFAULT_RIM_PORTION,
       MAX_DIST = (int) (
           DEFAULT_LIGHT_YEARS * LIGHT_YEAR_SCALE *
@@ -67,7 +67,7 @@ public class DebugStarcharts extends ViewLoop {
       q.putMatrixForm(m) ;
       final boolean rim = Rand.index(RIM_PORTION) == 0 ;
       v.set(0, 0, MAX_DIST * (rim ?
-        (1 - (Rand.num() / RIM_PORTION)) :
+        1 : //(1 - (Rand.num() / RIM_PORTION)) :
         (Rand.num() * Rand.num())
       )) ;
       m.trans(v) ;

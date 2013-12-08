@@ -137,13 +137,14 @@ public class Outcrop extends Fixture {
   }
   
   
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
+  public boolean enterWorldAt(int x, int y, World world) {
+    if (! super.enterWorldAt(x, y, world)) return false ;
     final Model model = modelFor(this, world) ;
     final Sprite s = model.makeSprite() ;
     if (size > 1 || type == TYPE_DUNE) s.scale = size / 2f ;
     attachSprite(s) ;
     setAsEstablished(true) ;
+    return true ;
   }
   
   

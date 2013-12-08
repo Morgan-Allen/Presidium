@@ -36,6 +36,8 @@ public class Commerce implements Economy {
   final float
     jobSupply[] = new float[NUM_J],
     jobDemand[] = new float[NUM_J] ;
+  
+  
   final List <Actor> candidates = new List <Actor> () ;
   final List <Actor> migrantsIn = new List <Actor> () ;
   
@@ -158,72 +160,77 @@ public class Commerce implements Economy {
   
   protected void updateCandidates(int numUpdates) {
     if ((numUpdates % UPDATE_INTERVAL) != 0) return ;
-    //
-    //  Firstly, decrement supply/demand by a fixed decay rate-
+    
+    final float inc = DEMAND_INC, timeGone = UPDATE_INTERVAL / APPLY_INTERVAL ;
     for (Background b : Background.ALL_BACKGROUNDS) {
       final int i = b.ID ;
-      jobDemand[i] *= (1 - DEMAND_INC) ;
-      jobDemand[i] = Math.max(jobDemand[i] - (DEMAND_INC / 100), 0) ;
-      jobSupply[i] *= (1 - DEMAND_INC) ;
-      jobSupply[i] = Math.max(jobSupply[i] - (DEMAND_INC / 100), 0) ;
+      jobDemand[i] *= (1 - inc) ;
+      jobDemand[i] = Math.max(jobDemand[i] - (inc / 100), 0) ;
+      jobSupply[i] = 0 ;
     }
-    //
-    //  Consider generating fresh applicants-
+    
+    for (Actor c : candidates) {
+      final Application a = c.mind.application() ;
+      if (a == null) continue ;
+      jobSupply[a.position.ID]++ ;
+    }
+    
     for (Background b : Background.ALL_BACKGROUNDS) {
       final float supply = jobSupply[b.ID], demand = jobDemand[b.ID] ;
-      float applyChance = (demand * MAX_APPLICANTS) - supply ;
-      if (verbose && applyChance > 0) {
-        I.say("  Demand/supply for "+b+" is "+demand+"/"+supply) ;
+      if (demand == 0) continue ;
+      //float applyChance = (demand * MAX_APPLICANTS) - supply ;
+      float applyChance = demand / (supply + demand) ;
+      applyChance *= timeGone ;
+      
+      if (verbose) {
+        I.say("  Hire chance for "+b+" is "+applyChance) ;
+        I.say("  Supply/demand "+supply+" / "+demand) ;
       }
-      applyChance *= UPDATE_INTERVAL / APPLY_INTERVAL ;
-      if (Rand.num() < applyChance) {
+      
+      while (Rand.num() < applyChance) {
         final Human applies = new Human(b, base) ;
         candidates.addFirst(applies) ;
-        if (verbose) I.say("Generated new candidate for "+b) ;
+        FindWork.lookForWork((Human) applies, base) ;
+        applyChance-- ;
       }
-      jobSupply[b.ID] = 0 ;
     }
+    
     //
-    //  We then iterate, in a crudely time-sliced fashion, over all current
-    //  job candidates and try to find them places of work-
-    final int numProcessed = Visit.clamp(1 + (int) ((
-      candidates.size() * UPDATE_INTERVAL
-    ) / APPLY_INTERVAL), candidates.size() + 1) ;
-    if (verbose && numProcessed > 0) {
-      I.say("Candidates to process: "+numProcessed) ;
-    }
-    //
-    //  (Minimum of one processed, never more than the entire batch-)
-    for (int n = numProcessed ; n-- > 0 ;) {
-      final Human a = (Human) candidates.first() ;
-      //
-      //  Calculate the likelihood of quitting based on supply/demand-
-      float quitChance = 0 ; if (a.mind.application() != null) {
-        final Background b = a.mind.application().position ;
-        final float supply = jobSupply[b.ID], demand = jobDemand[b.ID] ;
-        quitChance = (supply - (demand * MAX_APPLICANTS)) ;
+    //  TODO:  Consider time-slicing this again, at least for larger
+    //  settlements.
+    
+    for (ListEntry e = candidates ; (e = e.nextEntry()) != candidates ;) {
+      final Human c = (Human) e.refers ;
+      final Application a = c.mind.application() ;
+      float quitChance = 1 ;
+      if (a != null) {
+        final Background b = c.mind.application().position ;
+        final float
+          supply = jobSupply[b.ID],
+          demand = jobDemand[b.ID] ;
+        quitChance = supply / (supply + demand) ;
+        quitChance *= timeGone ;
+        
+        if (verbose) {
+          I.say("Quit chance for "+a.position+" "+c+" is: "+quitChance) ;
+        }
       }
-      //
-      //  If you don't quit, look for employment in the world-
-      candidates.removeFirst() ;
-      quitChance = Visit.clamp(quitChance, 0.1f, 0.9f) / 2 ;
       if (Rand.num() > quitChance) {
-        if (verbose) I.say("  "+a+" looking for job from offworld...") ;
-        FindWork.lookForJob(a, base) ;
-        candidates.addLast(a) ;
+        if (Rand.num() < timeGone) {
+          FindWork.lookForWork((Human) c, base) ;
+        }
       }
-      else if (verbose) I.say("  "+a+" has quit offworld job-hunting...") ;
-      
-      final Application app = a.mind.application() ;
-      if (app != null) {
-        jobSupply[app.position.ID] += DEMAND_INC ;
+      else {
+        candidates.removeEntry(e) ;
+        if (a != null) a.employer.setApplicant(a, false) ;
       }
     }
   }
   
   
   public void incDemand(Background b, float amount, int period) {
-    jobDemand[b.ID] += amount * (period / UPDATE_INTERVAL) * DEMAND_INC ;
+    jobDemand[b.ID] +=
+      amount * (period / UPDATE_INTERVAL) * DEMAND_INC * MAX_APPLICANTS ;
   }
   
   
@@ -271,6 +278,11 @@ public class Commerce implements Economy {
     //  TODO:  Charge more for smuggler vessels, and less for Spacers.
     //  TODO:  Implement trade with settlements on the same planet(?)
     
+    //
+    //  TODO:  Have price levels be global for the settlement as a whole, rather
+    //  than calculated at specific structures.  Vendors make money by charging
+    //  more in general.
+    
     for (Service type : ALL_COMMODITIES) {
       ///final boolean offworld = true ; //For now.
       float
@@ -287,6 +299,12 @@ public class Commerce implements Economy {
           basePrice *= 1.5f ;
           if (system == homeworld) exportDiv *= 0.75f ;
         }
+      }
+      
+      if (homeworld != null) {
+        final float sizeBonus = base.communitySpirit() ;
+        importMul *= (1 - sizeBonus) ;
+        exportDiv = (1 * sizeBonus) + (exportDiv * (1 - sizeBonus)) ;
       }
       
       importPrices.put(type, basePrice * importMul) ;

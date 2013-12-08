@@ -105,9 +105,10 @@ public class Cantina extends Venue implements Economy {
   }
   
   
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
+  public boolean enterWorldAt(int x, int y, World world) {
+    if (! super.enterWorldAt(x, y, world)) return false ;
     nameID = Rand.index(VENUE_NAMES.length) ;
+    return true ;
   }
   
 
@@ -220,11 +221,8 @@ public class Cantina extends Venue implements Economy {
   public float performValue() {
     float value = 0, count = 1 ;
     final Performance p = performance() ;
-    value += p.performValue() ;
-    if (count == 0) return 0 ;
-    value /= count ;
-    value *= 1 + ((count - 1) / 2f) ;
-    return value ;
+    if (p == null) return 0 ;
+    return p.performValue() ;
   }
   
   

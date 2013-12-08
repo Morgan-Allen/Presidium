@@ -226,7 +226,7 @@ public class VenueStocks extends Inventory implements Economy {
   public float priceFor(Service type) {
     final Demand d = demands.get(type) ;
     if (d == null) return type.basePrice ;
-    return d.pricePaid ;
+    return (d.pricePaid + type.basePrice) / 2f ;
   }
   
   
@@ -234,17 +234,20 @@ public class VenueStocks extends Inventory implements Economy {
     Item made = cons[0].out ;
     Conversion picked = null ;
     float minPrice = Float.POSITIVE_INFINITY ;
-    consLoop : for (Conversion c : cons) {
+    for (Conversion c : cons) {
       if (c.out.type != made.type) I.complain("Only for same good!") ;
       float unitPrice = 0 ;
       for (Item raw : c.raw) {
         final float amount = amountOf(raw.type) ;
         ///if (amount == 0) continue consLoop ;
         float rawPrice = priceFor(raw.type) * raw.amount ;
+        //I.say("Raw price for "+raw+" is "+rawPrice) ;
         rawPrice *= 5 / (5 + amount) ;
+        rawPrice *= 1 + shortagePenalty(raw.type) ;
         unitPrice += rawPrice ;
       }
       unitPrice /= c.out.amount ;
+      //I.say("Unit price for "+c+" is "+unitPrice) ;
       if (unitPrice < minPrice) { minPrice = unitPrice ; picked = c ; }
     }
     return picked ;
@@ -338,7 +341,8 @@ public class VenueStocks extends Inventory implements Economy {
   
   public void translateBest(int period, Conversion... cons) {
     final Conversion picked = bestConversion(cons) ;
-    //I.sayAbout(venue, "Best conversion: "+picked) ;
+    //if (verbose)
+      //I.sayAbout(venue, "Best conversion: "+picked) ;
     if (picked != null) translateDemands(period, picked) ;
   }
   
@@ -378,6 +382,7 @@ public class VenueStocks extends Inventory implements Economy {
       sumRatings += rating ;
     }
     if (sumRatings == 0) return ;
+    
     float avgPriceBump = 0 ;
     i = 0 ;
     
@@ -389,16 +394,24 @@ public class VenueStocks extends Inventory implements Economy {
         shortBump = shortage * weight,
         priceBump = type.basePrice * distance / 10f ;
 
-      if (verbose) I.sayAbout(venue,
-        "  Considering supplier: "+supplies+", rating: "+rating+
-        "\n  BUMP IS: "+shortBump
-      ) ;
       supplies.stocks.incDemand(
         type, shortBump, (int) UPDATE_PERIOD
       ) ;
-      avgPriceBump += (supplies.priceFor(type) + priceBump) * weight ;
+      final float price = supplies.priceFor(type) ;
+      
+      if (verbose && I.talkAbout == venue) {
+        I.say(
+          "  Considering supplier: "+supplies+", rating: "+rating+
+          "\n  BUMP IS: "+shortBump
+        ) ;
+        I.say("  Price for "+type+" at "+supplies+" is "+price) ;
+      }
+      avgPriceBump += (price + priceBump) * weight ;
     }
-    
+
+    if (verbose && I.talkAbout == venue) {
+      I.say("Average price bump for "+type+" is "+avgPriceBump) ;
+    }
     incPrice(type, avgPriceBump) ;
   }
   

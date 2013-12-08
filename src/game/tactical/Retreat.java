@@ -127,7 +127,7 @@ public class Retreat extends Plan implements Abilities {
       if (tried == null) continue ;
       tried = Spacing.nearestOpenTile(tried, target) ;
       ///I.say("Tried is: "+tried) ;
-      if (Spacing.distance(tried, target) > range) continue ;
+      if (tried == null || Spacing.distance(tried, target) > range) continue ;
       
       //
       //  Use the danger map if possible, since it's substantially cheaper
@@ -158,7 +158,9 @@ public class Retreat extends Plan implements Abilities {
     final float basePower = Combat.combatStrength(actor, enemy) ;
     float sumAllies = basePower, sumEnemies = 0 ;
     
-    //float estimate = 0 - basePower ;
+    //
+    //  TODO:  ...What about blending values from the danger map?
+    //  float estimate = 0 - basePower ;
 
     for (Element m : seen) {
       if (m == actor || ! (m instanceof Actor)) continue ;
@@ -177,56 +179,6 @@ public class Retreat extends Plan implements Abilities {
     
     return sumEnemies / (sumEnemies + sumAllies) ;
   }
-    
-    /*
-    //
-    //  Get a reading of threats based on all actors visible to this one, and
-    //  their distance from the spot in question.  TODO:  Retain awareness
-    //  longer?
-    final boolean report = verbose && I.talkAbout == actor ;
-    if (report) I.say("\n"+actor+" GETTING DANGER AT "+spot) ;
-    
-    //
-    //  TODO:  What about regional danger estimates?  Use twice the regional
-    //  danger, I would say, and take the maximum value.
-    
-    //float sumDanger = 0, minDanger = 0 ;
-    float sumThreats = 0, sumAllies = Combat.combatStrength(actor, null) ;
-    
-    final float range = World.SECTOR_SIZE ;
-    for (Element m : seen) {
-      if (m == actor || ! (m instanceof Actor)) continue ;
-      final Actor near = (Actor) m ;
-      if (near.indoors() || ! near.health.conscious()) continue ;
-      final float threat = Combat.threatFrom(actor, near) ;
-      float danger = threat ;
-      //
-      //  More distant foes are less threatening.
-      final float dist = Spacing.distance(spot, near) / range ;
-      if (dist > 1) danger /= 0.5f + dist ;
-      else danger /= 1 + (dist / 2) ;
-      //
-      //  Adjust danger estimate based on allegiance-
-      if (threat > 0) {
-        danger *= Combat.combatStrength(near, actor) ;
-        sumThreats += danger ;
-      }
-      if (threat < 0) {
-        danger *= Combat.combatStrength(near, null) ;
-        sumAllies += danger ;
-      }
-      if (report) {
-        I.say("Danger from "+near+" is "+danger+", threat: "+threat) ;
-      }
-    }
-    if (report) I.say("Sum of allies/enemies: "+sumAllies+"/"+sumThreats) ;
-    if (sumThreats == 0) return 0 ;
-    if (sumAllies == 0) return 100 ;
-    final float estimate = sumThreats / (sumThreats + sumAllies) ;
-    if (report) I.say("Total danger is: "+estimate) ;
-    return estimate ;
-    //*/
-  //}
   
   
   

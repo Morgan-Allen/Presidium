@@ -53,7 +53,7 @@ public class Background implements Economy, Session.Saveable {
     NOT_A_GUILD     = -1 ;
   
   final public static int HIRE_COSTS[] = {
-    150, 250, 500, 1000, -1  //Represents 10 days' salary.  Can't hire nobles.
+    150, 250, 500, 1000, 2500  //Represents 60 days' salary.
   } ;
   
   
@@ -340,7 +340,7 @@ public class Background implements Economy, Session.Saveable {
     
     FABRICATOR = new Background(
       "Fabricator", "citizen_skin.gif", null,
-      MIDDLE_CLASS, GUILD_AESTHETE,
+      LOWER_CLASS, GUILD_AESTHETE,
       PRACTICED, CHEMISTRY, HARD_LABOUR, NOVICE, GRAPHIC_DESIGN, HANDICRAFTS,
       SOMETIMES, STUBBORN, NERVOUS,
       OVERALLS

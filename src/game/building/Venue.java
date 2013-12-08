@@ -165,23 +165,27 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  public void setPosition(float x, float y, World world) {
-    super.setPosition(x, y, world) ;
-    if (entranceFace == ENTRANCE_NONE) entrance = null ;
+  public boolean setPosition(float x, float y, World world) {
+    if (! super.setPosition(x, y, world)) return false ;
+    final Tile o = origin() ;
+    if (entranceFace == ENTRANCE_NONE) {
+      entrance = null ;
+    }
     else {
       final int off[] = Spacing.entranceCoords(size, size, entranceFace) ;
-      final Tile o = origin() ;
       entrance = world.tileAt(o.x + off[0], o.y + off[1]) ;
     }
+    return true ;
   }
   
   
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
+  public boolean enterWorldAt(int x, int y, World world) {
+    if (! super.enterWorldAt(x, y, world)) return false ;
 
     world.presences.togglePresence(this, true ) ;
     world.schedule.scheduleForUpdates(this) ;
     personnel.onCommission() ;
+    return true ;
   }
   
   
@@ -449,7 +453,7 @@ public abstract class Venue extends Fixture implements
       final String AN = " ("+I.shorten(squalor * -10, 1)+")" ;
       d.append("\n  Ambience:  "+Ecology.squalorDesc(squalor)+AN) ;
     }
-    final float danger = base().dangerMap.longTermVal(world.tileAt(this)) ;
+    final float danger = base().dangerMap.shortTermVal(world.tileAt(this)) ;
     final String DN = " ("+I.shorten(danger, 1)+")" ;
     d.append("\n  Danger level: "+Ecology.dangerDesc(danger)+DN) ;
     d.append("\n\n") ;
@@ -510,10 +514,10 @@ public abstract class Venue extends Fixture implements
     d.append("\n  ") ;
     item.describeTo(d) ;
     
-    if (Visit.arrayIncludes(services(), type) && item.refers == null) {
-      final int price  = (int) Math.ceil(priceFor(type)) ;
+    //if (Visit.arrayIncludes(services(), type) && item.refers == null) {
+      final int price = (int) Math.ceil(priceFor(type)) ;
       d.append(" /"+nS+" (Price "+price+")") ;
-    }
+    //}
     return true ;
   }
   

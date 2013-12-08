@@ -226,8 +226,8 @@ public class Deliveries implements Economy {
     //  quantities involved-
     final Object subject = origin ;
     final int
-      roundUnit = sizeLimit <= 10 ? (sizeLimit <= 5 ? 1 : 1) : 5,
-      pickUnit  = sizeLimit <= 10 ? (sizeLimit <= 5 ? 0 : 2) : 5 ;
+      roundUnit = sizeLimit < 10 ? (sizeLimit <= 5 ? 1 : 2) : 5,
+      pickUnit  = sizeLimit < 10 ? (sizeLimit <= 5 ? 0 : 2) : 5 ;
     if (verbose) I.sayAbout(subject,
       "Evaluating delivery between "+origin+" and "+client+
       ", goods: "+goods.length

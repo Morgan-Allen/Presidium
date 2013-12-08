@@ -58,7 +58,7 @@ public class OutfitType extends Service implements Economy {
     }
     else {
       final ShieldFX shieldFX = new ShieldFX() ;
-      shieldFX.scale = 0.5f ;
+      shieldFX.scale = 0.5f * uses.height() ;
       world.ephemera.addGhost(uses, 1, shieldFX, 2) ;
     }
   }

@@ -204,6 +204,7 @@ public class Forestry extends Plan implements Economy {
   
   public boolean actionReturnHarvest(Actor actor, Venue depot) {
     for (Item sample : actor.gear.matches(SAMPLES)) {
+      if (! (sample.refers instanceof Flora)) continue ;
       final Flora cut = (Flora) sample.refers ;
       int stage = cut.growStage() ;
       depot.stocks.bumpItem(GREENS, stage * Rand.num() / Flora.MAX_GROWTH) ;

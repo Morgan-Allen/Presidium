@@ -286,12 +286,14 @@ public class ActorTraits implements Abilities {
     
     final float oldVal = level.value ;
     level.value = toLevel ;
+    /*
     if (type == MUTATION) {
       afterMutation(level.value - oldVal, false) ;
     }
     if (level.value > oldVal && type.type == CONDITION) {
       type.affect(actor) ;
     }
+    //*/
     tryReport(type, level.value - (int) oldVal) ;
   }
   

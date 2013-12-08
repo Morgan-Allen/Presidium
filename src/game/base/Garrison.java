@@ -152,9 +152,10 @@ public class Garrison extends Venue implements Economy {
   }
   
   
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
+  public boolean enterWorldAt(int x, int y, World world) {
+    if (! super.enterWorldAt(x, y, world)) return false ;
     updateDrillYard() ;
+    return true ;
   }
   
   
@@ -167,6 +168,11 @@ public class Garrison extends Venue implements Economy {
   //
   //  TODO:  Have the drill yard be visible during placement previews?  Ideally,
   //  yeah.
+  
+  //
+  //  TODO:  For that to work, you'll need to override the previewAt(),
+  //  setPosition(), and doPlace() methods.
+  
   protected void updateDrillYard() {
     if (drillYard == null || drillYard.destroyed()) {
       final DrillYard newYard = new DrillYard(this) ;

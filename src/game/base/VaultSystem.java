@@ -116,7 +116,8 @@ public class VaultSystem extends Venue implements Economy {
       POWER, LIFE_SUPPORT, FUEL_CORES,
       CARBS, PROTEIN, GREENS,
       PARTS, PLASTICS, CIRCUITRY,
-      GENE_SEED, STIM_KITS, MEDICINE
+      GENE_SEED, STIM_KITS, MEDICINE,
+      SERVICE_REFUGE
     } ;
   }
   

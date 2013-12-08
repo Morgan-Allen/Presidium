@@ -111,6 +111,7 @@ public class Arcology extends Segment {
     */
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
+    /*
     //
     //  Demand water in proportion to dryness of the surrounding terrain.
     //  TODO:  You'll also need input of greens or saplings, in all likelihood.
@@ -130,6 +131,8 @@ public class Arcology extends Segment {
     plantsHealth = Visit.clamp(plantsHealth, 0, 1) ;
     //
     //  TODO:  UPDATE SPRITE TO REFLECT THIS.
+    //*/
+    plantsHealth = 1 ;
     //
     //  Combat pollution and improve global biomass based on health.
     world.ecology().impingeBiomass(this, 5 * plantsHealth, true) ;

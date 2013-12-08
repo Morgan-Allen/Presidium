@@ -278,6 +278,11 @@ public abstract class Vehicle extends Mobile implements
   }
   
   
+  public int numOpenings(Background b) {
+    return 0 ;
+  }
+  
+  
   public List <Actor> crew() {
     return crew ;
   }

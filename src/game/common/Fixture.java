@@ -104,26 +104,20 @@ public abstract class Fixture extends Element {
   }
   
   
-  public void enterWorldAt(int x, int y, World world) {
-    super.enterWorldAt(x, y, world) ;
+  public boolean enterWorldAt(int x, int y, World world) {
+    if (! super.enterWorldAt(x, y, world)) return false ;
     for (Tile t : world.tilesIn(area, false)) {
       t.setOwner(this) ;
     }
+    return true ;
   }
   
-  /*
-  public void enterWorldAt(Target t, World world) {
-    final Vec3D p = t.position(null) ;
-    setPosition(p.x - (size / 2), p.y - (size / 2), world) ;
-    enterWorld() ;
-  }
-  //*/
   
-  
-  public void setPosition(float x, float y, World world) {
-    super.setPosition(x, y, world) ;
+  public boolean setPosition(float x, float y, World world) {
+    if (! super.setPosition(x, y, world)) return false ;
     final Tile o = origin() ;
     area.set(o.x - 0.5f, o.y - 0.5f, size, size) ;
+    return true ;
   }
   
   

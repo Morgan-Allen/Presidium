@@ -96,7 +96,7 @@ public class Wording implements Abilities {
         final Batch <Trait> traits = Rand.yes() ?
           actor.traits.physique() : actor.traits.personality() ;
         final Trait desc = (Trait) Rand.pickFrom(traits) ;
-        names.add("the "+actor.traits.levelDesc(desc)) ;
+        if (desc != null) names.add("the "+actor.traits.levelDesc(desc)) ;
       }
     }
     

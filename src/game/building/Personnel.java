@@ -27,7 +27,7 @@ import src.util.* ;
 //  both skills and personality.  (And they'd have to be given gear.)
 
 
-public class VenuePersonnel {
+public class Personnel {
   
   
   /**  Fields, constructors, and save/load methods-
@@ -39,7 +39,7 @@ public class VenuePersonnel {
   private static boolean verbose = false ;
   
   
-  final Venue venue ;
+  final Employment employs ;
   final List <Application>
     applications = new List <Application> () ;
   final List <Actor>
@@ -50,8 +50,8 @@ public class VenuePersonnel {
   
   
   
-  VenuePersonnel(Venue venue) {
-    this.venue = venue ;
+  Personnel(Employment venue) {
+    this.employs = venue ;
   }
   
   
@@ -94,7 +94,7 @@ public class VenuePersonnel {
     if (shiftType == Venue.SHIFTS_ALWAYS) {
       return Venue.PRIMARY_SHIFT ;
     }
-    final World world = venue.world() ;
+    final World world = employs.base().world ;
     
     //
     //  Simplified versions in use for the present...
@@ -128,7 +128,9 @@ public class VenuePersonnel {
     return Venue.OFF_DUTY ;
   }
   
+  
   public boolean onShift(Actor worker) {
+    if (! workers.includes(worker)) return false ;
     return shiftFor(worker) == Venue.PRIMARY_SHIFT ;
   }
   
@@ -155,6 +157,25 @@ public class VenuePersonnel {
   }
   
   
+  public int numPresent(Background match) {
+    int num = 0 ;
+    for (Mobile m : employs.inside()) if (m instanceof Actor) {
+      if (((Actor) m).vocation() == match) num++ ;
+    }
+    return num ;
+  }
+  
+  
+  public Batch <Actor> visitorsDoing(Class planClass) {
+    final Batch <Actor> doing = new Batch <Actor> () ;
+    for (Mobile m : employs.inside()) if (m instanceof Actor) {
+      final Actor a = (Actor) m ;
+      if (a.isDoing(planClass, null)) doing.add(a) ;
+    }
+    return doing ;
+  }
+  
+  
   
   /**  Handling applications and recruitment-
     */
@@ -175,27 +196,27 @@ public class VenuePersonnel {
   
   
   public void confirmApplication(Application a) {
-    venue.base().incCredits(0 - a.hiringFee()) ;
+    employs.base().incCredits(0 - a.hiringFee()) ;
     final Actor works = a.applies ;
     //
     //  TODO:  Once you have incentives worked out, restore this-
     //works.gear.incCredits(app.salary / 2) ;
     //works.gear.taxDone() ;
     works.setVocation(a.position) ;
-    works.mind.setEmployer(venue) ;
+    works.mind.setWork(employs) ;
     //
     //  If there are no remaining openings for this background, cull any
     //  existing applications.  Otherwise, refresh signing costs.
     for (Application oA : applications) if (oA.position == a.position) {
-      if (venue.numOpenings(oA.position) == 0) {
-        a.applies.mind.setApplication(null) ;
+      if (employs.numOpenings(oA.position) == 0) {
+        a.applies.mind.switchApplication(null) ;
         applications.remove(oA) ;
       }
     }
     //
     //  If the actor needs transport, arrange it-
     if (! works.inWorld()) {
-      final Commerce commerce = venue.base().commerce ;
+      final Commerce commerce = employs.base().commerce ;
       commerce.addImmigrant(works) ;
     }
   }
@@ -206,27 +227,27 @@ public class VenuePersonnel {
     */
   protected void updatePersonnel(int numUpdates) {
     if (numUpdates % REFRESH_INTERVAL == 0) {
-      final World world = venue.world() ;
+      final Base base = employs.base() ;
       //
       //  Clear out the office for anyone dead-
-      for (Actor a : workers) if (a.destroyed()) setWorker(a, false) ;
+      for (Actor a : workers  ) if (a.destroyed()) setWorker(a, false) ;
       for (Actor a : residents) if (a.destroyed()) setResident(a, false) ;
       //
       //  If there's an unfilled opening, look for someone to fill it.
       //  TODO:  This should really be handled more from the Commerce class?
-      if (venue.careers() == null) return ;
+      if (employs.careers() == null) return ;
 
-      for (Background v : venue.careers()) {
-        final int numOpenings = venue.numOpenings(v) ;
+      for (Background v : employs.careers()) {
+        final int numOpenings = employs.numOpenings(v) ;
         if (numOpenings > 0) {
           if (GameSettings.hireFree) {
-            final Human citizen = new Human(v, venue.base()) ;
-            citizen.mind.setEmployer(venue) ;
-            final Tile t = venue.mainEntrance() ;
-            citizen.enterWorldAt(t.x, t.y, world) ;
+            final Human citizen = new Human(v, employs.base()) ;
+            citizen.mind.setWork(employs) ;
+            final Boardable t = employs.canBoard(null)[0] ;
+            citizen.enterWorldAt(t, base.world) ;
           }
           else {
-            venue.base.commerce.incDemand(v, numOpenings, REFRESH_INTERVAL) ;
+            base.commerce.incDemand(v, numOpenings, REFRESH_INTERVAL) ;
           }
         }
       }
@@ -239,8 +260,8 @@ public class VenuePersonnel {
   
   
   protected void onDecommission() {
-    for (Actor c : workers()) c.mind.setEmployer(null) ;
-    for (Actor c : residents()) c.mind.setHomeVenue(null) ;
+    for (Actor c : workers()) c.mind.setWork(null) ;
+    for (Actor c : residents()) c.mind.setHome(null) ;
   }
   
   
@@ -259,9 +280,9 @@ public class VenuePersonnel {
   }
   
   
-  public int numPositions(Background... match) {
+  public int numPositions(Background match) {
     int num = 0 ; for (Actor c : workers) {
-      for (Background v : match) if (c.vocation() == v) num++ ;
+      if (c.vocation() == match) num++ ;
     }
     return num ;
   }
@@ -277,7 +298,7 @@ public class VenuePersonnel {
       if (numOpen <= 0) continue ;
       for (int i = numOpen ; i-- > 0 ;) {
         final Human worker = new Human(v, venue.base()) ;
-        worker.mind.setEmployer(venue) ;
+        worker.mind.setWork(venue) ;
         
         if (GameSettings.hireFree) {
           final Tile e = venue.mainEntrance() ;

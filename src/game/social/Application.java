@@ -65,11 +65,12 @@ public class Application implements Session.Saveable {
   }
   
   
-  /*
   public boolean valid() {
-    return employer.hasApplication(this) ;
+    return
+      employer.inWorld() &&
+      employer.structure().intact() &&
+      employer.numOpenings(position) > 0 ;
   }
-  //*/
 }
 
 

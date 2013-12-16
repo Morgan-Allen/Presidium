@@ -17,10 +17,11 @@ import src.util.* ;
 
 
 
+//
+//  TODO:  Create a separate 'ActorSenses' class to handle some of this stuff.
+
 
 //  Include a list of past behaviours as well, or their types?  As memories?
-//  What about a separate list of elements currently 'aware of'?  This is
-//  going to be the basis of a bunch of activities.
 
 
 public abstract class ActorMind implements Abilities {
@@ -47,8 +48,7 @@ public abstract class ActorMind implements Abilities {
   final Table <Accountable, Relation> relations = new Table() ;
   
   protected Mission mission ;
-  protected Venue home ;
-  protected Employment work ;
+  protected Employment home, work ;
   protected Application application ;
   
   
@@ -72,7 +72,7 @@ public abstract class ActorMind implements Abilities {
     }
     
     mission = (Mission) s.loadObject() ;
-    home = (Venue) s.loadObject() ;
+    home = (Employment) s.loadObject() ;
     work = (Employment) s.loadObject() ;
     application = (Application) s.loadObject() ;
   }
@@ -215,28 +215,41 @@ public abstract class ActorMind implements Abilities {
     */
   protected void updateAI(int numUpdates) {
     updateSeen() ;
-    if (home != null && home.destroyed()) home = null ;
-    if (work != null && work.destroyed()) work = null ;
-    if (numUpdates % 10 == 0) {
-      for (Behaviour b : todoList) if (b.finished()) todoList.remove(b) ;
-      final Behaviour last = rootBehaviour() ;
-      final Behaviour next = nextBehaviour() ;
-      
-      if (updatesVerbose && I.talkAbout == actor) {
-        I.say("\nPerformed periodic AI update.") ;
-        I.say("  LAST PLAN: "+last+" "+last.priorityFor(actor)) ;
-        I.say("  NEXT PLAN: "+next+" "+next.priorityFor(actor)) ;
-        I.say("\n") ;
-      }
-      if (couldSwitch(last, next)) assignBehaviour(next) ;
-    }
     for (Behaviour b : agenda) if (b.monitor(actor)) break ;
+    if (numUpdates % 10 != 0) return ;
+    //
+    //  Remove any expired behaviour-sources:
+    if (home != null && home.destroyed()) {
+      setHome(null) ;
+    }
+    if (work != null && work.destroyed()) {
+      setWork(null) ;
+    }
+    if (application != null && ! application.valid()) {
+      switchApplication(null) ;
+    }
+    if (mission != null && mission.finished()) {
+      assignMission(null) ;
+    }
+    //
+    //  Cull any expired items on the to-do list, and see if it's worth
+    //  switching to a different behaviour-
+    for (Behaviour b : todoList) if (b.finished()) todoList.remove(b) ;
+    final Behaviour last = rootBehaviour() ;
+    final Behaviour next = nextBehaviour() ;
+    if (updatesVerbose && I.talkAbout == actor) {
+      I.say("\nPerformed periodic AI update.") ;
+      I.say("  LAST PLAN: "+last+" "+last.priorityFor(actor)) ;
+      I.say("  NEXT PLAN: "+next+" "+next.priorityFor(actor)) ;
+      I.say("\n") ;
+    }
+    if (couldSwitch(last, next)) assignBehaviour(next) ;
   }
   
   
   private Behaviour nextBehaviour() {
     final Behaviour
-      notDone = new Choice(actor, todoList).weightedPick(0),
+      notDone = new Choice(actor, todoList).pickMostUrgent(),
       newChoice = createBehaviour(),
       taken = couldSwitch(notDone, newChoice) ? newChoice : notDone ;
     
@@ -317,22 +330,30 @@ public abstract class ActorMind implements Abilities {
   
   
   
-  /**  Setting home and work venues-
+  /**  Setting home and work venues & applications, plus missions-
     */
+  public void switchApplication(Application a) {
+    if (this.application == a) return ;
+    if (application != null) {
+      application.employer.personnel().setApplicant(application, false) ;
+    }
+    application = a ;
+    if (application != null) {
+      application.employer.personnel().setApplicant(application, true) ;
+    }
+  }
+  
+  
   public Application application() {
     return application ;
   }
   
   
-  public void setApplication(Application a) {
-    application = a ;
-  }
-  
-  
-  public void setEmployer(Employment e) {
-    if (work != null) work.setWorker(actor, false) ;
+  public void setWork(Employment e) {
+    if (work == e) return ;
+    if (work != null) work.personnel().setWorker(actor, false) ;
     work = e ;
-    if (work != null) work.setWorker(actor, true) ;
+    if (work != null) work.personnel().setWorker(actor, true) ;
   }
   
   
@@ -341,46 +362,34 @@ public abstract class ActorMind implements Abilities {
   }
   
   
-  public void setHomeVenue(Venue home) {
-    final Venue old = this.home ;
-    if (old != null) old.personnel.setResident(actor, false) ;
+  public void setHome(Employment home) {
+    final Employment old = this.home ;
+    if (old == home) return ;
+    if (old != null) old.personnel().setResident(actor, false) ;
     this.home = home ;
-    if (home != null) home.personnel.setResident(actor, true) ;
+    if (home != null) home.personnel().setResident(actor, true) ;
   }
   
   
-  public Venue home() {
+  public Employment home() {
     return home ;
   }
   
   
-  
-  /**  Handling missions-
-    */
-  //
-  //  TODO:  This may have to be thought over.
   public void assignMission(Mission mission) {
     if (this.mission == mission) return ;
+    if (this.mission != null) {
+      this.mission.setApplicant(actor, false) ;
+    }
     this.mission = mission ;
-    //
-    //  This might have to be done with all bases.
-    for (Mission m : actor.base().allMissions()) if (m != mission) {
-      m.setApplicant(actor, false) ;
+    if (this.mission != null) {
+      this.mission.setApplicant(actor, true) ;
     }
   }
   
   
-  protected void applyForMissions(Behaviour chosen) {
-    if (mission != null || actor.base() == null) return ;
-    for (Mission mission : actor.base().allMissions()) {
-      if (! mission.open()) continue ;
-      final float priority = mission.priorityFor(actor) ;
-      if (priority < Plan.ROUTINE && work != null) continue ;
-      if (chosen == null || priority > chosen.priorityFor(actor)) {
-        mission.setApplicant(actor, true) ;
-      }
-      else mission.setApplicant(actor, false) ;
-    }
+  public Mission mission() {
+    return mission ;
   }
   
   
@@ -449,6 +458,12 @@ public abstract class ActorMind implements Abilities {
   }
   
   
+  public boolean mustIgnore(Behaviour next) {
+    if (! actor.health.conscious()) return true ;
+    return couldSwitch(next, rootBehaviour()) ;
+  }
+  
+  
   protected boolean couldSwitch(Behaviour last, Behaviour next) {
     if (next == null) return false ;
     if (last == null) return true ;
@@ -462,7 +477,10 @@ public abstract class ActorMind implements Abilities {
     }
     final float
       lastPriority = last.priorityFor(actor),
-      persist = persistance(),
+      persist = (
+        Choice.DEFAULT_PRIORITY_RANGE +
+        (actor.traits.relativeLevel(STUBBORN) * Choice.DEFAULT_TRAIT_RANGE)
+      ),
       threshold = Math.min(
         lastPriority + persist,
         lastPriority * (1 + (persist / 2))
@@ -534,6 +552,7 @@ public abstract class ActorMind implements Abilities {
   }
   
   
+  /*
   public float persistance() {
     return 2 * actor.traits.scaleLevel(STUBBORN) ;
   }
@@ -542,6 +561,7 @@ public abstract class ActorMind implements Abilities {
   public float whimsy() {
     return 2 / actor.traits.scaleLevel(STUBBORN) ;
   }
+  //*/
   
   
   

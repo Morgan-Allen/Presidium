@@ -18,25 +18,21 @@ import src.util.* ;
 
 
 //
-//  I'd like the mining process to proceed in 3 or 4 phases:
-//  *  Strip mining, on the surface, which removes outcrops and/or deforms the
-//     terrain.
-//  *  Deep mining, in which peripheral shafts are dug and more ore is
-//     extracted.
-//  *  Mantle drilling, in which ores are brought up from the molten core of a
-//     planet, providing a virtually inexhaustible supply of minerals.
-
-//  As one type of mining is completed, another will take over.  This is how
-//  peripheral structures are established, by digging under far enough that
-//  they need to be brought forth.
+//  Surface Mining + Smelters.  (no periphery- save for mantle drill.)
+//  Mantle Drilling + strip mining.  (Establish one at a time.)
+//  artifact delivery & artilect discovery.
 
 //
-//  TODO:  Have the number of smelters determined by number of staff, and the
-//  type influenced by your upgrades.
+//  You get two smelters for free, and nothing else but side-shafts.
+//  ...Get rid of petrocarbs.  Just use carbons.
 
-//  ...Or maybe by extent?  ...Nah.
+//  Surface Mining     (faster processing of surface rocks & subsoil)
+//  Mantle Drilling    (huge output, terrain scarring, huge pollution)
+//  Safety Protocol    (more artifacts, fewer artilects, less pollution)
+//  Excavator Station  (better overall throughput)
+//  Metals Smelting    (better metals extraction, mild pollution)
+//  Isotope Capture    (better isotopes extraction, mild pollution)
 
-//  Okay.  Strip mining and mantle drills/shaft openings.
 
 
 
@@ -361,7 +357,7 @@ public class ExcavationSite extends Venue implements
     if (m != null) choice.add(m) ;
     //
     //  TODO:  Consider opening new shafts as you expand.
-    return choice.weightedPick(actor.mind.whimsy()) ;
+    return choice.weightedPick() ;
   }
   
   
@@ -458,6 +454,22 @@ public class ExcavationSite extends Venue implements
   }
 }
 
+
+
+
+
+//
+//  I'd like the mining process to proceed in 3 or 4 phases:
+//  *  Strip mining, on the surface, which removes outcrops and/or deforms the
+//     terrain.
+//  *  Deep mining, in which peripheral shafts are dug and more ore is
+//     extracted.
+//  *  Mantle drilling, in which ores are brought up from the molten core of a
+//     planet, providing a virtually inexhaustible supply of minerals.
+
+//  As one type of mining is completed, another will take over.  This is how
+//  peripheral structures are established, by digging under far enough that
+//  they need to be brought forth.
 
 
 

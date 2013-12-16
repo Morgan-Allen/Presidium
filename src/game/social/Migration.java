@@ -130,7 +130,7 @@ public class Migration extends Plan implements Economy {
   
   
   public boolean actionBoardVessel(Actor actor, Dropship leaves) {
-    actor.mind.setHomeVenue(null) ;
+    actor.mind.setHome(null) ;
     if (actor.aboard() == leaves) return true ;
     final int price = BOARD_PRICE ;
     if (actor.gear.credits() < price) return false ;

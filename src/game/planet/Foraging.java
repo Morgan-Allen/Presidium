@@ -27,9 +27,12 @@ public class Foraging extends Plan implements Economy {
   private boolean done = false ;
   
   
-  public Foraging(Actor actor, Venue depot) {
+  public Foraging(Actor actor, Venue store) {
     super(actor) ;
-    this.store = depot ;
+    if (store == null && actor.mind.home() instanceof Venue) {
+      this.store = (Venue) actor.mind.home() ;
+    }
+    else this.store = store ;
   }
   
   

@@ -144,7 +144,7 @@ public class Combat extends Plan implements Abilities {
     winReward += ER / 2 ;
     appeal += winReward ;
     appeal *= actor.traits.scaleLevel(AGGRESSIVE) ;
-    appeal /= actor.traits.scaleLevel(NERVOUS   ) ;
+    //appeal /= actor.traits.scaleLevel(NERVOUS   ) ;  //Covered by Retreat.
     
     
     if (report) {

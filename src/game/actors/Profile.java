@@ -5,8 +5,7 @@ package src.game.actors ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.campaign.* ;
-import src.game.social.Audit;
-import src.game.social.BaseProfiles;
+import src.game.social.* ;
 import src.util.* ;
 
 
@@ -18,12 +17,11 @@ public class Profile {
   /**  Data fields, constructors and save/load methods-
     */
   final public Actor actor ;
-  
-  float paymentDue = 0 ;
-  float lastWageEval = -1 ;
+  float paymentDue    =  0 ;
+  float lastWageEval  = -1 ;
+  float offenderScore =  0 ;
   float lastPsychEval = -1 ;
-  //  Stack <Pledge> pledgesMade ;
-  //  Stack <Crime> knownOffences ;
+  
   
   
   public Profile(Actor actor, BaseProfiles bP) {
@@ -34,18 +32,20 @@ public class Profile {
   
   public static Profile loadProfile(Session s) throws Exception {
     final Profile p = new Profile((Actor) s.loadObject(), null) ;
-    p.paymentDue = s.loadFloat() ;
+    p.paymentDue    = s.loadFloat() ;
+    p.lastWageEval  = s.loadFloat() ;
+    p.offenderScore = s.loadFloat() ;
     p.lastPsychEval = s.loadFloat() ;
-    p.lastWageEval = s.loadFloat() ;
     return p ;
   }
   
   
   public static void saveProfile(Profile p, Session s) throws Exception {
     s.saveObject(p.actor) ;
-    s.saveFloat(p.paymentDue) ;
+    s.saveFloat(p.paymentDue   ) ;
+    s.saveFloat(p.lastWageEval ) ;
+    s.saveFloat(p.offenderScore) ;
     s.saveFloat(p.lastPsychEval) ;
-    s.saveFloat(p.lastWageEval) ;
   }
   
   
@@ -63,6 +63,12 @@ public class Profile {
   
   public void setPsychEvalTime(float time) {
     lastPsychEval = time ;
+  }
+  
+  
+  public void incOffenderScore(float scoreInc) {
+    offenderScore += scoreInc ;
+    if (offenderScore < 0) offenderScore = 0 ;
   }
   
   
@@ -109,3 +115,7 @@ public class Profile {
     lastWageEval = world.currentTime() ;
   }
 }
+
+
+
+

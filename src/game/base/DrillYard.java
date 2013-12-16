@@ -179,6 +179,11 @@ public class DrillYard extends Venue {
   public Behaviour jobFor(Actor actor) { return null ; }
   
   
+  public void addServices(Choice choice, Actor forActor) {
+    choice.add(new Drilling(forActor, this)) ;
+  }
+  
+  
   
   /**  Helping to configure drill actions-
     */
@@ -214,7 +219,7 @@ public class DrillYard extends Venue {
   
   protected Target nextDummyFree(int drillType, Actor actor) {
     for (Element e : dummies) {
-      if (Plan.competition(Training.class, e, actor) > 0) continue ;
+      if (Plan.competition(Drilling.class, e, actor) > 0) continue ;
       return e ;
     }
     return null ;

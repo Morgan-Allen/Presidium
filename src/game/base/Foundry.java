@@ -7,6 +7,7 @@
 
 package src.game.base ;
 import src.game.common.* ;
+import src.game.social.Commission;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
@@ -142,9 +143,9 @@ public class Foundry extends Venue implements Economy {
     }
     powerNeed *= (3 + structure.numUpgrades()) / 3 ;
     pollution *= 2f / (2 + structure.upgradeLevel(MOLDING_PRESS)) ;
-    world.ecology().impingeSqualor(pollution, this, true) ;
     stocks.forceDemand(POWER, powerNeed, VenueStocks.TIER_CONSUMER) ;
     stocks.removeItem(Item.withAmount(POWER, 0.1f * powerNeed)) ;
+    structure.setAmbienceVal(0 - pollution) ;
   }
   
   
@@ -198,11 +199,16 @@ public class Foundry extends Venue implements Economy {
     }
     //
     //  And return whatever suits the actor best-
-    return choice.weightedPick(actor.mind.whimsy()) ;
+    return choice.weightedPick() ;
   }
   
   
+  public void addServices(Choice choice, Actor forActor) {
+    Commission.addCommissions(forActor, this, choice) ;
+  }
   
+
+
   /**  Rendering and interface methods-
     */
   protected Service[] goodsToShow() {

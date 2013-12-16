@@ -95,7 +95,7 @@ public class VaultSystem extends Venue implements Economy {
     ) ;
     choice.add(d) ;
     
-    return choice.weightedPick(0) ;
+    return choice.pickMostUrgent() ;
   }
   
   
@@ -188,6 +188,7 @@ public class VaultSystem extends Venue implements Economy {
   
 
   public void writeInformation(Description d, int categoryID, HUD UI) {
+    super.writeInformation(d, categoryID, UI) ;
     if (categoryID == 3) {
       //d.append("Stockpile goods (Click to change)\n") ;
       d.append("Stockpiling "+totalStockLimit()+"/"+STOCK_LIMIT+" goods\n") ;
@@ -195,7 +196,6 @@ public class VaultSystem extends Venue implements Economy {
         descPref(n, PREF_TITLES[n], d) ;
       }
     }
-    else super.writeInformation(d, categoryID, UI) ;
   }
   
   

@@ -19,8 +19,8 @@ public class ActorTraits implements Abilities {
   /**  Common fields, constructors, and save/load methods-
     */
   final static int 
-    DNA_SIZE = 16,
-    DNA_LETTERS = 26,
+    DNA_SIZE         = 16,
+    DNA_LETTERS      = 26,
     MUTATION_PERCENT = 5 ;
 
   private static class Level {
@@ -207,6 +207,18 @@ public class ActorTraits implements Abilities {
   }
   
   
+  public float relativeLevel(Trait type) {
+    return (Visit.clamp(
+      (traitLevel(type) - type.minVal) / (type.maxVal - type.minVal), 0, 1
+    ) * 2) - 1 ;
+  }
+  
+  
+  public float scaleLevel(Trait type) {
+    return (float) Math.pow(2, relativeLevel(type)) ;
+  }
+  
+  
   public float effectBonus(Trait trait) {
     final Level level = levels.get(trait) ;
     if (level == null) return 0 ;
@@ -239,14 +251,6 @@ public class ActorTraits implements Abilities {
       level *= 1 - actor.health.stressPenalty() ;
     }
     return level ;
-  }
-  
-  
-  public float scaleLevel(Trait type) {
-    final float scale = Visit.clamp(
-      (traitLevel(type) - type.minVal) / (type.maxVal - type.minVal), 0, 1
-    ) ;
-    return (float) Math.pow(2, (scale * 2) - 1) ;
   }
   
   

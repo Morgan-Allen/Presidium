@@ -232,11 +232,13 @@ public class InstallTab extends InfoPanel {
         toInstall.pointsOkay(from, to) ;
       
       if (canPlace && hasPressed && ! UI.mouseDown()) {
-        final float cost = toInstall.buildCost() ;
         toInstall.doPlace(from, to) ;
-        toInstall.inventory().incCredits(cost) ;
-        toInstall.inventory().taxDone() ;
-        UI.played().incCredits(0 - cost) ;
+        if (! GameSettings.buildFree) {
+          final float cost = toInstall.buildCost() ;
+          toInstall.inventory().incCredits(cost) ;
+          toInstall.inventory().taxDone() ;
+          UI.played().incCredits(0 - cost) ;
+        }
         UI.endCurrentTask() ;
         if (toInstall instanceof Segment) {
           initInstallTask(UI, type) ;

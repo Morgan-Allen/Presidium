@@ -121,8 +121,7 @@ public class CultureVats extends Venue implements Economy {
     //  TODO:  vary this based on current power and the number of ongoing
     //  cultures instead.
     if (! isManned()) pollution /= 2 ;
-    
-    world.ecology().impingeSqualor(pollution, this, true) ;
+    structure.setAmbienceVal(0 - pollution) ;
   }
   
   
@@ -186,7 +185,7 @@ public class CultureVats extends Venue implements Economy {
       choice.add(mM) ;
     }
     
-    return choice.weightedPick(actor.mind.whimsy()) ;
+    return choice.weightedPick() ;
   }
   
   

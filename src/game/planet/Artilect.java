@@ -74,7 +74,7 @@ public abstract class Artilect extends Actor {
       protected Behaviour createBehaviour() {
         final Choice choice = new Choice(actor) ;
         addChoices(choice) ;
-        return choice.weightedPick(0) ;
+        return choice.pickMostUrgent() ;
       }
       
       
@@ -112,7 +112,7 @@ public abstract class Artilect extends Actor {
     
     //
     //  Patrol around your base and see off intruders.
-    Element guards = mind.home() == null ? this : mind.home() ;
+    Element guards = mind.home() == null ? this : (Element) mind.home() ;
     final Patrolling p = Patrolling.securePerimeter(this, guards, world) ;
     p.priorityMod = Plan.IDLE ;
     choice.add(p) ;

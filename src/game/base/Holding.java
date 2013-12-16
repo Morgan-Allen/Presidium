@@ -26,22 +26,9 @@ import src.util.* ;
 //  Building materials (parts, plastics, inscriptions, decor.)
 //  Health and Entertainment (averaged over all occupants.)
 //  Safety and Ambience (by location.)
-
-//  Sort out power, water, and life support requirements.  (Bear in mind that a
-//  a degree of life support should be provided by global biomass.)
-
-//  Life support- 1 per inhabitant.
-//  Power- for freeborn holdings or higher, 1 per tier.
-//  Water- for citizen apartments or higher, 1 per tier.
-
-//  pressfeed- for citizen apartments or higher.  Inscription for guildsmen.
-
-
-
 //
-//  TODO:  Tear out the old guts and refer to the HoldingUpgrades class
-//         instead.
-
+//  TODO:  Allow actors to study, relax, make love, play with kids, etc. at
+//  home.
 
 
 public class Holding extends Venue implements Economy {
@@ -222,7 +209,9 @@ public class Holding extends Venue implements Economy {
   
   
   private void impingeSqualor() {
-    world.ecology().impingeSqualor((2 - upgradeLevel) * 2, this, true) ;
+    int ambience = 1 + ((upgradeLevel - 2) * 2) ;
+    ambience += (extras.size() * upgradeLevel) / 2 ;
+    structure.setAmbienceVal(ambience) ;
   }
   
   
@@ -255,7 +244,15 @@ public class Holding extends Venue implements Economy {
   }
   
   
-  public Behaviour jobFor(Actor actor) { return null ; }
+  public Behaviour jobFor(Actor actor) {
+    final Service goods[] = goodsNeeded() ;
+    final Delivery d = Deliveries.nextCollectionFor(
+      actor, this, goods, 5, actor, actor.world()
+    ) ;
+    return d ;
+  }
+  
+  
   public Background[] careers() { return new Background[0] ; }
   public Service[] services() { return new Service[0] ; }
   

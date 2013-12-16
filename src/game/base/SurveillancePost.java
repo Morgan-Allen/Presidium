@@ -13,9 +13,19 @@ import src.user.* ;
 import src.util.* ;
 
 
+//
+//  Sensor Array     - places sensors around perimeter (need parts).
+//  Camouflage       - conceals primary structure.
+//  Native Mission   - supplies gifts & training for contact with natives.
+//  Captive Breeding - tames enlarged animals as meat and companions.
+//  Guerilla station - combat & scouting emphasis.
+//  Explorer station - science & contact emphasis.
+
+//  So... flesh still appears automatically.  Doubles as animal home.
+
+
 
 public class SurveillancePost extends Venue implements Economy {
-  
   
   
   /**  Data fields, constructors and save/load methods-
@@ -126,7 +136,7 @@ public class SurveillancePost extends Venue implements Economy {
       choice.add(e) ;
     }
     else I.say("NOTHING LEFT TO EXPLORE?") ;
-    return choice.weightedPick(actor.mind.whimsy()) ;
+    return choice.weightedPick() ;
   }
   
   

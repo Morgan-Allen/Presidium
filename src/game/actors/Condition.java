@@ -7,7 +7,8 @@
 
 package src.game.actors ;
 import src.game.common.* ;
-import src.game.social.Resting;
+import src.game.social.* ;
+import src.game.tactical.* ;
 import src.util.* ;
 
 
@@ -48,14 +49,12 @@ public class Condition extends Trait {
   
   private static float cleanFactor(Actor actor) {
     float factor = 1 ;
-    if (actor.aboard() instanceof src.game.base.Sickbay) {
+    final Target at = actor.aboard() ;
+    if (at instanceof src.game.base.Sickbay) {
       factor /= 2 ;
     }
     if (actor.gear.outfitType() == src.game.building.Economy.SEALSUIT) {
       factor /= 5 ;
-    }
-    if (actor.aboard() == actor.mind.home) {
-      factor /= 1 + Math.max(0, Resting.ratePoint(actor, actor.mind.home)) ;
     }
     return factor ;
   }
@@ -70,7 +69,7 @@ public class Condition extends Trait {
   public static void checkContagion(Actor actor) {
     if (! actor.health.organic()) return ;
     final Tile o = actor.origin() ;
-    final float squalor = actor.world().ecology().squalorRating(o) ;
+    final float squalor = actor.world().ecology().ambience.valueAt(o) / -10 ;
     
     for (Object d : Abilities.SPONTANEOUS_DISEASE) {
       final Condition c = (Condition) d ;
@@ -99,22 +98,40 @@ public class Condition extends Trait {
   }
   
   
+  protected float transmitChance(Actor has, Actor near) {
+    //
+    //  
+    if (! near.health.organic()) return 0 ;
+    if (has.species() != near.species()) return 0 ;
+    if (near.traits.traitLevel(this) != 0) return 0 ;
+    if (near.traits.test(VIGOUR, virulence / 2, 0.1f)) return 0 ;
+    //
+    //  TODO:  THERE HAS GOT TO BE A MORE ELEGANT WAY TO EXPRESS THIS
+    float chance = 0.1f ;
+    /*
+    //
+    //  Increase the risk substantially if you're fighting or humping the
+    //  subject-
+    float chance = 0.1f ;
+    if (has.isDoing(Combat.class, near)) chance *= 2 ;
+    final Performance PR = new Performance(
+      has, has.aboard(), Recreation.TYPE_EROTICS, near
+    ) ;
+    if (has.isDoing(PR)) chance *= 2 ;
+    //*/
+    return chance ;
+  }
+  
+  
   protected void affectAsDisease(Actor a, float progress, float response) {
     //
     //  If this is contagious, consider spreading to nearby actors.
     if (spread > 0 && Rand.index(10) < spread * cleanFactor(a)) {
-      //
-      //  TODO:  Increase the risk substantially if you're fighting or fucking
-      //  the subject.
       for (Object o : a.world().presences.matchesNear(Mobile.class, a, 2)) {
         if (o instanceof Actor) {
           final Actor near = (Actor) o ;
-          if (! near.health.organic()) continue ;
-          if (near.species() != a.species() && Rand.index(10) != 0) continue ;
-          //
-          //  Check if the actor already has the condition, or is immune to it-
-          if (near.traits.traitLevel(this) != 0) continue ;
-          if (near.traits.test(VIGOUR, virulence / 2, 0.1f)) continue ;
+          final float chance = transmitChance(a, near) ;
+          if (chance == 0 || Rand.num() > chance) continue ;
           near.traits.incLevel(this, 0.1f) ;
         }
       }

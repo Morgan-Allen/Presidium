@@ -12,7 +12,8 @@ import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.social.* ;
 import src.game.tactical.* ;
-import src.user.BaseUI ;
+import src.game.campaign.* ;
+import src.user.* ;
 import src.util.* ;
 
 
@@ -22,6 +23,28 @@ import src.util.* ;
 
 //OUTLINE FOR DECISION-MAKING:
 /*
+
+
+Structures volunteer their services to nearby actors who care to sample them.
+It's simple, it's efficient, and it's compact.
+
+Then, there are instinctive reactions to local actors, structures & items,
+terrain and conditions-
+  *  Flee/surrender
+  *  Salvage/repairs/relocation
+  *  Feeding/resting
+  *  Finding home/finding work/migrating
+  *  Pick up/First aid (Recover)
+  *  Attack/destroy/capture  (Strike)
+  *  Converse/carnal/assist  (Contact/Insertion)
+  *  Wandering/exploring (Security/Recon)
+
+Then there are tasks derived from home and work (if distinct.)
+
+Finally, there are missions formally declared by the player or scenario, which
+issue certain tasks and vet others, and can extend to foreign kingdoms.
+
+
 *  Is there a pressing, life-threatening emergency?
  Running from an enemy, or raising an alarm.
  Treating/sheltering/defending someone injured or attacked.
@@ -58,12 +81,7 @@ import src.util.* ;
  Purchasing new equipment and home items.
 //*/
 
-
-
 //
-//  TODO:  You need to have some generalised routines for getting actors
-//  and venues for consideration.
-
 //  TODO:  Have a 'fear' metric built in to determine retreat behaviour, that
 //  can build up gradually over a few seconds?
 
@@ -101,40 +119,46 @@ public class HumanMind extends ActorMind implements Abilities {
   
   /**  Behaviour implementation-
     */
+  /*
+  APPLY TO LOCAL ACTORS:
+    Combat, Defence, Game Hunting           (Aggression)
+    Dialogue & Accompaniment, Gifts & Aid   (Pro-Social)
+    
+  APPLY TO LOCAL OBJECTS & TERRAIN:
+    Picking up & Foraging/Gathering          (Resources)
+    Exploring/Patrolling/Wandering/Disguise  (Discovery)
+  
+  APPLY AT ALL TIMES:
+    Dining, Rest & Sex/Child Play  (Enjoyment when Home)
+    Retreat & Surrender            (Surviving when Away)
+  
+  APPLY TO LOCAL VENUES:
+    <> Getting Tasks from Work/Home, Payment/Taxation
+    <> Getting Services, Repair & Salvage
+    <> Mission Application, Missions, Base & Scenario
+    <> Finding Home/Work, Migration
+  //*/
+  
   protected Behaviour createBehaviour() {
     final Choice choice = new Choice(actor) ;
-    choice.add(mission) ;
-    choice.add(new Retreat(actor)) ;
     
-    addReactions(choice) ;
-    addWork(choice) ;
-    addLeisure(choice) ;
-    addPurchases(choice) ;
-    final Behaviour chosen = choice.weightedPick(whimsy()) ;
-    //
-    //  TODO:  Mission application needs to become a Plan in itself.  Likewise
-    //  for finding jobs and homes(?)
-    applyForMissions(chosen) ;
-    FindWork.lookForWork((Human) actor, actor.base()) ;
-    FindHome.lookForHome((Human) actor, actor.base()) ;
-    return chosen ;
-  }
-  
-  
-  protected void updateAI(int numUpdates) {
-    super.updateAI(numUpdates) ;
+    addActorResponses(choice) ;
+    addConstantResponses(choice) ;
+    addVenueResponses(choice) ;
+    addBaseResponses(choice) ;
+    
+    return choice.weightedPick() ;
   }
   
   
   protected Behaviour reactionTo(Element seen) {
-    return new Retreat(actor) ;
-    //return null ;
+    return null ;
   }
   
   
-  //  TODO:  This method is poorly named.  Also, the list of stuff worth
-  //  reacting to should be made accessible.
-  protected void addReactions(Choice choice) {
+  
+  private void addActorResponses(Choice choice) {
+
     //
     //  Find all nearby items or actors and consider reacting to them.
     final PresenceMap mobiles = actor.world().presences.mapFor(Mobile.class) ;
@@ -146,107 +170,73 @@ public class HumanMind extends ActorMind implements Abilities {
       if (++numR > reactLimit) break ;
     }
     //
-    //  Consider retreat based on ambient danger levels, defence & treatment of
-    //  self or others, or dialogue.
-    for (Actor near : actorB) {
-      choice.add(new Combat(actor, near)) ;
-      choice.add(new Treatment(actor, near, null)) ;
-      choice.add(new Dialogue(actor, near, null)) ;
+    //  TODO:  YOU'LL NEED TO DO MANUAL SAMPLING HERE
+    
+    for (Element e : awareOf()) if (e instanceof Actor) {
+      final Actor nearby = (Actor) e ;
+      choice.add(new Hunting(actor, nearby, Hunting.TYPE_HARVEST)) ;
+      choice.add(new Combat(actor, nearby)) ;
+      choice.add(new Dialogue(actor, nearby, null)) ;
+      choice.add(new Treatment(actor, nearby, null)) ;
     }
-    choice.add(new Retreat(actor)) ;
-    choice.add(new SickLeave(actor)) ;
-    //
-    //  TODO:  Picking up stray items.
   }
   
   
-  protected void addWork(Choice choice) {
-    if (mission != null) return ;
-    //
-    //  Find the next jobs waiting for you at work or home.
-    if (work != null) {
-      Behaviour atWork = work.jobFor(actor) ;
-      if (atWork != null) choice.add(atWork) ;
-    }
-    if (home != null) {
-      Behaviour atHome = home.jobFor(actor) ;
-      if (atHome != null) choice.add(atHome) ;
-    }
-    //
-    //  Consider getting paid, leaving the settlement, or general upkeep-
-    choice.add(Payday.nextPaydayFor(actor)) ;
-    choice.add(Building.getNextRepairFor(actor, 0)) ;
-    choice.add(Migration.migrationFor(actor)) ;
-    //if (! hasToDo(Migration.class)) choice.add(new Migration(actor)) ;
-	}
-  
-  
-  protected void addLeisure(Choice choice) {
-    //
-    //  Try a range of other spontaneous behaviours, include relaxation,
-    //  helping out and spontaneous missions-
-    //
-    //  TODO:  You need to have a dedicated Wandering plan.  To look for home?
-    //
-    //  Training and self-improvement-
-    choice.add(Training.nextDrillFor(actor)) ;
-    choice.add(Research.nextResearchFor(actor)) ;
+  private void addConstantResponses(Choice choice) {
+    
+    choice.add(Exploring.nextExplorationFor(actor)) ;
     choice.add(Patrolling.wandering(actor)) ;
-    //
-    //  Consider going home to rest, or finding a recreational facility of
-    //  some kind.  That requires iterating over various venues.
-    choice.add(Recreation.findRecreation(actor)) ;
-    choice.add(new Resting(actor, Resting.pickRestPoint(actor))) ;
-    //
-    //  Foraging and exploration (mainly for natives)-
-    if (home instanceof Venue) {
-      choice.add(new Foraging(actor, (Venue) home)) ;
+    choice.add(new Foraging(actor, null)) ;
+    choice.add(new Retreat(actor)) ;
+
+    final boolean timeoff = work == null || ! work.personnel().onShift(actor) ;
+    if (work != null) {
+      choice.add(work.jobFor(actor)) ;
+      if (timeoff) work.addServices(choice, actor) ;
+      choice.add(new Payday(actor, work)) ;
     }
-    Tile toExplore = Exploring.getUnexplored(actor.base().intelMap, actor) ;
-    if (toExplore != null) {
-      choice.add(new Exploring(actor, actor.base(), toExplore)) ;
+    if (home != null && home != work) {
+      choice.add(home.jobFor(actor)) ;
+      if (timeoff) home.addServices(choice, actor) ;
+    }
+    choice.add(Resting.nextRestingFor(actor)) ;
+  }
+  
+  
+  private void addVenueResponses(Choice choice) {
+    final World world = actor.world() ;
+    final Batch <Employment> around = new Batch <Employment> () ;
+    float numSampled = 5 + (actor.traits.traitLevel(INTELLECT) / 4) ;
+    
+    world.presences.sampleFromKey(
+      actor, world, (int) numSampled, around, Venue.class
+    ) ;
+    final boolean timeoff = work == null || ! work.personnel().onShift(actor) ;
+    
+    for (Employment employs : around) {
+      if (timeoff && employs.structure().intact()) {
+        employs.addServices(choice, actor) ;
+      }
+      if (! (employs instanceof Venue)) continue ;
+      choice.add(new Building(actor, (Venue) employs)) ;
     }
   }
   
   
-  private void addPurchases(Choice choice) {
-    ///I.sayAbout(actor, "Getting purchases...") ;
+  private void addBaseResponses(Choice choice) {
     //
-    //  Consider upgrading weapons or armour.
-    final boolean hasCommission = hasToDo(Commission.class) ;
-    final Service DT = actor.gear.deviceType() ;
-    if (DT != null && ! hasCommission) {
-      final int DQ = (int) actor.gear.deviceEquipped().quality ;
-      if (DQ < Item.MAX_QUALITY) {
-        final Item nextDevice = Item.withQuality(DT, DQ + 1) ;
-        final Venue shop = Commission.findVenue(actor, nextDevice) ;
-        if (shop != null) choice.add(new Commission(actor, nextDevice, shop)) ;
-      }
-    }
-    final Service OT = actor.gear.outfitType() ;
-    if (OT != null && ! hasCommission) {
-      final int OQ = (int) actor.gear.outfitEquipped().quality ;
-      if (OQ < Item.MAX_QUALITY) {
-        final Item nextOutfit = Item.withQuality(OT, OQ + 1) ;
-        final Venue shop = Commission.findVenue(actor, nextOutfit) ;
-        if (shop != null) choice.add(new Commission(actor, nextOutfit, shop)) ;
-      }
-    }
+    //  Derive tasks from missions or the scenario.
+    choice.add(mission) ;
+    final Scenario s = PlayLoop.currentScenario() ;
+    if (s != null) choice.add(s.taskFor(actor)) ;
     //
-    //  Also, consider buying new items for your home, either individually or
-    //  together at the stock exchange.
-    final boolean hasDelivery = false ;// hasToDo(Delivery.class) ;
-    if (home instanceof Holding && ! hasDelivery) {
-      final Service goods[] = ((Holding) home).goodsNeeded() ;
-      final Delivery d = Deliveries.nextCollectionFor(
-        actor, home, goods, 5, actor, actor.world()
-      ) ;
-      if (verbose) I.sayAbout(actor, "Shopping is: "+d) ;
-      choice.add(d) ;
-    }
+    //  Apply for missions, migration, work and home.
+    choice.add(FindWork.attemptFor(actor)) ;
+    choice.add(FindHome.attemptFor(actor)) ;
+    choice.add(FindMission.attemptFor(actor)) ;
+    choice.add(new Migration(actor)) ;
   }
 }
-
 
 
 

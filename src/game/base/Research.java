@@ -13,10 +13,6 @@ import src.user.* ;
 import src.util.* ;
 
 
-//
-//  TODO:  Allow actors to study at home as well, if they have access to
-//  personal datalinks.
-
 
 public class Research extends Plan implements Economy {
   
@@ -71,34 +67,15 @@ public class Research extends Plan implements Economy {
   }
   
   
-  public static Research nextResearchFor(Actor actor) {
-    if (actor.base() == null) return null ;
-    if (! (actor.mind.work() instanceof Venue)) return null ;
-    
-    final World world = actor.world() ;
-    final Batch <Archives> yards = new Batch <Archives> () ;
-    world.presences.sampleFromKey(actor, world, 5, yards, Archives.class) ;
-    
-    final Choice choice = new Choice(actor) ;
-    for (Archives archive : yards) if (archive.base() == actor.base()) {
-      final Research research = new Research(actor, archive) ;
-      choice.add(research) ;
-    }
-    
-    final Research next = (Research) choice.weightedPick(0) ;
-    if (next == null) return null ;
-    next.topic = pickResearchTopic(actor, next.archive) ;
-    return next ;
-  }
-  
-  
   private static Skill pickResearchTopic(Actor actor, Archives archives) {
     final World world = actor.world() ;
     final Background v = actor.vocation() ;
+    
     //
     //  Pick skills relevant to the actor's current job (or one they aspire to).
     //  TODO:  Have the actor's core AI make this selection at infrequent
-    //  intervals, more thoroughly.
+    //  intervals, more thoroughly.  That's their 'ambition'.
+    
     Background ambition = v ;
     float bestRating = Career.ratePromotion(v, actor) * Rand.num() * 2 ;
     for (Background b : Background.ALL_BACKGROUNDS) {
@@ -113,17 +90,16 @@ public class Research extends Plan implements Economy {
       if (rating > bestRating) { bestRating = rating ; ambition = b ; }
     }
     if (ambition == null) return null ;
+    
     //
     //  Then, pick out a skill relevant to the occupation-
     Skill topic = null ;
     bestRating = 0 ;
-    for (Item i : archives.stocks.matches(DATALINKS)) {
-      if (! (i.refers instanceof Skill)) continue ;
-      final Skill s = (Skill) i.refers ;
-      if (s.form != FORM_COGNITIVE) continue ;
+    for (Skill s : COGNITIVE_SKILLS) {
       final float
+        bonus = archives.researchBonus(s),
         levelGap = ambition.skillLevel(s) - actor.traits.traitLevel(s),
-        rating = Rand.num() * (levelGap + 10) ;
+        rating = (levelGap + 10) * (2 + bonus) * Rand.avgNums(2) ;
       if (rating > bestRating) { bestRating = rating ; topic = s ; }
     }
     return topic ;
@@ -134,10 +110,15 @@ public class Research extends Plan implements Economy {
   /**  Behaviour implementation-
     */
   protected Behaviour getNextStep() {
-    if (numLookups > MAX_LOOKUPS || topic == null) return null ;
-    if (numLookups > (BASE_LOOKUPS * actor.mind.persistance())) {
+    if (numLookups > MAX_LOOKUPS) return null ;
+    if (topic == null) topic = pickResearchTopic(actor, archive) ;
+    if (topic == null) return null ;
+    
+    final float persist = actor.traits.scaleLevel(STUBBORN) ;
+    if (numLookups > (BASE_LOOKUPS * persist)) {
       if (Rand.index(BASE_LOOKUPS) == 0) return null ;
     }
+    
     final Action research = new Action(
       actor, archive,
       this, "actionResearch",
@@ -148,6 +129,7 @@ public class Research extends Plan implements Economy {
   
   
   public boolean actionResearch(Actor actor, Archives archive) {
+    if (topic == null) return false ;
     final ActorTraits AT = actor.traits ;
     float DC = (MODERATE_DC + AT.traitLevel(topic)) / 2f ;
     float XP = 1 ;
@@ -171,6 +153,8 @@ public class Research extends Plan implements Economy {
     d.append(archive) ;
   }
 }
+
+
 
 
 

@@ -174,6 +174,9 @@ public class HoldingUpgrades implements Economy {
   protected static Object checkSupport(
     Holding holding, int upgradeLevel, boolean verbose
   ) {
+    //
+    //  TODO:  This absence needs to be more prolongued before it becomes a
+    //  real problem.
     final float need = supportNeed(holding, upgradeLevel) ;
     if (holding.stocks.amountOf(LIFE_SUPPORT) < need - 0.5f) {
       if (verbose) return
@@ -201,11 +204,11 @@ public class HoldingUpgrades implements Economy {
   //  Knighted Estates require 2 food types and either Spice or Soma.
   //  Highborn Villas require 3 food types, Soma and Spice.
   //  Forbidden Palaces require 4 food types and Spice from 2 sources.
-
+  
   //
   //  TODO:  Create a fourth food type- rations at the Stock Exchange, say.
   final static Service FOOD_TYPES[] = {
-    CARBS, PROTEIN, SOMA, GREENS,//RATIONS,  SPICE
+    CARBS, PROTEIN, GREENS,//RATIONS, SOMA, SPICE
   } ;
   
   
@@ -219,7 +222,6 @@ public class HoldingUpgrades implements Economy {
     //
     //  TODO:  Only demand minimal amounts of a given food if it's not strictly
     //  needed for housing evolution...
-    
     for (Service f : FOOD_TYPES) {
       final float amount = holding.stocks.amountOf(f) ;
       needed.add(Item.withAmount(f, min + (foodNeed * amount / sumFood))) ;
@@ -263,18 +265,22 @@ public class HoldingUpgrades implements Economy {
       if (numFoods < 2) return NV ? NOT_MET :
         "Your citizens demand a more varied diet as part of their "+
         "modern lifestyle." ;
+      /*
       else if (holding.stocks.amountOf(SOMA) < min) return NV ? NOT_MET :
         "Your citizens demand a supply of Soma as an aid to unwinding after "+
         "work.";
+      //*/
       else return NEEDS_MET ;
     }
     if (upgradeLevel >= LEVEL_GUILDER) {
       if (numFoods < 3) return NV ? NOT_MET :
         "Your guilders need at least three food types to satisfy the demands "+
         "of an upper-class lifestyle." ;
+      /*
       else if (holding.stocks.amountOf(SOMA) < min) return NV ? NOT_MET :
         "Your guilders consider a stock of Soma indispensible to their "+
         "leisure hours." ;
+      //*/
       else return NEEDS_MET ;
     }
     
@@ -453,7 +459,7 @@ public class HoldingUpgrades implements Economy {
       "This area feels too unsettled for your subjects' comfort, hindering "+
       "further investment in a life here." ;
     
-    float ambience = 0 - holding.world().ecology().squalorRating(holding) ;
+    float ambience = holding.world().ecology().ambience.valueAt(holding) ;
     ambience = (ambience * 10) + holding.extras().size() / 2f ;
     if (ambience < AMBIENCE_NEEDS[upgradeLevel]) return NV ? NOT_MET :
       "The aesthetics of the area could stand improvement before the "+

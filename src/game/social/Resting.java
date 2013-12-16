@@ -29,8 +29,23 @@ public class Resting extends Plan implements Economy {
     MODE_SLEEP    =  2 ;
   
   final Boardable restPoint ;
-  int currentMode = MODE_NONE ;
-  float minPriority = -1 ;
+  public int cost ;
+  
+  private int currentMode = MODE_NONE ;
+  private float minPriority = -1 ;
+  
+  
+  public static Resting nextRestingFor(Actor actor) {
+    final Boardable home = actor.mind.home(), work = actor.mind.work() ;
+    if (home != null && ratePoint(actor, home, 0) > 0) {
+      return new Resting(actor, home) ;
+    }
+    if (work != null && ratePoint(actor, work, 0) > 0) {
+      return new Resting(actor, work) ;
+    }
+    Target free = Retreat.pickWithdrawPoint(actor, 16, actor, 0.1f) ;
+    return new Resting(actor, free) ;
+  }
   
   
   public Resting(Actor actor, Target relaxesAt) {
@@ -42,6 +57,7 @@ public class Resting extends Plan implements Economy {
   public Resting(Session s) throws Exception {
     super(s) ;
     this.restPoint = (Boardable) s.loadTarget() ;
+    this.cost = s.loadInt() ;
     this.currentMode = s.loadInt() ;
     this.minPriority = s.loadFloat() ;
   }
@@ -50,6 +66,7 @@ public class Resting extends Plan implements Economy {
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveTarget(restPoint) ;
+    s.saveInt(cost) ;
     s.saveInt(currentMode) ;
     s.saveFloat(minPriority) ;
   }
@@ -58,18 +75,68 @@ public class Resting extends Plan implements Economy {
   
   /**  Behaviour implementation-
     */
-  public float priorityFor(Actor actor) {
-    ///I.sayAbout(actor, "Considering rest...") ;
+  public static float ratePoint(Actor actor, Boardable restPoint, int cost) {
     if (restPoint == null) return -1 ;
-    final float priority = ratePoint(actor, restPoint) ;
     //
-    //  To ensure that the actor doesn't see-saw between relaxing and not
-    //  relaxing as fatigue lifts, we establish a minimum priority-
-    if (minPriority == -1) minPriority = Math.max(priority / 2, priority - 2) ;
-    if (priority < minPriority) return minPriority ;
-    if (verbose) I.sayAbout(actor, actor+" resting priority: "+priority) ;
-    return priority ;
+    //  Basic attraction is founded on the ambience of the area, and relations
+    //  with the venue in question (if applicable.)
+    float priority = actor.world().ecology().ambience.valueAt(restPoint) ;
+    priority *= 5 ;
+    if (restPoint.openPlan()) priority -= 2 ;
+    if (restPoint == actor.mind.home()) priority += 2 ;
+    if (restPoint instanceof Venue) {
+      final Venue venue = (Venue) restPoint ;
+      final float relation = actor.mind.relation(venue) ;
+      if (relation > 0) priority *= relation ;
+      else priority -= relation * 5 ;
+    }
+    //
+    //  Also incorporate the effects of fatigue-urgency:
+    final float fatigue = actor.health.fatigueLevel() ;
+    if (fatigue < 0.5f) {
+      priority *= fatigue * 2 ;
+    }
+    else {
+      final float f = (fatigue - 0.5f) * 2 ;
+      priority = (priority * f) + (PARAMOUNT * (1 - f)) ;
+    }
+    //
+    //  Finally, include the effects of hunger, cost & distance-
+    if (restPoint instanceof Inventory.Owner) {
+      final Inventory.Owner owner = (Inventory.Owner) restPoint ;
+      float sumFood = 0 ;
+      for (Service s : menuFor(owner)) {
+        sumFood += owner.inventory().amountOf(s) ;
+      }
+      if (sumFood > 1) sumFood = 1 ;
+      priority += actor.health.hungerLevel() * sumFood * PARAMOUNT ;
+    }
+    if (cost > 0) {
+      if (cost > actor.gear.credits() / 2) priority -= 5 ;
+      priority -= actor.mind.greedFor(cost) ;
+    }
+    priority -= Plan.rangePenalty(actor, restPoint) ;
+    priority -= Plan.dangerPenalty(restPoint, actor) ;
+    //
+    //  And return the bounded result-
+    return Visit.clamp(priority, 0, PARAMOUNT) ;
   }
+  
+  
+  public float priorityFor(Actor actor) {
+    return ratePoint(actor, restPoint, cost) ;
+  }
+  
+  
+  private static Batch <Service> menuFor(Inventory.Owner place) {
+    Batch <Service> menu = new Batch <Service> () ;
+    for (Service type : ALL_FOOD_TYPES) {
+      if (place.inventory().amountOf(type) >= 0.1f) menu.add(type) ;
+    }
+    return menu ;
+  }
+  
+  
   
   
   protected Behaviour getNextStep() {
@@ -115,12 +182,11 @@ public class Resting extends Plan implements Economy {
       actor.gear.taxDone() ;
     }
     //
-    //  If you're in a Cantina, pay the lodging fee-
-    else if (place instanceof Cantina) {
-      final Cantina c = (Cantina) place ;
-      final float price = c.priceLodgings() ;
-      actor.gear.incCredits(-price) ;
-      c.stocks.incCredits(price) ;
+    //  Otherwise, pay any initial fees required-
+    else if (cost > 0) {
+      ((Venue) place).stocks.incCredits(cost) ;
+      actor.gear.incCredits(0 - cost) ;
+      cost = 0 ;
     }
     actor.health.setState(ActorHealth.STATE_RESTING) ;
     return true ;
@@ -153,13 +219,13 @@ public class Resting extends Plan implements Economy {
   
   /**  Methods used for external assessment-
     */
+  /*
   public static Target pickRestPoint(final Actor actor) {
     final Batch <Target> safePoints = new Batch <Target> () ;
     final Presences presences = actor.world().presences ;
     safePoints.add(Retreat.pickWithdrawPoint(actor, 16, actor, 0.1f)) ;
     safePoints.add(actor.mind.home()) ;
     safePoints.add(actor.mind.work()) ;
-    safePoints.add(presences.nearestMatch(Cantina.class, actor, -1)) ;
     //
     //  Now pick whichever option is most attractive-
     Target picked = null ;
@@ -174,69 +240,7 @@ public class Resting extends Plan implements Economy {
     ) ;
     return picked ;
   }
-  
-  
-  private static Batch <Service> menuFor(Inventory.Owner place) {
-    Batch <Service> menu = new Batch <Service> () ;
-    for (Service type : ALL_FOOD_TYPES) {
-      if (place.inventory().amountOf(type) >= 0.1f) menu.add(type) ;
-    }
-    return menu ;
-  }
-  
-  
-  public static float ratePoint(Actor actor, Target point) {
-    if (point == null) return -1 ;
-    if (point instanceof Venue && ! ((Venue) point).structure.intact()) {
-      return -1 ;
-    }
-    float baseRating = 0 ;
-    if (point == actor.mind.home()) {
-      baseRating += 4 ;
-    }
-    else if (point instanceof Cantina) {
-      final int price = (int) ((Cantina) point).priceLodgings() ;
-      if (price > actor.gear.credits() / 2) return 0 ;
-      //
-      //  TODO:  Ensure the place has space available.
-      baseRating += 3 ;
-      baseRating -= actor.mind.greedFor(price) * ROUTINE ;
-    }
-    else if (point == actor.mind.work()) {
-      baseRating += 2 ;
-    }
-    else if (point instanceof Tile) {
-      baseRating += 1 ;
-    }
-    baseRating *= 1.5f - Planet.dayValue(actor.world()) ;
-    //
-    //  If the venue doesn't belong to the same base, reduce the attraction.
-    if (point instanceof Venue) {
-      final Venue venue = (Venue) point ;
-      baseRating *= actor.mind.relation(venue) ;
-      //
-      //  Also, include the effects of hunger-
-      float sumFood = 0 ;
-      for (Service s : menuFor(venue)) {
-        sumFood += venue.stocks.amountOf(s) ;
-      }
-      if (sumFood > 1) sumFood = 1 ;
-      baseRating += actor.health.hungerLevel() * sumFood * PARAMOUNT ;
-    }
-    baseRating -= Plan.rangePenalty(actor, point) ;
-    if (baseRating < 0) return 0 ;
-    //
-    //  Okay.  If you're only of average fatigue, these are the ratings.  With
-    //  real exhaustion, however, these all converge to being paramount.
-    final float fatigue = actor.health.fatigueLevel() ;
-    if (fatigue < 0.5f) {
-      return baseRating * fatigue * 2 ;
-    }
-    else {
-      final float f = (fatigue - 0.5f) * 2 ;
-      return (baseRating * f) + (PARAMOUNT * (1 - f)) ;
-    }
-  }
+  //*/
   
   
   

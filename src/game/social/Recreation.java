@@ -11,31 +11,75 @@ import src.util.* ;
 
 
 
-public class Recreation extends Plan implements Economy {
+public class Recreation extends Plan implements Economy, Abilities {
   
   
   /**  Data fields, construction and save/load methods-
     */
   private static boolean verbose = false ;
   
-  Venue venue ;
+  
+  final static int PERFORM_TIME = World.STANDARD_DAY_LENGTH / 10 ;
+  final public static int
+    TYPE_ANY      = -1,
+    TYPE_SONG     =  0,
+    TYPE_EROTICS  =  1,
+    TYPE_MEDIA    =  2,
+    TYPE_LARP     =  3,
+    TYPE_SPORT    =  4,
+    TYPE_MEDITATE =  5 ;
+  final static Trait ENJOYMENT_TRAITS[][] = {
+    { },
+    { DEBAUCHED },
+    { },
+    { INQUISITIVE, SOCIABLE },
+    { OPTIMISTIC, AGGRESSIVE },
+    { IMPASSIVE, STUBBORN },
+  } ;
+  final static String RELAX_DESC[] = {
+    "Listening to Music",
+    "Enjoying a Private Dance",
+    "Watching Media",
+    "LARPing",
+    "Enjoying Sport",
+    "Meditating"
+  } ;
+  
+  final Boardable venue ;
+  final int type ;
+  public float cost = 0, enjoyBonus = 1 ;
   
   
-  public Recreation(Actor actor, Venue venue) {
-    super(actor, venue) ;
+  public Recreation(Actor actor, Boardable venue, int performType) {
+    super(actor, (Element) venue) ;
     this.venue = venue ;
+    this.type = performType ;
   }
 
 
   public Recreation(Session s) throws Exception {
     super(s) ;
-    venue = (Venue) s.loadObject() ;
+    venue = (Venue) s.loadTarget() ;
+    type = s.loadInt() ;
+    cost = s.loadFloat() ;
+    enjoyBonus = s.loadFloat() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveObject(venue) ;
+    s.saveTarget(venue) ;
+    s.saveInt(type) ;
+    s.saveFloat(cost) ;
+    s.saveFloat(enjoyBonus) ;
+  }
+  
+  
+  public boolean matchesPlan(Plan p) {
+    if (! super.matchesPlan(p)) return false ;
+    final int pT = ((Recreation) p).type ;
+    if (pT == TYPE_ANY || this.type == TYPE_ANY) return true ;
+    return pT == this.type ;
   }
   
   
@@ -43,65 +87,34 @@ public class Recreation extends Plan implements Economy {
   /**  Finding and evaluating targets-
     */
   public float priorityFor(Actor actor) {
-    if (actor.mind.work() instanceof Venue) {
-      final Venue v = (Venue) actor.mind.work() ;
-      if (v.personnel.onShift(actor)) return IDLE ;
+    if (cost > actor.gear.credits() / 2f) return 0 ;
+    
+    float priority = IDLE ;
+    if (! actor.mind.work().personnel().onShift(actor)) {
+      priority = (ROUTINE * (1 - actor.health.moraleLevel())) + IDLE ;
     }
-    float priority = (ROUTINE * (1 - actor.health.moraleLevel())) + IDLE ;
+    
+    final float performValue = Performance.performValueFor(venue, this) ;
+    priority *= rateComfort(venue, actor, this) / 10 ;
+    priority = Visit.clamp(priority, 0, performValue) ;
+    
+    final Trait enjoyT[] = ENJOYMENT_TRAITS[type] ; for (Trait t : enjoyT) {
+      priority += actor.traits.traitLevel(t) / enjoyT.length ;
+    }
+    priority -= actor.mind.greedFor((int) cost) ;
     priority -= Plan.rangePenalty(actor, venue) ;
-    priority *= rateVenue(venue, actor) / 10 ;
-    //
-    //  TODO:  Vary based on debauched/indolent traits, et cetera-
+    priority += priorityMod + enjoyBonus ;
     
     if (verbose) I.sayAbout(actor, "Relax priority for "+venue+": "+priority) ;
-    return priority ;
+    return Visit.clamp(priority, 0, URGENT) ;
   }
   
   
-  public static Recreation findRecreation(Actor actor) {
-    final Batch <Venue> venues = new Batch <Venue> () ;
-    actor.world().presences.sampleFromKey(
-      actor, actor.world(), 5, venues,
-      Cantina.class
-    ) ;
-    if (actor.mind.home() != null) venues.add(actor.mind.home()) ;
-    
-    final Choice choice = new Choice(actor) ;
-    for (Venue venue : venues) {
-      choice.add(new Recreation(actor, venue)) ;
-    }
-    return (Recreation) choice.weightedPick(actor.mind.whimsy()) ;
-  }
-  
-  
-  private static float rateVenue(Venue venue, Actor actor) {
-    if (! venue.structure.intact()) return -1 ;
-    
-    float rating = 0 ;
-    if (venue instanceof Cantina) {
-      rating += 4.0f + ((Cantina) venue).performValue() ;
-      if (venue.stocks.amountOf(SOMA) > 0) {
-        rating += 2 ;
-      }
-    }
-    //
-    //  TODO:  You need to choose the appropriate recreation type for the
-    //  Holocade- meditation, sport, exhibition or role-play- and whether you
-    //  join or spectate.
-    if (venue instanceof Holocade) {
-      rating += 4.0f ;// + ((Holocade) venue).performValue() ;
-      
-    }
-    
-    
-    if (venue instanceof Holding) {
-      return 2.0f + ((Holding) venue).upgradeLevel() ;
-    }
-    if (venue instanceof Bastion) {
-      final Bastion b = (Bastion) venue ;
-      return 3.0f + (b.structure.upgradeLevel(Bastion.NOBLE_QUARTERS) * 2) ;
-    }
-    return rating ;
+  public static float rateComfort(Boardable at, Actor actor, Recreation r) {
+    float performValue = Performance.performValueFor(at, r) / 10f ;
+    if (performValue < 0) return -1 ;
+    float ambience = actor.world().ecology().ambience.valueAt(at) / 2f ;
+    return performValue + ambience ;
   }
   
   
@@ -110,65 +123,30 @@ public class Recreation extends Plan implements Economy {
     */
   protected Behaviour getNextStep() {
     if (priorityFor(actor) <= 0) return null ;
-    
-    if (
-      actor.traits.traitLevel(SOMA_HAZE) <= 0 &&
-      venue.stocks.amountOf(SOMA) > 0.1f
-      && (somaPrice(venue) < actor.gear.credits() / 2)
-    ) {
-      final Action dropSoma = new Action(
-        actor, venue,
-        this, "actionDropSoma",
-        Action.FALL, "Dropping soma"
-      ) ;
-      return dropSoma ;
-    }
-    
-    if (venue instanceof Cantina) {
-      final Cantina c = (Cantina) venue ;
-      final Action gamble = c.nextGambleFor(actor) ;
-      if (gamble != null && Rand.index(10) < gamble.priorityFor(actor)) {
-        return gamble ;
-      }
-    }
-    
     final Action relax = new Action(
       actor, venue,
       this, "actionRelax",
       Action.TALK_LONG, "Relaxing"
     ) ;
-    
     return relax ;
   }
   
   
-  private float somaPrice(Venue venue) {
-    if (venue instanceof Cantina) {
-      final Cantina c = (Cantina) venue ;
-      return c.priceFor(SOMA) * 0.1f ;
-    }
-    return 0 ;
-  }
-  
-  
-  public boolean actionDropSoma(Actor actor, Venue venue) {
-    final float price = somaPrice(venue) ;
-    if (price > actor.gear.credits() / 2) return false ;
-    venue.stocks.incCredits(price) ;
-    actor.gear.incCredits(-price) ;
-    venue.stocks.removeItem(Item.withAmount(SOMA, 0.1f)) ;
-    actor.traits.incLevel(SOMA_HAZE, 0.1f) ;
-    return true ;
-  }
-  
-  
   public boolean actionRelax(Actor actor, Venue venue) {
+    //
+    //  Make any neccesary initial payment-
+    float comfort = rateComfort(venue, actor, this) ;
+    if (cost > 0 && comfort > 0) {
+      venue.stocks.incCredits(cost) ;
+      actor.gear.incCredits(0 - cost) ;
+      cost = 0 ;
+    }
+    
     final float interval = 1f / World.STANDARD_DAY_LENGTH ;
-    float comfort = rateVenue(venue, actor) ;
     if (actor.traits.traitLevel(SOMA_HAZE) > 0) {
       comfort++ ;
     }
-    //
+    comfort += enjoyBonus ;
     //  TODO:  Chat at random with other occupants (using the Dialogue class.)
     //
     //  TODO:  Have morale converge to a particular level based on surroundings,
@@ -183,14 +161,13 @@ public class Recreation extends Plan implements Economy {
   /**  Rendering and interface-
     */
   public void describeBehaviour(Description d) {
-    if (! describedByStep(d)) d.append("Relaxing") ;
+    final float performValue = Performance.performValueFor(venue, this) ;
+    if (performValue > 0) d.append(RELAX_DESC[type]) ;
+    else d.append("Relaxing") ;
     d.append(" at ") ;
     d.append(venue) ;
   }
 }
-
-
-
 
 
 

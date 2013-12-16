@@ -96,7 +96,7 @@ public class BlastDoors extends ShieldWall implements TileConstants {
       choice.add(p) ;
     }
     
-    return choice.weightedPick(actor.mind.whimsy()) ;
+    return choice.weightedPick() ;
   }
   
   

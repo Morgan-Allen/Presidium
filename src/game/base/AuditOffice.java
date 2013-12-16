@@ -157,16 +157,20 @@ public class AuditOffice extends Venue implements Economy {
     }
     
     if (actor.vocation() == Background.ADVERTISER) {
-      //
-      //  TODO:  Gather information while about your rounds...
       Batch <Venue> clients = new Batch <Venue> () ;
       world.presences.sampleFromKey(this, world, 5, clients, Holding.class) ;
+      
+      final Delivery c = Deliveries.nextCollectionFor(
+        actor, this, new Service[] { PLASTICS }, 5, null, world
+      ) ;
+      choice.add(c) ;
       
       final Delivery d = Deliveries.nextDeliveryFor(
         actor, this, services(), clients, 5, world
       ) ;
-      //I.sayAbout(this, "Next delivery is: "+d) ;
-      
+      //
+      //  TODO:  Modify this a bit, so that the advertiser needn't go back and
+      //  forth all the time?
       choice.add(d) ;
       
       final Manufacture mP = stocks.nextManufacture(
@@ -179,7 +183,12 @@ public class AuditOffice extends Venue implements Economy {
       }
     }
     
-    return choice.weightedPick(actor.mind.whimsy()) ;
+    return choice.weightedPick() ;
+  }
+  
+  
+  public void addServices(Choice choice, Actor forActor) {
+    choice.add(new Payday(forActor, this)) ;
   }
   
   
@@ -207,13 +216,13 @@ public class AuditOffice extends Venue implements Economy {
     
     printCredits() ;
     stocks.translateDemands(1, PLASTICS_TO_PRESSFEED) ;
-    world.ecology().impingeSqualor(-2, this, true) ;
+    structure.setAmbienceVal(2) ;
   }
   
   
-  public void dispenseRelief(Actor assessed) {
+  public float assessRelief(Actor assessed, boolean deduct) {
     int claimRate = structure.upgradeLevel(RELIEF_AUDIT) ;
-    if (claimRate == 0) return ;
+    if (claimRate == 0) return 0 ;
     
     final Profile p = base().profiles.profileFor(assessed) ;
     final float
@@ -223,8 +232,11 @@ public class AuditOffice extends Venue implements Economy {
       payment  = interval * relief * bonus,
       claimed  = interval * WELFARE_CLAIMS[(int) relief] * bonus ;
     
-    p.incPaymentDue(payment) ;
-    stocks.incCredits(claimed - payment) ;
+    if (deduct) {
+      p.incPaymentDue(payment) ;
+      stocks.incCredits(claimed - payment) ;
+    }
+    return payment ;
   }
   
   

@@ -17,34 +17,33 @@ import src.util.* ;
 public class NativeHut extends Venue {
   
   
-  final static Model HUT_MODELS[] = ImageModel.loadModels(
-    Ruins.class, 4, 2, "media/Buildings/lairs and ruins/",
-    ImageModel.TYPE_SOLID_BOX,
-    "desert_huts.png",
-    "forest_huts.png",
-    "wastes_huts.png",
-    "tundra_huts.png"
+  final static Model HUT_MODELS[][] = ImageModel.fromTextureGrid(
+    NativeHut.class,
+    Texture.loadTexture("media/Buildings/lairs and ruins/all_native_huts.png"),
+    4, 4, 3.0f, ImageModel.TYPE_SOLID_BOX
   ) ;
-  final static ImageModel[][][] MODEL_KEYS = {
-    Habitat.FOREST_FLORA_MODELS,
-    Habitat.DESERT_FLORA_MODELS,
-    Habitat.WASTES_FLORA_MODELS,
-    Habitat.TUNDRA_FLORA_MODELS
-  } ;
   
+  final static ImageModel[][][] MODEL_KEYS = {
+    Habitat.TUNDRA_FLORA_MODELS,
+    Habitat.WASTES_FLORA_MODELS,
+    Habitat.DESERT_FLORA_MODELS,
+    Habitat.FOREST_FLORA_MODELS,
+  } ;
+  private static int nextVar = 0 ;
   private static Model modelFor(Habitat h) {
     int index = Visit.indexOf(h.floraModels, MODEL_KEYS) ;
     if (index == -1) index = 0 ;
-    return HUT_MODELS[index] ;
+    return HUT_MODELS[index][nextVar++ % 4] ;
   }
   
   
   
   public NativeHut(Habitat h, Base base) {
-    super(4, 1, ENTRANCE_SOUTH, base) ;
+    super(3, 2, ENTRANCE_SOUTH, base) ;
     structure.setupStats(100, 4, 0, 0, Structure.TYPE_CRAFTED) ;
     personnel.setShiftType(SHIFTS_ALWAYS) ;
     attachModel(modelFor(h)) ;
+    sprite().scale = 1 + ((Rand.num() - 0.5f) / 5f) ;
   }
   
   

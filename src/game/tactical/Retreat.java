@@ -196,7 +196,7 @@ public class Retreat extends Plan implements Abilities {
     int numChecked = 0 ;
     
     if (actor.mind.home() != null) {
-      final Venue home = actor.mind.home() ;
+      final Target home = actor.mind.home() ;
       float rating = rateHaven(home, actor, prefClass) ;
       if (rating > bestRating) { bestRating = rating ; picked = home ; }
     }

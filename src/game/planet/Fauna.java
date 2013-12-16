@@ -78,7 +78,7 @@ public abstract class Fauna extends Actor {
       protected Behaviour createBehaviour() {
         final Choice choice = new Choice(actor) ;
         addChoices(choice) ;
-        return choice.weightedPick(actor.mind.whimsy()) ;
+        return choice.weightedPick() ;
       }
       
       protected void updateAI(int numUpdates) {
@@ -178,7 +178,7 @@ public abstract class Fauna extends Actor {
     for (int numKids = 1 + Rand.index(maxKids) ; numKids-- > 0 ;) {
       final Fauna young = actor.species.newSpecimen() ;
       young.health.setupHealth(0, 1, 0) ;
-      young.mind.setHomeVenue(lair) ;
+      young.mind.setHome(lair) ;
       final Tile e = lair.mainEntrance() ;
       young.enterWorldAt(e.x, e.y, e.world) ;
       I.say("Giving birth to new "+actor.species.name+" at: "+point) ;
@@ -221,7 +221,7 @@ public abstract class Fauna extends Actor {
         if (! (t instanceof Lair)) continue ;
         final Lair vacant = (Lair) t ;
         if (vacant.species == this.species && vacant.crowding() <= 0.5f) {
-          actor.mind.setHomeVenue(vacant) ;
+          actor.mind.setHome(vacant) ;
           return true ;
         }
       }
@@ -244,7 +244,7 @@ public abstract class Fauna extends Actor {
         newLair.setPosition(t.x, t.y, actor.world()) ;
         final float rating = newLair.rateCurrentSite(actor.world()) ;
         if (rating <= 0) return false ;
-        actor.mind.setHomeVenue(newLair) ;
+        actor.mind.setHome(newLair) ;
         newLair.clearSurrounds() ;
         newLair.enterWorld() ;
         newLair.structure.setState(Structure.STATE_INTACT, 0.1f) ;

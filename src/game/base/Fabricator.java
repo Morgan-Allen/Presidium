@@ -7,6 +7,7 @@
 
 package src.game.base ;
 import src.game.common.* ;
+import src.game.social.Commission;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
@@ -112,7 +113,7 @@ public class Fabricator extends Venue implements Economy {
     stocks.forceDemand(POWER, powerNeed, VenueStocks.TIER_CONSUMER) ;
     
     int pollution = 3 - (structure.upgradeBonus(ORGANIC_BONDING) * 2) ;
-    world.ecology().impingeSqualor(pollution, this, true) ;
+    structure.setAmbienceVal(0 - pollution) ;
   }
   
   
@@ -161,7 +162,12 @@ public class Fabricator extends Venue implements Economy {
       choice.add(m) ;
     }
     
-    return choice.weightedPick(actor.mind.whimsy()) ;
+    return choice.weightedPick() ;
+  }
+  
+  
+  public void addServices(Choice choice, Actor forActor) {
+    Commission.addCommissions(forActor, this, choice) ;
   }
   
   

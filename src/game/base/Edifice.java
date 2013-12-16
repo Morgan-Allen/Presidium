@@ -101,7 +101,7 @@ public class Edifice extends Venue implements Economy {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
-    world.ecology().impingeSqualor(-10, this, true) ;
+    structure.setAmbienceVal(10) ;
   }
   
 

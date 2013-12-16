@@ -151,7 +151,7 @@ public class VenueStocks extends Inventory implements Economy {
   public Manufacture nextSpecialOrder(Actor actor) {
     final Choice choice = new Choice(actor) ;
     for (Manufacture order : specialOrders) choice.add(order) ;
-    return (Manufacture) choice.weightedPick(0) ;
+    return (Manufacture) choice.weightedPick() ;
   }
   
   

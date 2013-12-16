@@ -175,7 +175,7 @@ public class StockExchange extends Venue implements Economy {
     ) ;
     if (c != null && personnel.assignedTo(c) < 1) choice.add(c) ;
     choice.add(new Supervision(actor, this)) ;
-    return choice.weightedPick(actor.mind.whimsy()) ;
+    return choice.weightedPick() ;
   }
   
   

@@ -9,6 +9,8 @@ package src.game.base ;
 import src.game.building.* ;
 import src.game.actors.* ;
 import src.game.common.* ;
+import src.game.social.Performance;
+import src.game.social.Recreation;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD ;
@@ -85,18 +87,68 @@ public class Holocade extends Venue implements Economy {
   
   
   public Behaviour jobFor(Actor actor) {
+    //
+    //  TODO:  Employ some manner of projectionist?
     return null ;
   }
   
   
+  public void addServices(Choice choice, Actor forActor) {
+    float itemPenalty = 0 ;
+    itemPenalty += stocks.shortagePenalty(CIRCUITRY) ;
+    itemPenalty += stocks.shortagePenalty(DATALINKS) ;
+    itemPenalty += stocks.shortagePenalty(POWER) * 2 ;
+    itemPenalty *= 5 ;
+    
+    final Recreation
+      RM = new Recreation(forActor, this, Recreation.TYPE_MEDIA),
+      RS = new Recreation(forActor, this, Recreation.TYPE_SPORT) ;
+    RM.enjoyBonus = structure.upgradeLevel(MEDIA_EXHIBIT) + 2 ;
+    RM.enjoyBonus -= (itemPenalty / 2) ;
+    choice.add(RM) ;
+    choice.add(RS) ;
+    
+    final Performance
+      PL = new Performance(
+        forActor, this, Recreation.TYPE_LARP, null
+      ),
+      PM = new Performance(
+        forActor, this, Recreation.TYPE_MEDITATE, null
+      ),
+      PS = new Performance(
+        forActor, this, Recreation.TYPE_SPORT, null
+      ) ;
+    
+    PL.checkBonus = structure.upgradeLevel(LARP_ARENA) * 5 ;
+    PL.checkBonus -= itemPenalty ;
+    PL.enjoyBonus = PL.checkBonus / 5 ;
+    choice.add(PL) ;
+    
+    PM.checkBonus = structure.upgradeLevel(MEDITATION_SUITE) * 5 ;
+    PM.checkBonus -= itemPenalty ;
+    PM.enjoyBonus = PM.checkBonus / 5 ;
+    choice.add(PM) ;
+    
+    PS.checkBonus = structure.upgradeLevel(VIRTUAL_SPORTS) * 5 ;
+    PS.checkBonus -= itemPenalty ;
+    PS.enjoyBonus = PS.checkBonus / 5 ;
+    choice.add(PS) ;
+  }
+
+
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
     //
     //  TODO:  Effectiveness needs to vary based on availability of circuitry
     //  and datalinks...
-    //stocks.incDemand(CIRCUITRY, 2, VenueStocks.TIER_CONSUMER, 1) ;
-    stocks.incDemand(DATALINKS, 2, VenueStocks.TIER_CONSUMER, 1) ;
+    stocks.incDemand(CIRCUITRY, 2, VenueStocks.TIER_CONSUMER, 1) ;
+    //stocks.incDemand(DATALINKS, 5, VenueStocks.TIER_CONSUMER, 1) ;
+    stocks.bumpItem(CIRCUITRY, -0.1f / World.STANDARD_DAY_LENGTH) ;
+    //stocks.bumpItem(DATALINKS, -0.25f / World.STANDARD_DAY_LENGTH) ;
+    stocks.incDemand(POWER, 10, VenueStocks.TIER_CONSUMER, 1) ;
+    
+    structure.setAmbienceVal(5) ;
   }
   
   
@@ -114,11 +166,29 @@ public class Holocade extends Venue implements Economy {
   
   /**  Rendering and interface-
     */
-  protected Service[] goodsToShow() {
-    return new Service[] { DATALINKS } ;
+  public void writeInformation(Description d, int categoryID, HUD UI) {
+    super.writeInformation(d, categoryID, UI) ;
+    if (categoryID == 0) {
+      d.append("\n") ;
+      Performance.describe(d, "Current media:", Recreation.TYPE_MEDIA, this) ;
+      Performance.describe(d, "Current LARP:" , Recreation.TYPE_LARP , this) ;
+      Performance.describe(d, "Current sport:", Recreation.TYPE_SPORT, this) ;
+      d.append("\nMeditating: ") ;
+      final Performance PM = new Performance(
+        null, this, Recreation.TYPE_MEDITATE, null
+      ) ;
+      final Batch <Recreation> AM = Performance.audienceFor(this, PM) ;
+      if (AM.size() > 0) d.append(""+AM.size()) ;
+      else d.append("none") ;
+    }
   }
   
   
+  protected Service[] goodsToShow() {
+    return new Service[] { DATALINKS, CIRCUITRY } ;
+  }
+
+
   public String fullName() {
     return "Holocade" ;
   }

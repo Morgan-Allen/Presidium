@@ -148,7 +148,7 @@ public class Garrison extends Venue implements Economy {
         choice.add(p) ;
       }
     }
-    return choice.weightedPick(actor.mind.whimsy()) ;
+    return choice.weightedPick() ;
   }
   
   

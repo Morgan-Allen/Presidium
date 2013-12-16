@@ -14,16 +14,8 @@ import src.user.* ;
 import src.util.* ;
 
 
-//
-//  TODO:  Use this?
-/*
-public static interface Grounds extends Session.Saveable {
-  Training trainingFor(Actor actor) ;
-  float trainingPriority(Actor actor) ;
-}
-//*/
 
-public class Training extends Plan implements Economy {
+public class Drilling extends Plan implements Economy {
   
   
   
@@ -35,7 +27,7 @@ public class Training extends Plan implements Economy {
   
   
 
-  public Training(
+  public Drilling(
     Actor actor, DrillYard grounds
   ) {
     super(actor, grounds) ;
@@ -43,7 +35,7 @@ public class Training extends Plan implements Economy {
   }
   
   
-  public Training(Session s) throws Exception {
+  public Drilling(Session s) throws Exception {
     super(s) ;
     yard = (DrillYard) s.loadObject() ;
   }
@@ -98,7 +90,7 @@ public class Training extends Plan implements Economy {
   }
   
   
-  public static Training nextDrillFor(Actor actor) {
+  public static Drilling nextDrillFor(Actor actor) {
     if (actor.base() == null) return null ;
     if (! (actor.mind.work() instanceof Venue)) return null ;
     
@@ -109,10 +101,10 @@ public class Training extends Plan implements Economy {
     final Choice choice = new Choice(actor) ;
     for (DrillYard yard : yards) if (yard.base() == actor.base()) {
       ///I.sayAbout(actor, "Can drill at "+yard) ;
-      final Training drilling = new Training(actor, yard) ;
+      final Drilling drilling = new Drilling(actor, yard) ;
       choice.add(drilling) ;
     }
-    return (Training) choice.weightedPick(0) ;
+    return (Drilling) choice.pickMostUrgent() ;
   }
   
   
@@ -123,7 +115,7 @@ public class Training extends Plan implements Economy {
     final int drillType = yard.drillType() ;
     if (
       (yard.nextDrill != yard.drill && ! yard.belongs.destroyed()) &&
-      (Plan.competition(Training.class, yard.belongs, actor) < 1)
+      (Plan.competition(Drilling.class, yard.belongs, actor) < 1)
     ) {
       final Action pickup = new Action(
         actor, yard.belongs,

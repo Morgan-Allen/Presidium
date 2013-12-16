@@ -37,23 +37,19 @@ public class Cantina extends Venue implements Economy {
     "Eisley's Franchise",
     "The Silver Pill",
     "The Happy Morlock",
-    "Misery Loves Sompany",
+    "Misery And Company",
     "The Welcome Fnord",
-    "Nordsei's Landing",
+    "Norusei's Landing",
     "Teller's Afterglow",
-    "The Touchdown",
+    "The Old Touchdown",
     "The Missing Hour",
     "Bailey's Casket",
-    "The Bastard House",
+    "The Duke's Bastard",
   } ;
   
   final static float
     LODGING_PRICE = 20,
-    EROTICS_PRICE = 100,
-    
     GAMBLE_PRICE  = 50,
-    BET_SMALL     = 20,
-    BET_LARGE     = 50,
     POT_INTERVAL  = 20,
     
     SOMA_MARGIN    = 1.5f,
@@ -62,10 +58,7 @@ public class Cantina extends Venue implements Economy {
   
   
   private int nameID = -1 ;
-  
   float gamblePot = 0 ;
-  Actor playerBets = null ;
-  int playerBetSize = 0 ;
   final Table <Actor, Float> gambleResults = new Table <Actor, Float> () ;
   
   
@@ -82,8 +75,6 @@ public class Cantina extends Venue implements Economy {
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     nameID = s.loadInt() ;
     gamblePot = s.loadFloat() ;
-    playerBets = (Actor) s.loadObject() ;
-    playerBetSize = s.loadInt() ;
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Actor a = (Actor) s.loadObject() ;
       final float f = s.loadFloat() ;
@@ -96,8 +87,6 @@ public class Cantina extends Venue implements Economy {
     super.saveState(s) ;
     s.saveInt(nameID) ;
     s.saveFloat(gamblePot) ;
-    s.saveObject(playerBets) ;
-    s.saveInt(playerBetSize) ;
     s.saveInt(gambleResults.size()) ; for (Actor a : gambleResults.keySet()) {
       s.saveObject(a) ;
       s.saveFloat(gambleResults.get(a)) ;
@@ -116,19 +105,40 @@ public class Cantina extends Venue implements Economy {
   /**  Upgrades, services and economic functions-
     */
   public Behaviour jobFor(Actor actor) {
+    if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     if (actor.vocation() == Background.SOMA_VENDOR) {
       final Service needed[] = { SOMA, CARBS, PROTEIN } ;
       final Delivery d = Deliveries.nextCollectionFor(
         actor, this, needed, 5, null, world
       ) ;
-      ///I.say("Next delivery is: "+d) ;
       if (d != null) return d ;
       return new Supervision(actor, this) ;
     }
     if (actor.vocation() == Background.PERFORMER) {
-      return new Performance(actor, this, MUSIC_AND_SONG) ;
+      final Performance p = new Performance(
+        actor, this, Recreation.TYPE_SONG, null
+      ) ;
+      p.priorityMod = Plan.CASUAL ;
+      return p ;
     }
     return null ;
+  }
+  
+  
+  public void addServices(Choice choice, Actor forActor) {
+    if (personnel.numPresent(Background.PERFORMER) > 0) {
+      choice.add(new Recreation(forActor, this, Recreation.TYPE_SONG)) ;
+      choice.add(nextGambleFor(forActor)) ;
+      choice.add(new Performance(
+        forActor, this, Recreation.TYPE_SONG, null
+      )) ;
+    }
+    if (personnel.numPresent(Background.SOMA_VENDOR) > 0) {
+      choice.add(nextSomaOrderFor(forActor)) ;
+      final Resting resting = new Resting(forActor, this) ;
+      resting.cost = (int) LODGING_PRICE ;
+      choice.add(resting) ;
+    }
   }
   
   
@@ -138,7 +148,7 @@ public class Cantina extends Venue implements Economy {
     stocks.forceDemand(SOMA   , 5, VenueStocks.TIER_CONSUMER) ;
     stocks.forceDemand(CARBS  , 5, VenueStocks.TIER_CONSUMER) ;
     stocks.forceDemand(PROTEIN, 5, VenueStocks.TIER_CONSUMER) ;
-    if (numUpdates % POT_INTERVAL == 0 && isManned()) splitGamblePot() ;
+    updateGambling(numUpdates) ;
   }
   
   
@@ -150,20 +160,8 @@ public class Cantina extends Venue implements Economy {
   public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
     if (v == Background.SOMA_VENDOR) return nO + 1 ;
-    if (v == Background.PERFORMER) return nO + 1 ;
+    if (v == Background.PERFORMER  ) return nO + 2 ;
     return 0 ;
-  }
-  
-  //
-  //  TODO:  Allow *any* good to be purchased here, but at double or triple
-  //  normal prices.  And it has to be explicitly commissioned, then delivered
-  //  from off the map by runners.
-  
-  //
-  //  Recruit the Runner to make a single delivery, then have them leave the
-  //  map.
-  private void listenForDemands() {
-    
   }
   
   
@@ -178,60 +176,47 @@ public class Cantina extends Venue implements Economy {
   }
   
   
-  public float priceLodgings() {
-    return 20 ;
-  }
   
-  /*
-  public float priceSoma() {
-    return priceFor(SOMA) * 1.5f ;
-  }
-  //*/
-  
-  
-  public float priceBet() {
-    return GAMBLE_PRICE ;
-  }
-  
-  
-  
-  /**  Performance implementation-
+  /**  Soma Round implementation-
     */
-  private Performance performance() {
-    for (Actor actor : personnel.workers()) {
-      if (actor.aboard() != this) continue ;
-      for (Behaviour b : actor.mind.agenda()) if (b instanceof Performance) {
-        return (Performance) b ;
-      }
-    }
-    return null ;
+  private Action nextSomaOrderFor(Actor actor) {
+    if (stocks.amountOf(SOMA) <= 0) return null ;
+    if (actor.traits.traitLevel(SOMA_HAZE) > 0) return null ;
+    final float price = priceFor(SOMA) / 10f ;
+    if ((price > actor.gear.credits() / 2) || ! isManned()) return null ;
+    
+    final Action drops = new Action(
+      actor, this,
+      this, "actionDropSoma",
+      Action.FALL, "Dropping Soma"
+    ) ;
+    float priority = Action.ROUTINE ;
+    priority += actor.traits.traitLevel(DEBAUCHED) / 2f ;
+    priority += actor.traits.traitLevel(SOCIABLE)  / 2f ;
+    priority += actor.traits.traitLevel(APPETITE)  / 2f ;
+    priority -= actor.mind.greedFor((int) price) * Action.ROUTINE ;
+    drops.setPriority(priority) ;
+    return drops ;
   }
   
   
-  private Batch <Actor> audience() {
-    final Batch <Actor> b = new Batch <Actor> () ;
-    for (Mobile m : inside()) if (m instanceof Actor) {
-      final Actor a = (Actor) m ;
-      if (a.mind.work() != this) b.add(a) ;
-    }
-    return b ;
-  }
-  
-  
-  public float performValue() {
-    float value = 0, count = 1 ;
-    final Performance p = performance() ;
-    if (p == null) return 0 ;
-    return p.performValue() ;
+  public boolean actionDropSoma(Actor actor, Venue venue) {
+    final float price = venue.priceFor(SOMA) / 10f ;
+    if (price > actor.gear.credits() / 2) return false ;
+    venue.stocks.incCredits(price) ;
+    actor.gear.incCredits(-price) ;
+    stocks.removeItem(Item.withAmount(SOMA, 0.1f)) ;
+    actor.traits.incLevel(SOMA_HAZE, 0.1f) ;
+    return true ;
   }
   
   
   
   /**  Gambling implementation-
     */
-  public Action nextGambleFor(Actor actor) {
+  private Action nextGambleFor(Actor actor) {
     if (isGambling(actor)) return null ;
-    final int price = (int) priceBet() ;
+    final int price = (int) GAMBLE_PRICE ;
     if ((price > actor.gear.credits() / 2) || ! isManned()) return null ;
     final Action gamble = new Action(
       actor, this,
@@ -248,21 +233,11 @@ public class Cantina extends Venue implements Economy {
   }
   
   
-  public boolean isGambling(Actor actor) {
-    if (gambleResults.keySet().contains(actor)) return true ;
-    return false ;
-  }
-  
-  
   public boolean actionGamble(Actor actor, Cantina venue) {
-    final float price = priceBet() ;
+    final float price = GAMBLE_PRICE ;
     actor.gear.incCredits(-price) ;
     venue.gamblePot += price ;
-    
-    if (actor == playerBets) {
-      base().incCredits(-playerBetSize) ;
-      venue.gamblePot += playerBetSize ;
-    }
+    venue.stocks.incCredits(price) ;
     
     float success = (Rand.num() * 2) - 1 ;
     if (actor.traits.test(ACCOUNTING, MODERATE_DC, 1)) success++ ;
@@ -281,36 +256,32 @@ public class Cantina extends Venue implements Economy {
   }
   
   
-  private void splitGamblePot() {
-    if (gambleResults.size() == 0) return ;
-    
-    Actor wins = null ;
-    float bestResult = Float.NEGATIVE_INFINITY ;
-    
-    for (Actor gambles : gambleResults.keySet()) {
-      if (gambles.aboard() != this) continue ;
-      final float result = (Float) gambleResults.get(gambles) ;
-      if (result > bestResult) { bestResult = result ; wins = gambles ; }
+  private void updateGambling(int numUpdates) {
+    for (Actor a : gambleResults.keySet()) {
+      if (a.aboard() != this) gambleResults.remove(a) ;
     }
-    
-    if (wins != null) {
-      if (wins == playerBets) {
-        float playerShare = playerBetSize * gambleResults.size() ;
-        playerShare *= 1 - GAMBLE_MARGIN ;
-        base().incCredits(playerShare) ;
-        gamblePot -= playerShare ;
+    if (numUpdates % POT_INTERVAL == 0) {
+      Actor wins = null ;
+      float bestResult = 0 ;
+      for (Actor gambles : gambleResults.keySet()) {
+        final float result = (Float) gambleResults.get(gambles) ;
+        if (result > bestResult) { bestResult = result ; wins = gambles ; }
       }
-      float winsShare = gamblePot * (1 - GAMBLE_MARGIN) ;
-      wins.gear.incCredits(winsShare) ;
-      gamblePot -= winsShare ;
+      if (wins != null) {
+        float winsShare = gamblePot * (1 - GAMBLE_MARGIN) ;
+        wins.gear.incCredits(winsShare) ;
+      }
+      
+      gamblePot = 0 ;
+      gambleResults.clear() ;
     }
-    
-    stocks.incCredits(gamblePot) ;
-    gamblePot = 0 ;
-    playerBets = null ;
-    gambleResults.clear() ;
   }
   
+  
+  private boolean isGambling(Actor actor) {
+    if (gambleResults.get(actor) != null) return true ;
+    return false ;
+  }
   
 
 
@@ -365,55 +336,14 @@ public class Cantina extends Venue implements Economy {
   public void writeInformation(Description d, int categoryID, HUD UI) {
     super.writeInformation(d, categoryID, UI) ;
     if (categoryID == 0) {
+      d.append("\n") ;
+      Performance.describe(d, "Current music:", Recreation.TYPE_SONG, this) ;
       //
-      //  Report information on the current performance-
-      final Batch <Actor> audience = audience() ;
-      final Performance p = performance() ;
-      d.append("\n\nCurrent performance:\n  ") ;
-      if (p == null) d.append("No performance.") ;
-      else d.append(p.performDesc()) ;
-      d.append("\n  ") ;
-      if (audience.size() == 0) d.append("No audience.") ;
-      else {
-        if (p != null) d.append(p.qualityDesc()) ;
-        d.append("\n\nAudience:") ;
-        for (Actor a : audience) {
-          d.append("\n  ") ;
-          d.append(a) ;
-        }
-      }
+      //  TODO:  Report on gambling, and allow player favourites?  Or a black
+      //  market?  Or contacting runners?
       //
-      //  List the current gambling participants, and allow the player to bet
-      //  on one of them.
-      d.append("\n\nGambling:") ;
-      for (final Actor gambles : gambleResults.keySet()) {
-        d.append("\n  ") ; d.append(gambles) ;
-        d.append(new Description.Link("  SMALL BET") {
-          public void whenClicked() {
-            playerBets = gambles ;
-            playerBetSize = (int) BET_SMALL ;
-          }
-        }) ;
-        d.append(new Description.Link("  LARGE BET") {
-          public void whenClicked() {
-            playerBets = gambles ;
-            playerBetSize = (int) BET_LARGE ;
-          }
-        }) ;
-      }
-      if (gambleResults.size() == 0) {
-        d.append("\n  No gambling at present.") ;
-      }
-      else if (playerBets != null) {
-        d.append("\n\n  Betting "+playerBetSize+" each round ") ;
-        d.append(playerBets) ;
-        d.append(new Description.Link("\n  CLEAR BETS") {
-          public void whenClicked() {
-            playerBets = null ;
-            playerBetSize = 0 ;
-          }
-        }) ;
-      }
+      //  ...Oh, wait.  I know what.  Runners are more likely to show up, based
+      //  on how much vice you allow.
     }
   }
   
@@ -423,5 +353,53 @@ public class Cantina extends Venue implements Economy {
 
 
 
+/*
+//
+//  TODO:  Allow *any* good to be purchased here, but at double or triple
+//  normal prices.  And it has to be explicitly commissioned, then delivered
+//  from off the map by runners.
 
+//
+//  Recruit the Runner to make a single delivery, then have them leave the
+//  map.
+private void listenForDemands() {
+  
+}
+//*/
 
+/*
+if (categoryID == 0) {
+  //
+  //  List the current gambling participants, and allow the player to bet
+  //  on one of them.
+  d.append("\n\nGambling:") ;
+  for (final Actor gambles : gambleResults.keySet()) {
+    d.append("\n  ") ; d.append(gambles) ;
+    d.append(new Description.Link("  SMALL BET") {
+      public void whenClicked() {
+        playerBets = gambles ;
+        playerBetSize = (int) BET_SMALL ;
+      }
+    }) ;
+    d.append(new Description.Link("  LARGE BET") {
+      public void whenClicked() {
+        playerBets = gambles ;
+        playerBetSize = (int) BET_LARGE ;
+      }
+    }) ;
+  }
+  if (gambleResults.size() == 0) {
+    d.append("\n  No gambling at present.") ;
+  }
+  else if (playerBets != null) {
+    d.append("\n\n  Betting "+playerBetSize+" each round ") ;
+    d.append(playerBets) ;
+    d.append(new Description.Link("\n  CLEAR BETS") {
+      public void whenClicked() {
+        playerBets = null ;
+        playerBetSize = 0 ;
+      }
+    }) ;
+  }
+}
+//*/

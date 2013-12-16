@@ -5,10 +5,10 @@ package src.game.social ;
 import src.game.actors.* ;
 import src.game.base.* ;
 import src.game.wild.* ;
+import src.game.tactical.* ;
 import src.game.building.* ;
 import src.game.common.* ;
-//import src.game.common.Session.Saveable ;
-import src.user.Description;
+import src.user.* ;
 import src.util.* ;
 
 
@@ -18,53 +18,97 @@ public class FindHome extends Plan implements Economy {
   
   private static boolean verbose = false ;
   
+  
+  final Employment newHome ;
+  
+  
+  public static FindHome attemptFor(Actor actor) {
+    Employment newHome = lookForHome(actor, actor.base()) ;
+    if (newHome == null || newHome == actor.mind.home()) return null ;
+    return new FindHome(actor, newHome) ;
+  }
+  
 
-
-  public FindHome(Actor actor) {
+  private FindHome(Actor actor, Employment newHome) {
     super(actor) ;
+    this.newHome = newHome ;
   }
 
 
   public FindHome(Session s) throws Exception {
     super(s) ;
+    newHome = (Employment) s.loadObject() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveObject(newHome) ;
   }
   
   
 
   public float priorityFor(Actor actor) {
-    if (actor.mind.home() == null) return ROUTINE ;
-    return 0 ;
+    return ROUTINE ;
   }
   
   
   protected Behaviour getNextStep() {
-    return null ;
+    if (actor.mind.home() == newHome) return null ;
+    if (! newHome.inWorld()) {
+      final Action sites = new Action(
+        actor, actor.world().tileAt(newHome),
+        this, "actionSiteHome",
+        Action.LOOK, "Siting home"
+      ) ;
+      sites.setProperties(Action.RANGED) ;
+      return sites ;
+    }
+    final Action finds = new Action(
+      actor, newHome,
+      this, "actionFindHome",
+      Action.LOOK, "Finding home"
+    ) ;
+    return finds ;
+  }
+  
+  
+  public boolean actionSiteHome(Actor client, Target site) {
+    final Venue v = (Venue) newHome ;
+    if (! v.canPlace()) {
+      abortBehaviour() ;
+      return false ;
+    }
+    v.doPlace(v.origin(), null) ;
+    client.mind.setHome(v) ;
+    //I.say(actor+" siting home at: "+v.origin()) ;
+    return true ;
+  }
+  
+  
+  public boolean actionFindHome(Actor client, Employment best) {
+    client.mind.setHome(best) ;
+    return true ;
   }
   
   
   public void describeBehaviour(Description d) {
+    if (! newHome.inWorld()) {
+      d.append("Siting a new home") ;
+    }
+    else {
+      d.append("Finding a home at ") ;
+      d.append(newHome) ;
+    }
   }
   
   
   
   /**  Static helper methods for home placement/location-
     */
-  //
-  //  ...No.
-  public static interface Residence {
-    
-  }
-  
-  
-  
-  public static Holding lookForHome(Human client, Base base) {
+  public static Holding lookForHome(Actor client, Base base) {
     final World world = base.world ;
-    final Venue oldHome = client.mind.home() ;
+    final Employment oldHome = client.mind.home() ;
     
     Holding best = null ;
     float bestRating = 0 ;
@@ -103,15 +147,7 @@ public class FindHome extends Plan implements Economy {
     if (verbose && I.talkAbout == client) {
       I.say("Looking for home, best site: "+best) ;
     }
-    
-    if (best != null && best != oldHome) {
-      if (! best.inWorld()) {
-        best.doPlace(best.origin(), null) ;
-      }
-      client.mind.setHomeVenue(best) ;
-      return best ;
-    }
-    else return null ;
+    return best ;
   }
   
   
@@ -165,6 +201,10 @@ public class FindHome extends Plan implements Economy {
     float crowding = holding.personnel.residents().size() * 1f / maxPop ;
     
     //
+    //  TODO:  Base this on ambience, safety, residence type, and proximity to
+    //  services.
+    
+    //
     //  TODO:  Base this in part on relations with other residents, possibly of
     //  an explicitly sexual/familial nature?  Actual housewife/husbander
     //  status?
@@ -197,3 +237,5 @@ if (this.home == null && (work == null || work instanceof Venue)) {
   }
 }
 //*/
+
+

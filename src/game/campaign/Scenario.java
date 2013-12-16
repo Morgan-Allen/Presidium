@@ -303,6 +303,10 @@ public class Scenario implements Session.Saveable {
   
   /**  Helper/Utility methods-
     */
+  public Behaviour taskFor(Actor actor) {
+    return null ;
+  }
+  
   //
   //  TODO:  This method needs to search for the *closest available* spot at
   //  which the given venue can be established (hell, it could be in the middle
@@ -345,14 +349,14 @@ public class Scenario implements Session.Saveable {
     }
     final Tile e = world.tileAt(v) ;
     for (Actor a : employed) {
-      a.mind.setEmployer(v) ;
+      a.mind.setWork(v) ;
       if (! a.inWorld()) {
         a.assignBase(v.base()) ;
         a.enterWorldAt(e.x, e.y, world) ;
         a.goAboard(v, world) ;
       }
     }
-    if (GameSettings.hireFree) VenuePersonnel.fillVacancies(v) ;
+    if (GameSettings.hireFree) Personnel.fillVacancies(v) ;
     v.setAsEstablished(true) ;
     return v ;
   }

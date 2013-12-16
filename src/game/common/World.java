@@ -208,7 +208,9 @@ public class World {
     sections.updateBounds() ;
     final float oldTime = currentTime ;
     currentTime += 1f / PlayLoop.UPDATES_PER_SECOND ;
+    
     for (Base base : bases) {
+      base.paving.checkConsistency() ;
       if (((int) (oldTime / 2)) != ((int) (currentTime / 2))) {
         base.intelMap.updateFog() ;
       }

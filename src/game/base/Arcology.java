@@ -136,7 +136,7 @@ public class Arcology extends Segment {
     //
     //  Combat pollution and improve global biomass based on health.
     world.ecology().impingeBiomass(this, 5 * plantsHealth, true) ;
-    world.ecology().impingeSqualor(-10 * plantsHealth, this, true) ;
+    structure.setAmbienceVal(10 * plantsHealth) ;
   }
   
   //

@@ -547,7 +547,7 @@ public class MainMenu extends UIGroup {
     Scenario.establishVenue(bastion, 12, 12, true, world, AA) ;
     bastion.clearSurrounds() ;
     for (Actor a : advisors) {
-      a.mind.setHomeVenue(bastion) ;
+      a.mind.setHome(bastion) ;
     }
     for (Actor a : colonists) {
       a.assignBase(base) ;

@@ -128,7 +128,7 @@ public class Building extends Plan implements Abilities {
       choice.add(b) ;
     }
     
-    return (Building) choice.weightedPick(0) ;
+    return (Building) choice.pickMostUrgent() ;
   }
   
   

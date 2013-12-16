@@ -222,7 +222,7 @@ public class Commerce implements Economy {
       }
       else {
         candidates.removeEntry(e) ;
-        if (a != null) a.employer.setApplicant(a, false) ;
+        if (a != null) a.employer.personnel().setApplicant(a, false) ;
       }
     }
   }
@@ -351,7 +351,7 @@ public class Commerce implements Economy {
   private void addCrew(Dropship ship, Background... positions) {
     for (Background v : positions) {
       final Human staff = new Human(new Career(v), base) ;
-      staff.mind.setEmployer(ship) ;
+      staff.mind.setWork(ship) ;
       //staff.mind.setHomeVenue(ship) ;
     }
   }

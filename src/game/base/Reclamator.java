@@ -67,7 +67,7 @@ public class Reclamator extends Venue implements Economy {
     float power = Visit.clamp(1 - stocks.shortagePenalty(POWER), 0.1f, 1) ;
     stocks.bumpItem(WATER, 2 * power, 20) ;
     stocks.bumpItem(LIFE_SUPPORT, 5 * power, 100) ;
-    world.ecology().impingeSqualor(-10 * power, this, true) ;
+    structure.setAmbienceVal(10) ;
   }
   
   

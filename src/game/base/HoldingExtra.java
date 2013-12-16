@@ -134,7 +134,6 @@ public class HoldingExtra extends Fixture implements TileConstants {
         holding.base().paving.updatePerimeter(extra, true) ;
         extra.updateLevel(level) ;
       }
-      holding.world().ecology().impingeSqualor(0 - level * 10, extra, true) ;
     }
   }
   

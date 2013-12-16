@@ -185,7 +185,9 @@ public class Bastion extends Venue implements Economy {
     if (ambience == 3) ambience = 10 ;
     if (ambience == 2) ambience = 5 ;
     if (ambience == 1) ambience = 2 ;
-    world.ecology().impingeSqualor(ambience, this, true) ;
+    ambience += structure.upgradeLevel(GUEST_QUARTERS) ;
+    ambience += structure.upgradeLevel(NOBLE_QUARTERS) ;
+    structure.setAmbienceVal(ambience) ;
   }
   
   

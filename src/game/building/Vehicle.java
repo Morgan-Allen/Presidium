@@ -33,10 +33,10 @@ public abstract class Vehicle extends Mobile implements
   protected Base base ;
   final public Inventory cargo = new Inventory(this) ;
   final public Structure structure = new Structure(this) ;
+  final Personnel personnel = new Personnel(this) ;
   
   final protected List <Mobile> inside = new List <Mobile> () ;
-  final protected List <Actor> crew = new List <Actor> () ;
-  
+  //final protected List <Actor> crew = new List <Actor> () ;
   private Actor pilot ;
   private Venue hangar ;
   private float pilotBonus ;
@@ -54,8 +54,8 @@ public abstract class Vehicle extends Mobile implements
     super(s) ;
     cargo.loadState(s) ;
     structure.loadState(s) ;
+    personnel.loadState(s) ;
     s.loadObjects(inside) ;
-    s.loadObjects(crew) ;
     dropPoint = (Boardable) s.loadTarget() ;
     entranceFace = s.loadFloat() ;
     base = (Base) s.loadObject() ;
@@ -68,8 +68,8 @@ public abstract class Vehicle extends Mobile implements
     super.saveState(s) ;
     cargo.saveState(s) ;
     structure.saveState(s) ;
+    personnel.saveState(s) ;
     s.saveObjects(inside) ;
-    s.saveObjects(crew) ;
     s.saveTarget(dropPoint) ;
     s.saveFloat(entranceFace) ;
     s.saveObject(base) ;
@@ -78,14 +78,10 @@ public abstract class Vehicle extends Mobile implements
   }
   
   
-  public void assignBase(Base base) {
-    this.base = base ;
-  }
-  
-  
-  public Base base() {
-    return base ;
-  }
+  public void assignBase(Base base) { this.base = base ; }
+  public Base base() { return base ; }
+  public Personnel personnel() { return personnel ; }
+  public Structure structure() { return structure ; }
   
   
   
@@ -146,20 +142,17 @@ public abstract class Vehicle extends Mobile implements
   public void afterTransaction(Item item, float amount) {
   }
   
-  
 
   public Index<Upgrade> allUpgrades() {
     return null;
   }
-
+  
+  
   public void onCompletion() {
   }
-
+  
+  
   public void onDestruction() {
-  }
-
-  public Structure structure() {
-    return structure ;
   }
   
   
@@ -265,16 +258,18 @@ public abstract class Vehicle extends Mobile implements
   }
   
   
+  public void addServices(Choice actor, Actor forActor) {}
+  public Background[] careers() { return null ; }
+  
+  
   public void setWorker(Actor actor, boolean is) {
-    if (is) crew.include(actor) ;
-    else crew.remove(actor) ;
+    personnel.setWorker(actor, is) ;
   }
 
   
   public void setApplicant(Application app, boolean is) {
-    I.complain("NOT IMPLEMENTED YET!") ;
-    //if (is) applications.include(app) ;
-    //else applications.remove(app) ;
+    //I.complain("NOT IMPLEMENTED YET!") ;
+    personnel.setApplicant(app, is) ;
   }
   
   
@@ -284,7 +279,7 @@ public abstract class Vehicle extends Mobile implements
   
   
   public List <Actor> crew() {
-    return crew ;
+    return personnel.workers() ;
   }
   
   
@@ -417,6 +412,7 @@ public abstract class Vehicle extends Mobile implements
   
   public void writeInformation(Description d, int categoryID, HUD UI) {
     describeStatus(d) ;
+    final List <Actor> crew = this.crew() ;
     if (crew.size() > 0) d.appendList("\n\nCrew: ", crew) ;
     if (inside.size() > 0) d.appendList("\n\nPassengers: ", inside) ;
     if (! cargo.empty()) d.appendList("\n\nCargo: ", cargo.allItems()) ;

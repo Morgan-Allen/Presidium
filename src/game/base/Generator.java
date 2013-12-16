@@ -151,7 +151,7 @@ public class Generator extends Venue implements Economy {
       check.setPriority(Action.ROUTINE * (meltdown + 1)) ;
       choice.add(check) ;
     }
-    if (! personnel.onShift(actor)) return choice.weightedPick(0) ;
+    if (! personnel.onShift(actor)) return choice.pickMostUrgent() ;
     //
     //  Then check to see if anything needs manufacture-
     final Manufacture m = stocks.nextManufacture(actor, METALS_TO_FUEL) ;
@@ -167,7 +167,7 @@ public class Generator extends Venue implements Economy {
     //
     //  Failing that, just keep the place in order-
     choice.add(new Supervision(actor, this)) ;
-    return choice.weightedPick(0) ;
+    return choice.weightedPick() ;
   }
   
   
@@ -241,7 +241,7 @@ public class Generator extends Venue implements Economy {
     int pollution = 10 ;
     pollution -= structure.upgradeLevel(WASTE_PROCESSING) * 2 ;
     pollution -= structure.upgradeLevel(FUSION_CONFINEMENT) ;
-    world.ecology().impingeSqualor(pollution, this, true) ;
+    structure.setAmbienceVal(0 - pollution) ;
   }
   
   
@@ -283,7 +283,9 @@ public class Generator extends Venue implements Economy {
     //  Pollute the surroundings but cut back the meltdown somewhat-
     float radiationVal = (125 / safety) - 25 ;
     radiationVal *= meltdown * Rand.avgNums(3) * 2 ;
-    world.ecology().impingeSqualor(radiationVal, this, false) ;
+    //
+    //  TODO:  You need some method to represent temporary contamination...
+    //world.ecology().impingeSqualor(radiationVal, this, false) ;
     meltdown /= 1 + (Rand.num() * safety) ;
     //
     //  Determine the range and severity of the explosion-

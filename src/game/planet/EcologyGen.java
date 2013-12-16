@@ -149,11 +149,11 @@ public class EcologyGen {
       ) ;
       final boolean minor = n < numMinorHuts ;
       
-      int maxRuins = (minor ? 3 : 1) + Rand.index(3) ;
+      int maxHuts = (minor ? 4 : 2) + Rand.index(3) ;
       final Batch <Venue> huts = new Batch <Venue> () ;
       final Habitat under = terGen.baseHabitat(pos, World.SECTOR_SIZE) ;
       
-      while (maxRuins-- > 0) {
+      while (maxHuts-- > 0) {
         final NativeHut r = new NativeHut(under, base) ;
         Scenario.establishVenue(r, centre.x, centre.y, true, world) ;
         if (r.inWorld()) huts.add(r) ;
@@ -188,8 +188,8 @@ public class EcologyGen {
         
         final Career c = new Career(male, b, NB, NH) ;
         final Human lives = new Human(c, hut.base()) ;
-        lives.mind.setHomeVenue(hut) ;
-        lives.mind.setEmployer(hut) ;
+        lives.mind.setHome(hut) ;
+        lives.mind.setWork(hut) ;
         lives.enterWorldAt(hut, world) ;
         lives.goAboard(hut, world) ;
       }
@@ -254,19 +254,19 @@ public class EcologyGen {
       while (numT-- > 0) {
         final Tripod tripod = new Tripod() ;
         tripod.enterWorldAt(e.x, e.y, world) ;
-        tripod.mind.setHomeVenue(r) ;
+        tripod.mind.setHome(r) ;
       }
       
       while (numD-- > 0) {
         final Drone drone = new Drone() ;
         drone.enterWorldAt(e.x, e.y, world) ;
-        drone.mind.setHomeVenue(r) ;
+        drone.mind.setHome(r) ;
       }
       
       if (lairNum == 1 && Rand.yes() && ! minor) {
         final Cranial cranial = new Cranial() ;
         cranial.enterWorldAt(e.x, e.y, e.world) ;
-        cranial.mind.setHomeVenue(r) ;
+        cranial.mind.setHome(r) ;
       }
     }
   }

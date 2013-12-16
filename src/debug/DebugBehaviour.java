@@ -22,13 +22,35 @@ import src.util.* ;
 
 
 //
-//  TODO:  Contact/security missions and holo-theatre must be completed.
+//  ...I need to start working on the 'hero' side of things.  Who really
+//  qualifies at the moment?
+//      Volunteers/Mercs & Mech Pilots (the MCHQ or House Garrison)
+//      Runners/Mercs & Enforcers (the Cantina & Enforcer Bloc)
+//      Guerillas & Medics (the Survey Post & Sickbay)
+//      Tech Reserve & Psyon (the Town Vault & Psyon Choir)
+//  ...These are the folks able to fight, but not necessarily devoted to it.
+//  You can call on them to get missions done.
+
 //
-//  TODO:  Test out the archives functions, finish the surveillance post, and
-//  polish the arcology/edifice/arcade structures.
+//  ...Why does the other stuff matter?  Only as a visual indicator of stuff
+//  happening.  That production is underway, land used, et cetera.
+
+
 //
-//  Have pollution/terraforming gradually change the landscape.  Finish up
-//  mining mechanics and the causeway.
+//  TODO:  Contact/security missions must be completed.
+//
+//  TODO:  Finish the surveillance post and arcology, plus mines & stock-ex.
+//         Also, polish up causeways and placement for ambience structures.
+//
+//  TODO:  You also need to improve the stability of power/water/life-support
+//         delivery to housing.
+//
+//  TODO:  Lairs and ecology-stability need more testing.
+//
+//  Have auditing and construction deduct funds instantly.  It's just easier
+//  that way, and makes sense if you're using virtual credits.
+//
+//  Have pollution/terraforming gradually change the landscape.
 //
 //  Tweak mechanics for diplomacy and citizen mood.  (Good relations are way
 //  too easy/quick at the moment.)
@@ -38,7 +60,6 @@ import src.util.* ;
 
 
 public class DebugBehaviour extends Scenario implements Economy {
-  
   
   
   /**  Startup and save/load methods-
@@ -115,8 +136,10 @@ public class DebugBehaviour extends Scenario implements Economy {
   
   
   private void ambientScenario(World world, Base base, BaseUI UI) {
-    GameSettings.fogFree = true ;
+    GameSettings.fogFree   = true ;
     GameSettings.buildFree = true ;
+    GameSettings.hireFree  = true ;
+    GameSettings.psyFree   = true ;
   }
 }
 

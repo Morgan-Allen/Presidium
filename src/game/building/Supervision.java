@@ -51,6 +51,7 @@ public class Supervision extends Plan implements Economy {
     */
   public float priorityFor(Actor actor) {
     if (Plan.competition(Supervision.class, venue, actor) > 0) return 0 ;
+    if (! actor.mind.work().personnel().onShift(actor)) return 0 ;
     return CASUAL + priorityMod ;
   }
   

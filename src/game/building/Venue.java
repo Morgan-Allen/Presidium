@@ -59,7 +59,7 @@ public abstract class Venue extends Fixture implements
   Base base ;
   List <Mobile> inside = new List <Mobile> () ;
   
-  final public VenuePersonnel personnel = new VenuePersonnel(this) ;
+  final public Personnel personnel = new Personnel(this) ;
   final public VenueStocks    stocks    = new VenueStocks(this)    ;
   final public Structure structure = new Structure(this) ;
   
@@ -103,7 +103,7 @@ public abstract class Venue extends Fixture implements
   
   public Index <Upgrade> allUpgrades() { return null ; }
   public Structure structure() { return structure ; }
-  
+  public Personnel personnel() { return personnel ; }
   
   public int owningType() { return VENUE_OWNS ; }
   public Base base() { return base ; }
@@ -341,6 +341,7 @@ public abstract class Venue extends Fixture implements
   
   public abstract Background[] careers() ;
   public abstract Service[] services() ;
+  public void addServices(Choice choice, Actor forActor) {}
   
   
   public boolean isManned() {
@@ -438,13 +439,15 @@ public abstract class Venue extends Fixture implements
     d.append("Condition and Repair:") ;
     d.append("\n  Integrity: ") ;
     d.append(structure.repair()+" / "+structure.maxIntegrity()) ;
+    
+    //
     //  If there's an upgrade in progress, list it here.
     final String CUD = structure.currentUpgradeDesc() ;
     if (CUD != null) d.append("\n  "+CUD) ;
     d.append("\n  Materials Needed: "+"None") ;
     d.append("\n  Untaxed Credits: "+(int) stocks.credits()) ;
     
-    final float squalor = world.ecology().squalorRating(this) ;
+    final float squalor = 0 - world.ecology().ambience.valueAt(this) ;
     if (squalor > 0) {
       final String SN = " ("+I.shorten(squalor * 10, 1)+")" ;
       d.append("\n  Squalor:  "+Ecology.squalorDesc(squalor)+SN) ;
@@ -453,6 +456,7 @@ public abstract class Venue extends Fixture implements
       final String AN = " ("+I.shorten(squalor * -10, 1)+")" ;
       d.append("\n  Ambience:  "+Ecology.squalorDesc(squalor)+AN) ;
     }
+    
     final float danger = base().dangerMap.shortTermVal(world.tileAt(this)) ;
     final String DN = " ("+I.shorten(danger, 1)+")" ;
     d.append("\n  Danger level: "+Ecology.dangerDesc(danger)+DN) ;

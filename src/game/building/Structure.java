@@ -22,7 +22,8 @@ public class Structure {
     DEFAULT_INTEGRITY  = 100,
     DEFAULT_ARMOUR     = 1,
     DEFAULT_CLOAKING   = 0,
-    DEFAULT_BUILD_COST = 50 ;
+    DEFAULT_BUILD_COST = 50,
+    DEFAULT_AMBIENCE   = 0 ;
   final public static float
     BURN_PER_SECOND = 1.0f,
     WEAR_PER_DAY    = 0.1f,
@@ -74,6 +75,7 @@ public class Structure {
     buildCost     = DEFAULT_BUILD_COST,
     armouring     = DEFAULT_ARMOUR,
     cloaking      = DEFAULT_CLOAKING,
+    ambienceVal   = DEFAULT_AMBIENCE,
     structureType = TYPE_VENUE ;
   
   private int state = STATE_INSTALL ;
@@ -98,6 +100,7 @@ public class Structure {
     buildCost = s.loadInt() ;
     armouring = s.loadInt() ;
     cloaking  = s.loadInt() ;
+    ambienceVal = s.loadInt() ;
     structureType = s.loadInt() ;
     
     state = s.loadInt() ;
@@ -124,6 +127,7 @@ public class Structure {
     s.saveInt(buildCost) ;
     s.saveInt(armouring) ;
     s.saveInt(cloaking) ;
+    s.saveInt(ambienceVal) ;
     s.saveInt(structureType) ;
     
     s.saveInt(state) ;
@@ -172,6 +176,11 @@ public class Structure {
   }
   
   
+  public void setAmbienceVal(float val) {
+    this.ambienceVal = (int) val ;
+  }
+  
+  
   
   /**  Regular updates-
     */
@@ -217,6 +226,8 @@ public class Structure {
   public int cloaking()  { return cloaking  ; }
   public int armouring() { return armouring ; }
   public int buildCost() { return buildCost ; }
+  
+  public int ambienceVal() { return intact() ? ambienceVal : 0 ; }
   
   public boolean intact() { return state == STATE_INTACT ; }
   public boolean destroyed() { return state == STATE_RAZED ; }

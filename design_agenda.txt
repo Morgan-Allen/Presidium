@@ -20,21 +20,44 @@ What are the tradeoffs involved in this game?
   The schools you invest in and large-scale politics, which become an
   increasingly binding commitment.
 
-Quest ideas-
-  There's a large existing crime-ridden settlement.
-  There's an ancient relic guarded by powerful defences.
-  There are rich resources contested by native tribes.
-  There's a virgin wilderness filled with dangerous animals.
-  Two small settlements need to be rebuilt and defended.
-  An imperial fortress is held by a trio of champions.
   
-  Action takes place on the planet of Diapsor/Diaspora.
-  (Places named after Mars)
-  Pavonis Sector, Vallis Sector, Olympus Sector,
-  Elysium Sector, Acheron Sector, Tharsis Sector
+  Action takes place on the planet of Diaspora (AKA Bloodstone AKA Presidium.)
+  20 sectors.  6 initially claimed.  2 as neutral ground (mostly deep oceans
+  and rad zones.)  That leaves 12 sectors up for grabs with unique associated
+  quests and production bonuses.
   
-  Other worlds/powers in setting:
-  House Maia (artistry)     House Fomalhaut (health)
+  (Place-names taken after Mars)
+
+Settled (have safety, fertility, or mineral wealth, bid for by player):
+  Pavonis Sector  ()
+  Vallis Sector   ()
+  Olympus Sector  ()
+  Elysium Sector  ()
+  Acheron Sector  ()
+  Tharsis Sector  ()
+
+Available (have specific associated Grand Missions):
+  Terra Sector      (armoured champions defend an imperial monastery       E)
+  Hellas Sector     (a seemingly benign supercomputer rules the people     E)
+  Boreum Sector     (shaper tribes have banded to form stiff resistance    S)
+  Planitia Sector   (rogue robots guard an heirloom of house procyon       E)
+  Arcadia Sector    (manage an existing crime-ridden settlement            R)
+  Coprates Sector   (re-assemble a long-lost heirloom of house altair      R)
+  Arabia Sector     (holographic projections ward off a lonely citadel     R)
+  Aeolis Sector     (a unique desert habitat with majestic wildlife        S)
+  Oxia Sector       (a symbiont super-cult is making discoveries           S)
+  Thaumasia Sector  (a strange 'amoebic sea' is slowly spreading           S)
+  Syrtis Sector     (a set of massive obelisks dominate the landscape      E)
+  Diacria Sector    (abandoned ruins reveal secrets of the homeworld       R)
+
+Neutral (place of refuge, with no Homeworld support):
+  Marineris Sector  (mostly deep ocean)
+  Noachis Sector    (barren rad zone)
+
+
+
+Other worlds/powers in setting:
+  House Rana (artistry)     House Fomalhaut (health)
     Norusei system            Solipsus Vier system
   House Procyon (industry)  House Taygeta (trade)
     Parem V system            Axis Novena system
@@ -42,32 +65,37 @@ Quest ideas-
     Haliban system            Asra Novi system
   Calivor (capital/Senate)  Ceta Rho (krech)
   Urym Hive (imperial)      Albedo C97 (changeling)
-  The Outer Sphere (strain) The Homeworld (jovian)
-  Lightly-settled worlds:   Tovet, Xiridu, Inobe
+  The Weirworld (strain)    The Homeworld (jovian)
+  Lightly-settled worlds:   Carceri, Xiridu, Inobe
   
   
   Altair Household
-    The Prince Regnant Corhal Tezumec Altair, and Lord Physical Aban Maia
+    The Prince Regnant Corhes-Tezumec Altair II and Lord Physical Aban Rana
     War Master, Minister for Health, Minister for Accounts
     No issue
+  
   Suhail Household
-    The Duchess Solar Omuro Suhail, Colonel Amall Fadun, and Mysha 401A
+    The Duchess Solar Omuro Suhail, Colonel Amall Fadun and Mysha 401A
     Planetologist, Minister for Propaganda, War Master
     Five heirs
+  
   Procyon Household
-    The Divine Empress Vledimiz Procyon XXIV, and Gestator-Surrogate Inyz-Algol
+    The Divine Empress Vledimis Procyon XXIV and Gestator-Surrogate Inyz-Algol
     Chief Artificer, Minister for Propaganda, Master of Assassins
     Three heirs
+  
   Taygeta Household
-    The Count Solar & CEO Yetzun Taygeta, and Operative Xe Nong Hti 'Eclipse'
+    The Count Solar & CEO Yetsun Taygeta and Chief Operative Xe Nong Hti
     Minister for Accounts, Master of Assassins, Chief Artificer
     No heir, at least three unacknowledged seed-child
-  Maia Household
-    The Duke Solar Dabien Maia, and Lady Choral Jivi Man
+  
+  Rana Household
+    The Count Solar Dabien Rana and Lady Choral Jivi Maia
     Minister for Propaganda, Minister for Health, Planetologist
     One heir
+  
   Fomalhaut Household
-    The Baron Albrech Fomalhaut Gamma, and Contract-Betrothed Xe Nong Ken
+    The Baron Albarec Fomalhaut Beta and Contract-Betrothed Xe Nong Ken
     Minister for Health, Planetologist, Chief Artificer
     No heir, two acknowledged seed-child
 
@@ -83,20 +111,7 @@ of course, either as a vassal, victor, or ally, gaining further mild prestige
 or economic benefits.  Vassals and allies will, however, have more limited
 demesnes.
 
-Some of these structures need to be House-specific.  (Or based on alliance at
-any rate...)
-House Suhail-  Training House + Highborn Villas, no Excavation Site
-House Procyon- Arena + Imperial Fane + Slums, no Holocade or Botanical Station
-House Taygeta- Free Market + MCHQ, no Garrison
-House Altair-  Counsel Chamber + Field Generator, no Enclosure
 
-House Maia-      Sculptor + Psyon Choir + Counsel Chamber, heavy tribute levied
-House Fomalhaut- Imperial Fane, gene bonus, homeworld migrants only, no support
-
-(Contact)  Diplomacy + Spying & Marriage
-(Strike)   Invasion + Capture & Recovery
-(Recon)    Exploration + Settlement & Trade
-(Security) Defence + Support & Policing
 
 
 THE TRAINING HOUSE
@@ -184,7 +199,7 @@ Initiate Complex (the Imperial Fane)
   Ardent/Acolyte         (basic trainee)
   Initiate Myrmidone     (soldiers and assassins)
   Initiate Technologian  (arcane tech/relics, robotics and WoMD)
-  Initiate Genealogist   (induction, genes and breeding)
+  Initiate Genealogist   (marriage rites, genes and breeding)
   Oracle                 (static sentient super-computer)
   Reverend Father/Mother (head of the school)
   
@@ -201,13 +216,6 @@ Spacer Habitat (the Shipyard)
   
   Based on:  Dune Spacing Guild, The Stars My Destination, 'Grey Aliens',
              The Hainish Ekumen, Asimov's Spacer worlds
-
-
-//
-//  These might be overly formal.  The collective/symbiont/shapers are either
-//  less hierarchical or more chaotic than the above.  Different recruitment
-//  strategies may be in order...
-
 
 Collective Nexus (the Psyon Choir)
   Melded                 (basic trainee)
@@ -245,53 +253,43 @@ Shaper Colony (the Sculptor's Studio)
 
 School-specific abilities- possibility to work on:
 
-Logician Training:
+Logician Training:  (allies- Col/Spa enemies- Sha + Ini/Sym)
   Eidetic Blueprint (boosts assembly/construction)
-  Estimation        (aids premonition efforts)
-  Mnemonic Mantra   (aids learning/calming)
-  Neural Meld       (psi interrogation/teaching)
-  Combat Precision  (aids close/nonlethal combat)
-  Augment Field     (psi boosts personal shields)
+  Estimate Trance   (aids premonition efforts)
+  Mnemonic Mantra   (aids concentration/calming)
 
-Initiate Training:
-  Drone Uplink      (crafting drone servants)
-  Device Interface  (augments artifacts)
-  Stasis Field      (slows motion/reflexes)
-  Command Routine   (controls enemy robots)
-  Hibernate         (slows aging, safer travel)
-  Red Phylactery    (memories intact if killed)
+Initiate Training:  (allies- Spa/Sha enemies- Col/Sym)
+  Command Uplink    (commands drone servants & enemy robots)
+  Stasis Field      (slow enemy motion/reflexes, aid hibernation)
+  Red Phylactery    (life support & memory backups)
 
-Spacer Training:
+Spacer Training:    (allies- Ini/Log enemies- Col/Sym)
   Displacement      (assists evasion & mobility)
-  Concentration     (aids valued cognitive skills)
-  Homing Anchor     (instant teleport home)
-  Transducer        (structural power & psi bonus)
-  Subspace Medium   (off-planet communication)
+  Homing Manifold   (instant home teleport & communication)
   Star Gate         (aids ship & convoy travel)
 
-Collective Training
-  Empath            (aids human relationships)
-  Homo Gestalt      (blend skills and experience)
-  Fast Healing      (improves recovery)
-  Choral Locus      (multiply group psi abilities)
-  Tabula Rasa       (erases subject memories)
-  Greater Gaia      (animals tame, more fertility)
+Shaper Training:    (allies- Ini/Sym enemies- Log + Spa/Col)
+  Morphosis         (aid personal disguise/cosmetics/healing)
+  Viral Secretion   (powerful, mutating disease-poison)
+  Pheremonist       (aids relationships, especially animal)
 
-Symbiont Training
-  Arc Conduit       (electrical damage)
-  Assimilate        (converts buildings/silicates)
-  Secret Fire       (no need for sleep/food)
-  Glaive Armour     (encases in resilient shell)
-  Zero Point Energy (meltdown-level explosion)
+Symbiont Training:  (allies- Col/Sha enemies- Spa/Ini)
+  Arc Conduit       (electrical damage- antimass as archon)
+  Glaive Armour     (encases in resilient shell under stress)
   Archon Phase      (change into higher being)
 
-Shaper Training
-  Pheremonist       (aids animal relationships)
-  Venom Secretion   (free, undetectable poison)
-  Sculpt Flesh      (aid disguise/appearance)
-  Instinct Psyon    (psi + bonus for stress)
-  Retroviral Taint  (endow with mutations)
-  Metamorphosis     (adopt different species)
+Collective Training:(allies- Log/Sym enemies- Spa/Ini)
+  Homo Empath       (aids peer relations & ecology skills)
+  Somatic Integral  (improves physical recovery & vigour)
+  Neural Gestalt    (blend skills and experience, psi talent)
+
+
+          Log
+    Spa----|----Col
+           |       
+    Ini----|----Sym
+          Sha
+
 
 
 IMPERIAL FANE
@@ -341,7 +339,7 @@ The Krech:
   Warrior      (honour guard, 'heavy cavalry')
   Matriarch    (queen and all-mother)
   
-  Based on:  District 9, shades of Alien/Starship Troopers/leafcutter ants, 
+  Based on:  District 9, shades of Alien/Starship Troopers/Ender's Game,
              The Humanx Commonwealth, The Mote In God's Eye
 
 The Changelings:

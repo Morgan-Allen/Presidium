@@ -102,7 +102,7 @@ public class EnforcerBloc extends Venue implements Economy {
       }
     }
     
-    return choice.weightedPick(actor.mind.whimsy()) ;
+    return choice.weightedPick() ;
   }
   
   

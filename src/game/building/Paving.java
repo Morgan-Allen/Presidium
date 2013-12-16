@@ -19,7 +19,7 @@ public class Paving {
   /**  Field definitions, constructor and save/load methods-
     */
   final static int PATH_RANGE = World.SECTOR_SIZE / 2 ;
-  private static boolean verbose = false ;
+  private static boolean verbose = false, checkConsistency = false ;
   
   final World world ;
   PresenceMap junctions ;
@@ -59,25 +59,43 @@ public class Paving {
   }
   
   
-  //
-  //  Note:  This method only works when you only have a single base in the
-  //         world...
   public void checkConsistency() {
+    //
+    //  Note:  This method only works when you only have a single base in the
+    //         world...
+    if (! checkConsistency) return ;
+    
+    //I.say("CHECKING PAVING CONSISTENCY:") ;
+    
     final byte mask[][] = new byte[world.size][world.size] ;
     boolean okay = true ;
     
     for (Route route : allRoutes.keySet()) {
       for (Tile t : route.path) mask[t.x][t.y]++ ;
+      if (route.start == route.end) continue ;
+      //
+      //  Check if non-perimeter routes are sane:
+      Tile first = route.path[0], last = route.path[route.path.length - 1] ;
+      final boolean
+        noFirst = tileRoutes.get(first) == null,
+        noLast  = tileRoutes.get(last ) == null ;
+      
+      if (noFirst || noLast) {
+        if (noFirst) I.say("NO FIRST JUNCTION") ;
+        if (noLast ) I.say("NO LAST JUNCTION" ) ;
+        this.reportPath("  on path: ", route) ;
+      }
     }
     
     for (Coord c : Visit.grid(0, 0, world.size, world.size, 1)) {
       final Tile t = world.tileAt(c.x, c.y) ;
-      if (mask[c.x][c.y] != world.terrain().roadMask(t)) {
-        I.say("Discrepancy at: "+c.x+" "+c.y) ;
+      final int pM = mask[c.x][c.y], tM = world.terrain().roadMask(t) ;
+      if (pM != tM) {
+        I.say("Discrepancy at: "+c.x+" "+c.y+", "+pM+" =/= "+tM) ;
         okay = false ;
       }
     }
-    if (okay) I.say("No discrepancies in paving map found.") ;
+    //if (okay) I.say("No discrepancies in paving map found.") ;
   }
   
   
@@ -183,6 +201,7 @@ public class Paving {
     
     //
     //  If the route needs an update, clear the tiles and store the data.
+    if (oldRoute != null) deleteRoute(oldRoute) ;
     if (search.success()) {
       allRoutes.put(route, route) ;
       toggleRoute(route, route.start, true) ;
@@ -190,8 +209,15 @@ public class Paving {
       world.terrain().maskAsPaved(route.path, true) ;
       clearRoad(route.path) ;
     }
-    if (oldRoute != null) deleteRoute(oldRoute) ;
     return true ;
+  }
+  
+  
+  private void deleteRoute(Route route) {
+    world.terrain().maskAsPaved(route.path, false) ;
+    allRoutes.remove(route) ;
+    toggleRoute(route, route.start, false) ;
+    toggleRoute(route, route.end  , false) ;
   }
   
   
@@ -201,6 +227,7 @@ public class Paving {
     for (Tile t : newRoute.path) t.flagWith(newRoute) ;
     int numMatched = 0 ;
     for (Tile t : oldRoute.path) {
+      //if (t.blocked()) I.say("TILE BLOCKED AT: "+t) ;
       if (t.flaggedWith() != newRoute) {
         match = false ;
         break ;
@@ -210,14 +237,6 @@ public class Paving {
     for (Tile t : newRoute.path) t.flagWith(null) ;
     if (numMatched != newRoute.path.length) match = false ;
     return match ;
-  }
-  
-  
-  private void deleteRoute(Route route) {
-    world.terrain().maskAsPaved(route.path, false) ;
-    allRoutes.remove(route) ;
-    toggleRoute(route, route.start, false) ;
-    toggleRoute(route, route.end  , false) ;
   }
   
   

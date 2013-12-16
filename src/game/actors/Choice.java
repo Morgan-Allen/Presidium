@@ -15,6 +15,10 @@ public class Choice {
   
   /**  Data fields, constructors and setup-
     */
+  final static float
+    DEFAULT_PRIORITY_RANGE = 5.0f,
+    DEFAULT_TRAIT_RANGE    = 2.0f ;
+  
   public static boolean verbose = false, reportRejects = false ;
   
   final Actor actor ;
@@ -61,15 +65,26 @@ public class Choice {
   /**  Picks a plan from those assigned earlier using priorities to weight the
     *  likelihood of their selection.
     */
-  public Behaviour weightedPick(float priorityRange) {
+  public Behaviour pickMostUrgent() {
+    return weightedPick(0) ;
+  }
+  
+  
+  public Behaviour weightedPick() {
+    final float
+      sub = actor.traits.relativeLevel(Abilities.STUBBORN),
+      range = DEFAULT_PRIORITY_RANGE - (sub * DEFAULT_TRAIT_RANGE) ;
+    return weightedPick(range) ;
+  }
+  
+  
+  //public Behaviour weightedPick(float priorityRange) {
+  private Behaviour weightedPick(float priorityRange) {
     if (plans.size() == 0) {
       if (reportRejects) I.sayAbout(actor, "  ...Empty choice!") ;
       return null ;
     }
-    ///else I.say("Range of choice is "+plans.size()) ;
-    //
-    //  Firstly, acquire the priorities for each plan.  If the permitted range
-    //  of priorities is zero, simply return the most promising.
+    else if (verbose) I.sayAbout(actor, "Range of choice is "+plans.size()) ;
     if (verbose && I.talkAbout == actor) {
       String label = "Actor" ;
       if (actor.vocation() != null) label = actor.vocation().name ;
@@ -77,36 +92,40 @@ public class Choice {
       I.say(actor+" ("+label+") is making a choice, range: "+priorityRange) ;
       I.say("  Current time: "+actor.world().currentTime()) ;
     }
-    float highestW = 0 ;
-    int i = 0 ;
-    Behaviour bestP = null ;
+    //
+    //  Firstly, acquire the priorities for each plan.  If the permitted range
+    //  of priorities is zero, simply return the most promising.
+    float bestPriority = 0 ;
+    Behaviour picked = null ;
     final float weights[] = new float[plans.size()] ;
+    int i = 0 ;
     for (Behaviour plan : plans) {
       final float priority = plan.priorityFor(actor) ;
-      if (priority > highestW) { highestW = priority ; bestP = plan ; }
+      if (priority > bestPriority) { bestPriority = priority ; picked = plan ; }
       weights[i++] = priority ;
       if (verbose) I.sayAbout(actor, "  "+plan+" has priority: "+priority) ;
     }
     if (priorityRange == 0) {
-      if (verbose) I.sayAbout(actor, "    Picked: "+bestP) ;
-      return bestP ;
+      if (verbose) I.sayAbout(actor, "    Picked: "+picked) ;
+      return picked ;
     }
     //
     //  Eliminate all weights outside the permitted range, so that only plans
     //  of comparable attractiveness to the most important are considered-
-    final float minPriority = Math.max(0, highestW - priorityRange) ;
-    float sumWeights = 0 ; for (i = weights.length ; i-- > 0 ;) {
+    final float minPriority = Math.max(0, bestPriority - priorityRange) ;
+    float sumWeights = 0 ;
+    for (i = weights.length ; i-- > 0 ;) {
       weights[i] = Math.max(0, weights[i] - minPriority) ;
       sumWeights += weights[i] ;
     }
     if (sumWeights == 0) {
-      if (verbose) I.sayAbout(actor, "    Picked: "+bestP) ;
-      return bestP ;
+      if (verbose) I.sayAbout(actor, "    Picked: "+picked) ;
+      return picked ;
     }
     //
     //  Finally, select a candidate at random using weights based on priority-
-    Behaviour picked = null ;
     float randPick = Rand.num() * sumWeights ;
+    picked = null ;
     i = 0 ;
     for (Behaviour plan : plans) {
       final float chance = weights[i++] ;

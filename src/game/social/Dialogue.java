@@ -119,10 +119,13 @@ public class Dialogue extends Plan implements Abilities {
     else if (stage < STAGE_TALKING) {
       if (inits == this) {
         final Dialogue OD = new Dialogue(other, actor, this) ;
+        return other.mind.couldSwitchTo(OD) ;
+        /*
         final boolean canSwitch =
             root == null ||
             root.priorityFor(other) < OD.priorityFor(other) ;
         return canSwitch ;
+        //*/
       }
       else return true ;
     }

@@ -133,7 +133,7 @@ public class BotanicalStation extends Venue implements Economy {
     for (Plantation p : allotments) {
       if (p.needForTending() > 0.5f) choice.add(new Farming(actor, p)) ;
     }
-    if (choice.size() > 0) return choice.weightedPick(0) ;
+    if (choice.size() > 0) return choice.pickMostUrgent() ;
     //
     //  Otherwise, perform deliveries and more casual work-
     if (! personnel.onShift(actor)) return null ;
@@ -177,7 +177,7 @@ public class BotanicalStation extends Venue implements Economy {
       //  TODO:  Do this for every crop type?
       choice.add(new Farming(actor, p)) ;
     }
-    return choice.weightedPick(0) ;
+    return choice.weightedPick() ;
   }
   
   
@@ -195,6 +195,7 @@ public class BotanicalStation extends Venue implements Economy {
     for (Item seed : stocks.matches(SAMPLES)) {
       stocks.removeItem(Item.withAmount(seed, decay)) ;
     }
+    structure.setAmbienceVal(2) ;
   }
   
   
@@ -262,7 +263,7 @@ public class BotanicalStation extends Venue implements Economy {
   
   
   protected float growBonus(Tile t, Species s, boolean natural) {
-    final float pollution = t.world.ecology().squalorRating(t) / 10f ;
+    final float pollution = t.world.ecology().ambience.valueAt(t) / -10f ;
     if (pollution > 0) return 0 ;
     final float hB = 1 - pollution ;
     float bonus = 1 ;

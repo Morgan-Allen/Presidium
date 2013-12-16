@@ -32,10 +32,10 @@ public class Manufacture extends Plan implements Behaviour {
   
   final public Venue venue ;
   final public Conversion conversion ;
+  public int timeMult = 1, checkBonus = 0 ;
   
   private Item made, needed[] ;
-  public int timeMult = 1, checkBonus = 0 ;
-  private boolean pastFive = false ;
+  private float amountMade = 0 ;
   
   
   
@@ -58,6 +58,7 @@ public class Manufacture extends Plan implements Behaviour {
     this.needed = conversion.raw ;
     timeMult   = s.loadInt() ;
     checkBonus = s.loadInt() ;
+    amountMade = s.loadFloat() ;
   }
   
   
@@ -68,6 +69,7 @@ public class Manufacture extends Plan implements Behaviour {
     Item.saveTo(s, made) ;
     s.saveInt(timeMult  ) ;
     s.saveInt(checkBonus) ;
+    s.saveFloat(amountMade) ;
   }
   
   
@@ -143,7 +145,7 @@ public class Manufacture extends Plan implements Behaviour {
     */
   public boolean finished() {
     if (super.finished()) return true ;
-    return pastFive || venue.stocks.hasItem(made) ;
+    return (amountMade >= 2) || venue.stocks.hasItem(made) ;
   }
   
   
@@ -167,7 +169,6 @@ public class Manufacture extends Plan implements Behaviour {
     //  First, check to make sure you have adequate raw materials.  (In hard-
     //  core mode, raw materials are strictly essential, and will be depleted
     //  regardless of success.)
-    ///I.say(actor+" making "+made) ;
     final boolean hasNeeded = hasNeeded() ;
     if (GameSettings.hardCore && ! hasNeeded) {
       abortBehaviour() ;
@@ -196,6 +197,7 @@ public class Manufacture extends Plan implements Behaviour {
     float progress = (success ? progInc : (progInc / 10f)) * made.amount ;
     if (progress + oldAmount > made.amount) progress = made.amount - oldAmount ;
     if (progress > 0) {
+      amountMade += progress ;
       final Item added = Item.withAmount(made, progress) ;
       venue.stocks.addItem(added) ;
       if (verbose && I.talkAbout == actor) {
@@ -204,8 +206,6 @@ public class Manufacture extends Plan implements Behaviour {
         I.say("Progress on "+made+": "+progress) ;
       }
     }
-    final float newAmount = venue.stocks.amountOf(made) ;
-    pastFive = ((int) (oldAmount / 5) > (int) (newAmount / 5)) ;
     return venue.stocks.hasItem(made) ;
   }
   
@@ -214,9 +214,11 @@ public class Manufacture extends Plan implements Behaviour {
   /**  Rendering and interface behaviour-
     */
   public void describeBehaviour(Description d) {
-    d.append("Manufacturing "+made) ;
-    //final float progress = venue.stocks.amountOf(made) / made.amount ;
-    //d.append(" ("+((int) (progress * 100))+"%)") ;
+    d.append("Manufacturing "+made.type) ;
+    if (made.refers != null) {
+      d.append(" for ") ;
+      d.append(made.refers) ;
+    }
   }
 }
 

@@ -110,7 +110,7 @@ public class Crop implements Session.Saveable, Target {
     //  proximity to other diseased plants of the same species, but reduce it
     //  based on intrinsic health rating and insect services.
     //final int hive = Plantation.VAR_HIVE_CELLS ;
-    final float pollution = world.ecology().squalorRating(tile) ;
+    final float pollution = 0 - world.ecology().ambience.valueAt(tile) ;
     float infestChance = (((5 - health) / 10) + pollution) / 2f ;
     //
     //  (Hive cells can themselves become infested, but only from other hives.)

@@ -231,7 +231,7 @@ public class Plantation extends Venue implements
     super.updateAsScheduled(numUpdates) ;
     
     if (! structure.intact()) return ;
-    world.ecology().impingeSqualor(-2, this, true) ;
+    structure.setAmbienceVal(2) ;
     
     if (type == TYPE_NURSERY && numUpdates % 10 == 0) {
       final float

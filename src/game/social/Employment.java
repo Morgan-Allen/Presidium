@@ -2,20 +2,19 @@
 
 package src.game.social ;
 import src.game.actors.* ;
-import src.game.building.Boardable ;
+import src.game.building.* ;
 import src.game.common.* ;
 
 
-public interface Employment extends Session.Saveable, Boardable {
+public interface Employment extends Installation, Boardable {
   
   
   Behaviour jobFor(Actor actor) ;
-  void setWorker(Actor actor, boolean is) ;
-  void setApplicant(Application app, boolean is) ;
+  void addServices(Choice choice, Actor forActor) ;
+  
   int numOpenings(Background b) ;
-  //
-  //  TODO:  Have Employers return a Personnel class in the same way that
-  //  Installations return a Structure class.
+  Background[] careers() ;
   
-  
+  Base base() ;
+  Personnel personnel() ;
 }

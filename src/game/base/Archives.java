@@ -57,6 +57,11 @@ public class Archives extends Venue implements Economy {
     if (! structure.intact()) return ;
     stocks.translateDemands(1, CIRCUITRY_TO_DATALINKS) ;
   }
+
+  
+  public void addServices(Choice choice, Actor forActor) {
+    choice.add(new Research(forActor, this)) ;
+  }
   
   
   public Behaviour jobFor(Actor actor) {
@@ -116,7 +121,7 @@ public class Archives extends Venue implements Economy {
       catalogues.setPriority(Action.CASUAL) ;
       choice.add(catalogues) ;
     }
-    if (choice.size() > 0) return choice.weightedPick(actor.mind.whimsy()) ;
+    if (choice.size() > 0) return choice.weightedPick() ;
     //
     //  Otherwise, just hang around and help folks with their inquiries-
     return new Supervision(actor, this) ;
@@ -172,8 +177,8 @@ public class Archives extends Venue implements Economy {
   public float researchBonus(Skill skill) {
     Item match = Item.withReference(DATALINKS, skill) ;
     match = stocks.matchFor(match) ;
-    if (match == null) return -1 ;
-    return (match.quality / 2f) + (isManned() ? 0.5f : 0) ;
+    if (match == null) return 1 ;
+    return 1 + (match.quality / 2f) + (isManned() ? 0.5f : 0) ;
   }
   
   
@@ -187,6 +192,9 @@ public class Archives extends Venue implements Economy {
     if (v == Background.ARCHIVIST) {
       int numDL = 0 ; for (Item i : stocks.matches(DATALINKS)) {
         if (i.refers instanceof Skill) numDL++ ;
+      }
+      for (Manufacture m : stocks.specialOrders()) {
+        if (m.conversion.out.type == DATALINKS) numDL++ ;
       }
       return nO + (int) Visit.clamp(1 + (numDL / 5f), 0, 4) ;
     }

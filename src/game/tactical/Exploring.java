@@ -21,6 +21,13 @@ public class Exploring extends Plan implements Abilities {
   private Tile lookedAt ;
   
   
+  public static Exploring nextExplorationFor(Actor actor) {
+    Tile toExplore = Exploring.getUnexplored(actor.base().intelMap, actor) ;
+    if (toExplore == null) return null ;
+    return new Exploring(actor, actor.base(), toExplore) ;
+  }
+  
+  
   public Exploring(Actor actor, Base base, Tile lookedAt) {
     super(actor) ;
     this.base = base ;

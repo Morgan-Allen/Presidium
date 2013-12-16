@@ -141,7 +141,7 @@ public class FormerPlant extends Venue implements Economy {
     }
     //
     //  Select and return-
-    return choice.weightedPick(actor.mind.whimsy()) ;
+    return choice.weightedPick() ;
   }
   
   
@@ -281,7 +281,7 @@ public class FormerPlant extends Venue implements Economy {
     //  TODO:  Actually, arrange things so that the processor increases *local*
     //  pollution, while reducing global pollution (because it's messy and
     //  noisy, but good for the atmosphere.)  Not In My Backyard, IOW.
-    world.ecology().impingeSqualor(1 * yield, this, true) ;
+    structure.setAmbienceVal(-1 * yield) ;
     final int mag = World.SECTOR_SIZE ;
     world.ecology().pushClimate(Habitat.MEADOW, mag * mag * 5 * yield) ;
   }

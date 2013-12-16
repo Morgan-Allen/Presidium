@@ -133,6 +133,11 @@ public abstract class Actor extends Mobile implements
       if (actionTaken != null) I.add("  "+actionTaken.hashCode()+"\n") ;
       I.sayAbout(this, "Root behaviour "+root) ;
     }
+    //
+    //  TODO:  Not good enough.  You need to work down the chain from the top
+    //  behaviour, and allow each behaviour a chance to handle the pathing
+    //  failure 'gracefully' (whatever that means.)  The default response,
+    //  however, should be outright cancellation.
     if (root != null && root.finished()) {
       if (verbose) I.sayAbout(this, "  ABORTING ROOT") ;
       mind.cancelBehaviour(root) ;
@@ -306,7 +311,7 @@ public abstract class Actor extends Mobile implements
         
         final float
           wakePriority  = root == null ? 0 : root.priorityFor(this),
-          sleepPriority = Resting.ratePoint(this, aboard()) ;
+          sleepPriority = Resting.ratePoint(this, aboard(), 0) ;
         if (verbose && I.talkAbout == this) {
           I.say("Wake priority: "+wakePriority) ;
           I.say("Sleep priority: "+sleepPriority) ;
@@ -334,6 +339,9 @@ public abstract class Actor extends Mobile implements
   
   /**  Dealing with state changes-
     */
+  //
+  //  TODO:  Consider moving these elsewhere?
+  
   public void enterStateKO(String animName) {
     ///I.say(this+" HAS BEEN KO'D") ;
     if (isDoing("actionFall", null)) return ;
@@ -360,6 +368,14 @@ public abstract class Actor extends Mobile implements
       if (planClass.isAssignableFrom(b.getClass())) return true ;
     }
     return false ;
+  }
+  
+  
+  public Plan matchFor(Plan matchPlan) {
+    for (Behaviour b : mind.agenda()) if (b instanceof Plan) {
+      if (matchPlan.matchesPlan((Plan) b)) return (Plan) b ;
+    }
+    return null ;
   }
   
   

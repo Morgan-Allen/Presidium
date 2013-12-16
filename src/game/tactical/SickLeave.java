@@ -5,7 +5,7 @@ package src.game.tactical ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.base.* ;
-import src.game.building.Item;
+import src.game.building.* ;
 import src.user.* ;
 import src.util.* ;
 
@@ -21,11 +21,9 @@ public class SickLeave extends Plan {
   
   
   
-  public SickLeave(Actor actor) {
+  public SickLeave(Actor actor, Sickbay sickbay) {
     super(actor) ;
-    Object haven = Retreat.nearestHaven(actor, Sickbay.class) ;
-    if (haven instanceof Sickbay) sickbay = (Sickbay) haven ;
-    else sickbay = null ;
+    this.sickbay = sickbay ;
     needed = new Treatment(null, actor, sickbay) ;
   }
   

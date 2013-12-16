@@ -31,6 +31,47 @@ public class Commission extends Plan {
   private boolean delivered = false ;
   
   
+  public static void addCommissions(
+    Actor actor, Venue makes, Choice choice
+  ) {
+    final boolean hasCommission = actor.mind.hasToDo(Commission.class) ;
+    if (hasCommission) return ;
+    //
+    //  Check to see if this venue makes the actor's device type, and if an
+    //  upgrade/repair to said device is needed.
+    final Service DT = actor.gear.deviceType() ;
+    if (DT != null && Visit.arrayIncludes(makes.services(), DT)) {
+      final int DQ = (int) actor.gear.deviceEquipped().quality ;
+      final float DA = actor.gear.deviceEquipped().amount ;
+      
+      if (DQ < Item.MAX_QUALITY) {
+        final Item nextDevice = Item.withQuality(DT, DQ + 1) ;
+        choice.add(new Commission(actor, nextDevice, makes)) ;
+      }
+      if (DA < 1) {
+        final Item nextDevice = Item.withQuality(DT, DQ) ;
+        choice.add(new Commission(actor, nextDevice, makes)) ;
+      }
+    }
+    //
+    //  Similarly for armour-
+    final Service OT = actor.gear.outfitType() ;
+    if (OT != null && Visit.arrayIncludes(makes.services(), OT)) {
+      final int OQ = (int) actor.gear.outfitEquipped().quality ;
+      final float OA = actor.gear.outfitEquipped().amount ;
+      
+      if (OQ < Item.MAX_QUALITY) {
+        final Item nextOutfit = Item.withQuality(OT, OQ + 1) ;
+        choice.add(new Commission(actor, nextOutfit, makes)) ;
+      }
+      if (OA < 1) {
+        final Item nextOutfit = Item.withQuality(OT, OQ) ;
+        choice.add(new Commission(actor, nextOutfit, makes)) ;
+      }
+    }
+  }
+  
+  
   public Commission(Actor actor, Item baseItem, Venue shop) {
     super(actor, baseItem.type, shop) ;
     this.item = Item.withReference(baseItem, actor) ;
@@ -77,11 +118,12 @@ public class Commission extends Plan {
     return Visit.clamp(priority, 0, ROUTINE) ;
   }
   
-  
+  /*
   public static Venue findVenue(Actor actor, Item item) {
     final Presences p = actor.world().presences ;
     return (Venue) p.nearestMatch(item.type, actor, -1) ;
   }
+  //*/
   
   
   private boolean expired() {

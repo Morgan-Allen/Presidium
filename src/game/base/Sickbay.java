@@ -137,11 +137,18 @@ public class Sickbay extends Venue implements Economy {
       t.priorityMod = Plan.ROUTINE ;
       choice.add(t) ;
     }
-    final Behaviour picked = choice.weightedPick(actor.mind.whimsy()) ;
+    final Behaviour picked = (numPatients() > 0) ?
+      choice.pickMostUrgent() :
+      choice.weightedPick() ;
     if (picked != null) return picked ;
     //
     //  Otherwise, just tend the desk...
     return new Supervision(actor, this) ;
+  }
+  
+  
+  public void addServices(Choice choice, Actor forActor) {
+    choice.add(new SickLeave(forActor, this)) ;
   }
   
   
@@ -160,7 +167,6 @@ public class Sickbay extends Venue implements Economy {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
-    
     updateCloneOrders(numUpdates) ;
     
     final int numU = (1 + structure.numUpgrades()) / 2 ;
@@ -171,7 +177,7 @@ public class Sickbay extends Venue implements Economy {
     stocks.incDemand(MEDICINE , medNeed, VenueStocks.TIER_CONSUMER, 1) ;
     stocks.incDemand(STIM_KITS, medNeed, VenueStocks.TIER_TRADER, 1) ;
     stocks.forceDemand(POWER, powerNeed, VenueStocks.TIER_CONSUMER) ;
-    world.ecology().impingeSqualor(0 - numU, this, true) ;
+    structure.setAmbienceVal(numU * 2) ;
   }
   
   

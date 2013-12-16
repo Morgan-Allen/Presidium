@@ -6,6 +6,9 @@ import src.util.* ;
 
 
 
+//
+//  TODO:  Move the ambience/squalor map into a dedicated map-class.
+
 public class Ecology {
   
   
@@ -40,9 +43,9 @@ public class Ecology {
   final World world ;
   final int SR, SS ;
   final RandomScan growthMap ;
+  final public Ambience ambience ;
   final public FadingMap
     biomass,
-    squalorMap,
     preyMap, hunterMap,
     abundances[] ;
   final Batch <FadingMap> allMaps = new Batch <FadingMap> () ;
@@ -56,35 +59,32 @@ public class Ecology {
     growthMap = new RandomScan(world.size) {
       protected void scanAt(int x, int y) { growthAt(world.tileAt(x, y)) ; }
     } ;
+    ambience = new Ambience(world) ;
     
-    //final int mapRes = 4 ;
     allMaps.add(biomass    = new FadingMap(world, SS)) ;
-    allMaps.add(squalorMap = new FadingMap(world, SS)) ;
-    
-    
     allMaps.add(preyMap    = new FadingMap(world, SS)) ;
     allMaps.add(hunterMap  = new FadingMap(world, SS)) ;
+    
     abundances = new FadingMap[Species.ANIMAL_SPECIES.length] ;
     for (int i = 0 ; i < Species.ANIMAL_SPECIES.length ; i++) {
       abundances[i] = new FadingMap(world, SS) ;
       allMaps.add(abundances[i]) ;
     }
-    //globalAbundance = new float[Species.ANIMAL_SPECIES.length] ;
   }
   
   
   public void loadState(Session s) throws Exception {
     //I.say("Loading ecology state...") ;
     growthMap.loadState(s) ;
+    ambience.loadState(s) ;
     for (FadingMap map : allMaps) map.loadState(s) ;
   }
   
   
   public void saveState(Session s) throws Exception {
     growthMap.saveState(s) ;
-    for (FadingMap map : allMaps) {
-      map.saveState(s) ;
-    }
+    ambience.saveState(s) ;
+    for (FadingMap map : allMaps) map.saveState(s) ;
   }
   
   
@@ -141,10 +141,11 @@ public class Ecology {
     biomass.impingeVal(e.origin(), amount, gradual) ;
   }
   
-  
+  /*
   public void impingeSqualor(float squalorVal, Fixture f, boolean gradual) {
     squalorMap.impingeVal(f.area(), squalorVal, gradual) ;
   }
+  //*/
   
   
   public void impingeAbundance(Fauna f, boolean gradual) {
@@ -180,7 +181,7 @@ public class Ecology {
     return biomass.longTermVal(t) * 4f / (SR * SR) ;
   }
   
-  
+  /*
   public float squalorAmount(Tile t) {
     return squalorMap.longTermVal(t) ;
   }
@@ -191,9 +192,10 @@ public class Ecology {
   }
   
   
-  public float squalorRating(Element e) {
+  public float squalorRating(Target e) {
     return squalorRating(world.tileAt(e)) ;
   }
+  //*/
   
   
   /*
@@ -240,7 +242,7 @@ public class Ecology {
       final Tile t = world.tileAt(c.x, c.y) ;
       if (t == null) continue ;
       fertility  += biomassAmount(t) ;
-      fertility  -= squalorAmount(t) ;
+      fertility  += ambience.valueAt(t) ;
       numPeers   += absoluteAbundanceAt(species, t) ;
       numPrey    += preyDensityAt(t) ;
       numHunters += hunterDensityAt(t) ;

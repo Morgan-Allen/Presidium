@@ -63,7 +63,7 @@ public class Micovore extends Fauna {
     final Choice choice = new Choice(this) ;
     choice.add(new Retreat(this)) ;
     if (near != null) choice.add(new Combat(this, near)) ;
-    return choice.weightedPick(1) ;
+    return choice.pickMostUrgent() ;
   }
   
   
@@ -137,7 +137,7 @@ public class Micovore extends Fauna {
   
   
   private Tile findTileToMark() {
-    final Venue lair = mind.home() ;
+    final Venue lair = (Venue) mind.home() ;
     if (lair == null) return null ;
     float angle = Rand.num() * (float) Math.PI * 2 ;
     final Vec3D p = lair.position(null) ;

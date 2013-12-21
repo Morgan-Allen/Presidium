@@ -162,7 +162,9 @@ public abstract class Plan implements Saveable, Behaviour {
     if (this == actor.mind.rootBehaviour()) {
       if (priorityFor(actor) <= 0) return true ;
     }
-    if (nextStep() == null) return true ;
+    if (nextStep() == null) {
+      return true ;
+    }
     return false ;
   }
   
@@ -216,6 +218,21 @@ public abstract class Plan implements Saveable, Behaviour {
         final Plan plan = (Plan) b ;
         if (plan.getClass() != planClass) continue ;
         if (plan.actor() == actor) continue ;
+        competition += plan.successChance() ;
+      }
+    }
+    return competition ;
+  }
+  
+  
+  public static float competition(Plan match, Target t, Actor actor) {
+    float competition = 0 ;
+    final World world = actor.world() ;
+    for (Behaviour b : world.activities.targeting(t)) {
+      if (b instanceof Plan) {
+        final Plan plan = (Plan) b ;
+        if (plan.actor() == actor) continue ;
+        if (! plan.matchesPlan(match)) continue ;
         competition += plan.successChance() ;
       }
     }

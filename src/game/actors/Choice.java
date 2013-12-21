@@ -19,7 +19,7 @@ public class Choice {
     DEFAULT_PRIORITY_RANGE = 5.0f,
     DEFAULT_TRAIT_RANGE    = 2.0f ;
   
-  public static boolean verbose = false, reportRejects = false ;
+  public static boolean verbose = false, reportRejects = verbose && true ;
   
   final Actor actor ;
   final Batch <Behaviour> plans = new Batch <Behaviour> () ;

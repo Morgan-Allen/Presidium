@@ -23,10 +23,8 @@ public class CultureVats extends Venue implements Economy {
   
   /**  Fields, constructors, and save/load methods-
     */
-  //
-  //  TODO:  Fix this model...
   final public static Model MODEL = ImageModel.asSolidModel(
-    CultureVats.class, "media/Buildings/physician/culture_vats.png", 3.66f, 3
+    CultureVats.class, "media/Buildings/physician/culture_vats.png", 4, 3
   ) ;
   
   
@@ -91,12 +89,12 @@ public class CultureVats extends Venue implements Economy {
       "to and including full-body cloning.",
       400, null, 1, PROTEIN_ASSEMBLY, ALL_UPGRADES
     ),
-    VATS_BREEDER_STATION = new Upgrade(
-      "Vats Breeder Station",
-      "Vats Breeders supervise the cultivation and harvesting of the chemical "+
+    VAT_BREEDER_STATION = new Upgrade(
+      "Vat Breeder Station",
+      "Vat Breeders supervise the cultivation and harvesting of the chemical "+
       "and biological processes needed to produce pharmaceuticals and tissue "+
       "samples.",
-      100, null, 1, null, ALL_UPGRADES
+      100, Background.VAT_BREEDER, 1, null, ALL_UPGRADES
     )
   ;
   
@@ -203,7 +201,9 @@ public class CultureVats extends Venue implements Economy {
   
   public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Background.VAT_BREEDER) return nO + 2 ;
+    if (v == Background.VAT_BREEDER) {
+      return nO + 1 ;//+ structure.upgradeLevel(VATS_BREEDER_STATION) ;
+    }
     return 0 ;
   }
   

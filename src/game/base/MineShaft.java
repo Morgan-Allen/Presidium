@@ -6,35 +6,21 @@
 
 package src.game.base ;
 import src.game.common.* ;
+import src.game.actors.* ;
 import src.game.building.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
 
 
-
-//
-//  TODO:  Extend this to include shaft openings, strip mining and mantle
-//  drilling!  ...Which will necessitate being a Fixture.  Ah, well.  Why not?
-//  1x1, 2x2, or 3x3.
-
-
-public class MineFace extends Element implements Boardable, TileConstants {
+public class MineShaft extends Venue implements TileConstants {
   
   
   /**  Field definitions, constructors and save/load methods-
     */
-  final static ImageModel
-    MODEL_TYPES[] = ImageModel.loadModels(
-        MineFace.class, 3, 0, "media/Buildings/artificer/",
-        ImageModel.TYPE_SOLID_BOX,
-        "sunk_shaft.gif",
-        "open_shaft_1.png",
-        "open_shaft_2.png"
-    ) ;
-  
   final static int
     TYPE_UNDER_SHAFT = 0,
     TYPE_OPEN_SHAFT  = 1,
@@ -42,72 +28,53 @@ public class MineFace extends Element implements Boardable, TileConstants {
   final static Stack <Mobile> NONE_INSIDE = new Stack <Mobile> () ;
   
   
-  final ExcavationSite shaft ;
+  final ExcavationSite mainShaft ;
   final int type ;
   
-  private Stack <Mobile> inside = NONE_INSIDE ;
-  protected float
-    promise = 0,
-    workDone = 0 ;
   
-  
-  public MineFace(ExcavationSite parent, int type) {
-    this.shaft = parent ;
+  public MineShaft(ExcavationSite site, int type) {
+    super(2, 0, Venue.ENTRANCE_NORTH, site.base()) ;
+    this.mainShaft = site ;
     this.type = type ;
+    attachModel(Smelter.SHAFT_MODELS[2]) ;
   }
   
   
-  public MineFace(Session s) throws Exception {
+  public MineShaft(Session s) throws Exception {
     super(s) ;
-    shaft = (ExcavationSite) s.loadObject() ;
+    mainShaft = (ExcavationSite) s.loadObject() ;
     type = s.loadInt() ;
-    if (s.loadBool()) s.loadObjects(inside = new Stack <Mobile> ()) ;
-    else inside = NONE_INSIDE ;
-    promise = s.loadFloat() ;
-    workDone = s.loadFloat() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    s.saveObject(shaft) ;
+    s.saveObject(mainShaft) ;
     s.saveInt(type) ;
-    if (inside == NONE_INSIDE) s.saveBool(false) ;
-    else { s.saveBool(true) ; s.saveObjects(inside) ; }
-    s.saveFloat(promise) ;
-    s.saveFloat(workDone) ;
   }
+  
+  
+  public Behaviour jobFor(Actor actor) { return null ; }
+  public Background[] careers() { return null ; }
+  public Service[] services() { return null ; }
+  
   
   
   
   /**  Implementing the boardable interface-
     */
+  /*
   public Vec3D position(Vec3D v) {
     if (v == null) v = new Vec3D() ;
     final Tile o = origin() ;
     v.set(o.x, o.y, -1) ;
     return v ;
   }
-  
-  
-  public void setInside(Mobile m, boolean is) {
-    if (is) {
-      if (inside == NONE_INSIDE) inside = new Stack <Mobile> () ;
-      inside.include(m) ;
-    }
-    else {
-      inside.remove(m) ;
-      if (inside.size() == 0) inside = NONE_INSIDE ;
-    }
-  }
-  
-  
-  public Series <Mobile> inside() {
-    return inside ;
-  }
-  
+  //*/
   
   public Boardable[] canBoard(Boardable[] batch) {
+    return super.canBoard(batch) ;
+    /*
     if (batch == null) batch = new Boardable[5] ;
     final Tile o = origin() ;
     int i = 0 ; for (int n : N_ADJACENT) {
@@ -119,15 +86,19 @@ public class MineFace extends Element implements Boardable, TileConstants {
     if (shaft.firstFace == this) batch[i++] = shaft ;
     while (i < batch.length) batch[i++] = null ;
     return batch ;
+    //*/
   }
   
-  
+  /*
   public boolean inWorld() {
     return shaft.faceAt(origin()) == this ;
   }
-  
-  
+  //*/
+
+
   public boolean isEntrance(Boardable b) {
+    return super.isEntrance(b) ;
+    /*
     if (b == shaft) {
       return shaft.firstFace == this ;
     }
@@ -137,25 +108,34 @@ public class MineFace extends Element implements Boardable, TileConstants {
       return Spacing.edgeAdjacent(m.origin(), origin()) ;
     }
     return false ;
+    //*/
   }
   
   
-  public boolean allowsEntry(Mobile m) {
-    return m.base() == shaft.base() ;
+  
+  /**  Rendering and interface methods-
+    */
+  public String fullName() {
+    return "Mine Shaft" ;
+  }
+
+
+  public Composite portrait(HUD UI) {
+    return null ;
   }
   
   
-  public boolean openPlan() {
-    return false ;
+  public String helpInfo() {
+    return
+      "Mine Shafts allow your excavators to access more distant seams of "+
+      "mineral deposits." ;
   }
-  
-  
-  public String toString() {
-    final Tile o = origin() ;
-    return "Mine Face at: "+o.x+" "+o.y+" ("+promise+")" ;
+
+
+  public String buildCategory() {
+    return UIConstants.TYPE_ARTIFICER ;
   }
 }
-
 
 
 

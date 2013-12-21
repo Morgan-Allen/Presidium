@@ -75,16 +75,16 @@ public class FormerPlant extends Venue implements Economy {
     
     CARBONS_CYCLING = new Upgrade(
       "Carbons Cycling",
-      "Improves output of petrocarbs and life support, speeds terraforming "+
-      "and combats pollution.",
+      "Improves output of life support, speeds terraforming and reduces "+
+      "pollution.",
       200,
       null, 1, null, ALL_UPGRADES
     ),
     
     EVAPORATION_CYCLING = new Upgrade(
       "Evaporation Cycling",
-      "Increases efficiency around desert and oceans terrain, and dispenses "+
-      "small amounts of water.",
+      "Increases efficiency around desert and oceans terrain, and increases "+
+      "water output.",
       200,
       null, 1, null, ALL_UPGRADES
     ),
@@ -264,7 +264,7 @@ public class FormerPlant extends Venue implements Economy {
     if (verbose) I.sayAbout(this, "  Yield/day with cycle bonus: "+yield) ;
     stocks.bumpItem(WATER, yield * (1 + waterBonus) * sumWater * 10 / SDL, 15) ;
     stocks.bumpItem(LIFE_SUPPORT, yield * carbonBonus * 100 / SDL, 15) ;
-    stocks.bumpItem(PETROCARBS, yield * carbonBonus / SDL, 15) ;
+    //stocks.bumpItem(PETROCARBS, yield * carbonBonus / SDL, 15) ;
     
     //
     //  And here, the heavier elements-
@@ -272,7 +272,7 @@ public class FormerPlant extends Venue implements Economy {
     yield *= 1 + soilBonus ;
     if (verbose) I.sayAbout(this, "  Yield/day with soil bonus: "+yield) ;
     stocks.bumpItem(SPICE, yield * spiceBonus / SDL, 10) ;
-    stocks.bumpItem(METAL_ORE, yield * dustBonus / SDL, 10) ;
+    stocks.bumpItem(METAL_ORES, yield * dustBonus / SDL, 10) ;
     stocks.bumpItem(FUEL_CORES, yield * dustBonus / SDL, 10) ;
     
     //
@@ -319,16 +319,16 @@ public class FormerPlant extends Venue implements Economy {
   }
   
   
+  //
+  //  TODO:  Get rid of the former engineer.  Allow to operate completely
+  //  independantly.
   public Background[] careers() {
     return new Background[] { Background.FORMER_ENGINEER } ;
   }
   
   
   public Service[] services() {
-    return new Service[] {
-      METAL_ORE, FUEL_CORES, PETROCARBS,
-      SPICE, WATER, LIFE_SUPPORT
-    } ;
+    return new Service[] { METAL_ORES, FUEL_CORES, WATER, SPICE } ;
   }
   
   
@@ -349,7 +349,7 @@ public class FormerPlant extends Venue implements Economy {
   
   
   protected Service[] goodsToShow() {
-    return new Service[] { METAL_ORE, FUEL_CORES, PETROCARBS, SPICE } ;
+    return new Service[] { METAL_ORES, FUEL_CORES, SPICE } ;
   }
   
   

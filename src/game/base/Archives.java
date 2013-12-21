@@ -56,6 +56,7 @@ public class Archives extends Venue implements Economy {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
     stocks.translateDemands(1, CIRCUITRY_TO_DATALINKS) ;
+    structure.setAmbienceVal(2 + (numDatalinks() / 10f)) ;
   }
 
   
@@ -187,16 +188,21 @@ public class Archives extends Venue implements Economy {
   }
   
   
+  private int numDatalinks() {
+    int numDL = 0 ; for (Item i : stocks.matches(DATALINKS)) {
+      if (i.refers instanceof Skill) numDL++ ;
+    }
+    for (Manufacture m : stocks.specialOrders()) {
+      if (m.conversion.out.type == DATALINKS) numDL++ ;
+    }
+    return numDL ;
+  }
+  
+  
   public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
     if (v == Background.ARCHIVIST) {
-      int numDL = 0 ; for (Item i : stocks.matches(DATALINKS)) {
-        if (i.refers instanceof Skill) numDL++ ;
-      }
-      for (Manufacture m : stocks.specialOrders()) {
-        if (m.conversion.out.type == DATALINKS) numDL++ ;
-      }
-      return nO + (int) Visit.clamp(1 + (numDL / 5f), 0, 4) ;
+      return nO + (int) Visit.clamp(1 + (numDatalinks() / 5f), 0, 4) ;
     }
     return 0 ;
   }

@@ -249,6 +249,7 @@ public class Holding extends Venue implements Economy {
     final Delivery d = Deliveries.nextCollectionFor(
       actor, this, goods, 5, actor, actor.world()
     ) ;
+    if (d != null) d.shouldPay = actor ;
     return d ;
   }
   

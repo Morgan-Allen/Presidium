@@ -29,7 +29,7 @@ public class Deliveries implements Economy {
     IS_TRADE    = 0,
     IS_SHOPPING = 1,
     IS_IMPORT   = 2,
-    IS_EXPORT   = 3 ;  
+    IS_EXPORT   = 3 ;
   
   private static boolean verbose = false ;
   
@@ -99,11 +99,14 @@ public class Deliveries implements Economy {
     Actor actor, Owner client, Service goods[], Batch <Venue> vendors,
     int sizeLimit, World world
   ) {
-    return Deliveries.bestOrigin(
+    final Delivery d = Deliveries.bestOrigin(
       actor, goods, client,
       (Batch) vendors,
       sizeLimit, IS_EXPORT
     ) ;
+    I.sayAbout(actor, "Getting next export collection...") ;
+    if (d != null) I.say("Should pay: "+d.shouldPay) ;
+    return d ;
   }
   
   
@@ -125,6 +128,7 @@ public class Deliveries implements Economy {
       if (verbose) I.sayAbout(actor, "Rating: "+rating) ;
       if (rating > bestRating) { bestRating = rating ; picked = d ; }
     }
+    if (picked != null) picked.shouldPay = picked.destination ;
     return picked ;
   }
   
@@ -144,6 +148,7 @@ public class Deliveries implements Economy {
       final float rating = d.priorityFor(actor) ;
       if (rating > bestRating) { bestRating = rating ; picked = d ; }
     }
+    if (picked != null) picked.shouldPay = picked.destination ;
     return picked ;
   }
   

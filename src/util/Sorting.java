@@ -364,7 +364,7 @@ public abstract class Sorting <K> implements Series <K> {
     */
   public K[] toArray(Class typeClass) {
     final Object[] array = (Object[]) Array.newInstance(typeClass, size) ;
-    int i = 0 ; for (K k : this) array[i] = k ;
+    int i = 0 ; for (K k : this) array[i++] = k ;
     return (K[]) array ;
   }
   

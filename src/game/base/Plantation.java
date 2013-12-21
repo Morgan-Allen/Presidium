@@ -179,6 +179,11 @@ public class Plantation extends Venue implements
   }
   
   
+  public boolean privateProperty() {
+    return true ;
+  }
+  
+  
   public int pathType() {
     if (type == TYPE_NURSERY) return Tile.PATH_BLOCKS ;
     if (type == TYPE_COVERED) return Tile.PATH_BLOCKS ;
@@ -192,11 +197,6 @@ public class Plantation extends Venue implements
       final Paving paving = base().paving ;
       paving.updatePerimeter(this, inWorld) ;
     }
-  }
-  
-  
-  public boolean privateProperty() {
-    return true ;
   }
   
   

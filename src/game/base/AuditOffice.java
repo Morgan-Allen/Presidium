@@ -168,6 +168,7 @@ public class AuditOffice extends Venue implements Economy {
       final Delivery d = Deliveries.nextDeliveryFor(
         actor, this, services(), clients, 5, world
       ) ;
+      if (d != null) d.shouldPay = null ;
       //
       //  TODO:  Modify this a bit, so that the advertiser needn't go back and
       //  forth all the time?

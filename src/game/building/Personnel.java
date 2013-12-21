@@ -166,6 +166,15 @@ public class Personnel {
   }
   
   
+  public Batch <Actor> visitors() {
+    final Batch <Actor> visitors = new Batch <Actor> () ;
+    for (Mobile m : employs.inside()) if (m instanceof Actor) {
+      visitors.add((Actor) m) ;
+    }
+    return visitors ;
+  }
+  
+  
   public Batch <Actor> visitorsDoing(Class planClass) {
     final Batch <Actor> doing = new Batch <Actor> () ;
     for (Mobile m : employs.inside()) if (m instanceof Actor) {

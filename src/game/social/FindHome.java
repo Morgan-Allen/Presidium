@@ -55,9 +55,13 @@ public class FindHome extends Plan implements Economy {
   
   protected Behaviour getNextStep() {
     if (actor.mind.home() == newHome) return null ;
+    
+    if (verbose) I.sayAbout(actor, "Getting next site action ") ;
     if (! newHome.inWorld()) {
+      if (! canPlace()) { abortBehaviour() ; return null ; }
+      final Tile goes = actor.world().tileAt(newHome) ;
       final Action sites = new Action(
-        actor, actor.world().tileAt(newHome),
+        actor, Spacing.nearestOpenTile(goes, actor),
         this, "actionSiteHome",
         Action.LOOK, "Siting home"
       ) ;
@@ -73,15 +77,18 @@ public class FindHome extends Plan implements Economy {
   }
   
   
-  public boolean actionSiteHome(Actor client, Target site) {
+  private boolean canPlace() {
     final Venue v = (Venue) newHome ;
-    if (! v.canPlace()) {
-      abortBehaviour() ;
-      return false ;
-    }
+    return v.canPlace() ;
+  }
+  
+  
+  public boolean actionSiteHome(Actor client, Target site) {
+    if (! canPlace()) return false ;
+    final Venue v = (Venue) newHome ;
     v.doPlace(v.origin(), null) ;
     client.mind.setHome(v) ;
-    //I.say(actor+" siting home at: "+v.origin()) ;
+    if (verbose) I.sayAbout(actor, "siting home at: "+v.origin()) ;
     return true ;
   }
   

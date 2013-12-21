@@ -1,16 +1,8 @@
 
 
-*  Extra critter models:  Gigans and cranial (plus finish Trigox.)
+*  Extra critter models:  Gigans and Trigox.
 *  Extra humanoid models:  fat/skinny, young/old.
-*  Mutant/primitive/infected textures.
-
-16 commodity types to cover (everything else is minor)
-  foodstuffs (3 types), spice
-  carbons, metals, isotopes,
-  parts, plastics, soma,
-  inscriptions, decor, medicines,
-  power, water/life support
-  devices/outfits
+*  Mutant/primitive/infected textures.  More citizen skins.
 
 What are the tradeoffs involved in this game?
   The packing problem of placement of services and infrastructure while
@@ -19,6 +11,21 @@ What are the tradeoffs involved in this game?
   you send them on at what times.
   The schools you invest in and large-scale politics, which become an
   increasingly binding commitment.
+
+
+//
+//  THESE WILL HAVE TO BE IMPLEMENTED LATER, I THINK
+
+Public Bounty    Screened        Covert
+(Just Cash)     (Priority)  (Not Advertised)
+
+Priority:  Idle, Casual, Routine, Urgent, Critical
+            100    250     500     1000    2500
+
+Bribery.  Loyalty.  Coercion.  (This is stuff that really becomes important in
+The Late Game.  Early on, simple cash rewards will usually do the job.  But for
+really high-stakes or long-term away missions, you need hard guarantees of
+commitment from people well past caring about money.)
 
   
   Action takes place on the planet of Diaspora (AKA Bloodstone AKA Presidium.)
@@ -101,8 +108,6 @@ Other worlds/powers in setting:
 
 
 
-//
-//  THESE WILL HAVE TO BE IMPLEMENTED LATER, I THINK
 
 'Victory conditions'- the planet will be ceded to a particular house when all
 rival forces have been driven out, forced into vassalhood (for a short time),
@@ -251,38 +256,56 @@ Shaper Colony (the Sculptor's Studio)
              aspects of the Na'vi from Avatar and WH40K Chaos
 
 
-School-specific abilities- possibility to work on:
+School-specific abilities- possibility to work on.
+  ...What about ruler-specific powers?
 
-Logician Training:  (allies- Col/Spa enemies- Sha + Ini/Sym)
-  Eidetic Blueprint (boosts assembly/construction)
-  Estimate Trance   (aids premonition efforts)
-  Mnemonic Mantra   (aids concentration/calming)
+Logician Training & Accessories:
+  Counsel Chamber          (side-structure with Collective)
+  Archives                 (side-structure)
+  Intelligence Projections (from School)
+  Eidetic Blueprint (aids assembly/construction)
+  Mantra of Clarity (aids concentration/calming)
+  Estimation        (aids premonition efforts)
 
-Initiate Training:  (allies- Spa/Sha enemies- Col/Sym)
-  Command Uplink    (commands drone servants & enemy robots)
-  Stasis Field      (slow enemy motion/reflexes, aid hibernation)
-  Red Phylactery    (life support & memory backups)
+Collective Training & Accessories:
+  Counsel Chamber     (side-structure with Logician)
+  Android Mold        (from School)
+  Group consciousness (from School)
+  Empath Link       (aids peer relations & ecology skills)
+  Somatic Gestalt   (improves physical recovery & vigour)
+  Psychic Gestalt   (blend skills and experience, psi talent)
 
-Spacer Training:    (allies- Ini/Log enemies- Col/Sym)
-  Displacement      (assists evasion & mobility)
-  Homing Manifold   (instant home teleport & communication)
-  Star Gate         (aids ship & convoy travel)
-
-Shaper Training:    (allies- Ini/Sym enemies- Log + Spa/Col)
+Shaper Training & Accessories:
+  Sculptor's Studio         (side-structure)
+  Chrysalid Tree            (from School)
+  Auto-construction ability (from School)
   Morphosis         (aid personal disguise/cosmetics/healing)
   Viral Secretion   (powerful, mutating disease-poison)
   Pheremonist       (aids relationships, especially animal)
 
-Symbiont Training:  (allies- Col/Sha enemies- Spa/Ini)
-  Arc Conduit       (electrical damage- antimass as archon)
-  Glaive Armour     (encases in resilient shell under stress)
+Symbiont Training & Accessories:
+  Symbiont Node             (side-structure)
+  Auto-repair ability       (from School)
+  Meltdown ability          (from School)
+  Arc Cannon        (electrical/plasma/antimass damage)
+  Silver Gauntlet   (encases in resilient shell under stress)
   Archon Phase      (change into higher being)
 
-Collective Training:(allies- Log/Sym enemies- Spa/Ini)
-  Homo Empath       (aids peer relations & ecology skills)
-  Somatic Integral  (improves physical recovery & vigour)
-  Neural Gestalt    (blend skills and experience, psi talent)
+Initiate Training & Accessories:
+  Imperial Fane                   (side-structure)
+  Oracle uplinks                  (from School)
+  Cybernetic grafting & servitors (from School)
+  Command Uplink    (commands robots, drones & servitors)
+  Stasis Field      (slow enemy motion/reflexes, aid hibernation)
+  Basal Phylactery  (life support & memory backups)
 
+Spacer Training & Accessories:
+  Shipyard                       (side-structure)
+  Teleport ability               (from School)
+  Ansible communications ability (from School)
+  Displacement      (assists evasion & mobility)
+  Homing Manifold   (instant home teleport)
+  Star Gate         (aids ship & convoy travel)
 
           Log
     Spa----|----Col
@@ -308,7 +331,7 @@ SKY BRIDGE
   Recruiting crews and Shipwrights
 
 SCULPTOR'S STUDIO
-  Plant life modified to provide free food and aesthetics
+  Plant life modified to provide free accomodation
   Permits 'plastic surgery' via gene-grafting/prosthesis
   Sovereign can nominate/sponsor personnel for transformation
   Sculptor for free
@@ -323,7 +346,7 @@ PSYON CHOIR
     Traits affected/Effect type
     Artifact/Serum vehicles
 
-FORMER NODE
+SYMBIONT NODE
   Assimilates nearby terrain and non-organic structures (friend or foe)
   Accelerates terraforming/land reclamation but imposes Silicate ecology
   Cannot be demolished once growth begins

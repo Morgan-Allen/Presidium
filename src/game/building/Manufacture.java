@@ -100,7 +100,6 @@ public class Manufacture extends Plan implements Behaviour {
     //
     //  Don't work on this outside your shift (or at least make it more
     //  casual.)
-    final Venue venue = (Venue) actor.mind.work() ;
     final int shift = venue.personnel.shiftFor(actor) ;
     if (shift == Venue.OFF_DUTY) return 0 ;
     if (shift == Venue.SECONDARY_SHIFT) return IDLE ;

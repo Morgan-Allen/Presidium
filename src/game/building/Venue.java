@@ -449,17 +449,17 @@ public abstract class Venue extends Fixture implements
     
     final float squalor = 0 - world.ecology().ambience.valueAt(this) ;
     if (squalor > 0) {
-      final String SN = " ("+I.shorten(squalor * 10, 1)+")" ;
-      d.append("\n  Squalor:  "+Ecology.squalorDesc(squalor)+SN) ;
+      final String SN = " ("+I.shorten(squalor, 1)+")" ;
+      d.append("\n  Squalor:  "+Ambience.squalorDesc(squalor)+SN) ;
     }
     else {
-      final String AN = " ("+I.shorten(squalor * -10, 1)+")" ;
-      d.append("\n  Ambience:  "+Ecology.squalorDesc(squalor)+AN) ;
+      final String AN = " ("+I.shorten(0 - squalor, 1)+")" ;
+      d.append("\n  Ambience:  "+Ambience.squalorDesc(squalor)+AN) ;
     }
     
     final float danger = base().dangerMap.shortTermVal(world.tileAt(this)) ;
     final String DN = " ("+I.shorten(danger, 1)+")" ;
-    d.append("\n  Danger level: "+Ecology.dangerDesc(danger)+DN) ;
+    d.append("\n  Danger level: "+Ambience.dangerDesc(danger)+DN) ;
     d.append("\n\n") ;
     
     d.append(helpInfo(), Colour.LIGHT_GREY) ;

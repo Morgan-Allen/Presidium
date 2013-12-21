@@ -35,6 +35,25 @@ import src.util.* ;
 //  ...Why does the other stuff matter?  Only as a visual indicator of stuff
 //  happening.  That production is underway, land used, et cetera.
 
+/*
+
+  Strip mining/smelter replacement/artifact construction.  ...Cool.  Deliver to
+artificer?  ...Yeah.  (Robot danger is immediate, however.)
+  That just leaves the surveyor.  Plus contact & security missions.  Great.
+Excellent.
+  Surveyor- fill in stuff around perimeter, and expand behaviour repertoire for
+employees (and bred/friendly animals.)
+
+  The arcology still needs tweaking, but I can handle that with a simple flood-
+fill.  Walls and causeways need art tweaked or redone.
+
+  Also, the stock exchange needs to actively *produce* money- based on how
+healthy the economy of your settlement as a whole is!  And/or, actors can
+invest their savings here, earning interest over time for both you and them!
+(25% to exchange, 25% to state, 50% to client.  Auditors needs to look over it,
+though.)
+//*/
+
 
 //
 //  TODO:  Contact/security missions must be completed.
@@ -96,8 +115,8 @@ public class DebugBehaviour extends Scenario implements Economy {
       Habitat.BARRENS, 0.3f
     ) ;
     final World world = new World(TG.generateTerrain()) ;
-    TG.setupMinerals(world, 0, 0, 0) ;
-    //TG.setupOutcrops(world) ;
+    TG.setupMinerals(world, 0.5f, 1, 0.5f) ;
+    TG.setupOutcrops(world) ;
     return world ;
   }
   
@@ -125,7 +144,7 @@ public class DebugBehaviour extends Scenario implements Economy {
     while (numH-- > 0) {
       humans[numH] = new Human(Background.VOLUNTEER, base) ;
     }
-    Scenario.establishVenue(new Bastion(base), 4, 4, true, world, humans) ;
+    Placement.establishVenue(new Bastion(base), 4, 4, true, world, humans) ;
     
     //Micovore micovore = new Micovore() ;
     //micovore.health.setupHealth(0.5f, 1, 0) ;

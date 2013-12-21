@@ -137,7 +137,7 @@ public class Habitat {
     //  related to extreme temperature, slope, pollution or volcanism-
     MESA = new Habitat("Mesa",
       "mesa_ground.gif", NO_FLORA,
-      -1, false, MOISTURE, 1, INSOLATION, 5, MINERALS, 7,
+      -1, true, MOISTURE, 1, INSOLATION, 5, MINERALS, 7,
       IS_WASTE
     ),
     CURSED_EARTH = new Habitat("Cursed Earth",

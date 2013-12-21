@@ -20,10 +20,13 @@ public class Terrain implements TileConstants, Session.Saveable {
     MAX_INSOLATION  = 10,
     MAX_MOISTURE    = 10,
     MAX_RADIATION   = 10 ;
+  final public static String MINERAL_NAMES[] = {
+    "None", "Metal Ore", "Artifacts", "Fuel Isotopes"
+  } ;
   
   final public static byte
     TYPE_METALS   = 1,
-    TYPE_CARBONS  = 2,
+    TYPE_RUINS    = 2,
     TYPE_ISOTOPES = 3,
     TYPE_NOTHING  = 0,
     
@@ -32,9 +35,9 @@ public class Terrain implements TileConstants, Session.Saveable {
     DEGREE_HEAVY  = 3,
     DEGREE_TAKEN  = 0,
     
-    AMOUNT_TRACE    = 1,
-    AMOUNT_COMMON   = 3,
-    AMOUNT_HEAVY    = 9,
+    AMOUNT_TRACE  = 1,
+    AMOUNT_COMMON = 3,
+    AMOUNT_HEAVY  = 9,
     
     NUM_TYPES = 4,
     NUM_DEGREES = 4,
@@ -213,9 +216,12 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   
   public byte mineralType(Tile t) {
-    byte m = minerals[t.x][t.y] ;
-    if (m == 0) return 0 ;
-    return (byte) (m / NUM_TYPES) ;
+    return (byte) (minerals[t.x][t.y] / NUM_TYPES) ;
+  }
+  
+  
+  public byte mineralDegree(Tile t) {
+    return (byte) (minerals[t.x][t.y] % NUM_TYPES) ;
   }
   
   
@@ -229,6 +235,12 @@ public class Terrain implements TileConstants, Session.Saveable {
   
   public void setMinerals(Tile t, byte type, byte degree) {
     minerals[t.x][t.y] = (byte) ((type * NUM_DEGREES) + degree) ;
+  }
+  
+  
+  public void incMineralDegree(Tile t, byte type, int inc) {
+    int degree = Visit.clamp(mineralDegree(t) + inc, DEGREE_HEAVY + 1) ;
+    setMinerals(t, type, (byte) degree) ;
   }
   
   

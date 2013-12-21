@@ -173,6 +173,11 @@ public class Resting extends Plan implements Economy {
   
   public boolean actionRest(Actor actor, Boardable place) {
     //
+    //  Transfer any incidental groceries-
+    if (place == actor.mind.home()) for (Service food : ALL_FOOD_TYPES) {
+      actor.gear.transfer(food, (Employment) place) ;
+    }
+    //
     //  If you're resting at home, deposit any taxes due-
     if (place == actor.mind.home() && place instanceof Venue) {
       final float taxes = Audit.taxesDue(actor) ;

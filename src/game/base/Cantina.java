@@ -257,9 +257,12 @@ public class Cantina extends Venue implements Economy {
   
   
   private void updateGambling(int numUpdates) {
+    final Batch <Actor> absent = new Batch <Actor> () ;
     for (Actor a : gambleResults.keySet()) {
-      if (a.aboard() != this) gambleResults.remove(a) ;
+      if (a.aboard() != this) absent.add(a) ;
     }
+    for (Actor a : absent) gambleResults.remove(a) ;
+    
     if (numUpdates % POT_INTERVAL == 0) {
       Actor wins = null ;
       float bestResult = 0 ;

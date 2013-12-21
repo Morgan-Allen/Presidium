@@ -137,7 +137,7 @@ public class EcologyGen {
       numMinorHuts = (int) ((meadowed * numMinor) + 0.5f) ;
     I.say("Major/minor huts: "+numMajorHuts+"/"+numMinorHuts) ;
     
-    final Base base = Base.createFor(world) ;
+    final Base base = world.baseWithName("Natives", true, true) ;
     
     for (int n = numMajorHuts + numMinorHuts ; n-- > 0 ;) {
       final int SS = World.SECTOR_SIZE ;
@@ -155,7 +155,7 @@ public class EcologyGen {
       
       while (maxHuts-- > 0) {
         final NativeHut r = new NativeHut(under, base) ;
-        Scenario.establishVenue(r, centre.x, centre.y, true, world) ;
+        Placement.establishVenue(r, centre.x, centre.y, true, world) ;
         if (r.inWorld()) huts.add(r) ;
       }
       
@@ -226,7 +226,7 @@ public class EcologyGen {
       final Batch <Venue> ruins = new Batch <Venue> () ;
       while (maxRuins-- > 0) {
         final Ruins r = new Ruins() ;
-        Scenario.establishVenue(r, centre.x, centre.y, true, world) ;
+        Placement.establishVenue(r, centre.x, centre.y, true, world) ;
         if (r.inWorld()) ruins.add(r) ;
       }
       

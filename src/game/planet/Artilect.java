@@ -49,7 +49,7 @@ public abstract class Artilect extends Actor {
     MODEL_TESSERACT = MS3DModel.loadMS3D(
       Artilect.class, IMG_DIR, "Tesseract.ms3d", 0.025f
     ).loadXMLInfo(XML_PATH, "Tesseract")
-    ;
+  ;
   
   
   

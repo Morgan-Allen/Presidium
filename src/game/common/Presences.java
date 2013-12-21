@@ -17,6 +17,7 @@ public class Presences {
   final Table <Object, PresenceMap> allMaps ;
   
   private PresenceMap floraMap ;
+  private PresenceMap outcropMap ;
   private PresenceMap mobilesMap ;
   
   final private PresenceMap nullMap ;
@@ -28,8 +29,10 @@ public class Presences {
   	this.world = world ;
   	allMaps = new Table <Object, PresenceMap> () ;
   	floraMap = new PresenceMap(world, Flora.class) ;
+  	outcropMap = new PresenceMap(world, Outcrop.class) ;
   	mobilesMap = new PresenceMap(world, Mobile.class) ;
   	allMaps.put(Flora.class , floraMap  ) ;
+  	allMaps.put(Outcrop.class, outcropMap) ;
   	allMaps.put(Mobile.class, mobilesMap) ;
   	
   	nullMap = new PresenceMap(world, "nothing") {
@@ -47,6 +50,7 @@ public class Presences {
       if (f != null) allMaps.put(f.key, f) ;
     }
     floraMap = allMaps.get(Flora.class) ;
+    outcropMap = allMaps.get(Outcrop.class) ;
     mobilesMap = allMaps.get(Mobile.class) ;
   }
   
@@ -182,10 +186,10 @@ public class Presences {
       v.flagWith(sampled) ;
     }
     for (Object o : matchesNear(key, t, -1)) {
-      if (o == t) continue ;
-      final Target v = (Target) o ;
+      if (o == t) continue ; final Target v = (Target) o ;
       if (v.flaggedWith() != null) continue ;
       sampled.add(v) ;
+      if (sampled.size() >= limit) break ;
     }
     return sampled ;
   }

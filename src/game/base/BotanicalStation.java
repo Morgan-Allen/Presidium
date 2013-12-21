@@ -102,7 +102,7 @@ public class BotanicalStation extends Venue implements Economy {
       "Forestry programs assist in terraforming efforts and climate "+
       "moderation, as well as providing carbons for plastic production.",
       100,
-      PETROCARBS, 1,
+      null, 1,
       BROADLEAF_LAB, ALL_UPGRADES
     ),
     INSECTRY_LAB = new Upgrade(
@@ -199,6 +199,19 @@ public class BotanicalStation extends Venue implements Economy {
   }
   
   
+  //
+  //  TODO:  You need to cover the case of de-commissioning aura structures.
+  //  ...in fact, try to generalise that more robustly.
+  public void onDecommission() {
+    super.onDecommission() ;
+  }
+  
+  
+  public void onDestruction() {
+    super.onDestruction() ;
+  }
+
+
   protected void updateAllotments(int numUpdates) {
     //
     //  Then update the current set of allotments-

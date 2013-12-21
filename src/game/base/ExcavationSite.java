@@ -6,6 +6,7 @@
 
 
 package src.game.base ;
+//import src.game.campaign.Scenario;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.actors.* ;
@@ -17,22 +18,14 @@ import src.user.* ;
 import src.util.* ;
 
 
-//
-//  Surface Mining + Smelters.  (no periphery- save for mantle drill.)
-//  Mantle Drilling + strip mining.  (Establish one at a time.)
-//  artifact delivery & artilect discovery.
+
+//  TODO:  USE THESE UPGRADES-
+//  Metal Ores Mining.  Fuel Cores Mining.  Artifact Assembly.
+//  Safety Measures.  Excavator Station.  Mantle Drilling.
 
 //
-//  You get two smelters for free, and nothing else but side-shafts.
-//  ...Get rid of petrocarbs.  Just use carbons.
-
-//  Surface Mining     (faster processing of surface rocks & subsoil)
-//  Mantle Drilling    (huge output, terrain scarring, huge pollution)
-//  Safety Protocol    (more artifacts, fewer artilects, less pollution)
-//  Excavator Station  (better overall throughput)
-//  Metals Smelting    (better metals extraction, mild pollution)
-//  Isotope Capture    (better isotopes extraction, mild pollution)
-
+//  TODO:  Consider opening new shafts as you expand?  Or new smelters, based
+//  on rock types encountered and total staff?  Yeah.
 
 
 
@@ -50,28 +43,17 @@ public class ExcavationSite extends Venue implements
       ExcavationSite.class, IMG_DIR+"excavation_shaft.gif", 4, 1
     ) ;
   
-  final static Service ALL_MINED[] = {
-    PETROCARBS, METAL_ORE, FUEL_CORES
-  } ;
-  final static int
-    MAX_DIG_RANGE = 6 ;
-  
   private static boolean verbose = false ;
   
-
-  final Box2D digArea = new Box2D() ;
-  protected MineFace firstFace = null ;
-  final MineFace faceGrid[][] ;
+  final static int
+    DIG_LIMITS[] = { 8, 12, 15, 16 },
+    DIG_FACE_REFRESH = World.STANDARD_DAY_LENGTH / 10,
+    SMELTER_REFRESH  = 10 ;
   
-  final Sorting <MineFace> faceSorting = new Sorting <MineFace> () {
-    public int compare(MineFace a, MineFace b) {
-      if (a == b || a.promise == b.promise) return 0 ;
-      return a.promise < b.promise ? 1 : -1 ;
-    }
-  } ;
   
-  List <Smelter> smelters = new List <Smelter> () ;
-  //  Also, a list of areas dug, and secondary shafts sunk.
+  private Tile underFaces[] ;
+  private List <Smelter> smelters = new List <Smelter> () ;
+  private Box2D stripArea = new Box2D() ;
   
   
   
@@ -84,39 +66,22 @@ public class ExcavationSite extends Venue implements
     ) ;
     personnel.setShiftType(SHIFTS_BY_DAY) ;
     attachModel(SHAFT_MODEL) ;
-    final int gridSize = 4 + (MAX_DIG_RANGE * 2) ;
-    faceGrid = new MineFace[gridSize][gridSize] ;
   }
 
 
   public ExcavationSite(Session s) throws Exception {
     super(s) ;
-    
-    firstFace = (MineFace) s.loadObject() ;
-    digArea.loadFrom(s.input()) ;
-    s.loadObjects(faceSorting) ;
+    underFaces = (Tile[]) s.loadTargetArray(Tile.class) ;
     s.loadObjects(smelters) ;
-    
-    final int gridSize = 4 + (MAX_DIG_RANGE * 2) ;
-    faceGrid = new MineFace[gridSize][gridSize] ;
-    for (Coord c : Visit.grid(0, 0, gridSize, gridSize, 1)) {
-      faceGrid[c.x][c.y] = (MineFace) s.loadObject() ;
-    }
+    stripArea.loadFrom(s.input()) ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
-    
-    s.saveObject(firstFace) ;
-    digArea.saveTo(s.output()) ;
-    s.saveObjects(faceSorting) ;
+    s.saveTargetArray(underFaces) ;
     s.saveObjects(smelters) ;
-    
-    final int gridSize = 4 + (MAX_DIG_RANGE * 2) ;
-    for (Coord c : Visit.grid(0, 0, gridSize, gridSize, 1)) {
-      s.saveObject(faceGrid[c.x][c.y]) ;
-    }
+    stripArea.saveTo(s.output()) ;
   }
   
   
@@ -125,22 +90,7 @@ public class ExcavationSite extends Venue implements
     */
   public boolean enterWorldAt(int x, int y, World world) {
     if (! super.enterWorldAt(x, y, world)) return false ;
-    digArea.setTo(area()).expandBy(MAX_DIG_RANGE) ;
-    firstFace = insertFace(world.tileAt(this)) ;
     return true ;
-  }
-  
-  
-  public Boardable[] canBoard(Boardable batch[]) {
-    if (batch == null) batch = new Boardable[2] ;
-    batch[0] = mainEntrance() ;
-    batch[1] = firstFace ;
-    for (int i = batch.length ; i-- > 2 ;) batch[i] = null ;
-    return batch ;
-  }
-  
-  public boolean isEntrance(Boardable b) {
-    return b == firstFace || b == mainEntrance() ;
   }
   
   
@@ -164,93 +114,9 @@ public class ExcavationSite extends Venue implements
   
   /**  Methods for sorting and returning mine-faces in order of promise.
     */
-  protected MineFace faceAt(Tile t) {
-    if (t == null) return null ;
-    final int
-      offX = t.x - (int) (digArea.xpos() + 0.5f),
-      offY = t.y - (int) (digArea.ypos() + 0.5f) ;
-    try { return faceGrid[offX][offY] ; }
-    catch (ArrayIndexOutOfBoundsException e) { return null ; }
-  }
-  
-  
-  private void refreshSorting() {
-    final Batch <MineFace> faces = new Batch <MineFace> () ;
-    for (MineFace f : faceSorting) {
-      faces.add(f) ;
-      updatePromise(f) ;
-    }
-    faceSorting.clear() ;
-    for (MineFace f : faces) faceSorting.add(f) ;
-  }
-  
-  
-  private MineFace insertFace(Tile t) {
-    final int
-      offX = t.x - (int) (digArea.xpos() + 0.5f),
-      offY = t.y - (int) (digArea.ypos() + 0.5f) ;
-    final MineFace face = new MineFace(this, MineFace.TYPE_UNDER_SHAFT) ;
-    face.setPosition(t.x, t.y, world) ;
-    faceGrid[offX][offY] = face ;
-    updatePromise(face) ;
-    faceSorting.add(face) ;
-    if (verbose) I.sayAbout(this, "Inserted face at: "+face.origin()) ;
-    return face ;
-    
-    //
-    //  TODO:  If you're outside the original shaft, and not right next to an
-    //  existing opening, try adding a new opening.  Otherwise, the shaft
-    //  cannot be opened.
-    
-  }
-  
-  
-  protected void openFace(MineFace face) {
-    if (verbose) I.sayAbout(this, "Opening new face from "+face.origin()) ;
-    refreshSorting() ;
-    
-    if (verbose && I.talkAbout == this) {
-      I.say("Shafts open:") ;
-      for (MineFace f : this.faceSorting) {
-        I.say("  "+f) ;
-      }
-      I.say("Now opening "+face) ;
-    }
-    
-    faceSorting.delete(face) ;
-    face.promise = -1 ;
-    final Tile o = face.origin() ;
-    for (int n : N_ADJACENT) {
-      final Tile tN = world.tileAt(o.x + N_X[n], o.y + N_Y[n]) ;
-      if (tN == null || ! digArea.contains(tN.x, tN.y)) continue ;
-      //
-      //  You also need to skip this block if it's been taken by another shaft.
-      //  ...so how do I know that?  ...Permanent ownership?  Underground tiles?
-      if (faceAt(tN) != null) continue ;
-      insertFace(tN) ;
-    }
-    refreshSorting() ;
-  }
-  
-  
-  private void updatePromise(MineFace face) {
-    final Terrain terrain = world.terrain() ;
-    float promise = 1 ;
-    
-    promise += terrain.mineralsAt(
-      face.origin(), Terrain.TYPE_CARBONS
-    ) * (structure.upgradeBonus(PETROCARBS)  + 2) ;
-    promise += terrain.mineralsAt(
-      face.origin(), Terrain.TYPE_METALS
-    ) * (structure.upgradeBonus(METAL_ORE)   + 2) ;
-    promise += terrain.mineralsAt(
-      face.origin(), Terrain.TYPE_ISOTOPES
-    ) * (structure.upgradeBonus(FUEL_CORES) + 2) ;
-    
-    final int MDR = MAX_DIG_RANGE ;
-    promise *= MDR / (Spacing.distance(this, face) + MDR) ;
-    face.promise = promise ;
-    if (verbose) I.sayAbout(this, "  UPDATING PROMISE: "+face) ;
+  public int digLimit() {
+    final int level = structure.upgradeLevel(SAFETY_PROTOCOL) ;
+    return DIG_LIMITS[level] ;
   }
   
   
@@ -262,28 +128,28 @@ public class ExcavationSite extends Venue implements
   ) ;
   public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
-    CARBON_TITRATION = new Upgrade(
-      "Carbon Titration",
-      "Allows reserves of complex hydrocarbons to be tapped more fequently, "+
-      "and installs smelters to further augment production.",
+    SAFETY_PROTOCOL = new Upgrade(
+      "Safety Protocol",
+      "Increases effective dig range while limiting pollution and reducing "+
+      "the likelihood of artilect release.",
       100,
-      PETROCARBS, 1, null, ALL_UPGRADES
+      ARTIFACTS, 1, null, ALL_UPGRADES
     ),
     
-    METALS_SMELTING = new Upgrade(
-      "Metals Smelting",
-      "Allows veins of heavy metals to be detected more reliably, and "+
-      "installs surface smelters to augment production.",
+    METAL_ORES_MINING = new Upgrade(
+      "Metal Ores Mining",
+      "Allows veins of heavy metals to be detected and excavated more "+
+      "reliably.",
       150,
-      METAL_ORE, 1, null, ALL_UPGRADES
+      METAL_ORES, 2, null, ALL_UPGRADES
     ),
     
-    ISOTOPE_CAPTURE = new Upgrade(
-      "Isotope Capture",
-      "Allows deposits of radiactive isotopes to be sought out more reliably, "+
-      "and installs external smelters to augment production.",
+    FUEL_CORES_MINING = new Upgrade(
+      "Fuel Cores Mining",
+      "Allows deposits of radiactive isotopes to be sought out and extracted "+
+      "more reliably.",
       200,
-      FUEL_CORES, 1, null, ALL_UPGRADES
+      FUEL_CORES, 2, null, ALL_UPGRADES
     ),
     
     EXCAVATOR_STATION = new Upgrade(
@@ -294,12 +160,10 @@ public class ExcavationSite extends Venue implements
       Background.EXCAVATOR, 1, null, ALL_UPGRADES
     ),
     
-    //
-    //  TODO:  Have this extend the maximum range of excavations?
-    STRIP_MINING = new Upgrade(
-      "Strip Mining",
-      "Allows surface and topsoil mineral deposits to be extracted along "+
-      "with forest carbons, but inflicts lasting damage on the landscape.",
+    ARTIFACT_ASSEMBLY = new Upgrade(
+      "Artifact Assembly",
+      "Allows fragmentary artifacts to be reconstructed with greater skill "+
+      "and confidence.",
       150,
       null, 1, EXCAVATOR_STATION, ALL_UPGRADES
     ),
@@ -310,7 +174,7 @@ public class ExcavationSite extends Venue implements
       "metals and isotopes from the planet's molten core, at the cost of "+
       "heavy pollution.",
       350,
-      null, 1, METALS_SMELTING, ALL_UPGRADES
+      null, 1, METAL_ORES_MINING, ALL_UPGRADES
     )
   ;
   
@@ -322,7 +186,7 @@ public class ExcavationSite extends Venue implements
   
   
   public Service[] services() {
-    return new Service[] { PETROCARBS, METAL_ORE, FUEL_CORES, RARITIES } ;
+    return new Service[] { METAL_ORES, FUEL_CORES, ARTIFACTS } ;
   }
   
   
@@ -335,54 +199,48 @@ public class ExcavationSite extends Venue implements
   
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
-    //
-    //  Outside deliveries get top priority-
+    
+    I.sayAbout(actor, "GETTING NEXT EXCAVATION TASK") ;
+    
     final Delivery d = Deliveries.nextDeliveryFor(
-      actor, this, services(), 10, world
+      actor, this, services(), 5, world
     ) ;
-    ///I.say("Next delivery is: "+d) ;
-    if (d != null && personnel.assignedTo(d) < 1) return d ;
+    if (d != null) return d ;
     final Choice choice = new Choice(actor) ;
-    //
-    //  Consider smelting ores-
-    for (Smelter smelter : smelters) {
-      choice.add(new Smelting(actor, smelter, this, smelter.type)) ;
+    
+    for (Smelter s : smelters) {
+      choice.add(new OreProcessing(actor, s, s.output)) ;
     }
-    for (Service mined : ALL_MINED) {
-      choice.add(new Smelting(actor, this, this, mined)) ;
+    if (structure.upgradeLevel(ARTIFACT_ASSEMBLY) > 0) {
+      choice.add(new OreProcessing(actor, this, ARTIFACTS)) ;
     }
-    //
-    //  Also consider straightforward mining-
-    final Mining m = nextMiningFor(actor) ;
-    if (m != null) choice.add(m) ;
-    //
-    //  TODO:  Consider opening new shafts as you expand.
+    
+    final Target face = Mining.nextMineFace(this, underFaces) ;
+    if (face != null) {
+      choice.add(new Mining(actor, face, this)) ;
+    }
     return choice.weightedPick() ;
   }
   
   
-  //
-  //  TODO:  Restore this once secondary shafts are opened-
-  /*
-  protected Smelter nearestSmelter(Actor actor, Service mines) {
-    Smelter picked = null ;
-    float minDist = Float.POSITIVE_INFINITY ;
-    for (Smelter s : smelters) if (s.mined == mines && s.structure.intact()) {
-      final float dist = Spacing.distance(actor, s) ;
-      if (dist < minDist) { picked = s ; minDist = dist ; }
+  protected int extractionBonus(Service mineral) {
+    if (mineral == METAL_ORES) {
+      return (1 + structure.upgradeLevel(METAL_ORES_MINING)) * 2 ;
     }
-    return picked ;
+    if (mineral == FUEL_CORES) {
+      return (1 + structure.upgradeLevel(FUEL_CORES_MINING)) * 2 ;
+    }
+    if (mineral == ARTIFACTS) {
+      return (1 + structure.upgradeLevel(ARTIFACT_ASSEMBLY)) * 2 ;
+    }
+    return -1 ;
   }
-  //*/
   
   
-  protected Mining nextMiningFor(Actor actor) {
-    refreshSorting() ;
-    for (MineFace face : faceSorting) {
-      if (face.promise == -1 || face.workDone >= 100) continue ;
-      final Mining m = new Mining(actor, face) ;
-      if (personnel.assignedTo(m) > 0) continue ;
-      return m ;
+  protected Venue smeltingSite(Service mineral) {
+    if (mineral == ARTIFACTS ) return this ;
+    for (Smelter s : smelters) {
+      if (s.output == mineral) return s ;
     }
     return null ;
   }
@@ -391,39 +249,35 @@ public class ExcavationSite extends Venue implements
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
+    structure.setAmbienceVal(structure.upgradeLevel(SAFETY_PROTOCOL) - 3) ;
     
-    if (verbose && I.talkAbout == this) {
-      I.say("Shafts open:") ;
-      for (MineFace face : this.faceSorting) {
-        I.say("  "+face) ;
+    checks: for (Smelter d : smelters) {
+      for (Smelter kid : d.strip) if (kid.destroyed()) {
+        smelters.remove(d) ; continue checks ;
       }
     }
     
-    adjustSmelters(PETROCARBS, CARBON_TITRATION) ;
-    adjustSmelters(METAL_ORE , METALS_SMELTING ) ;
-    adjustSmelters(FUEL_CORES, ISOTOPE_CAPTURE ) ;
-  }
-  
-  
-  private void adjustSmelters(Service mined, Upgrade related) {
-    final int properCount = (1 + structure.upgradeLevel(related)) / 2 ;
-    int count = 0 ;
-    for (Smelter s : smelters) {
-      if (s.destroyed()) smelters.remove(s) ;
-      else if (s.type == mined) count++ ;
+    //
+    //  TODO:  Come up with limits for each of the smelter types, based on
+    //  staff size and underlying/surrounding terrain.
+    
+    //final int numDrills = structure.upgradeLevel(MANTLE_DRILLING) ;
+    if (numUpdates % SMELTER_REFRESH == 0) {
+      if (smeltingSite(METAL_ORES) == null) {
+        final Smelter strip[] = Smelter.siteNewDrill(this, METAL_ORES) ;
+        if (strip != null) smelters.add(strip[0]) ;
+      }
+      if (
+        smeltingSite(FUEL_CORES) == null &&
+        true //structure.upgradeLevel(FUEL_PROCESSING) > 0
+      ) {
+        final Smelter strip[] = Smelter.siteNewDrill(this, FUEL_CORES) ;
+        if (strip != null) smelters.add(strip[0]) ;
+      }
     }
     
-    if (verbose) I.sayAbout(this,
-      "Proper number of "+mined+" smelters: "+properCount+", actual "+count
-    ) ;
-    
-    if (properCount > count) {
-      final Smelter s = Smelter.siteNewSmelter(this, mined) ;
-      if (s != null) smelters.add(s) ;
-    }
-    if (properCount < count) {
-      final Smelter s = Smelter.cullWorst(smelters, this) ;
-      if (s != null) smelters.remove(s) ;
+    if (numUpdates % DIG_FACE_REFRESH == 0) {
+      underFaces = Mining.getTilesUnder(this) ;
     }
   }
   
@@ -453,24 +307,6 @@ public class ExcavationSite extends Venue implements
     return InstallTab.TYPE_ARTIFICER ;
   }
 }
-
-
-
-
-
-//
-//  I'd like the mining process to proceed in 3 or 4 phases:
-//  *  Strip mining, on the surface, which removes outcrops and/or deforms the
-//     terrain.
-//  *  Deep mining, in which peripheral shafts are dug and more ore is
-//     extracted.
-//  *  Mantle drilling, in which ores are brought up from the molten core of a
-//     planet, providing a virtually inexhaustible supply of minerals.
-
-//  As one type of mining is completed, another will take over.  This is how
-//  peripheral structures are established, by digging under far enough that
-//  they need to be brought forth.
-
 
 
 

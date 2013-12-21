@@ -50,6 +50,7 @@ public abstract class ActorMind implements Abilities {
   protected Mission mission ;
   protected Employment home, work ;
   protected Application application ;
+  protected Actor master ;
   
   
   
@@ -75,6 +76,7 @@ public abstract class ActorMind implements Abilities {
     home = (Employment) s.loadObject() ;
     work = (Employment) s.loadObject() ;
     application = (Application) s.loadObject() ;
+    master = (Actor) s.loadObject() ;
   }
   
   
@@ -93,6 +95,7 @@ public abstract class ActorMind implements Abilities {
     s.saveObject(home) ;
     s.saveObject(work) ;
     s.saveObject(application) ;
+    s.saveObject(master) ;
   }
   
   
@@ -390,6 +393,16 @@ public abstract class ActorMind implements Abilities {
   
   public Mission mission() {
     return mission ;
+  }
+  
+  
+  public void assignMaster(Actor master) {
+    this.master = master ;
+  }
+  
+  
+  public Actor master() {
+    return master ;
   }
   
   

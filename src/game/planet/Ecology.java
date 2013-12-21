@@ -16,27 +16,6 @@ public class Ecology {
     */
   final static float
     UPDATE_INC = 0.01f ;
-  final public static String SQUALOR_DESC[] = {
-    "Mild",
-    "Moderate",
-    "Serious",
-    "Terrible",
-    "Toxic"
-  } ;
-  final public static String HAZARD_DESC[] = {
-    "Secure",
-    "Minimal",
-    "Elevated",
-    "Hostile",
-    "Mortal"
-  } ;
-  final public static String AMBIENCE_DESC[] = {
-    "Fair",
-    "Good",
-    "Excellent",
-    "Beautiful",
-    "Paradise"
-  } ;
   
   private static boolean verbose = false ;
   
@@ -89,26 +68,6 @@ public class Ecology {
   
   
   
-  /**  UI assistance-
-    */
-  private static String descFrom(String s[], float level) {
-    return s[Visit.clamp((int) (level * s.length), s.length)] ;
-  }
-  
-  
-  public static String squalorDesc(float rating) {
-    if (rating <= 0) return descFrom(AMBIENCE_DESC, 0 - rating) ;
-    return descFrom(SQUALOR_DESC, rating / 2) ;
-  }
-  
-  
-  public static String dangerDesc(float rating) {
-    return descFrom(HAZARD_DESC, rating / 10f) ;
-  }
-  
-  
-  
-  
   /**  Continuous updates-
     */
   public void updateEcology() {
@@ -133,6 +92,7 @@ public class Ecology {
     Flora.tryGrowthAt(t.x, t.y, world, false) ;
     final Element owner = t.owner() ;
     if (owner != null) owner.onGrowth(t) ;
+    ambience.updateAt(t) ;
     //world.terrain().setSqualor(t, (byte) squalorAmount(t)) ;
   }
   

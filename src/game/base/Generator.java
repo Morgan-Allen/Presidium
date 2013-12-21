@@ -155,7 +155,7 @@ public class Generator extends Venue implements Economy {
     //
     //  Then check to see if anything needs manufacture-
     final Manufacture m = stocks.nextManufacture(actor, METALS_TO_FUEL) ;
-    if (m != null && stocks.amountOf(METAL_ORE) >= 1) {
+    if (m != null && stocks.amountOf(METAL_ORES) >= 1) {
       m.checkBonus = 5 * structure.upgradeLevel(ISOTOPE_CONVERSION) ;
       choice.add(m) ;
     }

@@ -15,16 +15,19 @@ import src.game.base.* ;
 SPYCE_A = new Item.Type(C, COMMODITY, "Spyce A (Tinerazine)", 400),
 SPYCE_B = new Item.Type(C, COMMODITY, "Spyce B (Halebdynum)", 400),
 SPYCE_C = new Item.Type(C, COMMODITY, "Spyce C (Natrizoral)", 400),
-TALISMAN   = new Item.Type(C, UNIQUE, "Talisman"   , 250)
 //*/
-
 //
-//  TODO:  What about Tensile materials?  Antimass?
+//  3 Spice types- with animal, vegetable and mineral sources?
+//
+//  TODO:  What about Antimass?  Ghostlines?
+
+
 
 
 public interface Economy extends Abilities {
   
-  
+
+  final static Class BC = Economy.class ;
   final public static int
     FORM_COMMODITY      = 0, FC = 0,
     FORM_PROVISION      = 1, FP = 1,
@@ -32,11 +35,6 @@ public interface Economy extends Abilities {
     FORM_DEVICE         = 3, FD = 3,
     FORM_OUTFIT         = 4, FO = 4,
     FORM_SERVICE        = 5, FS = 5 ;
-  
-  final static Class BC = Economy.class ;
-  
-  //
-  //  TODO:  Trim the unnecesary bits away here.
   
   final public static Service
     //
@@ -47,16 +45,17 @@ public interface Economy extends Abilities {
     RATIONS     = new Service(BC, "Rations"   , "rations.gif"    , FC, 80 ),
     //
     //  Mineral wealth-
-    METAL_ORE   = new Service(BC, "Metal Ore" , "ores.gif"       , FC, 15 ),
-    PETROCARBS  = new Service(BC, "Petrocarbs", "carbons.gif"    , FC, 35 ),
-    FUEL_CORES  = new Service(BC, "Fuel Cores", "fuel rods.gif"  , FC, 75 ),
+    METAL_ORES  = new Service(BC, "Metal Ore" , "ores.gif"       , FC, 20 ),
+    FUEL_CORES  = new Service(BC, "Fuel Cores", "fuel rods.gif"  , FC, 55 ),
     ANTIMASS    = new Service(BC, "Antimass"  , "antimass.gif"   , FC, 120),
     //
     //  Building materials-
     PLASTICS    = new Service(BC, "Plastics"  , "plastics.gif"   , FC, 35 ),
+    PRESSFEED   = new Service(BC, "Pressfeed" , "pressfeed.gif"  , FC, 60 ),
+    DECOR       = new Service(BC, "Decor"     , "decor.gif"      , FU, 160),
     PARTS       = new Service(BC, "Parts"     , "parts.gif"      , FC, 50 ),
-    TENSILES    = new Service(BC, "Tensiles"  , "tensiles.gif"   , FC, 100),
     CIRCUITRY   = new Service(BC, "Circuitry" , "inscription.gif", FC, 140),
+    DATALINKS   = new Service(BC, "Datalinks" , "datalinks.png"  , FC, 200),
     //
     //  Medical supplies-
     STIM_KITS   = new Service(BC, "Stim Kit"  , "stimkit.gif"    , FC, 40 ),
@@ -71,19 +70,15 @@ public interface Economy extends Abilities {
     
     SAMPLES     = new Service(BC, "Samples"   , "crates_big.gif", FU,  -1),
     CREDITS     = new Service(BC, "Credits"   , null            , FU,  -1),
-    PRESSFEED   = new Service(BC, "Pressfeed", "pressfeed.gif"  , FC,  20),
     
     TROPHIES    = new Service(BC, FORM_UNIQUE , "Trophy"        ,     100),
-    RARITIES    = new Service(BC, FORM_UNIQUE , "Rarity"        ,     100),
-    DECOR       = new Service(BC, "Decor"     , "decor.gif"     , FU, 300),
+    ARTIFACTS   = new Service(BC, FORM_UNIQUE , "Artifact"      ,     100),
     
     GENE_SEED   = new Service(BC, "Gene Seed" , "gene_seed.gif" , FU, 200),
     REPLICANTS  = new Service(BC, "Replicants", "replicant.gif" , FU, 200),
-    DATALINKS   = new Service(BC, "Datalinks" , "datalinks.png" , FC, 200),
+    GHOSTLINE   = new Service(BC, FORM_UNIQUE , "Ghostline"     ,    200 ),
     
-    //GHOSTLINE   = new Service(BC, FORM_UNIQUE, "Ghostline"  , 200 ),
-    
-    ATOMICS     = new Service(BC, FORM_UNIQUE, "Atomic"   , 1000),
+    ATOMICS     = new Service(BC, FORM_UNIQUE , "Atomic"        ,    1000),
     
     ALL_UNIQUE_ITEMS[] = Service.typesSoFar() ;
   
@@ -162,7 +157,7 @@ public interface Economy extends Abilities {
       "spear"
     ),
     
-    TASE_STAFF = new DeviceType(BC, "Shock Staff",
+    TASE_STAFF = new DeviceType(BC, "Tase Staff",
       15, MELEE | RANGED | PHYSICAL | STUN, 40,
       new Conversion(2, PARTS, 10, ASSEMBLY),
       "staff"
@@ -256,7 +251,7 @@ public interface Economy extends Abilities {
     //
     //  Artificer conversions-
     METALS_TO_PARTS = new Conversion(
-      1, METAL_ORE, TO, 2, PARTS,
+      1, METAL_ORES, TO, 2, PARTS,
       Foundry.class,
       MODERATE_DC, ASSEMBLY, SIMPLE_DC, CHEMISTRY
     ),
@@ -269,11 +264,13 @@ public interface Economy extends Abilities {
     
     //
     //  Fabricator conversions-
+    /*
     PETROCARBS_TO_PLASTICS = new Conversion(
       1, PETROCARBS, TO, 5, PLASTICS,
       Fabricator.class,
       ROUTINE_DC, CHEMISTRY, ROUTINE_DC, HANDICRAFTS
     ),
+    //*/
     
     CARBS_TO_PLASTICS = new Conversion(
       1, CARBS, TO, 2, PLASTICS,
@@ -312,7 +309,7 @@ public interface Economy extends Abilities {
     //
     //  Reactor conversions-
     METALS_TO_FUEL = new Conversion(
-      10, METAL_ORE, TO, 1, FUEL_CORES,
+      10, METAL_ORES, TO, 1, FUEL_CORES,
       Generator.class,
       MODERATE_DC, CHEMISTRY, MODERATE_DC, FIELD_THEORY
     ),

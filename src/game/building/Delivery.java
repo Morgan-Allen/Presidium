@@ -21,11 +21,11 @@ import src.game.building.Inventory.Owner ;
 
 public class Delivery extends Plan implements Economy {
   
+  
   final public static int
-    TYPE_SHOPPING  = 0,
-    TYPE_DELIVERS  = 1,
-    TYPE_STRETCHER = 2,
-    TYPE_DRIVEN    = 3 ;
+    TYPE_SHOPS  = 0,
+    TYPE_TRADE  = 1,
+    TYPE_UNPAID = 2 ;
   
   final static int
     STAGE_INIT    = -1,
@@ -42,14 +42,16 @@ public class Delivery extends Plan implements Economy {
   final public Owner origin, destination ;
   final public Item items[] ;
   final Actor passenger ;
+  public Owner shouldPay ;
   
   private byte stage = STAGE_INIT ;
+  private float pricePaid = 0 ;
   private Suspensor suspensor ;
   public Vehicle driven ;
   
   
-  public Delivery(Service type, Owner origin, Owner destination) {
-    this(origin.inventory().matches(type), origin, destination) ;
+  public Delivery(Service s, Owner origin, Owner destination) {
+    this(origin.inventory().matches(s), origin, destination) ;
   }
   
   
@@ -58,8 +60,8 @@ public class Delivery extends Plan implements Economy {
   }
   
   
-  public Delivery(Batch <Item> items, Owner origin, Owner destination) {
-    this(items.toArray(Item.class), origin, destination) ;
+  public Delivery(Batch <Item> items, Owner orig, Owner dest) {
+    this(items.toArray(Item.class), orig, dest) ;
   }
   
   
@@ -86,15 +88,20 @@ public class Delivery extends Plan implements Economy {
   
   public Delivery(Session s) throws Exception {
     super(s) ;
+    
     items = new Item[s.loadInt()] ;
     for (int n = 0 ; n < items.length ; n++) {
       items[n] = Item.loadFrom(s) ;
       if (items[n].quality == -1) items[n] = Item.withQuality(items[n], 0) ;
     }
+    
     passenger = (Actor) s.loadObject() ;
     origin = (Owner) s.loadObject() ;
     destination = (Owner) s.loadObject() ;
+    shouldPay = (Owner) s.loadObject() ;
+    
     stage = (byte) s.loadInt() ;
+    pricePaid = s.loadFloat() ;
     suspensor = (Suspensor) s.loadObject() ;
     driven = (Vehicle) s.loadObject() ;
   }
@@ -102,12 +109,17 @@ public class Delivery extends Plan implements Economy {
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    
     s.saveInt(items.length) ;
     for (Item i : items) Item.saveTo(s, i) ;
+    
     s.saveObject(passenger) ;
     s.saveObject((Session.Saveable) origin) ;
     s.saveObject((Session.Saveable) destination) ;
+    s.saveObject(shouldPay) ;
+    
     s.saveInt(stage) ;
+    s.saveFloat(pricePaid) ;
     s.saveObject(suspensor) ;
     s.saveObject(driven) ;
   }
@@ -131,9 +143,14 @@ public class Delivery extends Plan implements Economy {
   
   /**  Assessing targets and priorities-
     */
+  //
+  //  TODO:  You'll need to break this up into multiple delivery types, and
+  //  specify who (if anyone) needs to pay for it.
+  /*
   private boolean isShopping(Actor actor) {
     return destination == actor.mind.home() ;
   }
+  //*/
   
   
   public static float purchasePrice(Item item, Actor actor, Owner origin) {
@@ -153,7 +170,8 @@ public class Delivery extends Plan implements Economy {
       return items ;
     }
     
-    final boolean shopping = isShopping(actor) ;
+    //final boolean shopping = isShopping(actor) ;
+    final boolean shopping = shouldPay == actor ;
     final Owner carrier = driven == null ? actor : driven ;
     
     if (stage <= STAGE_PICKUP) {
@@ -197,7 +215,7 @@ public class Delivery extends Plan implements Economy {
     ) / (driven == null ? 2f : 10f) ;
 
     float offset = rangePenalty ;
-    if (isShopping(actor) && stage <= STAGE_PICKUP) {
+    if (shouldPay == actor && stage <= STAGE_PICKUP) {
       int price = 0 ;
       float foodVal = 0 ;
       for (Item i : available) {
@@ -318,10 +336,14 @@ public class Delivery extends Plan implements Economy {
       totalPrice += TA * purchasePrice(i, actor, origin) / i.amount ;
       sumItems += TA ;
     }
-    ///I.say(actor+" Sum of items is: "+sumItems) ;
-    origin.inventory().incCredits(totalPrice) ;
-    if (isShopping(actor)) actor.gear.incCredits(0 - totalPrice) ;
-    else destination.inventory().incCredits(0 - totalPrice) ;
+    
+    I.sayAbout(actor, "Should pay: "+shouldPay) ;
+    
+    if (shouldPay != null) {
+      origin.inventory().incCredits(totalPrice) ;
+      if (shouldPay == actor) actor.gear.incCredits(0 - totalPrice) ;
+      else pricePaid = totalPrice ;
+    }
     return sumItems ;
   }
   
@@ -368,6 +390,10 @@ public class Delivery extends Plan implements Economy {
   
   public boolean actionDropoff(Actor actor, Owner target) {
     if (stage != STAGE_DROPOFF) return false ;
+    
+    if (shouldPay != null && pricePaid > 0) {
+      shouldPay.inventory().incCredits(0 - pricePaid) ;
+    }
     
     if (driven != null) {
       if (! driven.setPilot(actor)) abortBehaviour() ;

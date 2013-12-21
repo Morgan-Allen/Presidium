@@ -320,17 +320,17 @@ public class TerrainGen implements TileConstants {
   //  tuning this.  Perhaps the dither-map?
   public void setupMinerals(
     final World world,
-    float chanceMetals, float chanceCarbons, float chanceIsotopes
+    float chanceMetals, float chanceArtifacts, float chanceIsotopes
   ) {
     final Terrain terrain = world.terrain() ;
     if (terrain == null) I.complain("No terrain assigned to world!") ;
     final byte
-      carbonsMap [][] = genSectorMap(10),
-      metalsMap  [][] = genSectorMap(10),
-      isotopesMap[][] = genSectorMap(10),
-      allMaps[][][] = { null, metalsMap, carbonsMap, isotopesMap } ;
+      artifactsMap[][] = genSectorMap(10),
+      metalsMap   [][] = genSectorMap(10),
+      isotopesMap [][] = genSectorMap(10),
+      allMaps[][][] = { null, metalsMap, artifactsMap, isotopesMap } ;
     final float
-      abundances[] = { 0, chanceMetals, chanceCarbons, chanceIsotopes },
+      abundances[] = { 0, chanceMetals, chanceArtifacts, chanceIsotopes },
       totals[] = new float[4],
       chances[] = new float[4] ;
     //

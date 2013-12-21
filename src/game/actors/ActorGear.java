@@ -101,11 +101,18 @@ public class ActorGear extends Inventory implements Economy {
   
   public boolean addItem(Item item) {
     if (item == null || item.amount == 0) return false ;
+    final int oldAmount = (int) amountOf(item) ;
     if (item.refers == actor) item = Item.withReference(item, null) ;
     if      (item.type instanceof DeviceType) equipDevice(item) ;
     else if (item.type instanceof OutfitType) equipOutfit(item) ;
     else if (! super.addItem(item)) return false ;
-    if (actor.inWorld()) actor.chat.addPhrase("+"+item) ;
+
+    final int inc = ((int) amountOf(item)) - oldAmount ;
+    if (actor.inWorld() && inc != 0 && ! actor.indoors()) {
+      String phrase = inc >= 0 ? "+" : "-" ;
+      phrase+=" "+Item.withAmount(item, inc) ;
+      actor.chat.addPhrase(phrase) ;
+    }
     return true ;
   }
   

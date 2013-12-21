@@ -108,8 +108,8 @@ public class DebugSituation extends Scenario implements Economy {
     o.enterWorldAt(4, 4, world) ;
     o.setAsEstablished(true) ;
     
-    Scenario.establishVenue(new Sickbay(base), 9, 2, true, world) ;
-    Scenario.establishVenue(new Garrison(base), 9, 8, true, world) ;
+    Placement.establishVenue(new Sickbay(base), 9, 2, true, world) ;
+    Placement.establishVenue(new Garrison(base), 9, 8, true, world) ;
     
     //other.traits.incLevel(KINESTHESIA_EFFECT, 1) ;
     ((BaseUI) UI).selection.pushSelection(other, true) ;

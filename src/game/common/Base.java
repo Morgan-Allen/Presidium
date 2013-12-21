@@ -23,6 +23,12 @@ import src.util.* ;
 //  settlement into debt is an excellent way to lower your standing (get fired
 //  and demoted to some smaller or more dangerous post.)
 
+//
+//  TODO:  Primal bases shouldn't employ fog of war, commerce transactions, and
+//  the like.  They are intended for use primarily by artilects, wildlife,
+//  natives, and the like.
+
+
 public class Base implements
   Session.Saveable, Schedule.Updates, Accountable
 {
@@ -31,6 +37,8 @@ public class Base implements
   /**  Fields, constructors, and save/load methods-
     */
   final public World world ;
+  final boolean primal ;
+  
   final public Commerce commerce = new Commerce(this) ;
   float credits = 0, interest = 0 ;
   
@@ -54,19 +62,21 @@ public class Base implements
   final public DangerMap dangerMap ;
   final public IntelMap intelMap = new IntelMap(this) ;
   
+  public String title  = "Player Base" ;
   public Colour colour = Colour.BLUE ;
   
   
   
-  public static Base createFor(World world) {
-    final Base base = new Base(world) ;
+  public static Base createFor(World world, boolean primal) {
+    final Base base = new Base(world, primal) ;
     world.registerBase(base, true) ;
     return base ;
   }
   
   
-  private Base(World world) {
+  private Base(World world, boolean primal) {
     this.world = world ;
+    this.primal = primal ;
     paving = new Paving(world) ;
     maintenance = new PresenceMap(world, "damaged") ;
     dangerMap = new DangerMap(world, this) ;
@@ -77,6 +87,7 @@ public class Base implements
   public Base(Session s) throws Exception {
     s.cacheInstance(this) ;
     this.world = s.world() ;
+    this.primal = s.loadBool() ;
     commerce.loadState(s) ;
     credits = s.loadFloat() ;
     interest = s.loadFloat() ;
@@ -108,6 +119,7 @@ public class Base implements
   
   
   public void saveState(Session s) throws Exception {
+    s.saveBool(primal) ;
     commerce.saveState(s) ;
     s.saveFloat(credits) ;
     s.saveFloat(interest) ;

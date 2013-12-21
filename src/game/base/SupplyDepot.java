@@ -62,6 +62,10 @@ public class SupplyDepot extends Venue implements
     Colour.GREEN, Colour.GREEN, Colour.GREEN,
   } ;
   
+  
+  //
+  // TODO:  Allow import levels for each of these to be specified manually.
+  
   final public static Table SERVICE_KEY = Table.make(
     
     CARBS     , KEY_RATIONS ,
@@ -69,10 +73,8 @@ public class SupplyDepot extends Venue implements
     GREENS    , KEY_RATIONS ,
     SOMA      , KEY_RATIONS ,
     
-    METAL_ORE , KEY_MINERALS,
-    PETROCARBS, KEY_MINERALS,
+    METAL_ORES , KEY_MINERALS,
     FUEL_CORES, KEY_MINERALS,
-    RARITIES  , KEY_MINERALS,
     
     STIM_KITS , KEY_MEDICAL ,
     SPICE     , KEY_MEDICAL ,
@@ -82,6 +84,8 @@ public class SupplyDepot extends Venue implements
     PARTS     , KEY_BUILDING,
     PLASTICS  , KEY_BUILDING,
     CIRCUITRY , KEY_BUILDING,
+    PRESSFEED , KEY_BUILDING,
+    DATALINKS , KEY_BUILDING,
     DECOR     , KEY_BUILDING 
   ) ;
   

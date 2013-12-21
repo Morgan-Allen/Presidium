@@ -206,7 +206,7 @@ public class Inventory {
     */
   public boolean removeItem(Item item) {
     if (item.amount <= 0) {
-      I.sayAbout(owner, "Adding null item... "+item.amount) ;
+      I.say("Removing null item... "+item.amount) ;
       new Exception().printStackTrace() ;
       return false ;
     }

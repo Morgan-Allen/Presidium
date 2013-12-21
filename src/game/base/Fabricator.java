@@ -103,10 +103,7 @@ public class Fabricator extends Venue implements Economy {
   
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    if (structure.upgradeLevel(ORGANIC_BONDING) == 0) {
-      stocks.translateDemands(1, PETROCARBS_TO_PLASTICS) ;
-    }
-    else stocks.translateBest(1, PETROCARBS_TO_PLASTICS, CARBS_TO_PLASTICS) ;
+    stocks.translateDemands(1, CARBS_TO_PLASTICS) ;
     
     final float powerNeed = 2 + (structure.numUpgrades() / 2f) ;
     stocks.bumpItem(POWER, powerNeed / -10) ;
@@ -144,20 +141,9 @@ public class Fabricator extends Venue implements Economy {
       choice.add(o) ;
     }
     
-    final Manufacture m = (bondBonus <= 1) ?
-      stocks.nextManufacture(
-        actor, PETROCARBS_TO_PLASTICS
-      ) :
-      stocks.bestManufacture(
-        actor, PETROCARBS_TO_PLASTICS, CARBS_TO_PLASTICS
-      ) ;
+    final Manufacture m = stocks.nextManufacture(actor, CARBS_TO_PLASTICS) ;
     if (m != null) {
-      if (m.conversion == PETROCARBS_TO_PLASTICS) {
-        m.checkBonus = loomBonus + (bondBonus / 2) ;
-      }
-      else {
-        m.checkBonus = (loomBonus / 2) + bondBonus ;
-      }
+      m.checkBonus = (loomBonus / 2) + bondBonus ;
       m.checkBonus -= powerCut ;
       choice.add(m) ;
     }
@@ -196,7 +182,7 @@ public class Fabricator extends Venue implements Economy {
   /**  Rendering and interface methods-
     */
   protected Service[] goodsToShow() {
-    return new Service[] { DECOR, PLASTICS, CARBS, PETROCARBS } ;
+    return new Service[] { DECOR, PLASTICS, CARBS } ;
   }
   
   public Composite portrait(HUD UI) {

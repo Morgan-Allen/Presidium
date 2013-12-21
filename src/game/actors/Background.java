@@ -657,7 +657,7 @@ public class Background implements Economy, Session.Saveable {
       "cults and revered arcane relics.",
       null, 1, 1, WASTES_BLOOD, NORMAL_GRAVITY,
       MAKES, PARTS, DATALINKS, REPLICANTS,
-      NEEDS, PETROCARBS, DECOR, RARITIES,
+      NEEDS, ATOMICS, DECOR, ARTIFACTS,
       HIVES_BIRTH, PYON_BIRTH,
       LEARNING, ASSEMBLY, ANCIENT_LORE,
       OFTEN, ARTIFICER_CIRCLES, SOMETIMES, COURT_CIRCLES,
@@ -669,7 +669,7 @@ public class Background implements Economy, Session.Saveable {
       "defection to the Calivor Republic have earned it several foes- and a "+
       "crucial role in quadrant defence strategy.",
       null, 0, 0, FOREST_BLOOD, STRONG_GRAVITY,
-      MAKES, CARBS, GREENS, PETROCARBS,
+      MAKES, CARBS, GREENS, ATOMICS,
       NEEDS, SERVICE_ARMAMENT, PARTS, MEDICINE,
       GUILDER_BIRTH, FREE_BIRTH,
       LEARNING, MARKSMANSHIP, ANATOMY,
@@ -683,7 +683,7 @@ public class Background implements Economy, Session.Saveable {
       "rampant smuggling and black market research.",
       null, 1, 0, TUNDRA_BLOOD, NOMINAL_GRAVITY,
       MAKES, CIRCUITRY, MEDICINE, SERVICE_SHIPPING,
-      NEEDS, GREENS, METAL_ORE, FUEL_CORES,
+      NEEDS, GREENS, METAL_ORES, FUEL_CORES,
       HIVES_BIRTH, GUILDER_BIRTH,
       LEARNING, FIELD_THEORY, STEALTH_AND_COVER,
       OFTEN, VENDOR_CIRCLES, OUTLAW_CIRCLES, SOMETIMES, ARTIFICER_CIRCLES
@@ -700,7 +700,7 @@ public class Background implements Economy, Session.Saveable {
       RARELY, VENDOR_CIRCLES, NEVER, OUTLAW_CIRCLES
     ),
     PLANET_NORUSEI = new System(
-      "Norusei", "House Maia",
+      "Norusei", "House Rana",
       "Once an idyllic tropical planet-resort, Norusei has enjoyed something "+
       "of a renaissance following the devastation of the Machine Wars, "+
       "boasting a rich tourist trade and export of celebrity cult-idols.",
@@ -738,8 +738,7 @@ public class Background implements Economy, Session.Saveable {
       "seven centuries- a controversial edict, but ruthlessly enforced.  "+
       "Known today as Diapsor, the Bloodstone of the Gulf, intense "+
       "population pressures on several of the Homeworlds, together with "+
-      "ecological improvement, have opened the doors to lasting "+
-      "re-settlement- and perhaps even the title of Lord Solar.",
+      "ecological improvement, have opened the doors to re-settlement.",
       null, -1, -1, MUTATION, NORMAL_GRAVITY
     ),
     

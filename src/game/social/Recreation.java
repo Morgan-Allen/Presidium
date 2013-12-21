@@ -89,9 +89,10 @@ public class Recreation extends Plan implements Economy, Abilities {
   public float priorityFor(Actor actor) {
     if (cost > actor.gear.credits() / 2f) return 0 ;
     
-    float priority = IDLE ;
-    if (! actor.mind.work().personnel().onShift(actor)) {
-      priority = (ROUTINE * (1 - actor.health.moraleLevel())) + IDLE ;
+    final Employment work = actor.mind.work() ;
+    float priority = ROUTINE * (1 - actor.health.moraleLevel()) ;
+    if (work != null && work.personnel().onShift(actor)) {
+      priority = IDLE ;
     }
     
     final float performValue = Performance.performValueFor(venue, this) ;

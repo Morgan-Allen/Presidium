@@ -248,6 +248,24 @@ public class World {
   }
   
   
+  
+  //
+  //  TODO:  Break this down into separate methods.
+  public Base baseWithName(String title, boolean create, boolean primal) {
+    for (Base base : bases) if (
+      base.title != null &&
+      base.title.equals(title) &&
+      base.primal == primal
+    ) {
+      return base ;
+    }
+    if (! create) return null ;
+    final Base newBase = Base.createFor(this, primal) ;
+    newBase.title = title ;
+    return newBase ;
+  }
+  
+  
   public Terrain terrain() {
     return terrain ;
   }

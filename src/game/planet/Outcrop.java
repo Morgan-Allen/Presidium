@@ -4,20 +4,18 @@
 package src.game.planet ;
 import src.game.common.* ;
 import src.graphics.common.* ;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
 
 
-public class Outcrop extends Fixture {
+public class Outcrop extends Fixture implements Selectable {
   
   
   /**  These are utility methods intended to determine the type and appearance
     *  of an outcrop based on underlying terrain type and mineral content.
     */
-  //
-  //  TODO:  In a later version, you might want to have different outcrop types
-  //  for different forms of terrain...
   final public static int
     TYPE_MESA    =  0,
     TYPE_DUNE    =  1,
@@ -144,7 +142,14 @@ public class Outcrop extends Fixture {
     if (size > 1 || type == TYPE_DUNE) s.scale = size / 2f ;
     attachSprite(s) ;
     setAsEstablished(true) ;
+    world.presences.togglePresence(this, origin(), true , Outcrop.class) ;
     return true ;
+  }
+  
+  
+  public void exitWorld() {
+    world.presences.togglePresence(this, origin(), false, Outcrop.class) ;
+    super.exitWorld() ;
   }
   
   
@@ -155,8 +160,8 @@ public class Outcrop extends Fixture {
   }
   
   
-  public int mineralType() {
-    return mineral ;
+  public byte mineralType() {
+    return (byte) mineral ;
   }
   
   
@@ -171,6 +176,16 @@ public class Outcrop extends Fixture {
   }
   
   
+  public float bulk() {
+    return size * size * high ;
+  }
+  
+  
+  public float mineralAmount() {
+    return condition * bulk() * Terrain.AMOUNT_COMMON ;
+  }
+  
+  
   
   /**  Rendering and interface methods-
     */
@@ -179,11 +194,46 @@ public class Outcrop extends Fixture {
   }
   
   
-  public Texture portrait() {
-    return null ;
+  public String toString() {
+    return fullName() ;
   }
   
   
+  public Composite portrait(HUD UI) {
+    return null ;
+  }
+
+
+  public void writeInformation(Description d, int categoryID, HUD UI) {
+    final int c = (int) (100 * condition()) ;
+    d.append("  Condition: "+c+"%") ;
+    int varID = this.mineral ;
+    if (varID < 0) varID = 0 ;
+    d.append("\n  Outcrop type: "+Terrain.MINERAL_NAMES[varID]) ;
+    d.append("\n\n") ;
+    d.append(helpInfo()) ;
+  }
+
+
+  public InfoPanel createPanel(BaseUI UI) {
+    return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
+  }
+
+
+  public Target subject() {
+    return this ;
+  }
+  
+  
+  public void renderSelection(Rendering rendering, boolean hovered) {
+    Selection.renderPlane(
+      rendering, viewPosition(null), radius() + 0.5f + ((size - 1) / 5f),
+      Colour.transparency(hovered ? 0.25f : 0.5f),
+      Selection.SELECT_CIRCLE
+    ) ;
+  }
+
+
   public String helpInfo() {
     return
       "Rock outcrops are a frequent indication of underlying mineral wealth." ;
@@ -195,12 +245,13 @@ public class Outcrop extends Fixture {
   }
   
   
-  public void writeInformation(Description d, int categoryID) {
-    d.append(helpInfo()) ;
-  }
-  
-  
   public void whenClicked() {
+    //
+    //  TODO:  This is some really awkward phrasing.  When have you ever used
+    //  a *non*-BaseUI?
+    if (PlayLoop.currentUI() instanceof BaseUI) {
+      ((BaseUI) PlayLoop.currentUI()).selection.pushSelection(this, false) ;
+    }
   }
 }
 

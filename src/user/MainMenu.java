@@ -432,7 +432,7 @@ public class MainMenu extends UIGroup {
   
   
   private Base generateBase(World world) {
-    final Base base = Base.createFor(world) ;
+    final Base base = Base.createFor(world, false) ;
     
     int funding = -1, interest = -1 ;
     switch (landPerks[1]) {
@@ -464,7 +464,7 @@ public class MainMenu extends UIGroup {
     final World world = new World(TG.generateTerrain()) ;
     TG.setupMinerals(world, 0, 0, 0) ;
     TG.setupOutcrops(world) ;
-    final Base base = Base.createFor(world) ;
+    final Base base = Base.createFor(world, false) ;
     
     //
     //  
@@ -538,13 +538,9 @@ public class MainMenu extends UIGroup {
     Human AA[] = advisors.toArray(Human.class) ;
     
     //
-    //  TODO:  You need to actively search for a suitable location to place the
-    //  Bastion.  Somewhere that won't be clipped by unpathable terrain, but
-    //  preferably close to one edge of the map.  (Then you can build up lairs
-    //  away from it!)
+    //  TODO:  Place lairs away from the bastion.
     
-    
-    Scenario.establishVenue(bastion, 12, 12, true, world, AA) ;
+    Placement.establishVenue(bastion, 12, 12, true, world, AA) ;
     bastion.clearSurrounds() ;
     for (Actor a : advisors) {
       a.mind.setHome(bastion) ;

@@ -98,7 +98,7 @@ public class Scenario implements Session.Saveable {
   
   
   protected Base createBase(World world) {
-    return Base.createFor(world) ;
+    return Base.createFor(world, false) ;
   }
   
   
@@ -305,60 +305,6 @@ public class Scenario implements Session.Saveable {
     */
   public Behaviour taskFor(Actor actor) {
     return null ;
-  }
-  
-  //
-  //  TODO:  This method needs to search for the *closest available* spot at
-  //  which the given venue can be established (hell, it could be in the middle
-  //  of an ocean.)  Use a Tilespread for the purpose(?)
-  public static Venue establishVenue(
-    final Venue v, int atX, int atY, boolean intact, final World world,
-    Actor... employed
-  ) {
-    
-    //
-    //  First, you need to find a suitable entry point.  Try points close to
-    //  the starting location, and perform tilespreads from there.
-    //
-    //  ...I think a pathing map might be needed for this purpose.
-    
-    Tile init = world.tileAt(atX, atY) ;
-    init = Spacing.nearestOpenTile(init, init) ;
-    if (init == null) return null ;
-    
-    final TileSpread search = new TileSpread(init) {
-      protected boolean canAccess(Tile t) {
-        return ! t.blocked() ;
-      }
-      protected boolean canPlaceAt(Tile t) {
-        v.setPosition(t.x, t.y, world) ;
-        return v.canPlace() ;
-      }
-    } ;
-    search.doSearch() ;
-    
-    if (! search.success()) return null ;//I.complain("NO STARTING POSITION FOUND!") ;
-    else v.doPlace(v.origin(), null) ;
-    
-    if (intact) {
-      v.structure.setState(Structure.STATE_INTACT, 1.0f) ;
-      v.onCompletion() ;
-    }
-    else {
-      v.structure.setState(Structure.STATE_INSTALL, 0.0f) ;
-    }
-    final Tile e = world.tileAt(v) ;
-    for (Actor a : employed) {
-      a.mind.setWork(v) ;
-      if (! a.inWorld()) {
-        a.assignBase(v.base()) ;
-        a.enterWorldAt(e.x, e.y, world) ;
-        a.goAboard(v, world) ;
-      }
-    }
-    if (GameSettings.hireFree) Personnel.fillVacancies(v) ;
-    v.setAsEstablished(true) ;
-    return v ;
   }
 }
 

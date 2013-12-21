@@ -212,7 +212,7 @@ public class Foundry extends Venue implements Economy {
   /**  Rendering and interface methods-
     */
   protected Service[] goodsToShow() {
-    return new Service[] { METAL_ORE, CIRCUITRY, PARTS } ;
+    return new Service[] { METAL_ORES, CIRCUITRY, PARTS } ;
   }
   
   

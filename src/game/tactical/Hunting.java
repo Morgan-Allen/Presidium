@@ -10,6 +10,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.common.* ;
 import src.game.planet.* ;
+import src.game.social.* ;
 import src.util.* ;
 import src.user.* ;
 
@@ -25,7 +26,8 @@ public class Hunting extends Combat implements Economy {
   final public static int
     TYPE_FEEDS   = 0,
     TYPE_HARVEST = 1,
-    TYPE_SAMPLE  = 2 ;
+    TYPE_PROCESS = 2,
+    TYPE_SAMPLE  = 3 ;
   final static int
     STAGE_INIT          = 0,
     STAGE_HUNT          = 1,
@@ -39,15 +41,41 @@ public class Hunting extends Combat implements Economy {
   
   final int type ;
   final Actor prey ;
+  final Employment depot ;
   private int stage = STAGE_INIT ;
   private float beginTime = -1 ;
   
   
   
-  public Hunting(Actor actor, Actor prey, int type) {
+  public static Hunting asFeeding(Actor actor, Actor prey) {
+    return new Hunting(actor, prey, TYPE_FEEDS, null) ;
+  }
+  
+  
+  public static Hunting asHarvest(Actor actor, Actor prey, Employment depot) {
+    if (depot == null) return asFeeding(actor, prey) ;
+    return new Hunting(actor, prey, TYPE_HARVEST, depot) ;
+  }
+  
+  
+  public static Hunting asProcess(Actor actor, Actor prey, Employment depot) {
+    if (depot == null) I.complain("NO DEPOT SPECIFIED!") ;
+    return new Hunting(actor, prey, TYPE_PROCESS, depot) ;
+  }
+  
+  
+  public static Hunting asSample(Actor actor, Actor prey, Employment depot) {
+    if (depot == null) I.complain("NO DEPOT SPECIFIED!") ;
+    return new Hunting(actor, prey, TYPE_SAMPLE, depot) ;
+  }
+  
+  
+  
+  private Hunting(Actor actor, Actor prey, int type, Employment depot) {
     super(actor, prey) ;
     this.prey = prey ;
     this.type = type ;
+    this.depot = depot ;
   }
   
   
@@ -55,6 +83,7 @@ public class Hunting extends Combat implements Economy {
     super(s) ;
     prey = (Actor) s.loadObject() ;
     type = s.loadInt() ;
+    depot = (Employment) s.loadObject() ;
     stage = s.loadInt() ;
     beginTime = s.loadFloat() ;
   }
@@ -64,6 +93,7 @@ public class Hunting extends Combat implements Economy {
     super.saveState(s) ;
     s.saveObject(prey) ;
     s.saveInt(type) ;
+    s.saveObject(depot) ;
     s.saveInt(stage) ;
     s.saveFloat(beginTime) ;
   }
@@ -106,7 +136,9 @@ public class Hunting extends Combat implements Economy {
   }
   
   
-  public static Actor nextPreyFor(Actor actor, float sampleRange) {
+  public static Actor nextPreyFor(
+    Actor actor, float sampleRange, boolean conserve
+  ) {
     ///I.say("FINDING PREY FOR: "+actor) ;
     //
     //  TODO:  Base this off the list of stuff the actor is aware of?
@@ -132,12 +164,14 @@ public class Hunting extends Combat implements Economy {
       if (s.type != Species.Type.BROWSER) rating /= 2 ;
       rating -= Plan.rangePenalty(actor, f) ;
       if (rating < 0) continue ;
-      rating *= ecology.globalAbundance(s) * Rand.avgNums(2) ;
+      final float abundance = ecology.globalAbundance(s) ;
+      if (conserve && abundance < 1) continue ;
+      rating *= abundance * Rand.avgNums(2) ;
       //
       //  
       if (rating > bestRating) { pickedPrey = f ; bestRating = rating ; }
     }
-    if (pickedPrey == null) I.say("NO PREY FOUND FOR "+actor) ;
+    //if (pickedPrey == null) I.say("NO PREY FOUND FOR "+actor) ;
     //else I.say("PREY IS: "+pickedPrey) ;
     return pickedPrey ;
   }
@@ -146,29 +180,17 @@ public class Hunting extends Combat implements Economy {
   
   /**  Actual implementation-
     */
-  public boolean monitor(Actor actor) {
+  public int motionType(Actor actor) {
+    //
     //  Close at normal speed until you are near your prey.  Then enter stealth
     //  mode to get closer.  If they spot you, charge.
-    //float dist = Spacing.distance(actor, prey) ;
-    
     if (prey.mind.awareOf(actor)) {
-      
+      return MOTION_FAST ;
     }
     else if (actor.mind.awareOf(prey)) {
-      
+      return MOTION_SNEAK ;
     }
-    else {
-      
-    }
-    
-    //if (oldStage != newStage) actor.AI.swapActionFor(this, nextStep()) ;
-    return super.monitor(actor) ;
-  }
-  
-  
-  protected Behaviour getNextClosing() {
-    //  Either close normally, or make it slow.  Then charge.
-    return null ;
+    else return super.motionType(actor) ;
   }
   
   
@@ -179,21 +201,6 @@ public class Hunting extends Combat implements Economy {
       return null ;
     }
 
-    if (type == TYPE_FEEDS) {
-      return nextFeeding() ;
-    }
-    if (type == TYPE_HARVEST) {
-      return nextHarvest() ;
-    }
-    I.complain("Behaviour not implemented yet!") ;
-    return null ;
-  }
-  
-  
-  
-  /**  Routines for feeding on meat directly-
-    */
-  protected Behaviour nextFeeding() {
     if (prey.health.conscious()) return super.getNextStep() ;
     if (actor.health.energyLevel() >= 1.5f) {
       I.say(actor+" has eaten their fill of "+prey) ;
@@ -206,63 +213,71 @@ public class Hunting extends Combat implements Economy {
     ) ;
     return feeding ;
   }
-
-
-  public boolean actionFeed(Actor actor, Actor prey) {
-    //
-    //  Tear off chunks of meat and fill your belly.
-    if (! prey.health.dying()) prey.health.setState(ActorHealth.STATE_DYING) ;
-    final float
-      before = prey.health.injuryLevel(),
-      damage = actor.gear.attackDamage() * (Rand.num() + 0.5f) / 2 ;
-    prey.health.takeInjury(damage) ;
-    float taken = prey.health.injuryLevel() - before ;
-    taken *= prey.health.maxHealth() * 10 ;
-    actor.health.takeSustenance(taken, 1) ;
-    ///I.say("Energy level: "+actor.health.energyLevel()) ;
-    return true ;
-  }
-  
-  
-  
-  /**  Routines for harvesting meat and bringing back to the depot-
-    */
-  protected Behaviour nextHarvest() {
-    if (prey.health.conscious()) return super.getNextStep() ;
-    if (prey.destroyed()) {
-      if (actor.gear.amountOf(PROTEIN) <= 0 || actor.mind.work() == null) {
-        return null ;
-      }
-      final Action returning = new Action(
-        actor, actor.mind.work(),
-        this, "actionReturnHarvest",
-        Action.REACH_DOWN, "Returning game meat"
-      ) ;
-      return returning ;
-    }
-    final Action harvest = new Action(
-      actor, prey,
-      this, "actionHarvest",
-      Action.BUILD, "Harvesting from "+prey
-    ) ;
-    return harvest ;
-  }
   
   
   public boolean actionHarvest(Actor actor, Actor prey) {
+    if (type == TYPE_SAMPLE) {
+      final Item sample = Item.withReference(SAMPLES, prey) ;
+      actor.gear.addItem(sample) ;
+      return true ;
+    }
+    //
+    //  Determine just how large a chunk you can take out of the prey-
+    final float
+      before = prey.health.injuryLevel(),
+      damage = actor.gear.attackDamage() * (Rand.num() + 0.5f) / 10 ;
+    prey.health.takeInjury(damage) ;
+    float taken = prey.health.injuryLevel() - before ;
+    taken *= prey.health.maxHealth() ;
+    //
+    //  Then dispose of it appropriately-
     if (! prey.health.dying()) prey.health.setState(ActorHealth.STATE_DYING) ;
-    final float amountMeat = actor.health.maxHealth() / 5f ;
-    actor.gear.addItem(Item.withAmount(PROTEIN, amountMeat)) ;
-    prey.setAsDestroyed() ;
+    if (type == TYPE_FEEDS) {
+      actor.health.takeSustenance(taken * 10, 1) ;
+    }
+    if (type == TYPE_HARVEST) {
+      actor.gear.bumpItem(PROTEIN, taken) ;
+    }
+    if (type == TYPE_PROCESS) {
+      final Item sample = Item.withReference(SAMPLES, prey) ;
+      actor.gear.addItem(Item.withAmount(sample, taken)) ;
+    }
     return true ;
   }
   
   
-  public boolean actionReturnHarvest(Actor actor, Venue store) {
-    //
-    //  TODO:  Try extracting a small amount of spice?  Or delivering the
-    //  corpse back to the store for further treatment?
-    actor.gear.transfer(PROTEIN, store) ;
+  public boolean actionProcess(Actor actor, Actor prey) {
+    if (type == TYPE_HARVEST) {
+      actor.gear.transfer(PROTEIN, depot) ;
+    }
+    
+    if (type == TYPE_PROCESS || type == TYPE_SAMPLE) {
+      final Item
+        sample = Item.withReference(SAMPLES, prey),
+        carried = actor.gear.matchFor(sample) ;
+      if (carried != null) actor.gear.transfer(carried, depot) ;
+      if (type == TYPE_SAMPLE) return true ;
+      
+      final Inventory stocks = depot.inventory() ;
+      final float remaining = stocks.amountOf(sample) ;
+      if (remaining > 0) {
+        float success = 1 ;
+        if (actor.traits.test(DOMESTICS  , SIMPLE_DC  , 1)) success++ ;
+        if (actor.traits.test(XENOZOOLOGY, MODERATE_DC, 1)) success++ ;
+        
+        final Species species = (Species) prey.species() ;
+        float baseAmount = 0.1f, spiceAmount = 0.1f ;
+        if (species.type == Species.Type.BROWSER ) spiceAmount  = 0 ;
+        if (species.type != Species.Type.PREDATOR) spiceAmount /= 4 ;
+        baseAmount = Math.min(baseAmount, remaining) ;
+        
+        stocks.removeItem(Item.withAmount(sample, baseAmount)) ;
+        baseAmount *= success ;
+        spiceAmount *= baseAmount * (1 + (success / 2)) ;
+        stocks.bumpItem(PROTEIN, baseAmount) ;
+        stocks.bumpItem(SPICE, spiceAmount) ;
+      }
+    }
     return true ;
   }
   
@@ -280,16 +295,4 @@ public class Hunting extends Combat implements Economy {
     else d.append("Hunting "+prey) ;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
 

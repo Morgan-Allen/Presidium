@@ -152,11 +152,6 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-  public boolean monitor(Actor actor) {
-    return true ;
-  }
-  
-  
   public void abortBehaviour() {
     progress = -1 ;
     inRange = -1 ;
@@ -202,10 +197,24 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-  private float moveRate() {
-    float rate = actor.health.moveRate() * moveMultiple() ;
+  public int motionType(Actor actor) {
+    if ((properties & QUICK  ) != 0) return MOTION_FAST  ;
+    if ((properties & CAREFUL) != 0) return MOTION_SNEAK ;
+    return MOTION_NORMAL ;
+  }
+  
+  
+  public static float moveRate(Actor actor, boolean basic) {
+    int motionType = MOTION_NORMAL ; for (Behaviour b : actor.mind.agenda) {
+      final int MT = b.motionType(actor) ;
+      if (MT != MOTION_ANY) { motionType = MT ; break ; }
+    }
+    float rate = actor.health.moveRate() ;
+    if (motionType == MOTION_FAST) rate *= 2 * moveLuck(actor) ;
+    if (motionType == MOTION_SNEAK) rate *= (2 - moveLuck(actor)) / 4 ;
+    if (basic) return rate ;
     //
-    //  You also have to account for the effects of fatigue and encumbrance...
+    //  TODO:  Must also account for the effects of fatigue and encumbrance...
     final int pathType = actor.origin().pathType() ;
     switch (pathType) {
       case (Tile.PATH_HINDERS) : rate *= 0.8f ; break ;
@@ -213,6 +222,20 @@ public class Action implements Behaviour, Model.AnimNames {
       case (Tile.PATH_ROAD   ) : rate *= 1.2f ; break ;
     }
     return rate ;
+  }
+  
+  
+  public static float moveLuck(Actor actor) {
+    //
+    //  This is employed during chases and stealth conflicts, so that the
+    //  outcome is less (obviously) deterministic.  However, it must be
+    //  constant at a given position and time.
+    final Tile o = actor.origin() ;
+    int var = o.world.terrain().varAt(o) ;
+    var += (o.x * o.world.size) + o.y ;
+    var -= o.world.currentTime() ;
+    var ^= actor.hashCode() ;
+    return (1 + (float) Math.sqrt(Math.abs(var % 10) / 4.5f)) / 2 ;
   }
   
   
@@ -272,7 +295,10 @@ public class Action implements Behaviour, Model.AnimNames {
       I.say("Faced is: "+faced+"\n") ;
     }
     
-    if (moveOK) actor.pathing.headTowards(faced, moveRate(), ! closed) ;
+    if (moveOK) {
+      final float moveRate = moveRate(actor, false) ;
+      actor.pathing.headTowards(faced, moveRate, ! closed) ;
+    }
     //
     //  Check for state changes-
     final byte oldRange = inRange ;
@@ -286,18 +312,6 @@ public class Action implements Behaviour, Model.AnimNames {
     oldProgress = progress ;
     progress += progressPerUpdate() ;
     if (inRange == 1) advanceAction() ;
-  }
-  
-  
-  public float moveMultiple() {
-    float rate = 1 ;
-    if ((properties & QUICK  ) != 0) {
-      rate *= 2 * actor.health.moveLuck() ;
-    }
-    if ((properties & CAREFUL) != 0) {
-      rate *= (2 - actor.health.moveLuck()) / 4 ;
-    }
-    return rate ;
   }
   
   

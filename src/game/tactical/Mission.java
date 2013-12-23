@@ -114,11 +114,6 @@ public abstract class Mission implements
   }
   
   
-  public Actor actor() {
-    return null ;
-  }
-  
-  
   
   /**  Adding and screening applicants-
     */
@@ -217,7 +212,7 @@ public abstract class Mission implements
   
   /**  Default behaviour implementation and utility methods-
     */
-  public boolean monitor(Actor actor) { return false ; }
+  public int motionType(Actor actor) { return MOTION_ANY ; }
   public void abortBehaviour() {}
   
   public void setPriority(float priority) { this.priority = priority ; }

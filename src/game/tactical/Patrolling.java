@@ -152,11 +152,11 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
     return goes == null ;
   }
   
-
-  public boolean monitor(Actor actor) {
+  
+  public int motionType(Actor actor) {
     //
-    //  You'll have to implement observation and chase behaviour here?
-    return true ;
+    //  TODO:  You should be able to implement motion and chase behaviour here.
+    return super.motionType(actor) ;
   }
 
 

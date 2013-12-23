@@ -566,7 +566,8 @@ public abstract class Venue extends Fixture implements
   
   
   private String descDuty(Actor a) {
-    final String VN = a.vocation().nameFor(a) ;
+    final Background v = a.vocation() ;
+    final String VN = v == null ? a.species().toString() : v.nameFor(a) ;
     if (a.mind.home() == this) return "(Resident "+VN+")" ;
     if (a.mind.work() != this) return "(Visiting "+VN+")" ;
     final String duty = personnel.onShift(a) ? "On-Duty" : "Off-Duty" ;

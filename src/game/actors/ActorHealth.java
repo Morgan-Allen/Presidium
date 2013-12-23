@@ -229,6 +229,11 @@ public class ActorHealth implements Abilities {
   }
   
   
+  public void setMaturity(float ageLevel) {
+    currentAge = lifespan * ageLevel ;
+  }
+  
+  
   public int exactAge() {
     return (int) currentAge ;
   }
@@ -286,20 +291,6 @@ public class ActorHealth implements Abilities {
     float range = 0.5f + (actor.traits.useLevel(SURVEILLANCE) / 10f) ;
     range *= (actor.world().dayValue() + 1) / 2 ;
     return (int) (baseSight * (float) Math.sqrt(range * ageMultiple)) ;
-  }
-  
-  
-  public float moveLuck() {
-    //
-    //  This is employed during chases and stealth conflicts, so that the
-    //  outcome is less (obviously) deterministic.  However, it must be
-    //  constant at a given position and time.
-    final Tile o = actor.origin() ;
-    int var = o.world.terrain().varAt(o) ;
-    var += (o.x * o.world.size) + o.y ;
-    var -= o.world.currentTime() ;
-    var ^= actor.hashCode() ;
-    return (1 + (float) Math.sqrt(Math.abs(var % 10) / 4.5f)) / 2 ;
   }
   
   
@@ -562,7 +553,7 @@ public class ActorHealth implements Abilities {
       PM =  0 ;
     }
     else if (actor.currentAction() != null) {
-      FM *= actor.currentAction().moveMultiple() ;
+      FM *= Action.moveRate(actor, true) ;
     }
     if (bleeds) {
       injury++ ;

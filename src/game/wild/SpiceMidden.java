@@ -6,10 +6,17 @@ import src.game.common.* ;
 import src.game.building.* ;
 import src.game.planet.* ;
 import src.graphics.common.* ;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
+
+//
+//  TODO:  Try refurbishing this into a more general 'item-drop' class, where
+//  you supply the content, sprite and decay rate externally.
+//
+//  ...What about the flavour text and title?  Or just have it extend the
+//  ItemDrop class?
 
 
 public class SpiceMidden extends Fixture implements Selectable {

@@ -109,9 +109,11 @@ public abstract class Fauna extends Actor {
   
   
   protected Behaviour nextHunting() {
-    final Actor prey = Hunting.nextPreyFor(this, Lair.PREDATOR_SAMPLE_RANGE) ;
+    final Actor prey = Hunting.nextPreyFor(
+      this, Lair.PREDATOR_SAMPLE_RANGE, false
+    ) ;
     if (prey == null) return null ;
-    final Hunting hunting = new Hunting(this, prey, Hunting.TYPE_FEEDS) ;
+    final Hunting hunting = Hunting.asFeeding(this, prey) ;
     return hunting ;
   }
   

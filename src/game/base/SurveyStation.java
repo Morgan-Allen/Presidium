@@ -13,51 +13,42 @@ import src.user.* ;
 import src.util.* ;
 
 
-//
-//  Sensor Array     - places sensors around perimeter (need parts).
-//  Camouflage       - conceals primary structure.
-//  Native Mission   - supplies gifts & training for contact with natives.
-//  Captive Breeding - tames enlarged animals as meat and companions.
-//  Guerilla station - combat & scouting emphasis.
-//  Explorer station - science & contact emphasis.
 
-//  So... flesh still appears automatically.  Doubles as animal home.
-
-
-
-public class SurveillancePost extends Venue implements Economy {
+public class SurveyStation extends Venue implements Economy {
   
   
   /**  Data fields, constructors and save/load methods-
     */
   final public static Model MODEL = ImageModel.asSolidModel(
-    SurveillancePost.class, "media/Buildings/ecologist/surveyor.png", 5, 1
+    SurveyStation.class, "media/Buildings/ecologist/surveyor.png", 4.8f, 1
   ) ;
   
   
   GroupSprite camouflaged ;
+  FleshStill still ;
   
   
-  public SurveillancePost(Base base) {
-    super(5, 1, Venue.ENTRANCE_EAST, base) ;
+  public SurveyStation(Base base) {
+    super(5, 1, Venue.ENTRANCE_NORTH, base) ;
     structure.setupStats(
-      100, 4, 150,
+      150, 4, 150,
       Structure.NORMAL_MAX_UPGRADES, Structure.TYPE_VENUE
     ) ;
     personnel.setShiftType(SHIFTS_BY_HOURS) ;
     attachSprite(MODEL.makeSprite()) ;
-    
     camouflaged = new GroupSprite() ;
   }
   
   
-  public SurveillancePost(Session s) throws Exception {
+  public SurveyStation(Session s) throws Exception {
     super(s) ;
+    still = (FleshStill) s.loadObject() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
+    s.saveObject(still) ;
   }
   
   
@@ -65,7 +56,7 @@ public class SurveillancePost extends Venue implements Economy {
   /**  Upgrades, economic functions and behaviour implementations-
     */
   final static Index <Upgrade> ALL_UPGRADES = new Index <Upgrade> (
-    SurveillancePost.class, "surveillance_post_upgrades"
+    SurveyStation.class, "surveillance_post_upgrades"
   ) ;
   public Index <Upgrade> allUpgrades() { return ALL_UPGRADES ; }
   final public static Upgrade
@@ -90,19 +81,19 @@ public class SurveillancePost extends Venue implements Economy {
       300,
       null, 1, null, ALL_UPGRADES
     ),
-    ANIMAL_BREEDING = new Upgrade(
+    CAPTIVE_BREEDING = new Upgrade(
       "Animal Breeding",
-      "Regulates the local population of predators and prey, breeding new "+
-      "specimens when absent and performing cullings when necessary.",
+      "Breeds new specimens of local wildlife for use as food stock or "+
+      "personal companions.",
       300,
       null, 1, SENSOR_PERIMETER, ALL_UPGRADES
     ),
-    RIDER_PENS = new Upgrade(
-      "Rider Pens",
-      "Allows certain animal species to be domesticated for use as personal "+
-      "mounts and companions on patrol.",
+    GUERILLA_TRAINING = new Upgrade(
+      "Guerilla Training",
+      "Emphasises combat, stealth and survival exercises relevant in a "+
+      "military capacity.",
       200,
-      null, 1, ANIMAL_BREEDING, ALL_UPGRADES
+      null, 1, THERMAL_CAMOUFLAGE, ALL_UPGRADES
     ),
     EXPLORER_STATION = new Upgrade(
       "Explorer Station",
@@ -113,21 +104,24 @@ public class SurveillancePost extends Venue implements Economy {
     ) ;
   
   
-  //
-  //  TODO:  Place a Flesh Still nearby, if you're culling the herds.
-  
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
+    final Choice choice = new Choice(actor) ;
     //
     //  Return a hunting expedition.   And... just explore the place.  You'll
     //  want to make this a bit more nuanced later.
-    final Choice choice = new Choice(actor) ;
-    final Actor p = Hunting.nextPreyFor(actor, World.SECTOR_SIZE * 2) ;
-    if (p != null) {
-      final Hunting h = new Hunting(actor, p, Hunting.TYPE_HARVEST) ;
-      //h.priorityMod = Plan.ROUTINE ;
-      choice.add(h) ;
+    if (still != null && ! still.destroyed()) {
+      final Delivery d = Deliveries.nextDeliveryFor(
+        actor, still, still.services(), 5, world
+      ) ;
+      choice.add(d) ;
+      final Actor p = Hunting.nextPreyFor(actor, World.SECTOR_SIZE * 2, true) ;
+      if (p != null) {
+        final Hunting h = Hunting.asProcess(actor, p, still) ;
+        choice.add(h) ;
+      }
     }
+    
     final Tile t = Exploring.getUnexplored(actor.base().intelMap, actor) ;
     if (t != null) {
       I.say("TILE FOUND IS: "+t) ;
@@ -135,8 +129,55 @@ public class SurveillancePost extends Venue implements Economy {
       e.priorityMod = Plan.ROUTINE ;
       choice.add(e) ;
     }
-    else I.say("NOTHING LEFT TO EXPLORE?") ;
+    //else I.say("NOTHING LEFT TO EXPLORE?") ;
+    
+    if (structure.upgradeLevel(CAPTIVE_BREEDING) > 0) {
+      final Fauna toTend = AnimalHusbandry.nextHandled(this) ;
+      if (toTend != null) {
+        choice.add(new AnimalHusbandry(actor, this, toTend)) ;
+      }
+    }
+    
+    final SensorPost newPost = SensorPost.locateNewPost(this) ;
+    if (newPost != null) {
+      final Action collects = new Action(
+        actor, newPost,
+        this, "actionCollectSensor",
+        Action.REACH_DOWN, "Collecting sensor"
+      ) ;
+      collects.setMoveTarget(this) ;
+      final Action plants = new Action(
+        actor, newPost.origin(),
+        this, "actionPlantSensor",
+        Action.REACH_DOWN, "Planting sensor"
+      ) ;
+      plants.setMoveTarget(Spacing.pickFreeTileAround(newPost, actor)) ;
+      choice.add(new Steps(actor, this, Plan.ROUTINE, collects, plants)) ;
+    }
+    
     return choice.weightedPick() ;
+  }
+  
+  
+  public boolean actionCollectSensor(Actor actor, SensorPost post) {
+    actor.gear.addItem(Item.withReference(SAMPLES, post)) ;
+    return true ;
+  }
+  
+  
+  public boolean actionPlantSensor(Actor actor, Tile t) {
+    SensorPost post = null ;
+    for (Item i : actor.gear.matches(SAMPLES)) {
+      if (i.refers instanceof SensorPost) {
+        post = (SensorPost) i.refers ;
+        actor.gear.removeItem(i) ;
+      }
+    }
+    if (post == null) return false ;
+    post.setPosition(t.x, t.y, world) ;
+    if (! Spacing.perimeterFits(post)) return false ;
+    post.enterWorld() ;
+    return true ;
   }
   
   
@@ -147,7 +188,9 @@ public class SurveillancePost extends Venue implements Economy {
   
   public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Background.EXPLORER) return nO + 2 ;
+    if (v == Background.EXPLORER) {
+      return nO + 2 + structure.upgradeLevel(EXPLORER_STATION) ;
+    }
     return 0 ;
   }
   
@@ -157,7 +200,25 @@ public class SurveillancePost extends Venue implements Economy {
   }
   
   
+  public void updateAsScheduled(int numUpdates) {
+    super.updateAsScheduled(numUpdates) ;
+    if (! structure.intact()) return ;
+    stocks.forceDemand(CARBS, 5, VenueStocks.TIER_CONSUMER) ;
+    
+    if (still == null || still.destroyed()) {
+      final Tile o = Spacing.pickRandomTile(this, 4, world) ;
+      still = (FleshStill) Placement.establishVenue(
+        new FleshStill(this), o.x, o.y, GameSettings.buildFree, world
+      ) ;
+    }
+  }
   
+  
+  protected void updatePaving(boolean inWorld) {
+  }
+  
+
+
   /**  Rendering and interface-
     */
   public void renderFor(Rendering rendering, Base base) {
@@ -173,7 +234,7 @@ public class SurveillancePost extends Venue implements Economy {
   
   
   public String fullName() {
-    return "Surveillance Post" ;
+    return "Survey Station" ;
   }
   
   
@@ -184,13 +245,13 @@ public class SurveillancePost extends Venue implements Economy {
   
   public String helpInfo() {
     return
-      "Surveyors are responsible for exploring the hinterland of your "+
+      "Survey Stations are responsible for exploring the hinterland of your "+
       "settlement, scouting for danger and regulating animal populations." ;
   }
   
   
   public String buildCategory() {
-    return UIConstants.TYPE_MILITANT ;
+    return UIConstants.TYPE_ECOLOGIST ;
   }
 }
 

@@ -81,6 +81,7 @@ public class Quud extends Fauna {
     final float danger = Retreat.dangerAtSpot(
       origin(), this, null, mind.awareOf()
     ) ;
+    I.sayAbout(this, "Danger is: "+danger) ;
     if (danger <= 0) return null ;
     final Action hunker = new Action(
       this, this,

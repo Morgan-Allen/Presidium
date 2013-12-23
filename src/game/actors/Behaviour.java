@@ -14,24 +14,28 @@ import src.user.* ;
 public interface Behaviour extends Session.Saveable {
   
   final public static float
-    IDLE     = 1,
-    CASUAL   = 3,
-    ROUTINE  = 5,
-    URGENT   = 7,
-    CRITICAL = 9,
+    IDLE      = 1,
+    CASUAL    = 3,
+    ROUTINE   = 5,
+    URGENT    = 7,
+    CRITICAL  = 9,
     PARAMOUNT = 10 ;
+  final public static int
+    MOTION_ANY    = -1,
+    MOTION_NORMAL =  0,
+    MOTION_FAST   =  1,
+    MOTION_SNEAK  =  2 ;
   
   
   Behaviour nextStepFor(Actor actor) ;
-  boolean monitor(Actor actor) ;
-  Actor actor() ;
+  int motionType(Actor actor) ;
+  void abortBehaviour() ;
+  void onSuspend() ;
   
   float priorityFor(Actor actor) ;
   boolean finished() ;
-  void abortBehaviour() ;
   boolean valid() ;
   boolean begun() ;
-  void onSuspend() ;
   
   void describeBehaviour(Description d) ;
 }

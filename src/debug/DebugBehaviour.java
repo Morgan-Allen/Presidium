@@ -20,7 +20,6 @@ import src.user.* ;
 import src.util.* ;
 
 
-
 //
 //  ...I need to start working on the 'hero' side of things.  Who really
 //  qualifies at the moment?
@@ -31,50 +30,15 @@ import src.util.* ;
 //  ...These are the folks able to fight, but not necessarily devoted to it.
 //  You can call on them to get missions done.
 
-//
-//  ...Why does the other stuff matter?  Only as a visual indicator of stuff
-//  happening.  That production is underway, land used, et cetera.
-
 /*
-
-  Strip mining/smelter replacement/artifact construction.  ...Cool.  Deliver to
-artificer?  ...Yeah.  (Robot danger is immediate, however.)
-  That just leaves the surveyor.  Plus contact & security missions.  Great.
-Excellent.
-  Surveyor- fill in stuff around perimeter, and expand behaviour repertoire for
-employees (and bred/friendly animals.)
-
-  The arcology still needs tweaking, but I can handle that with a simple flood-
-fill.  Walls and causeways need art tweaked or redone.
-
-  Also, the stock exchange needs to actively *produce* money- based on how
-healthy the economy of your settlement as a whole is!  And/or, actors can
-invest their savings here, earning interest over time for both you and them!
-(25% to exchange, 25% to state, 50% to client.  Auditors needs to look over it,
-though.)
+   TODO:
+   Contact/relations & Security/treatment.
+   Ecology simulation & squalor display.
+   Stock exchange & internal demand bug.
+   Walls, arcology and causeways need art/functions tweaked or redone.
+   General polish for mines, the surveyor, maybe the cantina & holocade.
+   Housing stability, and funds deduction during construction.
 //*/
-
-
-//
-//  TODO:  Contact/security missions must be completed.
-//
-//  TODO:  Finish the surveillance post and arcology, plus mines & stock-ex.
-//         Also, polish up causeways and placement for ambience structures.
-//
-//  TODO:  You also need to improve the stability of power/water/life-support
-//         delivery to housing.
-//
-//  TODO:  Lairs and ecology-stability need more testing.
-//
-//  Have auditing and construction deduct funds instantly.  It's just easier
-//  that way, and makes sense if you're using virtual credits.
-//
-//  Have pollution/terraforming gradually change the landscape.
-//
-//  Tweak mechanics for diplomacy and citizen mood.  (Good relations are way
-//  too easy/quick at the moment.)
-//
-//  Actors should call for help from allies, and need proper line of sight.
 
 
 
@@ -303,35 +267,6 @@ public class DebugBehaviour extends Scenario implements Economy {
     sickbay.stocks.bumpItem(MEDICINE , 5) ;
     ((BaseUI) UI).selection.pushSelection(other, true) ;
   }
-  
-  
-  /*
-  public static Venue establishVenue(
-    Venue v, int atX, int atY, boolean intact,
-    Actor... employed
-  ) {
-    final World world = PlayLoop.currentScenario().world ;
-    v.enterWorldAt(atX, atY, world) ;
-    if (intact) {
-      v.structure.setState(Structure.STATE_INTACT, 1.0f) ;
-      v.onCompletion() ;
-    }
-    else {
-      v.structure.setState(Structure.STATE_INSTALL, 0.0f) ;
-    }
-    final Tile e = world.tileAt(v) ;
-    for (Actor a : employed) {
-      a.mind.setEmployer(v) ;
-      if (! a.inWorld()) {
-        a.enterWorldAt(e.x, e.y, world) ;
-        a.goAboard(v, world) ;
-      }
-    }
-    if (GameSettings.hireFree) VenuePersonnel.fillVacancies(v) ;
-    v.setAsEstablished(true) ;
-    return v ;
-  }
   //*/
-//}
 
 

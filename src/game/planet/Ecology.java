@@ -218,7 +218,7 @@ public class Ecology {
       numOfType = numHunters ;
     }
     float rarity = (((numOfType + 1) / (numPeers + 1)) + 1) / 2f ;
-    return numOfType / (idealPop * rarity) ;
+    return (numOfType + 0.1f) / (0.1f + (idealPop * rarity)) ;
   }
   
   

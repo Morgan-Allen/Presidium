@@ -170,11 +170,10 @@ public class HumanMind extends ActorMind implements Abilities {
       if (++numR > reactLimit) break ;
     }
     //
-    //  TODO:  YOU'LL NEED TO DO MANUAL SAMPLING HERE
-    
+    //  
     for (Element e : awareOf()) if (e instanceof Actor) {
       final Actor nearby = (Actor) e ;
-      choice.add(new Hunting(actor, nearby, Hunting.TYPE_HARVEST)) ;
+      choice.add(Hunting.asHarvest(actor, nearby, home)) ;
       choice.add(new Combat(actor, nearby)) ;
       choice.add(new Dialogue(actor, nearby, null)) ;
       choice.add(new Treatment(actor, nearby, null)) ;

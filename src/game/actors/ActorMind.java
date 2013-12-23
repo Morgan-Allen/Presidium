@@ -218,7 +218,7 @@ public abstract class ActorMind implements Abilities {
     */
   protected void updateAI(int numUpdates) {
     updateSeen() ;
-    for (Behaviour b : agenda) if (b.monitor(actor)) break ;
+    //for (Behaviour b : agenda) if (b.monitor(actor)) break ;
     if (numUpdates % 10 != 0) return ;
     //
     //  Remove any expired behaviour-sources:

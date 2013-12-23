@@ -5,8 +5,8 @@
   */
 
 
+
 package src.game.planet ;
-import src.game.campaign.Scenario ;
 import src.game.base.* ;
 import src.game.common.* ;
 import src.game.actors.* ;
@@ -40,6 +40,11 @@ public class EcologyGen {
     MAJOR_LAIR_COUNTS[] = { 0, 0, 1, 4 },
     MINOR_LAIR_COUNTS[] = { 0, 1, 4, 8 },
     VARIANCE = 4 ;
+  final public static String
+    KEY_ARTILECTS = "Artilects",
+    KEY_WILDLIFE  = "Wildlife" ,
+    KEY_NATIVES   = "Natives"  ;
+  
   //
   //  TODO:  Try creating a dedicated 'LairSite' class.
   

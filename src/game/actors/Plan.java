@@ -108,9 +108,13 @@ public abstract class Plan implements Saveable, Behaviour {
   
   /**  Default implementations of Behaviour methods-
     */
-  public boolean monitor(Actor actor) {
-    return false ;
+  //
+  //  TODO:  This needs to return the appropriate motion mode for the actor at
+  //  the given time.
+  public int motionType(Actor actor) {
+    return MOTION_ANY ;
   }
+  
   
 
   public void abortBehaviour() {

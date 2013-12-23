@@ -176,90 +176,49 @@ public class Smelter extends Venue implements Economy {
   }
   
   
-  static float rateSite(Smelter s, Service mined, World world) {
-    //
-    //  Ideally, you want some place that's not too close to other structures,
-    //  especially of the same type, but also close to the parent shaft, and
-    //  rich in associated minerals.
-    if (! s.canPlace()) return -1 ;
-    final int maxRange = World.SECTOR_SIZE ;
-    float parentDist = Spacing.distance(s, s.parent) ;
-    float minDist = maxRange ;
-    
-    for (Object o : world.presences.matchesNear(Venue.class, s, maxRange)) {
-      final Venue v = (Venue) o ;
-      if (v == s.parent) continue ;
-      minDist = Spacing.distance(s, v) ;
-      break ;
-    }
-    if (minDist <= s.size) return 0 ;
-    
-    float sumMinerals = 0 ;
-    final Box2D area = s.area(null).expandBy(s.size) ;
-    for (Tile under : world.tilesIn(area, true)) {
-      sumMinerals += world.terrain().mineralsAt(under, s.variant()) ;
-    }
-    
-    float rating = (sumMinerals / area.area()) + 0.1f ;
-    rating *= 1 - (parentDist / maxRange) ;
-    rating *= minDist / maxRange ;
-    I.say("  Rating for "+s+" is- "+rating) ;
-    return rating ;
-  }
-  
-  
   final static int STRIP_DIRS[]  = { N, E, S, W } ;
   
-  static Smelter[] siteNewDrill(ExcavationSite site, Service mined) {
-    final World world = site.world() ;
-    final int maxDist = World.SECTOR_SIZE ;
-    Smelter bestStrip[] = null ;
-    float bestRating = 0 ;
-    
-    search: for (int m = 10 ; m-- > 0 ;) {
-      final Tile t = Spacing.pickRandomTile(site.origin(), maxDist, world) ;
-      if (t == null) continue ;
-      
-      final int off = Rand.index(4) ;
-      for (int n = 4 ; n-- > 0 ;) {
-        I.say("  Making fresh placement attempt...") ;
-        final int dir = STRIP_DIRS[(n + off) % 4] ;
-        final Smelter strip[] = new Smelter[2] ;
-        float rating = 0 ;
-        strip[0] = new Smelter(site, mined, dir, strip) ;
-        strip[1] = new Smelter(site, mined, dir, strip) ;
-        strip[0].setPosition(t.x, t.y, world) ;
-        strip[1].setPosition(
-          t.x + (N_X[dir] * 3), t.y + (N_Y[dir] * 3), world
-        ) ;
-        
-        for (Smelter d : strip) {
-          final float r = rateSite(d, mined, world) ;
-          if (r < 0) continue search ;
-          rating += r ;
-        }
-        if (rating > bestRating) { bestRating = rating ; bestStrip = strip ; }
-      }
-    }
-    
-    if (bestStrip != null) for (Smelter d : bestStrip) {
-      d.doPlace(d.origin(), null) ;
-      d.updateSprite(0) ;
-    }
-    return bestStrip ;
-  }
-  
-  /*
-  static MantleDrill cullWorst(
-    List <MantleDrill> shafts, ExcavationSite parent
+  static Smelter[] siteSmelterStrip(
+      final ExcavationSite site, final Service mined
   ) {
-    final World world = parent.world() ;
-    final Visit <MantleDrill> picks = new Visit <MantleDrill> () {
-      public float rate(MantleDrill s) { return 0 - rateSite(s, world) ; }
+    final World world = site.world() ;
+    final Tile init = Spacing.pickRandomTile(site.origin(), 4, world) ;
+    final Smelter strip[] = new Smelter[2] ;
+    
+    final TileSpread spread = new TileSpread(init) {
+      protected boolean canAccess(Tile t) {
+        if (t.owner() == site) return true ;
+        if (t.owningType() >= Element.FIXTURE_OWNS) return false ;
+        return true ;
+      }
+      
+      protected boolean canPlaceAt(Tile t) {
+        final int off = Rand.index(4) ;
+        for (int n = 4 ; n-- > 0 ;) {
+          final int dir = STRIP_DIRS[(n + off) % 4] ;
+          strip[0] = new Smelter(site, mined, dir, strip) ;
+          strip[1] = new Smelter(site, mined, dir, strip) ;
+          strip[0].setPosition(t.x, t.y, world) ;
+          strip[1].setPosition(
+            t.x + (N_X[dir] * 3), t.y + (N_Y[dir] * 3), world
+          ) ;
+          if (! Placement.checkPlacement(strip, world)) continue ;
+          return true ;
+        }
+        return false ;
+      }
     } ;
-    return picks.pickBest(shafts) ;
+    spread.doSearch() ;
+    if (spread.success()) {
+      I.say("Total tiles searched: "+spread.allSearched(Tile.class).length) ;
+      for (Smelter s : strip) {
+        s.doPlace(s.origin(), null) ;
+        s.updateSprite(0) ;
+      }
+      return strip ;
+    }
+    return null ;
   }
-  //*/
   
   
   
@@ -363,3 +322,91 @@ public class Smelter extends Venue implements Economy {
 
 
 
+
+
+/*
+static float rateSite(Smelter s, Service mined, World world) {
+  //
+  //  Ideally, you want some place that's not too close to other structures,
+  //  especially of the same type, but also close to the parent shaft, and
+  //  rich in associated minerals.
+  if (! s.canPlace()) return -1 ;
+  final int maxRange = World.SECTOR_SIZE ;
+  float parentDist = Spacing.distance(s, s.parent) ;
+  float minDist = maxRange ;
+  
+  for (Object o : world.presences.matchesNear(Venue.class, s, maxRange)) {
+    final Venue v = (Venue) o ;
+    if (v == s.parent) continue ;
+    minDist = Spacing.distance(s, v) ;
+    break ;
+  }
+  if (minDist <= s.size) return 0 ;
+  
+  float sumMinerals = 0 ;
+  final Box2D area = s.area(null).expandBy(s.size) ;
+  for (Tile under : world.tilesIn(area, true)) {
+    sumMinerals += world.terrain().mineralsAt(under, s.variant()) ;
+  }
+  
+  float rating = (sumMinerals / area.area()) + 0.1f ;
+  rating *= 1 - (parentDist / maxRange) ;
+  rating *= minDist / maxRange ;
+  I.say("  Rating for "+s+" is- "+rating) ;
+  return rating ;
+}
+
+
+final static int STRIP_DIRS[]  = { N, E, S, W } ;
+
+static Smelter[] siteNewDrill(ExcavationSite site, Service mined) {
+  final World world = site.world() ;
+  final int maxDist = World.SECTOR_SIZE ;
+  Smelter bestStrip[] = null ;
+  float bestRating = 0 ;
+  
+  search: for (int m = 10 ; m-- > 0 ;) {
+    final Tile t = Spacing.pickRandomTile(site.origin(), maxDist, world) ;
+    if (t == null) continue ;
+    
+    final int off = Rand.index(4) ;
+    for (int n = 4 ; n-- > 0 ;) {
+      I.say("  Making fresh placement attempt...") ;
+      final int dir = STRIP_DIRS[(n + off) % 4] ;
+      final Smelter strip[] = new Smelter[2] ;
+      float rating = 0 ;
+      strip[0] = new Smelter(site, mined, dir, strip) ;
+      strip[1] = new Smelter(site, mined, dir, strip) ;
+      strip[0].setPosition(t.x, t.y, world) ;
+      strip[1].setPosition(
+        t.x + (N_X[dir] * 3), t.y + (N_Y[dir] * 3), world
+      ) ;
+      
+      for (Smelter d : strip) {
+        final float r = rateSite(d, mined, world) ;
+        if (r < 0) continue search ;
+        rating += r ;
+      }
+      if (rating > bestRating) { bestRating = rating ; bestStrip = strip ; }
+    }
+  }
+  
+  if (bestStrip != null) for (Smelter d : bestStrip) {
+    d.doPlace(d.origin(), null) ;
+    d.updateSprite(0) ;
+  }
+  return bestStrip ;
+}
+//*/
+
+/*
+static MantleDrill cullWorst(
+  List <MantleDrill> shafts, ExcavationSite parent
+) {
+  final World world = parent.world() ;
+  final Visit <MantleDrill> picks = new Visit <MantleDrill> () {
+    public float rate(MantleDrill s) { return 0 - rateSite(s, world) ; }
+  } ;
+  return picks.pickBest(shafts) ;
+}
+//*/

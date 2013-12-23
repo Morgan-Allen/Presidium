@@ -264,14 +264,14 @@ public class ExcavationSite extends Venue implements
     //final int numDrills = structure.upgradeLevel(MANTLE_DRILLING) ;
     if (numUpdates % SMELTER_REFRESH == 0) {
       if (smeltingSite(METAL_ORES) == null) {
-        final Smelter strip[] = Smelter.siteNewDrill(this, METAL_ORES) ;
+        final Smelter strip[] = Smelter.siteSmelterStrip(this, METAL_ORES) ;
         if (strip != null) smelters.add(strip[0]) ;
       }
       if (
         smeltingSite(FUEL_CORES) == null &&
         true //structure.upgradeLevel(FUEL_PROCESSING) > 0
       ) {
-        final Smelter strip[] = Smelter.siteNewDrill(this, FUEL_CORES) ;
+        final Smelter strip[] = Smelter.siteSmelterStrip(this, FUEL_CORES) ;
         if (strip != null) smelters.add(strip[0]) ;
       }
     }

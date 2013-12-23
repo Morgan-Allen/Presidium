@@ -136,6 +136,11 @@ public class ContactMission extends Mission implements Economy {
     //  If relations improve enough, change relations for the base as a whole,
     //  or convince individuals/the whole base to join your own.
     
+    //
+    //  Approve of, and assist with, tasks similar to the subject's current
+    //  activity.  Disapprove of anything overtly hostile.  (Build this into
+    //  the Choice algorithm.)
+    
     return null ;
   }
   
@@ -162,7 +167,3 @@ public class ContactMission extends Mission implements Economy {
     d.append(subject) ;
   }
 }
-
-
-
-

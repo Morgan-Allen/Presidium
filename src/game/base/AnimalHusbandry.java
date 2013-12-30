@@ -84,28 +84,29 @@ public class AnimalHusbandry extends Plan implements Economy {
     }
     
     final World world = station.world() ;
-    final Ecology ecology = world.ecology() ;
-    Fauna fauna = null ;
+    final Tile e = world.tileAt(station) ;
+    //final Ecology ecology = world.ecology() ;
+    Fauna picked = null ;
     float bestRating = 0 ;
     
-    for (Species specie : Species.ANIMAL_SPECIES) {
-      final float abundance = ecology.relativeAbundanceAt(
-        specie, station.origin(), World.SECTOR_SIZE * 2
-      ) ;
-      I.say("Abundance of "+specie+" is "+abundance) ;
-      if (abundance >= 1) continue ;
-      float rating = 10f / 1 + abundance ;
+    for (Species species : Species.ANIMAL_SPECIES) {
+      final float crowding = Nest.crowdingFor(station, species, world) ;
+      I.say("Abundance of "+species+" is "+crowding) ;
+      if (crowding >= 1) continue ;
+      final Fauna specimen = species.newSpecimen() ;
+      if (specimen == null) continue ;
+      float rating = 10f / (1 + crowding) ;
       if (rating > bestRating) {
-        fauna = specie.newSpecimen() ;
+        I.say("Best is: "+species) ;
+        picked = specimen ;
         bestRating = rating ;
       }
     }
     
-    if (fauna == null) return null ;
-    final Tile e = world.tileAt(station) ;
-    fauna.setPosition(e.x, e.y, world) ;
-    I.say("Next fauna to breed is: "+fauna) ;
-    return fauna ;
+    if (picked == null) return null ;
+    picked.setPosition(e.x, e.y, world) ;
+    I.say("Next fauna to breed is: "+picked) ;
+    return picked ;
   }
   
   
@@ -143,6 +144,7 @@ public class AnimalHusbandry extends Plan implements Economy {
     basis = station.stocks.matchFor(basis) ;
     if (basis == null) {
       basis = Item.with(REPLICANTS, fauna, inc / 5, 0) ;
+      fauna.health.setupHealth(0, 1, 0) ;
       station.stocks.addItem(basis) ;
     }
     else if (basis.amount < 1) {

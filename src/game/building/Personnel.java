@@ -314,7 +314,7 @@ public class Personnel {
           worker.enterWorldAt(e.x, e.y, venue.world()) ;
         }
         else {
-          venue.base.commerce.addImmigrant(worker) ;
+          venue.base().commerce.addImmigrant(worker) ;
         }
       }
     }

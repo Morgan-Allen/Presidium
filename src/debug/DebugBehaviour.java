@@ -36,13 +36,16 @@ import src.util.* ;
    Ecology simulation & squalor display.
    Stock exchange & internal demand bug.
    Walls, arcology and causeways need art/functions tweaked or redone.
-   General polish for mines, the surveyor, maybe the cantina & holocade.
+   General polish for mines, the surveyor, maybe the cantina & holo arcade.
    Housing stability, and funds deduction during construction.
 //*/
+//
+//  TODO:  Test explorer hunting.
 
 
 
 public class DebugBehaviour extends Scenario implements Economy {
+  
   
   
   /**  Startup and save/load methods-
@@ -87,7 +90,57 @@ public class DebugBehaviour extends Scenario implements Economy {
   
   protected void configureScenario(World world, Base base, BaseUI UI) {
     //combatScenario(world, base, UI) ;
-    ambientScenario(world, base, UI) ;
+    //ambientScenario(world, base, UI) ;
+    patrolTestScenario(world, base, UI) ;
+  }
+  
+  
+  private void patrolTestScenario(World world, Base base, BaseUI UI) {
+    GameSettings.fogFree   = true ;
+    GameSettings.buildFree = true ;
+    GameSettings.hireFree  = true ;
+    GameSettings.psyFree   = true ;
+    //
+    //  Step 1:  Generate a structure, generate some actors around it, create
+    //  a security mission for the structure, and assign the actors to it.
+    Venue defended = Placement.establishVenue(
+      new Sickbay(base), 10, 10, true, world
+    ) ;
+    final Mission mission = new SecurityMission(base, defended) ;
+    mission.assignReward(10000) ;
+    base.addMission(mission) ;
+    for (int n = 5 ; n-- > 0 ;) {
+      final Actor defends = new Human(Background.VETERAN, base) ;
+      Tile free = Spacing.pickRandomTile(defended, 10, world) ;
+      free = Spacing.nearestOpenTile(free, defended) ;
+      if (free == null) continue ;
+      defends.enterWorldAt(free, world) ;
+      mission.setApplicant(defends, true) ;
+      mission.setApprovalFor(defends, true) ;
+    }
+    mission.beginMission() ;
+    //
+    //  Step 2:  Generate one or more hostile actors, and have them try to
+    //  assault the structure.
+    final Venue lair = Placement.establishVenue(
+      new Ruins(), 25, 25, true, world
+    ) ;
+    lair.assignBase(world.baseWithName(Base.KEY_ARTILECTS, true, true)) ;
+    for (int n = 2 ; n-- > 0 ;) {
+      final Actor assaults = new Drone() ;
+      assaults.enterWorldAt(lair, world) ;
+      assaults.goAboard(lair, world) ;
+    }
+    //
+    //  Step 3:  Ensure that the hostiles retreat when wounded, and that the
+    //  defenders won't follow too far.
+  }
+  
+  
+  public void updateGameState() {
+    super.updateGameState() ;
+    
+    
   }
   
   

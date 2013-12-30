@@ -18,7 +18,7 @@ public class Retreat extends Plan implements Abilities {
   
   /**  Constants, field definitions, constructors and save/load methods-
     */
-  static boolean verbose = true ;
+  static boolean verbose = false ;
   Boardable safePoint = null ;
   
   
@@ -161,7 +161,7 @@ public class Retreat extends Plan implements Abilities {
     //
     //  TODO:  ...What about blending values from the danger map?
     //  float estimate = 0 - basePower ;
-    I.sayAbout(actor, "Base power is: "+basePower) ;
+    if (verbose) I.sayAbout(actor, "Base power is: "+basePower) ;
     
     for (Element m : seen) {
       if (m == actor || ! (m instanceof Actor)) continue ;

@@ -56,8 +56,8 @@ public abstract class Venue extends Fixture implements
   protected int entranceFace ;
   protected Tile entrance ;
   
-  Base base ;
-  List <Mobile> inside = new List <Mobile> () ;
+  private Base base ;
+  private List <Mobile> inside = new List <Mobile> () ;
   
   final public Personnel personnel = new Personnel(this) ;
   final public VenueStocks    stocks    = new VenueStocks(this)    ;
@@ -109,6 +109,13 @@ public abstract class Venue extends Fixture implements
   public Base base() { return base ; }
   
   protected BuildingSprite buildSprite() { return buildSprite ; }
+  
+  
+  public void assignBase(Base base) {
+    world.presences.togglePresence(this, false) ;
+    this.base = base ;
+    world.presences.togglePresence(this, true) ;
+  }
   
   
   
@@ -298,6 +305,10 @@ public abstract class Venue extends Fixture implements
   
   
   public void updateAsScheduled(int numUpdates) {
+    if (destroyed()) {
+      I.say(this+" IS DESTROYED! SHOULD NOT BE ON SCHEDULE!") ;
+      this.setAsDestroyed() ;
+    }
     structure.updateStructure(numUpdates) ;
     if (! structure.needsSalvage()) {
       if (base != null && numUpdates % 10 == 0) updatePaving(true) ;

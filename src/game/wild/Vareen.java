@@ -10,6 +10,7 @@ import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.common.* ;
 import src.game.planet.* ;
+import src.game.tactical.Hunting;
 import src.util.* ;
 
 
@@ -23,7 +24,7 @@ public class Vareen extends Fauna {
   final static int FLY_PATH_LIMIT = 16 ;
   
   private float flyHeight = 2.5f ;
-  private Lair nest = null ;
+  private Nest nest = null ;
   
   
   
@@ -35,7 +36,7 @@ public class Vareen extends Fauna {
   public Vareen(Session s) throws Exception {
     super(s) ;
     flyHeight = s.loadFloat() ;
-    nest = (Lair) s.loadObject() ;
+    nest = (Nest) s.loadObject() ;
   }
   
   
@@ -47,13 +48,15 @@ public class Vareen extends Fauna {
   
   
   protected void initStats() {
+    //
+    //  TODO:  PUT ALL THESE ATTRIBUTES IN THE SPECIES FIELDS
     traits.initAtts(10, 20, 3) ;
     health.initStats(
       5,    //lifespan
-      0.5f, //bulk bonus
-      1.0f, //sight range
-      1.6f, //speed rate
-      true  //organic
+      species.baseBulk , //bulk bonus
+      species.baseSight, //sight range
+      species.baseSpeed, //speed rate
+      ActorHealth.ANIMAL_METABOLISM
     ) ;
     gear.setDamage(4) ;
     gear.setArmour(2) ;
@@ -69,27 +72,30 @@ public class Vareen extends Fauna {
   /**  Behaviour modifications/implementation-
     */
   protected void updateAsMobile() {
+    final Target target = this.targetFor(null) ;
     float idealHeight = 2.5f ;
-    if (isDoing("actionRest", null) || isDoing("actionBrowse", null)) {
-      idealHeight = 1.0f ;
+    
+    if (! (target instanceof Tile)) {
+      if (target == null) idealHeight = flyHeight ;
+      else if (Spacing.distance(target, this) < health.sightRange()) {
+        idealHeight = target.position(null).z + (target.height() / 2f) - 0.5f ;
+      }
     }
-    if (! health.conscious()) idealHeight = 0 ;
-    flyHeight = Visit.clamp(idealHeight, flyHeight - 0.1f, flyHeight + 0.1f) ;
+    else if (! health.conscious()) idealHeight = 0 ;
+    
+    final float MFI = 1f / (2 * PlayLoop.UPDATES_PER_SECOND) ;
+    flyHeight = Visit.clamp(idealHeight, flyHeight - MFI, flyHeight + MFI) ;
     super.updateAsMobile() ;
-    ///nextPosition.z = flyHeight + origin().elevation() ;
   }
   
 
   public void updateAsScheduled(int numUpdates) {
-    //
-    //  TODO:  Base nutritional value on daylight values...
     if (! indoors()) {
-      final float value = 0.5f / World.STANDARD_DAY_LENGTH ;
+      final float value = Planet.dayValue(world) / World.STANDARD_DAY_LENGTH ;
       health.takeSustenance(value, 1) ;
     }
     super.updateAsScheduled(numUpdates) ;
   }
-  
   
   
   protected float aboveGroundHeight() {
@@ -97,112 +103,97 @@ public class Vareen extends Fauna {
   }
   
   
-  /*
-  protected MobilePathing initPathing() {
-    final Vareen actor = this ;
-    //
-    //  We use a modified form of pathing search that can bypass most
-    //  tiles.
-    return new MobilePathing(actor) {
-      protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
-        final Lair lair = (Lair) actor.AI.home() ;
-        
-        final PathingSearch flightPS = new PathingSearch(
-          initB, destB, FLY_PATH_LIMIT
-        ) {
-          final Boardable tileB[] = new Boardable[8] ;
-          
-          protected Boardable[] adjacent(Boardable spot) {
-            //
-            //  TODO:  There has got to be some way to factor this out into the
-            //  Tile and PathingSearch classes.  This is recapitulating a lot
-            //  of functionality AND IT'S DAMNED UGLY
-            //  ...Also, it can't make use of the pathingCache class, though
-            //  that's less vital here.
-            if (spot instanceof Tile) {
-              final Tile tile = ((Tile) spot) ;
-              for (int i : Tile.N_DIAGONAL) {
-                final Tile near = world.tileAt(
-                  tile.x + Tile.N_X[i],
-                  tile.y + Tile.N_Y[i]
-                ) ;
-                tileB[i] = blocksMotion(near) ? null : near ;
-              }
-              for (int i : Tile.N_ADJACENT) {
-                final Tile near = world.tileAt(
-                  tile.x + Tile.N_X[i],
-                  tile.y + Tile.N_Y[i]
-                ) ;
-                if (
-                  near != null && near.owner() == lair &&
-                  lair != null && tile == lair.mainEntrance()
-                ) tileB[i] = lair ;
-                else tileB[i] = blocksMotion(near) ? null : near ;
-              }
-              Spacing.cullDiagonals(tileB) ;
-              return tileB ;
-            }
-            return super.adjacent(spot) ;
-          }
-          
-          protected boolean canEnter(Boardable spot) {
-            return ! blocksMotion(spot) ;
-          }
-        } ;
-        flightPS.doSearch() ;
-        return flightPS.bestPath(Boardable.class) ;
-      }
-    } ;
-  }
-  
-  
-  public boolean blocksMotion(Boardable t) {
-    if (t instanceof Tile) {
-      final Element owner = ((Tile) t).owner() ;
-      return owner != null && owner.height() > 2.5f ;
+  protected Behaviour nextBrowsing() {
+    final Actor prey = Hunting.nextPreyFor(this, false) ;
+    if (prey != null && prey.health.dying()) {
+      return Hunting.asFeeding(this, prey) ;
     }
-    return false ;
+    return super.nextBrowsing() ;
   }
-  //*/
   
-  
-  
+
+
   /**  Rendering and interface methods-
     */
-  
-  
   protected float moveAnimStride() { return 1.0f ; }
 }
 
 
 
+//
+//  TODO:  Try to restore flight-pathing later on.
 
 /*
-protected float shadowHeight(Vec3D p) {
+protected MobilePathing initPathing() {
+  final Vareen actor = this ;
   //
-  //  Sample the height of the 4 nearby tiles, and interpolate between them.
-  final Tile o = world.tileAt((int) p.x, (int) p.y) ;
-  final float
-    xA = p.x - o.x, yA = p.y - o.y,
-    TSW = heightFor(o.x    , o.y    ),
-    TSE = heightFor(o.x + 1, o.y    ),
-    TNW = heightFor(o.x    , o.y + 1),
-    TNE = heightFor(o.x + 1, o.y + 1) ;
-  return
-    (((TSW * (1 - xA)) + (TSE * xA)) * (1 - yA)) +
-    (((TNW * (1 - xA)) + (TNE * xA)) *      yA ) ;
+  //  We use a modified form of pathing search that can bypass most
+  //  tiles.
+  return new MobilePathing(actor) {
+    protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
+      final Lair lair = (Lair) actor.AI.home() ;
+      
+      final PathingSearch flightPS = new PathingSearch(
+        initB, destB, FLY_PATH_LIMIT
+      ) {
+        final Boardable tileB[] = new Boardable[8] ;
+        
+        protected Boardable[] adjacent(Boardable spot) {
+          //
+          //  TODO:  There has got to be some way to factor this out into the
+          //  Tile and PathingSearch classes.  This is recapitulating a lot
+          //  of functionality AND IT'S DAMNED UGLY
+          //  ...Also, it can't make use of the pathingCache class, though
+          //  that's less vital here.
+          if (spot instanceof Tile) {
+            final Tile tile = ((Tile) spot) ;
+            for (int i : Tile.N_DIAGONAL) {
+              final Tile near = world.tileAt(
+                tile.x + Tile.N_X[i],
+                tile.y + Tile.N_Y[i]
+              ) ;
+              tileB[i] = blocksMotion(near) ? null : near ;
+            }
+            for (int i : Tile.N_ADJACENT) {
+              final Tile near = world.tileAt(
+                tile.x + Tile.N_X[i],
+                tile.y + Tile.N_Y[i]
+              ) ;
+              if (
+                near != null && near.owner() == lair &&
+                lair != null && tile == lair.mainEntrance()
+              ) tileB[i] = lair ;
+              else tileB[i] = blocksMotion(near) ? null : near ;
+            }
+            Spacing.cullDiagonals(tileB) ;
+            return tileB ;
+          }
+          return super.adjacent(spot) ;
+        }
+        
+        protected boolean canEnter(Boardable spot) {
+          return ! blocksMotion(spot) ;
+        }
+      } ;
+      flightPS.doSearch() ;
+      return flightPS.bestPath(Boardable.class) ;
+    }
+  } ;
 }
 
 
-private float heightFor(int tX, int tY) {
-  final Tile t = world.tileAt(
-    Visit.clamp(tX, world.size),
-    Visit.clamp(tY, world.size)
-  ) ;
-  if (t.owner() == null) return t.elevation() ;
-  return t.owner().height() ;
+public boolean blocksMotion(Boardable t) {
+  if (t instanceof Tile) {
+    final Element owner = ((Tile) t).owner() ;
+    return owner != null && owner.height() > 2.5f ;
+  }
+  return false ;
 }
 //*/
+
+
+
+
 /*
 protected Behaviour nextFeeding() {
   //

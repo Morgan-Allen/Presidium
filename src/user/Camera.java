@@ -90,15 +90,6 @@ public class Camera {
     lockTarget = null ;
   }
   
-  /*
-  void zoomHome() {
-    final Vec3D homePos = UI.homePos ;
-    MainDisplay.MAIN_VIEW.cameraPosition.setTo(homePos) ;
-    UI.setSelection(null) ;
-    lockTarget = null ;
-  }
-  //*/
-  
   
   /**  Updates general camera behaviour.
     */
@@ -139,7 +130,7 @@ public class Camera {
       //  target, and displace accordingly-
       final float drift = Math.min(1,
         ((distance + 2) * 2) / (PlayLoop.FRAMES_PER_SECOND * distance)
-      ) * PlayLoop.gameSpeed() ;
+      ) ;
       viewPos.add(displace.scale(drift)) ;
     }
   }
@@ -148,6 +139,15 @@ public class Camera {
 
 
 
+
+/*
+void zoomHome() {
+  final Vec3D homePos = UI.homePos ;
+  MainDisplay.MAIN_VIEW.cameraPosition.setTo(homePos) ;
+  UI.setSelection(null) ;
+  lockTarget = null ;
+}
+//*/
 
 
 

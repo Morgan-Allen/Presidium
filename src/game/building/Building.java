@@ -100,7 +100,7 @@ public class Building extends Plan implements Abilities {
     //
     //  TODO:  What about native huts?  ...They won't have a credit balance.
     final float brokeRating = 0 - built.base().credits() / 500f ;
-    //if (brokeRating > 0) impetus -= brokeRating ;
+    if (brokeRating > 0) impetus -= brokeRating ;
     
     //if (! broke) impetus += priorityMod ;
     if (verbose) I.sayAbout(actor, "Priority for "+this+" is "+impetus) ;

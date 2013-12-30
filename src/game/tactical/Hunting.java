@@ -37,6 +37,7 @@ public class Hunting extends Combat implements Economy {
     STAGE_SAMPLE_GENE   = 5,
     STAGE_RETURN_SAMPLE = 6,
     STAGE_COMPLETE      = 7 ;
+  private static boolean verbose = false ;
   
   
   final int type ;
@@ -103,27 +104,36 @@ public class Hunting extends Combat implements Economy {
   /**  Evaluating targets and priority-
     */
   public float priorityFor(Actor actor) {
-    float reward = 0 ;
+    float priority = 0 ;
     if (type == TYPE_FEEDS) {
-      final float hunger = actor.health.hungerLevel() - 0.25f ;
+      float hunger = actor.health.hungerLevel() ;
+      if (begun()) hunger = (hunger + 0.5f) / 1.5f ;
       if (hunger < 0) return 0 ;
-      reward = CASUAL + (hunger * URGENT / 0.75f) ;
-      if (BaseUI.isPicked(actor)) I.say("Base feeding priority: "+reward) ;
+      priority = hunger * PARAMOUNT ;
+      if (verbose) I.sayAbout(actor, "Base feeding priority: "+priority) ;
     }
-    if (type == TYPE_HARVEST) {
-      float abundance = actor.world().ecology().relativeAbundance(prey) ;
-      ///I.say("Abundance of prey is: "+abundance) ;
-      if (abundance < 0.75f) return 0 ;
-      reward = ROUTINE ;
+    if (type == TYPE_HARVEST || type == TYPE_PROCESS) {
+      float crowding = Nest.crowdingFor(prey) ;
+      if (crowding < 1) return 0 ;
+      priority = ROUTINE ;
     }
-    reward += priorityMod ;
+    else priority = ROUTINE ;
+    priority += priorityMod ;
+    //
+    //  Modify based on relation with subject-
+    if (prey.species() == actor.species()) priority -= ROUTINE ;
+    priority -= actor.mind.relation(prey) * PARAMOUNT ;
+    //
+    //  Modify based on danger of extraction-
+    if (prey.health.conscious()) {
+      priority = Combat.combatPriority(
+        actor, prey, priority, PARAMOUNT, false
+      ) ;
+      priority -= Plan.rangePenalty(actor, prey) ;
+    }
     
-    float priority = Combat.combatPriority(
-      actor, prey, reward, PARAMOUNT, false
-    ) ;
-    priority -= Plan.rangePenalty(actor, prey) ;
-    if (BaseUI.isPicked(actor)) I.say("Hunting "+prey+" priority: "+priority) ;
-    return priority ;
+    if (verbose) I.sayAbout(actor, "Hunting "+prey+" priority: "+priority) ;
+    return Visit.clamp(priority, 0, PARAMOUNT) ;
   }
   
   
@@ -136,22 +146,22 @@ public class Hunting extends Combat implements Economy {
   }
   
   
+  //
+  //  TODO:  Get rid of this and use a similar sampling method to that employed
+  //  by human-minds?
+  
   public static Actor nextPreyFor(
-    Actor actor, float sampleRange, boolean conserve
+    Actor actor, boolean conserve
   ) {
-    ///I.say("FINDING PREY FOR: "+actor) ;
-    //
-    //  TODO:  Base this off the list of stuff the actor is aware of?
-    final Ecology ecology = actor.world().ecology() ;
+    if (verbose) I.sayAbout(actor, "FINDING NEXT PREY") ;
     final int maxSampled = 10 ;
     Actor pickedPrey = null ;
     float bestRating = Float.NEGATIVE_INFINITY ;
-    final PresenceMap peers = actor.world().presences.mapFor(Mobile.class) ;
-    int numSampled = 0 ;
     //
     //  
-    for (Target t : peers.visitNear(actor, sampleRange, null)) {
-      if (++numSampled > maxSampled) break ;
+    for (Target t : actor.world().presences.sampleFromKey(
+      actor, actor.world(), maxSampled, null, Mobile.class
+    )) {
       if (! (t instanceof Actor)) continue ;
       final Actor f = (Actor) t ;
       if ((! f.health.organic()) || (! (t instanceof Fauna))) continue ;
@@ -159,20 +169,21 @@ public class Hunting extends Combat implements Economy {
       if (s == actor.species()) continue ;
       //
       //  
-      final float danger = Combat.combatStrength(f, actor) * Rand.num() ;
-      float rating = 1f / danger ;
-      if (s.type != Species.Type.BROWSER) rating /= 2 ;
-      rating -= Plan.rangePenalty(actor, f) ;
-      if (rating < 0) continue ;
-      final float abundance = ecology.globalAbundance(s) ;
-      if (conserve && abundance < 1) continue ;
-      rating *= abundance * Rand.avgNums(2) ;
+      final float crowding = Nest.crowdingFor(f) ;
+      if (conserve && crowding < 1) continue ;
+      final float
+        danger = (f.health.alive() ? Combat.combatStrength(f, actor) : 0),
+        rangePenalty = Plan.rangePenalty(actor, f) ;
+      float rating = 1 / (1f + danger + (rangePenalty / Plan.ROUTINE)) ;
+      rating *= crowding * Rand.avgNums(2) ;
       //
       //  
       if (rating > bestRating) { pickedPrey = f ; bestRating = rating ; }
     }
-    //if (pickedPrey == null) I.say("NO PREY FOUND FOR "+actor) ;
-    //else I.say("PREY IS: "+pickedPrey) ;
+    if (verbose && I.talkAbout == actor) {
+      if (pickedPrey == null) I.say("NO PREY FOUND FOR "+actor) ;
+      else I.say("PREY IS: "+pickedPrey) ;
+    }
     return pickedPrey ;
   }
   
@@ -200,18 +211,40 @@ public class Hunting extends Combat implements Economy {
     if (timeSpent > World.STANDARD_DAY_LENGTH / 3) {
       return null ;
     }
-
+    
     if (prey.health.conscious()) return super.getNextStep() ;
-    if (actor.health.energyLevel() >= 1.5f) {
-      I.say(actor+" has eaten their fill of "+prey) ;
+    /*
+    if (type == TYPE_FEEDS && actor.health.energyLevel() >= 1.5f) {
+      if (verbose) I.sayAbout(actor, "Have eaten fill of "+prey) ;
       return null ;
     }
-    final Action feeding = new Action(
+    //*/
+    
+    if (type == TYPE_HARVEST || type == TYPE_PROCESS) {
+      final Item carried = (type == TYPE_HARVEST) ?
+        Item.withAmount(PROTEIN, 1) :
+        Item.withReference(SAMPLES, prey) ;
+      final float amountC = actor.gear.amountOf(carried) ;
+      if (
+        (prey.destroyed() && amountC > 0) ||
+        amountC >= 5 ||
+        depot.inventory().amountOf(carried) > 0
+      ) {
+        final Action process = new Action(
+          actor, depot,
+          this, "actionProcess",
+          Action.REACH_DOWN, "Processing "+prey
+        ) ;
+        return process ;
+      }
+    }
+    
+    final Action harvest = new Action(
       actor, prey,
-      this, "actionFeed",
-      Action.STRIKE, "Feeding on "+prey
+      this, "actionHarvest",
+      Action.STRIKE, "Harvesting from "+prey
     ) ;
-    return feeding ;
+    return harvest ;
   }
   
   
@@ -233,7 +266,7 @@ public class Hunting extends Combat implements Economy {
     //  Then dispose of it appropriately-
     if (! prey.health.dying()) prey.health.setState(ActorHealth.STATE_DYING) ;
     if (type == TYPE_FEEDS) {
-      actor.health.takeSustenance(taken * 10, 1) ;
+      actor.health.takeSustenance(taken * Fauna.MEAT_CONVERSION, 1) ;
     }
     if (type == TYPE_HARVEST) {
       actor.gear.bumpItem(PROTEIN, taken) ;
@@ -246,7 +279,7 @@ public class Hunting extends Combat implements Economy {
   }
   
   
-  public boolean actionProcess(Actor actor, Actor prey) {
+  public boolean actionProcess(Actor actor, Employment depot) {
     if (type == TYPE_HARVEST) {
       actor.gear.transfer(PROTEIN, depot) ;
     }
@@ -286,13 +319,28 @@ public class Hunting extends Combat implements Economy {
   /**  Rendering and interface-
     */
   public void describeBehaviour(Description d) {
-    if (prey.health.dying()) {
-      if (type == TYPE_HARVEST) {
-        if (! prey.destroyed()) d.append("Harvesting meat from "+prey) ;
-        else d.append("Returning meat to "+actor.mind.work()) ;
+    if (! prey.health.alive()) {
+      if (type == TYPE_FEEDS) {
+        d.append("Scavenging meat from ") ;
+        d.append(prey) ;
+      }
+      if (type == TYPE_HARVEST || type == TYPE_PROCESS) {
+        if (! prey.destroyed()) {
+          d.append("Harvesting meat from ") ;
+          d.append(prey) ;
+        }
+        else {
+          d.append("Returning meat to ") ;
+          d.append(depot) ;
+        }
       }
     }
     else d.append("Hunting "+prey) ;
   }
 }
+
+
+
+
+
 

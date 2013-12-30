@@ -56,6 +56,11 @@ public class Visit <T> {
   }
   
   
+  public static void wipe(Object array[]) {
+    for (int i = array.length ; i-- > 0 ;) array[i] = null ;
+  }
+  
+  
   /**  Returns true if the given array includes the given object.
     */
   public static boolean arrayIncludes(Object a[], Object e) {

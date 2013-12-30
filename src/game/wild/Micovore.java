@@ -16,7 +16,7 @@ import src.util.* ;
 
 
 
-public class Micovore extends Fauna {
+public class Micovore extends Fauna implements Economy {
   
   
   
@@ -29,6 +29,11 @@ public class Micovore extends Fauna {
   
   public Micovore(Session s) throws Exception {
     super(s) ;
+    if (! inWorld()) I.say("Must be dead...") ;
+    if (! health.alive()) {
+      I.say("DEAD MICOVORE STILL REFERENCED") ;
+      //new Exception().printStackTrace() ;
+    }
   }
   
   
@@ -38,13 +43,15 @@ public class Micovore extends Fauna {
   
   
   protected void initStats() {
+    //
+    //  TODO:  PUT ALL THESE ATTRIBUTES IN THE SPECIES FIELDS
     traits.initAtts(20, 15, 5) ;
     health.initStats(
       20,  //lifespan
-      2.5f,//bulk bonus
-      1.5f,//sight range
-      1.3f,//move speed,
-      true //organic
+      species.baseBulk ,//bulk bonus
+      species.baseSight,//sight range
+      species.baseSpeed,//move speed,
+      ActorHealth.ANIMAL_METABOLISM
     ) ;
     gear.setDamage(15) ;
     gear.setArmour(5) ;
@@ -60,35 +67,76 @@ public class Micovore extends Fauna {
   /**  Supplemental behaviour methods-
     */
   protected Behaviour nextDefence(Actor near) {
+    //  TODO:  Sort out the retreat behaviours here-
+    return null ;
+    /*
     final Choice choice = new Choice(this) ;
     choice.add(new Retreat(this)) ;
     if (near != null) choice.add(new Combat(this, near)) ;
     return choice.pickMostUrgent() ;
+    //*/
+  }
+  
+
+  protected Behaviour nextHunting() {
+    if (mind.home() instanceof Venue) {
+      final Venue nest = (Venue) mind.home() ;
+      if (health.juvenile() && nest.stocks.amountOf(PROTEIN) > 0) {
+        final Action homeFeed = new Action(
+          this, nest,
+          this, "actionHomeFeeding",
+          Action.REACH_DOWN, "Feeding at nest"
+        ) ;
+        homeFeed.setPriority((1 - health.energyLevel()) * Action.PARAMOUNT) ;
+        return homeFeed ;
+      }
+    }
+    return super.nextHunting() ;
   }
   
   
   protected void addChoices(Choice choice) {
     super.addChoices(choice) ;
-    
     //
     //  Determine whether you should fight with others of your kind-
-    final int range = species.forageRange() ;
-    final Ecology ecology = world.ecology() ;
-    float crowding = ecology.relativeAbundanceAt(species, origin(), range) ;
-    crowding = Visit.clamp(crowding - 1, 0, 10) ;
-    crowding *= 1 - health.energyLevel() ;
+    float crowding = Nest.crowdingFor(this) ;
+    crowding += 1 - ((health.energyLevel() + 0.5f) / 2) ;
     final Fauna fights = findCompetition() ;
-    
     if (fights != null && crowding > 1) {
-      ///I.say(this+" FIGHTING PRIORITY X5: "+crowding) ;
       final Combat fighting = new Combat(this, fights) ;
-      fighting.priorityMod = (crowding - 1) * Plan.URGENT ;
+      fighting.priorityMod = (crowding - 1) * Plan.PARAMOUNT ;
+      //I.sayAbout(this, "  Crowding is: "+crowding) ;
+      //I.sayAbout(this, "  Fighting priority: "+fighting.priorityFor(this)) ;
       choice.add(fighting) ;
+    }
+    //
+    //  Determine whether to regurgitate meat at home-
+    if (mind.home() instanceof Venue) {
+      final Venue nest = (Venue) mind.home() ;
+      if (health.juvenile() && nest != null) {
+        int numYoung = 0 ; for (Actor a : nest.personnel().residents()) {
+          if (a.health.juvenile()) numYoung++ ;
+        }
+        final float excessFood = health.energyLevel() - 1 ;
+        if (
+          numYoung > 0 && excessFood > 0 &&
+          nest.inventory().amountOf(PROTEIN) < (numYoung * 5)
+        ) {
+          final Action deposit = new Action(
+            this, nest,
+            this, "actionDepositFood",
+            Action.REACH_DOWN, "Returning with food for young"
+          ) ;
+          deposit.setPriority(excessFood * Action.PARAMOUNT * numYoung) ;
+          choice.add(deposit) ;
+        }
+      }
     }
     //
     //  Determine whether you should mark your territory-
     final Tile toMark = findTileToMark() ;
-    if (toMark != null) {
+    if (toMark != null && ! health.juvenile()) {
+      //I.sayAbout(this, "Tile to mark: "+toMark) ;
       final Action marking = new Action(
         this, toMark,
         this, "actionMarkTerritory",
@@ -97,30 +145,26 @@ public class Micovore extends Fauna {
       marking.setPriority(Action.CASUAL) ;
       choice.add(marking) ;
     }
-    /*
-    //
-    //  And determine whether you should feed your young-
-    if (AI.home() != null) for (Actor a : AI.home().personnel.residents()) {
-      //if (a.aboard() != AI.home() || a.health.conscious()) continue ;
-      final float hunger = 1 - a.health.energyLevel() ;
-      if (health.energyLevel() >= 0.75f && hunger > 0.5f) {
-        final Action feedOther = new Action(
-          this, a,
-          this, "actionFeedOther",
-          Action.STRIKE, "Feeding "+a
-        ) ;
-        feedOther.setPriority(Action.CASUAL * hunger) ;
-        choice.add(feedOther) ;
-      }
-    }
-    //*/
   }
   
   
-  public boolean actionFeedOther(Fauna elder, Fauna child) {
-    I.say(elder+" IS FEEDING OTHER: "+child) ;
-    elder.health.loseSustenance(0.1f) ;
-    child.health.takeSustenance(0.1f * elder.health.maxHealth(), 1) ;
+  public boolean actionDepositFood(Fauna actor, Venue nest) {
+    float energy = health.energyLevel() - 0.5f ;
+    if (energy <= 0) return false ;
+    actor.health.loseSustenance(energy) ;
+    energy *= actor.health.maxHealth() / MEAT_CONVERSION ;
+    nest.stocks.addItem(Item.withAmount(PROTEIN, energy)) ;
+    return true ;
+  }
+  
+  
+  public boolean actionHomeFeeding(Fauna actor, Venue nest) {
+    float hunger = 1 - health.energyLevel() ;
+    hunger *= actor.health.maxHealth() / MEAT_CONVERSION ;
+    final float amountTaken = Math.min(hunger, nest.stocks.amountOf(PROTEIN)) ;
+    if (amountTaken <= 0) return false ;
+    nest.stocks.removeItem(Item.withAmount(PROTEIN, amountTaken)) ;
+    actor.health.takeSustenance(amountTaken * MEAT_CONVERSION, 1) ;
     return true ;
   }
   
@@ -137,15 +181,14 @@ public class Micovore extends Fauna {
   
   
   private Tile findTileToMark() {
+    if (! (mind.home() instanceof Venue)) return null ;
     final Venue lair = (Venue) mind.home() ;
-    if (lair == null) return null ;
     float angle = Rand.num() * (float) Math.PI * 2 ;
     final Vec3D p = lair.position(null) ;
-    final int range = species.forageRange() / 2 ;
-    
+    final int range = Nest.forageRange(species) ;
     final Tile tried = world.tileAt(
       p.x + (float) (Math.cos(angle) * range),
-      p.x + (float) (Math.sin(angle) * range)
+      p.y + (float) (Math.sin(angle) * range)
     ) ;
     if (tried == null) return null ;
     final Tile free = Spacing.nearestOpenTile(tried, tried) ;
@@ -176,22 +219,8 @@ public class Micovore extends Fauna {
 
 
 
-/**  Behaviour implementation-
-  */
-/*
-protected float rateMigratePoint(Tile point) {
-  final float sampleRange = Lair.PEER_SAMPLE_RANGE ;
-  float rating = super.rateMigratePoint(point) ;
-  final Batch <Fauna> nearPrey = specimens(
-    point, sampleRange, null, Species.Type.BROWSER, 3
-  ) ;
-  if (nearPrey.size() == 0) return rating ;
-  float avgDistance = 0 ;
-  for (Fauna f : nearPrey) avgDistance += Spacing.distance(point, f) ;
-  avgDistance /= nearPrey.size() * sampleRange ;
-  return rating * (2 - avgDistance) ;
-}
-//*/
+
+
 
 
 

@@ -83,7 +83,7 @@ public class ReconMission extends Mission {
   }
   
   
-  protected void beginMission() {
+  public void beginMission() {
     super.beginMission() ;
     inRange = Exploring.grabExploreArea(
       base.intelMap, (Tile) subject, exploreRadius()
@@ -96,6 +96,9 @@ public class ReconMission extends Mission {
     final IntelMap map = base.intelMap ;
     Tile lookedAt = null ;
     float bestRating = 0 ;
+    
+    //
+    //  TODO:  Try just picking an unexplored tile at random?
     
     for (Tile t : inRange) if (! t.blocked()) {
       final float fog = map.fogAt(t) ;

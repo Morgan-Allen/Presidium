@@ -39,10 +39,10 @@ public class Quud extends Fauna {
     traits.initAtts(5, 2, 1) ;
     health.initStats(
       1,    //lifespan
-      1,     //bulk bonus
-      0.35f, //sight range
-      0.15f, //speed rate
-      true   //organic
+      species.baseBulk , //bulk bonus
+      species.baseSight, //sight range
+      species.baseSpeed, //speed rate
+      ActorHealth.ANIMAL_METABOLISM
     ) ;
     gear.setDamage(2) ;
     gear.setArmour(15) ;
@@ -59,11 +59,17 @@ public class Quud extends Fauna {
     */
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
-    if (health.conscious() && numUpdates % 10 == 0) {
-      float eaten = origin().habitat().moisture() / 100f ;
+    if (! isDoing("actionHunker", null)) gear.setArmour(15) ;
+  }
+  
+  
+  protected void onTileChange(Tile oldTile, Tile newTile) {
+    super.onTileChange(oldTile, newTile) ;
+    if (health.conscious()) {
+      float eaten = 1f / World.STANDARD_DAY_LENGTH ;
+      eaten *= newTile.habitat().moisture() / 100f ;
       health.takeSustenance(eaten, 1) ;
     }
-    if (! isDoing("actionHunker", null)) gear.setArmour(15) ;
   }
   
 
@@ -81,7 +87,7 @@ public class Quud extends Fauna {
     final float danger = Retreat.dangerAtSpot(
       origin(), this, null, mind.awareOf()
     ) ;
-    I.sayAbout(this, "Danger is: "+danger) ;
+    ///I.sayAbout(this, "Danger is: "+danger) ;
     if (danger <= 0) return null ;
     final Action hunker = new Action(
       this, this,

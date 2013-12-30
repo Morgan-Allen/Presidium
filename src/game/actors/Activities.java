@@ -34,6 +34,17 @@ public class Activities {
       final List <Action> l = new List <Action> () ;
       s.loadObjects(l) ;
       actions.put(t, l) ;
+      //
+      //  Safety checks for can't-happen events-
+      if (! t.inWorld()) {
+        I.say(t+" IS NOT IN WORLD ANY MORE!") ;
+      }
+      for (Action a : l) {
+        if (! a.actor.inWorld()) {
+          I.say("  "+a+" BELONGS TO DEAD ACTOR!") ;
+          l.remove(a) ;
+        }
+      }
     }
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Behaviour b = (Behaviour) s.loadObject() ;
@@ -60,7 +71,7 @@ public class Activities {
   
   /**  Asserting and asking after action registrations-
     */
-  public void toggleActive(Behaviour b, boolean is) {
+  public void toggleBehaviour(Behaviour b, boolean is) {
     if (is) behaviours.put(b, b) ;
     else behaviours.remove(b) ;
   }
@@ -71,13 +82,27 @@ public class Activities {
   }
   
   
-  public void toggleActive(Action a, boolean is) {
+  public void huntForActionReference(Actor actor) {
+    for (List <Action> LA : actions.values()) for (Action a : LA) {
+      if (a.actor == actor) {
+        I.say(actor+" "+actor.hashCode()+" STILL REFERENCED BY "+a) ;
+        I.say("TARGET IS: "+a.target()+", IN WORLD? "+a.target().inWorld()) ;
+      }
+    }
+  }
+  
+  
+  public void toggleAction(Action a, boolean is) {
     if (a == null) return ;
+    if (! a.actor.inWorld()) {
+      I.complain(a+" TOGGLED BY DEFUNCT ACTOR: "+a.actor) ;
+    }
+    
     final Target t = a.target() ;
     List <Action> forT = actions.get(t) ;
     if (is) {
       if (forT == null) actions.put(t, forT = new List <Action> ()) ;
-      forT.add(a) ;
+      forT.include(a) ;
     }
     else if (forT != null) {
       forT.remove(a) ;

@@ -129,7 +129,7 @@ public abstract class Segment extends Venue implements TileConstants {
     for (Tile p : placePath) p.flagWith(null) ;
     
     for (Tile p : placePath) {
-      final Segment v = instance(base) ;
+      final Segment v = instance(base()) ;
       v.setPosition(p.x, p.y, p.world) ;
       if (! v.canPlace()) return null ;
       installed.add(v) ;

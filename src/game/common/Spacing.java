@@ -22,6 +22,7 @@ public final class Spacing implements TileConstants {
 
   private final static Vec3D pA = new Vec3D(), pB = new Vec3D() ;
   private final static Box2D tA = new Box2D(), tB = new Box2D() ;
+  
   public final static Tile
     tempT4[] = new Tile[4],
     tempT8[] = new Tile[8],
@@ -42,6 +43,16 @@ public final class Spacing implements TileConstants {
     new Element[16],
     new Element[20]
   } ;
+  
+  public static void wipeTempArrays() {
+    Visit.wipe(tempT4) ;
+    Visit.wipe(tempT8) ;
+    Visit.wipe(tempT9) ;
+    Visit.wipe(tempB4) ;
+    Visit.wipe(tempB8) ;
+    for (Tile t[] : PERIM_ARRAYS) Visit.wipe(t) ;
+    for (Element e[] : NEAR_ARRAYS) Visit.wipe(e) ;
+  }
   
   
   //

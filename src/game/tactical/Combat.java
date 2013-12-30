@@ -89,8 +89,8 @@ public class Combat extends Plan implements Abilities {
     */
   public float priorityFor(Actor actor) {
     if (isDead(target)) return 0 ;
-
-    final boolean report = verbose && begun() && I.talkAbout == actor ;
+    
+    final boolean report = verbose && I.talkAbout == actor ;
     
     if (target instanceof Actor) {
       final Actor struck = (Actor) target ;
@@ -125,10 +125,10 @@ public class Combat extends Plan implements Abilities {
     Actor actor, Actor enemy, float winReward, float lossCost, boolean report
   ) {
     if (actor == enemy) return 0 ;
+    if (report) I.say("  Basic combat reward/cost: "+winReward+"/"+lossCost) ;
     //
     //  Here, we estimate the danger presented by actors in the area, and
     //  thereby guage the odds of survival/victory-
-    //  TODO:  Fix up the Danger Map.  Needs to be smoother, area-wise.
     final Batch <Element> known = actor.mind.awareOf() ;
     known.include(enemy) ;
     float danger = Retreat.dangerAtSpot(enemy, actor, enemy, known) ;
@@ -139,13 +139,10 @@ public class Combat extends Plan implements Abilities {
     //
     //  Then we calculate the risk/reward ratio associated with the act-
     float appeal = 0 ;
-    final float ER = 0 - actor.mind.relation(enemy) * Plan.PARAMOUNT ;
-    lossCost -= ER / 2 ;
-    winReward += ER / 2 ;
-    appeal += winReward ;
     appeal *= actor.traits.scaleLevel(AGGRESSIVE) ;
-    //appeal /= actor.traits.scaleLevel(NERVOUS   ) ;  //Covered by Retreat.
-    
+    final float ER = 0 - actor.mind.relation(enemy) * Plan.PARAMOUNT ;
+    winReward += ER ;
+    appeal += winReward ;
     
     if (report) {
       I.say(
@@ -167,35 +164,6 @@ public class Combat extends Plan implements Abilities {
   }
   
   
-  
-  //public static float threatFrom(Actor actor, Actor from) {
-    
-    /*
-    float baseThreat = 0 - actor.mind.relation(from), threatMult = 1 ;
-    
-    final Target victim = from.targetFor(Combat.class) ;
-    if (victim instanceof Actor) {
-      baseThreat += actor.mind.relation((Actor) victim) ;
-    }
-    else if (victim instanceof Venue) {
-      baseThreat += actor.mind.relation((Venue) victim) ;
-    }
-    else if (from.isDoing(Retreat.class, null)) {
-      baseThreat -= actor.mind.relation(from.base()) ;
-      threatMult = 0.25f ;
-    }
-    else {
-      baseThreat -= actor.mind.relation(from.base()) ;
-      threatMult = 0.5f ;
-    }
-    
-    if (baseThreat > 0) return threatMult ;
-    if (baseThreat < 0) return 0 - threatMult ;
-    return 0 ;
-    //*/
-  //}
-  
-  
   //
   //  TODO:  Actors may need to cache this value?  Maybe later.  Not urgent at
   //  the moment.
@@ -211,11 +179,11 @@ public class Combat extends Plan implements Abilities {
     //
     //  Scale by general ranks in relevant skills-
     if (reportStrength) I.sayAbout(actor, "Native strength: "+strength) ;
-    strength *= (
+    strength *= (2 +
       actor.traits.useLevel(HAND_TO_HAND) +
       actor.traits.useLevel(MARKSMANSHIP)
     ) / 20 ;
-    strength *= (
+    strength *= (2 +
       actor.traits.useLevel(HAND_TO_HAND) +
       actor.traits.useLevel(STEALTH_AND_COVER)
     ) / 20 ;

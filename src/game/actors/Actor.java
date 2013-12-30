@@ -108,14 +108,14 @@ public abstract class Actor extends Mobile implements
       I.say("  ASSIGNING ACTION: "+action) ;
       if (action != null) I.add("  "+action.hashCode()+"\n") ;
     }
-    world.activities.toggleActive(this.actionTaken, false) ;
+    world.activities.toggleAction(actionTaken, false) ;
     this.actionTaken = action ;
     if (actionTaken != null) {
       actionTaken.updateMotion(false) ;
       actionTaken.updateAction() ;
     }
-    world.activities.toggleActive(action, true) ;
-  }  
+    world.activities.toggleAction(actionTaken, true) ;
+  }
   
   
   protected void pathingAbort() {
@@ -172,7 +172,8 @@ public abstract class Actor extends Mobile implements
   
   
   public void exitWorld() {
-    world.activities.toggleActive(actionTaken, false) ;
+    if (verbose) I.say(this+" IS EXITING WORLD, LAST ACTION: "+actionTaken) ;
+    assignAction(null) ;
     mind.cancelBehaviour(mind.topBehaviour()) ;
     mind.onWorldExit() ;
     super.exitWorld() ;
@@ -225,6 +226,7 @@ public abstract class Actor extends Mobile implements
     health.updateHealth(numUpdates) ;
     gear.updateGear(numUpdates) ;
     traits.updateTraits(numUpdates) ;
+    if (health.isDead()) setAsDestroyed() ;
     timeTaken = System.currentTimeMillis() - startTime ;
     
     if (verbose && timeTaken > 0 && I.talkAbout == this) {
@@ -299,32 +301,29 @@ public abstract class Actor extends Mobile implements
         I.say("Time taken for fog/danger updates was "+timeTaken) ;
       }
     }
-    else {
-      if (health.asleep() && numUpdates % 10 == 0) {
-        //
-        //  Check to see if you need to wake up-
-        Behaviour root = mind.rootBehaviour() ;
-        if (root != null) mind.cancelBehaviour(root) ;
-        mind.updateAI(numUpdates) ;
-        mind.getNextAction() ;
-        root = mind.rootBehaviour() ;
-        
-        final float
-          wakePriority  = root == null ? 0 : root.priorityFor(this),
-          sleepPriority = Resting.ratePoint(this, aboard(), 0) ;
-        if (verbose && I.talkAbout == this) {
-          I.say("Wake priority: "+wakePriority) ;
-          I.say("Sleep priority: "+sleepPriority) ;
-          I.say("Root behaviour: "+root) ;
-        }
-        
-        final float margin = Math.max(Plan.ROUTINE / 2f, sleepPriority) ;
-        if ((Rand.num() * sleepPriority) < (wakePriority - margin)) {
-          health.setState(ActorHealth.STATE_ACTIVE) ;
-          if (verbose) I.sayAbout(this, "Waking up for: "+root) ;
-        }
+    else if (health.asleep() && numUpdates % 10 == 0) {
+      //
+      //  Check to see if you need to wake up-
+      Behaviour root = mind.rootBehaviour() ;
+      if (root != null) mind.cancelBehaviour(root) ;
+      mind.updateAI(numUpdates) ;
+      mind.getNextAction() ;
+      root = mind.rootBehaviour() ;
+      
+      final float
+        wakePriority  = root == null ? 0 : root.priorityFor(this),
+        sleepPriority = Resting.ratePoint(this, aboard(), 0) ;
+      if (verbose && I.talkAbout == this) {
+        I.say("Wake priority: "+wakePriority) ;
+        I.say("Sleep priority: "+sleepPriority) ;
+        I.say("Root behaviour: "+root) ;
       }
-      if (health.isDead()) setAsDestroyed() ;
+      
+      //final float margin = Math.max(Plan.ROUTINE / 2f, sleepPriority) ;
+      if (wakePriority + 1 > sleepPriority + Choice.DEFAULT_PRIORITY_RANGE) {
+        health.setState(ActorHealth.STATE_ACTIVE) ;
+        if (verbose) I.sayAbout(this, "Waking up for: "+root) ;
+      }
     }
     
     //
@@ -402,10 +401,9 @@ public abstract class Actor extends Mobile implements
     final Sprite s = sprite() ;
     renderHealthbars(rendering, base) ;
     if (actionTaken != null) actionTaken.configSprite(s) ;
-    ///I.say("Sprite height: "+s.position.z) ;
     super.renderFor(rendering, base) ;
     //
-    //  Finally, if you have anything to say, render the chat bubbles!
+    //  Finally, if you have anything to say, render the chat bubbles.
     if (chat.numPhrases() > 0) {
       chat.position.setTo(s.position) ;
       chat.position.z += height() ;

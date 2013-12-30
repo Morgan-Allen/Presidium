@@ -298,6 +298,8 @@ public abstract class Mobile extends Element
   public Vec3D viewPosition(Vec3D v) {
     if (v == null) v = new Vec3D() ;
     final float alpha = PlayLoop.frameTime() ;
+    //I.sayAbout(this, "Frame time: "+alpha) ;
+    //I.sayAbout(this, "Old/new position: "+position+"/"+nextPosition) ;
     v.setTo(position).scale(1 - alpha) ;
     v.add(nextPosition, alpha, v) ;
     return v ;

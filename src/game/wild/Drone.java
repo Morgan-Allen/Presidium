@@ -31,7 +31,7 @@ public class Drone extends Artilect implements Economy {
       0.6f,//bulk bonus
       0.6f,//sight range
       0.6f,//move speed,
-      false//organic
+      ActorHealth.ARTILECT_METABOLISM
     ) ;
     health.setupHealth(0, Rand.avgNums(2), Rand.avgNums(2)) ;
 

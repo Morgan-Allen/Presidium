@@ -4,7 +4,7 @@
   *  for now, feel free to poke around for non-commercial purposes.
   */
 package src.game.actors ;
-import src.game.tactical.Power;
+import src.game.tactical.Power ;
 import src.util.* ;
 
 

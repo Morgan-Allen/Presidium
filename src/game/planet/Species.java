@@ -48,7 +48,6 @@ public class Species implements Session.Saveable, Economy {
   public static enum Type {
     BROWSER,
     PREDATOR,
-    OMNIVORE,
     HUMANOID,
     FLORA
   }
@@ -90,12 +89,11 @@ public class Species implements Session.Saveable, Economy {
       "survival.",
       null,
       null,
-      Type.HUMANOID
+      Type.HUMANOID, 1, 1, 1
     ) {
       public Fauna newSpecimen() { return null ; }
-      public Lair createLair() { return null ; }
+      public Nest createNest() { return null ; }
     },
-    
     
     QUUD = new Species(
       "Quud",
@@ -106,14 +104,16 @@ public class Species implements Session.Saveable, Economy {
       MS3DModel.loadMS3D(
         Species.class, FILE_DIR, "Quud.ms3d", 0.025f
       ).loadXMLInfo(XML_PATH, "Quud"),
-      Type.BROWSER
+      Type.BROWSER,
+      1.00f, //bulk
+      0.35f, //speed
+      0.65f  //sight
     ) {
       public Fauna newSpecimen() { return new Quud() ; }
-      public Lair createLair() { return new Lair(
+      public Nest createNest() { return new Nest(
         2, 2, Venue.ENTRANCE_EAST, this, MODEL_NEST_QUUD
       ) ; }
     },
-    
     
     VAREEN = new Species(
       "Vareen",
@@ -125,10 +125,13 @@ public class Species implements Session.Saveable, Economy {
       MS3DModel.loadMS3D(
         Species.class, FILE_DIR, "Vareen.ms3d", 0.025f
       ).loadXMLInfo(XML_PATH, "Vareen"),
-      Type.BROWSER
+      Type.BROWSER,
+      0.50f, //bulk
+      1.60f, //speed
+      1.00f  //sight
     ) {
       public Fauna newSpecimen() { return new Vareen() ; }
-      public Lair createLair() { return new Lair(
+      public Nest createNest() { return new Nest(
         2, 2, Venue.ENTRANCE_EAST, this, MODEL_NEST_VAREEN
       ) ; }
     },
@@ -143,10 +146,13 @@ public class Species implements Session.Saveable, Economy {
       MS3DModel.loadMS3D(
         Species.class, FILE_DIR, "Micovore.ms3d", 0.025f
       ).loadXMLInfo(XML_PATH, "Micovore"),
-      Type.PREDATOR
+      Type.PREDATOR,
+      2.50f, //bulk
+      1.30f, //speed
+      1.50f  //sight
     ) {
       public Fauna newSpecimen() { return new Micovore() ; }
-      public Lair createLair() { return new Lair(
+      public Nest createNest() { return new Nest(
         3, 2, Venue.ENTRANCE_EAST, this, MODEL_NEST_MICOVORE
       ) ; }
     },
@@ -172,7 +178,6 @@ public class Species implements Session.Saveable, Economy {
     TIMBER      = new Species("Timber"     , Type.FLORA),
     
     CROP_SPECIES[] = Species.speciesSoFar(),
-    
     ALL_SPECIES[] = Species.allSpecies()
   ;
   
@@ -189,17 +194,25 @@ public class Species implements Session.Saveable, Economy {
   final public Type type ;
   final public Item nutrients[] ;
   
+  final public float
+    baseBulk, baseSpeed, baseSight ;
+  
   
   Species(
     String name, String info, String portraitTex, Model model,
-    Type type
+    Type type,
+    float bulk, float speed, float sight
   ) {
     this.name = name ;
     this.info = info ;
     if (portraitTex == null) this.portrait = null ;
     else this.portrait = Texture.loadTexture(FILE_DIR+portraitTex) ;
     this.model = model ;
+    
     this.type = type ;
+    this.baseBulk = bulk ;
+    this.baseSpeed = speed ;
+    this.baseSight = sight ;
     nutrients = new Item[0] ;
     
     soFar.add(this) ;
@@ -212,7 +225,11 @@ public class Species implements Session.Saveable, Economy {
     this.info = name ;
     this.portrait = null ;
     this.model = null ;
+    
     this.type = type ;
+    this.baseBulk = 1 ;
+    this.baseSpeed = 0 ;
+    this.baseSight = 0 ;
     
     int amount = 0 ;
     Batch <Item> n = new Batch <Item> () ;
@@ -242,21 +259,22 @@ public class Species implements Session.Saveable, Economy {
   }
   
   
-  public Lair createLair() {
+  public Nest createNest() {
     return null ;
   }
   
   
-  public boolean browses() {
-    return type == Type.BROWSER || type == Type.OMNIVORE ;
+  public boolean browser() {
+    return type == Type.BROWSER ;
   }
   
   
-  public boolean goesHunt() {
-    return type == Type.PREDATOR || type == Type.OMNIVORE ;
+  public boolean predator() {
+    return type == Type.PREDATOR ;
   }
   
-  
+
+  /*
   public int forageRange() {
     if (type == Species.Type.BROWSER) return Lair.BROWSER_SAMPLE_RANGE ;
     else return Lair.PREDATOR_SAMPLE_RANGE ;
@@ -267,6 +285,7 @@ public class Species implements Session.Saveable, Economy {
     if (type == Species.Type.PREDATOR) return Lair.PREDATOR_LAIR_POPULATION ;
     return Lair.BROWSER_LAIR_POPULATION ;
   }
+  //*/
   
   
   public String toString() { return name ; }

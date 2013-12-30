@@ -36,16 +36,25 @@ public class Base implements
   
   /**  Fields, constructors, and save/load methods-
     */
+  final public static String
+    KEY_ARTILECTS = "Artilects",
+    KEY_WILDLIFE  = "Wildlife" ,
+    KEY_NATIVES   = "Natives"  ;
+  
+  
   final public World world ;
   final boolean primal ;
   
   final public Commerce commerce = new Commerce(this) ;
+  final public Paving paving ;
   float credits = 0, interest = 0 ;
   
   Actor ruler ;
   Venue commandPost ;
   final List <Mission> missions = new List <Mission> () ;
   
+  //
+  //  TODO:  Create a Reputation/Ratings class for these!
   private float
     communitySpirit,
     alertLevel,
@@ -55,12 +64,10 @@ public class Base implements
     creditCirculation ;
   final Table <Accountable, Relation> baseRelations = new Table() ;
   
-  final public Paving paving ;
-  final public PresenceMap maintenance ;
-  
   final public BaseProfiles profiles = new BaseProfiles(this) ;
   final public DangerMap dangerMap ;
   final public IntelMap intelMap = new IntelMap(this) ;
+  
   
   public String title  = "Player Base" ;
   public Colour colour = Colour.BLUE ;
@@ -78,7 +85,7 @@ public class Base implements
     this.world = world ;
     this.primal = primal ;
     paving = new Paving(world) ;
-    maintenance = new PresenceMap(world, "damaged") ;
+    //maintenance = new PresenceMap(world, "damaged") ;
     dangerMap = new DangerMap(world, this) ;
     intelMap.initFog(world) ;
   }
@@ -89,6 +96,8 @@ public class Base implements
     this.world = s.world() ;
     this.primal = s.loadBool() ;
     commerce.loadState(s) ;
+    paving = new Paving(world) ;
+    paving.loadState(s) ;
     credits = s.loadFloat() ;
     interest = s.loadFloat() ;
 
@@ -107,10 +116,6 @@ public class Base implements
       baseRelations.put(r.subject, r) ;
     }
     
-    paving = new Paving(world) ;
-    paving.loadState(s) ;
-    maintenance = (PresenceMap) s.loadObject() ;
-    
     profiles.loadState(s) ;
     dangerMap = new DangerMap(world, this) ;
     dangerMap.loadState(s) ;
@@ -121,6 +126,7 @@ public class Base implements
   public void saveState(Session s) throws Exception {
     s.saveBool(primal) ;
     commerce.saveState(s) ;
+    paving.saveState(s) ;
     s.saveFloat(credits) ;
     s.saveFloat(interest) ;
     
@@ -138,9 +144,6 @@ public class Base implements
     
     s.saveInt(baseRelations.size()) ;
     for (Relation r : baseRelations.values()) Relation.saveTo(s, r) ;
-    
-    paving.saveState(s) ;
-    s.saveObject(maintenance) ;
     
     profiles.saveState(s) ;
     dangerMap.saveState(s) ;

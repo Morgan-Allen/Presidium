@@ -118,7 +118,7 @@ public class ContactMission extends Mission implements Economy {
   }
   
   
-  protected void beginMission() {
+  public void beginMission() {
     super.beginMission() ;
   }
   

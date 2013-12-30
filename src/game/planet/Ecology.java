@@ -142,34 +142,6 @@ public class Ecology {
   }
   
   /*
-  public float squalorAmount(Tile t) {
-    return squalorMap.longTermVal(t) ;
-  }
-  
-  
-  public float squalorRating(Tile t) {
-    return squalorMap.shortTermVal(t) * 4f / (SR * SR) ;
-  }
-  
-  
-  public float squalorRating(Target e) {
-    return squalorRating(world.tileAt(e)) ;
-  }
-  //*/
-  
-  
-  /*
-  public float squalorRating(Fixture f) {
-    float sum = 0, count = 0 ;
-    for (Tile t : world.tilesIn(f.area(), true)) {
-      sum += squalorMap[t.x / SR][t.y / SR] ;
-      count++ ;
-    }
-    return sum / (count * SR * SR) ;
-  }
-  //*/
-  
-  
   public float preyDensityAt(Tile t) {
     return preyMap.longTermVal(t) ;
     //return Visit.sampleMap(world.size, preyMap, t.x, t.y) ;
@@ -227,6 +199,7 @@ public class Ecology {
     final Fauna f = (Fauna) prey ;
     return relativeAbundanceAt(f.species, f.origin(), f.species.forageRange()) ;
   }
+  //*/
   
   
   public float globalBiomass() {

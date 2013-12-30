@@ -267,7 +267,7 @@ public class Scenario implements Session.Saveable {
   
   
   public void renderVisuals(Rendering rendering) {
-    if (PlayLoop.gameSpeed() != 1) {
+    if ((! isDebug) && PlayLoop.gameSpeed() != 1) {
       final Colour blur = new Colour().set(0.5f, 0.5f, 0.1f, 0.4f) ;
       world.ephemera.applyFadeColour(blur) ;
     }
@@ -277,10 +277,10 @@ public class Scenario implements Session.Saveable {
   
   
   public void updateGameState() {
-    if (PlayLoop.gameSpeed() < 1) {
+    if ((! isDebug) && PlayLoop.gameSpeed() < 1) {
       Power.applyTimeDilation(PlayLoop.gameSpeed(), this) ;
     }
-    if (PlayLoop.gameSpeed() > 1) {
+    if ((! isDebug) && PlayLoop.gameSpeed() > 1) {
       Power.applyResting(PlayLoop.gameSpeed(), this) ;
     }
     world.updateWorld() ;
@@ -289,13 +289,13 @@ public class Scenario implements Session.Saveable {
   
   public void afterSaving() {
     world.ephemera.applyFadeColour(Colour.GREY) ;
-    Power.applyWalkPath(this) ;
+    if (! isDebug) Power.applyWalkPath(this) ;
   }
   
   
   public void afterLoading(boolean fromMenu) {
     world.ephemera.applyFadeColour(Colour.BLACK) ;
-    if (! fromMenu) Power.applyDenyVision(this) ;
+    if ((! isDebug) && ! fromMenu) Power.applyDenyVision(this) ;
   }
   
   

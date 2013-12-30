@@ -163,8 +163,7 @@ public class OreProcessing extends Plan implements Economy {
     
     final World world = actor.world() ;
     if (hostile) {
-      final Base artilects = world.baseWithName("Artilects", true, true) ;
-      released.assignBase(artilects) ;
+      released.assignBase(world.baseWithName(Base.KEY_ARTILECTS, true, true)) ;
     }
     else {
       released.assignBase(actor.base()) ;

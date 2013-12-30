@@ -48,7 +48,7 @@ public class Payday extends Plan implements Economy {
     if (! (pays instanceof Venue)) return 0 ;
     
     final Venue venue = (Venue) pays ;
-    final Profile p = venue.base.profiles.profileFor(actor) ;
+    final Profile p = venue.base().profiles.profileFor(actor) ;
     float impetus = (p.daysSinceWageEval(venue.world()) - 1) * ROUTINE ;
     if (impetus < 0) impetus = 0 ;
     impetus += actor.mind.greedFor((int) p.paymentDue()) * ROUTINE ;
@@ -79,7 +79,7 @@ public class Payday extends Plan implements Economy {
   
   
   public boolean actionGetPaid(Actor actor, Venue venue) {
-    final Profile p = venue.base.profiles.profileFor(actor) ;
+    final Profile p = venue.base().profiles.profileFor(actor) ;
     I.sayAbout(actor, "Getting paid at "+venue) ;
     //Audit.auditEmployer(actor, venue) ;
     
@@ -91,7 +91,7 @@ public class Payday extends Plan implements Economy {
       else {
         final float balance = Audit.auditForBalance(actor, venue) ;
         I.sayAbout(actor, "Getting balance: "+balance) ;
-        venue.base.incCredits(balance) ;
+        venue.base().incCredits(balance) ;
       }
     }
     

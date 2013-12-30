@@ -22,10 +22,12 @@ public class ActorTraits implements Abilities {
     DNA_SIZE         = 16,
     DNA_LETTERS      = 26,
     MUTATION_PERCENT = 5 ;
+  private static boolean verbose = false ;
+  
 
   private static class Level {
     float value, bonus ;
-  }  //studyLevel?
+  }  //studyLevel  TODO:  use that.
   
   private Table <Trait, Level> levels = new Table <Trait, Level> () ;
   
@@ -239,6 +241,7 @@ public class ActorTraits implements Abilities {
     if (type.type == PHYSICAL) {
       return level * actor.health.ageMultiple() ;
     }
+    
     if (type.type == SKILL) {
       final Skill skill = (Skill) type ;
       if (skill.parent == null) {
@@ -248,6 +251,8 @@ public class ActorTraits implements Abilities {
         if (! actor.health.conscious()) level /= 2 ;
         level += rootBonus(skill) ;
       }
+      if (verbose) I.sayAbout(actor, " level of "+type+" is "+level) ;
+      if (verbose) I.sayAbout(actor, " root bonus: "+rootBonus(skill)) ;
       level *= 1 - actor.health.stressPenalty() ;
     }
     return level ;

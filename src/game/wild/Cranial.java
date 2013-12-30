@@ -31,7 +31,7 @@ public class Cranial extends Artilect implements Economy {
       1.5f,//bulk bonus
       1.0f,//sight range
       0.3f,//move speed,
-      false//organic
+      ActorHealth.ARTILECT_METABOLISM
     ) ;
     health.setupHealth(0, Rand.avgNums(2), Rand.avgNums(2)) ;
     

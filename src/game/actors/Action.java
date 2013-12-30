@@ -79,7 +79,6 @@ public class Action implements Behaviour, Model.AnimNames {
     
     progress = s.loadFloat() ;
     oldProgress = s.loadFloat() ;
-    ///duration = s.loadFloat() ;
     animName = s.loadString() ;
     description = s.loadString() ;
   }
@@ -99,7 +98,6 @@ public class Action implements Behaviour, Model.AnimNames {
     
     s.saveFloat(progress) ;
     s.saveFloat(oldProgress) ;
-    ///s.saveFloat(duration) ;
     s.saveString(animName) ;
     s.saveString(description) ;
   }
@@ -279,11 +277,14 @@ public class Action implements Behaviour, Model.AnimNames {
       moveDist = Spacing.distance(actor, moveTarget) ;
     final boolean
       closed = actor.pathing.closeEnough(moveTarget, minDist),
-      facing = actor.pathing.facingTarget(actionTarget),
-      approach = (moveDist < 1) && ! (moveTarget instanceof Boardable) ;
-    actor.pathing.updateTarget(moveTarget) ;
+      facing = actor.pathing.facingTarget(actionTarget) ;
+    final boolean approach =
+      (moveDist < 1) && (! (moveTarget instanceof Boardable)) &&
+      MobilePathing.hasLineOfSight(actor, moveTarget) ;
+    
     final Target faced = closed ? actionTarget :
       (approach ? moveTarget : actor.pathing.nextStep()) ;
+    actor.pathing.updateTarget(moveTarget) ;
     
     if (verbose && I.talkAbout == actor) {
       I.say("Action target is: "+actionTarget) ;

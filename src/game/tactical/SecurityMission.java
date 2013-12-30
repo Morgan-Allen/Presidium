@@ -3,12 +3,11 @@
   *  I intend to slap on some kind of open-source license here in a while, but
   *  for now, feel free to poke around for non-commercial purposes.
   */
-
 package src.game.tactical ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
-import src.graphics.widgets.HUD;
+import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
 
@@ -16,6 +15,11 @@ import src.util.* ;
 //
 //  Patrolling should have you attack anything that attacks your client.  When
 //  they retreat, you stay put.
+
+//
+//  TODO:  You should also add options for medical treatment and repairs.
+
+
 
 public class SecurityMission extends Mission implements Abilities {
   
@@ -32,6 +36,7 @@ public class SecurityMission extends Mission implements Abilities {
     "Medium, (2 days)",
     "Long (4 days)",
   } ;
+  private static boolean verbose = true ;
   
   int durationSetting = 0 ;
   float inceptTime = -1 ;
@@ -99,24 +104,60 @@ public class SecurityMission extends Mission implements Abilities {
   }
   
   
-  protected void beginMission() {
+  public void beginMission() {
     super.beginMission() ;
     inceptTime = base.world.currentTime() ;
   }
-
-
-  public Behaviour nextStepFor(Actor actor) {
+  
+  
+  /**  Behaviour implementation-
+    */
+  public float priorityModifier(Behaviour b, Choice c) {
     //
-    //  TODO:  You'll also have to allow for sleeping and resting behaviours,
-    //  and medical treatment of the subject.
-    return Patrolling.securePerimeter(actor, (Element) subject, base.world) ;
+    //  TODO:  Build this into the Choice algorithm.
+    
+    return 0 ;
+  }
+  
+  
+  public Behaviour nextStepFor(Actor actor) {
+    final float priority = priorityFor(actor) ;
+    final Choice choice = new Choice(actor) ;
+    
+    /*
+    if (subject instanceof ItemDrop) {
+      final ItemDrop SI = (ItemDrop) subject ;
+      final Recovery RS = new Recovery(actor, SA, admin) ;
+      RS.priorityMod = priority ;
+      choice.add(TS) ;
+    }
+    //*/
+    
+    if (subject instanceof Actor) {
+      final Actor SA = (Actor) subject ;
+      final Treatment TS = new Treatment(actor, SA, null) ;
+      TS.priorityMod = priority / 2 ;
+      choice.add(TS) ;
+    }
+    
+    if (subject instanceof Venue) {
+      final Venue SV = (Venue) subject ;
+      final Building BS = new Building(actor, SV) ;
+      BS.priorityMod = priority / 2 ;
+      choice.add(BS) ;
+    }
+    
+    final Patrolling p = Patrolling.securePerimeter(
+      actor, (Element) subject, base.world
+    ) ;
+    choice.add(p) ;
+    return choice.pickMostUrgent() ;
   }
   
   
   
   /**  Rendering and interface methods-
     */
-
   public void writeInformation(Description d, int categoryID, HUD UI) {
     super.writeInformation(d, categoryID, UI) ;
     d.append("\n\nDuration: ") ;

@@ -198,12 +198,12 @@ public class Structure {
     //  Then, check for gradual wear and tear-
     if (
       (numUpdates % 10 == 0) &&
-      (! GameSettings.buildFree) &&
       takesWear() && (integrity > 0)
     ) {
       float wear = baseIntegrity * WEAR_PER_DAY ;
-      wear *= 10 / World.STANDARD_DAY_LENGTH ;
+      wear *= 10f / World.STANDARD_DAY_LENGTH ;
       if (structureType == TYPE_FIXTURE) wear /= 2 ;
+      if (structureType == TYPE_CRAFTED) wear *= 2 ;
       if (Rand.num() > armouring / (armouring + DEFAULT_ARMOUR)) {
         takeDamage(wear * Rand.num() * 2) ;
       }

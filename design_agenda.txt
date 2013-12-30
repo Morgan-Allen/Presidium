@@ -4,6 +4,11 @@
 *  Extra humanoid models:  fat/skinny, young/old.
 *  Mutant/primitive/infected textures.  More citizen skins.
 
+
+Ecology.  Arcology + causeways.
+Contact + relations.  Security.
+Wildlife.  Artilects.  Natives.
+
 What are the tradeoffs involved in this game?
   The packing problem of placement of services and infrastructure while
   accomodating aura structures.
@@ -27,6 +32,78 @@ The Late Game.  Early on, simple cash rewards will usually do the job.  But for
 really high-stakes or long-term away missions, you need hard guarantees of
 commitment from people well past caring about money.)
 
+
+
+Highlines + Walkways + Pylons
+Supply Depot
+Stock Exchange + Bulletin Board
+Press Office
+Cantina
+  Runner's Market + MCHQ
+  
+  Free Trader, Ship Mate, Mercenary
+  Supply Corps, Stock Vendor, Propagandist
+  Performer, Soma Vendor, Runner
+
+Fabricator
+Holo Arcade
+Pleasure Dome
+Art Installation
+Edifice
+  Sculptor's Studio
+  
+  Fabricator, Holocordist, Holo Avatar
+  Companion, Aesthete, Tissue Sculptor
+
+Bastion
+Shield Wall + Perimeter Fence + Shield Generator
+House Garrison
+Vault System
+  Combat Arena
+  Seat of Power
+  
+  Volunteer, House Cadre, Psy Corps, Janissary
+  First Consort, House Advisor, Steward, Guest
+  Knighted, Count/ess, Baron/ess, Duke/Duchess
+
+Foundry
+Excavation Site + Smelters
+Reactor Complex
+Culture Vats
+  Initiate School + Atomic Fane
+  Spacer School + Shipyard + Sky Bridge
+  
+  Scavenger, Cargo Cultist, Vats Chemist
+  Artificer, Tech Reserve, Excavator, Core Sentry
+  Imperial Guard, Initiate, Bondsman, Spacer Agent
+  Oracle, Spacer Navigator
+
+Survey Station
+Botanical Station + Solar Array
+Air Processor
+Reclamator + Arcology + Enclosure
+  Shaper School
+  Symbiote School + Archon Circle
+  
+  Hunter, Gatherer, Mutant Pariah, Shaman
+  Survey Scout, Ecologist, Field Cultivator, Arcology Engineer
+  Face Dancer, Autometabolist, Glaive Symbiote, Thread Archon
+  Core Symbiote, Shaper, Chieftain
+
+Sickbay
+Archives + Monitor Ward
+Enforcer Bloc
+Counsel Chamber
+  Logician School
+  Collective School + Android Nexus
+  
+  Holder, Child/Invalid
+  Medic, Physician, Tutor Savant
+  Enforcer, Psychiatrist, Auditor
+  Counsellor, Palatine, Logician, Collective
+  First Speaker, Voice of the Nexus
+
+
   
   Action takes place on the planet of Diaspora (AKA Bloodstone AKA Presidium.)
   20 sectors.  6 initially claimed.  2 as neutral ground (mostly deep oceans
@@ -35,31 +112,50 @@ commitment from people well past caring about money.)
   
   (Place-names taken after Mars)
 
-Settled (have safety, fertility, or mineral wealth, bid for by player):
-  Pavonis Sector  ()
-  Vallis Sector   ()
-  Olympus Sector  ()
-  Elysium Sector  ()
-  Acheron Sector  ()
-  Tharsis Sector  ()
+How do I divide up the planet's surface?  ...Wait.  You have 20 sectors.  6 +
+12 + 2.  Alternatively... 12 sectors.  Dodecahedral projection.  ...I like that
+better, I think-
 
-Available (have specific associated Grand Missions):
-  Terra Sector      (armoured champions defend an imperial monastery       E)
-  Hellas Sector     (a seemingly benign supercomputer rules the people     E)
-  Boreum Sector     (shaper tribes have banded to form stiff resistance    S)
-  Planitia Sector   (rogue robots guard an heirloom of house procyon       E)
-  Arcadia Sector    (manage an existing crime-ridden settlement            R)
-  Coprates Sector   (re-assemble a long-lost heirloom of house altair      R)
-  Arabia Sector     (holographic projections ward off a lonely citadel     R)
-  Aeolis Sector     (a unique desert habitat with majestic wildlife        S)
-  Oxia Sector       (a symbiont super-cult is making discoveries           S)
-  Thaumasia Sector  (a strange 'amoebic sea' is slowly spreading           S)
-  Syrtis Sector     (a set of massive obelisks dominate the landscape      E)
-  Diacria Sector    (abandoned ruins reveal secrets of the homeworld       R)
 
-Neutral (place of refuge, with no Homeworld support):
-  Marineris Sector  (mostly deep ocean)
-  Noachis Sector    (barren rad zone)
+                         *-----*-----*
+                          \    A    /
+                           \       /
+    *-----*     *-----*     *-----*     *-----*     *-----*
+   /       \   /       \   /       \   /       \   /       \
+  /    3    \ /    8    \ /    B    \ /    7    \ /    0    \
+ *-----*-----*-----*-----*-----*-----*-----*-----*-----*-----*-----*
+        \    9    / \    6    / \    1    / \    5    / \    2    /
+         \       /   \       /   \       /   \       /   \       /
+          *-----*     *-----*     *-----*     *-----*     *-----*
+                                 /       \
+                                /    4    \
+                               *-----*-----*
+
+
+(0)  Terra Sector      (armoured champions defend an imperial monastery       E)
+(1)  Hellas Sector     (a seemingly benign supercomputer rules the people     E)
+(2)  Boreum Sector     (shaper tribes have banded to form stiff resistance    S)
+(3)  Planitia Sector   (rogue robots guard an heirloom of house procyon       E)
+(4)  Arcadia Sector    (manage an existing crime-ridden settlement            R)
+(5)  Coprates Sector   (piece together the history of house fomalhaut         R)
+(6)  Arabia Sector     (holographic projections ward off a lonely citadel     R)
+(7)  Aeolis Sector     (a unique desert habitat with majestic wildlife        S)
+(8)  Oxia Sector       (a symbiont super-cult is making discoveries           S)
+(9)  Thaumasia Sector  (a strange 'amoebic sea' is slowly spreading           S)
+(A)  Syrtis Sector     (a set of massive obelisks dominate the landscape      E)
+(B)  Diacria Sector    (abandoned ruins reveal secrets of the homeworld       R)
+
+Pavonis Sector  (Altair    start, borders on Arcadia )
+Vallis Sector   (Suhail    start, borders on Aeolis  )
+Olympus Sector  (Taygeta   start, borders on Hellas  )
+Elysium Sector  (Procyon   start, borders on Terra   )
+Acheron Sector  (Rana      start, borders on Boreum  )
+Tharsis Sector  (Fomalhaut start, borders on Coprates)
+
+Marineris Sector  (mostly water   , borders on Diacria)
+Noachis Sector    (barren rad-zone, borders on Syrtis )
+
+
 
 
 
@@ -289,7 +385,7 @@ Symbiont Training & Accessories:
   Meltdown ability          (from School)
   Arc Cannon        (electrical/plasma/antimass damage)
   Silver Gauntlet   (encases in resilient shell under stress)
-  Archon Phase      (change into higher being)
+  Seraph Phase      (change into higher being)
 
 Initiate Training & Accessories:
   Imperial Fane                   (side-structure)

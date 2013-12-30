@@ -16,18 +16,8 @@ import src.util.* ;
 
 
 //
-//  TODO:  Give this a less specifically-ecological name?  Like Placement?
-/*
-...I need a system for describing alliances.  During contact missions at least.
-
-I need a system for generating local flora and fauna.  Base this, directly, on
-underlying terrain.  Player location goes first.  (For that, you still need
-fertility assessments.)  Then fill in ruins and natives (not too many.)  Then
-put in animal lairs and flora (not too close to other structures.)
-
-TODO:  Put in mineral outcrops during this phase as well?
-//*/
-
+//  TODO:  Give this a less specifically-ecological name?
+//  TODO:  Put in mineral outcrops during this phase as well?
 
 
 public class EcologyGen {
@@ -40,10 +30,6 @@ public class EcologyGen {
     MAJOR_LAIR_COUNTS[] = { 0, 0, 1, 4 },
     MINOR_LAIR_COUNTS[] = { 0, 1, 4, 8 },
     VARIANCE = 4 ;
-  final public static String
-    KEY_ARTILECTS = "Artilects",
-    KEY_WILDLIFE  = "Wildlife" ,
-    KEY_NATIVES   = "Natives"  ;
   
   //
   //  TODO:  Try creating a dedicated 'LairSite' class.
@@ -292,94 +278,99 @@ public class EcologyGen {
   public void populateFauna(
     final Species... species
   ) {
-    final Lair typeLairs[] = new Lair[species.length] ;
+    //
+    //  Okay.  First of all, there ought to be a minimum distance between lairs.
+    //  Secondly, it might be simplest to just sample the dozen closest lairs
+    //  and their occupants to get an idea of predator quotients.
+    //
+    //  Thirdly... well, terrain sampling can proceed as before.  But
+    //  reproduction should probably be limited to once every couple of days-
+    //  and longer, for predators.
+    //
+    //  Fourthly, for animals, maturation should probably be spurred primarily
+    //  by food ingestion.  (Lifespan is a maximum only.)  And lairs have no
+    //  maximum occupancy- crowding is rated based on abundance of nearby
+    //  food sources.
+    //
+    //  During setup, whichever species is considered least abundant at a given
+    //  site will be installed first.
     
-    final RandomScan scan = new RandomScan(world.size) {
-      protected void scanAt(int x, int y) {
-        int bestIndex = -1 ;
-        float bestRating = 0 ;
-        
-        for (int i = species.length ; i-- > 0 ;) {
-          final Species specie = species[i] ;
-          if (typeLairs[i] == null) typeLairs[i] = specie.createLair() ;
-          final Lair lair = typeLairs[i] ;
-          lair.setPosition(x, y, world) ;
-          final float rating = lair.rateCurrentSite(world) * Rand.avgNums(2) ;
-          if (rating > bestRating) { bestIndex = i ; bestRating = rating ; }
-        }
-        
-        if (bestIndex != -1) {
-          final Lair chosen = typeLairs[bestIndex] ;
-          typeLairs[bestIndex] = null ;
-          chosen.clearSurrounds() ;
-          chosen.enterWorld() ;
-          chosen.structure.setState(Structure.STATE_INTACT, 1) ;
-          chosen.setAsEstablished(true) ;
-        }
+    final int SS = World.SECTOR_SIZE ;
+    int numAttempts = (world.size * world.size * 4) / (SS * SS) ;
+    I.say("No. of attempts: "+numAttempts) ;
+    
+    while (numAttempts-- > 0) {
+      Tile tried = world.tileAt(
+        Rand.index(world.size),
+        Rand.index(world.size)
+      ) ;
+      tried = Spacing.nearestOpenTile(tried, tried) ;
+      if (tried == null) continue ;
+      
+      Nest toPlace = null ;
+      float bestRating = 0 ;
+      for (Species s : species) {
+        final Nest nest = Nest.siteNewLair(s, tried, world) ;
+        if (nest == null) continue ;
+        final float
+          idealPop = Nest.idealNestPop(s, nest, world, false),
+          adultMass = s.baseBulk * s.baseSpeed,
+          rating = (idealPop * adultMass) + 0.5f ;
+        if (rating > bestRating) { toPlace = nest ; bestRating = rating ; }
       }
-    } ;
-    scan.doFullScan() ;
-  }
-}
-
-
-
-
-
-/*
-if (Rand.num() > distance && Rand.index(3) == 0) {
-  final Box2D toFill = new Box2D() ;
-  final int size = 1 + Rand.index(4) ;
-  toFill.set(t.x - (size / 2), t.y - (size / 2), size, size) ;
-  toFill.cropBy(world.area()) ;
-  trySlagWithin(toFill) ;
-}
-//*/
-/*
-private boolean trySlagWithin(Box2D toFill) {
-  
-  ///I.say("Area to fill: "+toFill) ;
-  final Fixture f = new Fixture((int) toFill.xdim(), 1) {
-    protected boolean canTouch(Element e) {
-      return true ;
-    }
-  } ;
-  f.setPosition(toFill.xpos(), toFill.ypos(), world) ;
-  if (f.canPlace() && Spacing.perimeterFits(f)) {
-    Wreckage.reduceToSlag(toFill, world) ;
-    return true ;
-  }
-  return false ;
-}
-//*/
-
-/*
-//final int maxRuins = 1 + (int) ((Rand.avgNums(2) + 0.5f) * radius / 4) ;
-//final Batch <Ruins> allRuins = new Batch <Ruins> () ;
-//Ruins ruins = null ;
-
-for (int d = 0 ; d < radius ; d++) {
-  area.set(centre.x - 0.5f, centre.y - 0.5f, 1, 1).expandBy(d) ;
-  final Tile perim[] = Spacing.perimeter(area, world) ;
-  final int off = Rand.index(perim.length) ;
-  
-  for (int step = perim.length ; step-- > 0 ;) {
-    final Tile t = perim[(step + off) % perim.length] ;
-    if (t == null) continue ;
-    final float distance = Spacing.distance(t, centre) / radius ;
-    if (distance > 1) continue ;
-    
-    if (allRuins.size() < maxRuins) {
-      if (ruins == null) ruins = new Ruins() ;
-      if (Scenario.establishVenue(ruins, t.x, t.y, true, world) != null) {
-        allRuins.add(ruins) ;
-        ruins = null ;
-        continue ;
+      
+      if (toPlace != null) {
+        I.say("New lair for "+toPlace.species+" at "+toPlace.origin()) ;
+        toPlace.doPlace(toPlace.origin(), null) ;
+        final Species s = toPlace.species ;
+        final float adultMass = s.baseBulk * s.baseSpeed ;
+        float bestPop = bestRating / adultMass ;
+        
+        while (bestPop-- > 0) {
+          final Fauna f = toPlace.species.newSpecimen() ;
+          f.health.setupHealth(Rand.num(), 0.9f, 0.1f) ;
+          f.mind.setHome(toPlace) ;
+          f.enterWorldAt(toPlace, world) ;
+          f.goAboard(toPlace, world) ;
+        }
       }
     }
   }
 }
-return allRuins ;
-    //*/
-//}
 
+
+
+
+
+
+/*
+final Lair typeLairs[] = new Lair[species.length] ;
+final RandomScan scan = new RandomScan(world.size) {
+  protected void scanAt(int x, int y) {
+    int bestIndex = -1 ;
+    float bestRating = 0 ;
+    
+    for (int i = species.length ; i-- > 0 ;) {
+      final Species specie = species[i] ;
+      if (typeLairs[i] == null) typeLairs[i] = specie.createLair() ;
+      final Lair lair = typeLairs[i] ;
+      lair.setPosition(x, y, world) ;
+      final float rating = lair.rateCurrentSite(world) * Rand.avgNums(2) ;
+      I.say("  "+specie+" rating: "+rating) ;
+      if (rating > bestRating) { bestIndex = i ; bestRating = rating ; }
+    }
+    
+    I.say("Best index: "+bestIndex) ;
+    
+    if (bestIndex != -1) {
+      final Lair chosen = typeLairs[bestIndex] ;
+      typeLairs[bestIndex] = null ;
+      chosen.clearSurrounds() ;
+      chosen.enterWorld() ;
+      chosen.structure.setState(Structure.STATE_INTACT, 1) ;
+      chosen.setAsEstablished(true) ;
+    }
+  }
+} ;
+scan.doFullScan() ;
+//*/

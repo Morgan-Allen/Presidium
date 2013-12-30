@@ -67,7 +67,6 @@ public class Condition extends Trait {
   //  has a 75% chance to fight it off, even without acquired resistance.
   
   public static void checkContagion(Actor actor) {
-    if (! actor.health.organic()) return ;
     final Tile o = actor.origin() ;
     final float squalor = actor.world().ecology().ambience.valueAt(o) / -10 ;
     

@@ -115,7 +115,7 @@ public class SurveyStation extends Venue implements Economy {
         actor, still, still.services(), 5, world
       ) ;
       choice.add(d) ;
-      final Actor p = Hunting.nextPreyFor(actor, World.SECTOR_SIZE * 2, true) ;
+      final Actor p = Hunting.nextPreyFor(actor, true) ;
       if (p != null) {
         final Hunting h = Hunting.asProcess(actor, p, still) ;
         choice.add(h) ;

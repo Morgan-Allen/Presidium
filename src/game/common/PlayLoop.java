@@ -101,6 +101,9 @@ public final class PlayLoop {
   
   public static void gameStateWipe() {
     KeyInput.clearInputs() ;
+    Spacing.wipeTempArrays() ;
+    I.talkAbout = null ;
+    
     scenario = null ;
     UI       = null ;
     if (rendering != null) rendering.clearAll() ;
@@ -272,6 +275,7 @@ public final class PlayLoop {
   
   
   public static void setGameSpeed(float mult) {
+    ///I.say("Setting game speed: "+mult) ;
     speedMultiple = Math.max(0, mult) ;
   }
   

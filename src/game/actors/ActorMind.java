@@ -136,6 +136,7 @@ public abstract class ActorMind implements Abilities {
   
   
   protected boolean notices(Element e, float noticeRange) {
+    if (! e.inWorld()) return false ;
     final int roll = Rand.index(20) ;
     if (roll == 0 ) noticeRange *= 2 ;
     if (roll == 19) noticeRange /= 2 ;
@@ -218,7 +219,6 @@ public abstract class ActorMind implements Abilities {
     */
   protected void updateAI(int numUpdates) {
     updateSeen() ;
-    //for (Behaviour b : agenda) if (b.monitor(actor)) break ;
     if (numUpdates % 10 != 0) return ;
     //
     //  Remove any expired behaviour-sources:
@@ -242,8 +242,11 @@ public abstract class ActorMind implements Abilities {
     final Behaviour next = nextBehaviour() ;
     if (updatesVerbose && I.talkAbout == actor) {
       I.say("\nPerformed periodic AI update.") ;
-      I.say("  LAST PLAN: "+last+" "+last.priorityFor(actor)) ;
-      I.say("  NEXT PLAN: "+next+" "+next.priorityFor(actor)) ;
+      final float
+        lastP = last == null ? -1 : last.priorityFor(actor),
+        nextP = next == null ? -1 : next.priorityFor(actor) ;
+      I.say("  LAST PLAN: "+last+" "+lastP) ;
+      I.say("  NEXT PLAN: "+next+" "+nextP) ;
       I.say("\n") ;
     }
     if (couldSwitch(last, next)) assignBehaviour(next) ;
@@ -415,7 +418,7 @@ public abstract class ActorMind implements Abilities {
     if (updatesVerbose && I.talkAbout == actor) {
       I.say("PUSHING BEHAVIOUR: "+b) ;
     }
-    actor.world().activities.toggleActive(b, true) ;
+    actor.world().activities.toggleBehaviour(b, true) ;
   }
   
   
@@ -424,7 +427,7 @@ public abstract class ActorMind implements Abilities {
     if (updatesVerbose && I.talkAbout == actor) {
       I.say("POPPING BEHAVIOUR: "+b) ;
     }
-    actor.world().activities.toggleActive(b, false) ;
+    actor.world().activities.toggleBehaviour(b, false) ;
     if (b != null) b.onSuspend() ;
     return b ;
   }
@@ -563,18 +566,6 @@ public abstract class ActorMind implements Abilities {
     //if (updatesVerbose) I.sayAbout(actor, actor+" greed unit is: "+baseUnit) ;
     return (credits / baseUnit) * actor.traits.scaleLevel(ACQUISITIVE) ;
   }
-  
-  
-  /*
-  public float persistance() {
-    return 2 * actor.traits.scaleLevel(STUBBORN) ;
-  }
-  
-  
-  public float whimsy() {
-    return 2 / actor.traits.scaleLevel(STUBBORN) ;
-  }
-  //*/
   
   
   

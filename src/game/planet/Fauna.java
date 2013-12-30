@@ -11,11 +11,15 @@ import src.game.planet.* ;
 import src.game.building.* ;
 import src.game.tactical.* ;
 import src.game.actors.* ;
-import src.graphics.common.Colour;
+import src.graphics.common.* ;
 import src.graphics.widgets.* ;
 import src.user.* ;
 import src.util.* ;
 
+
+
+//
+//  TODO:  You need to implement defence of home!
 
 
 public abstract class Fauna extends Actor {
@@ -24,7 +28,14 @@ public abstract class Fauna extends Actor {
   
   /**  Field definitions, constructors, and save/load functionality-
     */
+  final public static float
+    PLANT_CONVERSION = 4.0f,
+    MEAT_CONVERSION  = 4.0f ;
+  private static boolean verbose = false ;
+  
+  
   final public Species species ;
+  private float breedMetre = 0.0f ;
   
   
   public Fauna(Species species) {
@@ -38,6 +49,7 @@ public abstract class Fauna extends Actor {
   public Fauna(Session s) throws Exception {
     super(s) ;
     species = Species.ALL_SPECIES[s.loadInt()] ;
+    breedMetre = s.loadFloat() ;
     initStats() ;
   }
   
@@ -45,6 +57,7 @@ public abstract class Fauna extends Actor {
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveInt(species.ID) ;
+    s.saveFloat(breedMetre) ;
   }
   
   
@@ -65,6 +78,14 @@ public abstract class Fauna extends Actor {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     world.ecology().impingeAbundance(this, true) ;
+    if (numUpdates % 10 == 0 && health.alive()) {
+      float crowding = Nest.crowdingFor(this) ;
+      if (crowding == 1) crowding += 0.1f ;
+      float fertility = (health.agingStage() - 0.5f) * health.energyLevel() ;
+      float breedInc = (1 - crowding) * 10 / Nest.DEFAULT_BREED_INTERVAL ;
+      breedInc *= Visit.clamp(fertility, 0, ActorHealth.AGE_MAX) ;
+      breedMetre = Visit.clamp(breedMetre + breedInc, 0, 1) ;
+    }
   }
   
 
@@ -100,7 +121,7 @@ public abstract class Fauna extends Actor {
           final Fauna f = (Fauna) other ;
           if (f.species == species) return 0.25f ;
           if (f.species.type == Species.Type.BROWSER) return 0 ;
-          if (f.species.goesHunt()) return -0.5f ;
+          if (f.species.predator()) return -0.5f ;
         }
         return -0.25f ;
       }
@@ -109,9 +130,7 @@ public abstract class Fauna extends Actor {
   
   
   protected Behaviour nextHunting() {
-    final Actor prey = Hunting.nextPreyFor(
-      this, Lair.PREDATOR_SAMPLE_RANGE, false
-    ) ;
+    final Actor prey = Hunting.nextPreyFor(this, false) ;
     if (prey == null) return null ;
     final Hunting hunting = Hunting.asFeeding(this, prey) ;
     return hunting ;
@@ -119,44 +138,58 @@ public abstract class Fauna extends Actor {
   
   
   protected Behaviour nextBrowsing() {
-    final PresenceMap PM = this.world().presences.mapFor(Flora.class) ;
-    Flora f = (Flora) PM.pickRandomAround(this, health.sightRange()) ;
-    if (f == null) f = (Flora) PM.pickNearest(this, -1) ;
-    if (f == null) return null ;
+    //final PresenceMap PM = this.world().presences.mapFor(Flora.class) ;
+    final Batch <Flora> sampled = new Batch <Flora> () ;
+    world.presences.sampleFromKey(this, world, 5, sampled, Flora.class) ;
+    
+    Flora picked = null ;
+    float bestRating = 0 ;
+    final float range = Nest.forageRange(species) * 2 ;
+    for (Flora f : sampled) {
+      final float dist = Spacing.distance(this, f) ;
+      if (dist > range) continue ;
+      float rating = f.growth * Rand.avgNums(2) ;
+      rating *= range / (range + dist) ;
+      if (rating > bestRating) { picked = f ; bestRating = rating ; }
+    }
+    if (picked == null) return null ;
+    
     final Action browse = new Action(
-      this, f,
+      this, picked,
       this, "actionBrowse",
       Action.STRIKE, "Browsing"
     ) ;
-    browse.setMoveTarget(Spacing.nearestOpenTile(f.origin(), this)) ;
-    final float priority = health.hungerLevel() * Action.PARAMOUNT ;
-    browse.setPriority(priority - Plan.rangePenalty(this, f)) ;
+    browse.setMoveTarget(Spacing.nearestOpenTile(picked.origin(), this)) ;
+    float priority = ActorHealth.MAX_CALORIES - health.energyLevel() ;
+    priority *= Action.PARAMOUNT ;
+    browse.setPriority(priority - Plan.rangePenalty(this, picked)) ;
     return browse ;
   }
   
   
   public boolean actionBrowse(Fauna actor, Flora eaten) {
     if (! eaten.inWorld()) return false ;
-    eaten.incGrowth(-0.1f, actor.world(), false) ;
-    actor.health.takeSustenance(1, 1) ;
+    float bite = 0.1f * eaten.growth * 2 * health.maxHealth() / 10 ;
+    eaten.incGrowth(0 - bite, actor.world(), false) ;
+    actor.health.takeSustenance(bite * PLANT_CONVERSION, 1) ;
     return true ;
   }
   
   
   protected Behaviour nextResting() {
     Target restPoint = this.origin() ;
-    final Lair lair = (Lair) this.mind.home() ;
-    if (lair != null && lair.inWorld() && lair.structure.intact()) {
-      restPoint = lair ;
+    final Nest nest = (Nest) this.mind.home() ;
+    if (nest != null && nest.inWorld() && nest.structure.intact()) {
+      restPoint = nest ;
     }
     final Action rest = new Action(
       this, restPoint,
       this, "actionRest",
       Action.FALL, "Resting"
     ) ;
-    final float fatigue = health.fatigueLevel() - 0.25f ;
+    final float fatigue = health.fatigueLevel() ;
     if (fatigue < 0) return null ;
-    final float priority = Action.CASUAL + (fatigue * Action.URGENT / 0.75f) ;
+    final float priority = fatigue * Action.PARAMOUNT ;
     rest.setPriority(priority) ;
     return rest ;
   }
@@ -164,122 +197,113 @@ public abstract class Fauna extends Actor {
   
   public boolean actionRest(Fauna actor, Target point) {
     actor.health.setState(ActorHealth.STATE_RESTING) ;
-    final Lair lair = (Lair) actor.mind.home() ;
-    if (lair != point) return true ;
-    final float rating = lair.rateCurrentSite(world) ;
-    if (rating < 0 || lair.crowding() > 1) return false ;
-    //
-    //  If the venue's not too crowded, consider reproducing.
-    if (Rand.index(3) > actor.health.agingStage()) return false ;
-    if (actor.health.hungerLevel() > 0.5f) return false ;
-    //
-    //  Don't breed if you're too young or too hungry.  Otherwise, produce
-    //  offpsring in inverse proportion to lifespan-
-    actor.health.loseSustenance(0.25f) ;
-    final int maxKids = 1 + (int) Math.sqrt(10f / health.lifespan()) ;
-    for (int numKids = 1 + Rand.index(maxKids) ; numKids-- > 0 ;) {
-      final Fauna young = actor.species.newSpecimen() ;
-      young.health.setupHealth(0, 1, 0) ;
-      young.mind.setHome(lair) ;
-      final Tile e = lair.mainEntrance() ;
-      young.enterWorldAt(e.x, e.y, e.world) ;
-      I.say("Giving birth to new "+actor.species.name+" at: "+point) ;
-    }
+    final Nest nest = (Nest) actor.mind.home() ;
+    if (nest != point) return true ;
     return true ;
   }
   
   
   protected Behaviour nextMigration() {
-    final Lair lair = (Lair) this.mind.home() ;
-    final float range = species.forageRange() ;
-    Tile free = Spacing.pickRandomTile(this, range, world) ;
-    free = Spacing.nearestOpenTile(free, this) ;
+    Target wandersTo = null ;
+    String description = null ;
+    float priority = 0 ;
     
-    if (free == null) return null ;
-    if (lair != null && Spacing.distance(free, lair) > range * 2) return null ;
+    final boolean crowded = Nest.crowdingFor(this) > 0.5f ;
+    if (verbose) I.sayAbout(this, "Crowded? "+crowded) ;
+    final Nest newNest = crowded ? Nest.findNestFor(this) : null ;
+    if (newNest != null && newNest != mind.home()) {
+      if (verbose) I.sayAbout(this, "Found new nest! "+newNest.origin()) ;
+      wandersTo = newNest ;
+      description = "Migrating" ;
+      priority = Action.ROUTINE ;
+    }
     
-    final Action migrate = new Action(
-      this, free,
+    else {
+      final Target centre = mind.home() == null ? this : mind.home() ;
+      wandersTo = Spacing.pickRandomTile(
+        centre, Nest.forageRange(species) / 2, world
+      ) ;
+      description = "Wandering" ;
+      priority = Action.IDLE * Planet.dayValue(world) ;
+    }
+    if (wandersTo == null) return null ;
+    
+    final Action migrates = new Action(
+      this, wandersTo,
       this, "actionMigrate",
-      Action.LOOK, "Wandering"
+      Action.LOOK, description
     ) ;
-    final float crowdBonus = (lair == null) ? 0 : lair.crowding() ;
-    final float priority = Action.IDLE + (crowdBonus * Action.CASUAL) ;
-    migrate.setPriority(priority - Plan.rangePenalty(lair, free)) ;
-    return migrate ;
+    migrates.setPriority(priority) ;
+    if (! wandersTo.inWorld()) {
+      migrates.setMoveTarget(Spacing.pickFreeTileAround(wandersTo, this)) ;
+    }
+    return migrates ;
   }
   
   
-  public boolean actionMigrate(Fauna actor, Tile point) {
-    final Lair lair = (Lair) actor.mind.home() ;
-    final boolean shouldNest = (lair == null) || (lair.crowding() > 0.5f) ;
-    //
-    //  If you're homeless, or if home is overcrowded, consider moving into a
-    //  vacant lair, or building a new one.
-    if (shouldNest) {
-      int numTried = 0 ;
-      for (Object t : world.presences.matchesNear(Lair.class, actor, null)) {
-        if (++numTried > 5) break ;
-        if (! (t instanceof Lair)) continue ;
-        final Lair vacant = (Lair) t ;
-        if (vacant.species == this.species && vacant.crowding() <= 0.5f) {
-          actor.mind.setHome(vacant) ;
-          return true ;
-        }
+  public boolean actionMigrate(Fauna actor, Target point) {
+    if (point instanceof Nest) {
+      final Nest nest = (Nest) point ;
+      if (Nest.crowdingFor(this) < 0.5f) return false ;
+      if (Nest.crowdingFor(nest, species, world) > 0.5f) return false ;
+      
+      if (! nest.inWorld()) {
+        nest.clearSurrounds() ;
+        nest.enterWorld() ;
+        nest.structure.setState(Structure.STATE_INTACT, 0.01f) ;
       }
+      actor.mind.setHome(nest) ;
     }
-    if (shouldNest) return siteNewLair() != null ;
     return true ;
   }
   
   
-  protected Lair siteNewLair() {
-    final Actor actor = this ;
-    final Lair newLair = species.createLair() ;
-    final TileSpread spread = new TileSpread(origin()) {
-      
-      protected boolean canAccess(Tile t) {
-        return Spacing.distance(actor, t) < 4 ;
-      }
-      
-      protected boolean canPlaceAt(Tile t) {
-        newLair.setPosition(t.x, t.y, actor.world()) ;
-        final float rating = newLair.rateCurrentSite(actor.world()) ;
-        if (rating <= 0) return false ;
-        actor.mind.setHome(newLair) ;
-        newLair.clearSurrounds() ;
-        newLair.enterWorld() ;
-        newLair.structure.setState(Structure.STATE_INTACT, 0.1f) ;
-        actor.goAboard(newLair, world) ;
-        return true ;
-      }
-    } ;
-    spread.doSearch() ;
-    if (! newLair.inWorld()) return null ;
-    return newLair ;
-  }
-  
-  
   protected Behaviour nextBuildingNest() {
-    final Lair lair = (Lair) this.mind.home() ;
-    if (lair == null) return null ;
-    final float repair = lair.structure.repairLevel() ;
+    final Nest nest = (Nest) this.mind.home() ;
+    if (nest == null) return null ;
+    final float repair = nest.structure.repairLevel() ;
     if (repair >= 1) return null ;
     final Action buildNest = new Action(
-      this, lair,
+      this, nest,
       this, "actionBuildNest",
       Action.STRIKE, "Building Nest"
     ) ;
-    buildNest.setMoveTarget(Spacing.pickFreeTileAround(lair, this)) ;
-    if (! lair.structure.intact()) buildNest.setPriority(Action.ROUTINE) ;
+    buildNest.setMoveTarget(Spacing.pickFreeTileAround(nest, this)) ;
+    if (! nest.structure.intact()) buildNest.setPriority(Action.ROUTINE) ;
     else buildNest.setPriority(((1f - repair) * Action.ROUTINE) + 2) ;
     return buildNest ;
   }
   
   
-  public boolean actionBuildNest(Fauna actor, Lair nest) {
+  public boolean actionBuildNest(Fauna actor, Nest nest) {
     if (! nest.inWorld()) nest.enterWorld() ;
     nest.structure.repairBy(nest.structure.maxIntegrity() / 10f) ;
+    return true ;
+  }
+  
+  
+  protected Behaviour nextBreeding() {
+    if (mind.home() == null) return null ;
+    final Action breeds = new Action(
+      this, mind.home(),
+      this, "actionBreed",
+      Action.FALL, "Breeding"
+    ) ;
+    return breeds ;
+  }
+  
+  
+  public boolean actionBreed(Fauna actor, Nest nests) {
+    actor.breedMetre = 0 ;
+    final int maxKids = 1 + (int) Math.sqrt(10f / health.lifespan()) ;
+    for (int numKids = 1 + Rand.index(maxKids) ; numKids-- > 0 ;) {
+      final Fauna young = species.newSpecimen() ;
+      young.health.setupHealth(0, 1, 0) ;
+      young.mind.setHome(nests) ;
+      final Tile e = nests.mainEntrance() ;
+      young.enterWorldAt(e.x, e.y, e.world) ;
+      I.say("Giving birth to new "+actor.species.name+" at: "+nests) ;
+    }
     return true ;
   }
   
@@ -290,8 +314,9 @@ public abstract class Fauna extends Actor {
   
   
   protected void addChoices(Choice choice) {
-    if (species.browses()) choice.add(nextBrowsing()) ;
-    if (species.goesHunt()) choice.add(nextHunting()) ;
+    if (species.browser()) choice.add(nextBrowsing()) ;
+    if (species.predator()) choice.add(nextHunting()) ;
+    if (breedMetre >= 0.99f) choice.add(nextBreeding()) ;
     choice.add(nextDefence(null)) ;
     choice.add(nextResting()) ;
     choice.add(nextMigration()) ;
@@ -300,12 +325,10 @@ public abstract class Fauna extends Actor {
   
   
   
-  
   /**  Rendering and interface methods-
     */
   protected float spriteScale() {
-    float scale = health.agingStage() * 1f / ActorHealth.AGE_MAX ;
-    return (float) Math.sqrt(scale + 0.5f) ;
+    return (float) Math.sqrt(health.ageLevel() + 0.5f) ;
   }
   
   
@@ -334,7 +357,11 @@ public abstract class Fauna extends Actor {
     describeStatus(d) ;
     
     d.append("\nNests at: ") ;
-    if (mind.home() != null) d.append(mind.home()) ;
+    if (mind.home() != null) {
+      d.append(mind.home()) ;
+      final int BP = (int) (breedMetre * 100) ;
+      d.append("\n  Breeding condition: "+BP+"%") ;
+    }
     else d.append("No nest") ;
     
     d.append("\nCondition: ") ;

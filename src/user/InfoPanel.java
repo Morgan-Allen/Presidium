@@ -116,6 +116,7 @@ public class InfoPanel extends UIGroup implements UIConstants {
   
   protected void updateState() {
     if (selected != null && selected.subject().destroyed()) {
+      ///I.say("INFO SUBJECT IS DESTROYED.") ;
       UI.selection.pushSelection(previous, false) ;
       return ;
     }

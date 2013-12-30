@@ -18,27 +18,32 @@ public class ActorHealth implements Abilities {
   private static boolean verbose = false ;
   
   final public static int
+    HUMAN_METABOLISM    = 0,
+    ANIMAL_METABOLISM   = 1,
+    ARTILECT_METABOLISM = 2 ;
+  final public static int
     STATE_ACTIVE   = 0,
     STATE_RESTING  = 1,
     STATE_SUSPEND  = 2,
     STATE_DYING    = 3,
-    STATE_DEAD     = 4 ;
+    STATE_DECOMP   = 4 ;
   final static String STATE_DESC[] = {
     "Active",
     "Asleep",
     "In Suspended Animation",
-    "Mortally Wounded",
-    "Dead"
+    "Dying",
+    "Decomposed",
+    //"Disintegrated"
   } ;
   final public static int
     AGE_JUVENILE = 0,
-    AGE_ADULT    = 1,
+    AGE_YOUNG    = 1,
     AGE_MATURE   = 2,
     AGE_SENIOR   = 3,
     AGE_MAX      = 4 ;
   final static String AGING_DESC[] = {
     "Juvenile",
-    "Adult",
+    "Young",
     "Mature",
     "Senior"
   } ;
@@ -73,7 +78,7 @@ public class ActorHealth implements Abilities {
   
   
   final Actor actor ;
-
+  
   private float
     baseBulk  = DEFAULT_BULK,
     baseSpeed = DEFAULT_SPEED,
@@ -82,8 +87,8 @@ public class ActorHealth implements Abilities {
   private float
     lifespan    = DEFAULT_LIFESPAN,
     lifeExtend  = 0 ;
-  private boolean
-    organic = true ;
+  private int
+    metabolism = HUMAN_METABOLISM ;
   
   private float
     currentAge = 0,
@@ -123,7 +128,7 @@ public class ActorHealth implements Abilities {
     currentAge  = s.loadFloat() ;
     lifeExtend  = s.loadFloat() ;
     ageMultiple = s.loadFloat() ;
-    organic     = s.loadBool () ;
+    metabolism  = s.loadInt()   ;
     
     maxHealth = s.loadFloat() ;
     calories  = s.loadFloat() ;
@@ -147,7 +152,7 @@ public class ActorHealth implements Abilities {
     s.saveFloat(currentAge ) ;
     s.saveFloat(lifeExtend ) ;
     s.saveFloat(ageMultiple) ;
-    s.saveBool (organic    ) ;
+    s.saveInt  (metabolism ) ;
     
     s.saveFloat(maxHealth) ;
     s.saveFloat(calories ) ;
@@ -170,13 +175,13 @@ public class ActorHealth implements Abilities {
     float baseBulk,
     float baseSight,
     float baseSpeed,
-    boolean organic
+    int metabolicType
   ) {
     this.lifespan = lifespan ;
     this.baseBulk  = baseBulk  * DEFAULT_BULK  ;
     this.baseSight = baseSight * DEFAULT_SIGHT ;
     this.baseSpeed = baseSpeed * DEFAULT_SPEED ;
-    this.organic = organic ;
+    this.metabolism = metabolicType ;
   }
   
   
@@ -187,8 +192,9 @@ public class ActorHealth implements Abilities {
   ) {
     this.currentAge = lifespan * agingFactor ;
     updateHealth(-1) ;
-    if (organic) {
-      calories = Visit.clamp(Rand.num() + (overallHealth / 2), 0, 1) * maxHealth ;
+    if (metabolism != ARTILECT_METABOLISM) {
+      calories = Visit.clamp(Rand.num() + (overallHealth / 2), 0, 1) ;
+      calories *= maxHealth ;
       nutrition = Visit.clamp(Rand.num() + overallHealth, 0, 1) ;
     }
     else {
@@ -205,9 +211,13 @@ public class ActorHealth implements Abilities {
   
   /**  Methods related to growth, reproduction, aging and death.
     */
+  public float maxCalories() {
+    return 1 + (maxHealth * MAX_CALORIES) ;
+  }
+  
+  
   public void takeSustenance(float amount, float quality) {
-    final float max = (maxHealth * MAX_CALORIES) - calories ;
-    amount = Visit.clamp(amount, 0, max) ;
+    amount = Visit.clamp(amount, 0, maxCalories() - calories) ;
     final float oldQual = nutrition * calories ;
     calories += amount ;
     nutrition = (oldQual + (quality * amount)) / calories ;
@@ -229,6 +239,11 @@ public class ActorHealth implements Abilities {
   }
   
   
+  public boolean juvenile() {
+    return agingStage() <= AGE_JUVENILE ;
+  }
+  
+  
   public void setMaturity(float ageLevel) {
     currentAge = lifespan * ageLevel ;
   }
@@ -245,7 +260,7 @@ public class ActorHealth implements Abilities {
   
   
   private float calcAgeMultiple() {
-    if (! organic) return 1 ;
+    if (metabolism == ARTILECT_METABOLISM) return 1 ;
     final float stage = agingStage() ;
     if (actor.species() != null) {  //Make this more precise.  Use Traits.
       return 0.5f + (stage * 0.25f) ;
@@ -274,7 +289,7 @@ public class ActorHealth implements Abilities {
   
   
   public boolean organic() {
-    return organic ;
+    return metabolism != ARTILECT_METABOLISM ;
   }
   
   
@@ -299,7 +314,7 @@ public class ActorHealth implements Abilities {
     */
   public void takeInjury(float taken) {
     injury += taken ;
-    if (organic && Rand.num() * maxHealth < injury) bleeds = true ;
+    if (organic() && Rand.num() * maxHealth < injury) bleeds = true ;
     final float max ;
     if (dying()) max = maxHealth * (MAX_INJURY + 1) ;
     else {
@@ -406,7 +421,7 @@ public class ActorHealth implements Abilities {
   
   
   public boolean isDead() {
-    return state == STATE_DEAD ;
+    return state == STATE_DECOMP ;
   }
   
   
@@ -422,7 +437,7 @@ public class ActorHealth implements Abilities {
   
   public float stressPenalty() {
     if (stressCache != -1) return stressCache ;
-    if (! organic) return stressCache = 0 ;
+    if (! organic()) return stressCache = 0 ;
     
     float sumDisease = 0 ;
     for (Trait t : Abilities.TREATABLE_CONDITIONS) {
@@ -476,18 +491,17 @@ public class ActorHealth implements Abilities {
     final int oldState = state ;
     checkStateChange() ;
     updateStresses() ;
+    advanceAge(numUpdates) ;
     //
-    //  Once per day, advance the organism's current age and check for disease
-    //  or sudden death due to senescence.
-    if ((numUpdates + 1) % World.STANDARD_DAY_LENGTH == 0) {
-      advanceAge() ;
-    }
+    //  Check for disease or sudden death due to senescence.
     if (oldState != state && state != STATE_ACTIVE) {
-      if (state < STATE_DYING && ! organic) state = STATE_DYING ;
+      if (state < STATE_DYING && ! organic()) state = STATE_DYING ;
       I.say(actor+" has entered a non-active state: "+stateDesc()) ;
       actor.enterStateKO(Action.FALL) ;
     }
-    if (state <= STATE_RESTING) Condition.checkContagion(actor) ;
+    if (state <= STATE_RESTING && metabolism == HUMAN_METABOLISM) {
+      Condition.checkContagion(actor) ;
+    }
   }
   
   
@@ -502,7 +516,7 @@ public class ActorHealth implements Abilities {
     if (state == STATE_DYING) {
       injury += maxHealth * 1f / DECOMPOSE_TIME ;
       if (injury > maxHealth * (MAX_INJURY + 1)) {
-        state = STATE_DEAD ;
+        state = STATE_DECOMP ;
       }
       return ;
     }
@@ -530,9 +544,9 @@ public class ActorHealth implements Abilities {
     }
     //
     //  Deplete your current calorie reserve-
-    if (! organic) return ;
+    if (! organic()) return ;
     calories -= (1f * maxHealth * baseSpeed) / STARVE_INTERVAL ;
-    calories = Visit.clamp(calories, 0, maxHealth) ;
+    calories = Visit.clamp(calories, 0, maxCalories()) ;
     if (calories <= 0) {
       I.say(actor+" has died from lack of energy.") ;
       state = STATE_DYING ;
@@ -541,7 +555,7 @@ public class ActorHealth implements Abilities {
   
   
   private void updateStresses() {
-    if (state >= STATE_SUSPEND || ! organic) return ;
+    if (state >= STATE_SUSPEND || ! organic()) return ;
     final float DL = World.STANDARD_DAY_LENGTH ;
     float MM = 1, FM = 1, IM = 1, PM = 1 ;
     //
@@ -582,9 +596,28 @@ public class ActorHealth implements Abilities {
   }
   
   
-  private void advanceAge() {
-    if (! organic) return ;
-    currentAge += World.STANDARD_DAY_LENGTH * 1f / World.STANDARD_YEAR_LENGTH ;
+  private void advanceAge(int numUpdates) {
+    if (! organic()) return ;
+    
+    final int DL = World.STANDARD_DAY_LENGTH ;
+    float ageInc = 0 ; 
+    if ((numUpdates + 1) % DL == 0) {
+      ageInc += DL * 1f / World.STANDARD_YEAR_LENGTH ;
+    }
+    
+    if (metabolism == ANIMAL_METABOLISM) {
+      float growBonus = energyLevel() * 1f / (AGE_MAX * DL) ;
+      final int AS = agingStage() ;
+      if      (AS == AGE_JUVENILE) growBonus *= 1.00f ;
+      else if (AS == AGE_YOUNG   ) growBonus *= 0.20f ;
+      else if (AS == AGE_MATURE  ) growBonus *= 0.04f ;
+      else                         growBonus *= 0.00f ;
+      ageInc += growBonus ;
+      if (verbose) I.sayAbout(actor, "  ___LIFESPAN: "+lifespan) ;
+      if (verbose) I.sayAbout(actor, "  ___AGE INCREMENT: "+ageInc) ;
+    }
+    currentAge += ageInc ;
+    
     if (currentAge > lifespan * (1 + (lifeExtend / 10))) {
       float deathDC = ROUTINE_DC * (1 + lifeExtend) ;
       if (actor.traits.test(VIGOUR, deathDC, 0)) {

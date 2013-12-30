@@ -30,11 +30,13 @@ public class BuildingSprite extends GroupSprite {
     BLAST_MODEL = ImageModel.asAnimatedModel(
       C, Texture.loadTexture("media/SFX/blast_anim.gif"),
       5, 4, 1.0f, 17, 1.36f
-    ),
+    ) ;
+  /*
     FLAG_MODEL = ImageModel.asFlatModel(
       C, Texture.loadTexture("media/GUI/flag_install.gif"),
       1.5f
     ) ;
+  //*/
   
   final static String DIR = "media/Buildings/artificer/" ;
   final public static Model SCAFF_MODELS[] = {

@@ -160,7 +160,10 @@ public class MobilePathing {
     else {
       pathTarget = location(trueTarget) ;
       if (verbose) I.sayAbout(mobile, "BETWEEN: "+origin+" AND "+pathTarget) ;
-      if (checkEndPoint(origin) && checkEndPoint(pathTarget)) {
+      if (! checkEndPoint(pathTarget)) {
+        pathTarget = Spacing.nearestOpenTile(pathTarget, mobile) ;
+      }
+      if (checkEndPoint(pathTarget) && checkEndPoint(pathTarget)) {
         path = refreshPath(origin, pathTarget) ;
       }
       else path = null ;
@@ -239,27 +242,16 @@ public class MobilePathing {
     disp.scale(Math.min(moveRate, dist)) ;
     //
     //  Then apply the changes in heading-
-    disp.x += mobile.position.x ;
-    disp.y += mobile.position.y ;
-    mobile.nextPosition.setTo(disp) ;
+    mobile.nextPosition.x = disp.x + mobile.position.x ;
+    mobile.nextPosition.y = disp.y + mobile.position.y ;
     mobile.nextRotation = angle ;
-    //
-    //  And try to track the level of the underlying terrain-
-    mobile.nextPosition.z = boardHeight(disp) + mobile.aboveGroundHeight() ;
-    if (Float.isNaN(mobile.nextPosition.x)) {
+    if (
+      Float.isNaN(mobile.nextPosition.x) ||
+      Float.isNaN(mobile.nextPosition.y)
+    ) {
       I.say("ILLEGAL POSITION") ;
       new Exception().printStackTrace() ;
     }
-  }
-  
-  
-  private float boardHeight(Vec2D disp) {
-    final Boardable aboard = mobile.aboard ;
-    final Tile o = mobile.origin() ;
-    if (aboard == o) {
-      return mobile.world.terrain().trueHeight(disp.x, disp.y) ;
-    }
-    else return aboard.position(null).z ;
   }
   
   
@@ -274,7 +266,6 @@ public class MobilePathing {
       }
       return inLocus(b) ;
     }
-    //if (! hasLineOfSight(mobile, target)) return false ;
     return Spacing.distance(mobile, target) <= minDist ;
   }
   
@@ -349,6 +340,61 @@ public class MobilePathing {
     }
     if (reports) I.say(blocked ? "L_O_S BLOCKED!" : "L_O_S OKAY...") ;
     return ! blocked ;
+  }
+  
+  
+  public void applyCollision() {
+    final Mobile m = mobile ;
+    if (m.indoors()) return ;
+    final Vec2D sum = new Vec2D(), disp = new Vec2D() ;
+    int numHits = 0 ;
+    final float mMin = m.aboveGroundHeight(), mMax = mMin + m.height() ;
+    final Box2D area = m.area(null).expandBy(1) ;
+    //
+    //  After determining height range and ground-area affected, we iterate
+    //  over every tile likely to be affected-
+    for (Tile t : m.world.tilesIn(area, true)) {
+      //
+      //  Firstly, we check to avoid collision with nearby blocked tiles-
+      if (t.blocked()) {
+        final float tMax = t.owner() == null ? 0 : t.owner().height() ;
+        if (mMin > tMax) continue ;
+        disp.set(m.position.x - t.x, m.position.y - t.y) ;
+        final float dist = disp.length() - (m.radius() + t.radius()) ;
+        if (dist > 0 || disp.length() == 0) continue ;
+        sum.add(disp.normalise().scale(0 - dist)) ;
+        numHits++ ;
+      }
+      //
+      //  Then, we check for collision with other mobiles within the same
+      //  height range-
+      //  TODO:  This isn't actually guaranteed to catch all nearby mobiles
+      //  unless you register them in multiple tiles.  See about that.
+      else for (Mobile near : t.inside()) {
+        if (near == m) continue ;
+        final float
+          nMin = near.aboveGroundHeight(),
+          nMax = nMin + near.height() ;
+        if (nMin > mMax || mMin > nMax) continue ;
+        //
+        //  Then, we establish the relative distance and displacement-
+        disp.setFromAngle(Rand.num() * 360).scale(0.1f * m.radius()) ;
+        disp.x += m.position.x - near.position.x ;
+        disp.y += m.position.y - near.position.y ;
+        final float dist = disp.length() - (m.radius() + near.radius()) ;
+        if (dist > 0 || disp.length() == 0) continue ;
+        //
+        //  If both check out, we increase the translation based on distance
+        //  within the sum of radii, with a small random 'salt'-
+        sum.add(disp.normalise().scale(0 - dist)) ;
+        numHits++ ;
+      }
+    }
+    if (numHits == 0) return ;
+    sum.scale(0.5f / numHits) ;
+    final int WS = m.world.size - 1 ;
+    m.nextPosition.x = Visit.clamp(sum.x + m.nextPosition.x, 0, WS) ;
+    m.nextPosition.y = Visit.clamp(sum.y + m.nextPosition.y, 0, WS) ;
   }
   
   

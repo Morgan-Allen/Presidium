@@ -329,7 +329,7 @@ Collective Nexus (the Psyon Choir)
   Based on:  More Than Human, Gaia and Galaxia from the Foundation series,
              aspects of Star Trek Borg and Stranger in a Strange Land
 
-Symbiont Circle (the Former Node)
+Symbiont Circle (the Archon Circle)
   Chosen                 (basic trainee)
   Symbiont of the Glaive (combat and infiltration suit)
   Symbiont of Threads    (influence over silicate ecology)
@@ -389,7 +389,7 @@ Symbiont Training & Accessories:
 
 Initiate Training & Accessories:
   Imperial Fane                   (side-structure)
-  Oracle uplinks                  (from School)
+  Oracle terminals                (from School)
   Cybernetic grafting & servitors (from School)
   Command Uplink    (commands robots, drones & servitors)
   Stasis Field      (slow enemy motion/reflexes, aid hibernation)

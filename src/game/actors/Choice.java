@@ -19,7 +19,9 @@ public class Choice {
     DEFAULT_PRIORITY_RANGE = 5.0f,
     DEFAULT_TRAIT_RANGE    = 2.0f ;
   
-  public static boolean verbose = false, reportRejects = verbose && false ;
+  public static boolean
+    verbose       = false,
+    verboseReject = verbose && false ;
   
   final Actor actor ;
   final Batch <Behaviour> plans = new Batch <Behaviour> () ;
@@ -43,8 +45,8 @@ public class Choice {
     final Behaviour nextStep = plan.nextStepFor(actor) ;
     
     if (finished || priority <= 0 || nextStep == null) {
-      if (reportRejects && plan != null && I.talkAbout == actor) {
-        I.say("  Rejected option: "+plan) ;
+      if (verboseReject && plan != null && I.talkAbout == actor) {
+        I.say("  Rejected option: "+plan+" ("+plan.getClass()+")") ;
         I.say("  Priority: "+priority) ;
         I.say("  Finished/valid: "+finished+"/"+plan.valid()) ;
         I.say("  Next step: "+nextStep+"\n") ;
@@ -81,7 +83,7 @@ public class Choice {
   //public Behaviour weightedPick(float priorityRange) {
   private Behaviour weightedPick(float priorityRange) {
     if (plans.size() == 0) {
-      if (reportRejects) I.sayAbout(actor, "  ...Empty choice!") ;
+      if (verboseReject) I.sayAbout(actor, "  ...Empty choice!") ;
       return null ;
     }
     else if (verbose) I.sayAbout(actor, "Range of choice is "+plans.size()) ;

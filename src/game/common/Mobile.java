@@ -248,22 +248,36 @@ public abstract class Mobile extends Element
     position.setTo(nextPosition) ;
     rotation = nextRotation ;
     super.setPosition(position.x, position.y, world) ;
-    /*
-    if (verbose && BaseUI.isPicked(this)) {
+    nextPosition.z = boardHeight() + aboveGroundHeight() ;
+    
+    if (verbose && I.talkAbout == this) {
       I.say("Aboard: "+aboard) ;
       I.say("Position "+nextPosition) ;
       I.say("Next step: "+next) ;
     }
-    //*/
+  }
+
+  
+  private float boardHeight() {
+    if (aboard == origin()) {
+      return world.terrain().trueHeight(position.x, position.y) ;
+    }
+    else return aboard.position(null).z ;
   }
   
   
-  //  TODO:  Make this specific to tiles?  Might be simpler.
   public boolean blockedBy(Boardable b) {
     if (b instanceof Tile) {
       final Tile t = (Tile) b ;
       if (t.blocked()) return true ;
-      //if (t.inside().size() > 2) return true ;
+      if (t == pathing.pathTarget) return false ;
+      if (t != origin() && t.inside().size() > 0 && Spacing.adjacent(t, this)) {
+        for (Mobile m : t.inside()) if (m != this) {
+          ///I.sayAbout(this, "BLOCKED BY OTHER MOBILE: "+m+" at: "+t) ;
+          ///I.sayAbout(this, "ORIGIN: "+origin()+", THIS: "+this) ;
+          return true ;
+        }
+      }
     }
     return false ;
   }

@@ -138,7 +138,6 @@ public abstract class Fauna extends Actor {
   
   
   protected Behaviour nextBrowsing() {
-    //final PresenceMap PM = this.world().presences.mapFor(Flora.class) ;
     final Batch <Flora> sampled = new Batch <Flora> () ;
     world.presences.sampleFromKey(this, world, 5, sampled, Flora.class) ;
     
@@ -154,15 +153,17 @@ public abstract class Fauna extends Actor {
     }
     if (picked == null) return null ;
     
+    float priority = ActorHealth.MAX_CALORIES - (health.energyLevel() + 0.1f) ;
+    priority = priority * Action.PARAMOUNT - Plan.rangePenalty(this, picked) ;
+    if (priority < 0) return null ;
+    
     final Action browse = new Action(
       this, picked,
       this, "actionBrowse",
       Action.STRIKE, "Browsing"
     ) ;
     browse.setMoveTarget(Spacing.nearestOpenTile(picked.origin(), this)) ;
-    float priority = ActorHealth.MAX_CALORIES - health.energyLevel() ;
-    priority *= Action.PARAMOUNT ;
-    browse.setPriority(priority - Plan.rangePenalty(this, picked)) ;
+    browse.setPriority(priority) ;
     return browse ;
   }
   
@@ -269,8 +270,7 @@ public abstract class Fauna extends Actor {
       Action.STRIKE, "Building Nest"
     ) ;
     buildNest.setMoveTarget(Spacing.pickFreeTileAround(nest, this)) ;
-    if (! nest.structure.intact()) buildNest.setPriority(Action.ROUTINE) ;
-    else buildNest.setPriority(((1f - repair) * Action.ROUTINE) + 2) ;
+    buildNest.setPriority(((1f - repair) * Action.ROUTINE)) ;
     return buildNest ;
   }
   

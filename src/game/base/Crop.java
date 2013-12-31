@@ -13,6 +13,9 @@ import src.graphics.cutout.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  Try and simplify this.  Replace with a fixture of some type,
+//  ideally?
 
 public class Crop implements Session.Saveable, Target {
   
@@ -83,6 +86,7 @@ public class Crop implements Session.Saveable, Target {
   private Object flagged ;
   public boolean inWorld() { return parent.inWorld() ; }
   public boolean destroyed() { return parent.destroyed() ; }
+  public World world() { return parent.world() ; }
   public Vec3D position(Vec3D v) { return tile.position(v) ; }
   public float height() { return tile.height() ; }
   public float radius() { return tile.radius() ; }

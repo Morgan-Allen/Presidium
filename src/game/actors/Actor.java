@@ -186,10 +186,18 @@ public abstract class Actor extends Mobile implements
     final boolean OK = health.conscious() ;
     if (! OK) pathing.updateTarget(null) ;
     
-    if (actionTaken != null && ! pathing.checkPathingOkay()) {
-      world.schedule.scheduleNow(this) ;
+    if (actionTaken != null) {
+      if (! pathing.checkPathingOkay()) {
+        world.schedule.scheduleNow(this) ;
+      }
+      if (actionTaken.finished() && OK) {
+        if (verbose) I.sayAbout(this, "  ACTION COMPLETE: "+actionTaken) ;
+        //world.schedule.scheduleNow(this) ;
+      }
+      actionTaken.updateMotion(OK) ;
+      actionTaken.updateAction() ;
     }
-
+    
     final Behaviour root = mind.rootBehaviour() ;
     if (root != null && root != actionTaken && root.finished() && OK) {
       if (verbose && I.talkAbout == this) {
@@ -200,19 +208,11 @@ public abstract class Actor extends Mobile implements
       mind.cancelBehaviour(root) ;
       //world.schedule.scheduleNow(this) ;
     }
-    if (actionTaken != null && actionTaken.finished() && OK) {
-      if (verbose) I.sayAbout(this, "  ACTION COMPLETE: "+actionTaken) ;
-      //world.schedule.scheduleNow(this) ;
-    }
-    
-    if (actionTaken != null) {
-      actionTaken.updateMotion(OK) ;
-      actionTaken.updateAction() ;
-    }
     
     if (aboard instanceof Mobile && (pathing.nextStep() == aboard || ! OK)) {
       aboard.position(nextPosition) ;
     }
+    else pathing.applyCollision() ;
   }
   
   
@@ -233,6 +233,7 @@ public abstract class Actor extends Mobile implements
       I.say("Time taken for stat updates: "+timeTaken) ;
     }
     
+    ///I.sayAbout(this, "Am conscious? "+health.conscious()) ;
     if (health.conscious()) {
       //
       //  Check to see if our current action has expired-
@@ -371,8 +372,13 @@ public abstract class Actor extends Mobile implements
   
   
   public Plan matchFor(Plan matchPlan) {
+    ///if (verbose) I.sayAbout(this, "Looking for MATCH: "+matchPlan) ;
     for (Behaviour b : mind.agenda()) if (b instanceof Plan) {
-      if (matchPlan.matchesPlan((Plan) b)) return (Plan) b ;
+      ///if (verbose) I.sayAbout(this, "POTENTIAL match: "+b) ;
+      if (matchPlan.matchesPlan((Plan) b)) {
+        ///if (verbose) I.sayAbout(this, "MATCH FOUND!") ;
+        return (Plan) b ;
+      }
     }
     return null ;
   }

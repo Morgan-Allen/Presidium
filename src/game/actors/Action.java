@@ -207,9 +207,11 @@ public class Action implements Behaviour, Model.AnimNames {
       final int MT = b.motionType(actor) ;
       if (MT != MOTION_ANY) { motionType = MT ; break ; }
     }
+    final float luck = moveLuck(actor) ;
     float rate = actor.health.moveRate() ;
-    if (motionType == MOTION_FAST) rate *= 2 * moveLuck(actor) ;
-    if (motionType == MOTION_SNEAK) rate *= (2 - moveLuck(actor)) / 4 ;
+    if (motionType == MOTION_SNEAK) rate *= (2 - luck) / 4 ;
+    else if (motionType == MOTION_FAST) rate *= 2 * luck ;
+    else rate += (luck - 0.5f) / 2 ;
     if (basic) return rate ;
     //
     //  TODO:  Must also account for the effects of fatigue and encumbrance...
@@ -282,8 +284,9 @@ public class Action implements Behaviour, Model.AnimNames {
       (moveDist < 1) && (! (moveTarget instanceof Boardable)) &&
       MobilePathing.hasLineOfSight(actor, moveTarget) ;
     
-    final Target faced = closed ? actionTarget :
-      (approach ? moveTarget : actor.pathing.nextStep()) ;
+    final Target faced = closed ? actionTarget : (
+      approach ? moveTarget : actor.pathing.nextStep()
+    ) ;
     actor.pathing.updateTarget(moveTarget) ;
     
     if (verbose && I.talkAbout == actor) {
@@ -292,6 +295,7 @@ public class Action implements Behaviour, Model.AnimNames {
       I.say("Closed/facing: "+closed+"/"+facing+", move okay? "+moveOK) ;
       
       I.say("Is ranged? "+((properties & RANGED) != 0)) ;
+      I.say("On approach? "+approach) ;
       I.say("Distance: "+moveDist+", min: "+minDist) ;
       I.say("Faced is: "+faced+"\n") ;
     }

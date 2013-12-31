@@ -11,7 +11,7 @@ import src.util.* ;
 
 
 
-public class Building extends Plan implements Abilities {
+public class Repairs extends Plan implements Abilities {
   
   
   
@@ -22,13 +22,13 @@ public class Building extends Plan implements Abilities {
   final Venue built ;
   
   
-  public Building(Actor actor, Venue repaired) {
+  public Repairs(Actor actor, Venue repaired) {
     super(actor, repaired) ;
     this.built = repaired ;
   }
   
   
-  public Building(Session s) throws Exception {
+  public Repairs(Session s) throws Exception {
     super(s) ;
     built = (Venue) s.loadObject() ;
   }
@@ -88,7 +88,7 @@ public class Building extends Plan implements Abilities {
     //  so that you don't get dozens of actors converging on a minor breakdown.
     float competition = 0 ;
     if (! begun()) {
-      competition = Plan.competition(Building.class, built, actor) ;
+      competition = Plan.competition(Repairs.class, built, actor) ;
       competition /= 1 + (built.structure.maxIntegrity() / 100f) ;
       if (verbose) I.sayAbout(actor, "Competition is: "+competition) ;
     }
@@ -108,7 +108,7 @@ public class Building extends Plan implements Abilities {
   }
   
   
-  public static Building getNextRepairFor(Actor client, float priorityMod) {
+  public static Repairs getNextRepairFor(Actor client, float priorityMod) {
     final World world = client.world() ;
     final Batch <Venue> toRepair = new Batch <Venue> () ;
     world.presences.sampleFromKeys(
@@ -123,12 +123,12 @@ public class Building extends Plan implements Abilities {
         near.structure.needsUpgrade() ||
         near.structure.needsSalvage() ;
       if (! needsRepair) continue ;
-      final Building b = new Building(client, near) ;
+      final Repairs b = new Repairs(client, near) ;
       b.priorityMod = priorityMod ;
       choice.add(b) ;
     }
     
-    return (Building) choice.pickMostUrgent() ;
+    return (Repairs) choice.pickMostUrgent() ;
   }
   
   

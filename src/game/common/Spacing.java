@@ -255,10 +255,15 @@ public final class Spacing implements TileConstants {
   }
   
   
+  public static Tile nearestOpenTile(Target t, Target client) {
+    final Tile under = t.world().tileAt(t) ;
+    return nearestOpenTile(under, client) ;
+  }
+  
+  
   public static Tile nearestOpenTile(Tile tile, Target client) {
     if (tile == null) return null ;
     if (! tile.blocked()) return tile ;
-    //I.say("Looking for open tile around "+tile) ;
     return nearestOpenTile(tile.area(tB), client, tile.world) ;
   }
   

@@ -104,6 +104,10 @@ public class Hunting extends Combat implements Economy {
   /**  Evaluating targets and priority-
     */
   public float priorityFor(Actor actor) {
+    //
+    //  TODO:  Unify this evaluation method with the 'FindPrey' routine below.
+    
+    if (! prey.health.organic()) return -1 ;
     float priority = 0 ;
     if (type == TYPE_FEEDS) {
       float hunger = actor.health.hungerLevel() ;
@@ -139,8 +143,16 @@ public class Hunting extends Combat implements Economy {
   
   public boolean valid() {
     if (actor == null) return super.valid() ;
+    //
+    //  TODO:  Try to make this whole process more elegant.  Establish the
+    //  basic harvest-item from the beginning?
+    
     if (type == TYPE_HARVEST) {
       if (actor.gear.amountOf(PROTEIN) > 0) return true ;
+    }
+    if (type == TYPE_PROCESS || type == TYPE_SAMPLE) {
+      final Item sample = Item.withReference(SAMPLES, prey) ;
+      if (actor.gear.amountOf(sample) > 0) return true ;
     }
     return super.valid() ;
   }

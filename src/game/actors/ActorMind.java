@@ -448,7 +448,10 @@ public abstract class ActorMind implements Abilities {
   
   
   public void pushFromParent(Behaviour b, Behaviour parent) {
-    if (! agenda.includes(parent)) I.complain("Behaviour not active.") ;
+    if (! agenda.includes(parent)) {
+      //I.complain("Behaviour not active.") ;
+      return ;
+    }
     cancelBehaviour(parent) ;
     pushBehaviour(parent) ;
     pushBehaviour(b) ;

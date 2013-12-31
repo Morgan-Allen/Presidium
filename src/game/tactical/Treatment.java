@@ -593,6 +593,10 @@ public class Treatment extends Plan implements Economy {
       d.append("Performing Psych Eval for ") ;
       d.append(patient) ;
     }
+    else {
+      d.append("Treating ") ;
+      d.append(patient) ;
+    }
   }
   
   

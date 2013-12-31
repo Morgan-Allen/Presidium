@@ -57,6 +57,7 @@ public class Ruins extends Venue {
   }
   
   
+  protected void updatePaving(boolean inWorld) {}
   public Background[] careers() { return null ; }
   public Service[] services() { return null ; }
   

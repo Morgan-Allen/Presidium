@@ -117,23 +117,32 @@ public class DebugBehaviour extends Scenario implements Economy {
       defends.enterWorldAt(free, world) ;
       mission.setApplicant(defends, true) ;
       mission.setApprovalFor(defends, true) ;
+      UI.selection.pushSelection(defends, true) ;
     }
     mission.beginMission() ;
     //
     //  Step 2:  Generate one or more hostile actors, and have them try to
     //  assault the structure.
+    final Base artilects = world.baseWithName(Base.KEY_ARTILECTS, true, true) ;
     final Venue lair = Placement.establishVenue(
       new Ruins(), 25, 25, true, world
     ) ;
-    lair.assignBase(world.baseWithName(Base.KEY_ARTILECTS, true, true)) ;
+    lair.assignBase(artilects) ;
     for (int n = 2 ; n-- > 0 ;) {
-      final Actor assaults = new Drone() ;
+      final Actor assaults = new Tripod() ;
+      assaults.assignBase(artilects) ;
+      assaults.mind.setHome(lair) ;
       assaults.enterWorldAt(lair, world) ;
       assaults.goAboard(lair, world) ;
     }
+    artilects.setRelation(base, -1) ;
+    base.setRelation(artilects, -1) ;
     //
     //  Step 3:  Ensure that the hostiles retreat when wounded, and that the
     //  defenders won't follow too far.
+    
+    //
+    //  TODO:  Target-switching for defence and offence need to be considered.
   }
   
   

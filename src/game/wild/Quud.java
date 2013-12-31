@@ -50,7 +50,7 @@ public class Quud extends Fauna {
   
   
   public float radius() {
-    return 0.5f ;
+    return 0.33f ;
   }
   
   
@@ -111,6 +111,7 @@ public class Quud extends Fauna {
   /**  Rendering and interface methods-
     */
   protected float moveAnimStride() { return 4.0f ; }
+  protected float spriteScale() { return super.spriteScale() * 0.8f ; }
 }
 
 

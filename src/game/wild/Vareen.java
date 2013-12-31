@@ -21,9 +21,10 @@ public class Vareen extends Fauna {
   
   /**  Fields, constructors, and save/load methods-
     */
+  final static float DEFAULT_FLY_HEIGHT = 2.5f ;
   final static int FLY_PATH_LIMIT = 16 ;
   
-  private float flyHeight = 2.5f ;
+  private float flyHeight = DEFAULT_FLY_HEIGHT ;
   private Nest nest = null ;
   
   
@@ -73,15 +74,14 @@ public class Vareen extends Fauna {
     */
   protected void updateAsMobile() {
     final Target target = this.targetFor(null) ;
-    float idealHeight = 2.5f ;
+    float idealHeight = DEFAULT_FLY_HEIGHT ;
     
-    if (! (target instanceof Tile)) {
-      if (target == null) idealHeight = flyHeight ;
-      else if (Spacing.distance(target, this) < health.sightRange()) {
-        idealHeight = target.position(null).z + (target.height() / 2f) - 0.5f ;
-      }
+    if (! health.conscious()) idealHeight = 0 ;
+    else if (target == null) idealHeight = flyHeight ;
+    else if (target instanceof Tile) idealHeight = DEFAULT_FLY_HEIGHT ;
+    else if (Spacing.distance(target, this) < health.sightRange()) {
+      idealHeight = target.position(null).z + (target.height() / 2f) - 0.5f ;
     }
-    else if (! health.conscious()) idealHeight = 0 ;
     
     final float MFI = 1f / (2 * PlayLoop.UPDATES_PER_SECOND) ;
     flyHeight = Visit.clamp(idealHeight, flyHeight - MFI, flyHeight + MFI) ;
@@ -120,9 +120,9 @@ public class Vareen extends Fauna {
 
 
 
+
 //
 //  TODO:  Try to restore flight-pathing later on.
-
 /*
 protected MobilePathing initPathing() {
   final Vareen actor = this ;
@@ -197,16 +197,6 @@ public boolean blocksMotion(Boardable t) {
 /*
 protected Behaviour nextFeeding() {
   //
-  //  Pick several random nearby tiles, and see if one has flora.  If so,
-  //  feed from it.
-  Tile pick = null ;
-  for (int numTries = 3 ; numTries-- > 0 ;) {
-    final Tile seen = randomTileInRange(health.sightRange()) ;
-    if (seen == null || ! (seen.owner() instanceof Flora)) continue ;
-    pick = seen ;
-    break ;
-  }
-  //
   //  If you can't find other food, just bask in the sun to gain energy-
   if (pick == null && ! origin().blocked()) {
     final Action basking = new Action(
@@ -236,23 +226,6 @@ public boolean actionBask(Vareen actor, Tile location) {
   //  Adjust this based on night/day values?
   health.takeSustenance(location.habitat().insolation() / 100f, 1.0f) ;
   return true ;
-}
-
-
-public boolean actionForage(Vareen actor, Tile location) {
-  if (! (location.owner() instanceof Flora)) return false ;
-  final Flora f = (Flora) location.owner() ;
-  health.takeSustenance(f.growStage() * 0.25f / Flora.MAX_GROWTH, 1.0f) ;
-  f.incGrowth(-0.25f / 4, world, false) ;
-  return true ;
-}
-
-
-protected Target findRestPoint() {
-  //
-  //  Return to your nest if possible.  Otherwise, roost in the trees.
-  return origin() ;
-  //return null ;
 }
 //*/
 

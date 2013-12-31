@@ -78,7 +78,7 @@ public class VaultSystem extends Venue implements Economy {
   /**  Upgrades, economic functions and behaviour implementation-
     */
   public Behaviour jobFor(Actor actor) {
-    final Building b = Building.getNextRepairFor(actor, Plan.CASUAL) ;
+    final Repairs b = Repairs.getNextRepairFor(actor, Plan.CASUAL) ;
     if (b != null) {
       final float priority = b.priorityFor(actor) ;
       if (priority * Planet.dayValue(world) >= Plan.ROUTINE) {

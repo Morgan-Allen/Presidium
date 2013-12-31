@@ -161,9 +161,9 @@ public class PathingCache {
     }
     if (path == null) {
       if (verbose) I.say(
-        "Resorting to agenda-bounded pathfinding between "+initB+" "+destB
+        "Resorting to unbounded pathfinding between "+initB+" "+destB
       ) ;
-      final PathingSearch search = new PathingSearch(initB, destB) ;
+      final PathingSearch search = new PathingSearch(initB, destB, -1) ;
       search.client = client ;
       search.verbose = verbose ;
       search.doSearch() ;

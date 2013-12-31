@@ -4,9 +4,10 @@
 package src.game.planet ;
 import src.game.actors.* ;
 import src.game.common.* ;
+import src.game.building.* ;
 import src.game.tactical.* ;
-import src.graphics.common.Model ;
-import src.graphics.jointed.MS3DModel ;
+import src.graphics.common.* ;
+import src.graphics.jointed.* ;
 import src.graphics.widgets.HUD ;
 import src.user.* ;
 import src.util.* ;
@@ -71,12 +72,12 @@ public abstract class Artilect extends Actor {
   protected ActorMind initAI() {
     final Artilect actor = this ;
     return new ActorMind(actor) {
+      
       protected Behaviour createBehaviour() {
         final Choice choice = new Choice(actor) ;
         addChoices(choice) ;
         return choice.pickMostUrgent() ;
       }
-      
       
       protected void updateAI(int numUpdates) {
         super.updateAI(numUpdates) ;
@@ -84,12 +85,10 @@ public abstract class Artilect extends Actor {
         //  If your home is under assault, defend it.
       }
       
-      
       protected Behaviour reactionTo(Element seen) {
         if (seen instanceof Actor) return nextDefence((Actor) seen) ;
         return nextDefence(null) ;
       }
-      
       
       public float relation(Actor other) {
         if (actor.base() != null && other.base() == actor.base()) return 0.5f ;
@@ -110,40 +109,71 @@ public abstract class Artilect extends Actor {
   
   protected void addChoices(Choice choice) {
     
+    //I.say("Creating new choices for "+this) ;
     //
     //  Patrol around your base and see off intruders.
     Element guards = mind.home() == null ? this : (Element) mind.home() ;
     final Patrolling p = Patrolling.securePerimeter(this, guards, world) ;
     p.priorityMod = Plan.IDLE ;
+    ///I.say("Patrolling priority: "+p.priorityFor(this)) ;
     choice.add(p) ;
     
     for (Element e : mind.awareOf()) if (e instanceof Actor) {
       choice.add(new Combat(this, (Actor) e)) ;
     }
-    //
-    //  TODO:  Consider getting rid of retreat behaviours.  They're supposed to
-    //  be pretty implacable.  And/or suicidal(?)
-    choice.add(new Retreat(this)) ;
     
     //
-    //  Return to base for repairs/recharge.
     //
-    //  Perform repairs on another artilect, or construct a new model.
+    //  Perform reconaissance or patrolling.
+    //  Retreat and return to base.
+    //  (Drone specialties.)
     //
     //  Launch an assault on a nearby settlement, if numbers are too large.
-    //  (Tripod speciality.)
+    //  Capture specimens and bring back to lair.
+    //  (Tripod specialties.)
+    choice.add(nextAssault()) ;
     //
-    //  Perform reconaissance.
-    //  (Drone speciality.)
+    //  Experiment upon/dissect/interrogate/convert any captives.
+    //  Perform repairs on another artilect, or refurbish a new model.
+    //  (Cranial specialties.)
     //
-    //  Capture specimens for experiment/dissection/interrogation/conversion.
-    //  (Cranial speciality.)
+    //  Defend home site or retreat to different site (all).
+    //  Respond to obelisk or tesseract presence (all).
   }
   
-  //
-  //  ...They can't be capable of indefinite reconstruction- or if they are,
-  //  there needs to be a reason for why they haven't taken over the world
-  //  already.  Stuck in an infinite loop?
+  
+  protected Behaviour nextAssault() {
+    if (! (mind.home() instanceof Venue)) return null ;
+    final Venue lair = (Venue) mind.home() ;
+    final Batch <Venue> sampled = new Batch <Venue> () ;
+    world.presences.sampleFromKey(this, world, 10, sampled, Venue.class) ;
+    
+    final int SS = World.SECTOR_SIZE ;
+    Venue toAssault = null ;
+    float bestRating = 0 ;
+    
+    for (Venue venue : sampled) {
+      if (venue.base() == this.base()) continue ;
+      final float dist = Spacing.distance(venue, lair) ;
+      float rating = SS / (SS + dist) ;
+      rating += 1 - mind.relation(venue) ;
+      if (rating > bestRating) { bestRating = rating ; toAssault = venue ; }
+    }
+    
+    if (toAssault == null) return null ;
+    final Combat siege = new Combat(this, toAssault) ;
+    siege.priorityMod = bestRating * Plan.ROUTINE ;
+    return siege ;
+    
+    //
+    //  TODO:  Ideally, you want multiple actors to coordinate in attacking a
+    //  particular structure.  You also want aggression to be based on
+    //  perceived threat level, rising gradually over time.
+    
+    //
+    //  The martians from war of the worlds, 40K necrons, brainiac...
+  }
+  
   
   
   

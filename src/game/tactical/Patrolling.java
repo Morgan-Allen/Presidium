@@ -36,7 +36,7 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
   final Element guarded ;
   
   private List <Target> patrolled ;
-  private Target goes ;
+  private Boardable onPoint ;
   private float postTime = -1 ;
   
   
@@ -48,7 +48,7 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
     this.type = type ;
     this.guarded = guarded ;
     this.patrolled = patrolled ;
-    goes = patrolled.first() ;
+    onPoint = (Boardable) patrolled.first() ;
   }
   
   
@@ -57,7 +57,7 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
     type = s.loadInt() ;
     guarded = (Element) s.loadObject() ;
     s.loadTargets(patrolled = new List <Target> ()) ;
-    goes = s.loadTarget() ;
+    onPoint = (Boardable) s.loadTarget() ;
     postTime = s.loadFloat() ;
   }
   
@@ -67,7 +67,7 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
     s.saveInt(type) ;
     s.saveObject(guarded) ;
     s.saveTargets(patrolled) ;
-    s.saveTarget(goes) ;
+    s.saveTarget(onPoint) ;
     s.saveFloat(postTime) ;
   }
   
@@ -107,21 +107,24 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
   /**  Behaviour execution-
     */
   public Behaviour getNextStep() {
-    if (goes == null) return null ;
+    if (onPoint == null) return null ;
     final World world = actor.world() ;
-    Target stop = goes ;
-    if (verbose) I.sayAbout(actor, "Goes: "+goes+", post time: "+postTime) ;
+    Target stop = onPoint ;
+    if (verbose) I.sayAbout(actor, "Goes: "+onPoint+", post time: "+postTime) ;
     
     //
     //  TODO:  You need to add an intercept/attack behaviour for enemies near
-    //  the guarded target (if any.)
+    //  the guarded target (if any?)
     
     if (type != TYPE_SENTRY_DUTY) {
-      Tile open = world.tileAt(goes) ;
+      Tile open = world.tileAt(onPoint) ;
       open = Spacing.nearestOpenTile(open, actor) ;
       if (open == null) {
-        goes = patrolled.atIndex(patrolled.indexOf(goes) + 1) ;
-        if (goes == null) return null ;
+        onPoint = (Boardable) patrolled.atIndex(patrolled.indexOf(onPoint) + 1) ;
+        if (onPoint == null) {
+          abortBehaviour() ;
+          return null ;
+        }
       }
       else stop = open ;
     }
@@ -130,7 +133,7 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
       if (verbose) I.sayAbout(actor, "Time at post: "+spent) ;
       if (spent < WATCH_TIME) {
         final Action watch = new Action(
-          actor, goes,
+          actor, onPoint,
           this, "actionStandWatch",
           Action.LOOK, "Standing Watch"
         ) ;
@@ -148,8 +151,12 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
   }
   
   
+  
+  
+  
   public boolean finished() {
-    return goes == null ;
+    if (super.finished()) return true ;
+    return onPoint == null ;
   }
   
   
@@ -177,12 +184,12 @@ public class Patrolling extends Plan implements TileConstants, Abilities {
     }
     //
     //  If not, head on to the next stop on your patrol route-
-    final int index = patrolled.indexOf(goes) + 1 ;
+    final int index = patrolled.indexOf(onPoint) + 1 ;
     if (index < patrolled.size()) {
-      goes = patrolled.atIndex(index) ;
+      onPoint = (Boardable) patrolled.atIndex(index) ;
     }
     else {
-      goes = null ;
+      onPoint = null ;
     }
     return true ;
   }

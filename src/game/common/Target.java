@@ -13,6 +13,7 @@ public interface Target {
   
   boolean inWorld() ;
   boolean destroyed() ;
+  World world() ;
   
   Vec3D position(Vec3D v) ;
   float height() ;

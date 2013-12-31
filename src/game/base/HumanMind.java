@@ -217,7 +217,7 @@ public class HumanMind extends ActorMind implements Abilities {
         employs.addServices(choice, actor) ;
       }
       if (! (employs instanceof Venue)) continue ;
-      choice.add(new Building(actor, (Venue) employs)) ;
+      choice.add(new Repairs(actor, (Venue) employs)) ;
     }
   }
   

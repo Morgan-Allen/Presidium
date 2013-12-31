@@ -17,12 +17,6 @@ public class Placement {
   
   private static boolean verbose = false, cacheVerbose = true ;
   
-  /*
-  ...In fact, you could cache this fairly easily for common sizes & offsets.
-    ...And, you could use a mip-map for pathing to help narrow down the clearer
-    areas beforehand.  (Or just the region map, in fact.)
-  //*/
-  
   final private static Coord offsetCache[][][] = new Coord[100][100][] ;
   //
   //  NOTE:  This method is intended to generate a sequence of coordinates to
@@ -48,8 +42,8 @@ public class Placement {
     //
     //  Find the initial 'step' size for the grid.
     int stepX = 1, stepY = 1, i = 0 ;
-    while (stepX <= sizeX) stepX *= 2 ;
-    while (stepY <= sizeY) stepY *= 2 ;
+    while (stepX <= sizeX * 2) stepX *= 2 ;
+    while (stepY <= sizeY * 2) stepY *= 2 ;
     final int maxX = sizeX - 1, maxY = sizeY - 1 ;
     final boolean mask[][] = new boolean[sizeX][sizeY] ;
     //
@@ -85,7 +79,7 @@ public class Placement {
   ) {
     for (Coord c : offsetsFor(sizeX, sizeY)) {
       final Tile t = origin.world.tileAt(origin.x + c.x, origin.y + c.y) ;
-      if (t.owningType() >= owningPriority) return false ;
+      if (t == null || t.owningType() >= owningPriority) return false ;
     }
     return true ;
   }

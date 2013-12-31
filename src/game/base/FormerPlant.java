@@ -113,7 +113,7 @@ public class FormerPlant extends Venue implements Economy {
     //
     //  Consider upkeep, deliveries and supervision-
     choice.add(Deliveries.nextDeliveryFor(actor, this, services(), 10, world)) ;
-    choice.add(new Building(actor, this)) ;
+    choice.add(new Repairs(actor, this)) ;
     //
     //  Have the climate engineer gather soil samples, but only if they're
     //  very low.  (Automated crawlers would do this in bulk.)

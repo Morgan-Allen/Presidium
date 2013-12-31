@@ -21,9 +21,9 @@ public class Combat extends Plan implements Abilities {
   /**  Data fields, constructors and save/load methods-
     */
   private static boolean
-    verbose        = false,
-    reportEvents   = false,
-    reportStrength = false ;
+    verbose         = false,
+    eventsVerbose   = true,
+    strengthVerbose = false ;
   
   final static int
     STYLE_RANGED = 0,  //TODO:  Replace with hit-and-run/skirmish
@@ -178,7 +178,7 @@ public class Combat extends Plan implements Abilities {
     strength *= 1 - actor.health.stressPenalty() ;
     //
     //  Scale by general ranks in relevant skills-
-    if (reportStrength) I.sayAbout(actor, "Native strength: "+strength) ;
+    if (strengthVerbose) I.sayAbout(actor, "Native strength: "+strength) ;
     strength *= (2 +
       actor.traits.useLevel(HAND_TO_HAND) +
       actor.traits.useLevel(MARKSMANSHIP)
@@ -187,7 +187,7 @@ public class Combat extends Plan implements Abilities {
       actor.traits.useLevel(HAND_TO_HAND) +
       actor.traits.useLevel(STEALTH_AND_COVER)
     ) / 20 ;
-    if (reportStrength) I.sayAbout(actor, "With skills: "+strength) ;
+    if (strengthVerbose) I.sayAbout(actor, "With skills: "+strength) ;
     //
     //  And if you're measuring combat against a specific adversary, scale by
     //  chance of victory-
@@ -201,7 +201,7 @@ public class Combat extends Plan implements Abilities {
         defend = STEALTH_AND_COVER ;
       }
       final float chance = actor.traits.chance(attack, enemy, defend, 0) ;
-      if (reportStrength && I.talkAbout == enemy) {
+      if (strengthVerbose && I.talkAbout == enemy) {
         I.say("Chance to injure "+enemy+" is: "+chance) ;
         I.say("Native strength: "+strength) ;
       }
@@ -233,14 +233,14 @@ public class Combat extends Plan implements Abilities {
   /**  Actual behaviour implementation-
     */
   protected Behaviour getNextStep() {
-    if (reportEvents && begun()) {
+    if (eventsVerbose && begun()) {
       I.sayAbout(actor, "NEXT COMBAT STEP "+this.hashCode()) ;
     }
     //
     //  This might need to be tweaked in cases of self-defence, where you just
     //  want to see off an attacker.
-    if (isDead(target) || priorityFor(actor) < 0) {
-      if (reportEvents && begun()) I.sayAbout(actor, "COMBAT COMPLETE") ;
+    if (isDead(target)) {// || priorityFor(actor) < 0) {
+      if (eventsVerbose && begun()) I.sayAbout(actor, "COMBAT COMPLETE") ;
       return null ;
     }
     Action strike = null ;
@@ -272,12 +272,13 @@ public class Combat extends Plan implements Abilities {
     //  of dancing around may be in order.
     if (melee) configMeleeAction(strike, razes, danger) ;
     else configRangedAction(strike, razes, danger) ;
+    ///if (eventsVerbose) I.sayAbout(actor, "NEXT STRIKE "+strike) ;
     return strike ;
   }
   
   
   private void configMeleeAction(Action strike, boolean razes, float danger) {
-    //if (reportEvents) I.sayAbout(actor, "Configuring melee attack.\n") ;
+    ///if (eventsVerbose) I.sayAbout(actor, "Configuring melee attack.\n") ;
     final World world = actor.world() ;
     strike.setProperties(Action.QUICK) ;
     if (razes) {
@@ -293,6 +294,7 @@ public class Combat extends Plan implements Abilities {
   
   
   private void configRangedAction(Action strike, boolean razes, float danger) {
+    ///if (eventsVerbose) I.sayAbout(actor, "Configuring ranged attack.\n") ;
     
     final float range = actor.health.sightRange() ;
     boolean underFire = actor.world().activities.includes(actor, Combat.class) ;
@@ -393,7 +395,7 @@ public class Combat extends Plan implements Abilities {
     damage -= armour * (Rand.avgNums(2) + 0.25f) ;
     damage *= 5f / (5 + armour) ;
     
-    I.say("Armour/Damage: "+armour+"/"+damage) ;
+    ///I.say("Armour/Damage: "+armour+"/"+damage) ;
     
     if (damage > 0) besieged.structure.takeDamage(damage) ;
     DeviceType.applyFX(actor.gear.deviceType(), actor, besieged, true) ;

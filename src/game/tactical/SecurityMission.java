@@ -77,28 +77,33 @@ public class SecurityMission extends Mission implements Abilities {
   public float priorityFor(Actor actor) {
     if (actor == subject) return 0 ;
     
-    float impetus = actor.mind.greedFor(rewardAmount(actor)) * ROUTINE ;
-    impetus -= Plan.dangerPenalty(subject, actor) ;
-    impetus -= duration() * 0.5f / World.STANDARD_DAY_LENGTH ;
+    float priority = actor.mind.greedFor(rewardAmount(actor)) * ROUTINE ;
+    priority -= Plan.dangerPenalty(subject, actor) ;
+    priority -= duration() * 0.5f / World.STANDARD_DAY_LENGTH ;
     if (subject instanceof Actor) {
-      impetus += actor.mind.relation((Actor) subject) * ROUTINE ;
+      priority += actor.mind.relation((Actor) subject) * ROUTINE ;
     }
     if (subject instanceof Venue) {
-      impetus += actor.mind.relation((Venue) subject) * ROUTINE ;
+      priority += actor.mind.relation((Venue) subject) * ROUTINE ;
     }
+    
     //
     //  Modify by possession of combat and surveillance skills-
     float ability = 1 ;
     ability *= actor.traits.useLevel(SURVEILLANCE) / 10f ;
     ability *= Combat.combatStrength(actor, null) * 1.5f ;
     ability = Visit.clamp(ability, 0.5f, 1.5f) ;
+    priority = Visit.clamp(priority * ability, 0, PARAMOUNT) ;
     
-    //I.say("Impetus for "+actor+" is "+impetus) ;
-    return impetus * ability ;
+    if (verbose && I.talkAbout == actor) {
+      ///I.say("Security priority for "+actor+" is "+priority) ;
+    }
+    return priority ;
   }
   
   
   public boolean finished() {
+    if (subject.destroyed()) return true ;
     if (inceptTime == -1) return false ;
     return (base.world.currentTime() - inceptTime) > duration() ;
   }
@@ -114,7 +119,7 @@ public class SecurityMission extends Mission implements Abilities {
     */
   public float priorityModifier(Behaviour b, Choice c) {
     //
-    //  TODO:  Build this into the Choice algorithm.
+    //  TODO:  Build this into the Choice algorithm?
     
     return 0 ;
   }
@@ -123,6 +128,66 @@ public class SecurityMission extends Mission implements Abilities {
   public Behaviour nextStepFor(Actor actor) {
     final float priority = priorityFor(actor) ;
     final Choice choice = new Choice(actor) ;
+    
+    final World world = actor.world() ;
+    final Batch <Target> defended = new Batch <Target> () ;
+    final Batch <Target> assailants = new Batch <Target> () ;
+    defended.add(subject) ;
+    for (Role role : roles) defended.add(role.applicant) ;
+    
+    
+    //  TODO:  Just use anything the actor is aware of instead?
+    /*
+    for (Element e : actor.mind.awareOf()) if (e instanceof Actor) {
+      final Actor a = (Actor) e ;
+      final Target victim = a.targetFor(Combat.class) ;
+    }
+    //*/
+    
+    Actor toRepel = null ;
+    float maxUrgency = 0 ;
+    
+    for (Target t : defended) {
+      for (Behaviour b : world.activities.targeting(t)) {
+        if (b instanceof Combat) {
+          final Combat c = (Combat) b ;
+          final Actor assails = c.actor() ;
+          assailants.add(assails) ;
+
+          float strength = Combat.combatStrength(actor, assails) ;
+          float urgency = 1 * Rand.avgNums(2) / (1f + strength) ;
+          urgency *= t == subject ? 1.5f : 0.5f ;
+          //urgency *= 2 - t.condition() ;
+          if (urgency > maxUrgency) {
+            maxUrgency = urgency ;
+            toRepel = assails ;
+          }
+        }
+      }
+      if (t instanceof Actor) {
+        final Treatment TS = new Treatment(actor, (Actor) t, null) ;
+        TS.priorityMod = priority ;
+        choice.add(TS) ;
+      }
+    }
+    if (toRepel != null) {
+      I.sayAbout(actor, "Repelling: "+toRepel) ;
+      final Combat repels = new Combat(actor, toRepel) ;
+      final Target target = actor.targetFor(Combat.class) ;
+      //
+      //  TODO:  I think it needs to be possible to generalise this sort of
+      //  priority-switch.
+      if (! assailants.includes(target)) {
+        I.sayAbout(actor, "PUSHING NEW DEFENCE ACTION: "+repels) ;
+        actor.mind.pushFromParent(repels, this) ;
+      }
+      return repels ;
+    }
+    if (subject instanceof Venue) {
+      final Repairs repairs = new Repairs(actor, (Venue) subject) ;
+      repairs.priorityMod = priority ;
+      choice.add(repairs) ;
+    }
     
     /*
     if (subject instanceof ItemDrop) {
@@ -133,23 +198,10 @@ public class SecurityMission extends Mission implements Abilities {
     }
     //*/
     
-    if (subject instanceof Actor) {
-      final Actor SA = (Actor) subject ;
-      final Treatment TS = new Treatment(actor, SA, null) ;
-      TS.priorityMod = priority / 2 ;
-      choice.add(TS) ;
-    }
-    
-    if (subject instanceof Venue) {
-      final Venue SV = (Venue) subject ;
-      final Building BS = new Building(actor, SV) ;
-      BS.priorityMod = priority / 2 ;
-      choice.add(BS) ;
-    }
-    
     final Patrolling p = Patrolling.securePerimeter(
       actor, (Element) subject, base.world
     ) ;
+    p.priorityMod = priority / 2 ;
     choice.add(p) ;
     return choice.pickMostUrgent() ;
   }
@@ -169,6 +221,7 @@ public class SecurityMission extends Mission implements Abilities {
     }) ;
   }
   
+  
   public void describeBehaviour(Description d) {
     d.append("On ") ;
     d.append("Security Mission", this) ;
@@ -179,6 +232,13 @@ public class SecurityMission extends Mission implements Abilities {
 
 
 
+/*
+final Combat defence = new Combat(actor, c.actor()) ;
+c.priorityMod = priority * (t == subject ? 1.5f : 0.5f) ;
+choice.add(defence) ;
 
-
-
+if (verbose && I.talkAbout == actor) {
+  I.say("  "+c.actor()+" is assaulting "+t) ;
+  I.say("  Defence priority: "+defence.priorityFor(actor)) ;
+}
+//*/

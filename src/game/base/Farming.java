@@ -121,7 +121,7 @@ public class Farming extends Plan implements Economy {
         this, actionName,
         anim, desc
       ) ;
-      plants.setMoveTarget(Spacing.nearestOpenTile(picked.tile, actor)) ;
+      //plants.setMoveTarget(Spacing.nearestOpenTile(picked.tile, actor)) ;
       return plants ;
     }
     return null ;

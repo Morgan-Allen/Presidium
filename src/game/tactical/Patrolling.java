@@ -14,6 +14,8 @@ import src.user.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  You need to incorporate intercept behaviours here.
 
 
 public class Patrolling extends Plan implements TileConstants, Abilities {

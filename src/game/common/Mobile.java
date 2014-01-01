@@ -270,11 +270,9 @@ public abstract class Mobile extends Element
     if (b instanceof Tile) {
       final Tile t = (Tile) b ;
       if (t.blocked()) return true ;
-      if (t == pathing.pathTarget) return false ;
+      if (pathing == null || t == pathing.pathTarget) return false ;
       if (t != origin() && t.inside().size() > 0 && Spacing.adjacent(t, this)) {
-        for (Mobile m : t.inside()) if (m != this) {
-          ///I.sayAbout(this, "BLOCKED BY OTHER MOBILE: "+m+" at: "+t) ;
-          ///I.sayAbout(this, "ORIGIN: "+origin()+", THIS: "+this) ;
+        for (Mobile m : t.inside()) if (m != this && m.base() == base()) {
           return true ;
         }
       }
@@ -289,7 +287,6 @@ public abstract class Mobile extends Element
   
   
   protected void onMotionBlock(Tile t) {
-    ///if (BaseUI.isPicked(this)) I.say("...MOTION BLOCKED") ;
     final boolean canRoute = pathing != null && pathing.refreshPath() ;
     if (! canRoute) pathingAbort() ;
   }
@@ -297,6 +294,11 @@ public abstract class Mobile extends Element
   
   protected float aboveGroundHeight() {
     return 0 ;
+  }
+  
+  
+  public boolean airborne() {
+    return aboveGroundHeight() > 0 ;
   }
   
   

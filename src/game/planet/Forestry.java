@@ -134,7 +134,7 @@ public class Forestry extends Plan implements Economy {
         this, "actionCutting",
         Action.BUILD, "Cutting"
       ) ;
-      cuts.setMoveTarget(Spacing.nearestOpenTile(toCut.origin(), actor)) ;
+      //cuts.setMoveTarget(Spacing.nearestOpenTile(toCut.origin(), actor)) ;
       return cuts ;
     }
     if (stage == STAGE_RETURN) {

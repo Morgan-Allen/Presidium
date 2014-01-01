@@ -60,15 +60,22 @@ public class PathingSearch extends Search <Boardable> {
   }
   
   
+  protected static int searchLimit(Boardable init, Boardable dest) {
+    int limit = (int) Spacing.outerDistance(init, dest) ;
+    limit += 1 + (World.PATCH_RESOLUTION * 2) ;
+    return limit ;
+  }
+  
+  
   public PathingSearch(Boardable init, Boardable dest) {
-    this(init, dest, Spacing.outerDistance(init, dest)) ;
+    this(init, dest, searchLimit(init, dest)) ;
   }
   
   
   public PathingSearch doSearch() {
     if (verbose) I.say(
       "Searching for path between "+init+" and "+destination+
-      ", distance: "+Spacing.outerDistance(init, destination)
+      ", search limit: "+searchLimit(init, destination)
     ) ;
     super.doSearch() ;
     if (verbose) {

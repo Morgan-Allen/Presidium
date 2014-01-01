@@ -72,7 +72,7 @@ public class StrikeMission extends Mission {
 
 
   public boolean finished() {
-    if (Combat.isDead((Element) subject)) return true ;
+    if (Combat.isDowned((Element) subject)) return true ;
     return false ;
   }
   

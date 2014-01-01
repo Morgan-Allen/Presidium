@@ -15,6 +15,8 @@ public class Trait implements Abilities, Session.Saveable {
   
   
   
+  private static boolean verboseInit = false ;
+  
   static Batch <Trait>
     traitsSoFar = new Batch <Trait> (),
     allTraits   = new Batch <Trait> () ;
@@ -69,13 +71,17 @@ public class Trait implements Abilities, Session.Saveable {
     for (int i = descriptors.length ; i-- > 0 ;) {
       val = descValues[i] = zeroIndex - i ;
       
-      //val = descValues[i] = descriptors.length - (i + zeroIndex + 1) ;
+      final String desc = descriptors[i] ;
+      if (verboseInit && desc != null) {
+        I.say("Value for "+desc+" is "+val) ;
+      }
+      
       if (val > max) max = val ;
       if (val < min) min = val ;
     }
     this.minVal = min ;
     this.maxVal = max ;
-    ///I.say("Min/max: "+min+"/"+max+" for "+descriptors[0]) ;
+    
     traitsSoFar.add(this) ;
     allTraits.add(this) ;
   }
@@ -105,7 +111,11 @@ public class Trait implements Abilities, Session.Saveable {
     String bestDesc = null ;
     float minDiff = Float.POSITIVE_INFINITY ;
     int i = 0 ; for (String s : trait.descriptors) {
-      final float diff = Math.abs(level - trait.descValues[i]) ;
+      float value = trait.descValues[i] ;
+      if (value > 0) value -= (trait.maxVal - level) / (trait.maxVal - 1) ;
+      if (value < 0) value += 0.5f ;
+      
+      final float diff = Math.abs(level - value) ;
       if (diff < minDiff) { minDiff = diff ; bestDesc = s ; }
       i++ ;
     }

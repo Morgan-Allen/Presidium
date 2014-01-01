@@ -59,7 +59,7 @@ public class Retreat extends Plan implements Abilities {
       actor.health.stressPenalty() +
       actor.health.injuryLevel(), 0, 1
     ) ;
-    danger = Math.max(danger, stress * 2) ;
+    danger += stress * 2 ;
     danger *= actor.traits.scaleLevel(NERVOUS) ;
     //danger = ((1 - stress) * danger) + (stress * 2) ;
     
@@ -67,7 +67,7 @@ public class Retreat extends Plan implements Abilities {
       I.say("Perceived danger: "+danger+", stress: "+stress) ;
     }
     if (danger <= 0) return 0 ;
-    return Visit.clamp(danger * PARAMOUNT, 0, PARAMOUNT * 2) ;
+    return danger * PARAMOUNT ;
   }
   
   
@@ -117,7 +117,7 @@ public class Retreat extends Plan implements Abilities {
     Target target, float salt
   ) {
     final int numPicks = 3 ;  // TODO:  Make this an argument, instead of range
-    Target pick = actor.aboard() ;
+    Target pick = null ;// actor.aboard() ;
     float bestRating = salt > 0 ?
       Float.POSITIVE_INFINITY : Float.NEGATIVE_INFINITY ;
     for (int i = numPicks ; i-- > 0 ;) {
@@ -152,22 +152,22 @@ public class Retreat extends Plan implements Abilities {
     Target spot, Actor actor, Actor enemy, Batch <Element> seen
   ) {
     if (spot == null) return 0 ;
-
     // final boolean report = verbose && I.talkAbout == actor ;
     
     final float basePower = Combat.combatStrength(actor, enemy) ;
-    float sumAllies = basePower, sumEnemies = 0 ;
+    float sumAllies = basePower, sumEnemies = 0, sumTargeting = 0 ;
     
     //
-    //  TODO:  ...What about blending values from the danger map?
-    //  float estimate = 0 - basePower ;
-    if (verbose) I.sayAbout(actor, "Base power is: "+basePower) ;
+    //  TODO:  ...What about blending values from the danger map?  ...Take that
+    //  from the Plan class?  Or sample actors right at the point of origin
+    //  instead?
     
     for (Element m : seen) {
       if (m == actor || ! (m instanceof Actor)) continue ;
       final Actor near = (Actor) m ;
       if (near.indoors() || ! near.health.conscious()) continue ;
-      
+
+      final Target victim = near.targetFor(Combat.class) ;
       final float relation = near.mind.relation(actor) ;
       final float power = Combat.combatStrength(near, enemy) ;
       if (relation > 0) {
@@ -176,9 +176,15 @@ public class Retreat extends Plan implements Abilities {
       if (relation < 0) {
         sumEnemies += power ;
       }
+      if (victim == actor) sumTargeting += power ;
     }
     
-    return sumEnemies / (sumEnemies + sumAllies) ;
+    return (
+      actor.health.injuryLevel() +
+      actor.health.stressPenalty() +
+      (1 - (basePower / (basePower + sumTargeting))) +
+      (sumEnemies / (sumEnemies + sumAllies))
+    ) / 2.0f ;
   }
   
   

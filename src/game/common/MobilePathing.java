@@ -61,6 +61,7 @@ public class MobilePathing {
   
   
   private boolean checkEndPoint(Boardable b) {
+    if (b == null) return false ;
     final boolean
       exists = b.inWorld(),
       allows = b.allowsEntry(mobile),
@@ -78,6 +79,11 @@ public class MobilePathing {
   
   public Target target() {
     return trueTarget ;
+  }
+  
+  
+  public Boardable lastStep() {
+    return pathTarget ;
   }
   
   
@@ -157,12 +163,20 @@ public class MobilePathing {
     
     final Boardable origin = location(mobile) ;
     if (trueTarget == null) path = null ;
+    
+    //  Firstly, we perform some basic sanity checks on the start and end
+    //  points of the prospective route.
     else {
       pathTarget = location(trueTarget) ;
-      if (verbose) I.sayAbout(mobile, "BETWEEN: "+origin+" AND "+pathTarget) ;
+      
       if (! checkEndPoint(pathTarget)) {
         pathTarget = Spacing.nearestOpenTile(pathTarget, mobile) ;
+        
+        //  TODO:  This should really be more of an adjacency check(?)
+        if (! hasLineOfSight(pathTarget, trueTarget, 2)) pathTarget = null ;
       }
+
+      if (verbose) I.sayAbout(mobile, "BETWEEN: "+origin+" AND "+pathTarget) ;
       if (checkEndPoint(pathTarget) && checkEndPoint(pathTarget)) {
         path = refreshPath(origin, pathTarget) ;
       }
@@ -174,6 +188,9 @@ public class MobilePathing {
       stepIndex = -1 ;
       return false ;
     }
+    
+    //  If those pass inspection, we then select the next step in the currently
+    //  approved path-
     else {
       if (verbose && I.talkAbout == mobile) {
         I.say("PATH IS: ") ;
@@ -255,34 +272,25 @@ public class MobilePathing {
   }
   
   
-  private static Boardable batch[] = new Boardable[8] ;
-  
-  public boolean closeEnough(Target target, float minDist) {
-    if (target instanceof Boardable && minDist <= 0) {
-      final Boardable b = (Boardable) target ;
-      if (mobile.aboard() != b) {
-        b.canBoard(batch) ;
-        if (! Visit.arrayIncludes(batch, mobile.aboard())) return false ;
-      }
-      return inLocus(b) ;
+  public static boolean hasLineOfSight(
+    Target origin, Target target, float maxRange
+  ) {
+    if (origin == null || target == null) return false ;
+    if (maxRange > 0 && Spacing.distance(origin, target) > maxRange) {
+      return false ;
     }
-    return Spacing.distance(mobile, target) <= minDist ;
-  }
-  
-  
-  public static boolean hasLineOfSight(Mobile mobile, Target target) {
+    final boolean reports = verbose && I.talkAbout == origin ;
     //
     //  Firstly, we determine the start and end points for the line segment,
     //  and the vector connecting the two-
-    final World world = mobile.world() ;
+    final World world = origin.world() ;
     final Vec2D
-      orig = new Vec2D().setTo(mobile.position(null)),
+      orig = new Vec2D().setTo(origin.position(null)),
       dest = new Vec2D().setTo(target.position(null)),
       line = new Vec2D().setTo(dest).sub(orig) ;
     final float fullLength = line.length() ;
     final Batch <Tile> considered = new Batch <Tile> () ;
     final Vec2D toCheck = new Vec2D() ;
-    final boolean reports = verbose && I.talkAbout == mobile ;
     //
     //  Next, we assemble a list of each tile that might plausibly intersect
     //  the line segment-
@@ -309,7 +317,7 @@ public class MobilePathing {
     }
     boolean blocked = false ;
     boolean onRight, onLeft ;
-    for (Tile t : considered) if (t.blocked()) {
+    for (Tile t : considered) if (t.blocked() && t.owner() != target) {
       //
       //  We first check whether the centre of the tile in question falls
       //  between the start and end points of the line segment-
@@ -398,7 +406,10 @@ public class MobilePathing {
   }
   
   
+  //
+  //  TODO:  Consider removing this to the Action or Motion classes
   public boolean facingTarget(Target target) {
+    if (target == null) return false ;
     final Vec2D disp = displacement(target) ;
     if (disp.length() == 0) return true ;
     final float angleDif = Math.abs(Vec2D.degreeDif(
@@ -413,3 +424,28 @@ public class MobilePathing {
 
 
 
+
+
+//
+//  TODO:  There has to be a more elegant way to do this.  Move this back to
+//  the Action class, or out to a Motion utility class.
+/*
+public static boolean closeEnough(
+  Target origin, Target target, float maxDist
+) {
+  if (
+    target instanceof Boardable &&
+    origin instanceof Mobile && maxDist < 1
+  ) {
+    final Boardable b = (Boardable) target ;
+    final Mobile mobile = (Mobile) origin ;
+    if (mobile.aboard() != b) {
+      final Boardable batch[] = new Boardable[8] ;
+      b.canBoard(batch) ;
+      if (! Visit.arrayIncludes(batch, mobile.aboard())) return false ;
+    }
+    return mobile.pathing.inLocus(b) ;
+  }
+  return Spacing.distance(origin, target) <= maxDist ;
+}
+//*/

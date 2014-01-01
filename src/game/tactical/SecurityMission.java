@@ -12,14 +12,6 @@ import src.user.* ;
 import src.util.* ;
 
 
-//
-//  Patrolling should have you attack anything that attacks your client.  When
-//  they retreat, you stay put.
-
-//
-//  TODO:  You should also add options for medical treatment and repairs.
-
-
 
 public class SecurityMission extends Mission implements Abilities {
   
@@ -127,14 +119,12 @@ public class SecurityMission extends Mission implements Abilities {
   
   public Behaviour nextStepFor(Actor actor) {
     final float priority = priorityFor(actor) ;
-    final Choice choice = new Choice(actor) ;
     
     final World world = actor.world() ;
     final Batch <Target> defended = new Batch <Target> () ;
     final Batch <Target> assailants = new Batch <Target> () ;
     defended.add(subject) ;
     for (Role role : roles) defended.add(role.applicant) ;
-    
     
     //  TODO:  Just use anything the actor is aware of instead?
     /*
@@ -144,6 +134,7 @@ public class SecurityMission extends Mission implements Abilities {
     }
     //*/
     
+    final float maxDist = World.SECTOR_SIZE ;
     Actor toRepel = null ;
     float maxUrgency = 0 ;
     
@@ -152,6 +143,7 @@ public class SecurityMission extends Mission implements Abilities {
         if (b instanceof Combat) {
           final Combat c = (Combat) b ;
           final Actor assails = c.actor() ;
+          if (Spacing.distance(t, assails) > maxDist) continue ;
           assailants.add(assails) ;
 
           float strength = Combat.combatStrength(actor, assails) ;
@@ -163,11 +155,6 @@ public class SecurityMission extends Mission implements Abilities {
             toRepel = assails ;
           }
         }
-      }
-      if (t instanceof Actor) {
-        final Treatment TS = new Treatment(actor, (Actor) t, null) ;
-        TS.priorityMod = priority ;
-        choice.add(TS) ;
       }
     }
     if (toRepel != null) {
@@ -183,7 +170,18 @@ public class SecurityMission extends Mission implements Abilities {
       }
       return repels ;
     }
+    
+    
+    final Choice choice = new Choice(actor) ;
+    for (Target t : defended) if (t instanceof Actor) {
+      final Treatment TS = new Treatment(actor, (Actor) t, null) ;
+      TS.priorityMod = priority * (t == subject ? 2 : 1) ;
+      choice.add(TS) ;
+    }
+    
     if (subject instanceof Venue) {
+      //  TODO:  Assign this higher priority?  It doesn't seem to get much
+      //  play...
       final Repairs repairs = new Repairs(actor, (Venue) subject) ;
       repairs.priorityMod = priority ;
       choice.add(repairs) ;
@@ -201,9 +199,16 @@ public class SecurityMission extends Mission implements Abilities {
     final Patrolling p = Patrolling.securePerimeter(
       actor, (Element) subject, base.world
     ) ;
-    p.priorityMod = priority / 2 ;
+    p.priorityMod = Spacing.distance(actor, subject) * ROUTINE / maxDist ;
     choice.add(p) ;
-    return choice.pickMostUrgent() ;
+    
+    final Plan picked = (Plan) choice.pickMostUrgent() ;
+    /*
+    if (actor.matchFor(picked) == null) {
+      actor.mind.pushFromParent(picked, this) ;
+    }
+    //*/
+    return picked ;
   }
   
   

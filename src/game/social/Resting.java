@@ -44,6 +44,7 @@ public class Resting extends Plan implements Economy {
       return new Resting(actor, work) ;
     }
     Target free = Retreat.pickWithdrawPoint(actor, 16, actor, 0.1f) ;
+    if (free == null) free = actor.aboard() ;
     return new Resting(actor, free) ;
   }
   
@@ -219,33 +220,6 @@ public class Resting extends Plan implements Economy {
     }
     return false ;
   }
-  
-  
-  
-  /**  Methods used for external assessment-
-    */
-  /*
-  public static Target pickRestPoint(final Actor actor) {
-    final Batch <Target> safePoints = new Batch <Target> () ;
-    final Presences presences = actor.world().presences ;
-    safePoints.add(Retreat.pickWithdrawPoint(actor, 16, actor, 0.1f)) ;
-    safePoints.add(actor.mind.home()) ;
-    safePoints.add(actor.mind.work()) ;
-    //
-    //  Now pick whichever option is most attractive-
-    Target picked = null ;
-    float bestRating = 0 ;
-    for (Target t : safePoints) {
-      final float rate = ratePoint(actor, t) ;
-      if (rate > bestRating) { bestRating = rate ; picked = t ; }
-    }
-    if (verbose) I.sayAbout(
-      actor, "Have picked "+picked+", home rating: "+
-      ratePoint(actor, actor.mind.home())
-    ) ;
-    return picked ;
-  }
-  //*/
   
   
   

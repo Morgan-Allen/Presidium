@@ -15,6 +15,12 @@ import src.util.* ;
 import java.lang.reflect.* ;
 
 
+//
+//  TODO:  A lot of the methods here could more reasonably be moved to a
+//  dedicated Motion class.
+//  TODO:  Consider getting rid of separate Move Targets entirely.  It might
+//  well be turning out as more hassle than it's worth.
+
 
 public class Action implements Behaviour, Model.AnimNames {
   
@@ -130,6 +136,12 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
+  public boolean ranged()  { return (properties & RANGED ) != 0 ; }
+  public boolean careful() { return (properties & CAREFUL) != 0 ; }
+  public boolean quick()   { return (properties & QUICK  ) != 0 ; }
+  public boolean carries() { return (properties & CARRIES) != 0 ; }
+  
+  
   
   /**  Implementing the Behaviour contract-
     */
@@ -154,6 +166,7 @@ public class Action implements Behaviour, Model.AnimNames {
     progress = -1 ;
     inRange = -1 ;
     actor.mind.cancelBehaviour(this) ;
+    actor.assignAction(null) ;
   }
   
   
@@ -178,36 +191,15 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
-
-  /**  Actual execution of associated behaviour-
+  
+  /**  Helper methods for dealing with motion-
     */
-  private float duration() {
-    float duration = 1 ;
-    if ((properties & QUICK) != 0) duration /= 2 ;
-    if ((properties & CAREFUL) != 0) duration *= 2 ;
-    return duration ;
-  }
-  
-  
-  private float contactTime() {
-    final float duration = duration() ;
-    return (duration - 0.25f) / duration ;
-  }
-  
-  
-  public int motionType(Actor actor) {
-    if ((properties & QUICK  ) != 0) return MOTION_FAST  ;
-    if ((properties & CAREFUL) != 0) return MOTION_SNEAK ;
-    return MOTION_NORMAL ;
-  }
-  
-  
   public static float moveRate(Actor actor, boolean basic) {
     int motionType = MOTION_NORMAL ; for (Behaviour b : actor.mind.agenda) {
       final int MT = b.motionType(actor) ;
       if (MT != MOTION_ANY) { motionType = MT ; break ; }
     }
-    final float luck = moveLuck(actor) ;
+    final float luck = actor.airborne() ? 0.5f : moveLuck(actor) ;
     float rate = actor.health.moveRate() ;
     if (motionType == MOTION_SNEAK) rate *= (2 - luck) / 4 ;
     else if (motionType == MOTION_FAST) rate *= 2 * luck ;
@@ -237,91 +229,130 @@ public class Action implements Behaviour, Model.AnimNames {
     var ^= actor.hashCode() ;
     return (1 + (float) Math.sqrt(Math.abs(var % 10) / 4.5f)) / 2 ;
   }
+
   
-  
-  private float progressPerUpdate() {
-    if (inRange == 1) {
-      return 1f / (duration() * PlayLoop.UPDATES_PER_SECOND) ;
-    }
-    if (inRange == 0) {
-      return
-        actor.health.moveRate() *
-        actor.moveAnimStride() /
-        PlayLoop.UPDATES_PER_SECOND ;
-    }
-    return 0 ;
+  public int motionType(Actor actor) {
+    if (quick()  ) return MOTION_FAST  ;
+    if (careful()) return MOTION_SNEAK ;
+    return MOTION_NORMAL ;
   }
   
   
-  private void advanceAction() {
-    progress = Visit.clamp(progress, 0, 1) ;
-    final float contact = contactTime() ;
-    if (oldProgress <= contact && progress > contact) applyEffect() ;
-  }
-  
-  
-  public void updateMotion(boolean moveOK) {
-    //
-    //  We don't chase targets which might have been themselves affected by
-    //  the action.
-    if (inRange == 1 && progress > contactTime()) {
-      return ;
-    }
+  private void updateMotion(boolean active) {
+    final boolean report = verbose && I.talkAbout == actor ;
     
-    float minDist = 0 ;
-    if ((properties & RANGED) != 0) {
-      minDist = actor.health.sightRange() ;
-      if (inRange == 1) minDist *= 2 ;
-    }
-    else if (inRange == 1) minDist += progress + 0.5f ;
-    
-    final float
-      moveDist = Spacing.distance(actor, moveTarget) ;
-    final boolean
-      closed = actor.pathing.closeEnough(moveTarget, minDist),
-      facing = actor.pathing.facingTarget(actionTarget) ;
-    final boolean approach =
-      (moveDist < 1) && (! (moveTarget instanceof Boardable)) &&
-      MobilePathing.hasLineOfSight(actor, moveTarget) ;
-    
-    final Target faced = closed ? actionTarget : (
-      approach ? moveTarget : actor.pathing.nextStep()
+    //  Firstly, we establish current displacements between actor and target,
+    //  motion target & action target, how far the actor can see, and whether
+    //  sticking to the full tile path is required-
+    final boolean mustBoard = (
+      (! ranged()) && (moveTarget instanceof Boardable)
     ) ;
+    final float
+      sightRange = actor.health.sightRange(),
+      motionDist = Spacing.distance(actor, moveTarget),
+      actionDist = Spacing.distance(actor, actionTarget),
+      separation = Spacing.distance(moveTarget, actionTarget) ;
+    
+    //  We also need to calculate an appropriate maximum distance in order for
+    //  the action to progress-
+    float maxDist = 0.01f ;
+    if (ranged()) maxDist += sightRange * (inRange == 1 ? 2 : 1) ;
+    else if (inRange == 1) maxDist += progress + 0.5f ;
+    
+    //  In order for the action to execute, the actor must both be close enough
+    //  to the target and facing in the right direction.  If the target is
+    //  close enough to see, you can consider ignoring tile-pathing in favour
+    //  of closing directly on the subject.  If, on the other hand, the target
+    //  should be visible, but isn't, then path towards it more directly.
     actor.pathing.updateTarget(moveTarget) ;
+    final Target step = actor.pathing.nextStep(), faced ;
+    boolean closed = false, approaching = false, facing = false ;
     
-    if (verbose && I.talkAbout == actor) {
+    if (mustBoard) {
+      approaching = actor.aboard() == moveTarget ;
+      closed = approaching && (motionDist - maxDist < separation) ;
+    }
+    else {
+      final boolean seen = MobilePathing.hasLineOfSight(
+        actor, actionTarget, Math.max(maxDist, sightRange)
+      ) ;
+      if (Math.min(motionDist, actionDist) < maxDist && ! seen) {
+        actor.pathing.updateTarget(actionTarget) ;
+      }
+      closed = seen && actionDist <= maxDist ;
+      approaching = closed || (seen && actionDist <= maxDist + 1) ;
+    }
+    faced = approaching ? actionTarget : step ;
+    facing = actor.pathing.facingTarget(faced) ;
+    
+    if (report) {
       I.say("Action target is: "+actionTarget) ;
-      I.say("Move target is: "+moveTarget) ;
-      I.say("Closed/facing: "+closed+"/"+facing+", move okay? "+moveOK) ;
-      
-      I.say("Is ranged? "+((properties & RANGED) != 0)) ;
-      I.say("On approach? "+approach) ;
-      I.say("Distance: "+moveDist+", min: "+minDist) ;
-      I.say("Faced is: "+faced+"\n") ;
+      I.say("  Move target is: "+moveTarget) ;
+      I.say("  Path target is: "+actor.pathing.target()) ;
+      I.say("  Faced is: "+faced+", must board: "+mustBoard) ;
+      I.say("  Current position: "+actor.aboard()) ;
+      I.say("  Closed/facing: "+closed+"/"+facing+", doing update? "+active) ;
+      I.say("  Is ranged? "+ranged()+", approaching? "+approaching) ;
+      final float distance = Spacing.distance(actor, actor.pathing.target()) ;
+      I.say("  Distance: "+distance+", maximum: "+maxDist+"\n") ;
     }
     
-    if (moveOK) {
-      final float moveRate = moveRate(actor, false) ;
-      actor.pathing.headTowards(faced, moveRate, ! closed) ;
-    }
-    //
-    //  Check for state changes-
+    //  If both facing and proximity are satisfied, toggle the flag which
+    //  allows action delivery to proceed.  (If delivery was already underway,
+    //  cancel the action.)
     final byte oldRange = inRange ;
     inRange = (byte) ((closed && facing) ? 1 : 0) ;
-    if (inRange != oldRange) progress = oldProgress = 0 ;
+    if (inRange != oldRange) {
+      if (oldRange == 1) { abortBehaviour() ; return ; }
+      else progress = oldProgress = 0 ;
+    }
+    
+    //  If active updates to pathing & motion are called for, make them.
+    if (active) {
+      final float moveRate = moveRate(actor, false) ;
+      actor.pathing.headTowards(faced, moveRate, ! closed) ;
+      if (! closed) actor.pathing.applyCollision() ;
+    }
   }
   
   
-  protected void updateAction() {
-    if (finished()) { oldProgress = progress = 1 ; return ; }
-    oldProgress = progress ;
-    progress += progressPerUpdate() ;
-    if (inRange == 1) advanceAction() ;
+  
+  /**  Actual execution of associated behaviour-
+    */
+  private float actionDuration() {
+    float duration = 1 ;
+    if (quick()  ) duration /= 2 ;
+    if (careful()) duration *= 2 ;
+    return duration ;
+  }
+  
+  
+  protected void updateAction(boolean active) {
+    if (verbose) I.sayAbout(actor, "Updating action: "+progress) ;
+    if (finished()) {
+      oldProgress = progress = 1 ;
+      return ;
+    }
+    else {
+      oldProgress = progress ;
+      updateMotion(active) ;
+    }
+    if (inRange == 1) {
+      progress += 1f / (actionDuration() * PlayLoop.UPDATES_PER_SECOND) ;
+      progress = Visit.clamp(progress, 0, 1) ;
+      final float duration = actionDuration() ;
+      final float contact = (duration - 0.25f) / duration ;
+      if (oldProgress <= contact && progress > contact) applyEffect() ;
+    }
+    if (inRange == 0) progress += (
+      moveRate(actor, false) *
+      actor.moveAnimStride() /
+      PlayLoop.UPDATES_PER_SECOND
+    ) ;
   }
   
   
   public void applyEffect() {
-    ///if (true) return ;
     try { toCall.invoke(basis, actor, actionTarget) ; }
     catch (Exception e) {
       I.say("PROBLEM WITH ACTION: "+toCall.getName()) ;
@@ -394,8 +425,8 @@ public class Action implements Behaviour, Model.AnimNames {
       return animName ;
     }
     else {
-      if ((properties & QUICK  ) != 0) return MOVE_FAST  ;
-      if ((properties & CAREFUL) != 0) return MOVE_SNEAK ;
+      if (quick()  ) return MOVE_FAST  ;
+      if (careful()) return MOVE_SNEAK ;
       return MOVE ;
     }
   }
@@ -414,5 +445,63 @@ public class Action implements Behaviour, Model.AnimNames {
 
 
 
+
+
+/*
+public void updateMotion(boolean moveOK) {
+  //
+  //  We don't chase targets which might have been themselves affected by
+  //  the action.
+  if (inRange == 1 && progress > contactTime()) {
+    return ;
+  }
+  
+  float minDist = 0 ;
+  if (ranged()) {
+    minDist = actor.health.sightRange() ;
+    if (inRange == 1) minDist *= 2 ;
+  }
+  else if (inRange == 1) minDist += progress + 0.5f ;
+  
+  //
+  //  TODO:  You also need to check that you're in range of, and have line-of
+  //  -sight to, the action target- even for ranged actions.
+  
+  final float
+    moveDist = Spacing.distance(actor, moveTarget) ;
+  final boolean
+    closed = actor.pathing.closeEnough(moveTarget, minDist),
+    facing = actor.pathing.facingTarget(actionTarget) ;
+  final boolean approach =
+    (moveDist < 1) && (! (moveTarget instanceof Boardable)) &&
+    MobilePathing.hasLineOfSight(actor, moveTarget) ;
+  
+  final Target faced = closed ? actionTarget : (
+    approach ? moveTarget : actor.pathing.nextStep()
+  ) ;
+  actor.pathing.updateTarget(moveTarget) ;
+  
+  if (verbose && I.talkAbout == actor) {
+    I.say("Action target is: "+actionTarget) ;
+    I.say("Move target is: "+moveTarget) ;
+    I.say("Closed/facing: "+closed+"/"+facing+", move okay? "+moveOK) ;
+    
+    I.say("Is ranged? "+ranged()) ;
+    I.say("On approach? "+approach) ;
+    I.say("Distance: "+moveDist+", min: "+minDist) ;
+    I.say("Faced is: "+faced+"\n") ;
+  }
+  
+  if (moveOK) {
+    final float moveRate = moveRate(actor, false) ;
+    actor.pathing.headTowards(faced, moveRate, ! closed) ;
+  }
+  //
+  //  Check for state changes-
+  final byte oldRange = inRange ;
+  inRange = (byte) ((closed && facing) ? 1 : 0) ;
+  if (inRange != oldRange) progress = oldProgress = 0 ;
+}
+//*/
 
 

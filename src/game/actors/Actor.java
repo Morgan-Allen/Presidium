@@ -110,10 +110,7 @@ public abstract class Actor extends Mobile implements
     }
     world.activities.toggleAction(actionTaken, false) ;
     this.actionTaken = action ;
-    if (actionTaken != null) {
-      actionTaken.updateMotion(false) ;
-      actionTaken.updateAction() ;
-    }
+    if (actionTaken != null) actionTaken.updateAction(false) ;
     world.activities.toggleAction(actionTaken, true) ;
   }
   
@@ -166,6 +163,7 @@ public abstract class Actor extends Mobile implements
   /**  Life cycle and updates-
     */
   public boolean enterWorldAt(int x, int y, World world) {
+    if (base == null) I.complain("ACTOR MUST HAVE BASE ASSIGNED: "+this) ;
     if (! super.enterWorldAt(x, y, world)) return false ;
     return true ;
   }
@@ -182,7 +180,6 @@ public abstract class Actor extends Mobile implements
   
   protected void updateAsMobile() {
     super.updateAsMobile() ;
-    
     final boolean OK = health.conscious() ;
     if (! OK) pathing.updateTarget(null) ;
     
@@ -190,12 +187,11 @@ public abstract class Actor extends Mobile implements
       if (! pathing.checkPathingOkay()) {
         world.schedule.scheduleNow(this) ;
       }
-      if (actionTaken.finished() && OK) {
+      if (actionTaken.finished()) {
         if (verbose) I.sayAbout(this, "  ACTION COMPLETE: "+actionTaken) ;
         //world.schedule.scheduleNow(this) ;
       }
-      actionTaken.updateMotion(OK) ;
-      actionTaken.updateAction() ;
+      actionTaken.updateAction(OK) ;
     }
     
     final Behaviour root = mind.rootBehaviour() ;
@@ -206,13 +202,11 @@ public abstract class Actor extends Mobile implements
         I.say("  NEXT STEP: "+root.nextStepFor(this)) ;
       }
       mind.cancelBehaviour(root) ;
-      //world.schedule.scheduleNow(this) ;
     }
     
     if (aboard instanceof Mobile && (pathing.nextStep() == aboard || ! OK)) {
       aboard.position(nextPosition) ;
     }
-    else pathing.applyCollision() ;
   }
   
   

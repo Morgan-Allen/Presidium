@@ -162,7 +162,7 @@ public abstract class Fauna extends Actor {
       this, "actionBrowse",
       Action.STRIKE, "Browsing"
     ) ;
-    browse.setMoveTarget(Spacing.nearestOpenTile(picked.origin(), this)) ;
+    //browse.setMoveTarget(Spacing.nearestOpenTile(picked.origin(), this)) ;
     browse.setPriority(priority) ;
     return browse ;
   }
@@ -267,7 +267,7 @@ public abstract class Fauna extends Actor {
     final Action buildNest = new Action(
       this, nest,
       this, "actionBuildNest",
-      Action.STRIKE, "Building Nest"
+      Action.STRIKE, "Repairing Nest"
     ) ;
     buildNest.setMoveTarget(Spacing.pickFreeTileAround(nest, this)) ;
     buildNest.setPriority(((1f - repair) * Action.ROUTINE)) ;

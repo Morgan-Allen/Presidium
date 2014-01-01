@@ -101,8 +101,8 @@ public class Repairs extends Plan implements Abilities {
     //  TODO:  What about native huts?  ...They won't have a credit balance.
     final float brokeRating = 0 - built.base().credits() / 500f ;
     if (brokeRating > 0) impetus -= brokeRating ;
+    impetus += priorityMod ;
     
-    //if (! broke) impetus += priorityMod ;
     if (verbose) I.sayAbout(actor, "Priority for "+this+" is "+impetus) ;
     return Visit.clamp(impetus, 0, URGENT) ;
   }

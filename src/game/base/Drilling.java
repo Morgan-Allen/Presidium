@@ -128,7 +128,7 @@ public class Drilling extends Plan implements Economy {
         Action.BUILD, "Installing equipment"
       ) ;
       final Element dummy = (Element) Rand.pickFrom(yard.dummies) ;
-      equips.setMoveTarget(Spacing.nearestOpenTile(dummy.origin(), actor)) ;
+      //equips.setMoveTarget(Spacing.nearestOpenTile(dummy.origin(), actor)) ;
       final Steps steps = new Steps(
         actor, this, Plan.ROUTINE, pickup, equips
       ) ;

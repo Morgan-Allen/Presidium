@@ -103,6 +103,8 @@ public abstract class Artilect extends Actor {
     if (near == null) return null ;
     final Combat defence = new Combat(this, near) ;
     defence.priorityMod = Plan.ROUTINE ;
+    //I.sayAbout(this, "Have just seen: "+near) ;
+    //I.sayAbout(this, "Defence priority: "+defence.priorityFor(this)) ;
     return defence ;
   }
   
@@ -132,6 +134,7 @@ public abstract class Artilect extends Actor {
     //  Capture specimens and bring back to lair.
     //  (Tripod specialties.)
     choice.add(nextAssault()) ;
+    choice.add(new Retreat(this)) ;
     //
     //  Experiment upon/dissect/interrogate/convert any captives.
     //  Perform repairs on another artilect, or refurbish a new model.
@@ -162,16 +165,11 @@ public abstract class Artilect extends Actor {
     
     if (toAssault == null) return null ;
     final Combat siege = new Combat(this, toAssault) ;
-    siege.priorityMod = bestRating * Plan.ROUTINE ;
+    
+    //
+    //  TODO:  Base priority on proximity to your lair, along with total
+    //  settlement size.
     return siege ;
-    
-    //
-    //  TODO:  Ideally, you want multiple actors to coordinate in attacking a
-    //  particular structure.  You also want aggression to be based on
-    //  perceived threat level, rising gradually over time.
-    
-    //
-    //  The martians from war of the worlds, 40K necrons, brainiac...
   }
   
   

@@ -22,7 +22,7 @@ public class Combat extends Plan implements Abilities {
     */
   private static boolean
     verbose         = false,
-    eventsVerbose   = true,
+    eventsVerbose   = false,
     strengthVerbose = false ;
   
   final static int
@@ -88,36 +88,40 @@ public class Combat extends Plan implements Abilities {
     *  (un)appealing an engagement would be.
     */
   public float priorityFor(Actor actor) {
-    if (isDead(target)) return 0 ;
+    if (isDowned(target)) return 0 ;
     
     final boolean report = verbose && I.talkAbout == actor ;
     
     if (target instanceof Actor) {
       final Actor struck = (Actor) target ;
-      float BP = combatPriority(actor, struck, priorityMod, PARAMOUNT, report) ;
+      float lossCost = PARAMOUNT, winReward = priorityMod ;
+      if (begun()) lossCost = 0 ;
+      
+      float BP = combatPriority(actor, struck, winReward, lossCost, report) ;
       return BP <= 0 ? 0 : BP + ROUTINE ;
     }
     if (target instanceof Venue) {
+      
       final Venue struck = (Venue) target ;
-      float BP = (priorityMod - actor.mind.relation(struck.base())) * ROUTINE ;
-      return BP <= 0 ? 0 : BP + ROUTINE ;
+      float BP = priorityMod - (actor.mind.relation(struck) * ROUTINE) ;
+      BP += ROUTINE ;
+      //
+      //  TODO:  Factor this out.  Also repeated below.
+      if (! begun()) {
+        final Batch <Element> known = actor.mind.awareOf() ;
+        known.include(struck) ;
+        float danger = Retreat.dangerAtSpot(struck, actor, null, known) ;
+        danger += Plan.dangerPenalty(struck, actor) ;
+        BP += 0 - (danger * ROUTINE) ;
+      }
+      //  TODO:  Eliminate loss cost in a similar fashion to the above, if
+      //  begun or in range, etc.
+      
+      ///I.sayAbout(actor, "Priority mod is: "+priorityMod) ;
+      ///I.sayAbout(actor, "Relation is: "+actor.mind.relation(struck)) ;
+      return BP ;// BP <= 0 ? 0 : BP + ROUTINE ;
     }
     return -1 ;
-  }
-  
-  
-  public boolean valid() {
-    if (target instanceof Mobile && ((Mobile) target).indoors()) return false ;
-    return super.valid() ;
-  }
-  
-  
-  public static boolean isDead(Element subject) {
-    if (subject instanceof Actor)
-      return ((Actor) subject).health.dying() ;
-    if (subject instanceof Venue)
-      return ((Venue) subject).structure.destroyed() ;
-    return false ;
   }
   
   
@@ -131,18 +135,25 @@ public class Combat extends Plan implements Abilities {
     //  thereby guage the odds of survival/victory-
     final Batch <Element> known = actor.mind.awareOf() ;
     known.include(enemy) ;
+    
     float danger = Retreat.dangerAtSpot(enemy, actor, enemy, known) ;
-    if (actor.base() != null) {
-      danger += Plan.dangerPenalty(enemy, actor) ;
-    }
+    danger += Plan.dangerPenalty(enemy, actor) ;
+    
+    
     final float chance = Visit.clamp(1 - danger, 0.1f, 0.9f) ;
     //
     //  Then we calculate the risk/reward ratio associated with the act-
-    float appeal = 0 ;
-    appeal *= actor.traits.scaleLevel(AGGRESSIVE) ;
-    final float ER = 0 - actor.mind.relation(enemy) * Plan.PARAMOUNT ;
-    winReward += ER ;
-    appeal += winReward ;
+    winReward -= actor.mind.relation(enemy) * PARAMOUNT ;
+    final Target victim = enemy.targetFor(Combat.class) ;
+    if (victim == actor) {
+      winReward += PARAMOUNT ;
+      lossCost -= ROUTINE ;
+    }
+    else if (victim instanceof Actor) {
+      winReward += actor.mind.relation((Actor) victim) * PARAMOUNT ;
+      lossCost /= 2 ;
+    }
+    winReward *= actor.traits.scaleLevel(AGGRESSIVE) ;
     
     if (report) {
       I.say(
@@ -150,17 +161,35 @@ public class Combat extends Plan implements Abilities {
         ", time: "+actor.world().currentTime()
       ) ;
       I.say(
-        "  Danger level: "+danger+", relation: "+ER+
-        "\n  Appeal before chance: "+appeal+", chance: "+chance
+        "  Danger level: "+danger+
+        "\n  Appeal before chance: "+winReward+", chance: "+chance
       ) ;
     }
     if (chance <= 0) {
       if (report) I.say("  No chance of victory!\n") ;
       return 0 ;
     }
-    appeal = (appeal * chance) - ((1 - chance) * lossCost) ;
+    float appeal = (winReward * chance) - ((1 - chance) * lossCost) ;
     if (report) I.say("  Final appeal: "+appeal+"\n") ;
     return appeal ;
+  }
+  
+  
+  protected static boolean isDowned(Element subject) {
+    //
+    //  TODO:  Vary this based on objective type, along with the types of
+    //  damage dealt.
+    if (subject instanceof Actor)
+      return ! ((Actor) subject).health.conscious() ;
+    if (subject instanceof Venue)
+      return ((Venue) subject).structure.destroyed() ;
+    return false ;
+  }
+  
+  
+  public boolean valid() {
+    if (target instanceof Mobile && ((Mobile) target).indoors()) return false ;
+    return super.valid() ;
   }
   
   
@@ -173,7 +202,7 @@ public class Combat extends Plan implements Abilities {
   public static float combatStrength(Actor actor, Actor enemy) {
     float strength = 0 ;
     strength += (actor.gear.armourRating() + actor.gear.attackDamage()) / 20f ;
-    strength *= actor.health.maxHealth() / 10 ;
+    strength *= (1 + (actor.health.maxHealth() / 10)) / 2f ;
     strength *= (1 - actor.health.injuryLevel()) ;
     strength *= 1 - actor.health.stressPenalty() ;
     //
@@ -239,7 +268,7 @@ public class Combat extends Plan implements Abilities {
     //
     //  This might need to be tweaked in cases of self-defence, where you just
     //  want to see off an attacker.
-    if (isDead(target)) {// || priorityFor(actor) < 0) {
+    if (isDowned(target)) {  //  TODO:  This might need to be varied-
       if (eventsVerbose && begun()) I.sayAbout(actor, "COMBAT COMPLETE") ;
       return null ;
     }
@@ -414,73 +443,3 @@ public class Combat extends Plan implements Abilities {
   }
 }
 
-
-
-
-/*
-  public static boolean strikeCheck(
-    Actor actor, Actor opponent, boolean offensive
-  ) {
-    final SkillType strikeSkill, defendSkill ;
-    final int defendMove ;
-    //
-    //  TODO:  If the opponent has no melee weapon, they can't use close combat
-    //  to defend themselves.
-    float penalty = 0, bonus = 0 ;
-    if (actor.equipment.meleeWeapon()) {
-      strikeSkill = Vocation.CLOSE_COMBAT ;
-      defendSkill = Vocation.CLOSE_COMBAT ;
-      defendMove = MOVE_BLOCK ;
-      bonus += foesPenalty(opponent) ;
-    }
-    else {
-      strikeSkill = Vocation.MARKSMANSHIP ;
-      defendSkill = Vocation.EVASION ;
-      defendMove = MOVE_DODGE ;
-      penalty += coverBonus(actor, actor, opponent) ;
-    }
-    if (offensive) bonus += timingPenalty(opponent, actor) ;
-    if (moveFor(opponent) == defendMove) penalty += 5 ;
-    //
-    //  If the opponent is not focused on combat, or on the actor, then the
-    //  check becomes much easier (TODO:  Implement that.)
-    final boolean success = actor.training.skillTest(
-      strikeSkill, bonus, STRIKE_XP,
-      defendSkill, opponent, penalty
-    ) ;
-    return success ;
-  }
-  
-  
-  public static boolean dealDamage(
-    Actor actor, Target toStrike, boolean critical
-  ) {
-    if (toStrike instanceof Actor) {
-      final Actor foe = (Actor) toStrike ;
-      final boolean
-        melee = actor.equipment.meleeWeapon(),
-        physical = actor.equipment.physicalWeapon() ;
-      float damage = actor.equipment.attackDamage() * Rand.avgNums(2) ;
-      if (! melee) {
-        damage = foe.equipment.afterShields(actor, damage, physical) ;
-      }
-      if (critical) {
-        damage *= MIN_HITS + (Rand.num() * MAX_HITS) ;
-      }
-      damage = foe.equipment.afterArmour(actor, damage, physical) ;
-      if (damage <= 0) return false ;
-      foe.health.takeInjury(damage) ;
-      return true ;
-    }
-    if (toStrike instanceof Venue) {
-      final Venue besieged = (Venue) toStrike ;
-      float damage = actor.equipment.attackDamage() * Rand.avgNums(2) ;
-      if (critical) damage *= MIN_HITS + (Rand.num() * MAX_HITS) ;
-      besieged.integrity.takeDamage(damage) ;
-      return true ;
-    }
-    return false ;
-  }
-  
-  
-//*/

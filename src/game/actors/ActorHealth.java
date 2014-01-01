@@ -316,10 +316,10 @@ public class ActorHealth implements Abilities {
     injury += taken ;
     if (organic() && Rand.num() * maxHealth < injury) bleeds = true ;
     final float max ;
-    if (dying()) max = maxHealth * (MAX_INJURY + 1) ;
+    if (! conscious()) max = maxHealth * (MAX_INJURY + 1) ;
     else {
       max = (maxHealth * MAX_INJURY) + 1 ;
-      if (conscious()) morale -= taken / max ;
+      morale -= taken * 0.1f / max ;
     }
     injury = Visit.clamp(injury, 0, max) ;
   }
@@ -656,7 +656,7 @@ public class ActorHealth implements Abilities {
   
   
   public String injuryDesc() {
-    return descFor(INJURY, injuryLevel(), maxHealth) ;
+    return descFor(INJURY, injury * 1f / maxHealth, maxHealth) ;
   }
   
   

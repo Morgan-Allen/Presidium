@@ -484,22 +484,22 @@ public interface Abilities {
     INJURY = new Condition(
       "Critical Injury",
       "Serious Injury",
+      "Modest Injury",
       "Slight Injury",
       null
     ),
     FATIGUE = new Condition(
       "Extreme Fatigue",
       "Heavy Fatigue",
+      "Modest Fatigue",
       "Mild Fatigue",
       null
     ),
     POOR_MORALE = new Condition(
       "Broken Morale",
-      "Shaken Morale",
       "Poor Morale",
       null,
-      "Fair Morale",
-      "High Morale",
+      "Good Morale",
       "Superb Morale"
     ),
     

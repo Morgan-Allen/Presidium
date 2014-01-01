@@ -88,6 +88,13 @@ public class DebugBehaviour extends Scenario implements Economy {
   }
   
   
+  public void updateGameState() {
+    super.updateGameState() ;
+    //PlayLoop.setGameSpeed(0.25f) ;
+    PlayLoop.setGameSpeed(5.0f) ;
+  }
+  
+  
   protected void configureScenario(World world, Base base, BaseUI UI) {
     //combatScenario(world, base, UI) ;
     //ambientScenario(world, base, UI) ;
@@ -107,7 +114,7 @@ public class DebugBehaviour extends Scenario implements Economy {
       new Sickbay(base), 10, 10, true, world
     ) ;
     final Mission mission = new SecurityMission(base, defended) ;
-    mission.assignReward(10000) ;
+    mission.assignReward(1000) ;
     base.addMission(mission) ;
     for (int n = 5 ; n-- > 0 ;) {
       final Actor defends = new Human(Background.VETERAN, base) ;
@@ -117,7 +124,6 @@ public class DebugBehaviour extends Scenario implements Economy {
       defends.enterWorldAt(free, world) ;
       mission.setApplicant(defends, true) ;
       mission.setApprovalFor(defends, true) ;
-      UI.selection.pushSelection(defends, true) ;
     }
     mission.beginMission() ;
     //
@@ -134,22 +140,10 @@ public class DebugBehaviour extends Scenario implements Economy {
       assaults.mind.setHome(lair) ;
       assaults.enterWorldAt(lair, world) ;
       assaults.goAboard(lair, world) ;
+      UI.selection.pushSelection(assaults, true) ;
     }
     artilects.setRelation(base, -1) ;
     base.setRelation(artilects, -1) ;
-    //
-    //  Step 3:  Ensure that the hostiles retreat when wounded, and that the
-    //  defenders won't follow too far.
-    
-    //
-    //  TODO:  Target-switching for defence and offence need to be considered.
-  }
-  
-  
-  public void updateGameState() {
-    super.updateGameState() ;
-    
-    
   }
   
   

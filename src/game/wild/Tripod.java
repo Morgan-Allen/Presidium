@@ -63,6 +63,11 @@ public class Tripod extends Artilect implements Economy {
   }
   
   
+  protected float aboveGroundHeight() {
+    return 0.01f ;
+  }
+  
+  
   /**  Rendering and interface methods-
     */
   public String fullName() {

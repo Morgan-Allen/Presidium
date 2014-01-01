@@ -110,7 +110,7 @@ public class Foraging extends Plan implements Economy {
         this, "actionForage",
         Action.BUILD, "Foraging"
       ) ;
-      forage.setMoveTarget(Spacing.pickFreeTileAround(source, actor)) ;
+      //forage.setMoveTarget(Spacing.pickFreeTileAround(source, actor)) ;
       return forage ;
     }
     else if (store != null && harvest > 0) {

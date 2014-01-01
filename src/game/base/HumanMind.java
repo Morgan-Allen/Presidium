@@ -152,7 +152,7 @@ public class HumanMind extends ActorMind implements Abilities {
   
   
   protected Behaviour reactionTo(Element seen) {
-    return null ;
+    return new Retreat(actor) ;
   }
   
   

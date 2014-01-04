@@ -6,10 +6,10 @@
 
 
 package src.game.tactical ;
+import src.game.civic.*;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
-import src.game.social.* ;
 import src.user.* ;
 import src.util.* ;
 
@@ -103,7 +103,7 @@ public class Combat extends Plan implements Abilities {
     if (target instanceof Venue) {
       
       final Venue struck = (Venue) target ;
-      float BP = priorityMod - (actor.mind.relation(struck) * ROUTINE) ;
+      float BP = priorityMod - (actor.mind.relationValue(struck) * ROUTINE) ;
       BP += ROUTINE ;
       //
       //  TODO:  Factor this out.  Also repeated below.
@@ -143,14 +143,14 @@ public class Combat extends Plan implements Abilities {
     final float chance = Visit.clamp(1 - danger, 0.1f, 0.9f) ;
     //
     //  Then we calculate the risk/reward ratio associated with the act-
-    winReward -= actor.mind.relation(enemy) * PARAMOUNT ;
+    winReward -= actor.mind.relationValue(enemy) * PARAMOUNT ;
     final Target victim = enemy.targetFor(Combat.class) ;
     if (victim == actor) {
       winReward += PARAMOUNT ;
       lossCost -= ROUTINE ;
     }
     else if (victim instanceof Actor) {
-      winReward += actor.mind.relation((Actor) victim) * PARAMOUNT ;
+      winReward += actor.mind.relationValue((Actor) victim) * PARAMOUNT ;
       lossCost /= 2 ;
     }
     winReward *= actor.traits.scaleLevel(AGGRESSIVE) ;
@@ -286,14 +286,14 @@ public class Combat extends Plan implements Abilities {
       strike = new Action(
         actor, target,
         this, "actionSiege",
-        strikeAnim, "Razing "+target
+        strikeAnim, "Razing"
       ) ;
     }
     else {
       strike = new Action(
         actor, target,
         this, "actionStrike",
-        strikeAnim, "Striking at "+target
+        strikeAnim, "Striking at"
       ) ;
     }
     //

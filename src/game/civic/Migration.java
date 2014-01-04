@@ -1,7 +1,7 @@
 
 
 
-package src.game.social ;
+package src.game.civic ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
@@ -30,7 +30,7 @@ public class Migration extends Plan implements Economy {
   final static int
     BOARD_PRICE = 100 ;
   
-  private static boolean verbose = true ;
+  private static boolean verbose = false ;
   
   
   float initTime = -1 ;

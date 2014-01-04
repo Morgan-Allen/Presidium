@@ -184,7 +184,7 @@ public class FormerPlant extends Venue implements Economy {
   
   public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Background.FORMER_ENGINEER) {
+    if (v == Background.ARCOLOGY_ENGINEER) {
       return nO + 1 ;
     }
     return 0 ;
@@ -323,7 +323,7 @@ public class FormerPlant extends Venue implements Economy {
   //  TODO:  Get rid of the former engineer.  Allow to operate completely
   //  independantly.
   public Background[] careers() {
-    return new Background[] { Background.FORMER_ENGINEER } ;
+    return new Background[] { Background.ARCOLOGY_ENGINEER } ;
   }
   
   

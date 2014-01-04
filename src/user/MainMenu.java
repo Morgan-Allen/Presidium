@@ -17,12 +17,6 @@ import java.io.* ;
 
 
 
-//
-//  Okay.  I'm not certain how you'd extend PlayLoop here, but then, that might
-//  be due for a rewrite regardless.  I think you'll need to maintain a link to
-//  the PlayLoop equivalent anyway.
-
-
 
 public class MainMenu extends UIGroup {
   
@@ -83,7 +77,7 @@ public class MainMenu extends UIGroup {
     Background.SUPPLY_CORPS,
     Background.FABRICATOR,
     Background.TECHNICIAN,
-    Background.FIELD_HAND,
+    Background.FIELD_CULTIVATOR,
     Background.MINDER
   } ;
   final static String

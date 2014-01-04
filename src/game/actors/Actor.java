@@ -7,8 +7,8 @@
 
 package src.game.actors ;
 import src.game.building.* ;
+import src.game.civic.*;
 import src.game.common.* ;
-import src.game.social.* ;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.graphics.sfx.* ;
@@ -140,7 +140,8 @@ public abstract class Actor extends Mobile implements
       mind.cancelBehaviour(root) ;
     }
     
-    assignAction(mind.getNextAction()) ;
+    //  TODO:  Schedule for an update instead.
+    //assignAction(mind.getNextAction()) ;
   }
   
   
@@ -211,121 +212,58 @@ public abstract class Actor extends Mobile implements
   
   
   public void updateAsScheduled(int numUpdates) {
-    long realStart = System.currentTimeMillis() ;
-    long startTime, timeTaken ;
-    
     //
     //  Update our basic statistics and physical properties-
-    startTime = System.currentTimeMillis() ;
     health.updateHealth(numUpdates) ;
     gear.updateGear(numUpdates) ;
     traits.updateTraits(numUpdates) ;
     if (health.isDead()) setAsDestroyed() ;
-    timeTaken = System.currentTimeMillis() - startTime ;
     
-    if (verbose && timeTaken > 0 && I.talkAbout == this) {
-      I.say("Time taken for stat updates: "+timeTaken) ;
-    }
+    //  Check to see what our current condition is-
+    final boolean
+      OK = health.conscious(),
+      checkSleep = (health.asleep() && numUpdates % 10 == 0) ;
+    if (! (OK || checkSleep)) return ;
     
-    ///I.sayAbout(this, "Am conscious? "+health.conscious()) ;
-    if (health.conscious()) {
-      //
-      //  Check to see if our current action has expired-
-      if ((actionTaken == null || actionTaken.finished())) {
-        
-        final Behaviour oldRoot = mind.rootBehaviour() ;
-        startTime = System.currentTimeMillis() ;
-        final Action action = mind.getNextAction() ;
-        timeTaken = System.currentTimeMillis() - startTime ;
-        final Behaviour newRoot = mind.rootBehaviour() ;
-        
-        if (verbose && timeTaken > 0 && I.talkAbout == this) {
-          I.say("Time taken for getting action was "+timeTaken) ;
-        }
-        if (verbose && oldRoot != newRoot && I.talkAbout == this) {
-          I.say("Root behaviour has changed from:") ;
-          I.say("  "+oldRoot+" to\n  "+newRoot) ;
-        }
-        if (verbose) I.sayAbout(this, "REFRESHING ACTION! "+action) ;
-        
-        assignAction(action) ;
+    //  Update our actions, pathing, and AI-
+    if (OK) {
+      if (actionTaken == null || actionTaken.finished()) {
+        assignAction(mind.getNextAction()) ;
       }
-      //
-      //  Ensure our current pathing route is valid-
       if (! pathing.checkPathingOkay()) {
-        
-        startTime = System.currentTimeMillis() ;
         pathing.refreshPath() ;
-        timeTaken = System.currentTimeMillis() - startTime ;
-
-        if (verbose && timeTaken > 0 && I.talkAbout == this) {
-          I.say("Time taken for getting path was "+timeTaken) ;
-        }
       }
-      //
-      //  Update the AI at regular intervals-
-      startTime = System.currentTimeMillis() ;
       mind.updateAI(numUpdates) ;
-      timeTaken = System.currentTimeMillis() - startTime ;
-
-      if (verbose && timeTaken > 0 && I.talkAbout == this) {
-        I.say("Time taken for AI update was "+timeTaken) ;
-      }
-      //
-      //  Update the intel/danger maps associated with the world's bases.
-      startTime = System.currentTimeMillis() ;
-      
-      final float power = Combat.combatStrength(this, null) * 10 ;
-      for (Base b : world.bases()) {
-        if (b == base()) {
-          //
-          //  Actually lift fog in an area slightly ahead of the actor-
-          final Vec2D heads = new Vec2D().setFromAngle(rotation) ;
-          heads.scale(health.sightRange() / 3f) ;
-          heads.x += position.x ;
-          heads.y += position.y ;
-          b.intelMap.liftFogAround(heads.x, heads.y, health.sightRange()) ;
-        }
-        if (! visibleTo(b)) continue ;
-        final float relation = mind.relation(b) ;
-        b.dangerMap.impingeVal(origin(), 0 - power * relation, true) ;
-      }
-      timeTaken = System.currentTimeMillis() - startTime ;
-      
-      if (verbose && timeTaken > 0 && I.talkAbout == this) {
-        I.say("Time taken for fog/danger updates was "+timeTaken) ;
-      }
     }
-    else if (health.asleep() && numUpdates % 10 == 0) {
-      //
-      //  Check to see if you need to wake up-
-      Behaviour root = mind.rootBehaviour() ;
-      if (root != null) mind.cancelBehaviour(root) ;
+    
+    //  Check to see if you need to wake up-
+    if (checkSleep) {
       mind.updateAI(numUpdates) ;
       mind.getNextAction() ;
-      root = mind.rootBehaviour() ;
-      
+      final Behaviour root = mind.rootBehaviour() ;
       final float
         wakePriority  = root == null ? 0 : root.priorityFor(this),
         sleepPriority = Resting.ratePoint(this, aboard(), 0) ;
-      if (verbose && I.talkAbout == this) {
-        I.say("Wake priority: "+wakePriority) ;
-        I.say("Sleep priority: "+sleepPriority) ;
-        I.say("Root behaviour: "+root) ;
-      }
-      
-      //final float margin = Math.max(Plan.ROUTINE / 2f, sleepPriority) ;
       if (wakePriority + 1 > sleepPriority + Choice.DEFAULT_PRIORITY_RANGE) {
         health.setState(ActorHealth.STATE_ACTIVE) ;
-        if (verbose) I.sayAbout(this, "Waking up for: "+root) ;
       }
     }
     
-    //
-    //  Finally, report on total time taken-
-    timeTaken = System.currentTimeMillis() - realStart ;
-    if (verbose && timeTaken > 0 && I.talkAbout == this) {
-      I.say(this+" Time taken for all updates: "+timeTaken) ;
+    //  Update the intel/danger maps associated with the world's bases.
+    final float power = Combat.combatStrength(this, null) * 10 ;
+    for (Base b : world.bases()) {
+      if (b == base()) {
+        //
+        //  Actually lift fog in an area slightly ahead of the actor-
+        final Vec2D heads = new Vec2D().setFromAngle(rotation) ;
+        heads.scale(health.sightRange() / 3f) ;
+        heads.x += position.x ;
+        heads.y += position.y ;
+        b.intelMap.liftFogAround(heads.x, heads.y, health.sightRange()) ;
+      }
+      if (! visibleTo(b)) continue ;
+      final float relation = mind.relationValue(b) ;
+      b.dangerMap.impingeVal(origin(), 0 - power * relation, true) ;
     }
   }
   
@@ -366,11 +304,18 @@ public abstract class Actor extends Mobile implements
   
   
   public Plan matchFor(Plan matchPlan) {
-    ///if (verbose) I.sayAbout(this, "Looking for MATCH: "+matchPlan) ;
     for (Behaviour b : mind.agenda()) if (b instanceof Plan) {
-      ///if (verbose) I.sayAbout(this, "POTENTIAL match: "+b) ;
       if (matchPlan.matchesPlan((Plan) b)) {
-        ///if (verbose) I.sayAbout(this, "MATCH FOUND!") ;
+        return (Plan) b ;
+      }
+    }
+    return null ;
+  }
+  
+  
+  public Plan matchFor(Class planClass) {
+    for (Behaviour b : mind.agenda()) if (b instanceof Plan) {
+      if (b.getClass() == planClass) {
         return (Plan) b ;
       }
     }

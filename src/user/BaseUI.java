@@ -279,12 +279,6 @@ public class BaseUI extends HUD implements UIConstants {
     if (! (hud instanceof BaseUI)) return false ;
     return (o == null) || ((BaseUI) hud).selection.selected() == o ;
   }
-  /*
-  
-  public static void logFor(Object o, String log) {
-    if (isPicked(o)) I.say(System.currentTimeMillis()+": "+log) ;
-  }
-  //*/
 }
 
 

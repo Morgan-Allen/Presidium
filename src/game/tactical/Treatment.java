@@ -1,10 +1,10 @@
 
 
 package src.game.tactical ;
+import src.game.civic.*;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
-import src.game.social.* ;
 import src.game.base.* ;
 import src.user.* ;
 import src.util.* ;
@@ -224,8 +224,8 @@ public class Treatment extends Plan implements Economy {
   
   private float diagnoseBonus() {
     float manners = -5 ;
-    manners += 5 * patient.mind.relation(actor) ;
-    manners += 5 * actor.mind.relation(patient) ;
+    manners += 5 * patient.mind.relationValue(actor) ;
+    manners += 5 * actor.mind.relationValue(patient) ;
     manners /= 2 ;
     if (actor.aboard() != theatre) return manners ;
     

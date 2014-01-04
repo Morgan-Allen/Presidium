@@ -189,14 +189,16 @@ public abstract class Mobile extends Element
   
   
   public boolean indoors() {
-    return aboard != null && ! aboard.openPlan() ;
+    return
+      aboard != null &&
+      aboard.boardableType() != Boardable.BOARDABLE_TILE ;
   }
   
   
   protected void updateAsMobile() {
     //
     //  If your current location is blocked, you need to escape to a free tile-
-    if (blockedBy(aboard)) {
+    if (Pathing.blockedBy(aboard, this)) {
       final Tile blocked = origin() ;
       final Tile free = Spacing.nearestOpenTile(blocked, this) ;
       if (free == null) I.complain("NO FREE TILE AVAILABLE!") ;
@@ -263,21 +265,6 @@ public abstract class Mobile extends Element
       return world.terrain().trueHeight(position.x, position.y) ;
     }
     else return aboard.position(null).z ;
-  }
-  
-  
-  public boolean blockedBy(Boardable b) {
-    if (b instanceof Tile) {
-      final Tile t = (Tile) b ;
-      if (t.blocked()) return true ;
-      if (pathing == null || t == pathing.pathTarget) return false ;
-      if (t != origin() && t.inside().size() > 0 && Spacing.adjacent(t, this)) {
-        for (Mobile m : t.inside()) if (m != this && m.base() == base()) {
-          return true ;
-        }
-      }
-    }
-    return false ;
   }
   
   

@@ -7,18 +7,21 @@
 
 package src.game.actors ;
 import src.game.common.* ;
-import src.game.common.Session.Saveable;
-import src.game.tactical.Combat;
+import src.game.common.Session.Saveable ;
+import src.game.tactical.* ;
 import src.game.building.* ;
 import src.user.* ;
 import src.util.* ;
-
 import java.lang.reflect.* ;
 
 
 
 //
-//  TODO:  
+//  TODO:  Include a copyPlan(Actor other) method here, for the sake of asking
+//  other actors to do favours, et cetera.
+
+
+
 public abstract class Plan implements Saveable, Behaviour {
   
   

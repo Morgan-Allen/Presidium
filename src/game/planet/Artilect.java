@@ -90,7 +90,7 @@ public abstract class Artilect extends Actor {
         return nextDefence(null) ;
       }
       
-      public float relation(Actor other) {
+      public float relationValue(Actor other) {
         if (actor.base() != null && other.base() == actor.base()) return 0.5f ;
         if (other instanceof Artilect) return 1.0f ;
         return -1.0f ;
@@ -159,7 +159,7 @@ public abstract class Artilect extends Actor {
       if (venue.base() == this.base()) continue ;
       final float dist = Spacing.distance(venue, lair) ;
       float rating = SS / (SS + dist) ;
-      rating += 1 - mind.relation(venue) ;
+      rating += 1 - mind.relationValue(venue) ;
       if (rating > bestRating) { bestRating = rating ; toAssault = venue ; }
     }
     

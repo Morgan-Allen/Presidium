@@ -25,7 +25,7 @@ public class DebugPlanet extends Scenario {
   /**  Startup and save/load methods-
     */
   public static void main(String args[]) {
-    if (Scenario.loadedFrom("test_planet")) return ;
+    //if (Scenario.loadedFrom("test_planet")) return ;
     DebugPlanet test = new DebugPlanet() ;
     PlayLoop.setupAndLoop(test.UI(), test) ;
   }
@@ -53,15 +53,17 @@ public class DebugPlanet extends Scenario {
     super.updateGameState() ;
     //PlayLoop.setGameSpeed(0.25f) ;
     //PlayLoop.setGameSpeed(5.0f) ;
-    PlayLoop.setGameSpeed(25.0f) ;
+    //PlayLoop.setGameSpeed(25.0f) ;
     //  100 x 25 = 2500.  You're within an order of magnitude, certainly.
   }
   
   
   
   protected World createWorld() {
-    GameSettings.fogFree = true ;
-    //*
+    GameSettings.fogFree   = true ;
+    GameSettings.hireFree  = true ;
+    GameSettings.buildFree = true ;
+    
     final TerrainGen TG = new TerrainGen(
       64, 0.33f,
       //Habitat.OCEAN  , 0.33f,
@@ -70,7 +72,6 @@ public class DebugPlanet extends Scenario {
       Habitat.BARRENS, 0.3f,
       Habitat.DESERT , 0.2f
     ) ;
-    //*/
     /*
     final TerrainGen TG = new TerrainGen(
       64, 0,
@@ -83,12 +84,6 @@ public class DebugPlanet extends Scenario {
     ) ;
     //*/
     final World world = new World(TG.generateTerrain()) ;
-    GameSettings.fogFree = true ;
-    GameSettings.hireFree = true ;
-    GameSettings.buildFree = true ;
-    //
-    //  TODO:  Just try spinkling some animals around, and see if they can
-    //  set up lairs correctly. There seems to be some trouble there...
     
     TG.setupMinerals(world, 0, 0, 0) ;
     //TG.setupOutcrops(world) ;

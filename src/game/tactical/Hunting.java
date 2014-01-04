@@ -8,9 +8,9 @@
 package src.game.tactical ;
 import src.game.actors.* ;
 import src.game.building.* ;
+import src.game.civic.*;
 import src.game.common.* ;
 import src.game.planet.* ;
-import src.game.social.* ;
 import src.util.* ;
 import src.user.* ;
 
@@ -106,8 +106,9 @@ public class Hunting extends Combat implements Economy {
   public float priorityFor(Actor actor) {
     //
     //  TODO:  Unify this evaluation method with the 'FindPrey' routine below.
-    
-    if (! prey.health.organic()) return -1 ;
+    if (prey.species() == actor.species() || ! prey.health.organic()) {
+      return -1 ;
+    }
     float priority = 0 ;
     if (type == TYPE_FEEDS) {
       float hunger = actor.health.hungerLevel() ;
@@ -125,8 +126,8 @@ public class Hunting extends Combat implements Economy {
     priority += priorityMod ;
     //
     //  Modify based on relation with subject-
-    if (prey.species() == actor.species()) priority -= ROUTINE ;
-    priority -= actor.mind.relation(prey) * PARAMOUNT ;
+    //if (prey.species() == actor.species()) priority -= ROUTINE ;
+    //priority -= actor.mind.relation(prey) * PARAMOUNT ;
     //
     //  Modify based on danger of extraction-
     if (prey.health.conscious()) {
@@ -166,14 +167,11 @@ public class Hunting extends Combat implements Economy {
     Actor actor, boolean conserve
   ) {
     if (verbose) I.sayAbout(actor, "FINDING NEXT PREY") ;
-    final int maxSampled = 10 ;
     Actor pickedPrey = null ;
     float bestRating = Float.NEGATIVE_INFINITY ;
     //
     //  
-    for (Target t : actor.world().presences.sampleFromKey(
-      actor, actor.world(), maxSampled, null, Mobile.class
-    )) {
+    for (Element t : actor.mind.awareOf()) {
       if (! (t instanceof Actor)) continue ;
       final Actor f = (Actor) t ;
       if ((! f.health.organic()) || (! (t instanceof Fauna))) continue ;

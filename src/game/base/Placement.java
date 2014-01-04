@@ -17,7 +17,7 @@ public class Placement {
   
   private static boolean verbose = false, cacheVerbose = true ;
   
-  final private static Coord offsetCache[][][] = new Coord[100][100][] ;
+  final private static Coord footprintCache[][][] = new Coord[100][100][] ;
   //
   //  NOTE:  This method is intended to generate a sequence of coordinates to
   //  check that should eliminate unfit placement-sites for buildings faster
@@ -33,12 +33,12 @@ public class Placement {
   //    *-----------*     *-----*-----*     *--*--*--*--*
   //
   //
-  private static Coord[] offsetsFor(int sizeX, int sizeY) {
+  private static Coord[] footprintFor(int sizeX, int sizeY) {
     //
     //  Return the cached version if available, initialise otherwise-
-    Coord offsets[] = offsetCache[sizeX][sizeY] ;
+    Coord offsets[] = footprintCache[sizeX][sizeY] ;
     if (offsets != null) return offsets ;
-    else offsets = offsetCache[sizeX][sizeY] = new Coord[sizeX * sizeY] ;
+    else offsets = footprintCache[sizeX][sizeY] = new Coord[sizeX * sizeY] ;
     //
     //  Find the initial 'step' size for the grid.
     int stepX = 1, stepY = 1, i = 0 ;
@@ -77,7 +77,7 @@ public class Placement {
   public static boolean checkAreaClear(
     Tile origin, int sizeX, int sizeY, int owningPriority
   ) {
-    for (Coord c : offsetsFor(sizeX, sizeY)) {
+    for (Coord c : footprintFor(sizeX, sizeY)) {
       final Tile t = origin.world.tileAt(origin.x + c.x, origin.y + c.y) ;
       if (t == null || t.owningType() >= owningPriority) return false ;
     }
@@ -114,19 +114,10 @@ public class Placement {
   //  within a proximity-map.  You can start out with the most promising-looking
   //  tiles, and eventually exhaust them all if need be.  In principle, it can
   //  even be time-sliced.
-  
-  
-  
   public static Venue establishVenue(
     final Venue v, int atX, int atY, boolean intact, final World world,
     Actor... employed
   ) {
-    
-    //
-    //  First, you need to find a suitable entry point.  Try points close to
-    //  the starting location, and perform tilespreads from there.
-    //
-    //  ...I think a pathing map might be needed for this purpose.
     
     Tile init = world.tileAt(atX, atY) ;
     init = Spacing.nearestOpenTile(init, init) ;

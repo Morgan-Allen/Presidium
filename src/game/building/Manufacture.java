@@ -27,7 +27,7 @@ public class Manufacture extends Plan implements Behaviour {
   final static int
     TIME_PER_UNIT = 30 ;
   
-  private static boolean verbose = true ;
+  private static boolean verbose = false ;
   
   
   final public Venue venue ;

@@ -10,6 +10,8 @@ import src.game.common.WorldSections.Section ;
 import src.util.* ;
 import src.game.building.* ;
 import java.util.Iterator ;
+//import java.util.TreeSet ;
+//import java.util.Comparator ;
 
 
 
@@ -19,6 +21,9 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
   
   /**  Fields, constructors, and save/load methods-
     */
+  final static int
+    MAX_VISITED = 100 ;
+  
   final Object key ;  //  Move this stuff to the Presences class.
   final World world ;
   final Node root ;
@@ -28,6 +33,15 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
     int population = 0 ;
     Node(Section s) { this.section = s ; }
   }
+  
+  private static final class NodeMarker {
+    Object node ;
+    float distance ;
+    boolean leaf ;
+  }
+  
+  private NodeMarker markers[] = initMarkers() ;
+  private int markUseIndex = -1 ;
   
   private Vec3D temp = new Vec3D() ;
   
@@ -45,6 +59,13 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
     if (key instanceof Service) keyOkay = true ;
     if (! keyOkay) I.complain("INVALID FLAGGING KEY: "+key) ;
     this.key = key ;
+  }
+  
+  
+  private NodeMarker[] initMarkers() {
+    markers = new NodeMarker[MAX_VISITED] ;
+    for (int n = MAX_VISITED ; n-- > 0 ;) markers[n] = new NodeMarker() ;
+    return markers ;
   }
   
   
@@ -184,14 +205,35 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
   
   /**  Iterating through members-
     */
-  public Iterable <Target> visitNear(
-    final Target origin, final float range, final Box2D area
+  //
+  //  TODO:  How do I make this faster?
+  //  Re-use the node-entries.  Re-set the index to -1 once done.
+  //  Use an internal boolean instead of instanceof checks.
+  
+  final private NodeMarker nextMarker(
+    final Object n, final boolean leaf, final Tile origin
   ) {
-    origin.position(temp) ;
-    final int oX = (int) temp.x, oY = (int) temp.y ;
+    final NodeMarker m = markers[markUseIndex++] ;
+    m.node = n ;
+    m.leaf = leaf ;
+    m.distance = leaf ?
+      Spacing.distance(origin, (Target) n) :
+      ((Node) n).section.area.distance(origin.x, origin.y) ;
+    return m ;
+  }
+  
+  
+  //*
+  public Iterable <Target> visitNear(
+    final Tile origin, final float range, final Box2D area
+  ) {
+    markUseIndex = 0 ;
+    //origin.position(temp) ;
+    //final int oX = (int) temp.x, oY = (int) temp.y ;
     //
     //  Firstly, we define the data structures needed to traverse the tree-
     //  structure of our entries and sort them by distance.
+    /*
     final class NodeEntry {
       
       final Object node ;
@@ -204,13 +246,14 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
           Spacing.distance(origin, (Target) n) ;
       }
     }
-    final Sorting <NodeEntry> agenda = new Sorting <NodeEntry> () {
-      public int compare(NodeEntry a, NodeEntry b) {
+    //*/
+    final Sorting <NodeMarker> agenda = new Sorting <NodeMarker> () {
+      public int compare(NodeMarker a, NodeMarker b) {
         if (a.node == b.node) return 0 ;
         return a.distance < b.distance ? 1 : -1 ;
       }
     } ;
-    agenda.insert(new NodeEntry(root)) ;
+    agenda.add(nextMarker(root, false, origin)) ;
     //
     //  Then, define a method of iterating over these entries, and return it-
     final class nearIter implements Iterator, Iterable {
@@ -218,33 +261,37 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
       private Object next = nextTarget() ;
       
       private Object nextTarget() {
+        ///int numI = 0 ;
         while (agenda.size() > 0) {
           //
           //  We obtain the next entry in the agenda-
           final Object ref = agenda.greatestRef() ;
-          final NodeEntry entry = agenda.refValue(ref) ;
-          final Object nearest = entry.node ;
+          final NodeMarker marker = agenda.refValue(ref) ;
+          //final Object nearest = entry.node ;
           agenda.deleteRef(ref) ;
+          ///numI++ ;
           //
           //  If it's not a node, return this.  Otherwise, add the children of
           //  the node to the agenda.  Reject anything out of range.
-          if (range > 0 && entry.distance > range) continue ;
-          if (nearest instanceof Node) {
+          if (range > 0 && marker.distance > range) continue ;
+          if (marker.leaf) {
             if (area != null) {
-              final Box2D b = ((Node) nearest).section.area ;
-              if (! area.intersects(b)) continue ;
-            }
-          }
-          else {
-            if (area != null) {
-              ((Target) nearest).position(temp) ;
+              ((Target) marker.node).position(temp) ;
               if (! area.contains(temp.x, temp.y)) continue ;
             }
-            return nearest ;
+            return marker.node ;
           }
-          final Node node = (Node) nearest ;
-          for (Object o : node) if (o != null) {
-            agenda.insert(new NodeEntry(o)) ;
+          else {
+            final Node node = (Node) marker.node ;
+            if (area != null) {
+              final Box2D b = node.section.area ;
+              if (! area.intersects(b)) continue ;
+            }
+            final boolean leaf = node.section.depth == 0 ;
+            for (Object o : node) if (o != null) {
+              if (markUseIndex >= MAX_VISITED) return null ;
+              agenda.add(nextMarker(o, leaf, origin)) ;
+            }
           }
         }
         return null ;
@@ -253,26 +300,28 @@ public class PresenceMap implements Session.Saveable {  //Do not make Saveable.
       public boolean hasNext() {
         return next != null ;
       }
-
+      
       public Object next() {
         final Object target = next ;
         next = nextTarget() ;
         return target ;
       }
-
+      
       public void remove() {}
       public Iterator iterator() { return this ; }
     }
     return new nearIter() ;
   }
+  //*/
   
   
   public Target pickNearest(Target origin, float range) {
-    for (Target t : visitNear(origin, range, null)) return t ;
+    final Tile o = world.tileAt(origin) ;
+    for (Target t : visitNear(o, range, null)) return t ;
     return null ;
   }
   
-
+  
   public Target pickRandomAround(final Target origin, final float range) {
     origin.position(temp) ;
     final int oX = (int) temp.x, oY = (int) temp.y ;

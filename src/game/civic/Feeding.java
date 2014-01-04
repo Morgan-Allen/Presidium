@@ -1,7 +1,7 @@
 
 
 
-package src.game.social ;
+package src.game.civic ;
 
 
 

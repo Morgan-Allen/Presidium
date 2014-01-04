@@ -9,8 +9,8 @@ package src.game.common ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.campaign.* ;
+import src.game.civic.*;
 import src.game.tactical.* ;
-import src.game.social.* ;
 import src.graphics.common.* ;
 import src.user.* ;
 import src.util.* ;
@@ -78,6 +78,11 @@ public class Base implements
     final Base base = new Base(world, primal) ;
     world.registerBase(base, true) ;
     return base ;
+  }
+  
+  
+  public static Base withName(String name, World world, boolean primal) {
+    return null ;
   }
   
   
@@ -316,6 +321,11 @@ public class Base implements
       }
     }
     return closest ;
+  }
+  
+  
+  public String toString() {
+    return "Base: "+title ;
   }
 }
 

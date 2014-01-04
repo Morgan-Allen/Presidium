@@ -6,7 +6,7 @@
 
 
 
-package src.game.social ;
+package src.game.civic ;
 //import src.game.actors.Behaviour;
 import src.game.common.* ;
 import src.util.* ;

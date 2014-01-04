@@ -12,7 +12,7 @@ import src.util.* ;
 
 
 
-public class PathingSearch extends Search <Boardable> {
+public class Pathing extends Search <Boardable> {
   
   
   
@@ -35,7 +35,7 @@ public class PathingSearch extends Search <Boardable> {
   
   
   
-  public PathingSearch(Boardable init, Boardable dest, int limit) {
+  public Pathing(Boardable init, Boardable dest, int limit) {
     super(init, (limit > 0) ? ((limit + 2) * 8) : -1) ;
     if (dest == null) {
       I.complain("NO DESTINATION!") ;
@@ -62,17 +62,17 @@ public class PathingSearch extends Search <Boardable> {
   
   protected static int searchLimit(Boardable init, Boardable dest) {
     int limit = (int) Spacing.outerDistance(init, dest) ;
-    limit += 1 + (World.PATCH_RESOLUTION * 2) ;
+    limit += 1 + (World.PATCH_RESOLUTION * 1) ;
     return limit ;
   }
   
   
-  public PathingSearch(Boardable init, Boardable dest) {
+  public Pathing(Boardable init, Boardable dest) {
     this(init, dest, searchLimit(init, dest)) ;
   }
   
   
-  public PathingSearch doSearch() {
+  public Pathing doSearch() {
     if (verbose) I.say(
       "Searching for path between "+init+" and "+destination+
       ", search limit: "+searchLimit(init, destination)
@@ -83,8 +83,8 @@ public class PathingSearch extends Search <Boardable> {
       else {
         I.say("\n  Failed.") ;
         if (client != null) {
-          I.say("Origin      blocked? "+client.blockedBy(init       )) ;
-          I.say("Destination blocked? "+client.blockedBy(destination)) ;
+          I.say("Origin      blocked? "+canEnter(init       )) ;
+          I.say("Destination blocked? "+canEnter(destination)) ;
         }
       }
       I.say("  Closest approach: "+closest+", aimed for "+aimPoint) ;
@@ -170,9 +170,37 @@ public class PathingSearch extends Search <Boardable> {
   }
   
   
-  protected boolean canEnter(Boardable spot) {
-    return (client == null) ? true :
-      spot.allowsEntry(client) && ! client.blockedBy(spot) ;
+  public static boolean blockedBy(final Boardable b, final Mobile m) {
+    if (b.boardableType() == Boardable.BOARDABLE_TILE) {
+      final Tile t = (Tile) b ;
+      if (t.blocked()) return true ;
+      
+      if (m == null || m.pathing == null || t == m.pathing.pathTarget) {
+        return false ;
+      }
+      final Tile o = m.origin() ;
+      if (o == t) return false ;
+      
+      final Series <Mobile> inside = t.inside() ;
+      if (inside == null) return false ;
+      int xd = o.x - t.x, yd = t.y - o.y ;
+      if (xd < 0) xd *= -1 ;
+      if (yd < 0) yd *= -1 ;
+      
+      //  TODO:  make the base an aspect of all mobiles, so this can be better
+      //  optimised.
+      if (xd <= 2 && yd <= 2) {
+        for (Mobile i : inside) if (i != m) {// && i.base() == m.base()) {
+          return true ;
+        }
+      }
+    }
+    return false ;
+  }
+  
+  
+  protected boolean canEnter(final Boardable spot) {
+    return spot != null && ! blockedBy(spot, client) ;
   }
   
   

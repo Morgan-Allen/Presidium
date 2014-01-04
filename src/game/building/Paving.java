@@ -156,7 +156,7 @@ public class Paving {
     junctions.toggleMember(t, t, isMember) ;
     if (isMember) {
       ///I.say("Updating road junction "+t) ;
-      for (Target o : junctions.visitNear(v, PATH_RANGE + 1, null)) {
+      for (Target o : junctions.visitNear(t, PATH_RANGE + 1, null)) {
         final Tile jT = (Tile) o ;
         routeBetween(t, jT) ;
       }

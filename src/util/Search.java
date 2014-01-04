@@ -18,7 +18,7 @@ public abstract class Search <T> {
   /**  Fields and constructors-
     */
   final Sorting <T> agenda = new Sorting <T> () {
-    public int compare(T a, T b) {
+    public final int compare(final T a, final T b) {
       if (a == b) return 0 ;
       final float aT = entryFor(a).total, bT = entryFor(b).total ;
       return aT > bT ? 1 : -1 ;

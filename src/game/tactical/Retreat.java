@@ -87,7 +87,7 @@ public class Retreat extends Plan implements Abilities {
     final Action flees = new Action(
       actor, safePoint,
       this, "actionFlee",
-      Action.LOOK, "Fleeing to "+safePoint
+      Action.LOOK, "Fleeing to "
     ) ;
     flees.setProperties(Action.QUICK) ;
     return flees ;
@@ -162,13 +162,15 @@ public class Retreat extends Plan implements Abilities {
     //  from the Plan class?  Or sample actors right at the point of origin
     //  instead?
     
+    //  ...No, sample actors visible to the *base*.
+    
     for (Element m : seen) {
       if (m == actor || ! (m instanceof Actor)) continue ;
       final Actor near = (Actor) m ;
       if (near.indoors() || ! near.health.conscious()) continue ;
 
       final Target victim = near.targetFor(Combat.class) ;
-      final float relation = near.mind.relation(actor) ;
+      final float relation = near.mind.relationValue(actor) ;
       final float power = Combat.combatStrength(near, enemy) ;
       if (relation > 0) {
         sumAllies += power ;
@@ -238,7 +240,7 @@ public class Retreat extends Plan implements Abilities {
     final Venue haven = (Venue) t ;
     if (! haven.structure.intact()) return -1 ;
     float rating = 1 ;
-    if (haven.getClass() == prefClass) rating *= 4 ;
+    if (prefClass != null && haven.getClass() == prefClass) rating *= 4 ;
     if (haven.base() == actor.base()) rating *= 3 ;
     if (haven == actor.mind.home()) rating *= 2 ;
     final int SS = World.SECTOR_SIZE ;
@@ -246,5 +248,9 @@ public class Retreat extends Plan implements Abilities {
     return rating ;
   }
 }
+
+
+
+
 
 

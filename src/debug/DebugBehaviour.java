@@ -31,9 +31,8 @@ import src.util.* ;
 //  You can call on them to get missions done.
 
 /*
-   TODO:
-   Contact/relations & Security/treatment.
-   Ecology simulation & squalor display.
+   TODO:  TUTORIAL MISSION
+   Contact/relations & danger map use/long-range pathing cache.
    Stock exchange & internal demand bug.
    Walls, arcology and causeways need art/functions tweaked or redone.
    General polish for mines, the surveyor, maybe the cantina & holo arcade.
@@ -91,18 +90,17 @@ public class DebugBehaviour extends Scenario implements Economy {
   public void updateGameState() {
     super.updateGameState() ;
     //PlayLoop.setGameSpeed(0.25f) ;
-    PlayLoop.setGameSpeed(5.0f) ;
+    //PlayLoop.setGameSpeed(5.0f) ;
   }
   
   
   protected void configureScenario(World world, Base base, BaseUI UI) {
-    //combatScenario(world, base, UI) ;
-    //ambientScenario(world, base, UI) ;
-    patrolTestScenario(world, base, UI) ;
+    //securityScenario(world, base, UI) ;
+    contactScenario(world, base, UI) ;
   }
   
   
-  private void patrolTestScenario(World world, Base base, BaseUI UI) {
+  private void securityScenario(World world, Base base, BaseUI UI) {
     GameSettings.fogFree   = true ;
     GameSettings.buildFree = true ;
     GameSettings.hireFree  = true ;
@@ -147,69 +145,61 @@ public class DebugBehaviour extends Scenario implements Economy {
   }
   
   
-  //
-  //  ...Okay.  This will clearly take some time.
-  private void combatScenario(World world, Base base, BaseUI UI) {
-    
-    //GameSettings.buildFree = true ;
-    //base.incCredits(4000) ;
-    GameSettings.fogFree = true ;
-    
-    Tripod tripod = new Tripod() ;
-    tripod.health.setupHealth(0.5f, 1, 0) ;
-    tripod.enterWorldAt(31, 31, world) ;
-    
-    int numH = 5 ;
-    Human humans[] = new Human[numH] ;
-    while (numH-- > 0) {
-      humans[numH] = new Human(Background.VOLUNTEER, base) ;
-    }
-    Placement.establishVenue(new Bastion(base), 4, 4, true, world, humans) ;
-    
-    //Micovore micovore = new Micovore() ;
-    //micovore.health.setupHealth(0.5f, 1, 0) ;
-    //micovore.enterWorldAt(9, 9, world) ;
-    
-    UI.selection.pushSelection(humans[0], true) ;
-  }
-  
-  
-  private void ambientScenario(World world, Base base, BaseUI UI) {
+  private void contactScenario(World world, Base base, BaseUI UI) {
     GameSettings.fogFree   = true ;
     GameSettings.buildFree = true ;
     GameSettings.hireFree  = true ;
     GameSettings.psyFree   = true ;
+    //
+    //  Generate a basic native settlement in the far corner of the map.
+    final Base natives = world.baseWithName(Base.KEY_NATIVES, true, true) ;
+    final Venue huts = Placement.establishVenue(
+      new NativeHut(Habitat.ESTUARY, natives), 21, 21, true, world
+    ) ;
+    for (int n = 5 ; n-- > 0 ;) {
+      final Career c = new Career(
+        Rand.yes(), Background.HUNTER,
+        Background.NATIVE_BIRTH,
+        Background.PLANET_DIAPSOR
+      ) ;
+      final Actor lives = new Human(c, natives) ;
+      lives.mind.setHome(huts) ;
+      lives.mind.setWork(huts) ;
+      lives.enterWorldAt(huts, world) ;
+      lives.goAboard(huts, world) ;
+    }
+    natives.setRelation(base, -0.2f) ;
+    base.setRelation(natives, -0.2f) ;
+    //
+    //  Generate a basic settlement for the home team, and some diplomacy-
+    //  oriented inhabitants, and see how they get on.
+    final ContactMission mission = new ContactMission(base, huts) ;
+    mission.assignReward(1000) ;
+    base.addMission(mission) ;
+    final Venue exchange = Placement.establishVenue(
+      new StockExchange(base), 2, 2, true, world
+    ) ;
+    exchange.stocks.bumpItem(PROTEIN, 20) ;
+    exchange.stocks.bumpItem(GREENS, 10) ;
+    exchange.stocks.bumpItem(SPICE, 5) ;
+    final Venue station = new SurveyStation(base) ;
+    for (int n = 2 ; n-- > 0 ;) {
+      final Actor talks = new Human(Background.SURVEY_SCOUT, base) ;
+      talks.mind.setWork(station) ;
+      talks.enterWorldAt(9, 4, world) ;
+      mission.setApplicant(talks, true) ;
+      mission.setApprovalFor(talks, true) ;
+    }
+    Placement.establishVenue(station, 7, 2, true, world) ;
+    mission.beginMission() ;
   }
 }
 
 
 
-  /*
-  /**  Testing out interactions between alien creatures or primitive humanoids.
-  private void natureScenario(World world, Base base, HUD UI) {
-    GameSettings.fogFree = true ;
-    PlayLoop.setGameSpeed(5.0f) ;
-    
-    final EcologyGen EG = new EcologyGen(world) ;
-    EG.populateFlora(world) ;
-    
-    final Actor hunter = new Micovore() ;
-    hunter.health.setupHealth(0.5f, 1, 0) ;
-    hunter.enterWorldAt(6, 6, world) ;
-    ((BaseUI) UI).selection.pushSelection(hunter, true) ;
-    
-    for (int n = 16 ; n-- > 0 ;) {
-      final Actor prey = Rand.yes() ? new Quud() : new Vareen() ;
-      final Tile e = Spacing.pickRandomTile(world.tileAt(16, 16), 8, world) ;
-      prey.health.setupHealth(Rand.num(), 1, 0) ;
-      prey.enterWorldAt(e.x, e.y, world) ;
-    }
-  }
-  
-  
-  
-  /**  These are scenarios associated with upkeep, maintenance and
-    *  construction of the settlement-
+
+
+/*
   private void baseScenario(World world, Base base, HUD UI) {
     
     ///PlayLoop.rendering().port.cameraZoom = 1.33f ;
@@ -243,86 +233,7 @@ public class DebugBehaviour extends Scenario implements Economy {
     
     Scenario.establishVenue(new SupplyDepot(base), 20, 10, true, world) ;
   }
-  
-  
-  
-  /**  Testing out directed behaviour like combat, exploration, security or
-    *  contact missions.
-  private void missionScenario(World world, Base base, HUD UI) {
-    
-    GameSettings.fogFree = true ;
-    //GameSettings.hireFree = true ;
-    PlayLoop.setGameSpeed(1.0f) ;
-    
-    final Base otherBase = Base.createFor(world) ;
-    world.registerBase(otherBase, true) ;
-    base.setRelation(otherBase, -1) ;
-    otherBase.setRelation(base, -1) ;
-    otherBase.colour = Colour.CYAN ;
-    
-    final Batch <Actor> allies = new Batch <Actor> () ;
-    float sumPower = 0 ;
-    for (int n = 5 ; n-- > 0 ;) {
-      final Actor actor = new Human(Background.EXPLORER, base) ;
-      actor.setPosition(
-        24 + Rand.range(-4, 4),
-        24 + Rand.range(-4, 4),
-        world
-      ) ;
-      actor.enterWorld() ;
-      allies.add(actor) ;
-      sumPower += Combat.combatStrength(actor, null) ;
-      ///establishVenue(new SurveyorRedoubt(base), 4, 4, true, actor) ;
-    }
-    ///I.say("TOTAL POWER OF ALLIES: "+sumPower) ;
-    
-    //*
-    final EcologyGen EG = new EcologyGen(world) ;
-    //final Batch <Ruins> ruins = EG.populateRuins(world.tileAt(8, 8), 16) ;
-    //EG.populateArtilects(ruins, world) ;
-    EG.populateFlora(world) ;
-    //*/
-    
-    /*
-    final Actor enemy = new Tripod() ;
-    //enemy.assignBase(otherBase) ;
-    enemy.enterWorldAt(24, 24, world) ;
-    ((BaseUI) UI).selection.pushSelection(enemy, true) ;
-    
-    I.say("POWER OF ENEMY: "+Combat.combatStrength(enemy, null)) ;
-    //*/
-    //((BaseUI) UI).selection.pushSelection(allies.atIndex(0), true) ;
-  /*
-  }
-  
-  
-  
-  /**  Testing out pro-social behaviour like dialogue, recreation and medical
-    *  treatment.
-  private void socialScenario(final World world, Base base, HUD UI) {
-    
-    //
-    //  TODO:  Transfer to DebugSituation.
-    
-    base.incCredits(10000) ;
-    GameSettings.fogFree = true ;
-    GameSettings.buildFree = true ;
-    GameSettings.hireFree = true ;
-    
-    final Actor actor = new Human(Background.PHYSICIAN, base) ;
-    final Actor other = new Human(Background.VETERAN  , base) ;
-    other.health.takeInjury(other.health.maxHealth()) ;
-    
-    other.enterWorldAt(15, 6, world) ;
-    final Sickbay sickbay = new Sickbay(base) ;
-    Scenario.establishVenue(sickbay, 9, 2, true, world, actor) ;
-    Scenario.establishVenue(new CultureVats(base), 9, 8, true, world) ;
-    Scenario.establishVenue(new VaultSystem(base), 3, 5, true, world) ;
-    
-    sickbay.stocks.bumpItem(STIM_KITS, 5) ;
-    sickbay.stocks.bumpItem(MEDICINE , 5) ;
-    ((BaseUI) UI).selection.pushSelection(other, true) ;
-  }
-  //*/
+
+//*/
 
 

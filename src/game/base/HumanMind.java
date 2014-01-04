@@ -8,9 +8,9 @@
 package src.game.base ;
 import src.game.actors.* ;
 import src.game.building.* ;
+import src.game.civic.*;
 import src.game.common.* ;
 import src.game.planet.* ;
-import src.game.social.* ;
 import src.game.tactical.* ;
 import src.game.campaign.* ;
 import src.user.* ;
@@ -94,7 +94,7 @@ public class HumanMind extends ActorMind implements Abilities {
   
   /**  Constructor and save/load functions-
     */
-  private static boolean verbose = true ;
+  private static boolean verbose = false ;
   
   //  private Background careerInterest ;
   //  private float lifeSatisfaction ;
@@ -152,13 +152,25 @@ public class HumanMind extends ActorMind implements Abilities {
   
   
   protected Behaviour reactionTo(Element seen) {
-    return new Retreat(actor) ;
+    final Choice choice = new Choice(actor) ;
+    if (seen instanceof Actor) addResponses((Actor) seen, choice) ;
+    choice.add(new Retreat(actor)) ;
+    return choice.pickMostUrgent() ;
   }
   
   
+  private void addResponses(Actor nearby, Choice choice) {
+    choice.add(Hunting.asHarvest(actor, nearby, home)) ;
+    choice.add(new Combat(actor, nearby)) ;
+    choice.add(new Dialogue(actor, nearby, null)) ;
+    choice.add(new Treatment(actor, nearby, null)) ;
+  }
+  
   
   private void addActorResponses(Choice choice) {
-
+    //
+    //  TODO:  Unify this with the methods in the ActorMind class.
+    /*
     //
     //  Find all nearby items or actors and consider reacting to them.
     final PresenceMap mobiles = actor.world().presences.mapFor(Mobile.class) ;
@@ -169,14 +181,9 @@ public class HumanMind extends ActorMind implements Abilities {
       if (t instanceof Actor) actorB.add((Actor) t) ;
       if (++numR > reactLimit) break ;
     }
-    //
-    //  
+    //*/
     for (Element e : awareOf()) if (e instanceof Actor) {
-      final Actor nearby = (Actor) e ;
-      choice.add(Hunting.asHarvest(actor, nearby, home)) ;
-      choice.add(new Combat(actor, nearby)) ;
-      choice.add(new Dialogue(actor, nearby, null)) ;
-      choice.add(new Treatment(actor, nearby, null)) ;
+      addResponses((Actor) e, choice) ;
     }
   }
   

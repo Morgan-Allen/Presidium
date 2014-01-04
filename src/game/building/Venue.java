@@ -6,10 +6,10 @@
 
 
 package src.game.building ;
+import src.game.civic.*;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.actors.* ;
-import src.game.social.* ;
 import src.graphics.common.* ;
 import src.graphics.terrain.* ;
 import src.graphics.widgets.* ;
@@ -291,8 +291,8 @@ public abstract class Venue extends Fixture implements
   }
   
   
-  public boolean openPlan() {
-    return false ;
+  public int boardableType() {
+    return Boardable.BOARDABLE_VENUE ;
   }
   
   

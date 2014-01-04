@@ -21,10 +21,10 @@ public final class Tile implements
   
   
   final public static int
-    PATH_ROAD  = 0,
-    PATH_CLEAR = 1,
+    PATH_ROAD    = 0,
+    PATH_CLEAR   = 1,
     PATH_HINDERS = 2,
-    PATH_BLOCKS = 3 ;
+    PATH_BLOCKS  = 3 ;
   private static Stack <Mobile>
     NONE_INSIDE = new Stack <Mobile> () ;
   
@@ -32,6 +32,7 @@ public final class Tile implements
   final public World world ;
   final public int x, y ;
   private Object flagged ;
+  private Boardable boardingCache[] = null ;
   
   private float elevation = Float.NEGATIVE_INFINITY ;
   private Habitat habitat = null ;
@@ -101,6 +102,7 @@ public final class Tile implements
   public float height() { return 0 ; }
   
   
+  
   /**  Setting path type and occupation-
     */
   public Element owner() {
@@ -111,12 +113,13 @@ public final class Tile implements
   public void setOwner(Element e) {
     if (e == owner) return ;
     this.owner = e ;
+    
     world.sections.flagBoundsUpdate(x, y) ;
-    /*
-    if (PlayLoop.currentUI() instanceof BaseUI) {
-      ((BaseUI) PlayLoop.currentUI()).minimap.updateAt(this) ;
+    boardingCache = null ;
+    for (int n : N_INDEX) {
+      final Tile t = world.tileAt(x + N_X[n], y + N_Y[n]) ;
+      if (t != null) t.boardingCache = null ;
     }
-    //*/
   }
   
   
@@ -153,12 +156,12 @@ public final class Tile implements
   }
   
   
-  public void flagWith(Object f) {
+  public final void flagWith(final Object f) {
     flagged = f ;
   }
   
   
-  public Object flaggedWith() {
+  public final Object flaggedWith() {
     return flagged ;
   }
   
@@ -196,9 +199,13 @@ public final class Tile implements
     //
     //  TODO:  See if this can't be made more efficient.  Try caching whenever
     //  ownership/occupants change?
+    if (boardingCache != null) return boardingCache ;
+    else batch = null ;
     
     if (batch == null) batch = new Boardable[8] ;
     
+    //  TODO:  RESTORE THIS FOR VEHICLES LATER, IF REQUIRED?
+    /*
     if (inside != null) {
       int numB = 0 ;
       for (Mobile m : inside) {
@@ -213,6 +220,7 @@ public final class Tile implements
         }
       }
     }
+    //*/
     
     if (blocked() && owner() instanceof Boardable) {
       return ((Boardable) owner()).canBoard(batch) ;
@@ -231,6 +239,8 @@ public final class Tile implements
       final Boardable v = (Boardable) t.owner() ;
       if (v.isEntrance(this)) batch[n] = v ;
     }
+    
+    boardingCache = batch ;
     return batch ;
   }
   
@@ -250,8 +260,8 @@ public final class Tile implements
   }
   
   
-  public boolean openPlan() {
-    return true ;
+  public int boardableType() {
+    return BOARDABLE_TILE ;
   }
   
   

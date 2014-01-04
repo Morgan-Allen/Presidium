@@ -5,9 +5,10 @@
   */
 
 package src.game.common ;
-import src.game.actors.Actor;
+//import src.game.actors.Actor;
 import src.game.building.* ;
 import src.util.* ;
+import org.apache.commons.math3.util.FastMath ;
 
 
 
@@ -256,7 +257,7 @@ public final class Spacing implements TileConstants {
   
   
   public static Tile nearestOpenTile(Target t, Target client) {
-    final Tile under = t.world().tileAt(t) ;
+    final Tile under = client.world().tileAt(t) ;
     return nearestOpenTile(under, client) ;
   }
   
@@ -284,6 +285,7 @@ public final class Spacing implements TileConstants {
   
   /**  Returns a semi-random unblocked tile around the given element.
     */
+  //  TODO:  Move this to the Placement class.
   public static Tile pickFreeTileAround(Target t, Element client) {
     final Tile perim[] ;
     if (t instanceof Tile) {
@@ -301,19 +303,31 @@ public final class Spacing implements TileConstants {
     final boolean inPerim = Visit.arrayIncludes(perim, l) ;
     ///if (inPerim && Rand.num() > 0.2f) return l ;
     
-    final Batch <Tile> free = new Batch <Tile> () ;
-    final Batch <Float> weights = new Batch <Float> () ;
+    //final Batch <Tile> free = new Batch <Tile> () ;
+    //final Batch <Float> weights = new Batch <Float> () ;
+    final float weights[] = new float[perim.length] ;
+    float sumWeights = 0 ;
+    int index = -1 ;
     for (Tile p : perim) {
+      index++ ;
       if (p == null || p.blocked()) continue ;
       if (p.inside().size() > 0) continue ;
-      free.add(p) ;
+      //free.add(p) ;
       final float dist = Spacing.distance(p, l) ;
       if (inPerim && dist > 4) continue ;
-      weights.add(1 / (1 + dist)) ;
+      final float weight = 1f / (1 + dist) ;
+      weights[index] = weight ;
+      sumWeights += weight ;
     }
-    if (free.size() == 0) return (Tile) Rand.pickFrom(perim) ;
-    if (! inPerim) return (Tile) Spacing.nearest(free, client) ;
-    return (Tile) Rand.pickFrom(free, weights) ;
+    
+    float roll = Rand.num() * sumWeights ;
+    sumWeights = 0 ;
+    for (int n = 0 ; n < perim.length ; n++) {
+      if (roll < weights[n]) return perim[n] ;
+      sumWeights += weights[n] ;
+    }
+    //return null ;
+    return nearestOpenTile(t, client) ;
   }
   
   
@@ -331,29 +345,29 @@ public final class Spacing implements TileConstants {
   
   /**  Distance calculation methods-
     */
-  public static float distance(Target a, Target b) {
+  final public static float distance(final Target a, final Target b) {
     final float dist = innerDistance(a, b) - (a.radius() + b.radius()) ;
     return (dist < 0) ? 0 : dist ;
   }
   
   
-  public static float innerDistance(Target a, Target b) {
+  final public static float innerDistance(final Target a, final Target b) {
     a.position(pA) ;
     b.position(pB) ;
     final float xd = pA.x - pB.x, yd = pA.y - pB.y ;
-    return (float) Math.sqrt((xd * xd) + (yd * yd)) ;
+    return (float) FastMath.sqrt((xd * xd) + (yd * yd)) ;
   }
   
-
-  public static int outerDistance(Target a, Target b) {
+  
+  final public static int outerDistance(final Target a, final Target b) {
     final float dist = innerDistance(a, b) ;
-    return (int) Math.ceil(dist + a.radius() + b.radius()) ;
+    return (int) FastMath.ceil(dist + a.radius() + b.radius()) ;
   }
   
   
-  public static float distance(Tile a, Tile b) {
+  final public static float distance(final Tile a, final Tile b) {
     final int xd = a.x - b.x, yd = a.y - b.y ;
-    return (float) Math.sqrt((xd * xd) + (yd * yd)) ;
+    return (float) FastMath.sqrt((xd * xd) + (yd * yd)) ;
   }
   
   

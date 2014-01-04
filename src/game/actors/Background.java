@@ -205,7 +205,7 @@ public class Background implements Economy, Session.Saveable {
   
   final public static Background
     
-    FIELD_HAND = new Background(
+    FIELD_CULTIVATOR = new Background(
       "Field Hand", "pyon_skin.gif", null,
       LOWER_CLASS, GUILD_ECOLOGIST,
       PRACTICED, CULTIVATION, HARD_LABOUR, NOVICE, DOMESTICS,
@@ -213,8 +213,8 @@ public class Background implements Economy, Session.Saveable {
       OVERALLS
     ),
     
-    FORMER_ENGINEER = new Background(
-      "Former Engineer", "ecologist_skin.gif", null,
+    ARCOLOGY_ENGINEER = new Background(
+      "Arcology Engineer", "ecologist_skin.gif", null,
       MIDDLE_CLASS, GUILD_ECOLOGIST,
       PRACTICED, GEOPHYSICS, ASSEMBLY, HARD_LABOUR,
       NOVICE, GENE_CULTURE, SURVEILLANCE,
@@ -222,8 +222,8 @@ public class Background implements Economy, Session.Saveable {
       OVERALLS
     ),
     
-    EXPLORER = new Background(
-      "Explorer", "ecologist_skin.gif", "ecologist_portrait.png",
+    SURVEY_SCOUT = new Background(
+      "Survey Scout", "ecologist_skin.gif", "ecologist_portrait.png",
       MIDDLE_CLASS, GUILD_ECOLOGIST,
       EXPERT, XENOZOOLOGY, SURVEILLANCE, STEALTH_AND_COVER,
       PRACTICED, MARKSMANSHIP, NATIVE_TABOO,
@@ -241,7 +241,9 @@ public class Background implements Economy, Session.Saveable {
       SEALSUIT
     ),
     
-    ECOLOGIST_CIRCLES[] = { FIELD_HAND, FORMER_ENGINEER, EXPLORER, ECOLOGIST }
+    ECOLOGIST_CIRCLES[] = {
+      FIELD_CULTIVATOR, ARCOLOGY_ENGINEER, SURVEY_SCOUT, ECOLOGIST
+    }
   ;
   
   final public static Background

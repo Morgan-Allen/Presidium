@@ -23,9 +23,16 @@ import src.util.Sorting.* ;
 public class Schedule {
   
   
-  final static int MAX_UPDATE_INTERVAL = 5 ;
+  final static int
+    MAX_UPDATE_INTERVAL = ((1000 / PlayLoop.UPDATES_PER_SECOND) / 2) - 5,
+    MIN_DELAY_WARNING   = MAX_UPDATE_INTERVAL + 10 ;
   
-  private static boolean verbose = false ;
+  private static boolean
+    verbose       = true,
+    verboseDelays = verbose && true ;
+  
+  private long initTime = -1 ;
+  private boolean lastUpdateOkay = true ;
 
 
   public static interface Updates extends Session.Saveable {
@@ -35,7 +42,7 @@ public class Schedule {
   
   private static class Event {
     private float time ;
-    private int numUpdates ;
+    private int initTime, lastUpdateCount ;
     private Updates updates ;
     
     public String toString() {
@@ -56,13 +63,19 @@ public class Schedule {
   private float currentTime = 0 ;
   
   
+  Schedule(float initTime) {
+    this.currentTime = initTime ;
+  }
+  
+  
   protected void saveTo(Session s) throws Exception {
     s.saveFloat(currentTime) ;
     s.saveInt(allUpdates.size()) ;
     for (Object node : allUpdates.values()) {
       final Event event = events.refValue(node) ;
       s.saveFloat(event.time) ;
-      s.saveInt(event.numUpdates) ;
+      s.saveInt(event.initTime) ;
+      s.saveInt(event.lastUpdateCount) ;
       s.saveObject(event.updates) ;
     }
   }
@@ -72,7 +85,8 @@ public class Schedule {
     for (int n = s.loadInt() ; n-- > 0 ;) {
       final Event event = new Event() ;
       event.time = s.loadFloat() ;
-      event.numUpdates = s.loadInt() ;
+      event.initTime = s.loadInt() ;
+      event.lastUpdateCount = s.loadInt() ;
       event.updates = (Updates) s.loadObject() ;
       allUpdates.put(event.updates, events.insert(event)) ;
     }
@@ -86,7 +100,13 @@ public class Schedule {
     if (allUpdates.get(updates) != null)
       I.complain(updates+" ALREADY REGISTERED FOR UPDATES!") ;
     final Event event = new Event() ;
-    event.time = currentTime - Rand.num() * updates.scheduledInterval() ;
+    
+    //  We 'fudge' the incept and scheduling times a little here to help ensure
+    //  that client updates are staggered evenly over the schedule, rather
+    //  than clustering in one or two processor-intensive updates.
+    event.initTime = ((int) currentTime) + 1 ;
+    event.lastUpdateCount = Rand.index(10) ;
+    event.time = (currentTime + Rand.num()) * updates.scheduledInterval() ;
     event.updates = updates ;
     allUpdates.put(updates, events.insert(event)) ;
   }
@@ -111,17 +131,8 @@ public class Schedule {
   }
   
   
-  private long initTime = -1 ;
   
   
-  /**  Returns whether the schedule has reached it's CPU quota for this update
-    *  interval.
-    */
-  /*
-  public boolean timeUp() {
-    return (System.nanoTime() - initTime) > (MAX_UPDATE_INTERVAL * 1000000) ;
-  }
-  //*/
   
   /**  Advances the schedule of events in accordance with the current time in
     *  the host world.
@@ -130,49 +141,81 @@ public class Schedule {
     this.currentTime = currentTime ;
     //  Find the current time, and descend to all events left of that dividing
     //  line (i.e, earlier.)
-    //final Batch <Event> happened = new Batch <Event> () ;
+    final long oldInit = initTime ;
     initTime = System.currentTimeMillis() ;
-    
-    Updates tookLongest = null ;
-    long maxTime = 0 ;
     int totalUpdated = 0 ;
+    float lastEventTime = -1 ;
+    boolean finishedOK = true ;
     
-    if (verbose) {
-      I.say("\nUPDATING SCHEDULE AT TIME: "+System.currentTimeMillis()) ;
-    }
+    Updates longestUpdate = null ;
+    long longestTime = 0 ;
+    
+    if (verbose) I.say(
+      "\nUPDATING SCHEDULE, MS SINCE LAST UPDATE: "+(initTime - oldInit)+
+      "\nCurrent time: "+currentTime+"\n"
+    ) ;
     
     while (true) {
       final long taken = System.currentTimeMillis() - initTime ;
-      if (taken  > MAX_UPDATE_INTERVAL) {
-        if (verbose) {
-          I.say("SCHEDULE IS OUT OF TIME, TOTAL UPDATED: "+totalUpdated) ;
-          I.say("TIME SPENT: "+taken) ;
-          I.say("TOOK LONGEST: "+tookLongest+" AT: "+(maxTime / 1000000.0)) ;
-          I.say("\n") ;
-        }
+      if (taken > MAX_UPDATE_INTERVAL) {
+        finishedOK = false ;
         break ;
       }
+      
       final Object leastRef = events.leastRef() ;
-      if (leastRef == null) break ;
+      if (leastRef == null) {
+        break ;
+      }
       
       final Event event = events.refValue(leastRef) ;
-      if (event.time > currentTime) break ;
+      lastEventTime = event.time ;
+      if (event.time > currentTime) {
+        finishedOK = true ;
+        break ;
+      }
+
+      final float interval = event.updates.scheduledInterval() ;
       events.deleteRef(leastRef) ;
-      event.time += event.updates.scheduledInterval() ;
+      
+      //  TODO:  Stretch this out further based on the proportion of clients
+      //  that updated successfully last cycle?
+      if (lastUpdateOkay) event.time += interval + ((Rand.num() - 0.5f) / 5) ;
+      else event.time += (interval * 2) - Rand.num() ;
       allUpdates.put(event.updates, events.insert(event)) ;
       
-      final long startTime = System.nanoTime() ;
-      event.updates.updateAsScheduled(event.numUpdates++) ;
-      final long timeTaken = System.nanoTime() - startTime ;
-      
-      if (timeTaken > maxTime) {
-        tookLongest = event.updates ;
-        maxTime = timeTaken ;
+      final int updateCount = (int) (currentTime - event.initTime) ;
+      if (updateCount > event.lastUpdateCount) {
+        long startTime = System.nanoTime() ;
+        event.updates.updateAsScheduled(updateCount) ;
+        long updateTime = System.nanoTime() - startTime ;
+        if (updateTime > longestTime) {
+          longestTime = updateTime ;
+          longestUpdate = event.updates ;
+        }
+        event.lastUpdateCount = updateCount ;
+        totalUpdated++ ;
       }
-      if (verbose) {
-        I.say("Time taken by "+event.updates+" was "+(timeTaken / 1000000.0)) ;
+    }
+    
+    this.lastUpdateOkay = finishedOK ;
+    final long taken = System.currentTimeMillis() - initTime ;
+    
+    if (verbose && taken > MIN_DELAY_WARNING) {
+      I.say("___PATHOLOGICALLY DELAYED___") ;
+    }
+    if (verbose) {
+      if (finishedOK) {
+        I.say("  SCHEDULE UPDATED OKAY, OBJECTS UPDATED: "+totalUpdated) ;
       }
-      totalUpdated++ ;
+      else {
+        I.say("  SCHEDULE IS OUT OF TIME, TOTAL UPDATED: "+totalUpdated) ;
+      }
+      I.say("  Last event time: "+lastEventTime+"\n") ;
+      I.say("  TOTAL OBJECTS NEEDING UPDATE: "+events.size()) ;
+      I.say("  TIME SPENT: "+taken) ;
+      I.say("  Longest client to update: "+longestUpdate) ;
+      I.say("  Time taken "+(longestTime / 1000000.0)+"\n") ;
+      I.say("\n") ;
     }
   }
 }

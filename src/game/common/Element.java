@@ -182,12 +182,15 @@ public class Element implements
   }
   
   
-  public void flagWith(Object f) {
+  public final void flagWith(final Object f) {
     flagged = f ;
   }
   
   
-  public Object flaggedWith() {
+  //  TODO:  This is remarkably slow for some reason, based on profiling.  Look
+  //  into creating a common superclass for all Targets, avoid the need for
+  //  method calls?
+  public final Object flaggedWith() {
     return flagged ;
   }
   

@@ -73,10 +73,10 @@ public class SecurityMission extends Mission implements Abilities {
     priority -= Plan.dangerPenalty(subject, actor) ;
     priority -= duration() * 0.5f / World.STANDARD_DAY_LENGTH ;
     if (subject instanceof Actor) {
-      priority += actor.mind.relation((Actor) subject) * ROUTINE ;
+      priority += actor.mind.relationValue((Actor) subject) * ROUTINE ;
     }
     if (subject instanceof Venue) {
-      priority += actor.mind.relation((Venue) subject) * ROUTINE ;
+      priority += actor.mind.relationValue((Venue) subject) * ROUTINE ;
     }
     
     //
@@ -126,13 +126,16 @@ public class SecurityMission extends Mission implements Abilities {
     defended.add(subject) ;
     for (Role role : roles) defended.add(role.applicant) ;
     
-    //  TODO:  Just use anything the actor is aware of instead?
+    
+    //  TODO:  Only react to threats the actor is aware of directly.
     /*
     for (Element e : actor.mind.awareOf()) if (e instanceof Actor) {
       final Actor a = (Actor) e ;
       final Target victim = a.targetFor(Combat.class) ;
     }
     //*/
+    //  TODO:  Also, transplant the defence-reaction code to the Patrolling
+    //  class.
     
     final float maxDist = World.SECTOR_SIZE ;
     Actor toRepel = null ;

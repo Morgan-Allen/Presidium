@@ -6,8 +6,8 @@
 
 
 package src.game.actors ;
+import src.game.civic.*;
 import src.game.common.* ;
-import src.game.social.* ;
 import src.game.tactical.* ;
 import src.util.* ;
 

@@ -4,7 +4,7 @@
   *  for now, feel free to poke around for non-commercial purposes.
   */
 
-package src.game.social ;
+package src.game.civic ;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;

@@ -2,7 +2,7 @@
 
 
 
-package src.game.social ;
+package src.game.civic ;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.tactical.* ;
@@ -83,11 +83,11 @@ public class Resting extends Plan implements Economy {
     //  with the venue in question (if applicable.)
     float priority = actor.world().ecology().ambience.valueAt(restPoint) ;
     priority *= 5 ;
-    if (restPoint.openPlan()) priority -= 2 ;
+    if (restPoint instanceof Tile) priority -= 2 ;
     if (restPoint == actor.mind.home()) priority += 2 ;
     if (restPoint instanceof Venue) {
       final Venue venue = (Venue) restPoint ;
-      final float relation = actor.mind.relation(venue) ;
+      final float relation = actor.mind.relationValue(venue) ;
       if (relation > 0) priority *= relation ;
       else priority -= relation * 5 ;
     }

@@ -238,9 +238,9 @@ public class DebugSituation extends Scenario implements Economy {
     final Boardable hovered = hovered(UI) ;
     if (picked != null && hovered != null) {
       
-      final PathingSearch search = (! GameSettings.pathFree) ?
+      final Pathing search = (! GameSettings.pathFree) ?
         world.pathingCache.fullPathSearch(picked, hovered, null, 16) :
-        new PathingSearch(picked, hovered) ;
+        new Pathing(picked, hovered) ;
       
       if (search != null) {
         if (KeyInput.wasKeyPressed('p')) search.verbose = true ;

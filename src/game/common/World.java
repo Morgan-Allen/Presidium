@@ -31,7 +31,7 @@ public class World {
     STANDARD_DAY_LENGTH  = 480,
     STANDARD_YEAR_LENGTH = STANDARD_DAY_LENGTH * DAYS_PER_YEAR,
     GROWTH_INTERVAL      = STANDARD_DAY_LENGTH / 2,
-    INIT_TIME            = STANDARD_DAY_LENGTH / 3 ;
+    DEFAULT_INIT_TIME    = STANDARD_DAY_LENGTH / 3 ;
   
   
   final public int size ;
@@ -39,7 +39,7 @@ public class World {
   final public WorldSections sections ;
   
   final public Schedule schedule ;
-  private float currentTime = INIT_TIME ;
+  private float currentTime = DEFAULT_INIT_TIME ;
   private List <Mobile> mobiles = new List <Mobile> () ;
   
   private Terrain terrain ;
@@ -67,7 +67,7 @@ public class World {
       tiles[c.x][c.y] = new Tile(this, c.x, c.y) ;
     }
     sections = new WorldSections(this, PATCH_RESOLUTION) ;
-    schedule = new Schedule() ;
+    schedule = new Schedule(currentTime) ;
     
     ecology = new Ecology(this) ;
     activities = new Activities(this) ;
@@ -120,6 +120,14 @@ public class World {
     presences.saveState(s) ;
     ephemera.saveState(s) ;
   }
+  
+  
+  
+  //
+  //  TODO:  Add time-mutation methods here- you'll have to update the schedule
+  //  as well as the local time counter.
+  //  TODO:  Get rid of the internal time-counter entirely, and just refer to
+  //  the schedule for that?
   
   
   

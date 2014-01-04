@@ -6,10 +6,10 @@
 
 
 package src.game.base ;
+import src.game.civic.*;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
-import src.game.social.* ;
 import src.game.tactical.Combat;
 import src.game.planet.* ;
 import src.graphics.common.* ;
@@ -215,8 +215,8 @@ public class Human extends Actor implements Abilities {
     
     //
     //  If you're in dialogue, and selected, render the chat-
-    if (isDoing(Dialogue.class, null) && BaseUI.isPicked(this)) {
-      final Dialogue d = (Dialogue) mind.rootBehaviour() ;
+    if (BaseUI.isPicked(this) && isDoing(Dialogue.class, null)) {
+      final Dialogue d = (Dialogue) matchFor(Dialogue.class) ;
       d.chat.position.setTo(this.position) ;
       d.chat.position.z += this.height() ;
       d.chat.update() ;

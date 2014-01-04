@@ -298,6 +298,7 @@ public class EcologyGen {
     final int SS = World.SECTOR_SIZE ;
     int numAttempts = (world.size * world.size * 4) / (SS * SS) ;
     I.say("No. of attempts: "+numAttempts) ;
+    final Base wildlife = world.baseWithName(Base.KEY_WILDLIFE, true, true) ;
     
     while (numAttempts-- > 0) {
       Tile tried = world.tileAt(
@@ -322,6 +323,7 @@ public class EcologyGen {
       if (toPlace != null) {
         I.say("New lair for "+toPlace.species+" at "+toPlace.origin()) ;
         toPlace.doPlace(toPlace.origin(), null) ;
+        toPlace.assignBase(wildlife) ;
         final Species s = toPlace.species ;
         final float adultMass = s.baseBulk * s.baseSpeed ;
         float bestPop = bestRating / adultMass ;
@@ -330,6 +332,7 @@ public class EcologyGen {
           final Fauna f = toPlace.species.newSpecimen() ;
           f.health.setupHealth(Rand.num(), 0.9f, 0.1f) ;
           f.mind.setHome(toPlace) ;
+          f.assignBase(wildlife) ;
           f.enterWorldAt(toPlace, world) ;
           f.goAboard(toPlace, world) ;
         }

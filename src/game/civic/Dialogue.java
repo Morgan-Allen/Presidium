@@ -5,7 +5,7 @@
   */
 
 
-package src.game.social ;
+package src.game.civic ;
 import src.game.common.* ;
 import src.game.planet.Species ;
 import src.game.actors.* ;
@@ -96,7 +96,7 @@ public class Dialogue extends Plan implements Abilities {
   
   
   public void onSuspend() {
-    if (BaseUI.isPicked(actor)) {
+    if (verbose && I.talkAbout == actor) {
       actor.world().ephemera.addGhost(null, 4, chat, 0.5f) ;
     }
     super.onSuspend() ;
@@ -120,12 +120,6 @@ public class Dialogue extends Plan implements Abilities {
       if (inits == this) {
         final Dialogue OD = new Dialogue(other, actor, this) ;
         return other.mind.couldSwitchTo(OD) ;
-        /*
-        final boolean canSwitch =
-            root == null ||
-            root.priorityFor(other) < OD.priorityFor(other) ;
-        return canSwitch ;
-        //*/
       }
       else return true ;
     }
@@ -137,9 +131,9 @@ public class Dialogue extends Plan implements Abilities {
     if (stage == STAGE_DONE || ! canTalk(other, actor)) return 0 ;
     
     final float
-      relation   = actor.mind.relation(other),
+      relation   = actor.mind.relationValue(other),
       attraction = actor.mind.attraction(other),
-      novelty    = actor.mind.novelty(other) ;
+      novelty    = actor.mind.relationNovelty(other) ;
     
     float appeal = 0 ;
     appeal += relation ;
@@ -167,10 +161,6 @@ public class Dialogue extends Plan implements Abilities {
   
   
   protected Behaviour getNextStep() {
-    if (priorityFor(actor) <= 0) {
-      finishDialogue() ;
-      return null ;
-    }
     if (inits == this && location == null) {
       stage = STAGE_GREETING ;
       final Action greet = new Action(
@@ -264,7 +254,7 @@ public class Dialogue extends Plan implements Abilities {
   /**  Various helper methods and in-detail behaviour implementations-
     */
   private float suasionEffect(Actor actor, Actor other) {
-    final float attLevel = other.mind.relation(actor) ;
+    final float attLevel = other.mind.relationValue(actor) ;
     float effect = 0 ;
     if (actor.traits.test(SUASION, ROUTINE_DC, 1)) effect += 5 ;
     else effect -= 5 ;
@@ -309,7 +299,7 @@ public class Dialogue extends Plan implements Abilities {
       utters(other, "Uh-huh.") ;
       return ;
     }
-    final float attA = r.value(), attO = other.mind.relation(actor) ;
+    final float attA = r.value(), attO = other.mind.relationValue(actor) ;
     if (r.subject == other) {
       if (attA > 0) utters(actor, "I think we get along.") ;
       else utters(actor, "We don't get along.") ;
@@ -394,6 +384,18 @@ public class Dialogue extends Plan implements Abilities {
 
 
 
+/*
+if (priorityFor(actor) <= 0) {
+  finishDialogue() ;
+  return null ;
+}
+//*/
+/*
+final boolean canSwitch =
+    root == null ||
+    root.priorityFor(other) < OD.priorityFor(other) ;
+return canSwitch ;
+//*/
 
 /*
 private void request(Actor actor, Actor other) {

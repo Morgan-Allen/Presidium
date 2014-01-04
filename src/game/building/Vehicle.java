@@ -8,8 +8,8 @@
 package src.game.building ;
 import src.game.actors.* ;
 import src.game.base.* ;
+import src.game.civic.*;
 import src.game.common.* ;
-import src.game.social.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.HUD;
 import src.user.* ;
@@ -325,8 +325,8 @@ public abstract class Vehicle extends Mobile implements
   }
   
   
-  public boolean openPlan() {
-    return false ;
+  public int boardableType() {
+    return Boardable.BOARDABLE_TILE ;
   }
   
   

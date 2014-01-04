@@ -13,6 +13,11 @@ import src.util.* ;
 
 public interface Boardable extends Target {
   
+  final int
+    BOARDABLE_TILE    = 0,
+    BOARDABLE_VENUE   = 1,
+    BOARDABLE_VEHICLE = 2 ;
+  
   
   void setInside(Mobile m, boolean is) ;
   Series <Mobile> inside() ;
@@ -23,5 +28,6 @@ public interface Boardable extends Target {
   
   int pathType() ;
   boolean allowsEntry(Mobile m) ;
-  boolean openPlan() ;
+  int boardableType() ;
+  //boolean openPlan() ;
 }

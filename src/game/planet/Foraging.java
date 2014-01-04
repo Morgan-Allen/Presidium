@@ -9,8 +9,8 @@
 package src.game.planet ;
 import src.game.base.* ;
 import src.game.building.* ;
+import src.game.civic.Resting;
 import src.game.common.* ;
-import src.game.social.Resting ;
 import src.game.actors.* ;
 import src.graphics.common.* ;
 import src.user.* ;

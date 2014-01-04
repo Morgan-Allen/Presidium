@@ -34,7 +34,7 @@ public class Nest extends Venue {
     PREDATOR_RATIO  = 8 ,
     MAX_CROWDING    = 10,
     BROWSING_SAMPLE = 8 ,
-    NEW_SITE_SAMPLE = 5 ,
+    NEW_SITE_SAMPLE = 2 ,
     DEFAULT_BREED_INTERVAL = World.STANDARD_DAY_LENGTH ;
   
   private static boolean verbose = false ;
@@ -93,6 +93,7 @@ public class Nest extends Venue {
   private static int idealBrowserPop(
     Target lair, Species species, World world
   ) {
+    final boolean reports = verbose && I.talkAbout == lair ;
     //
     //  Firstly, ensure there is no other lair within lair placement range.
     final int range = BROWSER_SEPARATION ;
@@ -131,16 +132,16 @@ public class Nest extends Venue {
       }
     }
     avg /= BROWSING_SAMPLE ;
-    if (verbose) I.say("\nFinding ideal browser population at "+lair) ;
-    if (verbose) I.add("  Average fertility at "+lair+" is "+avg) ;
+    if (reports) I.say("\nFinding ideal browser population at "+lair) ;
+    if (reports) I.add("  Average fertility at "+lair+" is "+avg) ;
     avg *= range * range ;
-    if (verbose) I.add(", total: "+avg+"\n") ;
+    if (reports) I.add(", total: "+avg+"\n") ;
     //
     //  Then return the correct number of inhabitants for the location-
     float adultMass = species.baseBulk * species.baseSpeed ;
     float rarity = 1f - (alikeLairs / (numLairsNear + 1)) ;
     float idealPop = (avg * rarity) / (adultMass * BROWSER_RATIO) ;
-    if (verbose) I.say("  Ideal population is: "+idealPop) ;
+    if (reports) I.say("  Ideal population is: "+idealPop) ;
     return (int) (idealPop + 0.5f) ;
   }
   
@@ -148,6 +149,7 @@ public class Nest extends Venue {
   private static float idealPredatorPop(
     Target lair, Species species, World world
   ) {
+    final boolean reports = verbose && I.talkAbout == lair ;
     //
     //  Sample the lairs within hunting range, ensure there are no other
     //  predator lairs in that area, and tally the total of available prey.
@@ -174,12 +176,12 @@ public class Nest extends Venue {
     //  TODO:  TO ALLOW PROPERLY FOR RARITY EFFECTS, YOU'LL HAVE TO SAMPLE OUT
     //  TO TWICE NORMAL HUNTING RANGE!
     
-    if (verbose) I.say("Total prey biomass: "+totalPreyMass) ;
+    if (reports) I.say("Total prey biomass: "+totalPreyMass) ;
     final float rarity = 1f - (alikeLairs / (numLairsNear + 1)) ;
     float adultMass = species.baseBulk * species.baseSpeed ;
-    if (verbose) I.say("Adult biomass: "+adultMass) ;
+    if (reports) I.say("Adult biomass: "+adultMass) ;
     float idealPop = (totalPreyMass * rarity) / (adultMass * PREDATOR_RATIO) ;
-    if (verbose) I.say("Ideal population: "+idealPop) ;
+    if (reports) I.say("Ideal population: "+idealPop) ;
     return (int) (idealPop - 0.5f) ;
   }
   
@@ -199,7 +201,11 @@ public class Nest extends Venue {
         idealPop += idealBrowserPop(site, species, world) ;
       }
     }
-    return idealPop / NEW_SITE_SAMPLE ;
+    final float estimate = idealPop / NEW_SITE_SAMPLE ;
+    if (site instanceof Nest) {
+      ((Nest) site).idealPopEstimate = estimate ;
+    }
+    return estimate ;
   }
   
   
@@ -219,7 +225,7 @@ public class Nest extends Venue {
       (Species) species, venue, world, true
     ) ;
     if (idealPop <= 0) return MAX_CROWDING ;
-    if (verbose && I.talkAbout == venue) {
+    if (verbose && I.talkAbout == venue && false) {
       I.say("Actual/ideal population: "+actualPop+"/"+idealPop) ;
     }
     return Visit.clamp(actualPop / (1 + idealPop), 0, MAX_CROWDING) ;
@@ -295,6 +301,7 @@ public class Nest extends Venue {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (numUpdates % 10 != 0) return ;
+    if (verbose) I.sayAbout(this, "Ideal population: "+idealPopEstimate) ;
     
     final float idealPop = idealNestPop(species, this, world, false) ;
     final float inc = 10f / World.STANDARD_DAY_LENGTH ;
@@ -306,7 +313,9 @@ public class Nest extends Venue {
   }
   
   
-  
+  protected void updatePaving(boolean inWorld) {}
+
+
   /**  Rendering and interface methods-
     */
   public String fullName() {

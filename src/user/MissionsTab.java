@@ -194,7 +194,7 @@ public class MissionsTab extends InfoPanel {
     UI.beginTask(new TargetTask(UI, CONTACT_ICON) {
       
       boolean validPick(Target pick) {
-        if (! (pick instanceof Actor)) return false ;
+        if (! (pick instanceof Actor || pick instanceof Venue)) return false ;
         if (! ((Element) pick).visibleTo(UI.played())) return false ;
         if (((Actor) pick).base() == UI.played()) return false ;
         return true ;
@@ -214,9 +214,6 @@ public class MissionsTab extends InfoPanel {
     }) ;
   }
 }
-
-
-
 
 
 

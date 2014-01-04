@@ -21,8 +21,8 @@ public abstract class Sorting <K> implements Series <K> {
   
   /**  Private fields, data structures, etc-
     */
-  int size ;
-  Node root ;
+  private int size ;
+  private Node root ;
   
   static boolean verbose = false ;
   static enum Side { L, R, BOTH, NEITHER } ;
@@ -39,7 +39,7 @@ public abstract class Sorting <K> implements Series <K> {
   
   /**  Assigning children and parents-
     */
-  void setParent(Node p, Node k, Side s) {
+  void setParent(final Node p, final Node k, final Side s) {
     if (k != null) {
       k.side = s ;
       k.parent = p ;
@@ -52,32 +52,29 @@ public abstract class Sorting <K> implements Series <K> {
   }
   
   
-  Node kidFor(Node n, Side s) {
+  final static Node kidFor(final Node n, final Side s) {
     if (n == null) return null ;
     return (s == Side.L) ? n.kidL : n.kidR ;
   }
   
   
-  void flagForUpdate(Node n) {
-    while (n != null && n.height != -1) {
-      n.height = -1 ;
-      n = n.parent ;
+  final static void flagForUpdate(final Node n) {
+    for (Node f = n ; f != null && f.height != -1 ; f = f.parent) {
+      f.height = -1 ;
     }
   }
   
   
-  int updateHeight(Node n) {
+  final static int updateHeight(final Node n) {
     if (n == null) return -1 ;
     if (n.height != -1) return n.height ;
-    n.height = Math.max(
-      updateHeight(n.kidL),
-      updateHeight(n.kidR)
-    ) + 1 ;
+    final int hL = updateHeight(n.kidL), hR = updateHeight(n.kidR) ;
+    n.height = 1 + ((hL > hR) ? hL : hR) ;
     return n.height ;
   }
   
   
-  int heightFor(Node n) {
+  final static int heightFor(final Node n) {
     return n == null ? -1 : n.height ;
   }
   

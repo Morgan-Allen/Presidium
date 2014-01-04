@@ -35,7 +35,7 @@ public abstract class Fauna extends Actor {
   
   
   final public Species species ;
-  private float breedMetre = 0.0f ;
+  private float breedMetre = 0.0f, lastMigrateCheck = -1 ;
   
   
   public Fauna(Species species) {
@@ -50,6 +50,7 @@ public abstract class Fauna extends Actor {
     super(s) ;
     species = Species.ALL_SPECIES[s.loadInt()] ;
     breedMetre = s.loadFloat() ;
+    lastMigrateCheck = s.loadFloat() ;
     initStats() ;
   }
   
@@ -58,6 +59,7 @@ public abstract class Fauna extends Actor {
     super.saveState(s) ;
     s.saveInt(species.ID) ;
     s.saveFloat(breedMetre) ;
+    s.saveFloat(lastMigrateCheck) ;
   }
   
   
@@ -109,14 +111,13 @@ public abstract class Fauna extends Actor {
       }
       
       protected Behaviour reactionTo(Element seen) {
-        if (BaseUI.isPicked(this)) I.say(this+" has seen: "+seen) ;
         if (seen instanceof Actor) return nextDefence((Actor) seen) ;
         return nextDefence(null) ;
       }
       
       //
       //  We install some default relationships with other animals-
-      public float relation(Actor other) {
+      public float relationValue(Actor other) {
         if (other instanceof Fauna) {
           final Fauna f = (Fauna) other ;
           if (f.species == species) return 0.25f ;
@@ -138,12 +139,22 @@ public abstract class Fauna extends Actor {
   
   
   protected Behaviour nextBrowsing() {
+    final float range = Nest.forageRange(species) * 2 ;
+    Target centre = mind.home() ;
+    if (centre == null) centre = this ;
+    
     final Batch <Flora> sampled = new Batch <Flora> () ;
-    world.presences.sampleFromKey(this, world, 5, sampled, Flora.class) ;
+    world.presences.sampleFromKey(centre, world, 5, sampled, Flora.class) ;
+    /*
+    final PresenceMap map = world.presences.mapFor(Flora.class) ;
+    for (int n = 5 ; n-- > 0 ;) {
+      final Flora f = (Flora) map.pickRandomAround(this, range) ;
+      if (f != null) sampled.include(f) ;
+    }
+    //*/
     
     Flora picked = null ;
     float bestRating = 0 ;
-    final float range = Nest.forageRange(species) * 2 ;
     for (Flora f : sampled) {
       final float dist = Spacing.distance(this, f) ;
       if (dist > range) continue ;
@@ -162,7 +173,7 @@ public abstract class Fauna extends Actor {
       this, "actionBrowse",
       Action.STRIKE, "Browsing"
     ) ;
-    //browse.setMoveTarget(Spacing.nearestOpenTile(picked.origin(), this)) ;
+    browse.setMoveTarget(Spacing.nearestOpenTile(picked.origin(), this)) ;
     browse.setPriority(priority) ;
     return browse ;
   }
@@ -170,6 +181,8 @@ public abstract class Fauna extends Actor {
   
   public boolean actionBrowse(Fauna actor, Flora eaten) {
     if (! eaten.inWorld()) return false ;
+    
+    I.sayAbout(this, "Am browsing at: "+eaten.origin()) ;
     float bite = 0.1f * eaten.growth * 2 * health.maxHealth() / 10 ;
     eaten.incGrowth(0 - bite, actor.world(), false) ;
     actor.health.takeSustenance(bite * PLANT_CONVERSION, 1) ;
@@ -209,9 +222,16 @@ public abstract class Fauna extends Actor {
     String description = null ;
     float priority = 0 ;
     
-    final boolean crowded = Nest.crowdingFor(this) > 0.5f ;
-    if (verbose) I.sayAbout(this, "Crowded? "+crowded) ;
-    final Nest newNest = crowded ? Nest.findNestFor(this) : null ;
+    Nest newNest = null ;
+    if (lastMigrateCheck == -1) lastMigrateCheck = world.currentTime() ;
+    if (world.currentTime() - lastMigrateCheck > World.GROWTH_INTERVAL) {
+      final boolean crowded = Nest.crowdingFor(this) > 0.5f ;
+      if (verbose) I.sayAbout(this, "Crowded? "+crowded) ;
+      newNest = crowded ? Nest.findNestFor(this) : null ;
+      lastMigrateCheck = world.currentTime() ;
+    }
+    
+    
     if (newNest != null && newNest != mind.home()) {
       if (verbose) I.sayAbout(this, "Found new nest! "+newNest.origin()) ;
       wandersTo = newNest ;
@@ -298,6 +318,7 @@ public abstract class Fauna extends Actor {
     final int maxKids = 1 + (int) Math.sqrt(10f / health.lifespan()) ;
     for (int numKids = 1 + Rand.index(maxKids) ; numKids-- > 0 ;) {
       final Fauna young = species.newSpecimen() ;
+      young.assignBase(this.base()) ;
       young.health.setupHealth(0, 1, 0) ;
       young.mind.setHome(nests) ;
       final Tile e = nests.mainEntrance() ;
@@ -314,6 +335,7 @@ public abstract class Fauna extends Actor {
   
   
   protected void addChoices(Choice choice) {
+    
     if (species.browser()) choice.add(nextBrowsing()) ;
     if (species.predator()) choice.add(nextHunting()) ;
     if (breedMetre >= 0.99f) choice.add(nextBreeding()) ;

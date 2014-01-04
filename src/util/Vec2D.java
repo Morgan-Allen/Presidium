@@ -6,6 +6,7 @@
 
 package src.util ;
 import java.io.* ;
+import org.apache.commons.math3.util.FastMath ;
 
 
 
@@ -228,25 +229,7 @@ public class Vec2D {
     *  in degrees.
     */
   public float toAngle() {
-    float l = length(), rotation = 0, dx = x / l, dy = y / l ;
-    //  (If angle is greater than 180 degrees-)
-    if (dy < 0) { dy = -dy ; dx = -dx ; rotation += Math.PI ; }
-    rotation += Math.acos(dx) ;
-    //  (dy > 0.707f) ?  //(approx. 45 degrees)
-    //  Math.acos(dx) :   //...pick whichever gives better accuracy.
-    //  Math.asin(dy) ;
-    return (float) (rotation * 180 / Math.PI) ;
-  }
-  
-  
-  /**  Sets this vector to match the given angle value (0 degrees == (1, 0), 90
-    *  degrees == (0, 1), etc.)  The argument value must be in degrees.
-    */
-  public Vec2D setFromAngle(float angle) {
-    angle *= Math.PI / 180 ;
-    x = (float) Math.cos(angle) ;
-    y = (float) Math.sin(angle) ;
-    return this ;
+    return (float) (FastMath.atan2(y, x) * 180 / Math.PI) ;
   }
   
 
@@ -259,10 +242,14 @@ public class Vec2D {
   }
   
   
-  /**  Similar, but for vectors directly...
+  /**  Sets this vector to match the given angle value (0 degrees == (1, 0), 90
+    *  degrees == (0, 1), etc.)  The argument value must be in degrees.
     */
-  public static float degreeDif(Vec2D a1, Vec2D a2) {
-    return degreeDif(a1.toAngle(), a2.toAngle()) ;
+  public Vec2D setFromAngle(float angle) {
+    angle *= Math.PI / 180 ;
+    x = (float) Math.cos(angle) ;
+    y = (float) Math.sin(angle) ;
+    return this ;
   }
   
   

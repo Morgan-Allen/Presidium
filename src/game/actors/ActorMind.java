@@ -7,10 +7,10 @@
 
 
 package src.game.actors ;
+import src.game.civic.*;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.game.planet.* ;
-import src.game.social.* ;
 import src.game.tactical.* ;
 import src.user.* ;
 import src.util.* ;
@@ -163,7 +163,6 @@ public abstract class ActorMind implements Abilities {
   
   
   protected void updateSeen() {
-    
     final World world = actor.world() ;
     final float sightRange = actor.health.sightRange() ;
     final int reactLimit = 2 + (int) (actor.traits.traitLevel(INSIGHT) / 5) ;
@@ -572,7 +571,7 @@ public abstract class ActorMind implements Abilities {
   
   
   
-  /**  Supplementary methods for behaviour-
+  /**  Supplementary methods for relationships and attitudes-
     */
   public float attraction(Actor other) {
     if (this.actor.species() != Species.HUMAN) return 0 ;
@@ -618,13 +617,20 @@ public abstract class ActorMind implements Abilities {
   }
   
   
-  public void setRelation(Actor other, float level, int initTime) {
+  public void setRelation(Accountable other, float level, int initTime) {
     final Relation r = new Relation(actor, other, level, initTime) ;
     relations.put(other, r) ;
   }
   
   
-  public float relation(Base base) {
+  public void incRelation(Accountable other, float inc) {
+    Relation r = relations.get(other) ;
+    if (r == null) r = initRelation(other, 0) ;
+    r.incValue(inc) ;
+  }
+  
+  
+  public float relationValue(Base base) {
     final Base AB = actor.base() ;
     if (AB != null) {
       if (base == AB) return 1 ;
@@ -635,24 +641,24 @@ public abstract class ActorMind implements Abilities {
   }
   
   
-  public float relation(Venue venue) {
+  public float relationValue(Venue venue) {
     if (venue == null) return 0 ;
     if (venue == home) return 1.0f ;
     if (venue == work) return 0.5f ;
-    return relation(venue.base()) / 2f ;
+    return relationValue(venue.base()) / 2f ;
   }
   
   
-  public float relation(Actor other) {
+  public float relationValue(Actor other) {
     final Relation r = relations.get(other) ;
     if (r == null) {
-      return relation(other.base()) / 2 ;
+      return relationValue(other.base()) / 2 ;
     }
-    return r.value() + (relation(other.base()) / 2) ;
+    return r.value() + (relationValue(other.base()) / 2) ;
   }
   
   
-  public float novelty(Actor other) {
+  public float relationNovelty(Actor other) {
     final Relation r = relations.get(other) ;
     if (r == null) return 1 ;
     return r.novelty(actor.world()) ;
@@ -668,71 +674,19 @@ public abstract class ActorMind implements Abilities {
   }
   
   
-  public void incRelation(Accountable other, float inc) {
-    Relation r = relations.get(other) ;
-    if (r == null) r = initRelation(other, 0) ;
-    r.incValue(inc) ;
-  }
-  
-  
   public Batch <Relation> relations() {
     final Batch <Relation> all = new Batch <Relation> () ;
     for (Relation r : relations.values()) all.add(r) ;
     return all ;
   }
-}
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-protected void updateSeen() {
-  final PresenceMap mobiles = actor.world().presences.mapFor(Mobile.class) ;
-  final float sightMod = actor.indoors() ? 0.5f : 1 ;
-  final float sightRange = actor.health.sightRange() * sightMod ;
-  final float lostRange = sightRange * 1.5f ;
-  final int reactLimit = (int) (actor.traits.traitLevel(INSIGHT) / 2) ;
-  //
-  //  Firstly, remove any elements that have escaped beyond sight range.
-  final Batch <Element> outOfRange = new Batch <Element> () ;
-  for (Mobile e : seen.keySet()) {
-    if (
-      (! e.inWorld()) || e.indoors() ||
-      Spacing.distance(e, actor) > lostRange
-    ) {
-      outOfRange.add(e) ;
-      if (verbose) I.sayAbout(actor, "Can no longer see: "+e) ;
-    }
-  }
-  for (Element e : outOfRange) seen.remove(e) ;
-  //
-  //  Secondly, add any elements that have entered the requisite range-
-  final Batch <Mobile> newSeen = new Batch <Mobile> () ;
-  int numR = 0 ; for (Target t : mobiles.visitNear(actor, -1, null)) {
-    if (t == actor) continue ;
-    if (++numR > reactLimit) break ;
-    if (Spacing.distance(actor, t) <= sightRange) {
-      final Mobile m = (Mobile) t ;
-      final Session.Saveable after = activityFor(m), before = seen.get(m) ;
-      if (before != after) newSeen.add(m) ;
-      seen.put(m, after) ;
-    }
-    else break ;
-  }
-  //
-  //  And react to anything fresh-
-  for (Mobile NS : newSeen) {
-    ///if (BaseUI.isPicked(actor)) I.say("  "+actor+" REACTING TO: "+NS) ;
-    final Behaviour reaction = reactionTo(NS) ;
-    if (couldSwitchTo(reaction)) assignBehaviour(reaction) ;
+  
+  
+  public boolean hasRelation(Accountable other) {
+    return relations.get(other) != null ;
   }
 }
-//*/
+
+
+
+
+

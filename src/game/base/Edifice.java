@@ -6,10 +6,10 @@
 
 
 package src.game.base ;
+import src.game.civic.*;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
-import src.game.social.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD ;

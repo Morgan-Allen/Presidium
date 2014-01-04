@@ -50,7 +50,7 @@ public class Repairs extends Plan implements Abilities {
     if (verbose) I.sayAbout(actor, "Considering repair of "+built+"?") ;
     final float attachment = Math.max(
       actor.base().communitySpirit(),
-      actor.mind.relation(built)
+      actor.mind.relationValue(built)
     ) ;
     //
     //  TODO:  Factor out the skill evaluation down below?

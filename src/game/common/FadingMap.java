@@ -15,7 +15,7 @@ public class FadingMap implements TileConstants {
   final static float
     OVERALL_MULT   = 1f / LONG_INTERVAL ;
   
-  private static boolean verbose = true ;
+  private static boolean verbose = false ;
   
   final World world ;
   final int grid, resolution ;

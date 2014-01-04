@@ -8,9 +8,9 @@
 package src.game.base ;
 import src.game.building.* ;
 import src.game.actors.* ;
+import src.game.civic.Performance;
+import src.game.civic.Recreation;
 import src.game.common.* ;
-import src.game.social.Performance;
-import src.game.social.Recreation;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;
 import src.graphics.widgets.HUD ;

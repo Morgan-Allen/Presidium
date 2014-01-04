@@ -2,9 +2,9 @@
 
 
 package src.game.tactical ;
+import src.game.civic.*;
 import src.game.common.* ;
 import src.game.actors.* ;
-import src.game.social.* ;
 import src.game.campaign.* ;
 import src.graphics.common.* ;
 import src.graphics.sfx.* ;

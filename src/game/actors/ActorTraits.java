@@ -18,6 +18,9 @@ public class ActorTraits implements Abilities {
   
   /**  Common fields, constructors, and save/load methods-
     */
+  final static float
+    MIN_FAIL_CHANCE    = 0.1f,
+    MAX_SUCCEED_CHANCE = 0.9f ;
   final static int 
     DNA_SIZE         = 16,
     DNA_LETTERS      = 26,
@@ -403,8 +406,7 @@ public class ActorTraits implements Abilities {
     float bonusB = 0 - Math.min(0, bonus) ;
     if (b != null && opposed != null) bonusB += b.traits.useLevel(opposed) ;
     final float chance = Visit.clamp(bonusA + 10 - bonusB, 0, 20) / 20 ;
-    ///I.say("Test chance for "+actor+" is: "+chance) ;
-    return Visit.clamp(chance, 0.1f, 0.9f) ;
+    return Visit.clamp(chance, MIN_FAIL_CHANCE, MAX_SUCCEED_CHANCE) ;
   }
   
   

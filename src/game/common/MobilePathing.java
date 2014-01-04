@@ -65,7 +65,7 @@ public class MobilePathing {
     final boolean
       exists = b.inWorld(),
       allows = b.allowsEntry(mobile),
-      blocks = mobile.blockedBy(b) ;
+      blocks = Pathing.blockedBy(b, mobile) ;
     if (exists && allows && ! blocks) return true ;
     if (verbose && I.talkAbout == mobile) {
       I.say("Problem with end point: "+b) ;
@@ -136,7 +136,7 @@ public class MobilePathing {
       final int index = stepIndex + i ;
       if (index >= path.length) break ;
       final Boardable t = path[index] ;
-      if (mobile.blockedBy(t)) blocked = true ;
+      if (Pathing.blockedBy(t, mobile)) blocked = true ;
       else if (! t.inWorld()) blocked = true ;
       if (t == dest) nearTarget = true ;
     }
@@ -194,7 +194,7 @@ public class MobilePathing {
     else {
       if (verbose && I.talkAbout == mobile) {
         I.say("PATH IS: ") ;
-        for (Boardable b : path) I.add(b+" "+mobile.blockedBy(b)+" ") ;
+        for (Boardable b : path) I.add(b+" "+Pathing.blockedBy(b, mobile)+" ") ;
       }
       int index = 0 ;
       while (index < path.length) if (path[index++] == origin) break ;
@@ -206,7 +206,7 @@ public class MobilePathing {
   
   protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
     if (GameSettings.pathFree) {
-      final PathingSearch search = new PathingSearch(initB, destB, -1) ;
+      final Pathing search = new Pathing(initB, destB, -1) ;
       if (verbose && I.talkAbout == mobile) search.verbose = true ;
       search.client = mobile ;
       search.doSearch() ;
@@ -247,7 +247,7 @@ public class MobilePathing {
     //
     //  Determine how far one can move this update, including limits on
     //  maximum rotation-
-    final float maxRotate = speed * 180 / PlayLoop.UPDATES_PER_SECOND  ;
+    final float maxRotate = speed * 180 / PlayLoop.UPDATES_PER_SECOND ;
     final float
       angleDif = Vec2D.degreeDif(angle, mobile.rotation),
       absDif   = Math.abs(angleDif) ;
@@ -420,32 +420,3 @@ public class MobilePathing {
 }
 
 
-
-
-
-
-
-
-//
-//  TODO:  There has to be a more elegant way to do this.  Move this back to
-//  the Action class, or out to a Motion utility class.
-/*
-public static boolean closeEnough(
-  Target origin, Target target, float maxDist
-) {
-  if (
-    target instanceof Boardable &&
-    origin instanceof Mobile && maxDist < 1
-  ) {
-    final Boardable b = (Boardable) target ;
-    final Mobile mobile = (Mobile) origin ;
-    if (mobile.aboard() != b) {
-      final Boardable batch[] = new Boardable[8] ;
-      b.canBoard(batch) ;
-      if (! Visit.arrayIncludes(batch, mobile.aboard())) return false ;
-    }
-    return mobile.pathing.inLocus(b) ;
-  }
-  return Spacing.distance(origin, target) <= maxDist ;
-}
-//*/

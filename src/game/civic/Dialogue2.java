@@ -141,6 +141,8 @@ public class Dialogue2 extends Plan implements Abilities {
     
     //Plan favour = actor.mind.createBehaviour() ;
     //favour.assignActor(other) ;
+    //favour.priorityMod = ROUTINE * other.mind.relationValue(actor) ;
+    //favour.priorityMod *= favour.priorityFor(other) / PARAMOUNT ;
     //return favour ;
     return null ;
   }

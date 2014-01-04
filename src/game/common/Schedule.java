@@ -23,12 +23,8 @@ import src.util.Sorting.* ;
 public class Schedule {
   
   
-  final static int
-    MAX_UPDATE_INTERVAL = ((1000 / PlayLoop.UPDATES_PER_SECOND) / 2) - 5,
-    MIN_DELAY_WARNING   = MAX_UPDATE_INTERVAL + 10 ;
-  
   private static boolean
-    verbose       = true,
+    verbose       = false,
     verboseDelays = verbose && true ;
   
   private long initTime = -1 ;
@@ -139,8 +135,12 @@ public class Schedule {
     */
   void advanceSchedule(final float currentTime) {
     this.currentTime = currentTime ;
+    
     //  Find the current time, and descend to all events left of that dividing
     //  line (i.e, earlier.)
+    final int NU = PlayLoop.UPDATES_PER_SECOND * 2 ;
+    final int maxInterval = (int) (1000 / (PlayLoop.gameSpeed() * NU)) - 1 ;
+    
     final long oldInit = initTime ;
     initTime = System.currentTimeMillis() ;
     int totalUpdated = 0 ;
@@ -157,7 +157,7 @@ public class Schedule {
     
     while (true) {
       final long taken = System.currentTimeMillis() - initTime ;
-      if (taken > MAX_UPDATE_INTERVAL) {
+      if (taken > maxInterval) {
         finishedOK = false ;
         break ;
       }
@@ -200,7 +200,7 @@ public class Schedule {
     this.lastUpdateOkay = finishedOK ;
     final long taken = System.currentTimeMillis() - initTime ;
     
-    if (verbose && taken > MIN_DELAY_WARNING) {
+    if (verbose && taken >= maxInterval * 2) {
       I.say("___PATHOLOGICALLY DELAYED___") ;
     }
     if (verbose) {

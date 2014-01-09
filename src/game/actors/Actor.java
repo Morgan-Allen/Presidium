@@ -7,7 +7,7 @@
 
 package src.game.actors ;
 import src.game.building.* ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
@@ -70,7 +70,7 @@ public abstract class Actor extends Mobile implements
   
   protected abstract ActorMind initAI() ;
   
-  protected MobilePathing initPathing() { return new MobilePathing(this) ; }
+  protected MobileMotion initMotion() { return new MobileMotion(this) ; }
   
   public Background vocation() { return null ; }
   public void setVocation(Background b) {}
@@ -117,31 +117,11 @@ public abstract class Actor extends Mobile implements
   
   protected void pathingAbort() {
     if (actionTaken == null) return ;
-    
-    final Behaviour top = mind.topBehaviour() ;
-    if (top != null) {
-      top.abortBehaviour() ;
-      mind.cancelBehaviour(top) ;
-    }
-    
+
     final Behaviour root = mind.rootBehaviour() ;
-    if (verbose) {
-      I.sayAbout(this, "Aborting "+actionTaken) ;
-      if (actionTaken != null) I.add("  "+actionTaken.hashCode()+"\n") ;
-      I.sayAbout(this, "Root behaviour "+root) ;
-    }
-    //
-    //  TODO:  Not good enough.  You need to work down the chain from the top
-    //  behaviour, and allow each behaviour a chance to handle the pathing
-    //  failure 'gracefully' (whatever that means.)  The default response,
-    //  however, should be outright cancellation.
-    if (root != null && root.finished()) {
-      if (verbose) I.sayAbout(this, "  ABORTING ROOT") ;
-      mind.cancelBehaviour(root) ;
-    }
-    
-    //  TODO:  Schedule for an update instead.
-    //assignAction(mind.getNextAction()) ;
+    //  TODO:  This needs some work.  Ideally, behaviours (particularly
+    //  missions) should have some method of handling this more gracefully.
+    mind.cancelBehaviour(root) ;
   }
   
   
@@ -182,10 +162,10 @@ public abstract class Actor extends Mobile implements
   protected void updateAsMobile() {
     super.updateAsMobile() ;
     final boolean OK = health.conscious() ;
-    if (! OK) pathing.updateTarget(null) ;
+    if (! OK) motion.updateTarget(null) ;
     
     if (actionTaken != null) {
-      if (! pathing.checkPathingOkay()) {
+      if (! motion.checkPathingOkay()) {
         world.schedule.scheduleNow(this) ;
       }
       if (actionTaken.finished()) {
@@ -205,7 +185,7 @@ public abstract class Actor extends Mobile implements
       mind.cancelBehaviour(root) ;
     }
     
-    if (aboard instanceof Mobile && (pathing.nextStep() == aboard || ! OK)) {
+    if (aboard instanceof Mobile && (motion.nextStep() == aboard || ! OK)) {
       aboard.position(nextPosition) ;
     }
   }
@@ -230,8 +210,8 @@ public abstract class Actor extends Mobile implements
       if (actionTaken == null || actionTaken.finished()) {
         assignAction(mind.getNextAction()) ;
       }
-      if (! pathing.checkPathingOkay()) {
-        pathing.refreshPath() ;
+      if (! motion.checkPathingOkay()) {
+        motion.refreshPathStep() ;
       }
       mind.updateAI(numUpdates) ;
     }
@@ -281,7 +261,7 @@ public abstract class Actor extends Mobile implements
       this, this, this, "actionFall",
       animName, "Stricken"
     ) ;
-    pathing.updateTarget(null) ;
+    motion.updateTarget(null) ;
     mind.cancelBehaviour(mind.rootBehaviour()) ;
     this.assignAction(falling) ;
   }

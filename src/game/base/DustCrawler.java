@@ -63,7 +63,7 @@ public class DustCrawler extends Vehicle implements
     base().intelMap.liftFogAround(this, 3.0f) ;
     
     final FormerPlant plant = (FormerPlant) hangar() ;
-    final Target going = pathing.target() ;
+    final Target going = motion.target() ;
     
     if (going == null || going == aboard()) {
       if (plant == aboard()) {
@@ -73,12 +73,12 @@ public class DustCrawler extends Vehicle implements
           cargo.removeItem(sample) ;
         }
         if (plant.soilSamples < 10) {
-          pathing.updateTarget(plant.pickSample()) ;
+          motion.updateTarget(plant.pickSample()) ;
         }
       }
       else {
         cargo.addItem(Item.withReference(SAMPLES, origin())) ;
-        pathing.updateTarget(plant) ;
+        motion.updateTarget(plant) ;
       }
       toggleSoilDisplay() ;
     }
@@ -88,10 +88,10 @@ public class DustCrawler extends Vehicle implements
   protected void pathingAbort() {
     ///I.say("PATHING ABORTED!") ;
     super.pathingAbort() ;
-    if (! pathing.checkPathingOkay()) {
+    if (! motion.checkPathingOkay()) {
       final FormerPlant plant = (FormerPlant) hangar() ;
-      if (cargo.amountOf(SAMPLES) > 0) pathing.updateTarget(plant) ;
-      else pathing.updateTarget(plant.pickSample()) ;
+      if (cargo.amountOf(SAMPLES) > 0) motion.updateTarget(plant) ;
+      else motion.updateTarget(plant.pickSample()) ;
     }
   }
   

@@ -94,7 +94,7 @@ public class BotanicalStation extends Venue implements Economy {
       "Hire additional field hands to plant and reap the harvest more "+
       "quickly, maintain equipment, and bring land under cultivation.",
       50,
-      Background.FIELD_CULTIVATOR, 1,
+      Background.CULTIVATOR, 1,
       null, ALL_UPGRADES
     ),
     TREE_FARMING = new Upgrade(
@@ -158,7 +158,7 @@ public class BotanicalStation extends Venue implements Economy {
     final float shortages =
       stocks.shortagePenalty(CARBS) +
       stocks.shortagePenalty(GREENS) ;
-    if (actor.vocation() == Background.FIELD_CULTIVATOR && shortages > 0) {
+    if (actor.vocation() == Background.CULTIVATOR && shortages > 0) {
       final Foraging foraging = new Foraging(actor, this) ;
       foraging.priorityMod = Plan.CASUAL * shortages ;
       choice.add(foraging) ;
@@ -232,7 +232,7 @@ public class BotanicalStation extends Venue implements Economy {
       }
       //
       //  Then, calculate how many allotments one should have.
-      int maxAllots = 3 + (structure.upgradeBonus(Background.FIELD_CULTIVATOR) * 2) ;
+      int maxAllots = 3 + (structure.upgradeBonus(Background.CULTIVATOR) * 2) ;
       maxAllots *= STRIP_SIZE ;
       if (maxAllots > allotments.size()) {
         //
@@ -264,7 +264,7 @@ public class BotanicalStation extends Venue implements Economy {
 
   public int numOpenings(Background v) {
     int num = super.numOpenings(v) ;
-    if (v == Background.FIELD_CULTIVATOR) return num + 1 ;
+    if (v == Background.CULTIVATOR) return num + 1 ;
     if (v == Background.ECOLOGIST ) return num + 1 ;
     return 0 ;
   }
@@ -308,7 +308,7 @@ public class BotanicalStation extends Venue implements Economy {
   
   
   public Background[] careers() {
-    return new Background[] { Background.ECOLOGIST, Background.FIELD_CULTIVATOR } ;
+    return new Background[] { Background.ECOLOGIST, Background.CULTIVATOR } ;
   }
   
   

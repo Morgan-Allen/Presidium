@@ -9,7 +9,7 @@ package src.game.common ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.campaign.* ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.tactical.* ;
 import src.graphics.common.* ;
 import src.user.* ;
@@ -17,16 +17,12 @@ import src.util.* ;
 
 
 
-//
-//  As your settlement grows, however, a larger and larger portion of your
-//  revenue is siphoned back to the homeworld as tribute.  Getting your
-//  settlement into debt is an excellent way to lower your standing (get fired
-//  and demoted to some smaller or more dangerous post.)
-
-//
 //  TODO:  Primal bases shouldn't employ fog of war, commerce transactions, and
 //  the like.  They are intended for use primarily by artilects, wildlife,
 //  natives, and the like.
+
+//  TODO:  Modify relations between bases depending on the average relations
+//  of their members.
 
 
 public class Base implements

@@ -3,7 +3,7 @@
 
 package src.game.campaign ;
 import src.game.base.* ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;

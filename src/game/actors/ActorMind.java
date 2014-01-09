@@ -7,7 +7,7 @@
 
 
 package src.game.actors ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.building.* ;
 import src.game.planet.* ;
@@ -165,7 +165,7 @@ public abstract class ActorMind implements Abilities {
   protected void updateSeen() {
     final World world = actor.world() ;
     final float sightRange = actor.health.sightRange() ;
-    final int reactLimit = 2 + (int) (actor.traits.traitLevel(INSIGHT) / 5) ;
+    final int reactLimit = 3 + (int) (actor.traits.traitLevel(INSIGHT) / 5) ;
     
     final Batch <Element>
       couldSee   = new Batch <Element> (),
@@ -191,6 +191,8 @@ public abstract class ActorMind implements Abilities {
         couldSee.add(a) ;
       }
     }
+    if (home != null) couldSee.include((Element) home) ;
+    if (work != null) couldSee.include((Element) work) ;
     //
     //  And check to see if they're anything new.
     for (Element m : couldSee) {
@@ -328,7 +330,7 @@ public abstract class ActorMind implements Abilities {
     final Behaviour next = root.nextStepFor(actor) ;
     I.say("Root behaviour: "+root) ;
     I.say("Next step: "+next) ;
-    I.say("Valid/finished "+next.valid()+"/"+next.finished()) ;
+    I.say("  Valid/finished "+next.valid()+"/"+next.finished()) ;
     new Exception().printStackTrace() ;
     return null ;
   }
@@ -427,7 +429,6 @@ public abstract class ActorMind implements Abilities {
       I.say("POPPING BEHAVIOUR: "+b) ;
     }
     actor.world().activities.toggleBehaviour(b, false) ;
-    if (b != null) b.onSuspend() ;
     return b ;
   }
   

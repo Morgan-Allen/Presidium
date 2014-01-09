@@ -77,8 +77,8 @@ public class MainMenu extends UIGroup {
     Background.SUPPLY_CORPS,
     Background.FABRICATOR,
     Background.TECHNICIAN,
-    Background.FIELD_CULTIVATOR,
-    Background.MINDER
+    Background.CULTIVATOR,
+    Background.MEDIC
   } ;
   final static String
     SITE_DESC[] = {

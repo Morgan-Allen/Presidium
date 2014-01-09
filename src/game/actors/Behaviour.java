@@ -30,7 +30,6 @@ public interface Behaviour extends Session.Saveable {
   Behaviour nextStepFor(Actor actor) ;
   int motionType(Actor actor) ;
   void abortBehaviour() ;
-  void onSuspend() ;
   
   float priorityFor(Actor actor) ;
   boolean finished() ;

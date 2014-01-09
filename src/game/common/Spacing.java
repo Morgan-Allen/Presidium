@@ -244,7 +244,6 @@ public final class Spacing implements TileConstants {
     int numTries = 0 ;
     while (nearest == null && numTries++ < (CLUSTER_SIZE / 2)) {
       for (Tile t : perimeter(area, world)) {
-        //I.say("  Trying tile: "+t) ;
         if (t == null || t.blocked()) continue ;
         if (t != o && t.inside().size() > 0) continue ;
         final float dist = distance(o, t) ;
@@ -303,8 +302,6 @@ public final class Spacing implements TileConstants {
     final boolean inPerim = Visit.arrayIncludes(perim, l) ;
     ///if (inPerim && Rand.num() > 0.2f) return l ;
     
-    //final Batch <Tile> free = new Batch <Tile> () ;
-    //final Batch <Float> weights = new Batch <Float> () ;
     final float weights[] = new float[perim.length] ;
     float sumWeights = 0 ;
     int index = -1 ;
@@ -312,7 +309,6 @@ public final class Spacing implements TileConstants {
       index++ ;
       if (p == null || p.blocked()) continue ;
       if (p.inside().size() > 0) continue ;
-      //free.add(p) ;
       final float dist = Spacing.distance(p, l) ;
       if (inPerim && dist > 4) continue ;
       final float weight = 1f / (1 + dist) ;
@@ -326,7 +322,6 @@ public final class Spacing implements TileConstants {
       if (roll < weights[n]) return perim[n] ;
       sumWeights += weights[n] ;
     }
-    //return null ;
     return nearestOpenTile(t, client) ;
   }
   
@@ -435,43 +430,6 @@ public static Tile[] traceSurrounding(Element element, int maxLen) {
 //*/
 
 /*
-public static boolean canPlace(Element fixture, World world) {
-  //
-  //  Firstly, we obtain the basic measure of the areas to check-
-  final Box2D
-    area = fixture.area(),
-    outerArea = new Box2D().setTo(area).expandBy(1) ;
-  final Tile
-    perim[] = perimeter(area, world),
-    outerPerim[] = perimeter(outerArea, world) ;
-  //
-  //  Check that all underlying tiles are clear, and that you're not on the
-  //  edge of the map.
-  for (Coord c : Visit.grid(area)) {
-    final Tile t = world.tileAt(c.x, c.y) ;
-    if (t == null) return false ;
-    if (! t.habitat().pathClear) return false ;
-    if (t.owner() == null) continue ;
-    if (t.owner().owningType() >= fixture.owningType()) return false ;
-  }
-  for (Tile t : perim) if (t == null) return false ;
-  //
-  //  Check that placement won't cause pathing problems-
-  if (! perimeterFits(fixture)) return false ;
-  //
-  //  Then, ensure no element belonging to a different cluster is within two
-  //  tiles of this fixture-
-  for (Tile t : perim) {
-    if (! checkClustering(fixture, t, true)) return false ;
-  }
-  for (Tile t : outerPerim) if (t != null) {
-    if (! checkClustering(fixture, t, true)) return false ;
-  }
-  return true ;
-}
-//*/
-
-/*
 private static boolean checkClustering(Element a, Tile t, boolean checkType) {
   final Element b = t.owner() ;
   if (checkType && (b == null || b.owningType() < a.owningType()))
@@ -482,3 +440,5 @@ private static boolean checkClustering(Element a, Tile t, boolean checkType) {
     ((oA.y / CLUSTER_SIZE) != (oB.y / CLUSTER_SIZE)) ;
 }
 //*/
+
+

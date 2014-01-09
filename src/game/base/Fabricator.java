@@ -6,7 +6,7 @@
 
 
 package src.game.base ;
-import src.game.civic.Commission;
+import src.game.civilian.Commission;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;

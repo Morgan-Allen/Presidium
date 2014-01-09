@@ -175,12 +175,12 @@ public class Pathing extends Search <Boardable> {
       final Tile t = (Tile) b ;
       if (t.blocked()) return true ;
       
-      if (m == null || m.pathing == null || t == m.pathing.pathTarget) {
+      if (m == null || m.motion == null || t == m.motion.pathTarget) {
         return false ;
       }
-      final Tile o = m.origin() ;
-      if (o == t) return false ;
+      if (m.aboard() == b) return false ;
       
+      final Tile o = m.origin() ;
       final Series <Mobile> inside = t.inside() ;
       if (inside == null) return false ;
       int xd = o.x - t.x, yd = t.y - o.y ;
@@ -194,6 +194,7 @@ public class Pathing extends Search <Boardable> {
           return true ;
         }
       }
+      //*/
     }
     return false ;
   }

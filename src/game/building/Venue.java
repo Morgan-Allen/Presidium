@@ -6,7 +6,7 @@
 
 
 package src.game.building ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.actors.* ;

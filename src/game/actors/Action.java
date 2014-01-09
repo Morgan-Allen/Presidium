@@ -21,6 +21,9 @@ import java.lang.reflect.* ;
 //  TODO:  Consider getting rid of separate Move Targets entirely.  It might
 //  well be turning out as more hassle than it's worth.
 
+//  TODO:  ...You need to arrange for actions to terminate if you wind up
+//  staying in one place too long (which likely means you're stuck.)
+
 
 public class Action implements Behaviour, Model.AnimNames {
   
@@ -64,7 +67,6 @@ public class Action implements Behaviour, Model.AnimNames {
     this.toCall = namedMethodFor(basis, methodName) ;
     this.priority = ROUTINE ;
     this.actionTarget = this.moveTarget = target ;
-    //this.duration = 1.0f ;
     this.animName = animName ;
     this.description = description ;
   }
@@ -131,6 +133,11 @@ public class Action implements Behaviour, Model.AnimNames {
   }
   
   
+  public Target movesTo() {
+    return moveTarget ;
+  }
+  
+  
   public String methodName() {
     return toCall.getName() ;
   }
@@ -174,10 +181,6 @@ public class Action implements Behaviour, Model.AnimNames {
     return
       actor.inWorld() && moveTarget.inWorld() &&
       ! actionTarget.destroyed() ;
-  }
-  
-  
-  public void onSuspend() {
   }
   
   
@@ -264,36 +267,37 @@ public class Action implements Behaviour, Model.AnimNames {
     //  close enough to see, you can consider ignoring tile-pathing in favour
     //  of closing directly on the subject.  If, on the other hand, the target
     //  should be visible, but isn't, then path towards it more directly.
-    actor.pathing.updateTarget(moveTarget) ;
-    final Target step = actor.pathing.nextStep(), faced ;
+    actor.motion.updateTarget(moveTarget) ;
+    final Target step = actor.motion.nextStep(), faced ;
     boolean closed = false, approaching = false, facing = false ;
     
     if (mustBoard) {
       approaching = actor.aboard() == moveTarget ;
       closed = approaching && (motionDist - maxDist < separation) ;
+      faced = step ;
     }
     else {
-      final boolean seen = MobilePathing.hasLineOfSight(
+      final boolean seen = MobileMotion.hasLineOfSight(
         actor, actionTarget, Math.max(maxDist, sightRange)
       ) ;
       if (Math.min(motionDist, actionDist) < maxDist && ! seen) {
-        actor.pathing.updateTarget(actionTarget) ;
+        actor.motion.updateTarget(actionTarget) ;
       }
       closed = seen && actionDist <= maxDist ;
       approaching = closed || (seen && actionDist <= maxDist + 1) ;
+      faced = approaching ? actionTarget : step ;
     }
-    faced = approaching ? actionTarget : step ;
-    facing = actor.pathing.facingTarget(faced) ;
+    facing = actor.motion.facingTarget(faced) ;
     
     if (report) {
       I.say("Action target is: "+actionTarget) ;
       I.say("  Move target is: "+moveTarget) ;
-      I.say("  Path target is: "+actor.pathing.target()) ;
+      I.say("  Path target is: "+actor.motion.target()+", step: "+step) ;
       I.say("  Faced is: "+faced+", must board: "+mustBoard) ;
       I.say("  Current position: "+actor.aboard()) ;
       I.say("  Closed/facing: "+closed+"/"+facing+", doing update? "+active) ;
       I.say("  Is ranged? "+ranged()+", approaching? "+approaching) ;
-      final float distance = Spacing.distance(actor, actor.pathing.target()) ;
+      final float distance = Spacing.distance(actor, actor.motion.target()) ;
       I.say("  Distance: "+distance+", maximum: "+maxDist+"\n") ;
     }
     
@@ -310,8 +314,8 @@ public class Action implements Behaviour, Model.AnimNames {
     //  If active updates to pathing & motion are called for, make them.
     if (active) {
       final float moveRate = moveRate(actor, false) ;
-      actor.pathing.headTowards(faced, moveRate, ! closed) ;
-      if (! closed) actor.pathing.applyCollision() ;
+      actor.motion.headTowards(faced, moveRate, ! closed) ;
+      if (! closed) actor.motion.applyCollision() ;
     }
   }
   

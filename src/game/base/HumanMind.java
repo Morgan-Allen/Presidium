@@ -8,7 +8,7 @@
 package src.game.base ;
 import src.game.actors.* ;
 import src.game.building.* ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.tactical.* ;
@@ -162,7 +162,13 @@ public class HumanMind extends ActorMind implements Abilities {
   private void addResponses(Actor nearby, Choice choice) {
     choice.add(Hunting.asHarvest(actor, nearby, home)) ;
     choice.add(new Combat(actor, nearby)) ;
-    choice.add(new Dialogue(actor, nearby, null)) ;
+    if (nearby.isDoing(Combat.class, actor)) {
+      choice.add(new Retreat(actor)) ;
+      //  TODO:  Also permit surrender (becoming a captive.)
+    }
+    
+    choice.add(new Dialogue(actor, nearby, Dialogue.TYPE_CASUAL)) ;
+    //  TODO:  Also consider 'objecting' to whatever the other is doing.
     choice.add(new Treatment(actor, nearby, null)) ;
   }
   
@@ -240,7 +246,7 @@ public class HumanMind extends ActorMind implements Abilities {
     choice.add(FindWork.attemptFor(actor)) ;
     choice.add(FindHome.attemptFor(actor)) ;
     choice.add(FindMission.attemptFor(actor)) ;
-    choice.add(new Migration(actor)) ;
+    //choice.add(new Migration(actor)) ;
   }
 }
 

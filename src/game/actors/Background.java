@@ -155,24 +155,24 @@ public class Background implements Economy, Session.Saveable {
 
   final public static Background
     
-    MINDER = new Background(
-      "Minder", "citizen_skin.gif", null,
+    MEDIC = new Background(
+      "Medic", "citizen_skin.gif", null,
       LOWER_CLASS, GUILD_PHYSICIAN,
       PRACTICED, DOMESTICS, SUASION, NOVICE, ANATOMY, PHARMACY, COUNSEL,
       OFTEN, EMPATHIC, SOMETIMES, STUBBORN,
       OVERALLS
     ),
     
-    VAT_BREEDER = new Background(
-      "Vat Breeder", "citizen_skin.gif", null,
+    BIOCHEMIST = new Background(
+      "Biochemist", "citizen_skin.gif", null,
       MIDDLE_CLASS, GUILD_PHYSICIAN,
       PRACTICED, GENE_CULTURE, PHARMACY, CHEMISTRY,
       RARELY, DEBAUCHED, INDOLENT,
       OVERALLS
     ),
     
-    ARCHIVIST = new Background(
-      "Archivist", "citizen_skin.gif", null,
+    SAVANT = new Background(
+      "Savant", "citizen_skin.gif", null,
       MIDDLE_CLASS, GUILD_PHYSICIAN,
       EXPERT, ACCOUNTING, INSCRIPTION, PRACTICED, COUNSEL, ASSEMBLY,
       NOVICE, ANCIENT_LORE, LEGISLATION,
@@ -189,24 +189,13 @@ public class Background implements Economy, Session.Saveable {
       OVERALLS
     ),
     
-    //  TODO:  Also include the Psychoanalyst
-    /*
-    MONITOR = new Background(
-      "Monitor", "citizen_skin.gif", null,
-      MIDDLE_CLASS,
-      EXPERT, COUNSEL, PRACTICED, SUASION, COMMAND, PSYCHOANALYSIS,
-      NOVICE, COMMON_CUSTOM, ADMINISTRATION,
-      OFTEN, EMPATHIC, TRADITIONAL, RARELY, DEBAUCHED
-    ),
-    //*/
-    
-    PHYSICIAN_CIRCLES[] = { MINDER, VAT_BREEDER, ARCHIVIST, PHYSICIAN }
+    PHYSICIAN_CIRCLES[] = { MEDIC, BIOCHEMIST, SAVANT, PHYSICIAN }
   ;
   
   final public static Background
     
-    FIELD_CULTIVATOR = new Background(
-      "Field Hand", "pyon_skin.gif", null,
+    CULTIVATOR = new Background(
+      "Cultivator", "pyon_skin.gif", null,
       LOWER_CLASS, GUILD_ECOLOGIST,
       PRACTICED, CULTIVATION, HARD_LABOUR, NOVICE, DOMESTICS,
       OFTEN, SOCIABLE, SOMETIMES, NATURALIST, RARELY, AMBITIOUS,
@@ -242,7 +231,7 @@ public class Background implements Economy, Session.Saveable {
     ),
     
     ECOLOGIST_CIRCLES[] = {
-      FIELD_CULTIVATOR, ARCOLOGY_ENGINEER, SURVEY_SCOUT, ECOLOGIST
+      CULTIVATOR, ARCOLOGY_ENGINEER, SURVEY_SCOUT, ECOLOGIST
     }
   ;
   

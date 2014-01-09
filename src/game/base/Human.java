@@ -6,7 +6,7 @@
 
 
 package src.game.base ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
@@ -207,21 +207,20 @@ public class Human extends Actor implements Abilities {
     */
   public void renderFor(Rendering rendering, Base base) {
     
-    //
-    //  If you're in combat, equip the right gear-
+    //  If you're in combat, show the right gear equipped-
     final DeviceType DT = gear.deviceType() ;
-    final boolean IC = isDoing(Combat.class, null) ;
-    if (DT != null) ((JointSprite) sprite()).toggleGroup(DT.groupName, IC) ;
-    
-    //
-    //  If you're in dialogue, and selected, render the chat-
-    if (BaseUI.isPicked(this) && isDoing(Dialogue.class, null)) {
-      final Dialogue d = (Dialogue) matchFor(Dialogue.class) ;
-      d.chat.position.setTo(this.position) ;
-      d.chat.position.z += this.height() ;
-      d.chat.update() ;
-      rendering.addClient(d.chat) ;
+    final Combat c = (Combat) matchFor(Combat.class) ;
+    if (DT != null) {
+      ((JointSprite) sprite()).toggleGroup(DT.groupName, c != null) ;
     }
+    
+    /*
+    final Dialogue d = (Dialogue) matchFor(Dialogue.class) ;
+    if (d != null && BaseUI.isPicked(this)) {
+      d.transcript().update() ;
+      d.transcript().renderFor(rendering, base) ;
+    }
+    //*/
     
     super.renderFor(rendering, base) ;
   }

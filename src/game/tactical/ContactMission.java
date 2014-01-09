@@ -2,7 +2,7 @@
 
 
 package src.game.tactical ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.actors.* ;
@@ -22,6 +22,9 @@ import src.util.* ;
 //  subject.
 //  (Use the Dialogue class.)
 
+//
+//  ...Give gift or ask favour.  Player-selected?
+
 
 public class ContactMission extends Mission implements Economy {
   
@@ -30,24 +33,16 @@ public class ContactMission extends Mission implements Economy {
   /**  Field definitions, constructors and save/load methods-
     */
   final static int
-    SETTING_TRIBUTE  = 0,
-    SETTING_ALLIANCE = 1,
-    SETTING_FEALTY   = 2 ;
+    SETTING_TRIBUTE = 0,
+    SETTING_FAVOUR  = 1,
+    SETTING_FEALTY  = 2 ;
   final static String SETTING_NAMES[] = {
     "Send Tribute",
-    "Secure Peace",
+    "Secure Favour",
     "Demand Fealty"
   } ;
   
-  //  TODO:  Base gifts on the item's demanded at the subject's home or work
-  //         venue, while defaulting to food, money, or bling.
-  //  TODO:  Create a new plan for gift-giving.
-  final Service GIFT_TYPES[] = {
-    PROTEIN, GREENS, SPICE,
-    PLASTICS, DECOR, MEDICINE
-  } ;
-  
-  int contactType = 0 ;
+  int contactType = SETTING_FAVOUR ;
   
   
   
@@ -89,15 +84,10 @@ public class ContactMission extends Mission implements Economy {
   }
   
   
-  public boolean finished() {
-    return false ;
-  }
-  
-  
   private float relationLevelNeeded() {
-    if (contactType == SETTING_TRIBUTE ) return 0    ;
-    if (contactType == SETTING_ALLIANCE) return 0.5f ;
-    if (contactType == SETTING_FEALTY  ) return 1.0f ;
+    if (contactType == SETTING_TRIBUTE) return 0    ;
+    if (contactType == SETTING_FAVOUR ) return 0.5f ;
+    if (contactType == SETTING_FEALTY ) return 1.0f ;
     return -1 ;
   }
   
@@ -119,69 +109,41 @@ public class ContactMission extends Mission implements Economy {
 
   public Behaviour nextStepFor(Actor actor) {
     final float minRelation = relationLevelNeeded() ;
-    
     Dialogue picked = null ;
     float maxUrgency = Float.NEGATIVE_INFINITY ;
+    
     for (Actor a : talksTo()) {
       final float relation = a.mind.relationValue(actor) ;
-      if (relation > minRelation) continue ;
+      if (relation >= minRelation) continue ;
       
-      final Dialogue d = new Dialogue(actor, a, null) ;
+      final Dialogue d = new Dialogue(actor, a, Dialogue.TYPE_CONTACT) ;
       float urgency = d.priorityFor(actor) ;
-      urgency += a.mind.relationValue(actor) * ROUTINE ;
+      urgency += (1 - a.mind.relationValue(actor)) * ROUTINE ;
       if (urgency > maxUrgency) { maxUrgency = urgency ; picked = d ; }
     }
-    
     if (picked != null) return picked ;
     
-    //
     //  Otherwise, see if you can give them a gift, or find a suitable task
     //  from the subject's home or work venue.
-    
-    return null ;
+    final Element around = (Element) subject ;
+    return Patrolling.securePerimeter(actor, around, actor.world()) ;
   }
   
   
-
-  
-  
-  Behaviour assembleGift(Actor actor) {
-    float giftValue = this.rewardAmount(actor) / 2f ;
-    //
-    //  Check a few nearby storage depots- vault,
-    final World world = base.world ;
-    
-    final Batch <Venue> depots = new Batch <Venue> () ;
-    world.presences.sampleFromKeys(
-      actor, world, 2, depots,
-      SupplyDepot.class,
-      StockExchange.class,
-      VaultSystem.class
-    ) ;
-    
-    Venue pickDepot = null ;
-    Item pickItem = null ;
-    float bestRating = 0, amount ;
-    
-    for (Venue depot : depots) for (Service type : GIFT_TYPES) {
-      amount = depot.stocks.amountOf(type) ;
-      amount = Math.min(amount, giftValue / type.basePrice) ;
-      amount = Math.min(amount, 5) ;
-      final Item item = Item.withAmount(type, amount) ;
-      final float rating = amount * type.basePrice ;
-      //
-      //  Get the most valuable good of bulk less than 5 and under gift value.
-      if (rating > bestRating) {
-        bestRating = rating ;
-        pickItem = item ;
-        pickDepot = depot ;
-      }
+  public boolean finished() {
+    //  Ensure mutual relations are ALL peachy.
+    final float minRelation = relationLevelNeeded() ;
+    ///I.say("\nMinimum relation needed: "+minRelation) ;
+    boolean allOK = true ;
+    for (Actor a : talksTo()) for (Role role : this.roles) {
+      final float relation = a.mind.relationValue(role.applicant) ;
+      ///I.say("  Relation between "+a+" and "+role.applicant+": "+relation) ;
+      if (relation < minRelation) allOK = false ;
     }
-    if (pickItem == null) return null ;
-    
-    final Delivery delivery = new Delivery(pickItem, pickDepot, actor) ;
-    return delivery ;
+    ///I.say("All Okay? "+allOK) ;
+    return allOK ;
   }
+  
   
   
   

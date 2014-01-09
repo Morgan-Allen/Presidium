@@ -6,7 +6,7 @@
 
 
 package src.game.tactical ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
@@ -105,12 +105,10 @@ public class Combat extends Plan implements Abilities {
       final Venue struck = (Venue) target ;
       float BP = priorityMod - (actor.mind.relationValue(struck) * ROUTINE) ;
       BP += ROUTINE ;
-      //
+      
       //  TODO:  Factor this out.  Also repeated below.
       if (! begun()) {
-        final Batch <Element> known = actor.mind.awareOf() ;
-        known.include(struck) ;
-        float danger = Retreat.dangerAtSpot(struck, actor, null, known) ;
+        float danger = Retreat.dangerAtSpot(struck, actor, null) ;
         danger += Plan.dangerPenalty(struck, actor) ;
         BP += 0 - (danger * ROUTINE) ;
       }
@@ -130,29 +128,19 @@ public class Combat extends Plan implements Abilities {
   ) {
     if (actor == enemy) return 0 ;
     if (report) I.say("  Basic combat reward/cost: "+winReward+"/"+lossCost) ;
-    //
-    //  Here, we estimate the danger presented by actors in the area, and
-    //  thereby guage the odds of survival/victory-
-    final Batch <Element> known = actor.mind.awareOf() ;
-    known.include(enemy) ;
     
-    float danger = Retreat.dangerAtSpot(enemy, actor, enemy, known) ;
-    danger += Plan.dangerPenalty(enemy, actor) ;
-    
-    
+    float danger = Retreat.dangerAtSpot(enemy, actor, enemy) ;
     final float chance = Visit.clamp(1 - danger, 0.1f, 0.9f) ;
-    //
-    //  Then we calculate the risk/reward ratio associated with the act-
+    
+    final Target enemyTargets = enemy.targetFor(null) ;
+    float hostility = Plan.hostility(enemy) ;
+    if (enemyTargets == actor) hostility *= 1.5f ;
+    hostility *= PARAMOUNT ;
+    winReward += hostility ;
+    lossCost -= hostility / 2 ;
     winReward -= actor.mind.relationValue(enemy) * PARAMOUNT ;
-    final Target victim = enemy.targetFor(Combat.class) ;
-    if (victim == actor) {
-      winReward += PARAMOUNT ;
-      lossCost -= ROUTINE ;
-    }
-    else if (victim instanceof Actor) {
-      winReward += actor.mind.relationValue((Actor) victim) * PARAMOUNT ;
-      lossCost /= 2 ;
-    }
+    
+    if (winReward < 0) return 0 ;
     winReward *= actor.traits.scaleLevel(AGGRESSIVE) ;
     
     if (report) {
@@ -276,7 +264,7 @@ public class Combat extends Plan implements Abilities {
     final boolean melee = actor.gear.meleeWeapon() ;
     final boolean razes = target instanceof Venue ;
     final float danger = Retreat.dangerAtSpot(
-      actor.origin(), actor, null, actor.mind.awareOf()
+      actor.origin(), actor, razes ? null : (Actor) target
     ) ;
     
     final String strikeAnim = melee ?

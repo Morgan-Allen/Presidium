@@ -97,14 +97,14 @@ public class NativeHut extends Venue {
   }
 
   
+  /*
   public String[] infoCategories() {
     return null ;
   }
-  
-  
   public void writeInformation(Description d, int categoryID, HUD UI) {
-    d.append(helpInfo()) ;
+    //d.append(helpInfo()) ;
   }
+  //*/
   
   
   public void renderSelection(Rendering rendering, boolean hovered) {

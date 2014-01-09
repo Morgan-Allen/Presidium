@@ -2,7 +2,7 @@
 
 
 package src.game.base ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
@@ -86,7 +86,7 @@ public class Sickbay extends Venue implements Economy {
       "to diet and sanitary needs, but are only familiar with more common "+
       "medications and standard emergency protocol.",
       50,
-      Background.MINDER, 1, APOTHECARY, ALL_UPGRADES
+      Background.MEDIC, 1, APOTHECARY, ALL_UPGRADES
     ),
     NEURAL_SCANNING = new Upgrade(
       "Neural Scanning",
@@ -253,13 +253,13 @@ public class Sickbay extends Venue implements Economy {
   
   
   public Background[] careers() {
-    return new Background[] { Background.MINDER, Background.PHYSICIAN } ;
+    return new Background[] { Background.MEDIC, Background.PHYSICIAN } ;
   }
   
   
   public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Background.MINDER) return nO + 1 ;
+    if (v == Background.MEDIC) return nO + 1 ;
     if (v == Background.PHYSICIAN) return nO + 1 ;
     return 0 ;
   }

@@ -2,7 +2,7 @@
 
 
 package src.game.tactical ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.campaign.* ;
@@ -480,7 +480,9 @@ public class Power implements Abilities {
           command = new Treatment(affects, (Actor) selected, null) ;
         }
         if (option == options[3] && selected instanceof Actor) {
-          command = new Dialogue(affects, (Actor) selected, null) ;
+          command = new Dialogue(
+            affects, (Actor) selected, Dialogue.TYPE_CONTACT
+          ) ;
         }
         if (command == null) return false ;
         

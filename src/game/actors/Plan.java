@@ -9,9 +9,11 @@ package src.game.actors ;
 import src.game.common.* ;
 import src.game.common.Session.Saveable ;
 import src.game.tactical.* ;
+import src.game.civilian.*;
 import src.game.building.* ;
 import src.user.* ;
 import src.util.* ;
+
 import java.lang.reflect.* ;
 
 
@@ -103,9 +105,7 @@ public abstract class Plan implements Saveable, Behaviour {
     return true ;
   }
   
-  
-  public void onSuspend() {
-  }
+  //public abstract Plan copyFor(Actor other) ;
   
   
   
@@ -170,6 +170,7 @@ public abstract class Plan implements Saveable, Behaviour {
       if (priorityFor(actor) <= 0) return true ;
     }
     if (nextStep() == null) {
+      if (verbose) I.sayAbout(actor, "NO NEXT STEP") ;
       return true ;
     }
     return false ;
@@ -190,6 +191,22 @@ public abstract class Plan implements Saveable, Behaviour {
   /**  Assorted utility evaluation methods-
     */
   final private static float IL2 = 1 / (float) Math.log(2) ;
+  
+  
+  //  TODO:  This could probably be made more generalised.
+  public static float hostility(Actor actor) {
+    Plan p = null ;
+    for (Behaviour b : actor.mind.agenda()) if (b instanceof Plan) {
+      p = (Plan) b ;
+      break ;
+    }
+    if (p instanceof Combat) {
+      return 1.0f ;
+    }
+    if (p instanceof Dialogue) return -0.5f ;
+    if (p instanceof Treatment) return -1.0f ;
+    return 0 ;
+  }
   
   
   public static float rangePenalty(Target a, Target b) {
@@ -213,10 +230,6 @@ public abstract class Plan implements Saveable, Behaviour {
     return danger * 0.1f / (1 + Combat.combatStrength(actor, null)) ;
   }
   
-  
-  //
-  //  TODO:  I'm beginning to think that Plans will need to register themselves
-  //  with all their signature-components for this to work properly...
   
   public static float competition(Class planClass, Target t, Actor actor) {
     float competition = 0 ;

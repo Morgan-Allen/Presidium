@@ -8,7 +8,7 @@
 package src.game.building ;
 import src.game.base.* ;
 import src.game.campaign.* ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.planet.Planet ;
 import src.game.actors.* ;

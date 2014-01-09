@@ -116,30 +116,22 @@ public class Retreat extends Plan implements Abilities {
     Actor actor, float range,
     Target target, float salt
   ) {
-    final int numPicks = 3 ;  // TODO:  Make this an argument, instead of range
-    Target pick = null ;// actor.aboard() ;
+    final int numPicks = 3 ;  // TODO:  Make this an argument instead of range?
+    Target pick = null ;
     float bestRating = salt > 0 ?
       Float.POSITIVE_INFINITY : Float.NEGATIVE_INFINITY ;
     for (int i = numPicks ; i-- > 0 ;) {
-      //
+      
       //  TODO:  Check by compass-point directions instead of purely at random?
       Tile tried = Spacing.pickRandomTile(actor, range, actor.world()) ;
       if (tried == null) continue ;
       tried = Spacing.nearestOpenTile(tried, target) ;
-      ///I.say("Tried is: "+tried) ;
       if (tried == null || Spacing.distance(tried, target) > range) continue ;
       
-      //
-      //  Use the danger map if possible, since it's substantially cheaper
-      //  TODO:  Have every actor assigned to a base?  ...Probably safer.
-      float tryRating ;
-      if (actor.base() != null) {
-        tryRating = actor.base().dangerMap.shortTermVal(tried) ;
-      }
-      else {
-        tryRating = dangerAtSpot(tried, actor, null, actor.mind.awareOf()) ;
-      }
-      
+      //  TODO:  Have danger-map sampling built into dangerAtSpot().
+      float tryRating = actor.base().dangerMap.shortTermVal(tried) ;
+      tryRating = dangerAtSpot(tried, actor, null, actor.mind.awareOf()) ;
+      tryRating /= 2 ;
       tryRating += (Rand.num() - 0.5f) * salt ;
       if (salt < 0) tryRating *= -1 ;
       if (tryRating < bestRating) { bestRating = tryRating ; pick = tried ; }
@@ -148,7 +140,29 @@ public class Retreat extends Plan implements Abilities {
   }
   
   
-  public static float dangerAtSpot(
+  protected static float dangerAtSpot(
+    Target spot, Actor actor, Actor enemy
+  ) {
+    
+    final float range = actor.health.sightRange() ;
+    final World world = actor.world() ;
+    //
+    //  TODO:  Blend values from the danger map?
+    if (Spacing.distance(actor, spot) < range * 2) {
+      return dangerAtSpot(spot, actor, enemy, actor.mind.awareOf()) ;
+    }
+    
+    final Batch <Element> seen = new Batch <Element> () ;
+    for (Object o : world.presences.matchesNear(Mobile.class, spot, range)) {
+      final Mobile m = (Mobile) o ;
+      if (! m.visibleTo(actor.base())) continue ;
+      seen.add(m) ;
+    }
+    return dangerAtSpot(spot, actor, enemy, seen) ;
+  }
+  
+  
+  private static float dangerAtSpot(
     Target spot, Actor actor, Actor enemy, Batch <Element> seen
   ) {
     if (spot == null) return 0 ;
@@ -158,11 +172,7 @@ public class Retreat extends Plan implements Abilities {
     float sumAllies = basePower, sumEnemies = 0, sumTargeting = 0 ;
     
     //
-    //  TODO:  ...What about blending values from the danger map?  ...Take that
-    //  from the Plan class?  Or sample actors right at the point of origin
-    //  instead?
-    
-    //  ...No, sample actors visible to the *base*.
+    //  TODO:  Blend values from the danger map?
     
     for (Element m : seen) {
       if (m == actor || ! (m instanceof Actor)) continue ;
@@ -194,40 +204,16 @@ public class Retreat extends Plan implements Abilities {
   /**  These methods select safe venues to run to, over longer distances.
     */
   public static Boardable nearestHaven(Actor actor, Class prefClass) {
-    //
-    //  TODO:  Use the list of venues the actor is aware of?
-    if (actor == null) I.say("NO ACTOR!") ;
-    final Presences p = actor.world().presences ;
-    int numC = 3 ;
-    
     Object picked = null ;
     float bestRating = 0 ;
-    int numChecked = 0 ;
     
-    if (actor.mind.home() != null) {
-      final Target home = actor.mind.home() ;
-      float rating = rateHaven(home, actor, prefClass) ;
-      if (rating > bestRating) { bestRating = rating ; picked = home ; }
-    }
-    if (actor.base() != null) {
-      for (Object t : p.matchesNear(actor.base(), actor, -1)) {
-        if (numChecked++ > numC) break ;
-        float rating = rateHaven(t, actor, prefClass) ;
-        if (rating > bestRating) { bestRating = rating ; picked = t ; }
-      }
-    }
-    if (prefClass != null) {
-      numChecked = 0 ;
-      for (Object t : p.matchesNear(prefClass, actor, -1)) {
-        if (numChecked++ > numC) break ;
-        float rating = rateHaven(t, actor, prefClass) ;
-        if (rating > bestRating) { bestRating = rating ; picked = t ; }
-      }
+    for (Element e : actor.mind.awareOf()) {
+      final float rating = rateHaven(e, actor, prefClass) ;
+      if (rating > bestRating) { bestRating = rating ; picked = e ; }
     }
     if (picked == null) picked = pickWithdrawPoint(
       actor, actor.health.sightRange(), actor, 0.1f
     ) ;
-    
     return (Boardable) picked ;
   }
   
@@ -236,9 +222,11 @@ public class Retreat extends Plan implements Abilities {
     //
     //  TODO:  Don't pick anything too close by either.  That'll be in a
     //  dangerous area.
+    if (! (t instanceof Boardable)) return -1 ;
     if (! (t instanceof Venue)) return 1 ;
     final Venue haven = (Venue) t ;
     if (! haven.structure.intact()) return -1 ;
+    if (! haven.allowsEntry(actor)) return -1 ;
     float rating = 1 ;
     if (prefClass != null && haven.getClass() == prefClass) rating *= 4 ;
     if (haven.base() == actor.base()) rating *= 3 ;

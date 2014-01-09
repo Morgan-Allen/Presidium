@@ -1,7 +1,7 @@
 
 
 package src.game.tactical ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.building.* ;
@@ -74,7 +74,7 @@ public class Treatment extends Plan implements Economy {
     
     final boolean valid = canTreat() ;
     
-    final Target haven = Retreat.nearestHaven(patient, Sickbay.class) ;
+    final Target haven = Retreat.nearestHaven(actor, Sickbay.class) ;
     if (theatre == null && valid && haven instanceof Venue) {
       this.theatre = (Venue) haven ;
     }

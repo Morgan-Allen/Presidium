@@ -2,7 +2,7 @@
 
 
 package src.game.tactical ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.graphics.common.* ;
@@ -234,7 +234,6 @@ public abstract class Mission implements
     */
   public int motionType(Actor actor) { return MOTION_ANY ; }
   public void abortBehaviour() {}
-  public void onSuspend() {}
   
   public void setPriority(float priority) {}
   public boolean valid() { return ! subject.destroyed() ; }

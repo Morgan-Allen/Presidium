@@ -100,8 +100,8 @@ public class Schedule {
     //  We 'fudge' the incept and scheduling times a little here to help ensure
     //  that client updates are staggered evenly over the schedule, rather
     //  than clustering in one or two processor-intensive updates.
-    event.initTime = ((int) currentTime) + 1 ;
     event.lastUpdateCount = Rand.index(10) ;
+    event.initTime = ((int) currentTime) - event.lastUpdateCount ;
     event.time = (currentTime + Rand.num()) * updates.scheduledInterval() ;
     event.updates = updates ;
     allUpdates.put(updates, events.insert(event)) ;
@@ -136,8 +136,6 @@ public class Schedule {
   void advanceSchedule(final float currentTime) {
     this.currentTime = currentTime ;
     
-    //  Find the current time, and descend to all events left of that dividing
-    //  line (i.e, earlier.)
     final int NU = PlayLoop.UPDATES_PER_SECOND * 2 ;
     final int maxInterval = (int) (1000 / (PlayLoop.gameSpeed() * NU)) - 1 ;
     

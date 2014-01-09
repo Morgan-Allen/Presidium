@@ -1,6 +1,6 @@
 
 
-package src.game.civic ;
+package src.game.civilian ;
 import src.game.actors.* ;
 import src.game.building.* ;
 import src.game.common.* ;

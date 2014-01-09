@@ -8,8 +8,8 @@
 package src.game.base ;
 import src.game.building.* ;
 import src.game.actors.* ;
-import src.game.civic.Performance;
-import src.game.civic.Recreation;
+import src.game.civilian.Performance;
+import src.game.civilian.Recreation;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.cutout.* ;

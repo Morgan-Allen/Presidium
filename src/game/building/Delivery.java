@@ -6,7 +6,7 @@
 
 
 package src.game.building ;
-import src.game.civic.Audit;
+import src.game.civilian.Audit;
 import src.game.common.* ;
 import src.game.actors.* ;
 import src.game.base.* ;
@@ -253,17 +253,6 @@ public class Delivery extends Plan implements Economy {
     return true ;
   }
   
-  /*
-  public boolean finished() {
-    return stage == STAGE_DONE ;
-  }
-  //*/
-  
-  
-  public void onSuspend() {
-    if (driven != null) driven.setPilot(null) ;
-  }
-  
   
   
   /**  Behaviour implementation-
@@ -358,7 +347,7 @@ public class Delivery extends Plan implements Economy {
     //  Vehicles get special treatment-
     if (driven != null) {
       if (! driven.setPilot(actor)) abortBehaviour() ;
-      driven.pathing.updateTarget(target) ;
+      driven.motion.updateTarget(target) ;
       if (driven.aboard() == target) {
         transferGoods(origin, driven) ;
         stage = STAGE_DROPOFF ;
@@ -397,7 +386,7 @@ public class Delivery extends Plan implements Economy {
     
     if (driven != null) {
       if (! driven.setPilot(actor)) abortBehaviour() ;
-      driven.pathing.updateTarget(target) ;
+      driven.motion.updateTarget(target) ;
       if (driven.aboard() == target) {
         for (Service t : ALL_COMMODITIES) {
           driven.cargo.transfer(t, target) ;
@@ -422,7 +411,7 @@ public class Delivery extends Plan implements Economy {
   
   public boolean actionReturn(Actor actor, Venue target) {
     if (! driven.setPilot(actor)) abortBehaviour() ;
-    driven.pathing.updateTarget(target) ;
+    driven.motion.updateTarget(target) ;
     if (driven.aboard() == target) {
       driven.setPilot(null) ;
       actor.goAboard(target, actor.world()) ;
@@ -467,5 +456,18 @@ public class Delivery extends Plan implements Economy {
 
 
 
+
+
+/*
+public boolean finished() {
+  return stage == STAGE_DONE ;
+}
+//*/
+
+/*
+public void onSuspend() {
+  if (driven != null) driven.setPilot(null) ;
+}
+//*/
 
 

@@ -149,6 +149,19 @@ public class Batch <K> implements Series <K> {
   }
   
   
+  /**  Returns this batch in printable form.
+    */
+  final public String toString() {
+    final StringBuffer sB = new StringBuffer("( ") ;
+    for (K t : this) {
+      sB.append(t) ;
+      if (t != last()) sB.append(", ") ;
+    }
+    sB.append(" )") ;
+    return sB.toString() ;
+  }
+  
+  
   /**  Basic testing method.
     */
   public static void main(String s[]) {

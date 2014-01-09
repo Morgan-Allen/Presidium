@@ -13,8 +13,7 @@ import src.util.* ;
 
 
 
-public class MobilePathing {
-  
+public class MobileMotion {
   
   
   /**  Field definitions, constructors, and save/load methods-
@@ -30,7 +29,7 @@ public class MobilePathing {
   int stepIndex = -1 ;
   
   
-  public MobilePathing(Mobile a) {
+  public MobileMotion(Mobile a) {
     this.mobile = a ;
   }
   
@@ -64,7 +63,7 @@ public class MobilePathing {
     if (b == null) return false ;
     final boolean
       exists = b.inWorld(),
-      allows = b.allowsEntry(mobile),
+      allows = (b == mobile.aboard()) || b.allowsEntry(mobile),
       blocks = Pathing.blockedBy(b, mobile) ;
     if (exists && allows && ! blocks) return true ;
     if (verbose && I.talkAbout == mobile) {
@@ -119,6 +118,7 @@ public class MobilePathing {
     else if (inLocus(nextStep())) {
       stepIndex = Visit.clamp(stepIndex + 1, path.length) ;
     }
+    else if (verbose) I.sayAbout(mobile, "Not in locus of: "+nextStep()) ;
   }
   
   
@@ -158,7 +158,7 @@ public class MobilePathing {
   }
   
   
-  public boolean refreshPath() {
+  public boolean refreshPathStep() {
     if (verbose) I.sayAbout(mobile, "REFRESHING PATH TO: "+trueTarget) ;
     
     final Boardable origin = location(mobile) ;
@@ -168,17 +168,9 @@ public class MobilePathing {
     //  points of the prospective route.
     else {
       pathTarget = location(trueTarget) ;
-      
-      if (! checkEndPoint(pathTarget)) {
-        pathTarget = Spacing.nearestOpenTile(pathTarget, mobile) ;
-        
-        //  TODO:  This should really be more of an adjacency check(?)
-        if (! hasLineOfSight(pathTarget, trueTarget, 2)) pathTarget = null ;
-      }
-
       if (verbose) I.sayAbout(mobile, "BETWEEN: "+origin+" AND "+pathTarget) ;
-      if (checkEndPoint(pathTarget) && checkEndPoint(pathTarget)) {
-        path = refreshPath(origin, pathTarget) ;
+      if (checkEndPoint(origin) && checkEndPoint(pathTarget)) {
+        path = pathBetween(origin, pathTarget) ;
       }
       else path = null ;
     }
@@ -204,7 +196,7 @@ public class MobilePathing {
   }
   
   
-  protected Boardable[] refreshPath(Boardable initB, Boardable destB) {
+  protected Boardable[] pathBetween(Boardable initB, Boardable destB) {
     if (GameSettings.pathFree) {
       final Pathing search = new Pathing(initB, destB, -1) ;
       if (verbose && I.talkAbout == mobile) search.verbose = true ;

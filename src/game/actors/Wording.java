@@ -5,7 +5,7 @@ package src.game.actors ;
 import src.game.base.* ;
 import src.game.tactical.* ;
 import src.game.building.* ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.util.* ;
 
 

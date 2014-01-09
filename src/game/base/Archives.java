@@ -184,7 +184,7 @@ public class Archives extends Venue implements Economy {
   
   
   public Background[] careers() {
-    return new Background[] { Background.ARCHIVIST } ;
+    return new Background[] { Background.SAVANT } ;
   }
   
   
@@ -201,7 +201,7 @@ public class Archives extends Venue implements Economy {
   
   public int numOpenings(Background v) {
     final int nO = super.numOpenings(v) ;
-    if (v == Background.ARCHIVIST) {
+    if (v == Background.SAVANT) {
       return nO + (int) Visit.clamp(1 + (numDatalinks() / 5f), 0, 4) ;
     }
     return 0 ;

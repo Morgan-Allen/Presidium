@@ -20,15 +20,10 @@ import src.user.* ;
 import src.util.* ;
 
 
+
 //
-//  ...I need to start working on the 'hero' side of things.  Who really
-//  qualifies at the moment?
-//      Volunteers/Mercs & Mech Pilots (the MCHQ or House Garrison)
-//      Runners/Mercs & Enforcers (the Cantina & Enforcer Bloc)
-//      Guerillas & Medics (the Survey Post & Sickbay)
-//      Tech Reserve & Psyon (the Town Vault & Psyon Choir)
-//  ...These are the folks able to fight, but not necessarily devoted to it.
-//  You can call on them to get missions done.
+//  Agents and Personnel.
+
 
 /*
    TODO:  TUTORIAL MISSION
@@ -50,7 +45,7 @@ public class DebugBehaviour extends Scenario implements Economy {
   /**  Startup and save/load methods-
     */
   public static void main(String args[]) {
-    if (Scenario.loadedFrom("test_behaviour")) return ;
+    //if (Scenario.loadedFrom("test_behaviour")) return ;
     DebugBehaviour test = new DebugBehaviour() ;
     PlayLoop.setupAndLoop(test.UI(), test) ;
   }
@@ -95,8 +90,67 @@ public class DebugBehaviour extends Scenario implements Economy {
   
   
   protected void configureScenario(World world, Base base, BaseUI UI) {
+    economicScenario(world, base, UI) ;
     //securityScenario(world, base, UI) ;
-    contactScenario(world, base, UI) ;
+    //contactScenario(world, base, UI) ;
+  }
+  
+  
+  private void economicScenario(World world, Base base, BaseUI UI) {
+    
+    //  TODO:  Rig together a scenario to demonstrate rapid housing evolution.
+  }
+  
+  
+  
+  private void contactScenario(World world, Base base, BaseUI UI) {
+    GameSettings.fogFree   = true ;
+    GameSettings.buildFree = true ;
+    GameSettings.hireFree  = true ;
+    GameSettings.psyFree   = true ;
+    
+    //  Generate a basic native settlement in the far corner of the map.
+    final Base natives = world.baseWithName(Base.KEY_NATIVES, true, true) ;
+    final Venue huts = Placement.establishVenue(
+      new NativeHut(Habitat.ESTUARY, natives), 21, 21, true, world
+    ) ;
+    for (int n = 5 ; n-- > 0 ;) {
+      final Career c = new Career(
+        Rand.yes(), Background.HUNTER,
+        Background.NATIVE_BIRTH,
+        Background.PLANET_DIAPSOR
+      ) ;
+      final Actor lives = new Human(c, natives) ;
+      lives.mind.setHome(huts) ;
+      lives.mind.setWork(huts) ;
+      lives.enterWorldAt(huts, world) ;
+      lives.goAboard(huts, world) ;
+    }
+    natives.setRelation(base, -0.2f) ;
+    base.setRelation(natives, -0.2f) ;
+    
+    //  Generate a basic settlement for the home team, and some diplomacy-
+    //  oriented inhabitants, and see how they get on.
+    final ContactMission mission = new ContactMission(base, huts) ;
+    mission.assignReward(1000) ;
+    base.addMission(mission) ;
+    final Venue exchange = Placement.establishVenue(
+      new StockExchange(base), 2, 2, true, world
+    ) ;
+    exchange.stocks.bumpItem(PROTEIN, 20) ;
+    exchange.stocks.bumpItem(GREENS, 10) ;
+    exchange.stocks.bumpItem(SPICE, 5) ;
+    final Venue station = new SurveyStation(base) ;
+    for (int n = 2 ; n-- > 0 ;) {
+      final Actor talks = new Human(Background.SURVEY_SCOUT, base) ;
+      talks.mind.setWork(station) ;
+      talks.enterWorldAt(9, 4, world) ;
+      mission.setApplicant(talks, true) ;
+      mission.setApprovalFor(talks, true) ;
+      UI.selection.pushSelection(talks, true) ;
+    }
+    Placement.establishVenue(station, 7, 2, true, world) ;
+    mission.beginMission() ;
   }
   
   
@@ -105,6 +159,7 @@ public class DebugBehaviour extends Scenario implements Economy {
     GameSettings.buildFree = true ;
     GameSettings.hireFree  = true ;
     GameSettings.psyFree   = true ;
+    PlayLoop.rendering().port.cameraZoom = 1.33f ;
     //
     //  Step 1:  Generate a structure, generate some actors around it, create
     //  a security mission for the structure, and assign the actors to it.
@@ -142,56 +197,6 @@ public class DebugBehaviour extends Scenario implements Economy {
     }
     artilects.setRelation(base, -1) ;
     base.setRelation(artilects, -1) ;
-  }
-  
-  
-  private void contactScenario(World world, Base base, BaseUI UI) {
-    GameSettings.fogFree   = true ;
-    GameSettings.buildFree = true ;
-    GameSettings.hireFree  = true ;
-    GameSettings.psyFree   = true ;
-    //
-    //  Generate a basic native settlement in the far corner of the map.
-    final Base natives = world.baseWithName(Base.KEY_NATIVES, true, true) ;
-    final Venue huts = Placement.establishVenue(
-      new NativeHut(Habitat.ESTUARY, natives), 21, 21, true, world
-    ) ;
-    for (int n = 5 ; n-- > 0 ;) {
-      final Career c = new Career(
-        Rand.yes(), Background.HUNTER,
-        Background.NATIVE_BIRTH,
-        Background.PLANET_DIAPSOR
-      ) ;
-      final Actor lives = new Human(c, natives) ;
-      lives.mind.setHome(huts) ;
-      lives.mind.setWork(huts) ;
-      lives.enterWorldAt(huts, world) ;
-      lives.goAboard(huts, world) ;
-    }
-    natives.setRelation(base, -0.2f) ;
-    base.setRelation(natives, -0.2f) ;
-    //
-    //  Generate a basic settlement for the home team, and some diplomacy-
-    //  oriented inhabitants, and see how they get on.
-    final ContactMission mission = new ContactMission(base, huts) ;
-    mission.assignReward(1000) ;
-    base.addMission(mission) ;
-    final Venue exchange = Placement.establishVenue(
-      new StockExchange(base), 2, 2, true, world
-    ) ;
-    exchange.stocks.bumpItem(PROTEIN, 20) ;
-    exchange.stocks.bumpItem(GREENS, 10) ;
-    exchange.stocks.bumpItem(SPICE, 5) ;
-    final Venue station = new SurveyStation(base) ;
-    for (int n = 2 ; n-- > 0 ;) {
-      final Actor talks = new Human(Background.SURVEY_SCOUT, base) ;
-      talks.mind.setWork(station) ;
-      talks.enterWorldAt(9, 4, world) ;
-      mission.setApplicant(talks, true) ;
-      mission.setApprovalFor(talks, true) ;
-    }
-    Placement.establishVenue(station, 7, 2, true, world) ;
-    mission.beginMission() ;
   }
 }
 

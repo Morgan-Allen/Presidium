@@ -370,6 +370,7 @@ public class List <T> extends ListEntry <T> implements Series <T> {
     return sB.toString() ;
   }
   
+  
   /**  Reasonably thorough testing method:
     * 
     */

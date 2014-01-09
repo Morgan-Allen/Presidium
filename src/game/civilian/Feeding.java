@@ -1,7 +1,7 @@
 
 
 
-package src.game.civic ;
+package src.game.civilian ;
 
 
 

@@ -8,7 +8,7 @@
 package src.game.building ;
 import src.game.actors.* ;
 import src.game.base.* ;
-import src.game.civic.*;
+import src.game.civilian.*;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.widgets.HUD;
@@ -36,7 +36,6 @@ public abstract class Vehicle extends Mobile implements
   final Personnel personnel = new Personnel(this) ;
   
   final protected List <Mobile> inside = new List <Mobile> () ;
-  //final protected List <Actor> crew = new List <Actor> () ;
   private Actor pilot ;
   private Venue hangar ;
   private float pilotBonus ;
@@ -173,23 +172,23 @@ public abstract class Vehicle extends Mobile implements
 
   /**  Handling pathing-
     */
-  protected MobilePathing initPathing() {
-    return new MobilePathing(this) ;
+  protected MobileMotion initMotion() {
+    return new MobileMotion(this) ;
   }
   
   
   protected void updateAsMobile() {
     super.updateAsMobile() ;
     if (pilot != null) updatePiloting() ;
-    else pathing.updateTarget(pathing.target()) ;
-    final Boardable step = pathing.nextStep() ;
+    else motion.updateTarget(motion.target()) ;
+    final Boardable step = motion.nextStep() ;
     
-    if (pathing.checkPathingOkay() && step != null) {
+    if (motion.checkPathingOkay() && step != null) {
       float moveRate = baseMoveRate() ;
       if (origin().pathType() == Tile.PATH_ROAD) moveRate *= 1.5f ;
       if (origin().owner() instanceof Causeway) moveRate *= 1.5f ;
       moveRate *= (pilotBonus + 1) / 2 ;
-      pathing.headTowards(step, moveRate, true) ;
+      motion.headTowards(step, moveRate, true) ;
     }
     else world.schedule.scheduleNow(this) ;
   }
@@ -202,11 +201,11 @@ public abstract class Vehicle extends Mobile implements
   
   protected void updatePiloting() {
     if (pilot.aboard() != this) {
-      pathing.updateTarget(null) ;
+      motion.updateTarget(null) ;
       return ;
     }
     if (pilot.currentAction() == null) return ;
-    pathing.updateTarget(pilot.currentAction().target()) ;
+    motion.updateTarget(pilot.currentAction().target()) ;
   }
   
   
@@ -225,7 +224,7 @@ public abstract class Vehicle extends Mobile implements
       pilotBonus = 0.5f ;
       pilot = null ;
     }
-    if (! pathing.checkPathingOkay()) pathing.refreshPath() ;
+    if (! motion.checkPathingOkay()) motion.refreshPathStep() ;
     if (hangar != null && hangar.destroyed()) {
       //  TODO:  REGISTER FOR SALVAGE
       setAsDestroyed() ;
@@ -326,7 +325,7 @@ public abstract class Vehicle extends Mobile implements
   
   
   public int boardableType() {
-    return Boardable.BOARDABLE_TILE ;
+    return Boardable.BOARDABLE_VEHICLE ;
   }
   
   
@@ -399,10 +398,10 @@ public abstract class Vehicle extends Mobile implements
     if (pilot != null && pilot.mind.rootBehaviour() != null) {
       pilot.mind.rootBehaviour().describeBehaviour(d) ;
     }
-    else if (pathing.target() != null) {
-      if (pathing.target() == aboard()) d.append("Aboard ") ;
+    else if (motion.target() != null) {
+      if (motion.target() == aboard()) d.append("Aboard ") ;
       else d.append("Heading for ") ;
-      d.append(pathing.target()) ;
+      d.append(motion.target()) ;
     }
     else {
       d.append("Idling") ;

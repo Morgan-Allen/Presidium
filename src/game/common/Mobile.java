@@ -274,7 +274,7 @@ public abstract class Mobile extends Element
   
   
   protected void onMotionBlock(Tile t) {
-    final boolean canRoute = motion != null && motion.refreshPathStep() ;
+    final boolean canRoute = motion != null && motion.refreshFullPath() ;
     if (! canRoute) pathingAbort() ;
   }
   

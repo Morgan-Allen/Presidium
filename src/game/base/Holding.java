@@ -39,12 +39,20 @@ public class Holding extends Venue implements Economy {
   final public static int
     MAX_SIZE   = 2,
     MAX_HEIGHT = 4,
-    //NUM_LEVELS = 5,
     NUM_VARS   = 3 ;
+  final static float
+    CHECK_INTERVAL = 10,
+    TEST_INTERVAL  = World.STANDARD_DAY_LENGTH / 3,
+    UPGRADE_THRESH = 0.66f,
+    DEVOLVE_THRESH = 0.66f ;
+  
+  private static boolean verbose = true ;
   
   
-  private int upgradeLevel, varID ;
+  private int upgradeLevel, targetLevel, varID ;
   private List <HoldingExtra> extras = new List <HoldingExtra> () ;
+  private int numTests = 0, upgradeCounter, devolveCounter ;
+  
   
   
   public Holding(Base belongs) {
@@ -62,16 +70,24 @@ public class Holding extends Venue implements Economy {
   public Holding(Session s) throws Exception {
     super(s) ;
     upgradeLevel = s.loadInt() ;
+    targetLevel  = s.loadInt() ;
     varID = s.loadInt() ;
     s.loadObjects(extras) ;
+    numTests = s.loadInt() ;
+    upgradeCounter = s.loadInt() ;
+    devolveCounter = s.loadInt() ;
   }
   
   
   public void saveState(Session s) throws Exception {
     super.saveState(s) ;
     s.saveInt(upgradeLevel) ;
+    s.saveInt(targetLevel ) ;
     s.saveInt(varID) ;
     s.saveObjects(extras) ;
+    s.saveInt(numTests) ;
+    s.saveInt(upgradeCounter) ;
+    s.saveInt(devolveCounter) ;
   }
   
   
@@ -102,37 +118,33 @@ public class Holding extends Venue implements Economy {
     super.updateAsScheduled(numUpdates) ;
     
     if (! structure.intact()) return ;
-    if (personnel.residents().size() == 0) {
-      structure.setState(Structure.STATE_SALVAGE, -1) ;
-      return ;
-    }
     consumeMaterials() ;
     updateDemands(upgradeLevel + 1) ;
     impingeSqualor() ;
+
+    final int CHECK_TIME = 10 ;
+    if (numUpdates % CHECK_TIME == 0) checkForUpgrade(CHECK_TIME) ;
     
-    if (numUpdates % 10 == 0) {
-      //
-      //  Check to see if you're due for an upgrade or downgrade-
-      boolean devolve = false, upgrade = false ;
-      if (! needsMet(upgradeLevel)) devolve = true ;
-      else if (needsMet(upgradeLevel + 1)) upgrade = true ;
-      
-      int targetLevel = upgradeLevel ;
-      if (devolve) targetLevel = upgradeLevel - 1 ;
-      else if (upgrade) targetLevel = upgradeLevel + 1 ;
-      
-      I.sayAbout(this, "Upgrade/Target levels: "+upgradeLevel+"/"+targetLevel) ;
-      I.sayAbout(this, "Could upgrade? "+needsMet(upgradeLevel + 1)) ;
-      
-      targetLevel = Visit.clamp(targetLevel, HoldingUpgrades.NUM_LEVELS) ;
-      checkForUpgrade(targetLevel) ;
+    I.sayAbout(this, "Upgrade/target level: "+upgradeLevel+"/"+targetLevel) ;
+    if (
+      (targetLevel != upgradeLevel) &&
+      (! structure.needsUpgrade()) &&
+      structure.goodCondition()
+    ) {
+      I.sayAbout(this, "Attaching newer sprite") ;
+      upgradeLevel = targetLevel ;
+      structure.updateStats(HoldingUpgrades.INTEGRITIES[targetLevel], 5, 0) ;
+      world.ephemera.addGhost(this, MAX_SIZE, sprite(), 2.0f) ;
+      attachModel(modelFor(this)) ;
+      setAsEstablished(false) ;
     }
   }
   
   
   private boolean needsMet(int meetLevel) {
-    if (meetLevel < HoldingUpgrades.LEVEL_TENT   ) return true  ;
-    if (meetLevel > HoldingUpgrades.LEVEL_GUILDER) return false ;
+    if (personnel.residents().size() == 0) return false ;
+    if (meetLevel <= HoldingUpgrades.LEVEL_TENT   ) return true  ;
+    if (meetLevel >  HoldingUpgrades.LEVEL_GUILDER) return false ;
     final Object met = HoldingUpgrades.NEEDS_MET ;
     return
       HoldingUpgrades.checkAccess   (this, meetLevel, false) == met &&
@@ -144,24 +156,46 @@ public class Holding extends Venue implements Economy {
   }
   
   
-  private void checkForUpgrade(int targetLevel) {
-    if (targetLevel == upgradeLevel) return ;
-    final Object HU[] = HoldingUpgrades.ALL_UPGRADES.members() ;
+  private void checkForUpgrade(int CHECK_TIME) {
     
-    if (targetLevel > upgradeLevel) {
-      final Upgrade target = (Upgrade) HU[targetLevel ] ;
-      structure.beginUpgrade(target, true) ;
-    }
-    else {
-      final Upgrade target = (Upgrade) HU[upgradeLevel] ;
-      structure.resignUpgrade(target) ;
-    }
-    if ((! structure.needsUpgrade()) && structure.goodCondition()) {
-      upgradeLevel = targetLevel ;
-      structure.updateStats(HoldingUpgrades.INTEGRITIES[targetLevel], 5, 0) ;
-      world.ephemera.addGhost(this, MAX_SIZE, sprite(), 2.0f) ;
-      attachModel(modelFor(this)) ;
-      setAsEstablished(false) ;
+    boolean devolve = false, upgrade = false ;
+    if (! needsMet(upgradeLevel)) devolve = true ;
+    else if (needsMet(upgradeLevel + 1)) upgrade = true ;
+    
+    numTests += CHECK_TIME ;
+    if (devolve) devolveCounter += CHECK_TIME ;
+    if (upgrade) upgradeCounter += CHECK_TIME ;
+    
+    if (numTests >= TEST_INTERVAL) {
+      targetLevel = upgradeLevel ;
+      if (devolveCounter * 1f / numTests > DEVOLVE_THRESH) devolve = true ;
+      if (upgradeCounter * 1f / numTests > UPGRADE_THRESH) upgrade = true ;
+      if (devolve) targetLevel-- ;
+      if (upgrade) targetLevel++ ;
+      numTests = devolveCounter = upgradeCounter = 0 ;
+      targetLevel = Visit.clamp(targetLevel, HoldingUpgrades.NUM_LEVELS) ;
+      
+      if (verbose && I.talkAbout == this) {
+        if (numTests == 0) I.say("HOUSING TEST INTERVAL COMPLETE") ;
+        I.say("Upgrade/Target levels: "+upgradeLevel+"/"+targetLevel) ;
+        I.say("Could upgrade? "+upgrade+", devolve? "+devolve) ;
+      }
+      
+      if (targetLevel == upgradeLevel) return ;
+      final Object HU[] = HoldingUpgrades.ALL_UPGRADES.members() ;
+      
+      if (targetLevel > upgradeLevel) {
+        final Upgrade target = (Upgrade) HU[targetLevel ] ;
+        structure.beginUpgrade(target, true) ;
+      }
+      else {
+        final Upgrade target = (Upgrade) HU[upgradeLevel] ;
+        structure.resignUpgrade(target) ;
+      }
+      
+      if (devolve && personnel.residents().size() == 0) {
+        structure.setState(Structure.STATE_SALVAGE, -1) ;
+      }
     }
   }
   

@@ -81,13 +81,10 @@ public abstract class Artilect extends Actor {
       
       protected void updateAI(int numUpdates) {
         super.updateAI(numUpdates) ;
-        //
-        //  If your home is under assault, defend it.
       }
       
-      protected Behaviour reactionTo(Element seen) {
-        if (seen instanceof Actor) return nextDefence((Actor) seen) ;
-        return nextDefence(null) ;
+      protected void addReactions(Element seen, Choice choice) {
+        if (seen instanceof Actor) choice.add(nextDefence((Actor) seen)) ;
       }
       
       public float relationValue(Actor other) {

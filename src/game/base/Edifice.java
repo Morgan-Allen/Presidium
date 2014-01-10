@@ -101,6 +101,7 @@ public class Edifice extends Venue implements Economy {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (! structure.intact()) return ;
+    ///I.sayAbout(this, "Ambience value: "+structure.ambienceVal()) ;
     structure.setAmbienceVal(10) ;
   }
   

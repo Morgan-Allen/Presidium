@@ -203,12 +203,10 @@ public abstract class ActorMind implements Abilities {
     }
     //
     //  Finally, add reactions to anything novel-
-    for (Element NS : justSaw) {
-      final Behaviour reaction = reactionTo(NS) ;
-      if (reactionsVerbose && I.talkAbout == actor) {
-        I.say("Just saw: "+NS) ;
-        I.say("Reaction is: "+reaction) ;
-      }
+    if (justSaw.size() > 0) {
+      final Choice choice = new Choice(actor) ;
+      for (Element NS : justSaw) addReactions(NS, choice) ;
+      final Behaviour reaction = choice.pickMostUrgent() ;
       if (couldSwitchTo(reaction)) assignBehaviour(reaction) ;
     }
   }
@@ -273,7 +271,7 @@ public abstract class ActorMind implements Abilities {
   
   
   protected abstract Behaviour createBehaviour() ;
-  protected abstract Behaviour reactionTo(Element m) ;
+  protected abstract void addReactions(Element m, Choice choice) ;
   
   
   protected Action getNextAction() {
@@ -500,10 +498,13 @@ public abstract class ActorMind implements Abilities {
         Choice.DEFAULT_PRIORITY_RANGE +
         (actor.traits.relativeLevel(STUBBORN) * Choice.DEFAULT_TRAIT_RANGE)
       ),
+      threshold = persist + lastPriority,
+      /*
       threshold = Math.min(
         lastPriority + persist,
         lastPriority * (1 + (persist / 2))
       ),
+      //*/
       nextPriority = next.priorityFor(actor) ;
     if (reactionsVerbose && I.talkAbout == actor) {
       I.say("Last/next priority is: "+lastPriority+"/"+nextPriority) ;
@@ -655,7 +656,15 @@ public abstract class ActorMind implements Abilities {
     if (r == null) {
       return relationValue(other.base()) / 2 ;
     }
+    if (r.subject == actor) return Visit.clamp(r.value() + 1, 0, 1) ;
     return r.value() + (relationValue(other.base()) / 2) ;
+  }
+  
+  
+  public float relationValue(Target other) {
+    if (other instanceof Venue) return relationValue((Venue) other) ;
+    if (other instanceof Actor) return relationValue((Actor) other) ;
+    return 0 ;
   }
   
   

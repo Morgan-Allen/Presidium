@@ -123,6 +123,22 @@ public class Combat extends Plan implements Abilities {
   }
   
   
+  //  TODO:  This could probably be made more generalised.
+  public static float hostility(Actor actor) {
+    Plan p = null ;
+    for (Behaviour b : actor.mind.agenda()) if (b instanceof Plan) {
+      p = (Plan) b ;
+      break ;
+    }
+    if (p instanceof Combat) {
+      return 1.0f ;
+    }
+    if (p instanceof Dialogue) return -0.5f ;
+    if (p instanceof Treatment) return -1.0f ;
+    return 0 ;
+  }
+  
+  
   protected static float combatPriority(
     Actor actor, Actor enemy, float winReward, float lossCost, boolean report
   ) {
@@ -133,9 +149,8 @@ public class Combat extends Plan implements Abilities {
     final float chance = Visit.clamp(1 - danger, 0.1f, 0.9f) ;
     
     final Target enemyTargets = enemy.targetFor(null) ;
-    float hostility = Plan.hostility(enemy) ;
-    if (enemyTargets == actor) hostility *= 1.5f ;
-    hostility *= PARAMOUNT ;
+    float hostility = hostility(enemy) ;
+    hostility *= PARAMOUNT * actor.mind.relationValue(enemyTargets) ;
     winReward += hostility ;
     lossCost -= hostility / 2 ;
     winReward -= actor.mind.relationValue(enemy) * PARAMOUNT ;

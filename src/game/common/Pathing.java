@@ -18,6 +18,9 @@ public class Pathing extends Search <Boardable> {
   
   /**  Field definitions and constructors-
     */
+  private static boolean blocksVerbose = false ;
+  
+  
   final protected Boardable destination ;
   public Mobile client = null ;
   private Boardable aimPoint = null ;
@@ -48,10 +51,14 @@ public class Pathing extends Search <Boardable> {
       aimPoint = venue.mainEntrance() ;
       if (aimPoint != null) {
         if (! venue.isEntrance(aimPoint)) {
-          I.complain("DESTINATION CANNOT ACCESS AIM POINT: "+aimPoint) ;
+          I.complain(
+            "DESTINATION "+destination+" CANNOT ACCESS AIM POINT: "+aimPoint
+          ) ;
         }
         if (! Visit.arrayIncludes(aimPoint.canBoard(null), destination)) {
-          I.complain("AIM POINT CANNOT ACCESS DESTINATION: "+destination) ;
+          I.complain(
+            "AIM POINT: "+aimPoint+" CANNOT ACCESS DESTINATION: "+destination
+          ) ;
         }
       }
       else aimPoint = venue ;
@@ -140,27 +147,19 @@ public class Pathing extends Search <Boardable> {
   protected float cost(Boardable prior, Boardable spot) {
     if (spot == null) return -1 ;
     float mods = 0 ;
-    //
-    //  TODO:  Incorporate these checks only at the level of Place-routes, not
-    //  individual tiles!
     
-    //
-    //  TODO:  Incorporate sector-based danger values, and stay out of hostile
-    //         bases' line of sight when sneaking.
-    /*
-    if (client != null && client.base() != null && spot instanceof Tile) {
-      final float presence = client.base().dangerMap.valAt((Tile) spot) ;
-      if (presence < 0) mods += presence * -5 ;
+    if (client != null) {
+      //
+      //  TODO:  Stay out of the unfogged areas of hostile bases, and fogged
+      //  areas of your own.
+
+      //  If the area or tile has other actors in it, increase the perceived
+      //  cost.
+      if (spot != client.aboard()) mods += spot.inside().size() * 10 ;
     }
-    //*/
-    //
-    //  TODO:  If the area or tile has other actors in it, increase the
-    //         perceived cost.
-    mods += spot.inside().size() ;
-    //
+    
     //  Finally, return a value based on pathing difficulties in the terrain-
     final float baseCost = Spacing.distance(prior, spot) ;
-    ///if (fogged(spot)) return (2.0f * baseCost) + mods ;
     switch (spot.pathType()) {
       case (Tile.PATH_CLEAR  ) : return (1.0f * baseCost) + mods ;
       case (Tile.PATH_ROAD   ) : return (0.5f * baseCost) + mods ;
@@ -170,31 +169,29 @@ public class Pathing extends Search <Boardable> {
   }
   
   
-  public static boolean blockedBy(final Boardable b, final Mobile m) {
+  public static boolean blockedBy(Target t, Mobile m) {
+    if (t == null) return true ;
+    if (! (t instanceof Boardable)) return false ;
+    return blockedBy((Boardable) t, m) ;
+  }
+  
+  
+  private static boolean blockedBy(final Boardable b, final Mobile mobile) {
     if (b.boardableType() == Boardable.BOARDABLE_TILE) {
-      final Tile t = (Tile) b ;
-      if (t.blocked()) return true ;
-      
-      if (m == null || m.motion == null || t == m.motion.pathTarget) {
-        return false ;
+      return b.pathType() == Tile.PATH_BLOCKS ;
+    }
+    else if (mobile != null) {
+      final boolean
+        exists = b.inWorld(),
+        allows = (b == mobile.aboard()) || b.allowsEntry(mobile),
+        blocks = b.pathType() == Tile.PATH_BLOCKS ;
+      if (exists && allows && ! blocks) return true ;
+      if (blocksVerbose && I.talkAbout == mobile) {
+        I.say("Problem with end point: "+b) ;
+        I.say("  Still in world? "+exists ) ;
+        I.say("  Forbids entry? "+! allows) ;
+        I.say("  Blocks passage? "+blocks ) ;
       }
-      if (m.aboard() == b) return false ;
-      
-      final Tile o = m.origin() ;
-      final Series <Mobile> inside = t.inside() ;
-      if (inside == null) return false ;
-      int xd = o.x - t.x, yd = t.y - o.y ;
-      if (xd < 0) xd *= -1 ;
-      if (yd < 0) yd *= -1 ;
-      
-      //  TODO:  make the base an aspect of all mobiles, so this can be better
-      //  optimised.
-      if (xd <= 2 && yd <= 2) {
-        for (Mobile i : inside) if (i != m) {// && i.base() == m.base()) {
-          return true ;
-        }
-      }
-      //*/
     }
     return false ;
   }
@@ -219,5 +216,21 @@ public class Pathing extends Search <Boardable> {
 
 
 
+/*
+if (m == null || m.motion == null || m.aboard() == b) return false ;
+final Tile o = m.origin() ;
+final Series <Mobile> inside = t.inside() ;
+if (inside == null || inside.size() < 1) return false ;
+int xd = o.x - t.x, yd = t.y - o.y ;
+if (xd < 0) xd *= -1 ;
+if (yd < 0) yd *= -1 ;
+final Target PT = m.motion.target() ;
+
+if (xd <= 2 && yd <= 2) {
+  for (Mobile i : inside) if (i != m && i != PT) {
+    return true ;
+  }
+}
+//*/
 
 

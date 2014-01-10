@@ -70,46 +70,50 @@ public class Background implements Economy, Session.Saveable {
   
   final public static Background
     MALE_BIRTH = new Background(
-      "Male Birth", null, null, -1, NOT_A_GUILD,
+      "Born Male", null, null, -1, NOT_A_GUILD,
       3, BRAWN, 1, REFLEX, SOMETIMES, TALL, NEVER, FEMININE
     ),
     FEMALE_BIRTH = new Background(
-      "Female Birth", null, null, -1, NOT_A_GUILD,
+      "Born Female", null, null, -1, NOT_A_GUILD,
       2, VIGOUR, 2, INSIGHT, RARELY, STOUT, ALWAYS, FEMININE
     ),
     //
     //  Natives can only be recruited locally, not from offworld.
     NATIVE_BIRTH = new Background(
-      "Native Birth", "native_skin.gif", null, -1, NOT_A_GUILD,
+      "Born Native", "native_skin.gif", null, -1, NOT_A_GUILD,
       NOVICE, NATIVE_TABOO, LEARNING, HANDICRAFTS, MARKSMANSHIP, XENOZOOLOGY
     ),
     //
     //  The following are available to most actors as part of their careers-
-    HIVES_BIRTH = new Background(
-      "Hives Birth", "artificer_skin.gif", null, SLAVE_CLASS, NOT_A_GUILD,
+    DREGS_BIRTH = new Background(
+      "Born Dreg", "artificer_skin.gif", null, SLAVE_CLASS, NOT_A_GUILD,
       NOVICE, COMMON_CUSTOM, LEARNING, NATIVE_TABOO, HAND_TO_HAND, CHEMISTRY
     ),
     PYON_BIRTH = new Background(
-      "Pyon Birth", "pyon_skin.gif", null, LOWER_CLASS, NOT_A_GUILD,
+      "Born Pyon", "pyon_skin.gif", null, LOWER_CLASS, NOT_A_GUILD,
       NOVICE, COMMON_CUSTOM, LEARNING, HARD_LABOUR, DOMESTICS, ASSEMBLY
     ),
     FREE_BIRTH = new Background(
-      "Free Birth", "citizen_skin.gif", null, MIDDLE_CLASS, NOT_A_GUILD,
+      "Born Free", "citizen_skin.gif", null, MIDDLE_CLASS, NOT_A_GUILD,
       NOVICE, COMMON_CUSTOM, LEARNING, SUASION, MARKSMANSHIP, PILOTING
     ),
-    GUILDER_BIRTH = new Background(
-      "Guilder Birth", "vendor_skin.gif", null, UPPER_CLASS, NOT_A_GUILD,
+    GELDER_BIRTH = new Background(
+      "Born Gelder", "vendor_skin.gif", null, UPPER_CLASS, NOT_A_GUILD,
       NOVICE, COMMON_CUSTOM, LEARNING, NOBLE_ETIQUETTE, ACCOUNTING, COUNSEL
     ),
     //
     //  Highborn are not available as normally-generated citizens, only as
     //  visiting NPCs or members of your household.
+    LANDER_BIRTH = new Background(
+      "Born Lander", "highborn_male_skin.gif", null, RULER_CLASS,
+      NOVICE, NOBLE_ETIQUETTE, LEARNING, COMMON_CUSTOM, HAND_TO_HAND, ACCOUNTING
+    ),
     HIGH_BIRTH = new Background(
-      "High Birth", "highborn_male_skin.gif", null, RULER_CLASS,
+      "Born High", "highborn_male_skin.gif", null, RULER_CLASS,
       NOVICE, NOBLE_ETIQUETTE, LEARNING, COMMAND, HAND_TO_HAND, ANCIENT_LORE
     ),
     
-    OPEN_CLASSES[] = { HIVES_BIRTH, PYON_BIRTH, FREE_BIRTH, GUILDER_BIRTH } ;
+    OPEN_CLASSES[] = { DREGS_BIRTH, PYON_BIRTH, FREE_BIRTH, GELDER_BIRTH } ;
   
   
   
@@ -649,7 +653,7 @@ public class Background implements Economy, Session.Saveable {
       null, 1, 1, WASTES_BLOOD, NORMAL_GRAVITY,
       MAKES, PARTS, DATALINKS, REPLICANTS,
       NEEDS, ATOMICS, DECOR, ARTIFACTS,
-      HIVES_BIRTH, PYON_BIRTH,
+      DREGS_BIRTH, PYON_BIRTH,
       LEARNING, ASSEMBLY, ANCIENT_LORE,
       OFTEN, ARTIFICER_CIRCLES, SOMETIMES, COURT_CIRCLES,
       RARELY, ECOLOGIST_CIRCLES, AESTHETE_CIRCLES
@@ -662,7 +666,7 @@ public class Background implements Economy, Session.Saveable {
       null, 0, 0, FOREST_BLOOD, STRONG_GRAVITY,
       MAKES, CARBS, GREENS, ATOMICS,
       NEEDS, SERVICE_ARMAMENT, PARTS, MEDICINE,
-      GUILDER_BIRTH, FREE_BIRTH,
+      GELDER_BIRTH, FREE_BIRTH,
       LEARNING, MARKSMANSHIP, ANATOMY,
       OFTEN, MILITARY_CIRCLES, SOMETIMES, PHYSICIAN_CIRCLES,
       RARELY, VENDOR_CIRCLES
@@ -675,7 +679,7 @@ public class Background implements Economy, Session.Saveable {
       null, 1, 0, TUNDRA_BLOOD, NOMINAL_GRAVITY,
       MAKES, CIRCUITRY, MEDICINE, SERVICE_SHIPPING,
       NEEDS, GREENS, METAL_ORES, FUEL_CORES,
-      HIVES_BIRTH, GUILDER_BIRTH,
+      DREGS_BIRTH, GELDER_BIRTH,
       LEARNING, FIELD_THEORY, STEALTH_AND_COVER,
       OFTEN, VENDOR_CIRCLES, OUTLAW_CIRCLES, SOMETIMES, ARTIFICER_CIRCLES
     ),

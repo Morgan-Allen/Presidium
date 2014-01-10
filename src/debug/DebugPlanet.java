@@ -25,7 +25,7 @@ public class DebugPlanet extends Scenario {
   /**  Startup and save/load methods-
     */
   public static void main(String args[]) {
-    if (Scenario.loadedFrom("test_planet")) return ;
+    //if (Scenario.loadedFrom("test_planet")) return ;
     DebugPlanet test = new DebugPlanet() ;
     PlayLoop.setupAndLoop(test.UI(), test) ;
   }
@@ -65,7 +65,7 @@ public class DebugPlanet extends Scenario {
     GameSettings.buildFree = true ;
     
     final TerrainGen TG = new TerrainGen(
-      256, 0,
+      128, 0,
       Habitat.OCEAN       , 0.5f,
       Habitat.ESTUARY     , 0.2f,
       Habitat.MEADOW      , 1f,

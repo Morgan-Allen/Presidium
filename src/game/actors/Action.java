@@ -202,13 +202,15 @@ public class Action implements Behaviour, Model.AnimNames {
       final int MT = b.motionType(actor) ;
       if (MT != MOTION_ANY) { motionType = MT ; break ; }
     }
+    
+    
     final float luck = actor.airborne() ? 0.5f : moveLuck(actor) ;
     float rate = actor.health.moveRate() ;
     if (motionType == MOTION_SNEAK) rate *= (2 - luck) / 4 ;
     else if (motionType == MOTION_FAST) rate *= 2 * luck ;
     else rate += (luck - 0.5f) / 2 ;
     if (basic) return rate ;
-    //
+    
     //  TODO:  Must also account for the effects of fatigue and encumbrance...
     final int pathType = actor.origin().pathType() ;
     switch (pathType) {
@@ -250,6 +252,7 @@ public class Action implements Behaviour, Model.AnimNames {
     final boolean mustBoard = (
       (! ranged()) && (moveTarget instanceof Boardable)
     ) ;
+    //final boolean blockage = ! actor.motion.checkEndPoint(moveTarget) ;
     final float
       sightRange = actor.health.sightRange(),
       motionDist = Spacing.distance(actor, moveTarget),
@@ -267,33 +270,37 @@ public class Action implements Behaviour, Model.AnimNames {
     //  close enough to see, you can consider ignoring tile-pathing in favour
     //  of closing directly on the subject.  If, on the other hand, the target
     //  should be visible, but isn't, then path towards it more directly.
-    actor.motion.updateTarget(moveTarget) ;
-    final Target step = actor.motion.nextStep(), faced ;
+    Target pathsTo = moveTarget ;
     boolean closed = false, approaching = false, facing = false ;
+    final Target step = actor.motion.nextStep(), closeOn ;
     
     if (mustBoard) {
       approaching = actor.aboard() == moveTarget ;
       closed = approaching && (motionDist - maxDist < separation) ;
-      faced = step ;
+      closeOn = closed ? actionTarget : step ;
     }
     else {
       final boolean seen = MobileMotion.hasLineOfSight(
         actor, actionTarget, Math.max(maxDist, sightRange)
       ) ;
       if (Math.min(motionDist, actionDist) < maxDist && ! seen) {
-        actor.motion.updateTarget(actionTarget) ;
+        pathsTo = actionTarget ;
       }
-      closed = seen && actionDist <= maxDist ;
-      approaching = closed || (seen && actionDist <= maxDist + 1) ;
-      faced = approaching ? actionTarget : step ;
+      if (Pathing.blockedBy(pathsTo, actor)) {
+        pathsTo = Spacing.nearestOpenTile(pathsTo, actor) ;
+      }
+      closed = seen && (actionDist <= maxDist) ;
+      approaching = closed || (seen && (actionDist <= (maxDist + 1))) ;
+      closeOn = approaching ? actionTarget : step ;
     }
-    facing = actor.motion.facingTarget(faced) ;
+    actor.motion.updateTarget(pathsTo) ;
+    facing = actor.motion.facingTarget(closeOn) ;
     
     if (report) {
       I.say("Action target is: "+actionTarget) ;
       I.say("  Move target is: "+moveTarget) ;
       I.say("  Path target is: "+actor.motion.target()+", step: "+step) ;
-      I.say("  Faced is: "+faced+", must board: "+mustBoard) ;
+      I.say("  Faced is: "+closeOn+", must board: "+mustBoard) ;
       I.say("  Current position: "+actor.aboard()) ;
       I.say("  Closed/facing: "+closed+"/"+facing+", doing update? "+active) ;
       I.say("  Is ranged? "+ranged()+", approaching? "+approaching) ;
@@ -314,8 +321,8 @@ public class Action implements Behaviour, Model.AnimNames {
     //  If active updates to pathing & motion are called for, make them.
     if (active) {
       final float moveRate = moveRate(actor, false) ;
-      actor.motion.headTowards(faced, moveRate, ! closed) ;
-      if (! closed) actor.motion.applyCollision() ;
+      actor.motion.headTowards(closeOn, moveRate, ! closed) ;
+      if (! closed) actor.motion.applyCollision(moveRate) ;
     }
   }
   

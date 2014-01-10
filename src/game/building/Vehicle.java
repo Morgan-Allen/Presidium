@@ -224,7 +224,7 @@ public abstract class Vehicle extends Mobile implements
       pilotBonus = 0.5f ;
       pilot = null ;
     }
-    if (! motion.checkPathingOkay()) motion.refreshPathStep() ;
+    if (! motion.checkPathingOkay()) motion.refreshFullPath() ;
     if (hangar != null && hangar.destroyed()) {
       //  TODO:  REGISTER FOR SALVAGE
       setAsDestroyed() ;

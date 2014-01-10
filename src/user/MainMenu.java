@@ -343,7 +343,7 @@ public class MainMenu extends UIGroup {
     final Background birth ;
     if (Rand.num() < promoteChance) {
       if (Rand.num() < promoteChance) birth = Background.FREE_BIRTH ;
-      else birth = Background.GUILDER_BIRTH ;
+      else birth = Background.GELDER_BIRTH ;
     }
     else birth = Background.HIGH_BIRTH ;
     

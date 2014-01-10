@@ -56,7 +56,7 @@ public class Treatment extends Plan implements Economy {
   private Item result = null ;
   
   
-  //
+  
   //  TODO:  Allow the type of treatment to be optionally specified here-
   public Treatment(Actor actor, Actor patient, Venue theatre) {
     super(actor, patient) ;
@@ -74,9 +74,10 @@ public class Treatment extends Plan implements Economy {
     
     final boolean valid = canTreat() ;
     
-    final Target haven = Retreat.nearestHaven(actor, Sickbay.class) ;
-    if (theatre == null && valid && haven instanceof Venue) {
-      this.theatre = (Venue) haven ;
+    if (theatre == null && actor != null) {
+      final Target t = Retreat.nearestHaven(actor, Sickbay.class) ;
+      if (t instanceof Venue) this.theatre = (Venue) t ;
+      else this.theatre = null ;
     }
     else this.theatre = theatre ;
     
@@ -269,7 +270,15 @@ public class Treatment extends Plan implements Economy {
     impetus -= Plan.rangePenalty(actor, patient) ;
     impetus -= Plan.dangerPenalty(patient, actor) ;
     impetus += priorityMod ;
-    //if (verbose) I.sayAbout(actor, "Treatment impetus "+impetus) ;
+    
+    if (patient.aboard() != theatre && ! patient.health.conscious()) {
+      impetus += ROUTINE ;
+    }
+    
+    if (verbose && I.talkAbout == actor) {
+      I.say("Treatment impetus "+impetus) ;
+      I.say("Treat DC: "+treatDC+", theatre: "+theatre) ;
+    }
     final float max = patient.health.alive() ? PARAMOUNT : URGENT ;
     return Visit.clamp(impetus, IDLE, max) ;
   }

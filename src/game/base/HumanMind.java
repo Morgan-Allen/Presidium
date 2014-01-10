@@ -151,46 +151,22 @@ public class HumanMind extends ActorMind implements Abilities {
   }
   
   
-  protected Behaviour reactionTo(Element seen) {
-    final Choice choice = new Choice(actor) ;
-    if (seen instanceof Actor) addResponses((Actor) seen, choice) ;
-    choice.add(new Retreat(actor)) ;
-    return choice.pickMostUrgent() ;
-  }
-  
-  
-  private void addResponses(Actor nearby, Choice choice) {
-    choice.add(Hunting.asHarvest(actor, nearby, home)) ;
-    choice.add(new Combat(actor, nearby)) ;
-    if (nearby.isDoing(Combat.class, actor)) {
-      choice.add(new Retreat(actor)) ;
-      //  TODO:  Also permit surrender (becoming a captive.)
+  protected void addReactions(Element seen, Choice choice) {
+    if (seen instanceof Actor) {
+      final Actor nearby = (Actor) seen ;
+      choice.add(Hunting.asHarvest(actor, nearby, home)) ;
+      choice.add(new Combat(actor, nearby)) ;
+      if (nearby.isDoing(Combat.class, actor)) choice.add(new Retreat(actor)) ;
+      
+      choice.add(new Dialogue(actor, nearby, Dialogue.TYPE_CASUAL)) ;
+      //  TODO:  Also consider 'objecting' to whatever the other is doing.
+      choice.add(new Treatment(actor, nearby, null)) ;
     }
-    
-    choice.add(new Dialogue(actor, nearby, Dialogue.TYPE_CASUAL)) ;
-    //  TODO:  Also consider 'objecting' to whatever the other is doing.
-    choice.add(new Treatment(actor, nearby, null)) ;
   }
   
   
   private void addActorResponses(Choice choice) {
-    //
-    //  TODO:  Unify this with the methods in the ActorMind class.
-    /*
-    //
-    //  Find all nearby items or actors and consider reacting to them.
-    final PresenceMap mobiles = actor.world().presences.mapFor(Mobile.class) ;
-    final int reactLimit = (int) (actor.traits.traitLevel(INSIGHT) / 2) ;
-    final Batch <Actor> actorB = new Batch <Actor> () ;
-    int numR = 0 ;
-    for (Target t : mobiles.visitNear(actor, -1, null)) {
-      if (t instanceof Actor) actorB.add((Actor) t) ;
-      if (++numR > reactLimit) break ;
-    }
-    //*/
-    for (Element e : awareOf()) if (e instanceof Actor) {
-      addResponses((Actor) e, choice) ;
-    }
+    for (Element e : awareOf()) addReactions(e, choice) ;
   }
   
   

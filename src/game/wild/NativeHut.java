@@ -13,6 +13,9 @@ import src.user.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  Consider having this extend Holding.
+
 
 public class NativeHut extends Venue {
   

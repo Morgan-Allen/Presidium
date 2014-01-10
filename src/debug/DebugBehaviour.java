@@ -45,7 +45,7 @@ public class DebugBehaviour extends Scenario implements Economy {
   /**  Startup and save/load methods-
     */
   public static void main(String args[]) {
-    //if (Scenario.loadedFrom("test_behaviour")) return ;
+    if (Scenario.loadedFrom("test_behaviour")) return ;
     DebugBehaviour test = new DebugBehaviour() ;
     PlayLoop.setupAndLoop(test.UI(), test) ;
   }
@@ -84,8 +84,10 @@ public class DebugBehaviour extends Scenario implements Economy {
   
   public void updateGameState() {
     super.updateGameState() ;
+    PlayLoop.rendering().port.cameraZoom = 1.33f ;
     //PlayLoop.setGameSpeed(0.25f) ;
-    //PlayLoop.setGameSpeed(5.0f) ;
+    PlayLoop.setGameSpeed(25.0f) ;
+    economicUpdate() ;
   }
   
   
@@ -99,6 +101,28 @@ public class DebugBehaviour extends Scenario implements Economy {
   private void economicScenario(World world, Base base, BaseUI UI) {
     
     //  TODO:  Rig together a scenario to demonstrate rapid housing evolution.
+    Placement.establishVenue(new VaultSystem(base), 6, 6, true, world) ;
+    GameSettings.hireFree = true ;
+  }
+  
+  
+  private void economicUpdate() {
+    if (base().credits() < 500) base().incCredits(1000) ;
+    
+    final Batch <Venue> sampled = new Batch <Venue> () ;
+    final World world = world() ;
+    final Tile t = world.tileAt(world.size / 2, world.size / 2) ;
+    world.presences.sampleFromKey(t, world, 100, sampled, Venue.class) ;
+    
+    for (Venue v : sampled) {
+      final Service services[] = v.services() ;
+      if (services != null) for (Service s : services) {
+        if (v.stocks.amountOf(s) < 5) v.stocks.bumpItem(s, 10) ;
+      }
+      for (Actor a : v.personnel.residents()) {
+        if (a.gear.credits() < 500) a.gear.incCredits(1000) ;
+      }
+    }
   }
   
   
@@ -159,7 +183,6 @@ public class DebugBehaviour extends Scenario implements Economy {
     GameSettings.buildFree = true ;
     GameSettings.hireFree  = true ;
     GameSettings.psyFree   = true ;
-    PlayLoop.rendering().port.cameraZoom = 1.33f ;
     //
     //  Step 1:  Generate a structure, generate some actors around it, create
     //  a security mission for the structure, and assign the actors to it.

@@ -3,12 +3,11 @@
 
 package src.game.base ;
 import src.game.building.* ;
-import src.game.common.World;
+import src.game.common.* ;
 import src.util.* ;
 
 
 
-//
 //  I've decided to put this functionality in a separate class for the sake of
 //  de-cluttering and headspace.  And for now, I'm limiting myself to the 5
 //  basic housing types.
@@ -37,8 +36,8 @@ public class HoldingUpgrades implements Economy {
     CITIZEN_LEVEL = new Upgrade(
       "Citizen Apartment", "", 0, null, 0, FREEBORN_LEVEL, ALL_UPGRADES
     ),
-    GUILDSMAN_LEVEL = new Upgrade(
-      "Guilder Manse", "", 0, null, 0, CITIZEN_LEVEL, ALL_UPGRADES
+    GELDER_LEVEL = new Upgrade(
+      "Gelder Manse", "", 0, null, 0, CITIZEN_LEVEL, ALL_UPGRADES
     ) ;
   
   final static Object
@@ -52,7 +51,7 @@ public class HoldingUpgrades implements Economy {
     LEVEL_GUILDER  = 4,
     NUM_LEVELS     = 5 ;
   final public static int
-    OCCUPANCIES[] = { 4, 4, 4, 4, 4 },
+    OCCUPANCIES[] = { 4, 5, 4, 3, 2 },
     TAX_LEVELS[]  = { 0, 5, 10, 20, 35 },
     INTEGRITIES[] = { 15, 35, 80, 125, 200 },
     BUILD_COSTS[] = { 25, 60, 135, 225, 350 } ;
@@ -66,7 +65,7 @@ public class HoldingUpgrades implements Economy {
     "Pyon Shacks",
     "Freeborn Holding",
     "Citizen Apartment",
-    "Guilder Manse",
+    "Gelder Manse",
     
     "Knighted Estate",
     "Highborn Villa",
@@ -100,7 +99,7 @@ public class HoldingUpgrades implements Economy {
   //    2 parts and 1 power.
   //  Citizen Apartments require:
   //    3 parts, 2 power and 1 plastics.
-  //  Guilder Manses require:
+  //  Gelder Manses require:
   //    3 parts, 2 power, 2 plastics, 1 water, 1 circuitry and 1 datalink.
   //
   //  Scavenger slums require 1 parts.  Dreg towers require 3, and 1 power.
@@ -121,15 +120,15 @@ public class HoldingUpgrades implements Economy {
       SIMPLE_DC, ASSEMBLY
     ),
     new Conversion(
-      2, PARTS, 1, POWER,
+      2, PARTS, 1, PLASTICS,
       ROUTINE_DC, ASSEMBLY
     ),
     new Conversion(
-      3, PARTS, 2, POWER, 1, PLASTICS,
+      3, PARTS, 2, PLASTICS, 1, POWER,
       MODERATE_DC, ASSEMBLY
     ),
     new Conversion(
-      2, PARTS, 2, POWER, 2, PLASTICS, 1, WATER, 1, CIRCUITRY,// 1, DATALINKS,
+      2, PARTS, 2, POWER, 2, PLASTICS, 1, WATER, 1, CIRCUITRY,
       DIFFICULT_DC, ASSEMBLY
     ),
   } ;
@@ -197,13 +196,12 @@ public class HoldingUpgrades implements Economy {
   //  Pyon Shacks require 1 food type.
   //  Freeborn Holdings require 2 food types.
   //  Citizen Apartments require 2 food types and either Rations or Soma.
-  //  Guilder Manses require 3 food types and either Greens or Soma.
+  //  Gelder Manses require 3 food types and either Greens or Soma.
   //
-  //  Dreg Towers require at least 1 food type or Soma.
+  //  Dreg Towers require at least 2 food types or 1 food type and Soma.
   //
   //  Knighted Estates require 2 food types and either Spice or Soma.
-  //  Highborn Villas require 3 food types, Soma and Spice.
-  //  Forbidden Palaces require 4 food types and Spice from 2 sources.
+  //  Highborn Villas require 4 food types, Soma and Spice.
   
   //
   //  TODO:  Create a fourth food type- rations at the Stock Exchange, say.
@@ -265,22 +263,12 @@ public class HoldingUpgrades implements Economy {
       if (numFoods < 2) return NV ? NOT_MET :
         "Your citizens demand a more varied diet as part of their "+
         "modern lifestyle." ;
-      /*
-      else if (holding.stocks.amountOf(SOMA) < min) return NV ? NOT_MET :
-        "Your citizens demand a supply of Soma as an aid to unwinding after "+
-        "work.";
-      //*/
       else return NEEDS_MET ;
     }
     if (upgradeLevel >= LEVEL_GUILDER) {
       if (numFoods < 3) return NV ? NOT_MET :
         "Your guilders need at least three food types to satisfy the demands "+
         "of an upper-class lifestyle." ;
-      /*
-      else if (holding.stocks.amountOf(SOMA) < min) return NV ? NOT_MET :
-        "Your guilders consider a stock of Soma indispensible to their "+
-        "leisure hours." ;
-      //*/
       else return NEEDS_MET ;
     }
     
@@ -292,24 +280,21 @@ public class HoldingUpgrades implements Economy {
   /**  Venues access-
     */
   //
-  //  Pyon Shacks require access to a Vault System.
-  //    (basic safety is the concern here.)
-  //  Freeborn Holdings require access to a Stock Exchange or Sickbay, and
-  //  either an Arena or Cantina.
-  //    (free access to goods and services.)
-  //  Citizen Apartment require access to an Audit Office or Counsel Chamber.
-  //    (political/legal representation.)
-  //  Guilder Manses require access to an Archives or Children's Creche.
-  //    (education/upward mobility.)
-  //
-  //  Dreg Towers need a Vault System.
+  //  Danger and Ambience, based on area.
+  //  Health and morale, based on inhabitants.
+  //  Food stocks and building materials.
+  //  Vault System or Sickbay.
+  //  Stock Exchange or Cantina.
+  //  Archives or Counsel Chamber.
+  
+  //  Merge 'wastes huts' with slum housing, and allow those to upgrade to Dreg
+  //  Towers.
+  //  Seal tents are intermediate.
   //
   //  Knighted Estates require access to a Bastion, and 2 servants per
   //    inhabitant.
   //  Highborn Villas require access to a Counsel Chamber or Arena, and 5
   //    servants per inhabitant, 2 of them Pyons or better.
-  //  Forbidden Palaces require access to a Pleasure Dome, and 10 servants per
-  //    inhabitant, 5 of them Pyons or better and 2 of them Citizens or better.
   
   
   protected static Object checkAccess(
@@ -318,49 +303,29 @@ public class HoldingUpgrades implements Economy {
     if (upgradeLevel == LEVEL_TENT) return NEEDS_MET ;
     final boolean NV = ! verbose ;
     if (upgradeLevel >= LEVEL_PYON) {
-      if (lacksAccess(holding, VaultSystem.class)) return NV ? NOT_MET :
-        "Your pyons will need access to a Vault System providing shelter and "+
-        "life support before they will feel safe enough to settle down." ;
-    }
-    if (upgradeLevel >= LEVEL_FREEBORN) {
       if (
-        lacksAccess(holding, StockExchange.class) &&
+        lacksAccess(holding, VaultSystem.class) &&
         lacksAccess(holding, Sickbay.class)
       ) return NV ? NOT_MET :
-        "Your freeborn need access to a Stock Exchange or Sickbay to ensure "+
-        "they can purchase basic nutritional and medical supplements." ;
-      if (
-        lacksAccess(holding, Cantina.class) &&
-        true  //lacksAccess(holding, Arena.class)
-      ) return NV ? NOT_MET :
-        "Your freeborn will want access to an Arena or Cantina to distract "+
-        "them from the grind of daily life." ;
+        "Your pyons will need access to a Vault System or Sickbay to provide "+
+        "life support or health services before they will feel safe enough "+
+        "to settle down." ;
     }
     if (upgradeLevel >= LEVEL_CITIZEN) {
-      if (lacksAccess(holding, StockExchange.class)) return NV ? NOT_MET :
-        "Your citizens require access to the finer goods provided by a "+
-        "Stock Exchange." ;
-      if (lacksAccess(holding, Sickbay.class)) return NV ? NOT_MET :
-        "Your citizens need the peace of mind that comes with the medical "+
-        "services of a Sickbay." ;
       if (
-        lacksAccess(holding, AuditOffice.class) &&
-        true  //lacksAccess(holding, CounselChamber.class)
+        lacksAccess(holding, StockExchange.class) &&
+        lacksAccess(holding, Cantina.class)
       ) return NV ? NOT_MET :
-        "In accordance with the property requirements for office, your "+
-        "citizens now require access to an Audit Office or Counsel Chamber "+
-        "to represent their interests and resolve disputes." ;
+        "Your citizens want access to a Cantina or Stock Exchange to allow "+
+        "access to luxury goods or services." ;
     }
     if (upgradeLevel >= LEVEL_GUILDER) {
-      //if (lacksAccess(holding, CounselChamber.class)) return
-      //  "Some of your more ambitious guilders with political aspirations "
-      //  "are clamouring for access to a Counsel Chamber."
       if (
         lacksAccess(holding, Archives.class) &&
-        true //lacksAccess(holding, ChildrensCreche.class)
+        true //lacksAccess(holding, CounselChamber.class)
       ) return NV ? NOT_MET :
-        "Your upwardly-mobile guilders require access to an Archives or "+
-        "Children's Creche to ensure a better future for their offspring." ;
+        "Your upwardly-mobile gelders require access to an Archives or "+
+        "Counsel Chamber for the sake of education or political access." ;
     }
     return NEEDS_MET ;
   }
@@ -399,7 +364,7 @@ public class HoldingUpgrades implements Economy {
   protected static Object checkSpecial(
     Holding holding, int upgradeLevel, boolean verbose
   ) {
-    
+    /*
     if (upgradeLevel >= LEVEL_FREEBORN) {
       if (verbose && holding.stocks.shortagePenalty(PRESSFEED) > 0) {
         return
@@ -414,6 +379,7 @@ public class HoldingUpgrades implements Economy {
           "that resides in an Archives' encrypted datalinks." ;
       }
     }
+    //*/
     return NEEDS_MET ;
   }
   

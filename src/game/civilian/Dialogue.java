@@ -59,6 +59,7 @@ public class Dialogue extends Plan implements Abilities {
   
   private Dialogue(Actor actor, Actor other, Actor starts, int type) {
     super(actor, other) ;
+    if (actor == other) I.complain("CANNOT TALK TO SELF!") ;
     this.other = other ;
     this.starts = starts ;
     this.type = type ;
@@ -158,7 +159,7 @@ public class Dialogue extends Plan implements Abilities {
       this.stands = null ;
       for (Tile t : ((Tile) location).allAdjacent(null)) {
         if (t == null) continue ;
-        if (Pathing.blockedBy(t, actor) || t.flaggedWith() != null) continue ;
+        if (t.blocked() || t.flaggedWith() != null) continue ;
         final float dist = Spacing.distance(t, actor) ;
         if (dist < minDist) { stands = t ; minDist = dist ; }
       }

@@ -106,13 +106,10 @@ public abstract class Fauna extends Actor {
       
       protected void updateAI(int numUpdates) {
         super.updateAI(numUpdates) ;
-        //  TODO:  If you or your home are under attack, consider defending
-        //  them from the aggressor.
       }
       
-      protected Behaviour reactionTo(Element seen) {
-        if (seen instanceof Actor) return nextDefence((Actor) seen) ;
-        return nextDefence(null) ;
+      protected void addReactions(Element seen, Choice choice) {
+        if (seen instanceof Actor) choice.add(nextDefence((Actor) seen)) ;
       }
       
       //
@@ -335,11 +332,9 @@ public abstract class Fauna extends Actor {
   
   
   protected void addChoices(Choice choice) {
-    
     if (species.browser()) choice.add(nextBrowsing()) ;
     if (species.predator()) choice.add(nextHunting()) ;
     if (breedMetre >= 0.99f) choice.add(nextBreeding()) ;
-    choice.add(nextDefence(null)) ;
     choice.add(nextResting()) ;
     choice.add(nextMigration()) ;
     choice.add(nextBuildingNest()) ;

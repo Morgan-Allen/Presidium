@@ -211,7 +211,7 @@ public abstract class Actor extends Mobile implements
         assignAction(mind.getNextAction()) ;
       }
       if (! motion.checkPathingOkay()) {
-        motion.refreshPathStep() ;
+        motion.refreshFullPath() ;
       }
       mind.updateAI(numUpdates) ;
     }

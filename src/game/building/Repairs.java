@@ -116,7 +116,7 @@ public class Repairs extends Plan implements Abilities {
     ) ;
     final Choice choice = new Choice(client) ;
     for (Venue near : toRepair) {
-      if (near.base() == null) continue ;
+      if (near.base() != client.base()) continue ;
       final boolean needsRepair =
         near.structure.hasWear() ||
         near.structure.burning() ||

@@ -156,7 +156,7 @@ public class Outcrop extends Fixture implements Selectable {
   public int owningType() {
     return type == TYPE_DUNE ?
       Element.ELEMENT_OWNS :
-      Element.TERRAIN_OWNS ;
+      Element.FIXTURE_OWNS ;
   }
   
   

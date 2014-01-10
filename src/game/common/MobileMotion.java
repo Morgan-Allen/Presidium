@@ -59,23 +59,6 @@ public class MobileMotion {
   }
   
   
-  private boolean checkEndPoint(Boardable b) {
-    if (b == null) return false ;
-    final boolean
-      exists = b.inWorld(),
-      allows = (b == mobile.aboard()) || b.allowsEntry(mobile),
-      blocks = Pathing.blockedBy(b, mobile) ;
-    if (exists && allows && ! blocks) return true ;
-    if (verbose && I.talkAbout == mobile) {
-      I.say("Problem with end point: "+b) ;
-      I.say("  Still in world? "+exists ) ;
-      I.say("  Forbids entry? "+! allows) ;
-      I.say("  Blocks passage? "+blocks ) ;
-    }
-    return false ;
-  }
-  
-  
   public Target target() {
     return trueTarget ;
   }
@@ -112,7 +95,7 @@ public class MobileMotion {
     final Target oldTarget = trueTarget ;
     this.trueTarget = moveTarget ;
     if (trueTarget != oldTarget) {
-      if (verbose) I.sayAbout(mobile, "...TARGET HAS CHANGED") ;
+      if (verbose) I.sayAbout(mobile, "...TARGET HAS CHANGED: "+trueTarget) ;
       path = null ; stepIndex = -1 ; return ;
     }
     else if (inLocus(nextStep())) {
@@ -158,21 +141,22 @@ public class MobileMotion {
   }
   
   
-  public boolean refreshPathStep() {
+  public boolean refreshFullPath() {
     if (verbose) I.sayAbout(mobile, "REFRESHING PATH TO: "+trueTarget) ;
     
     final Boardable origin = location(mobile) ;
     if (trueTarget == null) path = null ;
-    
-    //  Firstly, we perform some basic sanity checks on the start and end
-    //  points of the prospective route.
     else {
+      
+      //  Firstly, we perform some basic sanity checks on the start and end
+      //  points of the prospective route.
       pathTarget = location(trueTarget) ;
       if (verbose) I.sayAbout(mobile, "BETWEEN: "+origin+" AND "+pathTarget) ;
-      if (checkEndPoint(origin) && checkEndPoint(pathTarget)) {
-        path = pathBetween(origin, pathTarget) ;
-      }
-      else path = null ;
+      if (
+        Pathing.blockedBy(origin, mobile) ||
+        Pathing.blockedBy(pathTarget, mobile)
+      ) path = null ;
+      else path = pathBetween(origin, pathTarget) ;
     }
     if (path == null) {
       if (verbose) I.sayAbout(mobile, "COULDN'T PATH TO: "+pathTarget) ;
@@ -343,7 +327,7 @@ public class MobileMotion {
   }
   
   
-  public void applyCollision() {
+  public void applyCollision(float moveRate) {
     final Mobile m = mobile ;
     if (m.indoors()) return ;
     final Vec2D sum = new Vec2D(), disp = new Vec2D() ;
@@ -390,8 +374,25 @@ public class MobileMotion {
         numHits++ ;
       }
     }
-    if (numHits == 0) return ;
+    if (numHits == 0 || sum.length() == 0) return ;
     sum.scale(0.5f / numHits) ;
+    
+    //  Ensure that the effects of displacement never entirely cancel basic
+    //  movement rate-
+    final float
+      sumAngle = sum.toAngle(),
+      difference = Math.abs(Vec2D.degreeDif(mobile.rotation, sumAngle)) ;
+    if (difference > 90) {
+      final float
+        push = (difference - 90) / 90,
+        minMove = moveRate / (0.99f * PlayLoop.UPDATES_PER_SECOND),
+        maxDisp = (sum.length() * (1 - push)) + (minMove * push) ;
+      
+      if (moveRate > 0 && sum.length() >= maxDisp) {
+        sum.normalise().scale(maxDisp) ;
+      }
+    }
+    
     final int WS = m.world.size - 1 ;
     m.nextPosition.x = Visit.clamp(sum.x + m.nextPosition.x, 0, WS) ;
     m.nextPosition.y = Visit.clamp(sum.y + m.nextPosition.y, 0, WS) ;

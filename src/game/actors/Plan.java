@@ -193,22 +193,6 @@ public abstract class Plan implements Saveable, Behaviour {
   final private static float IL2 = 1 / (float) Math.log(2) ;
   
   
-  //  TODO:  This could probably be made more generalised.
-  public static float hostility(Actor actor) {
-    Plan p = null ;
-    for (Behaviour b : actor.mind.agenda()) if (b instanceof Plan) {
-      p = (Plan) b ;
-      break ;
-    }
-    if (p instanceof Combat) {
-      return 1.0f ;
-    }
-    if (p instanceof Dialogue) return -0.5f ;
-    if (p instanceof Treatment) return -1.0f ;
-    return 0 ;
-  }
-  
-  
   public static float rangePenalty(Target a, Target b) {
     if (a == null || b == null) return 0 ;
     final float SS = World.SECTOR_SIZE ;

@@ -328,7 +328,9 @@ public class Structure {
   
   
   protected void checkMaintenance() {
-    final World world = ((Element) basis).world() ;
+    //  TODO:  In principle, this should be extensible to Vehicles as well.
+    if (! (basis instanceof Venue)) return ;
+    final World world = ((Venue) basis).world() ;
     if (world == null) return ;
     final boolean needs = (state != STATE_RAZED) && (
       (state == STATE_SALVAGE) || (! goodCondition()) ||

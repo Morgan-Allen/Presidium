@@ -100,14 +100,14 @@ public class Wording implements Abilities {
       }
     }
     
-    if (birth == Background.PYON_BIRTH || birth == Background.HIVES_BIRTH) {
+    if (birth == Background.PYON_BIRTH || birth == Background.DREGS_BIRTH) {
       final String pick[] = female ? PYON_FN : PYON_MN ;
       names.add((String) Rand.pickFrom(pick)) ;
       final String LN[] = Rand.yes() ? PYON_LN : pick ;
       names.add((String) Rand.pickFrom(LN)) ;
     }
     
-    if (birth == Background.FREE_BIRTH || birth == Background.GUILDER_BIRTH) {
+    if (birth == Background.FREE_BIRTH || birth == Background.GELDER_BIRTH) {
       final String pick[] = female ? CITIZEN_FN : CITIZEN_MN ;
       names.add((String) Rand.pickFrom(pick)) ;
       names.add((String) Rand.pickFrom(CITIZEN_LN)) ;

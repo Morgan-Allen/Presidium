@@ -12,6 +12,11 @@ import src.user.* ;
 import src.util.* ;
 
 
+//
+//  TODO:  Have native huts extend Holdings?  ...Maybe.
+
+//  ...Ideally, you want well-off workers moving out more regularly.
+
 
 public class FindHome extends Plan implements Economy {
   
@@ -120,13 +125,11 @@ public class FindHome extends Plan implements Economy {
     Holding best = null ;
     float bestRating = 0 ;
     
-    //
     //  TODO:  Also, Native Huts and the Bastion need to count here!
-    
     if (oldHome instanceof Holding) {
       final Holding h = (Holding) oldHome ;
       best = h ;
-      bestRating = rateHolding(client, h) * 2f ;
+      bestRating = rateHolding(client, h) ;
     }
     
     for (Object o : world.presences.sampleFromKey(
@@ -136,10 +139,10 @@ public class FindHome extends Plan implements Economy {
       final float rating = rateHolding(client, h) ;
       if (rating > bestRating) { bestRating = rating ; best = h ; }
     }
-
-    //
+    
     //  TODO:  You need to allow for construction of native hutments if there's
-    //  no more conventional refuge available-
+    //  no more conventional refuge available.  ...Or would that be equivalent
+    //  to 'defection' to the natives faction?
     
     if (best == null || Rand.index(10) == 0) {
       final Venue refuge = (Venue) world.presences.nearestMatch(
@@ -200,30 +203,41 @@ public class FindHome extends Plan implements Economy {
 
   private static float rateHolding(Actor actor, Holding holding) {
     if (holding == null || holding.base() != actor.base()) return -1 ;
-    float rating = 1 ;
     
+    final Series <Actor> residents = holding.personnel.residents() ;
     final int
       UL = holding.upgradeLevel(),
       maxPop = HoldingUpgrades.OCCUPANCIES[UL] ;
-    float crowding = holding.personnel.residents().size() * 1f / maxPop ;
+    float crowding = residents.size() * 1f / maxPop ;
     
-    //
-    //  TODO:  Base this on ambience, safety, residence type, and proximity to
-    //  services.
+    float rating = 0 ;
+    if (holding == actor.mind.home()) {
+      if (crowding < 1) rating += 1.0f ;
+      if (crowding > 1) rating -= 1.0f ;
+    }
+    else if (crowding >= 1) return -1 ;
+    if (holding.inWorld()) {
+      rating += (UL + 1) * (2f - crowding) ;
+      rating -= actor.mind.greedFor(HoldingUpgrades.TAX_LEVELS[UL]) * 5 ;
+    }
+    else {
+      //  TODO:  Base this on ambience, safety, residence type, and proximity
+      //  to services.  HoldingUpgrades should be able to oblige here.
+      rating += HoldingUpgrades.NUM_LEVELS ;
+    }
     
-    //
-    //  TODO:  Base this in part on relations with other residents, possibly of
-    //  an explicitly sexual/familial nature?  Actual housewife/husbander
-    //  status?
+    if (residents.size() > 0) {
+      float averageRelations = 0 ; for (Actor a : residents) {
+        averageRelations += actor.mind.relationValue(a) ;
+      }
+      averageRelations /= residents.size() ;
+      rating *= 0.5f + averageRelations ;
+    }
     
-    rating *= (UL + 1) * (2f - crowding) ;
-    if (holding.inWorld()) rating += 0.5f ;
-    rating -= actor.mind.greedFor(HoldingUpgrades.TAX_LEVELS[UL]) * 5 ;
     rating -= Plan.rangePenalty(actor.mind.work(), holding) ;
     ///I.say("  Rating for holding is: "+rating) ;
     return rating ;
   }
-  
 }
 
 
@@ -244,5 +258,4 @@ if (this.home == null && (work == null || work instanceof Venue)) {
   }
 }
 //*/
-
 

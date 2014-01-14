@@ -249,7 +249,7 @@ public class Combat extends Plan implements Abilities {
       if (a.base() == looks.base()) return 0 ;
       float stealth = a.traits.traitLevel(STEALTH_AND_COVER) / 2f ;
       stealth *= Action.moveLuck(a) ;
-      stealth /= (0.5f + a.health.moveRate()) ;
+      stealth /= (0.5f + a.health.baseSpeed()) ;
       return stealth ;
     }
     if (e instanceof Installation) {

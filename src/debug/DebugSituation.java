@@ -80,7 +80,7 @@ public class DebugSituation extends Scenario implements Economy {
       Habitat.ESTUARY, 0.25f,
       Habitat.MEADOW , 0.5f,
       Habitat.BARRENS, 0.3f,
-      Habitat.DESERT , 0.2f
+      Habitat.DUNE , 0.2f
     ) ;
     final World world = new World(TG.generateTerrain()) ;
     //
@@ -239,7 +239,7 @@ public class DebugSituation extends Scenario implements Economy {
     if (picked != null && hovered != null) {
       
       final Pathing search = (! GameSettings.pathFree) ?
-        world.pathingCache.fullPathSearch(picked, hovered, null, 16) :
+        world.pathingCache.fullPathSearch(picked, hovered, null, -1) :
         new Pathing(picked, hovered) ;
       
       if (search != null) {

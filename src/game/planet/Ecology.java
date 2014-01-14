@@ -6,8 +6,9 @@ import src.util.* ;
 
 
 
-//
-//  TODO:  Move the ambience/squalor map into a dedicated map-class.
+//  TODO:  You might be able to get rid of this class entirely, or merge with
+//  the EcologyGen class instead.
+
 
 public class Ecology {
   
@@ -140,66 +141,6 @@ public class Ecology {
   public float biomassRating(Tile t) {
     return biomass.longTermVal(t) * 4f / (SR * SR) ;
   }
-  
-  /*
-  public float preyDensityAt(Tile t) {
-    return preyMap.longTermVal(t) ;
-    //return Visit.sampleMap(world.size, preyMap, t.x, t.y) ;
-  }
-  
-  
-  public float hunterDensityAt(Tile t) {
-    return hunterMap.longTermVal(t) ;
-    //return Visit.sampleMap(world.size, hunterMap, t.x, t.y) ;
-  }
-  
-  
-  public float absoluteAbundanceAt(Species s, Tile t) {
-    return abundances[s.ID].longTermVal(t) ;
-  }
-  
-  
-  public float globalAbundance(Species s) {
-    return abundances[s.ID].overallSum() / (world.size * world.size) ;
-  }
-  
-  
-  public float relativeAbundanceAt(Species species, Tile o, int range) {
-    float fertility = 0, numPeers = 0, numPrey = 0, numHunters = 0 ;
-    
-    for (Coord c : Visit.grid(
-      o.x - range, o.y - range,
-      range * 2, range * 2, SR
-    )) {
-      final Tile t = world.tileAt(c.x, c.y) ;
-      if (t == null) continue ;
-      fertility  += biomassAmount(t) ;
-      fertility  += ambience.valueAt(t) ;
-      numPeers   += absoluteAbundanceAt(species, t) ;
-      numPrey    += preyDensityAt(t) ;
-      numHunters += hunterDensityAt(t) ;
-    }
-    
-    final float idealPop, numOfType ;
-    if (species.type == Species.Type.BROWSER) {
-      idealPop = fertility / Lair.BROWSER_RATIO ;
-      numOfType = numPrey ;
-    }
-    else {
-      idealPop = numPrey / Lair.PREDATOR_RATIO ;
-      numOfType = numHunters ;
-    }
-    float rarity = (((numOfType + 1) / (numPeers + 1)) + 1) / 2f ;
-    return (numOfType + 0.1f) / (0.1f + (idealPop * rarity)) ;
-  }
-  
-  
-  public float relativeAbundance(Object prey) {
-    if (! (prey instanceof Fauna)) return 0 ;
-    final Fauna f = (Fauna) prey ;
-    return relativeAbundanceAt(f.species, f.origin(), f.species.forageRange()) ;
-  }
-  //*/
   
   
   public float globalBiomass() {

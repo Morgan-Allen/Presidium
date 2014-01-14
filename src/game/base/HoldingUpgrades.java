@@ -51,7 +51,7 @@ public class HoldingUpgrades implements Economy {
     LEVEL_GUILDER  = 4,
     NUM_LEVELS     = 5 ;
   final public static int
-    OCCUPANCIES[] = { 4, 5, 4, 3, 2 },
+    OCCUPANCIES[] = { 2, 2, 2, 2, 2 },
     TAX_LEVELS[]  = { 0, 5, 10, 20, 35 },
     INTEGRITIES[] = { 15, 35, 80, 125, 200 },
     BUILD_COSTS[] = { 25, 60, 135, 225, 350 } ;
@@ -419,7 +419,7 @@ public class HoldingUpgrades implements Economy {
   ) {
     final boolean NV = ! verbose ;
     
-    float safety = 0 - holding.base().dangerMap.shortTermVal(holding.origin()) ;
+    float safety = 0 - holding.base().dangerMap.longTermVal(holding.origin()) ;
     if (holding.stocks.amountOf(PRESSFEED) > 0.5f) safety += 1.5f ;
     if (safety < SAFETY_NEEDS[upgradeLevel]) return NV ? NOT_MET :
       "This area feels too unsettled for your subjects' comfort, hindering "+

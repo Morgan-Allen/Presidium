@@ -114,6 +114,7 @@ public class Recreation extends Plan implements Economy, Abilities {
   public static float rateComfort(Boardable at, Actor actor, Recreation r) {
     float performValue = Performance.performValueFor(at, r) / 10f ;
     if (performValue < 0) return -1 ;
+    //  TODO:  Average with ambienceVal for a Venue's structure?
     float ambience = actor.world().ecology().ambience.valueAt(at) / 2f ;
     return performValue + ambience ;
   }

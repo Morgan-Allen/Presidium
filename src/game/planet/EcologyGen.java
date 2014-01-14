@@ -15,9 +15,7 @@ import src.game.wild.* ;
 import src.util.* ;
 
 
-//
-//  TODO:  Give this a less specifically-ecological name?
-//  TODO:  Put in mineral outcrops during this phase as well?
+
 
 
 public class EcologyGen {
@@ -30,9 +28,6 @@ public class EcologyGen {
     MAJOR_LAIR_COUNTS[] = { 0, 0, 1, 4 },
     MINOR_LAIR_COUNTS[] = { 0, 1, 4, 8 },
     VARIANCE = 4 ;
-  
-  //
-  //  TODO:  Try creating a dedicated 'LairSite' class.
   
   
   final World world ;
@@ -51,6 +46,10 @@ public class EcologyGen {
   }
   
   
+  
+  
+  /**  General helper methods-
+    */
   private void summariseFertilities() {
     final int SS = World.SECTOR_SIZE, SR = world.size / World.SECTOR_SIZE ;
     fertilityLevels = new float[SR][SR] ;
@@ -222,7 +221,7 @@ public class EcologyGen {
       }
       
       for (Venue r : ruins) for (Tile t : world.tilesIn(r.area(), true)) {
-        Habitat h = Rand.yes() ? Habitat.CURSED_EARTH : Habitat.DESERT ;
+        Habitat h = Rand.yes() ? Habitat.CURSED_EARTH : Habitat.DUNE ;
         world.terrain().setHabitat(t, h) ;
       }
       populateArtilects(ruins, minor) ;
@@ -233,9 +232,11 @@ public class EcologyGen {
   
   
   private void populateArtilects(Batch <Venue> ruins, boolean minor) {
+    final Base artilects = world.baseWithName(Base.KEY_ARTILECTS, true, true) ;
     //
     //  TODO:  Generalise this, too?  Using pre-initialised actors?
     int lairNum = 0 ; for (Venue r : ruins) {
+      r.assignBase(artilects) ;
       if (lairNum++ > 0 && Rand.yes()) continue ;
       
       final Tile e = r.mainEntrance() ;
@@ -244,18 +245,21 @@ public class EcologyGen {
       
       while (numT-- > 0) {
         final Tripod tripod = new Tripod() ;
+        tripod.assignBase(artilects) ;
         tripod.enterWorldAt(e.x, e.y, world) ;
         tripod.mind.setHome(r) ;
       }
       
       while (numD-- > 0) {
         final Drone drone = new Drone() ;
+        drone.assignBase(artilects) ;
         drone.enterWorldAt(e.x, e.y, world) ;
         drone.mind.setHome(r) ;
       }
       
       if (lairNum == 1 && Rand.yes() && ! minor) {
         final Cranial cranial = new Cranial() ;
+        cranial.assignBase(artilects) ;
         cranial.enterWorldAt(e.x, e.y, e.world) ;
         cranial.mind.setHome(r) ;
       }
@@ -324,6 +328,7 @@ public class EcologyGen {
         I.say("New lair for "+toPlace.species+" at "+toPlace.origin()) ;
         toPlace.doPlace(toPlace.origin(), null) ;
         toPlace.assignBase(wildlife) ;
+        toPlace.structure.setState(Structure.STATE_INTACT, 1) ;
         final Species s = toPlace.species ;
         final float adultMass = s.baseBulk * s.baseSpeed ;
         float bestPop = bestRating / adultMass ;

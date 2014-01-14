@@ -9,9 +9,6 @@ import org.lwjgl.opengl.* ;
 
 
 
-//
-//  TODO:  Healthbar colour needs to be customised for different players.
-
 public class Healthbar extends Sprite {
   
   

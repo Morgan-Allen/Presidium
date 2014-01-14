@@ -429,7 +429,7 @@ public class TerrainGen implements TileConstants {
           }
         }
         
-        if (habitat == Habitat.DESERT) {
+        if (habitat == Habitat.DUNE) {
           desertTiles.add(location) ;
         }
         else if (habitat == Habitat.BARRENS && Rand.index(10) == 0) {

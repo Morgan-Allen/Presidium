@@ -73,13 +73,15 @@ public class Base implements
   public static Base createFor(World world, boolean primal) {
     final Base base = new Base(world, primal) ;
     world.registerBase(base, true) ;
+    if (primal) base.colour = Colour.LIGHT_GREY ;
     return base ;
   }
   
-  
+  /*
   public static Base withName(String name, World world, boolean primal) {
     return null ;
   }
+  //*/
   
   
   private Base(World world, boolean primal) {
@@ -89,6 +91,7 @@ public class Base implements
     //maintenance = new PresenceMap(world, "damaged") ;
     dangerMap = new DangerMap(world, this) ;
     intelMap.initFog(world) ;
+    
   }
   
   
@@ -121,6 +124,9 @@ public class Base implements
     dangerMap = new DangerMap(world, this) ;
     dangerMap.loadState(s) ;
     intelMap.loadState(s) ;
+    
+    title = s.loadString() ;
+    colour.loadFrom(s.input()) ;
   }
   
   
@@ -149,6 +155,9 @@ public class Base implements
     profiles.saveState(s) ;
     dangerMap.saveState(s) ;
     intelMap.saveState(s) ;
+    
+    s.saveString(title) ;
+    colour.saveTo(s.output()) ;
   }
   
   

@@ -20,7 +20,8 @@ public class PathingCache {
   /**  Constituent class and constant definitions-
     */
   final static int UPDATE_INTERVAL = 10 ;
-  public static boolean verbose = false ;
+  
+  private static boolean verbose = false ;
   private boolean printSearch = false ;
   
   private class Route {
@@ -70,43 +71,51 @@ public class PathingCache {
     *  arbitrary destinations on the map- and a few other utility methods for
     *  diagnosis of bugs...
     */
+  //
+  //  TODO:  Unify this with the location() method in MobileMotion.
   private Tile tilePosition(Boardable b, Mobile client) {
     if (b == null) return null ;
-    if (client != null && ! b.allowsEntry(client)) return null ;
-    if (b instanceof Venue) return ((Venue) b).mainEntrance() ;
-    if (b instanceof Tile) {
-      final Tile t = (Tile) b ;
-      return t.blocked() ? null : t ;
-    }
-    if (b instanceof Boardable) {
-      for (Boardable e : ((Boardable) b).canBoard(null)) {
-        if (e instanceof Tile) return (Tile) e ;
+    if (client == null || b.allowsEntry(client)) {
+      if (b instanceof Venue) return ((Venue) b).mainEntrance() ;
+      if (b instanceof Tile) {
+        final Tile t = (Tile) b ;
+        return t.blocked() ? null : t ;
       }
-      return null ;
+      if (b instanceof Boardable) {
+        for (Boardable e : ((Boardable) b).canBoard(null)) {
+          if (e instanceof Tile) return (Tile) e ;
+        }
+        return null ;
+      }
     }
-    return Spacing.nearestOpenTile(world.tileAt(b), b) ;
+    return Spacing.nearestOpenTile(b, b) ;
   }
   
   
   private Place[] placesBetween(
-    Boardable initB, Boardable destB, Mobile client
+    Boardable initB, Boardable destB, Mobile client, boolean reports
   ) {
     final Tile
       initT = tilePosition(initB, client),
       destT = tilePosition(destB, client) ;
-    if (initT == null || destT == null) return null ;
+    if (initT == null || destT == null) {
+      if (reports) I.say("Initial place-tiles invalid!") ;
+      return null ;
+    }
     final Place
       initP = placeFor(initT),
       destP = placeFor(destT) ;
-    if (initP == null || destP == null) return null ;
-    final Place placesPath[] = placesPath(initP, destP) ;
+    if (initP == null || destP == null) {
+      if (reports) I.say("Initial places invalid!") ;
+      return null ;
+    }
+    final Place placesPath[] = placesPath(initP, destP, reports) ;
     if (placesPath == null || placesPath.length < 1) {
-      ///I.say("NO PLACES PATH!") ;
+      if (reports) I.say("NO PLACES PATH!") ;
       return null ;
     }
     if (! verifyPlacesPath(placesPath)) {
       I.complain("Places path is broken...") ;
-      ///I.say("BROKEN PLACES PATH") ;
       return null ;
     }
     return placesPath ;
@@ -117,25 +126,25 @@ public class PathingCache {
   //  TODO:  Move this to the mobile pathing class?
   public Boardable[] getLocalPath(
     Boardable initB, Boardable destB, int maxLength,
-    Mobile client, boolean verbose
+    Mobile client, boolean reports
   ) {
     Boardable path[] = null ;
     //*
     if (Spacing.distance(initB, destB) <= World.SECTOR_SIZE * 2) {
-      if (verbose) I.say(
+      if (reports) I.say(
         "Using simple agenda-bounded pathing between "+initB+" "+destB
       ) ;
       final Pathing search = new Pathing(initB, destB) ;
       search.client = client ;
-      search.verbose = verbose ;
+      search.verbose = reports ;
       search.doSearch() ;
       path = search.fullPath(Boardable.class) ;
       if (path != null) return path ;
     }
-    //*/
-    final Place placesPath[] = placesBetween(initB, destB, client) ;
+    final Place placesPath[] = placesBetween(initB, destB, client, reports) ;
+    
     if (placesPath != null && placesPath.length < 3) {
-      if (verbose) I.say(
+      if (reports) I.say(
         "Using full cordoned path-search between "+initB+" "+destB
       ) ;
       final Pathing search = cordonedSearch(
@@ -143,31 +152,31 @@ public class PathingCache {
         placesPath[placesPath.length - 1].caching.section
       ) ;
       search.client = client ;
-      search.verbose = verbose ;
+      search.verbose = reports ;
       search.doSearch() ;
       path = search.fullPath(Boardable.class) ;
       if (path != null) return path ;
     }
-    else if (placesPath != null) {
-      if (verbose) I.say(
+    if (placesPath != null) {
+      if (reports) I.say(
         "Using partial cordoned path-search between "+initB+" "+destB
       ) ;
       final Pathing search = fullPathSearch(
         initB, destB, placesPath, maxLength
       ) ;
       search.client = client ;
-      search.verbose = verbose ;
+      search.verbose = reports ;
       search.doSearch() ;
       path = search.fullPath(Boardable.class) ;
       if (path != null) return path ;
     }
-    else if (path == null) {
-      if (verbose) I.say(
+    if (path == null) {
+      if (reports) I.say(
         "Resorting to agenda-bounded pathfinding between "+initB+" "+destB
       ) ;
       final Pathing search = new Pathing(initB, destB) ;
       search.client = client ;
-      search.verbose = verbose ;
+      search.verbose = reports ;
       search.doSearch() ;
       path = search.fullPath(Boardable.class) ;
       if (path != null) return path ;
@@ -383,7 +392,7 @@ public class PathingCache {
       placesPath = (Place[]) placesPathRef ;
     }
     else {
-      placesPath = placesBetween(initB, destB, null) ;
+      placesPath = placesBetween(initB, destB, null, verbose) ;
       if (placesPath == null) {
         I.say("No places path exists!") ;
         return null ;
@@ -514,7 +523,9 @@ public class PathingCache {
   }
   
   
-  private Place[] placesPath(final Place init, final Place dest) {
+  private Place[] placesPath(
+    final Place init, final Place dest, boolean reports
+  ) {
     if (printSearch) I.say("Searching from "+init.core+" to "+dest.core) ;
     
     final Search <Place> search = new Search <Place> (init, -1) {
@@ -558,6 +569,7 @@ public class PathingCache {
         return (Entry) spot.flagged ;
       }
     } ;
+    search.verbose = reports ;
     search.doSearch() ;
     if (! search.success()) return null ;
     return search.fullPath(Place.class) ;

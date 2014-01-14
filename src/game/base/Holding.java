@@ -42,7 +42,7 @@ public class Holding extends Venue implements Economy {
     NUM_VARS   = 3 ;
   final static float
     CHECK_INTERVAL = 10,
-    TEST_INTERVAL  = World.STANDARD_DAY_LENGTH / 3,
+    TEST_INTERVAL  = World.STANDARD_DAY_LENGTH,
     UPGRADE_THRESH = 0.66f,
     DEVOLVE_THRESH = 0.66f ;
   
@@ -125,13 +125,11 @@ public class Holding extends Venue implements Economy {
     final int CHECK_TIME = 10 ;
     if (numUpdates % CHECK_TIME == 0) checkForUpgrade(CHECK_TIME) ;
     
-    I.sayAbout(this, "Upgrade/target level: "+upgradeLevel+"/"+targetLevel) ;
     if (
       (targetLevel != upgradeLevel) &&
       (! structure.needsUpgrade()) &&
       structure.goodCondition()
     ) {
-      I.sayAbout(this, "Attaching newer sprite") ;
       upgradeLevel = targetLevel ;
       structure.updateStats(HoldingUpgrades.INTEGRITIES[targetLevel], 5, 0) ;
       world.ephemera.addGhost(this, MAX_SIZE, sprite(), 2.0f) ;
@@ -162,6 +160,9 @@ public class Holding extends Venue implements Economy {
     if (! needsMet(upgradeLevel)) devolve = true ;
     else if (needsMet(upgradeLevel + 1)) upgrade = true ;
     
+    final boolean empty = personnel.residents().size() == 0 ;
+    if (empty) { devolve = true ; upgrade = false ; }
+    
     numTests += CHECK_TIME ;
     if (devolve) devolveCounter += CHECK_TIME ;
     if (upgrade) upgradeCounter += CHECK_TIME ;
@@ -179,22 +180,24 @@ public class Holding extends Venue implements Economy {
         if (numTests == 0) I.say("HOUSING TEST INTERVAL COMPLETE") ;
         I.say("Upgrade/Target levels: "+upgradeLevel+"/"+targetLevel) ;
         I.say("Could upgrade? "+upgrade+", devolve? "+devolve) ;
+        I.say("Is Empty? "+empty) ;
+      }
+      
+      if (devolve && empty) {
+        if (verbose) I.sayAbout(this, "HOUSING IS CONDEMNED") ;
+        structure.setState(Structure.STATE_SALVAGE, -1) ;
       }
       
       if (targetLevel == upgradeLevel) return ;
       final Object HU[] = HoldingUpgrades.ALL_UPGRADES.members() ;
       
       if (targetLevel > upgradeLevel) {
-        final Upgrade target = (Upgrade) HU[targetLevel ] ;
+        final Upgrade target = (Upgrade) HU[ targetLevel] ;
         structure.beginUpgrade(target, true) ;
       }
       else {
         final Upgrade target = (Upgrade) HU[upgradeLevel] ;
         structure.resignUpgrade(target) ;
-      }
-      
-      if (devolve && personnel.residents().size() == 0) {
-        structure.setState(Structure.STATE_SALVAGE, -1) ;
       }
     }
   }
@@ -250,10 +253,11 @@ public class Holding extends Venue implements Economy {
   
   
   public Service[] goodsNeeded() {
+    
     final Batch <Service> needed = new Batch <Service> () ;
     int targetLevel = upgradeLevel + 1 ;
     targetLevel = Visit.clamp(targetLevel, HoldingUpgrades.NUM_LEVELS) ;
-    //
+    
     //  Combine the listing of non-provisioned materials and demand for rations.
     //  (Note special goods, like pressfeed and datalinks, are delivered to the
     //  holding externally, and so are not included here.)
@@ -296,17 +300,17 @@ public class Holding extends Venue implements Economy {
   /**  Rendering and interface methods-
     */
   final static String
-    IMG_DIR = "media/Buildings/merchant/" ;
+    IMG_DIR = "media/Buildings/civilian/" ;
   final public static Model
-    FIELD_Q_MODEL = ImageModel.asSolidModel(
-      Holding.class, IMG_DIR+"field_tent.png", 2, 1
+    LOWER_CLASS_MODELS[][] = ImageModel.fromTextureGrid(
+      Holding.class, Texture.loadTexture(IMG_DIR+"lower_class_housing.png"),
+      3, 3, 2, ImageModel.TYPE_SOLID_BOX
     ),
-    STANDARD_MODELS[][] = ImageModel.fromTextureGrid(
-      Holding.class, Texture.loadTexture(IMG_DIR+"all_housing.png"),
-      4, 4, 2, ImageModel.TYPE_SOLID_BOX
+    MIDDLE_CLASS_MODELS[][] = ImageModel.fromTextureGrid(
+      Holding.class, Texture.loadTexture(IMG_DIR+"middle_class_housing.png"),
+      3, 3, 2, ImageModel.TYPE_SOLID_BOX
     ),
-    PALACE_MODELS[] = null,
-    SLUM_MODELS[][] = null ;
+    UPPER_CLASS_MODELS[][] = null ;
   
   
   public void exitWorld() {
@@ -317,12 +321,11 @@ public class Holding extends Venue implements Economy {
   
   private static Model modelFor(Holding holding) {
     final int level = holding.upgradeLevel, VID = holding.varID ;
-    if (level == 0) return FIELD_Q_MODEL ;
-    else if (holding.upgradeLevel > 0) {
-      if (level == 5) return PALACE_MODELS[VID] ;
-      return STANDARD_MODELS[VID][level - 1] ;
+    if (level <= 1) {
+      return LOWER_CLASS_MODELS[VID][level + 1] ;
     }
-    else return SLUM_MODELS[VID][1 - level] ;
+    if (level >= 5) return UPPER_CLASS_MODELS[VID][level - 5] ;
+    return MIDDLE_CLASS_MODELS[VID][level - 2] ;
   }
   
   

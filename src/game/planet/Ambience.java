@@ -30,11 +30,18 @@ public class Ambience {
     "Paradise"
   } ;
   final public static String HAZARD_DESC[] = {
-    "Secure",
-    "Minimal",
+    "Negligible",
+    "Threatening",
     "Elevated",
     "Hostile",
     "Mortal"
+  } ;
+  final public static String SAFETY_DESC[] = {
+    "Nominal",
+    "Acceptable",
+    "Good",
+    "Strong",
+    "Absolute"
   } ;
   final static float
     MIP_BLEND = 2.0f,
@@ -76,6 +83,7 @@ public class Ambience {
   
   
   public static String dangerDesc(float rating) {
+    if (rating <= 0) return descFrom(SAFETY_DESC, 0 - rating / MAX_LEVEL) ;
     return descFrom(HAZARD_DESC, rating / MAX_LEVEL) ;
   }
   

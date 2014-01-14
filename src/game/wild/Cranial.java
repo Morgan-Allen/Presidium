@@ -25,22 +25,22 @@ public class Cranial extends Artilect implements Economy {
   public Cranial() {
     super() ;
     
-    traits.initAtts(15, 15, 25) ;
+    traits.initAtts(20, 10, 25) ;
     health.initStats(
       1000,//lifespan
       1.5f,//bulk bonus
       1.0f,//sight range
-      0.3f,//move speed,
+      0.6f,//move speed,
       ActorHealth.ARTILECT_METABOLISM
     ) ;
     health.setupHealth(0, Rand.avgNums(2), Rand.avgNums(2)) ;
     
     gear.setDamage(15) ;
-    gear.setArmour(10) ;
+    gear.setArmour(15) ;
     gear.equipDevice(Item.withQuality(INTRINSIC_MELEE, 0)) ;
     traits.setLevel(HAND_TO_HAND, 5) ;
-    traits.setLevel(ASSEMBLY, 15) ;
     traits.setLevel(ANATOMY, 10) ;
+    traits.setLevel(ASSEMBLY, 15) ;
     
     attachModel(MODEL_CRANIAL) ;
     name = nameWithBase("Cranial ") ;
@@ -58,6 +58,18 @@ public class Cranial extends Artilect implements Economy {
     s.saveString(name) ;
   }
   
+  
+  
+  /**  Physical properties-
+    */
+  public float aboveGroundHeight() {
+    return 0.5f ;
+  }
+  
+  
+  public float radius() {
+    return 0.5f ;
+  }
   
   
   

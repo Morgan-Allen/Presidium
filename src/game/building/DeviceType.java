@@ -4,7 +4,6 @@ package src.game.building ;
 import src.game.common.* ;
 import src.graphics.common.* ;
 import src.graphics.sfx.* ;
-import src.graphics.sfx.PlaneFX.Model ;
 import src.graphics.jointed.* ;
 import src.util.* ;
 
@@ -17,11 +16,16 @@ public class DeviceType extends Service implements Economy {
   /**  Data fields, property accessors-
     */
   final static Texture
-    LASER_TEX = Texture.loadTexture("media/SFX/laser_beam.gif") ;
+    LASER_BEAM_TEX  = Texture.loadTexture("media/SFX/laser_beam.gif" ),
+    LASER_BURST_TEX = Texture.loadTexture("media/SFX/laser_burst.png") ;
   final static PlaneFX.Model
     SLASH_FX_MODEL = new PlaneFX.Model(
       "slash_fx", DeviceType.class,
       "media/SFX/melee_slash.png", 0.5f, 0, 0, false
+    ),
+    LASER_BURST_MODEL = new PlaneFX.Model(
+      "laser_burst_fx", DeviceType.class,
+      "media/SFX/laser_burst.png", 1.0f, 0, 0, true
     ) ;
   
   
@@ -95,16 +99,25 @@ public class DeviceType extends Service implements Economy {
     else if (type.hasProperty(RANGED | ENERGY)) {
       //
       //  Otherwise, create an appropriate 'beam' FX-
-      final BeamFX beam = new BeamFX(LASER_TEX, 0.05f) ;
+      final BeamFX beam = new BeamFX(LASER_BEAM_TEX, 0.05f) ;
       
       uses.position(beam.origin) ;
       final JointSprite sprite = (JointSprite) uses.sprite() ;
+      uses.viewPosition(sprite.position) ;
       beam.origin.setTo(sprite.attachPoint("fire")) ;
       beam.target.setTo(hitPoint(applied, hits)) ;
       
       beam.position.setTo(beam.origin).add(beam.target).scale(0.5f) ;
       final float size = beam.origin.sub(beam.target, null).length() / 2 ;
-      world.ephemera.addGhost(null, size, beam, 0.33f) ;
+      world.ephemera.addGhost(null, size + 1, beam, 0.33f) ;
+      
+      final Sprite
+        BO = LASER_BURST_MODEL.makeSprite(),
+        BT = LASER_BURST_MODEL.makeSprite() ;
+      BO.position.setTo(beam.origin) ;
+      BT.position.setTo(beam.target) ;
+      world.ephemera.addGhost(null, 1, BO, 0.66f) ;
+      world.ephemera.addGhost(null, 1, BT, 0.66f) ;
     }
   }
 }

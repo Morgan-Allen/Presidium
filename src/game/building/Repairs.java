@@ -98,7 +98,8 @@ public class Repairs extends Plan implements Abilities {
     impetus -= Plan.rangePenalty(actor, built) ;
     
     //
-    //  TODO:  What about native huts?  ...They won't have a credit balance.
+    //  TODO:  What about native huts?  Or animal lairs?  ...They won't have a
+    //  credit balance.
     final float brokeRating = 0 - built.base().credits() / 500f ;
     if (brokeRating > 0) impetus -= brokeRating ;
     impetus += priorityMod ;

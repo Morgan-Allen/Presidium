@@ -49,19 +49,7 @@ public class Pathing extends Search <Boardable> {
     if (destination instanceof Venue) {
       final Venue venue = (Venue) destination ;
       aimPoint = venue.mainEntrance() ;
-      if (aimPoint != null) {
-        if (! venue.isEntrance(aimPoint)) {
-          I.complain(
-            "DESTINATION "+destination+" CANNOT ACCESS AIM POINT: "+aimPoint
-          ) ;
-        }
-        if (! Visit.arrayIncludes(aimPoint.canBoard(null), destination)) {
-          I.complain(
-            "AIM POINT: "+aimPoint+" CANNOT ACCESS DESTINATION: "+destination
-          ) ;
-        }
-      }
-      else aimPoint = venue ;
+      if (aimPoint == null) aimPoint = venue ;
     }
     if (aimPoint == null) aimPoint = destination ;
   }
@@ -69,7 +57,7 @@ public class Pathing extends Search <Boardable> {
   
   protected static int searchLimit(Boardable init, Boardable dest) {
     int limit = (int) Spacing.outerDistance(init, dest) ;
-    limit += 1 + (World.PATCH_RESOLUTION * 1) ;
+    limit = Math.max(limit, World.PATCH_RESOLUTION * 2) ;
     return limit ;
   }
   
@@ -90,8 +78,16 @@ public class Pathing extends Search <Boardable> {
       else {
         I.say("\n  Failed.") ;
         if (client != null) {
-          I.say("Origin      blocked? "+canEnter(init       )) ;
-          I.say("Destination blocked? "+canEnter(destination)) ;
+
+          if (! Visit.arrayIncludes(destination.canBoard(null), aimPoint)) {
+            I.say("NO EXIT!") ;
+          }
+          if (! Visit.arrayIncludes(aimPoint.canBoard(null), destination)) {
+            I.say("NO ENTRY!") ;
+          }
+          
+          I.say("Origin      open? "+canEnter(init       )) ;
+          I.say("Destination open? "+canEnter(destination)) ;
         }
       }
       I.say("  Closest approach: "+closest+", aimed for "+aimPoint) ;
@@ -105,7 +101,15 @@ public class Pathing extends Search <Boardable> {
   protected void tryEntry(Boardable spot, Boardable prior, float cost) {
     final float spotDist = Spacing.distance(spot, aimPoint) ;
     if (spot == aimPoint) {
-      if (verbose) I.say("\nMET AIM POINT: "+aimPoint) ;
+      if (verbose) {
+        I.say("\nMET AIM POINT: "+aimPoint) ;
+        final boolean couldEnter =
+          (aimPoint == destination) || Visit.arrayIncludes(
+            aimPoint.canBoard(null), destination
+          ) ;
+        final float DC = cost(aimPoint, destination) ;
+        I.say("COULD ENTER DESTINATION? "+couldEnter+", COST: "+DC) ;
+      }
       closest = spot ;
       closestDist = spotDist ;
     }
@@ -130,15 +134,6 @@ public class Pathing extends Search <Boardable> {
   
   /**  Actual search-execution methods-
     */
-  /*
-  private boolean fogged(Boardable spot) {
-    if (client == null || ! (spot instanceof Tile)) return false ;
-    if (client.base() == null) return false ;
-    return client.base().intelMap.fogAt((Tile) spot) == 0 ;
-  }
-  //*/
-  
-  
   protected Boardable[] adjacent(Boardable spot) {
     return spot.canBoard(batch) ;
   }
@@ -146,6 +141,7 @@ public class Pathing extends Search <Boardable> {
   
   protected float cost(Boardable prior, Boardable spot) {
     if (spot == null) return -1 ;
+    if (spot == destination) return 0 ;
     float mods = 0 ;
     
     if (client != null) {
@@ -176,9 +172,24 @@ public class Pathing extends Search <Boardable> {
   }
   
   
+  //
+  //  TODO:  This all seems terribly complicated for such a frequently-used
+  //  function.  Any way to simplify?
+  
   private static boolean blockedBy(final Boardable b, final Mobile mobile) {
     if (b.boardableType() == Boardable.BOARDABLE_TILE) {
-      return b.pathType() == Tile.PATH_BLOCKS ;
+      if (b.pathType() != Tile.PATH_BLOCKS) return false ;
+      if (mobile != null) {
+        final Tile t = (Tile) b ;
+        final Element owns = t.owner() ;
+        if (owns != null) {
+          if (owns.height() <= mobile.position.z) return true ;
+          return false ;
+        }
+        if (t.habitat().isOcean() && ! mobile.motionWater()) return true ;
+        return false ;
+      }
+      return true ;
     }
     else if (mobile != null) {
       final boolean
@@ -186,6 +197,8 @@ public class Pathing extends Search <Boardable> {
         allows = (b == mobile.aboard()) || b.allowsEntry(mobile),
         blocks = b.pathType() == Tile.PATH_BLOCKS ;
       if (exists && allows && ! blocks) return true ;
+      if (mobile != null && mobile.position.z > b.height()) return false ;
+      
       if (blocksVerbose && I.talkAbout == mobile) {
         I.say("Problem with end point: "+b) ;
         I.say("  Still in world? "+exists ) ;
@@ -233,4 +246,20 @@ if (xd <= 2 && yd <= 2) {
 }
 //*/
 
+//  TODO:  
+/*
+if (aimPoint != null) {
+  if (! venue.isEntrance(aimPoint)) {
+    I.complain(
+      "DESTINATION "+destination+" CANNOT ACCESS AIM POINT: "+aimPoint
+    ) ;
+  }
+  if (! Visit.arrayIncludes(aimPoint.canBoard(null), destination)) {
+    I.complain(
+      "AIM POINT: "+aimPoint+" CANNOT ACCESS DESTINATION: "+destination
+    ) ;
+  }
+}
+else aimPoint = venue ;
+//*/
 

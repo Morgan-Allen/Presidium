@@ -248,6 +248,8 @@ public class MobileMotion {
   }
   
   
+  //
+  //  TODO:  Move this to a Senses class.
   public static boolean hasLineOfSight(
     Target origin, Target target, float maxRange
   ) {
@@ -293,7 +295,8 @@ public class MobileMotion {
     }
     boolean blocked = false ;
     boolean onRight, onLeft ;
-    for (Tile t : considered) if (t.blocked() && t.owner() != target) {
+    for (Tile t : considered) if (t.blocked()) {
+      if (t == target || t.owner() == target) continue ;
       //
       //  We first check whether the centre of the tile in question falls
       //  between the start and end points of the line segment-
@@ -332,7 +335,7 @@ public class MobileMotion {
     if (m.indoors()) return ;
     final Vec2D sum = new Vec2D(), disp = new Vec2D() ;
     int numHits = 0 ;
-    final float mMin = m.aboveGroundHeight(), mMax = mMin + m.height() ;
+    final float mMin = m.position.z, mMax = mMin + m.height() ;
     final Box2D area = m.area(null).expandBy(1) ;
     //
     //  After determining height range and ground-area affected, we iterate
@@ -379,23 +382,28 @@ public class MobileMotion {
     
     //  Ensure that the effects of displacement never entirely cancel basic
     //  movement rate-
-    final float
-      sumAngle = sum.toAngle(),
-      difference = Math.abs(Vec2D.degreeDif(mobile.rotation, sumAngle)) ;
-    if (difference > 90) {
-      final float
-        push = (difference - 90) / 90,
-        minMove = moveRate / (0.99f * PlayLoop.UPDATES_PER_SECOND),
-        maxDisp = (sum.length() * (1 - push)) + (minMove * push) ;
-      
-      if (moveRate > 0 && sum.length() >= maxDisp) {
-        sum.normalise().scale(maxDisp) ;
-      }
+    final Vec2D facing = new Vec2D().setFromAngle(mobile.rotation) ;
+    final float SL = sum.length(), push = sum.dot(facing) * -1f / SL ;
+    if (push > 0 && SL > 0) {
+      final float minDisp = moveRate * 0.5f / PlayLoop.UPDATES_PER_SECOND ;
+      facing.scale((SL - minDisp) * push) ;
+      sum.add(facing).normalise().scale((minDisp + SL) / 2) ;
     }
     
     final int WS = m.world.size - 1 ;
     m.nextPosition.x = Visit.clamp(sum.x + m.nextPosition.x, 0, WS) ;
     m.nextPosition.y = Visit.clamp(sum.y + m.nextPosition.y, 0, WS) ;
+    
+    //  If your current location is blocked, you need to escape to a free tile-
+    if (Pathing.blockedBy(mobile.aboard(), mobile)) {
+      final Tile blocked = mobile.origin() ;
+      final Tile free = Spacing.nearestOpenTile(blocked, mobile) ;
+      if (free == null) I.complain("NO FREE TILE AVAILABLE!") ;
+      if (verbose) I.sayAbout(mobile, "Escaping to free tile: "+free) ;
+      mobile.setPosition(free.x, free.y, mobile.world()) ;
+      mobile.onMotionBlock(blocked) ;
+      return ;
+    }
   }
   
   

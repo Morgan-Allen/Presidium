@@ -25,17 +25,17 @@ public class Drone extends Artilect implements Economy {
   public Drone() {
     super() ;
     
-    traits.initAtts(10, 5, 2) ;
+    traits.initAtts(15, 10, 5) ;
     health.initStats(
       10,  //lifespan
-      0.6f,//bulk bonus
-      0.6f,//sight range
-      0.6f,//move speed,
+      0.65f,//bulk bonus
+      0.65f,//sight range
+      1.25f,//move speed,
       ActorHealth.ARTILECT_METABOLISM
     ) ;
     health.setupHealth(0, Rand.avgNums(2), Rand.avgNums(2)) ;
 
-    gear.setDamage(5) ;
+    gear.setDamage(10) ;
     gear.setArmour(10) ;
     traits.setLevel(MARKSMANSHIP, 5) ;
     gear.equipDevice(Item.withQuality(INTRINSIC_ENERGY_WEAPON, 0)) ;
@@ -59,14 +59,21 @@ public class Drone extends Artilect implements Economy {
   
   
   
-  
-  /**  Rendering and interface methods-
+  /**  Physical properties-
     */
   public float aboveGroundHeight() {
     return 0.5f ;
   }
   
   
+  public float radius() {
+    return 0.5f ;
+  }
+  
+  
+  
+  /**  Rendering and interface methods-
+    */
   public String fullName() {
     return name ;
   }

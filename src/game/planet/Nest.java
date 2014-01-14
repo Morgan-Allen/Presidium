@@ -85,6 +85,21 @@ public class Nest extends Venue {
   
   /**  Methods for determining crowding and site placement-
     */
+  static void minSpacing(Venue homeA, Venue homeB) {
+    //  If the venues belong to different categories, keep them a minimum of
+    //  32 tiles apart.
+    
+    //  Base-associated structures can go wherever.
+    
+    //  Animal nests should be at least 16 tiles away from the same species,
+    //  or 8 if it's a different species.  These gaps are doubled for predatory
+    //  species.
+    
+    //  Native huts, and ancient ruins, can occur in clusters.  But those
+    //  clusters should be spaced a minimum of 32 tiles apart.
+  }
+  
+  
   private static boolean occupied(Nest n) {
     return n.personnel.residents().size() > 0 ;
   }
@@ -189,9 +204,10 @@ public class Nest extends Venue {
   public static float idealNestPop(
     Species species, Target site, World world, boolean cached
   ) {
-    if (cached && site instanceof Nest) {
-      final float estimate = ((Nest) site).idealPopEstimate ;
-      if (estimate != -1) return estimate ;
+    final Nest nest = (cached && site instanceof Nest) ?
+      (Nest) site : null ;
+    if (nest != null && nest.idealPopEstimate != -1) {
+      return nest.idealPopEstimate ;
     }
     float idealPop = 0 ; for (int n = NEW_SITE_SAMPLE ; n-- > 0 ;) {
       if (species.predator()) {
@@ -202,8 +218,8 @@ public class Nest extends Venue {
       }
     }
     final float estimate = idealPop / NEW_SITE_SAMPLE ;
-    if (site instanceof Nest) {
-      ((Nest) site).idealPopEstimate = estimate ;
+    if (nest != null && nest.idealPopEstimate == -1) {
+      nest.idealPopEstimate = estimate ;
     }
     return estimate ;
   }
@@ -301,14 +317,19 @@ public class Nest extends Venue {
   public void updateAsScheduled(int numUpdates) {
     super.updateAsScheduled(numUpdates) ;
     if (numUpdates % 10 != 0) return ;
-    if (verbose) I.sayAbout(this, "Ideal population: "+idealPopEstimate) ;
     
     final float idealPop = idealNestPop(species, this, world, false) ;
     final float inc = 10f / World.STANDARD_DAY_LENGTH ;
-    if (idealPopEstimate == -1) idealPopEstimate = idealPop ;
+    if (idealPopEstimate == -1) {
+      idealPopEstimate = idealPop ;
+    }
     else {
       idealPopEstimate *= 1 - inc ;
       idealPopEstimate += idealPop * inc ;
+    }
+    if (verbose && I.talkAbout == this) {
+      I.say("Estimate increment is: "+inc+", value: "+idealPop) ;
+      I.say("Ideal population estimate: "+idealPopEstimate) ;
     }
   }
   

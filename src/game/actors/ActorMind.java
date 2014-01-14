@@ -136,7 +136,8 @@ public abstract class ActorMind implements Abilities {
   
   
   protected boolean notices(Element e, float noticeRange) {
-    if (! e.inWorld()) return false ;
+    if (e == actor || ! e.inWorld()) return false ;
+    if (e == home || e == work) return true ;
     final int roll = Rand.index(20) ;
     if (roll == 0 ) noticeRange *= 2 ;
     if (roll == 19) noticeRange /= 2 ;

@@ -411,7 +411,7 @@ public class MainMenu extends UIGroup {
       Habitat.ESTUARY     , forest ,
       Habitat.MEADOW      , meadow ,
       Habitat.BARRENS     , barrens,
-      Habitat.DESERT      , desert ,
+      Habitat.DUNE      , desert ,
       Habitat.CURSED_EARTH, wastes
     ) ;
     final World world = new World(TG.generateTerrain()) ;
@@ -453,7 +453,7 @@ public class MainMenu extends UIGroup {
       Habitat.ESTUARY, 0.15f,
       Habitat.MEADOW , 0.35f,
       Habitat.BARRENS, 0.35f,
-      Habitat.DESERT , 0.15f
+      Habitat.DUNE , 0.15f
     ) ;
     final World world = new World(TG.generateTerrain()) ;
     TG.setupMinerals(world, 0, 0, 0) ;

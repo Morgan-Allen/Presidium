@@ -26,16 +26,24 @@ public class Relation {
     TYPE_SIBLING = 4,
     TYPE_LORD    = 5,
     TYPE_VASSAL  = 6 ;
+  
+  /*
   final public static float
     MAG_CHATTING  = 0.33f,
     MAG_HELPING   = 0.66f,
     MAG_SAVE_LIFE = 1.00f ;
+  //*/
   
   
-  final static float
-    MIN_ATT = -100,
-    MAX_ATT =  100,
-    ATT_DIE =  10 ;
+  final static int
+    MIN_ATTITUDE  = -100,
+    MAX_ATTITUDE  =  100,
+    ATTITUDE_SPAN =  MAX_ATTITUDE - MIN_ATTITUDE,
+    ATTITUDE_DIE  =  10 ,
+    NOVELTY_INTERVAL    = World.STANDARD_DAY_LENGTH * 5,
+    FAMILIARITY_DIVISOR = 10,
+    BASE_NUM_FRIENDS    = 5 ,
+    MAX_RELATIONS       = 25 ;
   
   final static String DESCRIPTORS[] = {
     "Soulmate",
@@ -67,7 +75,7 @@ public class Relation {
     this.initTime = initTime ;
     
     this.hash = Table.hashFor(object, subject) ;
-    this.attitude = initLevel * MAX_ATT ;
+    this.attitude = initLevel * MAX_ATTITUDE ;
     this.familiarity = 0 ;
   }
   
@@ -114,14 +122,13 @@ public class Relation {
   /**  Accessing and modifying the content of the relationship-
     */
   public float value() {
-    return attitude / MAX_ATT ;
+    return attitude / MAX_ATTITUDE ;
   }
   
   
   public float novelty(World world) {
-    float delay = world.currentTime() - initTime ;
-    delay /= World.STANDARD_DAY_LENGTH ;
-    return delay + 1 - (familiarity / 10f) ;
+    final float delay = (world.currentTime() - initTime) / NOVELTY_INTERVAL ;
+    return Visit.clamp(delay - (familiarity / FAMILIARITY_DIVISOR), 0, 1) ;
   }
   
   
@@ -131,7 +138,9 @@ public class Relation {
   
   
   public String descriptor() {
-    final float level = (MAX_ATT - attitude) / (MAX_ATT - MIN_ATT) ;
+    final float
+      attSpan = MAX_ATTITUDE - MIN_ATTITUDE,
+      level   = (MAX_ATTITUDE - attitude) / attSpan ;
     final int DL = DESCRIPTORS.length ;
     return DESCRIPTORS[Visit.clamp((int) (level * (DL + 1)), DL)] ;
   }
@@ -143,20 +152,23 @@ public class Relation {
   }
   
   
+  //
+  //  TODO:  This is going to need a significant overhaul.
+  
   public void incValue(float inc) {
     //Include weight, and use it to modify familiarity?
     //
     //  Roll dice matching current relationship against magnitude of event.
-    final int numDice = (int) (Math.abs(attitude / ATT_DIE) + 0.5f) ;
+    final int numDice = (int) (Math.abs(attitude / ATTITUDE_DIE) + 0.5f) ;
     int roll = 0 ;
     for (int n = numDice ; n-- > 0 ;) roll += Rand.yes() ? 1 : 0 ;
-    final float diff = (Math.abs(inc) * MAX_ATT) - (roll * ATT_DIE) ;
+    final float diff = (Math.abs(inc) * MAX_ATTITUDE) - (roll * ATTITUDE_DIE) ;
     //
     //  Raise/lower by half the margin of failure, and increment familiarity
     //  either way.
     if (diff > 0) {
       attitude += (inc > 0) ? (diff / 2) : (diff / -2) ;
-      attitude = Visit.clamp(attitude, MIN_ATT, MAX_ATT) ;
+      attitude = Visit.clamp(attitude, MIN_ATTITUDE, MAX_ATTITUDE) ;
     }
     familiarity++ ;
   }

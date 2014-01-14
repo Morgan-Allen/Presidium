@@ -364,9 +364,8 @@ public class Dropship extends Vehicle implements
   }
   
   
-  public boolean blockedBy(Boardable t) { return false ; }
   public void pathingAbort() {}
-  
+  public boolean blockedBy(Boardable t) { return false ; }
   
   
   /**  Code for finding a suitable landing site-

@@ -126,11 +126,11 @@ public class Habitat {
       "barrens_ground.gif", DESERT_FLORA_MODELS,
       1, true, MOISTURE, 3, INSOLATION, 8, MINERALS, 6
     ),
-    DESERT = new Habitat("Desert",
+    DUNE = new Habitat("Desert",
       "desert_ground.gif", NO_FLORA,
       0, true, MOISTURE, 1, INSOLATION, 9, MINERALS, 5
     ),
-    DESERT_HABITATS[] = { DESERT, BARRENS, SAVANNAH },
+    DESERT_HABITATS[] = { DUNE, BARRENS, SAVANNAH },
     
     //
     //  Waste habitats, which have special rules governing their introduction,
@@ -158,7 +158,7 @@ public class Habitat {
       MEADOW,
       SAVANNAH,
       BARRENS,
-      DESERT,
+      DUNE,
       //CURSED_EARTH
     } ;
   final public static Habitat

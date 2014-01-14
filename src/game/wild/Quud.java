@@ -54,6 +54,11 @@ public class Quud extends Fauna {
   }
   
   
+  public float height() {
+    return 0.33f ;
+  }
+  
+  
   
   /**  Behaviour implementations.
     */

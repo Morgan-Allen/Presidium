@@ -203,9 +203,8 @@ public class Action implements Behaviour, Model.AnimNames {
       if (MT != MOTION_ANY) { motionType = MT ; break ; }
     }
     
-    
-    final float luck = actor.airborne() ? 0.5f : moveLuck(actor) ;
-    float rate = actor.health.moveRate() ;
+    final float luck = actor.motionWalks() ? moveLuck(actor) : 0.5f ;
+    float rate = actor.health.baseSpeed() ;
     if (motionType == MOTION_SNEAK) rate *= (2 - luck) / 4 ;
     else if (motionType == MOTION_FAST) rate *= 2 * luck ;
     else rate += (luck - 0.5f) / 2 ;

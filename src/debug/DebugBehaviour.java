@@ -36,6 +36,8 @@ import src.util.* ;
 //
 //  TODO:  Test explorer hunting.
 
+//  Native and artilect behaviours need some refinement.
+
 
 
 public class DebugBehaviour extends Scenario implements Economy {
@@ -66,18 +68,36 @@ public class DebugBehaviour extends Scenario implements Economy {
   }
   
   
+
+  public void renderVisuals(Rendering rendering) {
+    super.renderVisuals(rendering) ;
+    if (UI().currentTask() == null) {
+      //DebugSituation.highlightPath(rendering, world(), UI()) ;
+    }
+  }
+  
   
   /**  Setup and updates-
     */
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(
-      32, 0.2f,
-      Habitat.MEADOW , 0.7f,
-      Habitat.BARRENS, 0.3f
+      64, 0.2f,
+      Habitat.ESTUARY, 0.15f,
+      Habitat.MEADOW , 0.45f,
+      Habitat.BARRENS, 0.15f,
+      Habitat.DUNE   , 0.1f,
+      Habitat.CURSED_EARTH, 1.0f
     ) ;
     final World world = new World(TG.generateTerrain()) ;
     TG.setupMinerals(world, 0.5f, 1, 0.5f) ;
     TG.setupOutcrops(world) ;
+    
+    final EcologyGen EG = new EcologyGen(world, TG) ;
+    EG.populateFlora() ;
+    EG.populateWithRuins() ;
+    //EG.populateWithNatives() ;
+    EG.populateFauna(Species.VAREEN, Species.QUUD) ;
+    
     return world ;
   }
   
@@ -86,23 +106,48 @@ public class DebugBehaviour extends Scenario implements Economy {
     super.updateGameState() ;
     PlayLoop.rendering().port.cameraZoom = 1.33f ;
     //PlayLoop.setGameSpeed(0.25f) ;
+    //PlayLoop.setGameSpeed(5.0f) ;
     PlayLoop.setGameSpeed(25.0f) ;
-    economicUpdate() ;
+    //economicUpdate() ;
   }
   
   
   protected void configureScenario(World world, Base base, BaseUI UI) {
-    economicScenario(world, base, UI) ;
+    //economicScenario(world, base, UI) ;
     //securityScenario(world, base, UI) ;
     //contactScenario(world, base, UI) ;
+    nativesScenario(world, base, UI) ;
   }
   
   
+  private void nativesScenario(World world, Base base, BaseUI UI) {
+    GameSettings.fogFree = true ;
+  }
+  
+  
+  
   private void economicScenario(World world, Base base, BaseUI UI) {
-    
-    //  TODO:  Rig together a scenario to demonstrate rapid housing evolution.
-    Placement.establishVenue(new VaultSystem(base), 6, 6, true, world) ;
     GameSettings.hireFree = true ;
+    GameSettings.buildFree = true ;
+    
+    Placement.establishVenue(new Edifice(base), 0, 0, true, world) ;
+    Placement.establishVenue(new Edifice(base), 16, 0, true, world) ;
+    Placement.establishVenue(new Edifice(base), 0, 16, true, world) ;
+    Placement.establishVenue(new Edifice(base), 16, 16, true, world) ;
+    
+    final SolarArray array = new SolarArray(base) ;
+    final Tile
+      from = world.tileAt(21, 2 ),
+      to   = world.tileAt(21, 10) ;
+    
+    array.pointsOkay(from, to) ;
+    array.doPlace(from, to) ;
+    Placement.establishVenue(new Sickbay(base), 9, 9, true, world) ;
+    
+    Placement.establishVenue(new VaultSystem(base), 6, 6, true, world) ;
+    Placement.establishVenue(new Archives(base), 10, 10, true, world) ;
+    Placement.establishVenue(new Garrison(base), 8, 12, true, world) ;
+    Placement.establishVenue(new StockExchange(base), 10, 6, true, world) ;
   }
   
   

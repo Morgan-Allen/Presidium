@@ -10,7 +10,7 @@ import src.util.* ;
 
 
 
-public class Outcrop extends Fixture implements Selectable {
+public class Outcrop extends Fixture {// implements Selectable {
   
   
   /**  These are utility methods intended to determine the type and appearance
@@ -129,7 +129,7 @@ public class Outcrop extends Fixture implements Selectable {
     final World world = origin().world ;
     for (Tile t : world.tilesIn(area(), false)) {
       if (t == null || t.blocked()) return false ;
-      if (type == TYPE_DUNE && t.habitat() != Habitat.DESERT) return false ;
+      if (type == TYPE_DUNE && t.habitat() != Habitat.DUNE) return false ;
     }
     return true ;
   }
@@ -215,11 +215,6 @@ public class Outcrop extends Fixture implements Selectable {
   }
 
 
-  public InfoPanel createPanel(BaseUI UI) {
-    return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
-  }
-
-
   public Target subject() {
     return this ;
   }
@@ -245,6 +240,11 @@ public class Outcrop extends Fixture implements Selectable {
   }
   
   
+  /*
+  public InfoPanel createPanel(BaseUI UI) {
+    return new InfoPanel(UI, this, InfoPanel.DEFAULT_TOP_MARGIN) ;
+  }
+  
   public void whenClicked() {
     //
     //  TODO:  This is some really awkward phrasing.  When have you ever used
@@ -253,6 +253,7 @@ public class Outcrop extends Fixture implements Selectable {
       ((BaseUI) PlayLoop.currentUI()).selection.pushSelection(this, false) ;
     }
   }
+  //*/
 }
 
 

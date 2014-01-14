@@ -296,7 +296,7 @@ public class ActorHealth implements Abilities {
   
   /**  Methods related to sensing and motion-
     */
-  public float moveRate() {
+  public float baseSpeed() {
     float rate = baseSpeed ;
     return rate * (float) Math.sqrt(ageMultiple) ;
   }

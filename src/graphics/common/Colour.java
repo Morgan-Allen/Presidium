@@ -8,6 +8,7 @@ package src.graphics.common ;
 import src.util.* ;
 import org.lwjgl.opengl.* ;
 import java.awt.Color ;
+import java.io.* ;
 
 
 
@@ -68,13 +69,32 @@ public class Colour {
 	
 	public Colour() {}
 	
+	
 	public Colour(float r, float g, float b, float a) {
 	  set(r, g, b, a) ;
 	}	
 	
+	
   public Colour(float r, float g, float b) {
     set(r, g, b, 1) ;
   }
+  
+  
+  public void saveTo(DataOutputStream out) throws Exception {
+    out.writeFloat(r) ;
+    out.writeFloat(g) ;
+    out.writeFloat(b) ;
+    out.writeFloat(a) ;
+  }
+  
+  
+  public void loadFrom(DataInputStream in) throws Exception {
+    r = in.readFloat() ;
+    g = in.readFloat() ;
+    b = in.readFloat() ;
+    a = in.readFloat() ;
+  }
+  
   
   
   /**  Binds this colour to the given GL context.  Convenience method.

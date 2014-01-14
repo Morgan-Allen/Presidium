@@ -25,7 +25,7 @@ public class DebugPlanet extends Scenario {
   /**  Startup and save/load methods-
     */
   public static void main(String args[]) {
-    //if (Scenario.loadedFrom("test_planet")) return ;
+    if (Scenario.loadedFrom("test_planet")) return ;
     DebugPlanet test = new DebugPlanet() ;
     PlayLoop.setupAndLoop(test.UI(), test) ;
   }
@@ -51,10 +51,10 @@ public class DebugPlanet extends Scenario {
     */
   public void updateGameState() {
     super.updateGameState() ;
+    PlayLoop.rendering().port.cameraZoom = 1.33f ;
     //PlayLoop.setGameSpeed(0.25f) ;
-    PlayLoop.setGameSpeed(5.0f) ;
-    //PlayLoop.setGameSpeed(25.0f) ;
-    //  100 x 25 = 2500.  You're within an order of magnitude, certainly.
+    //PlayLoop.setGameSpeed(5.0f) ;
+    PlayLoop.setGameSpeed(25.0f) ;
   }
   
   
@@ -70,7 +70,7 @@ public class DebugPlanet extends Scenario {
       Habitat.ESTUARY     , 0.2f,
       Habitat.MEADOW      , 1f,
       Habitat.BARRENS     , 2f,
-      Habitat.DESERT      , 3f,
+      Habitat.DUNE      , 3f,
       Habitat.CURSED_EARTH, 2f
     ) ;
     final World world = new World(TG.generateTerrain()) ;

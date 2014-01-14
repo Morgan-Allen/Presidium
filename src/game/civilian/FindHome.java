@@ -208,34 +208,30 @@ public class FindHome extends Plan implements Economy {
     final int
       UL = holding.upgradeLevel(),
       maxPop = HoldingUpgrades.OCCUPANCIES[UL] ;
-    float crowding = residents.size() * 1f / maxPop ;
+    final float crowding = residents.size() * 1f / maxPop ;
     
-    float rating = 0 ;
+    float rating = 1 ;
     if (holding == actor.mind.home()) {
-      if (crowding < 1) rating += 1.0f ;
-      if (crowding > 1) rating -= 1.0f ;
+      rating *= 1.5f ;
     }
     else if (crowding >= 1) return -1 ;
     if (holding.inWorld()) {
-      rating += (UL + 1) * (2f - crowding) ;
-      rating -= actor.mind.greedFor(HoldingUpgrades.TAX_LEVELS[UL]) * 5 ;
+      rating *= 1.5f ;
     }
-    else {
-      //  TODO:  Base this on ambience, safety, residence type, and proximity
-      //  to services.  HoldingUpgrades should be able to oblige here.
-      rating += HoldingUpgrades.NUM_LEVELS ;
-    }
+    
+    rating *= (UL + 1) * (2f - crowding) / HoldingUpgrades.NUM_LEVELS ;
+    rating -= actor.mind.greedFor(HoldingUpgrades.TAX_LEVELS[UL]) * 5 ;
+    rating -= Plan.rangePenalty(actor.mind.work(), holding) ;
     
     if (residents.size() > 0) {
       float averageRelations = 0 ; for (Actor a : residents) {
         averageRelations += actor.mind.relationValue(a) ;
       }
       averageRelations /= residents.size() ;
-      rating *= 0.5f + averageRelations ;
+      rating += averageRelations ;
     }
     
-    rating -= Plan.rangePenalty(actor.mind.work(), holding) ;
-    ///I.say("  Rating for holding is: "+rating) ;
+    if (verbose) I.sayAbout(actor, "  Rating for holding is: "+rating) ;
     return rating ;
   }
 }

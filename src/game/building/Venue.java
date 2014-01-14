@@ -6,7 +6,7 @@
 
 
 package src.game.building ;
-import src.game.civilian.*;
+import src.game.civilian.* ;
 import src.game.common.* ;
 import src.game.planet.* ;
 import src.game.actors.* ;
@@ -59,9 +59,9 @@ public abstract class Venue extends Fixture implements
   private Base base ;
   private List <Mobile> inside = new List <Mobile> () ;
   
-  final public Personnel personnel = new Personnel(this) ;
-  final public VenueStocks    stocks    = new VenueStocks(this)    ;
-  final public Structure structure = new Structure(this) ;
+  final public Personnel   personnel = new Personnel(this)   ;
+  final public VenueStocks stocks    = new VenueStocks(this) ;
+  final public Structure   structure = new Structure(this)   ;
   
   
   
@@ -335,25 +335,9 @@ public abstract class Venue extends Fixture implements
   
   /**  Recruiting staff and assigning manufacturing tasks-
     */
-  public void setWorker(Actor actor, boolean is) {
-    personnel.setWorker(actor, is) ;
-  }
-  
-
-  public void setApplicant(Application app, boolean is) {
-    personnel.setApplicant(app, is) ;
-  }
-  
-  
   public int numOpenings(Background v) {
     return structure.upgradeBonus(v) - personnel.numPositions(v) ;
   }
-  
-  
-  public abstract Background[] careers() ;
-  public abstract Service[] services() ;
-  public void addServices(Choice choice, Actor forActor) {}
-  
   
   public boolean isManned() {
     for (Actor a : personnel.workers) {
@@ -361,6 +345,15 @@ public abstract class Venue extends Fixture implements
     }
     return false ;
   }
+  
+  public abstract Background[] careers() ;
+  public abstract Service[] services() ;  //TODO:  Rename to Goods?
+  public void addServices(Choice choice, Actor forActor) {}
+  
+  
+  //  public int occupancy() ;
+  //  public int comfortLevel() ;
+  //  public boolean allowsResidence(Actor a) ;
   
   
   public boolean privateProperty() {
@@ -461,16 +454,23 @@ public abstract class Venue extends Fixture implements
     final float squalor = 0 - world.ecology().ambience.valueAt(this) ;
     if (squalor > 0) {
       final String SN = " ("+I.shorten(squalor, 1)+")" ;
-      d.append("\n  Squalor:  "+Ambience.squalorDesc(squalor)+SN) ;
+      d.append("\n  "+Ambience.squalorDesc(squalor)+" Squalor"+SN) ;
     }
     else {
       final String AN = " ("+I.shorten(0 - squalor, 1)+")" ;
-      d.append("\n  Ambience:  "+Ambience.squalorDesc(squalor)+AN) ;
+      d.append("\n  "+Ambience.squalorDesc(squalor)+" Ambience"+AN) ;
     }
     
-    final float danger = base().dangerMap.shortTermVal(world.tileAt(this)) ;
-    final String DN = " ("+I.shorten(danger, 1)+")" ;
-    d.append("\n  Danger level: "+Ambience.dangerDesc(danger)+DN) ;
+    final float danger = base().dangerMap.longTermVal(world.tileAt(this)) ;
+    if (danger > 0) {
+      final String DN = " ("+I.shorten(danger, 1)+")" ;
+      d.append("\n  "+Ambience.dangerDesc(danger)+" Hazards"+DN) ;
+    }
+    else {
+      final String SN = " ("+I.shorten(0 - danger, 1)+")" ;
+      d.append("\n  "+Ambience.dangerDesc(danger)+" Safety"+SN) ;
+    }
+    
     d.append("\n\n") ;
     
     d.append(helpInfo(), Colour.LIGHT_GREY) ;

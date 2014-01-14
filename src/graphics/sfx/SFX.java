@@ -36,8 +36,8 @@ public abstract class SFX extends Sprite {
     GL11.GL_LIGHTING,
     GL11.GL_ALPHA_TEST
   } ;
-  //  TODO:  use GL11.glDepthMask() here, in a dedicated rendering pass.
-  //         Remove it from the renderTex() method below...
+  //  TODO:  use GL11.glDepthMask() here, in a dedicated rendering pass for all
+  //  SFX objects.  Remove it from the renderTex() method below...
   
   public int[] GL_disables() { return GL_DISABLES ; }
   

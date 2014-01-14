@@ -23,7 +23,7 @@ public class MoteFX extends SFX {
     public Sprite makeSprite() { return new MoteFX() ; }
   } ;
   
-  public ImageSprite mote ;
+  public Sprite mote ;
   public float progress = 0, animTime = -1 ;
   
   
@@ -33,7 +33,7 @@ public class MoteFX extends SFX {
   
   
   public MoteFX(Sprite mote) {
-    this.mote = (ImageSprite) mote ;
+    this.mote = mote ;
   }
   
   
@@ -46,12 +46,9 @@ public class MoteFX extends SFX {
   }
   
   
-  //final static int DISABLES[] = { GL11.GL_DEPTH_TEST } ;
-  //public int[] GL_disables() { return DISABLES ; }
-  
-  
   public void renderTo(Rendering rendering) {
     mote.matchTo(this) ;
+    mote.position.z -= 0.5f ;
     mote.setAnimation("animation", progress) ;
     mote.update() ;
     GL11.glDepthMask(false) ;

@@ -232,7 +232,7 @@ public class FormerPlant extends Venue implements Economy {
       final Habitat h = sampled.habitat() ;
       if (h == Habitat.OCEAN) sumWater += 10 ;
       else sumWater += h.moisture() / 2f ;
-      if (h == Habitat.DESERT) sumDesert += 10 ;
+      if (h == Habitat.DUNE) sumDesert += 10 ;
       else sumDesert += (10 - h.moisture()) / 2f ;
     }
     sumWater /= 100 ;

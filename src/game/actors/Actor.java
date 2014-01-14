@@ -339,8 +339,7 @@ public abstract class Actor extends Mobile implements
   
   
   protected void renderHealthbars(Rendering rendering, Base base) {
-    healthbar.level =  (1 - health.injuryLevel()) ;
-    healthbar.level *= (1 - health.stressPenalty()) ;
+    if (health.dying()) return ;
     
     final BaseUI UI = (BaseUI) PlayLoop.currentUI() ;
     if (
@@ -349,12 +348,13 @@ public abstract class Actor extends Mobile implements
       healthbar.level > 0.5f
     ) return ;
     
-    if (health.dying()) return ;
+    healthbar.level =  (1 - health.injuryLevel()) ;
+    healthbar.level *= (1 - health.stressPenalty()) ;
+    healthbar.full = base().colour ;
     healthbar.size = 25 ;
     healthbar.matchTo(sprite()) ;
     healthbar.position.z -= radius() ;
-    if (base() == null) healthbar.full = Colour.LIGHT_GREY ;
-    else healthbar.full = base().colour ;
+    
     rendering.addClient(healthbar) ;
   }
   

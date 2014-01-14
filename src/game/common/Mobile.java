@@ -23,6 +23,11 @@ public abstract class Mobile extends Element
     "media/SFX/ground_shadow.png", 1, 0, 0, false
   ) ;
   
+  final public static int
+    MOTION_WALKS = 0,
+    MOTION_HOVER = 1,
+    MOTION_FLYER = 2,
+    MOTION_WATER = 3 ;
   final static int
     MAX_PATH_SCAN = World.SECTOR_SIZE ;
   
@@ -196,17 +201,8 @@ public abstract class Mobile extends Element
   
   
   protected void updateAsMobile() {
-    //
-    //  If your current location is blocked, you need to escape to a free tile-
-    if (Pathing.blockedBy(aboard, this)) {
-      final Tile blocked = origin() ;
-      final Tile free = Spacing.nearestOpenTile(blocked, this) ;
-      if (free == null) I.complain("NO FREE TILE AVAILABLE!") ;
-      ///if (BaseUI.isPicked(this)) I.say("Escaping to free tile: "+free) ;
-      setPosition(free.x, free.y, world) ;
-      onMotionBlock(blocked) ;
-      return ;
-    }
+    
+    //  
     final Boardable next = motion == null ? null : motion.nextStep() ;
     final Tile oldTile = origin() ;
     final Vec3D p = nextPosition ;
@@ -268,14 +264,14 @@ public abstract class Mobile extends Element
   }
   
   
-  //  TODO:  Make this abstract?
-  protected void pathingAbort() {
-  }
-  
-  
   protected void onMotionBlock(Tile t) {
     final boolean canRoute = motion != null && motion.refreshFullPath() ;
     if (! canRoute) pathingAbort() ;
+  }
+  
+  
+  //  TODO:  Make this abstract?
+  protected void pathingAbort() {
   }
   
   
@@ -284,9 +280,11 @@ public abstract class Mobile extends Element
   }
   
   
-  public boolean airborne() {
-    return aboveGroundHeight() > 0 ;
-  }
+  public int motionType() { return MOTION_WALKS ; }
+  public boolean motionWalks() { return motionType() == MOTION_WALKS ; }
+  public boolean motionHover() { return motionType() == MOTION_HOVER ; }
+  public boolean motionFlyer() { return motionType() == MOTION_FLYER ; }
+  public boolean motionWater() { return motionType() == MOTION_WATER ; }
   
   
   

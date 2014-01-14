@@ -51,10 +51,12 @@ public class Drilling extends Plan implements Economy {
   /**  Priority and target evaluation-
     */
   public float priorityFor(Actor actor) {
+    /*
     final Venue work = (Venue) actor.mind.work() ;
     if (work.personnel.shiftFor(actor) != Venue.SECONDARY_SHIFT) {
       if (! actor.isDoing("actionEquipYard", null)) return 0 ;
     }
+    //*/
     
     //
     //  TODO:  You can't drill if you lack an appropriate device type!

@@ -109,10 +109,9 @@ public abstract class Segment extends Venue implements TileConstants {
   
   
   protected List <Segment> installedBetween(Tile start, Tile end) {
-    final List <Segment> installed = new List() ;
     if (start == null) return null ;
-    if (end == null) end = start ;
-    
+    if (end   == null) end = start ;
+
     final RoadSearch search = new RoadSearch(start, end, Element.VENUE_OWNS) {
       protected boolean canEnter(Tile t) { return true ; }
     } ;
@@ -128,6 +127,7 @@ public abstract class Segment extends Venue implements TileConstants {
     }
     for (Tile p : placePath) p.flagWith(null) ;
     
+    final List <Segment> installed = new List() ;
     for (Tile p : placePath) {
       final Segment v = instance(base()) ;
       v.setPosition(p.x, p.y, p.world) ;
@@ -184,6 +184,7 @@ public abstract class Segment extends Venue implements TileConstants {
   
   public boolean canPlace() {
     if (super.canPlace()) return true ;
+    I.say("Couldn't place normally!") ;
     final Tile o = origin() ;
     if (o == null || o.owner() == null) return false ;
     if (o.owner().getClass() == this.getClass()) return true ;
@@ -193,10 +194,12 @@ public abstract class Segment extends Venue implements TileConstants {
 
   public boolean pointsOkay(Tile from, Tile to) {
     toInstall = installedBetween(from, to) ;
+    I.say("TO INSTALL IS: "+toInstall+", between "+from+" and "+to) ;
     if (toInstall == null) return false ;
     for (Segment s : toInstall) {
       if (! s.superPointsOkay()) return false ;
     }
+    I.say("INSTALL OKAY...") ;
     return true ;
   }
   

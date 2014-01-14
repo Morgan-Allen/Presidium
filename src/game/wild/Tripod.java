@@ -29,7 +29,7 @@ public class Tripod extends Artilect implements Economy {
       100, //lifespan
       5.0f,//bulk bonus
       1.0f,//sight range
-      0.6f,//move speed,
+      0.8f,//move speed,
       ActorHealth.ARTILECT_METABOLISM
     ) ;
     health.setupHealth(0, Rand.avgNums(2), Rand.avgNums(2)) ;
@@ -58,14 +58,23 @@ public class Tripod extends Artilect implements Economy {
   }
   
   
+  
+  /**  Physical properties-
+    */
   public float radius() {
     return 0.5f ;
   }
   
   
-  protected float aboveGroundHeight() {
-    return 0.01f ;
+  public float height() {
+    return 2.5f ;
   }
+  
+  
+  protected float aboveGroundHeight() {
+    return 0.02f ;
+  }
+  
   
   
   /**  Rendering and interface methods-

@@ -61,6 +61,18 @@ public class NativeHut extends Venue {
   
   
   
+  /**  Placement and construction-
+    */
+  
+  //  TODO:  You'll want to unify this with class with the Nest class, and not
+  //  the Holding class?
+  float rateSiting() {
+    float idealPop = Nest.idealNestPop(Species.HUMAN, this, world, false) ;
+    return (1 - (idealPop / personnel.residents().size())) ;
+  }
+  
+  
+  
   /**  Behaviour implementation-
     */
   public Behaviour jobFor(Actor actor) {

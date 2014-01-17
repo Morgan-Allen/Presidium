@@ -93,23 +93,31 @@ public class Dialogue extends Plan implements Abilities {
     */
   public float priorityFor(Actor actor) {
     if (stage >= STAGE_DONE || ! canTalk(other)) return 0 ;
-    final float
-      value   = actor.mind.relationValue(other),
-      novelty = actor.mind.relationNovelty(other) ;
+    float
+      value    = actor.mind.relationValue(other),
+      novelty  = actor.mind.relationNovelty(other),
+      solitude = actor.mind.solitude() ;
     
-    //TODO:  novelty *= actor.traits.scaleLevel(INQUISITIVE) ;
+    novelty *= (actor.traits.scaleLevel(INQUISITIVE) + 1) / 2f ;
+    if (! actor.mind.hasRelation(other)) novelty *= solitude ;
+    else novelty *= (1 + solitude) / 2f ;
+    
     float impetus = (IDLE * value * 2) + (novelty * ROUTINE) ;
+    if (other.base() == actor.base()) {
+      impetus += actor.base().communitySpirit() ;
+    }
     impetus *= actor.traits.scaleLevel(SOCIABLE) ;
     
     if (verbose && I.talkAbout == actor) {
       I.say("\n  Priority for talking to "+other+" is: "+impetus) ;
       I.say("  Value/novelty: "+value+"/"+novelty) ;
     }
-    return impetus ;
+    return Visit.clamp(impetus, 0, URGENT) ;
   }
   
   
   private boolean canTalk(Actor other) {
+    if (! other.health.conscious()) return false ;
     if (other.isDoing(Dialogue.class, null)) return true ;
     if (starts != actor) return false ;
     final Dialogue d = new Dialogue(other, actor, actor, type) ;
@@ -304,6 +312,9 @@ public class Dialogue extends Plan implements Abilities {
     //  improve relations.
     //  TODO:  At the moment, we just compare traits.  Fix later.
     final Trait comp = (Trait) Rand.pickFrom(actor.traits.personality()) ;
+    if (comp == null) {
+      return ;
+    }
     final float
       levelA = actor.traits.scaleLevel(comp),
       levelO = actor.traits.scaleLevel(comp),

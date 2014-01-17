@@ -6,10 +6,11 @@
 
 
 package src.game.actors ;
-import src.game.building.* ;
-import src.game.civilian.*;
 import src.game.common.* ;
+import src.game.building.* ;
 import src.game.tactical.* ;
+import src.game.civilian.* ;
+import src.game.planet.* ;
 import src.graphics.common.* ;
 import src.graphics.sfx.* ;
 import src.user.* ;
@@ -75,7 +76,7 @@ public abstract class Actor extends Mobile implements
   public Background vocation() { return null ; }
   public void setVocation(Background b) {}
   
-  public Object species() { return null ; }
+  public Species species() { return null ; }
   
   
   

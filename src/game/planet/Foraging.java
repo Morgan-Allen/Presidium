@@ -56,14 +56,16 @@ public class Foraging extends Plan implements Economy {
   /**  Behaviour implementation-
     */
   public float priorityFor(Actor actor) {
-    if (done || storeShortage() <= 0) {
+    if (storeShortage() <= 0) {
       if (sumHarvest() > 0) return Plan.ROUTINE ;
-      return 0 ;
+      else done = true ;
     }
-    float impetus = 0 ;
-    
     final float hunger = actor.health.hungerLevel() ;
-    impetus += hunger * Plan.ROUTINE ;
+    if (store == null && hunger <= 0) done = true ;
+    if (done) return 0 ;
+    
+    float impetus = 0 ;
+    impetus += hunger * Plan.PARAMOUNT ;
     impetus *= actor.traits.chance(CULTIVATION, MODERATE_DC) ;
     impetus *= actor.traits.chance(HARD_LABOUR, ROUTINE_DC) ;
     if (hunger > 0.5f) {
@@ -79,14 +81,13 @@ public class Foraging extends Plan implements Economy {
     impetus -= Plan.dangerPenalty(source, actor) ;
     impetus += priorityMod ;
     
-    //I.sayAbout(actor, "Foraging impetus is: "+impetus) ;
     return impetus ;
   }
   
   
   
   private float storeShortage() {
-    if (store == null) return 0 ;
+    if (store == null) return 1 ;
     return 10 - (store.stocks.amountOf(GREENS) + store.stocks.amountOf(CARBS)) ;
   }
   
@@ -102,6 +103,7 @@ public class Foraging extends Plan implements Economy {
     final float shortage = storeShortage() ;
     if (shortage > 0 && (source == null || source.destroyed())) {
       source = Forestry.findCutting(actor) ;
+      if (source == null) return null ;
     }
     final float harvest = sumHarvest() ;
     if (shortage > 0 && harvest < 1 && source != null) {

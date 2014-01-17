@@ -276,15 +276,14 @@ public class Combat extends Plan implements Abilities {
       return null ;
     }
     Action strike = null ;
+    final DeviceType DT = actor.gear.deviceType() ;
     final boolean melee = actor.gear.meleeWeapon() ;
     final boolean razes = target instanceof Venue ;
     final float danger = Retreat.dangerAtSpot(
       actor.origin(), actor, razes ? null : (Actor) target
     ) ;
     
-    final String strikeAnim = melee ?
-      Action.STRIKE :
-      Action.FIRE ;
+    final String strikeAnim = DT == null ? Action.STRIKE : DT.animName ;
     if (razes) {
       strike = new Action(
         actor, target,

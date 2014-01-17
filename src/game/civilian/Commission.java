@@ -36,11 +36,11 @@ public class Commission extends Plan {
   ) {
     final boolean hasCommission = actor.mind.hasToDo(Commission.class) ;
     if (hasCommission) return ;
-    //
+    
     //  Check to see if this venue makes the actor's device type, and if an
     //  upgrade/repair to said device is needed.
-    final Service DT = actor.gear.deviceType() ;
-    if (DT != null && Visit.arrayIncludes(makes.services(), DT)) {
+    final DeviceType DT = actor.gear.deviceType() ;
+    if (DT != null && DT.materials().venueType == makes.getClass()) {
       final int DQ = (int) actor.gear.deviceEquipped().quality ;
       final float DA = actor.gear.deviceEquipped().amount ;
       
@@ -53,10 +53,10 @@ public class Commission extends Plan {
         choice.add(new Commission(actor, nextDevice, makes)) ;
       }
     }
-    //
+    
     //  Similarly for armour-
-    final Service OT = actor.gear.outfitType() ;
-    if (OT != null && Visit.arrayIncludes(makes.services(), OT)) {
+    final OutfitType OT = actor.gear.outfitType() ;
+    if (OT != null && OT.materials.venueType == makes.getClass()) {
       final int OQ = (int) actor.gear.outfitEquipped().quality ;
       final float OA = actor.gear.outfitEquipped().amount ;
       

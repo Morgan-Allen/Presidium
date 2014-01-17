@@ -81,11 +81,11 @@ public class DebugBehaviour extends Scenario implements Economy {
     */
   protected World createWorld() {
     final TerrainGen TG = new TerrainGen(
-      64, 0.2f,
-      Habitat.ESTUARY, 0.15f,
-      Habitat.MEADOW , 0.45f,
-      Habitat.BARRENS, 0.15f,
-      Habitat.DUNE   , 0.1f,
+      128, 0.2f,
+      //Habitat.ESTUARY, 0.15f,
+      Habitat.MEADOW , 0.15f,
+      Habitat.BARRENS, 0.45f,
+      Habitat.DUNE   , 0.10f,
       Habitat.CURSED_EARTH, 1.0f
     ) ;
     final World world = new World(TG.generateTerrain()) ;
@@ -94,9 +94,9 @@ public class DebugBehaviour extends Scenario implements Economy {
     
     final EcologyGen EG = new EcologyGen(world, TG) ;
     EG.populateFlora() ;
-    EG.populateWithRuins() ;
-    //EG.populateWithNatives() ;
-    EG.populateFauna(Species.VAREEN, Species.QUUD) ;
+    //EG.populateWithRuins() ;
+    EG.populateWithNatives(NativeHut.TRIBE_FOREST) ;
+    EG.populateFauna(Species.HAREEN, Species.QUD) ;
     
     return world ;
   }
@@ -107,7 +107,7 @@ public class DebugBehaviour extends Scenario implements Economy {
     PlayLoop.rendering().port.cameraZoom = 1.33f ;
     //PlayLoop.setGameSpeed(0.25f) ;
     //PlayLoop.setGameSpeed(5.0f) ;
-    PlayLoop.setGameSpeed(25.0f) ;
+    //PlayLoop.setGameSpeed(25.0f) ;
     //economicUpdate() ;
   }
   
@@ -181,7 +181,7 @@ public class DebugBehaviour extends Scenario implements Economy {
     //  Generate a basic native settlement in the far corner of the map.
     final Base natives = world.baseWithName(Base.KEY_NATIVES, true, true) ;
     final Venue huts = Placement.establishVenue(
-      new NativeHut(Habitat.ESTUARY, natives), 21, 21, true, world
+      NativeHut.newHall(NativeHut.TRIBE_FOREST, natives), 21, 21, true, world
     ) ;
     for (int n = 5 ; n-- > 0 ;) {
       final Career c = new Career(
@@ -237,7 +237,7 @@ public class DebugBehaviour extends Scenario implements Economy {
     final Mission mission = new SecurityMission(base, defended) ;
     mission.assignReward(1000) ;
     base.addMission(mission) ;
-    for (int n = 5 ; n-- > 0 ;) {
+    for (int n = 6 ; n-- > 0 ;) {
       final Actor defends = new Human(Background.VETERAN, base) ;
       Tile free = Spacing.pickRandomTile(defended, 10, world) ;
       free = Spacing.nearestOpenTile(free, defended) ;

@@ -120,7 +120,7 @@ public class EcologyGen {
   
   /**  Placement of natives-
     */
-  public void populateWithNatives() {
+  public void populateWithNatives(int tribeID) {
     float meadowed = (1 + totalFertility) / 2f ;
     final int
       numMajorHuts = (int) ((meadowed * numMajor) + 0.5f),
@@ -138,13 +138,15 @@ public class EcologyGen {
         (pos.y + 0.5f) * SS
       ) ;
       final boolean minor = n < numMinorHuts ;
-      
       int maxHuts = (minor ? 4 : 2) + Rand.index(3) ;
       final Batch <Venue> huts = new Batch <Venue> () ;
-      final Habitat under = terGen.baseHabitat(pos, World.SECTOR_SIZE) ;
+      
+      final NativeHall hall = NativeHut.newHall(tribeID, base) ;
+      Placement.establishVenue(hall, centre.x, centre.y, true, world) ;
+      if (hall.inWorld()) huts.add(hall) ;
       
       while (maxHuts-- > 0) {
-        final NativeHut r = new NativeHut(under, base) ;
+        final NativeHut r = NativeHut.newHut(hall) ;
         Placement.establishVenue(r, centre.x, centre.y, true, world) ;
         if (r.inWorld()) huts.add(r) ;
       }
@@ -311,9 +313,9 @@ public class EcologyGen {
       ) ;
       tried = Spacing.nearestOpenTile(tried, tried) ;
       if (tried == null) continue ;
-      
       Nest toPlace = null ;
       float bestRating = 0 ;
+      
       for (Species s : species) {
         final Nest nest = Nest.siteNewLair(s, tried, world) ;
         if (nest == null) continue ;
@@ -350,35 +352,3 @@ public class EcologyGen {
 
 
 
-
-/*
-final Lair typeLairs[] = new Lair[species.length] ;
-final RandomScan scan = new RandomScan(world.size) {
-  protected void scanAt(int x, int y) {
-    int bestIndex = -1 ;
-    float bestRating = 0 ;
-    
-    for (int i = species.length ; i-- > 0 ;) {
-      final Species specie = species[i] ;
-      if (typeLairs[i] == null) typeLairs[i] = specie.createLair() ;
-      final Lair lair = typeLairs[i] ;
-      lair.setPosition(x, y, world) ;
-      final float rating = lair.rateCurrentSite(world) * Rand.avgNums(2) ;
-      I.say("  "+specie+" rating: "+rating) ;
-      if (rating > bestRating) { bestIndex = i ; bestRating = rating ; }
-    }
-    
-    I.say("Best index: "+bestIndex) ;
-    
-    if (bestIndex != -1) {
-      final Lair chosen = typeLairs[bestIndex] ;
-      typeLairs[bestIndex] = null ;
-      chosen.clearSurrounds() ;
-      chosen.enterWorld() ;
-      chosen.structure.setState(Structure.STATE_INTACT, 1) ;
-      chosen.setAsEstablished(true) ;
-    }
-  }
-} ;
-scan.doFullScan() ;
-//*/

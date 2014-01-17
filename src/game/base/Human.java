@@ -88,7 +88,7 @@ public class Human extends Actor implements Abilities {
   
   public Career career() { return career ; }
   
-  public Object species() { return Species.HUMAN ; }
+  public Species species() { return Species.HUMAN ; }
   
   public void setVocation(Background b) {
     career.recordVocation(b) ;

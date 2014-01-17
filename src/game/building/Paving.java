@@ -116,16 +116,14 @@ public class Paving {
     I.add("\n") ;
   }
   
-  
-  public void updatePerimeter(Fixture v, boolean isMember) {
+
+  public void updatePerimeter(
+    Fixture v, Batch <Tile> around, boolean isMember
+  ) {
     final Tile o = v.origin() ;
     final Route key = new Route(o, o), match = allRoutes.get(key) ;
     
     if (isMember) {
-      final Batch <Tile> around = new Batch <Tile> () ;
-      for (Tile t : Spacing.perimeter(v.area(), world)) if (t != null) {
-        if (t.owningType() <= Element.ELEMENT_OWNS) around.add(t) ;
-      }
       key.path = around.toArray(Tile.class) ;
       key.cost = -1 ;
       if (roadsEqual(key, match)) return ;
@@ -145,6 +143,18 @@ public class Paving {
       world.terrain().maskAsPaved(match.path, false) ;
       allRoutes.remove(key) ;
     }
+  }
+  
+  
+  public void updatePerimeter(Fixture v, boolean isMember) {
+    if (isMember) {
+      final Batch <Tile> around = new Batch <Tile> () ;
+      for (Tile t : Spacing.perimeter(v.area(), world)) if (t != null) {
+        if (t.owningType() <= Element.ELEMENT_OWNS) around.add(t) ;
+      }
+      updatePerimeter(v, around, true) ;
+    }
+    else updatePerimeter(v, null, false) ;
   }
   
   

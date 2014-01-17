@@ -252,7 +252,7 @@ public class Hunting extends Combat implements Economy {
     final Action harvest = new Action(
       actor, prey,
       this, "actionHarvest",
-      Action.STRIKE, "Harvesting from "+prey
+      Action.BUILD, "Harvesting from "+prey
     ) ;
     return harvest ;
   }

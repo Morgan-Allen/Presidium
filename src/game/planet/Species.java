@@ -95,9 +95,9 @@ public class Species implements Session.Saveable, Economy {
       public Nest createNest() { return null ; }
     },
     
-    QUUD = new Species(
-      "Quud",
-      "Quud are placid, slow-moving, vegetarian browsers that rely on their "+
+    QUD = new Species(
+      "Qud",
+      "Qud are placid, slow-moving, vegetarian browsers that rely on their "+
       "dense, leathery hides and intractable grip on the ground to protect "+
       "themselves from most predators.",
       "QuudPortrait.png",
@@ -115,9 +115,9 @@ public class Species implements Session.Saveable, Economy {
       ) ; }
     },
     
-    VAREEN = new Species(
-      "Vareen",
-      "Vareen are sharp-eyed aerial omnivores active by day, with a twinned "+
+    HAREEN = new Species(
+      "Hareen",
+      "Hareen are sharp-eyed aerial omnivores active by day, with a twinned "+
       "pair of wings that makes them highly maneuverable flyers.  Their "+
       "diet includes fruit, nuts, insects and carrion, but symbiotic algae "+
       "in their skin also allow them to subsist partially on sunlight.",
@@ -136,9 +136,9 @@ public class Species implements Session.Saveable, Economy {
       ) ; }
     },
     
-    MICOVORE = new Species(
-      "Micovore",
-      "The Micovore is an imposing bipedal obligate carnivore capable of "+
+    LICTOVORE = new Species(
+      "Lictovore",
+      "The Lictovore is an imposing bipedal obligate carnivore capable of "+
       "substantial bursts of speed and tackling even the most stubborn prey. "+
       "They defend established nest sites where they tend their young, using "+
       "scented middens, rich in spice, to mark the limits of their territory.",
@@ -273,25 +273,12 @@ public class Species implements Session.Saveable, Economy {
     return type == Type.PREDATOR ;
   }
   
-
-  /*
-  public int forageRange() {
-    if (type == Species.Type.BROWSER) return Lair.BROWSER_SAMPLE_RANGE ;
-    else return Lair.PREDATOR_SAMPLE_RANGE ;
-  }
-  
-  
-  public int maxLairPop() {
-    if (type == Species.Type.PREDATOR) return Lair.PREDATOR_LAIR_POPULATION ;
-    return Lair.BROWSER_LAIR_POPULATION ;
-  }
-  //*/
-  
   
   public String toString() { return name ; }
   
   
   public Item[] nutrients() { return nutrients ; }
+  public float metabolism() { return baseBulk * baseSpeed ; }
 }
 
 
@@ -300,10 +287,8 @@ public class Species implements Session.Saveable, Economy {
 /*
 final public static Species
   //
-  //  Friendlies first (would these count as different species, though?)-
-  PRIMITIVE   = new Species("Primitive"),
-  MUTANT      = new Species("Mutant"),
-  INFECTED    = new Species("Infected"),
+  //  Friendlies first-
+  HUMAN       = new Species("Human"),
   CHANGELING  = new Species("Changeling"),
   KRECH       = new Species("Krech"),
   JOVIAN      = new Species("Jovian"),
@@ -311,27 +296,32 @@ final public static Species
   //  Insectiles-
   GIANT_ROACH = new Species("Giant Roach"),
   ROACHMAN    = new Species("Roachman"),
+  ARAK_LANCER = new Species("Arak Lancer"),
   TERMAGANT   = new Species("Termagant"),
   //
   //  Browsers and Predators-
   QUD         = new Species("Qud"), //X
-  TRIGOX      = new Species("Trigox"),
+  HIREX       = new Species("Hirex"),
+  LORGOX      = new Species("Trigox"),
   HAREEN      = new Species("Hareen"), //X
   DRIVODIL    = new Species("Drivodil"),
   GIGANS      = new Species("Gigans"), //Y
   LICTOVORE   = new Species("Lictovore"), //X
+  DESERT_MAW  = new Species("Desert Maw"),
+  CYAN_CLADE  = new Species("Cyan Clade"),
   //
   //  Artilects-
   DRONE       = new Species("Drone"), //Y
   TRIPOD      = new Species("Tripod"), //Y
   CRANIAL     = new Species("Cranial"), //Y
+  MANIFOLD    = new Species("Manifold"),
+  ORACLE      = new Species("Oracle"),
+  OBELISK     = new Species("Obelisk"),
   //
   //  Silicates-
   REM_LEECH   = new Species("Rem Leech"),
-  MERCURIAL   = new Species("Mercurial"),
+  SILVER_HULK = new Species("Silver Hulk"),
+  AGGREGANT   = new Species("Aggregant"),
   ARCHON      = new Species("Archon")
 ;
 //*/
-
-
-

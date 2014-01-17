@@ -63,7 +63,7 @@ public abstract class Fauna extends Actor {
   }
   
   
-  public Object species() { return species ; }
+  public Species species() { return species ; }
   protected abstract void initStats() ;
   
   

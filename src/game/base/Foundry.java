@@ -106,11 +106,7 @@ public class Foundry extends Venue implements Economy {
   
   
   public Service[] services() {
-    return new Service[] {
-      PARTS, CIRCUITRY, SHIELD_BELT,  //Also Replicants!
-      TASE_STAFF, PHASE_BLASTER, STUN_PISTOL,
-      PARTIAL_ARMOUR, BODY_ARMOUR, GOLEM_ARMOUR
-    } ;
+    return new Service[] { PARTS, CIRCUITRY, SERVICE_ARMAMENT } ;
   }
   
   
@@ -152,7 +148,7 @@ public class Foundry extends Venue implements Economy {
   public Behaviour jobFor(Actor actor) {
     if ((! structure.intact()) || (! personnel.onShift(actor))) return null ;
     final float powerCut = stocks.shortagePenalty(POWER) * 10 ;
-    //
+    
     //  Consider special commissions for weapons and armour-
     final Manufacture o = stocks.nextSpecialOrder(actor) ;
     if (o != null && personnel.assignedTo(o) < 1) {
@@ -178,11 +174,11 @@ public class Foundry extends Venue implements Economy {
       return o ;
       //choice.add(o) ;
     }
-    //
+    
     //  Consider contributing toward local repairs-
     final Choice choice = new Choice(actor) ;
     choice.add(Repairs.getNextRepairFor(actor, Plan.CASUAL)) ;
-    //
+    
     //  Finally, consider the production of general bulk commodities-
     final int PB = 1 + structure.upgradeLevel(ASSEMBLY_LINE) ;
     final Manufacture mP = stocks.nextManufacture(actor, METALS_TO_PARTS) ;
@@ -197,7 +193,7 @@ public class Foundry extends Venue implements Economy {
       mC.checkBonus -= powerCut ;
       choice.add(mC) ;
     }
-    //
+    
     //  And return whatever suits the actor best-
     return choice.weightedPick() ;
   }

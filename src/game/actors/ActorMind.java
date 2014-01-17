@@ -21,19 +21,11 @@ import src.util.* ;
 //  TODO:  Create a separate 'ActorSenses' class to handle some of this stuff.
 
 
-//  Include a list of past behaviours as well, or their types?  As memories?
-
-
 public abstract class ActorMind implements Abilities {
   
   
   /**  Field definitions, constructor, save/load methods-
     */
-  final static int
-    MAX_MEMORIES  = 100,
-    MAX_RELATIONS = 100,
-    MAX_VALUES    = 100 ;
-  
   private static boolean
     reactionsVerbose = false ,
     updatesVerbose   = false ;
@@ -46,6 +38,7 @@ public abstract class ActorMind implements Abilities {
   
   final Table <Element, Session.Saveable> seen = new Table() ;
   final Table <Accountable, Relation> relations = new Table() ;
+  protected float anger, fear, solitude, libido, boredom ;
   
   protected Mission mission ;
   protected Employment home, work ;
@@ -71,6 +64,11 @@ public abstract class ActorMind implements Abilities {
       final Relation r = Relation.loadFrom(s) ;
       relations.put((Actor) r.subject, r) ;
     }
+    anger    = s.loadFloat() ;
+    fear     = s.loadFloat() ;
+    solitude = s.loadFloat() ;
+    libido   = s.loadFloat() ;
+    boredom  = s.loadFloat() ;
     
     mission = (Mission) s.loadObject() ;
     home = (Employment) s.loadObject() ;
@@ -83,6 +81,7 @@ public abstract class ActorMind implements Abilities {
   protected void saveState(Session s) throws Exception {
     s.saveObjects(agenda) ;
     s.saveObjects(todoList) ;
+    
     s.saveInt(seen.size()) ;
     for (Element e : seen.keySet()) {
       s.saveObject(e) ;
@@ -90,6 +89,11 @@ public abstract class ActorMind implements Abilities {
     }
     s.saveInt(relations.size()) ;
     for (Relation r : relations.values()) Relation.saveTo(s, r) ;
+    s.saveFloat(anger   ) ;
+    s.saveFloat(fear    ) ;
+    s.saveFloat(solitude) ;
+    s.saveFloat(libido  ) ;
+    s.saveFloat(boredom ) ;
     
     s.saveObject(mission) ;
     s.saveObject(home) ;
@@ -219,6 +223,7 @@ public abstract class ActorMind implements Abilities {
     */
   protected void updateAI(int numUpdates) {
     updateSeen() ;
+    updateDrives() ;
     if (numUpdates % 10 != 0) return ;
     //
     //  Remove any expired behaviour-sources:
@@ -695,7 +700,33 @@ public abstract class ActorMind implements Abilities {
   public boolean hasRelation(Accountable other) {
     return relations.get(other) != null ;
   }
+  
+  
+  
+  /**  Updates associated with general emotional drives.
+    */
+  //  TODO:  These might only be suitable for humans?
+  //  TODO:  Also, include evaluation of career ambitions here.
+  protected void updateDrives() {
+    float sumFriends = 0 ;
+    for (Relation r : relations.values()) {
+      sumFriends += Math.max(0, r.value()) ;
+    }
+    sumFriends /= Relation.BASE_NUM_FRIENDS ;
+    sumFriends /= actor.traits.scaleLevel(SOCIABLE) ;
+    solitude = Visit.clamp(1 - sumFriends, 0, 1) ;
+  }
+  
+  
+  public float solitude() {
+    return solitude ;
+  }
 }
+
+
+
+
+
 
 
 

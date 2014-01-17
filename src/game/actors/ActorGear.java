@@ -148,7 +148,7 @@ public class ActorGear extends Inventory implements Economy {
   public float attackDamage() {
     final Item weapon = deviceEquipped() ;
     final float brawnBonus = actor.traits.traitLevel(BRAWN) / 4 ;
-    if (weapon == null) return 2 + brawnBonus + baseDamage ;
+    if (weapon == null) return (brawnBonus / 2) + baseDamage ;
     final DeviceType type = (DeviceType) weapon.type ;
     final float damage = type.baseDamage * (weapon.quality + 2f) / 4 ;
     if (type.hasProperty(MELEE)) return damage + brawnBonus + baseDamage ;
@@ -161,12 +161,6 @@ public class ActorGear extends Inventory implements Economy {
       return actor.health.sightRange() ;
     else
       return 1 ;
-    /*
-    final Item weapon = equipment.weaponEquipped() ;
-    if (weapon == null) return 1 ;
-    final ImplementType type = (ImplementType) weapon.type ;
-    return type.baseRange ;
-    //*/
   }
   
   
@@ -199,24 +193,14 @@ public class ActorGear extends Inventory implements Economy {
     */
   public float armourRating() {
     final Item armour = outfitEquipped() ;
-    final float reflexBonus = actor.traits.traitLevel(REFLEX) / 4 ;
-    if (armour == null) return 2 + reflexBonus + baseArmour ;
+    float reflexBonus = actor.traits.traitLevel(REFLEX) / 4 ;
+    if (armour == null) return reflexBonus + baseArmour ;
+    
     final OutfitType type = (OutfitType) armour.type ;
+    reflexBonus *= (20 - type.defence) ;
     final float rating = type.defence * (armour.quality + 1) / 4 ;
-    if (type.defence <= 10) return rating + reflexBonus + baseArmour ;
-    else return rating + baseArmour ;
+    return rating + baseArmour + Math.max(0, reflexBonus) ;
   }
-  
-  /*
-  //  Armour only provides half protection against energy weapons.
-  public float afterArmour(Target threat, float damage, boolean physical) {
-    float reduction = armourRating() * Rand.num() ;
-    if (! physical) reduction /= 2 ;
-    if (reduction > damage) reduction = damage ;
-    //  TODO:  Raise possibility of damage to armour itself?
-    return damage - reduction ;
-  }
-  //*/
   
   
   /**  Shield depletion and regeneration are handled here-

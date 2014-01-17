@@ -37,7 +37,7 @@ public class Cranial extends Artilect implements Economy {
     
     gear.setDamage(15) ;
     gear.setArmour(15) ;
-    gear.equipDevice(Item.withQuality(INTRINSIC_MELEE, 0)) ;
+    gear.equipDevice(Item.withQuality(INTRINSIC_MELEE_WEAPON, 0)) ;
     traits.setLevel(HAND_TO_HAND, 5) ;
     traits.setLevel(ANATOMY, 10) ;
     traits.setLevel(ASSEMBLY, 15) ;

@@ -18,6 +18,12 @@ import src.util.* ;
 //  suspensor-persistence in general, since they're related.
 
 
+//
+//  TODO:  Only include First Aid here.  Split off other forms of treatment to
+//  a separate class, specifically intended for Sickbay employees (or possibly
+//  native Shamans.)
+
+
 public class Treatment extends Plan implements Economy {
   
   
@@ -284,6 +290,12 @@ public class Treatment extends Plan implements Economy {
   }
   
   
+  public int motionType(Actor actor) {
+    if (! patient.health.conscious()) return MOTION_FAST ;
+    return super.motionType(actor) ;
+  }
+
+
   protected float baseUrgency() {
     configFor(patient, theatre, actor == null) ;
     return treatDC * 2f / 5 ;
@@ -294,6 +306,7 @@ public class Treatment extends Plan implements Economy {
     //
     //  TODO:  Dat's racist!
     if (! (patient instanceof Human)) return false ;
+    if (theatre != null && theatre.destroyed()) return false ;
     if (type == -1 || accessory == null || result == null) return false ;
     if (GameSettings.hardCore || type == TYPE_RECONSTRUCT) {
       if (actor.gear.amountOf(accessory) >= 0.1f) return true ;
@@ -588,6 +601,7 @@ public class Treatment extends Plan implements Economy {
   
   public void describeBehaviour(Description d) {
     if (applied != null) {
+      ///if (stage == STAGE_TRANSPORT) super.describedByStep(d) ;
       if (! super.describedByStep(d)) d.append("Treating") ;
       d.append(" ") ;
       d.append(patient) ;

@@ -6,7 +6,8 @@
 
 
 package src.game.building ;
-import src.game.actors.Abilities ;
+import src.game.actors.* ;
+import src.graphics.common.* ;
 import src.game.base.* ;
 
 
@@ -109,75 +110,115 @@ public interface Economy extends Abilities {
     NONE     = 0,
     //
     //  These are properties of equipped weapons-
-    MELEE    = 1,
-    RANGED   = 2,
-    ENERGY   = 4,
-    PHYSICAL = 8,
-    STUN     = 16,
-    POISON   = 32,
+    MELEE    = 1 << 0,
+    RANGED   = 1 << 1,
+    ENERGY   = 1 << 2,
+    PHYSICAL = 1 << 3,
+    STUN     = 1 << 4,
+    POISON   = 1 << 5,
+    HOMING   = 1 << 6,
+    PLASMA   = 1 << 7,
     //
     //  These are properties of natural weapons or armour-
-    GRAPPLE      = 64,
-    CAUSTIC      = 128,
-    TRANSMORPHIC = 256,
-    ENERGY_DRAIN = 512 ;
+    GRAPPLE      = 1 << 8,
+    CAUSTIC      = 1 << 9,
+    TRANSMORPHIC = 1 << 10,
+    ENERGY_DRAIN = 1 << 12 ;
   
   
   final public static DeviceType
     
     MANIPLES = new DeviceType(BC, "Maniples",
       2, GRAPPLE | MELEE | PHYSICAL, 10,
-      new Conversion(3, PARTS, 5, ASSEMBLY),
-      "maniples"
+      new Conversion(3, PARTS, Foundry.class, 5, ASSEMBLY),
+      "maniples", Model.AnimNames.BUILD
+    ),
+    LASER_DRILL = new DeviceType(BC, "Laser Drill",
+      5, RANGED | ENERGY, 10,
+      new Conversion(2, PARTS, Foundry.class, 5, ASSEMBLY),
+      "laser drill", Model.AnimNames.BUILD
     ),
     MODUS_LUTE = new DeviceType(BC, "Modus Lute",
-      0, RANGED | STUN, 40,
-      new Conversion(1, PARTS, 10, ASSEMBLY),
-      "modus lute"
+      0, NONE, 40,
+      new Conversion(1, PARTS, Foundry.class, 10, ASSEMBLY),
+      "modus lute", Model.AnimNames.TALK_LONG
     ),
-    BICORDER = new DeviceType(BC, "Bicorder",
-      0, MELEE, 55,
-      new Conversion(2, PARTS, 15, ASSEMBLY),
-      "bicorder"
+    BIOCORDER = new DeviceType(BC, "Biocorder",
+      0, NONE, 55,
+      new Conversion(2, PARTS, Foundry.class, 15, ASSEMBLY),
+      "biocorder", Model.AnimNames.LOOK
     ),
     
     STUN_PISTOL = new DeviceType(BC, "Stun Pistol",
-      10, RANGED | PHYSICAL | STUN, 35,
-      new Conversion(1, PARTS, 10, ASSEMBLY),
-      "pistol"
+      10, RANGED | PHYSICAL | STUN | HOMING, 35,
+      new Conversion(1, PARTS, Foundry.class, 10, ASSEMBLY),
+      "pistol", Model.AnimNames.FIRE
     ),
-    PHASE_BLASTER = new DeviceType(BC, "Phase Blaster",
-      15, RANGED | ENERGY, 25,
-      new Conversion(1, PARTS, 10, ASSEMBLY),
-      "pistol"
+    BLASTER = new DeviceType(BC, "Blaster",
+      15, RANGED | ENERGY | PLASMA, 25,
+      new Conversion(1, PARTS, Foundry.class, 10, ASSEMBLY),
+      "pistol", Model.AnimNames.FIRE
     ),
-    CARVED_SPEAR = new DeviceType(BC, "Carved Spear",
-      5, RANGED | MELEE | PHYSICAL, 5,
-      new Conversion(5, ASSEMBLY),
-      "spear"
+    MISSILE_PACK = new DeviceType(BC, "Missile Pack",
+      15, RANGED | PHYSICAL | HOMING, 30,
+      new Conversion(2, PARTS, Foundry.class, 15, ASSEMBLY),
+      "shoulder", Model.AnimNames.FIRE
+    ),
+    MICROWAVE_BEAM = new DeviceType(BC, "Microwave Beam",
+      20, RANGED | ENERGY | STUN, 45,
+      new Conversion(3, PARTS, Foundry.class, 15, ASSEMBLY),
+      "shoulder", Model.AnimNames.FIRE
+    ),
+    RAIL_CANNON = new DeviceType(BC, "Rail Cannon",
+      25, RANGED | PHYSICAL, 60,
+      new Conversion(3, PARTS, Foundry.class, 20, ASSEMBLY),
+      "cannon", Model.AnimNames.FIRE
+    ),
+    DISINTEGRATOR = new DeviceType(BC, "Disintegrator",
+      30, RANGED | ENERGY, 120,
+      new Conversion(5, PARTS, Foundry.class, 25, ASSEMBLY),
+      "cannon", Model.AnimNames.FIRE
     ),
     
-    TASE_STAFF = new DeviceType(BC, "Tase Staff",
-      15, MELEE | RANGED | PHYSICAL | STUN, 40,
-      new Conversion(2, PARTS, 10, ASSEMBLY),
-      "staff"
+    JAVELIN = new DeviceType(BC, "Javelin",
+      10, RANGED | PHYSICAL, 5,
+      new Conversion(5, HANDICRAFTS),
+      "spear", Model.AnimNames.STRIKE//"staff"
+    ),
+    TOOTH_KNIFE = new DeviceType(BC, "Tooth Knife",
+      5, MELEE | PHYSICAL, 5,
+      new Conversion(5, HANDICRAFTS),
+      "light blade", Model.AnimNames.STRIKE
+    ),
+    
+    SHOCK_STAFF = new DeviceType(BC, "Shock Staff",
+      15, MELEE | PHYSICAL | STUN, 40,
+      new Conversion(2, PARTS, Foundry.class, 10, ASSEMBLY),
+      "staff", Model.AnimNames.STRIKE
     ),
     ARC_SABRE = new DeviceType(BC, "Arc Sabre",
       25, MELEE | ENERGY, 100,
-      new Conversion(3, PARTS, 15, ASSEMBLY),
-      "sabre"
+      new Conversion(3, PARTS, Foundry.class, 15, ASSEMBLY),
+      "staff", Model.AnimNames.STRIKE
+    ),
+    FIST_SHIV = new DeviceType(BC, "Fist Shiv",
+      10, MELEE | PHYSICAL, 10,
+      new Conversion(1, PARTS, Foundry.class, 0, ASSEMBLY),
+      "light blade", Model.AnimNames.STRIKE
     ),
     KONOCHE = new DeviceType(BC, "Konoche",
       20, MELEE | PHYSICAL, 45,
-      new Conversion(2, PARTS, 5, ASSEMBLY),
-      "heavy blade"
+      new Conversion(2, PARTS, Foundry.class, 5, ASSEMBLY),
+      "heavy blade", Model.AnimNames.STRIKE_BIG
     ),
     
-    INTRINSIC_MELEE = new DeviceType(
-      BC, "Intrinsic Melee", 0, MELEE | PHYSICAL, 0, null, null
+    INTRINSIC_MELEE_WEAPON = new DeviceType(
+      BC, "Intrinsic Melee Weapon", 0, MELEE | PHYSICAL, 0,
+      null, null, Model.AnimNames.STRIKE
     ),
     INTRINSIC_ENERGY_WEAPON = new DeviceType(
-      BC, "Intrinsic Energy Weapon", 0, RANGED | ENERGY, 0, null, null
+      BC, "Intrinsic Energy Weapon", 0, RANGED | ENERGY, 0,
+      null, null, Model.AnimNames.FIRE
     ) ;
   final public static Service
     ALL_IMPLEMENTS[] = Service.typesSoFar() ;
@@ -188,12 +229,16 @@ public interface Economy extends Abilities {
   final public static OutfitType
     
     OVERALLS       = new OutfitType(
-      BC, "Overalls"      , 2, 0, 50,
+      BC, "Overalls"      , 1, 0, 50,
       new Conversion(1, PLASTICS, Fabricator.class, 5, ASSEMBLY)
     ),
     FINERY         = new OutfitType(
-      BC, "Finery"        , 2, 0 , 400,
+      BC, "Finery"        , 1, 0 , 400,
       new Conversion(2, PLASTICS, Fabricator.class, 15, GRAPHIC_DESIGN)
+    ),
+    SCRAP_GEAR = new OutfitType(
+      BC, "Scrap Gear", 3, 0, 5,
+      new Conversion(0, HANDICRAFTS)
     ),
     
     CAMOUFLAGE     = new OutfitType(
@@ -209,8 +254,8 @@ public interface Economy extends Abilities {
       new Conversion(1, PLASTICS, 2, PARTS, Fabricator.class, 15, HANDICRAFTS)
     ),
     
-    SHIELD_BELT = new OutfitType(
-      BC, "Shield Belt"   , 5, 10, 50,
+    BELT_AND_BRACER = new OutfitType(
+      BC, "Belt and Bracer"   , 5, 10, 50,
       new Conversion(1, PARTS, Foundry.class, 5, ASSEMBLY)
     ),
     PARTIAL_ARMOUR = new OutfitType(
@@ -225,10 +270,11 @@ public interface Economy extends Abilities {
       BC, "Power Armour"  , 20, 10, 275,
       new Conversion(8, PARTS, Foundry.class, 20, ASSEMBLY)
     ),
-    GOLEM_ARMOUR   = new OutfitType(
-      BC, "Golem Armour"  , 25, 10, 500,
+    GOLEM_FRAME = new OutfitType(
+      BC, "Golem Frame"  , 25, 10, 500,
       new Conversion(12, PARTS, Foundry.class, 25, ASSEMBLY)
     ),
+    //  Myrmidone armour, Suspensor, Inhibitor Collar.
     
     NATURAL_ARMOUR = new OutfitType(
       BC, "Natural Armour", 0, 0, 0, null
@@ -261,16 +307,6 @@ public interface Economy extends Abilities {
       Foundry.class,
       DIFFICULT_DC, ASSEMBLY, ROUTINE_DC, INSCRIPTION, SIMPLE_DC, FIELD_THEORY
     ),
-    
-    //
-    //  Fabricator conversions-
-    /*
-    PETROCARBS_TO_PLASTICS = new Conversion(
-      1, PETROCARBS, TO, 5, PLASTICS,
-      Fabricator.class,
-      ROUTINE_DC, CHEMISTRY, ROUTINE_DC, HANDICRAFTS
-    ),
-    //*/
     
     CARBS_TO_PLASTICS = new Conversion(
       1, CARBS, TO, 2, PLASTICS,

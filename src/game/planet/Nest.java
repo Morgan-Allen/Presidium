@@ -28,12 +28,16 @@ public class Nest extends Venue {
   /**  Fields, constructors, and save/load methods-
     */
   final public static int
-    BROWSER_SEPARATION = World.SECTOR_SIZE,
+    BROWSER_SEPARATION = World.SECTOR_SIZE / 2,
+    SPECIES_SEPARATION = World.SECTOR_SIZE / 2,
     PREDATOR_SEPARATION = BROWSER_SEPARATION * 2,
+    MAX_SEPARATION  = World.SECTOR_SIZE * 2,
+    
+    BROWSING_SAMPLE = 8 ,
     BROWSER_RATIO   = 12,
     PREDATOR_RATIO  = 8 ,
+    
     MAX_CROWDING    = 10,
-    BROWSING_SAMPLE = 8 ,
     NEW_SITE_SAMPLE = 2 ,
     DEFAULT_BREED_INTERVAL = World.STANDARD_DAY_LENGTH ;
   
@@ -85,139 +89,118 @@ public class Nest extends Venue {
   
   /**  Methods for determining crowding and site placement-
     */
-  static void minSpacing(Venue homeA, Venue homeB) {
-    //  If the venues belong to different categories, keep them a minimum of
-    //  32 tiles apart.
-    
-    //  Base-associated structures can go wherever.
-    
-    //  Animal nests should be at least 16 tiles away from the same species,
-    //  or 8 if it's a different species.  These gaps are doubled for predatory
-    //  species.
-    
-    //  Native huts, and ancient ruins, can occur in clusters.  But those
-    //  clusters should be spaced a minimum of 32 tiles apart.
+  static int minSpacing(Venue nest, Venue other, Species species) {
+    final Species OS = (other instanceof Nest) ?
+      ((Nest) other).species : null ;
+    int spacing = (species.browser() && OS != null && OS.browser()) ?
+      BROWSER_SEPARATION : PREDATOR_SEPARATION ;
+    if (species == OS) spacing += SPECIES_SEPARATION ;
+    return spacing ;
   }
   
   
-  private static boolean occupied(Nest n) {
-    return n.personnel.residents().size() > 0 ;
-  }
-  
-  
-  private static int idealBrowserPop(
-    Target lair, Species species, World world
-  ) {
-    final boolean reports = verbose && I.talkAbout == lair ;
-    //
-    //  Firstly, ensure there is no other lair within lair placement range.
-    final int range = BROWSER_SEPARATION ;
-    int numLairsNear = 0, alikeLairs = 0 ;
-    for (Object o : world.presences.matchesNear(Nest.class, lair, range * 2)) {
-      final Nest l = (Nest) o ;
-      if (l == lair || ! occupied(l)) continue ;
-      numLairsNear++ ;
-      if (l.species == species) {
-        if (Spacing.distance(l, lair) < range) return -1 ;
-        alikeLairs++ ;
-      }
-      else if (Spacing.distance(l, lair) < range / 2) return -1 ;
-    }
-    //
-    //  Secondly, sample the fertility & biomass of nearby terrain (within half
-    //  of lair placement range.)  (We average with presumed default growth
-    //  levels for local flora.)
-    float avg = 0 ;
-    final Tile o = world.tileAt(lair) ;
+  //  TODO:  Consider using a brute-force flood-fill for sampling during
+  //  initial setup.
+  //  TODO:  Also, consider making this a general 'food sampling' method that
+  //  subclasses could override in an arbitrary way?
+  private static float sampleFertility(Tile point) {
+    final int range = BROWSER_SEPARATION * 2 ;// + (SPECIES_SEPARATION / 2) ;
+    float fertility = 0 ;
     int numSamples = BROWSING_SAMPLE ; while (numSamples-- > 0) {
-      final Tile t = world.tileAt(
-        o.x + Rand.range(-range, range),
-        o.y + Rand.range(-range, range)
+      final Tile t = point.world.tileAt(
+        point.x + Rand.range(-range, range),
+        point.y + Rand.range(-range, range)
       ) ;
       if (t == null) continue ;
       final Habitat h = t.habitat() ;
       if (h.isOcean || h.isWaste) continue ;
       else {
         final float moisture = Visit.clamp((h.moisture - 2) / 10f, 0, 1) ;
-        avg += moisture / 4f ;
+        fertility += moisture / 4f ;
         if (t.owner() instanceof Flora) {
           final Flora f = (Flora) t.owner() ;
-          avg += (f.growStage() + 0.5f) * moisture / 1.5f ;
+          fertility += (f.growStage() + 0.5f) * moisture / 1.5f ;
         }
       }
     }
-    avg /= BROWSING_SAMPLE ;
-    if (reports) I.say("\nFinding ideal browser population at "+lair) ;
-    if (reports) I.add("  Average fertility at "+lair+" is "+avg) ;
-    avg *= range * range ;
-    if (reports) I.add(", total: "+avg+"\n") ;
-    //
-    //  Then return the correct number of inhabitants for the location-
-    float adultMass = species.baseBulk * species.baseSpeed ;
-    float rarity = 1f - (alikeLairs / (numLairsNear + 1)) ;
-    float idealPop = (avg * rarity) / (adultMass * BROWSER_RATIO) ;
-    if (reports) I.say("  Ideal population is: "+idealPop) ;
-    return (int) (idealPop + 0.5f) ;
+    return fertility * (range * range) / BROWSING_SAMPLE ;
   }
   
   
-  private static float idealPredatorPop(
-    Target lair, Species species, World world
+  private static int idealPopulation(
+    Venue nest, Species species, World world
   ) {
-    final boolean reports = verbose && I.talkAbout == lair ;
+    final boolean reports = verbose && I.talkAbout == nest ;
     //
-    //  Sample the lairs within hunting range, ensure there are no other
-    //  predator lairs in that area, and tally the total of available prey.
-    final int range = PREDATOR_SEPARATION ;
-    int numLairsNear = 0, alikeLairs = 0 ;
-    float totalPreyMass = 0 ;
-    //
-    //  TODO:  Since separation requirements ought, ideally, to be symmetric,
-    //  consider putting them in a single reference function?
-    for (Object o : world.presences.matchesNear(Nest.class, lair, range)) {
-      final Nest l = (Nest) o ;
-      if (l == lair || ! occupied(l)) continue ;
-      if (l.species.type == Species.Type.PREDATOR) {
-        if (Spacing.distance(lair, l) < range) return -1 ;
-      }
-      else for (Actor a : l.personnel.residents()) {
-        totalPreyMass += l.species.baseBulk * l.species.baseSpeed * 10 / 2f ;
+    //  Firstly, ensure there is no other lair within lair placement range.
+    //final int range = minSpacing(null, spot, species) * 2 ;
+    final int range = MAX_SEPARATION ;
+    int numLairsNear = 0 ;
+    float alikeLairs = 0 ;
+    float preySupply = 0 ;
+    for (Object o : world.presences.matchesNear(Venue.class, nest, range)) {
+      final Venue v = (Venue) o ;
+      final List <Actor> living = v.personnel.residents() ;
+      if (v == nest || living.size() == 0) continue ;
+      
+      final int spacing = minSpacing(nest, v, species) ;
+      if (reports) I.say("Minimum spacing from "+v+" is "+spacing) ;
+      if (Spacing.distance(nest, v) < spacing) return -1 ;
+      
+      float alike = 0 ;
+      for (Actor a : living) {
+        if (a.species() == species) alike++ ;
+        if (a.species().browser()) preySupply += a.species().metabolism() ;
       }
       numLairsNear++ ;
-      if (l.species == species) alikeLairs++ ;
+      alikeLairs += alike / living.size() ;
+    }
+    //
+    //  Secondly, sample the fertility & biomass of nearby terrain (within half
+    //  of lair placement range.)  (We average with presumed default growth
+    //  levels for local flora.)
+    final float fertility = sampleFertility(world.tileAt(nest)) ;
+    if (reports) I.say("\nFinding ideal browser population at "+nest) ;
+    if (reports) I.add("  Total fertility at "+nest+" is "+fertility) ;
+    //
+    //  Then return the correct number of inhabitants for the location-
+    float foodSupply, ratio ;
+    if (species.browser()) {
+      foodSupply = fertility ;
+      ratio = BROWSER_RATIO ;
+    }
+    else if (species.predator()) {
+      foodSupply = preySupply ;
+      ratio = PREDATOR_RATIO ;
+    }
+    else {
+      foodSupply = fertility + preySupply / 2f ;
+      ratio = BROWSER_RATIO + PREDATOR_RATIO / 2f ;
     }
     
-    //
-    //  TODO:  TO ALLOW PROPERLY FOR RARITY EFFECTS, YOU'LL HAVE TO SAMPLE OUT
-    //  TO TWICE NORMAL HUNTING RANGE!
-    
-    if (reports) I.say("Total prey biomass: "+totalPreyMass) ;
-    final float rarity = 1f - (alikeLairs / (numLairsNear + 1)) ;
-    float adultMass = species.baseBulk * species.baseSpeed ;
-    if (reports) I.say("Adult biomass: "+adultMass) ;
-    float idealPop = (totalPreyMass * rarity) / (adultMass * PREDATOR_RATIO) ;
-    if (reports) I.say("Ideal population: "+idealPop) ;
+    final float
+      metabolism = species.metabolism(),
+      rarity = 1f - (alikeLairs / (numLairsNear + 1)),
+      idealPop = (foodSupply * rarity) / (metabolism * ratio) ;
+    if (reports) I.say("  Ideal population is: "+idealPop) ;
     return (int) (idealPop - 0.5f) ;
   }
   
   
   public static float idealNestPop(
-    Species species, Target site, World world, boolean cached
+    Species species, Venue site, World world, boolean cached
   ) {
     final Nest nest = (cached && site instanceof Nest) ?
       (Nest) site : null ;
     if (nest != null && nest.idealPopEstimate != -1) {
       return nest.idealPopEstimate ;
     }
-    float idealPop = 0 ; for (int n = NEW_SITE_SAMPLE ; n-- > 0 ;) {
-      if (species.predator()) {
-        idealPop += idealPredatorPop(site, species, world) ;
-      }
-      else {
-        idealPop += idealBrowserPop(site, species, world) ;
-      }
+    //  TODO:  Repeating the sample has no particular benefit in the case of
+    //  predator nests, and is still unreliable in the case of browser nests.
+    //  Consider doing a brute-force flood-fill check instead?
+    float estimate = 0 ; for (int n = NEW_SITE_SAMPLE ; n-- > 0 ;) {
+      estimate += idealPopulation(site, species, world) / NEW_SITE_SAMPLE ;
     }
-    final float estimate = idealPop / NEW_SITE_SAMPLE ;
     if (nest != null && nest.idealPopEstimate == -1) {
       nest.idealPopEstimate = estimate ;
     }

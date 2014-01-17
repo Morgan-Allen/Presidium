@@ -285,7 +285,7 @@ public class Background implements Economy, Session.Saveable {
       PRACTICED, HAND_TO_HAND, MARKSMANSHIP,
       NOVICE, SURVEILLANCE, ASSEMBLY, HARD_LABOUR, SHIELD_AND_ARMOUR,
       SOMETIMES, DUTIFUL, AGGRESSIVE, RARELY, NERVOUS, FEMININE,
-      TASE_STAFF, PHASE_BLASTER, PARTIAL_ARMOUR
+      SHOCK_STAFF, BLASTER, PARTIAL_ARMOUR
     ),
     
     TECH_RESERVE = new Background(
@@ -294,7 +294,7 @@ public class Background implements Economy, Session.Saveable {
       PRACTICED, HARD_LABOUR, ASSEMBLY,
       NOVICE, ANATOMY, PHARMACY, MARKSMANSHIP,
       RARELY, SOCIABLE, SOMETIMES, HONOURABLE,
-      STUN_PISTOL, SHIELD_BELT
+      STUN_PISTOL, BELT_AND_BRACER
     ),
     
     SCOUT = new Background(
@@ -303,7 +303,7 @@ public class Background implements Economy, Session.Saveable {
       PRACTICED, MARKSMANSHIP, SURVEILLANCE, STEALTH_AND_COVER,
       NOVICE, XENOZOOLOGY, ATHLETICS, HAND_TO_HAND,
       RARELY, NERVOUS, SOMETIMES, INQUISITIVE,
-      PHASE_BLASTER, CAMOUFLAGE
+      BLASTER, CAMOUFLAGE
     ),
     
     VETERAN = new Background(
@@ -312,7 +312,7 @@ public class Background implements Economy, Session.Saveable {
       EXPERT, HAND_TO_HAND, MARKSMANSHIP, PRACTICED, SURVEILLANCE,
       FORMATION_COMBAT, COMMAND, SHIELD_AND_ARMOUR, BATTLE_TACTICS,
       OFTEN, DUTIFUL, SOMETIMES, STUBBORN, AMBITIOUS, NEVER, NERVOUS,
-      TASE_STAFF, PHASE_BLASTER, BODY_ARMOUR
+      SHOCK_STAFF, BLASTER, BODY_ARMOUR
     ),
     
     MILITARY_CIRCLES[] = { VOLUNTEER, TECH_RESERVE, SCOUT, VETERAN }
@@ -404,7 +404,7 @@ public class Background implements Economy, Session.Saveable {
       EXPERT, PILOTING, MARKSMANSHIP, STEALTH_AND_COVER,
       PRACTICED, SUASION, SURVEILLANCE, MASQUERADE,
       OFTEN, ACQUISITIVE, SOMETIMES, NERVOUS, RARELY, HONOURABLE,
-      PHASE_BLASTER, CAMOUFLAGE
+      BLASTER, CAMOUFLAGE
     ),
     COMPANION = new Background(
       "Companion", "aesthete_female_skin.gif", "aesthete_portrait.png",
@@ -442,7 +442,8 @@ public class Background implements Economy, Session.Saveable {
       EXPERT, SURVEILLANCE, STEALTH_AND_COVER,
       PRACTICED, MARKSMANSHIP, XENOZOOLOGY, ATHLETICS,
       NOVICE, HAND_TO_HAND, HANDICRAFTS, MASQUERADE,
-      SOMETIMES, NATURALIST
+      SOMETIMES, NATURALIST,
+      TOOTH_KNIFE, JAVELIN
     ),
     MUTANT_PARIAH = new Background(
       "Mutant Pariah", "native_skin.gif", null,
@@ -457,7 +458,8 @@ public class Background implements Economy, Session.Saveable {
       MIDDLE_CLASS, NOT_A_GUILD,
       EXPERT, HANDICRAFTS, PRACTICED, DOMESTICS,
       NOVICE, ANCIENT_LORE, ASSEMBLY, COMMON_CUSTOM,
-      ALWAYS, ACQUISITIVE, OPTIMISTIC, RARELY, NATURALIST
+      ALWAYS, ACQUISITIVE, OPTIMISTIC, RARELY, NATURALIST,
+      SCRAP_GEAR
     ),
     SHAMAN = new Background(
       "Shaman", "native_skin.gif", null,
@@ -471,7 +473,8 @@ public class Background implements Economy, Session.Saveable {
       UPPER_CLASS, NOT_A_GUILD,
       EXPERT, NATIVE_TABOO, COMMAND, SUASION, MARKSMANSHIP,
       PRACTICED, HAND_TO_HAND, BATTLE_TACTICS,
-      RARELY, NERVOUS, OFTEN, TRADITIONAL
+      RARELY, NERVOUS, OFTEN, TRADITIONAL,
+      TOOTH_KNIFE, JAVELIN, SCRAP_GEAR
     ),
     
     NATIVE_CIRCLES[] = {

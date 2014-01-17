@@ -15,9 +15,15 @@ public class DeviceType extends Service implements Economy {
   
   /**  Data fields, property accessors-
     */
-  final static Texture
-    LASER_BEAM_TEX  = Texture.loadTexture("media/SFX/laser_beam.gif" ),
-    LASER_BURST_TEX = Texture.loadTexture("media/SFX/laser_burst.png") ;
+  final static ShotFX.Model
+    LASER_FX_MODEL = new ShotFX.Model(
+      "laser_beam_fx", DeviceType.class,
+      "media/SFX/blast_beam.gif", 0.05f, 0, 0.05f, 3, true
+    ),
+    SPEAR_FX_MODEL = new ShotFX.Model(
+      "spear_fx", DeviceType.class,
+      "media/SFX/spear_throw.gif", 0.1f, 0.33f, 0.06f, 1.2f, false
+    ) ;
   final static PlaneFX.Model
     SLASH_FX_MODEL = new PlaneFX.Model(
       "slash_fx", DeviceType.class,
@@ -25,7 +31,7 @@ public class DeviceType extends Service implements Economy {
     ),
     LASER_BURST_MODEL = new PlaneFX.Model(
       "laser_burst_fx", DeviceType.class,
-      "media/SFX/laser_burst.png", 1.0f, 0, 0, true
+      "media/SFX/laser_burst.png", 0.75f, 0, 0, true
     ) ;
   
   
@@ -33,14 +39,14 @@ public class DeviceType extends Service implements Economy {
   final public int properties ;
   final Conversion materials ;
   
-  final public String groupName ;
+  final public String groupName, animName ;
   
   
   DeviceType(
     Class baseClass, String name,
     float baseDamage, int properties,
     int basePrice, Conversion materials,
-    String groupName
+    String groupName, String animName
   ) {
     super(
       baseClass, FORM_DEVICE, name,
@@ -50,6 +56,7 @@ public class DeviceType extends Service implements Economy {
     this.properties = properties ;
     this.materials = materials ;
     this.groupName = groupName ;
+    this.animName = animName ;
   }
   
   
@@ -78,6 +85,10 @@ public class DeviceType extends Service implements Economy {
   }
   
   
+  //
+  //  TODO:  Move all weapon/armour types to a dedicated interface listing and
+  //  customise their SFX there.
+  
   public static void applyFX(
     DeviceType type, Mobile uses, Target applied, boolean hits
   ) {
@@ -92,31 +103,39 @@ public class DeviceType extends Service implements Economy {
       world.ephemera.addGhost(uses, r, slashFX, 0.33f) ;
     }
     else if (type.hasProperty(RANGED | PHYSICAL)) {
-      //  You'll have to create a missile effect, with similar parameters.
-      //
-      //  TODO:  IMPLEMENT THAT
-    }
-    else if (type.hasProperty(RANGED | ENERGY)) {
-      //
-      //  Otherwise, create an appropriate 'beam' FX-
-      final BeamFX beam = new BeamFX(LASER_BEAM_TEX, 0.05f) ;
       
-      uses.position(beam.origin) ;
+      //  You'll have to create a missile effect, with similar parameters.
+      final ShotFX shot = (ShotFX) SPEAR_FX_MODEL.makeSprite() ;
+      
       final JointSprite sprite = (JointSprite) uses.sprite() ;
       uses.viewPosition(sprite.position) ;
-      beam.origin.setTo(sprite.attachPoint("fire")) ;
-      beam.target.setTo(hitPoint(applied, hits)) ;
+      shot.origin.setTo(sprite.attachPoint("fire")) ;
+      shot.target.setTo(hitPoint(applied, hits)) ;
       
-      beam.position.setTo(beam.origin).add(beam.target).scale(0.5f) ;
-      final float size = beam.origin.sub(beam.target, null).length() / 2 ;
-      world.ephemera.addGhost(null, size + 1, beam, 0.33f) ;
+      shot.position.setTo(shot.origin).add(shot.target).scale(0.5f) ;
+      final float size = shot.origin.sub(shot.target, null).length() / 2 ;
+      world.ephemera.addGhost(null, size + 1, shot, 1) ;
+    }
+    else if (type.hasProperty(RANGED | ENERGY)) {
+      
+      //  Otherwise, create an appropriate 'beam' FX-
+      final ShotFX shot = (ShotFX) LASER_FX_MODEL.makeSprite() ;
+      
+      final JointSprite sprite = (JointSprite) uses.sprite() ;
+      uses.viewPosition(sprite.position) ;
+      shot.origin.setTo(sprite.attachPoint("fire")) ;
+      shot.target.setTo(hitPoint(applied, hits)) ;
+      
+      shot.position.setTo(shot.origin).add(shot.target).scale(0.5f) ;
+      final float size = shot.origin.sub(shot.target, null).length() / 2 ;
+      world.ephemera.addGhost(null, size + 1, shot, 0.66f) ;
       
       final Sprite
         BO = LASER_BURST_MODEL.makeSprite(),
         BT = LASER_BURST_MODEL.makeSprite() ;
-      BO.position.setTo(beam.origin) ;
-      BT.position.setTo(beam.target) ;
-      world.ephemera.addGhost(null, 1, BO, 0.66f) ;
+      BO.position.setTo(shot.origin) ;
+      BT.position.setTo(shot.target) ;
+      //world.ephemera.addGhost(null, 1, BO, 0.66f) ;
       world.ephemera.addGhost(null, 1, BT, 0.66f) ;
     }
   }

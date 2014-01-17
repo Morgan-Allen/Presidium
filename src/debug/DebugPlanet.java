@@ -79,7 +79,7 @@ public class DebugPlanet extends Scenario {
     TG.setupOutcrops(world) ;
     final EcologyGen EG = new EcologyGen(world, TG) ;
     EG.populateFlora() ;
-    EG.populateFauna(Species.VAREEN, Species.QUUD, Species.MICOVORE) ;
+    EG.populateFauna(Species.HAREEN, Species.QUD, Species.LICTOVORE) ;
     
     return world ;
   }

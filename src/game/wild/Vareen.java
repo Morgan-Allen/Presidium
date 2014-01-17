@@ -30,7 +30,7 @@ public class Vareen extends Fauna {
   
   
   public Vareen() {
-    super(Species.VAREEN) ;
+    super(Species.HAREEN) ;
   }
   
   

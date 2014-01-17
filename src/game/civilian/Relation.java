@@ -35,7 +35,7 @@ public class Relation {
   //*/
   
   
-  final static int
+  final public static int
     MIN_ATTITUDE  = -100,
     MAX_ATTITUDE  =  100,
     ATTITUDE_SPAN =  MAX_ATTITUDE - MIN_ATTITUDE,

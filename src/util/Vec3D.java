@@ -6,6 +6,8 @@
 
 package src.util ;
 import java.io.* ;
+import org.apache.commons.math3.util.FastMath ;
+
 
 
 /**  3-dimensional Vector class, also used for points by differing methods.
@@ -172,7 +174,7 @@ public class Vec3D {
     */
   public Vec3D normalise(Vec3D result) {
     if (result == null) result = new Vec3D() ;
-    float l = (float)(Math.sqrt((x * x) + (y * y) + (z * z))) ;
+    float l = (float) (FastMath.sqrt((x * x) + (y * y) + (z * z))) ;
     if (l > 0) scale(1 / l, result) ;
     return result ;
   }
@@ -188,7 +190,7 @@ public class Vec3D {
   /**  Returns the length of this vector.
     */
   public float length() {
-    return (float) (Math.sqrt((x * x) + (y * y) + (z * z))) ;
+    return (float) (FastMath.sqrt((x * x) + (y * y) + (z * z))) ;
   }
   
   
@@ -196,12 +198,13 @@ public class Vec3D {
     */
   public float distance(Vec3D v) {
     final float dX = x - v.x, dY = y - v.y, dZ = z - v.z ;
-    return (float) (Math.sqrt((dX * dX) + (dY * dY) + (dZ * dZ))) ;
+    return (float) (FastMath.sqrt((dX * dX) + (dY * dY) + (dZ * dZ))) ;
   }
+  
   
   public float distance(float vX, float vY, float vZ) {
     final float dX = x - vX, dY = y - vY, dZ = z - vZ ;
-    return (float) (Math.sqrt((dX * dX) + (dY * dY) + (dZ * dZ))) ;
+    return (float) (FastMath.sqrt((dX * dX) + (dY * dY) + (dZ * dZ))) ;
   }
   
   

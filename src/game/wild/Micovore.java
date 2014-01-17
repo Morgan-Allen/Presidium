@@ -23,7 +23,7 @@ public class Micovore extends Fauna implements Economy {
   /**  Constructors, setup and save/load methods-
     */
   public Micovore() {
-    super(Species.MICOVORE) ;
+    super(Species.LICTOVORE) ;
   }
   
   
